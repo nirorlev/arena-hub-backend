@@ -1,0 +1,28 @@
+package com.threeatom.guidecore.mapper;
+
+import java.util.List;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import org.apache.ibatis.annotations.Param;
+
+/**
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author qiaoxide
+ * @since 2019-12-11
+ */
+public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
+	
+	List<GcUserSaveFolder> selectFolderForUserMaster(Integer userId, Integer masterId,List<Integer> folderIdList,List<Integer> myFolderIdList,String playListName);
+
+	List<GcUserSaveFolder> getPtNewHomePlayList(Integer userId, Integer masterId,List<Integer> folderIdList,List<Integer> myFolderIdList);
+
+	List<GcUserSaveFolder> selectFolderAllVideo(Integer userId, Integer masterId,List<Integer> folderIdList,List<Integer> myFolderIdList);
+
+	Integer selectFolderByIdsAndUser(@Param("folderIds") List<Integer> folderIds,@Param("userId") Integer userId);
+
+	GcUserSaveFolder getPlayListMetaConfig(@Param("folderId")Integer folderId,@Param("fileId")Integer fileId);
+}

@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcAccessMapper">
+
+   <resultMap id="baseResultMap" type="GcAccess">
+   	 <id property="id" column="id"/>
+	 <result property="masterId" column="master_id"  />
+	 <result property="roleType" column="role_type"  />
+	 <result property="adminId" column="admin_id"  />
+	   <result property="parentCode" column="parent_code"/>
+	 <result property="code" column="code"  />
+	   <result property="subjectNum" column="subjectNum"/>
+	   <result property="channelNum" column="channelNum"/>
+	   <result property="subscribeJson" column="subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+	   <result property="roleJson" column="roleJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	 <result property="subjectJson" column="subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	   <result property="packageDescription" column="package_description"  />
+	   <result property="packageAdditionalCourseInformation" column="package_additional_course_information"  />
+	   <result property="packageName" column="package_name"  />
+	   <result property="packageShowFlag" column="package_show_flag"  />
+	   <result property="packageVideoFileId" column="package_video_file_id"  />
+	   <result property="packageImgId" column="package_img_id"  />
+	   <result property="packagePricePeriod" column="package_price_period" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	 <result property="updateTime" column="update_time"  />
+	 <result property="createTime" column="create_time"  />
+	   <result property="packageBadgeFlag" column="package_badge_flag"  />
+	   <result property="packageBadgeContent" column="package_badge_content"  />
+		<result property="mustSubjectJson" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	   <result property="maySubjectJson" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	   <result property="channelJson" column="channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="groupName" column="group_name"/>
+	   <association property="packageImgFile" column="package_img_file" javaType="SysFile">
+		   <id property="id" column="img_id"/>
+		   <result property="name" column="img_name"/>
+		   <result property="fileUrl" column="img_file_url"/>
+		   <result property="saveType" column="img_save_type"/>
+		   <result property="fileTypeIndex" column="img_file_type_index"/>
+		   <result property="fileType" column="fileType"/>
+	   </association>
+	   <association property="packageVideoFile" column="package_video_file_id" javaType="SysFile">
+		   <id property="id" column="video_img_id"/>
+		   <result property="name" column="video_img_name"/>
+		   <result property="fileUrl" column="video_img_file_url"/>
+		   <result property="saveType" column="video_img_save_type"/>
+		   <result property="fileTypeIndex" column="video_img_file_type_index"/>
+		   <result property="fileType" column="video_fileType"/>
+	   </association>
+
+	   <association property="user" column="user_id" javaType="GcUser">
+		   <id property="id" column="u_id"/>
+		   <result property="infoId" column="info_id"/>
+		   <association property="info" column="id" javaType="GcUserInfo">
+			   <id property="id" column="info_id"/>
+			   <result property="lastName" column="lastName"/>
+			   <result property="firstName" column="firstName"/>
+			   <result property="avatarFileId" column="avatarFileId"/>
+			   <association property="avatarFile" column="avatarFile" javaType="SysFile">
+				   <id property="id" column="f_id"/>
+				   <result property="name" column="f_name"/>
+				   <result property="fileUrl" column="f_file_url"/>
+				   <result property="saveType" column="f_save_type"/>
+			   </association>
+		   </association>
+	   </association>
+   </resultMap>
+
+
+	<resultMap id="baseResultVoMap" type="GcAccess">
+		<id property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="roleType" column="role_type"  />
+		<result property="adminId" column="admin_id"  />
+		<result property="code" column="code"  />
+		<result property="subjectNum" column="subjectNum"/>
+		<result property="channelNum" column="channelNum"/>
+		<result property="roleJson" column="roleJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="subjectJson" column="subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="packageDescription" column="package_description"  />
+		<result property="packageAdditionalCourseInformation" column="package_additional_course_information"  />
+		<result property="packageName" column="package_name"  />
+		<result property="packageShowFlag" column="package_show_flag"  />
+		<result property="packageVideoFileId" column="package_video_file_id"  />
+		<result property="packageImgId" column="package_img_id"  />
+		<result property="packagePricePeriod" column="package_price_period" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="updateTime" column="update_time"  />
+		<result property="createTime" column="create_time"  />
+		<result property="packageBadgeFlag" column="package_badge_flag"  />
+		<result property="packageBadgeContent" column="package_badge_content"  />
+		<result property="mustSubjectJson" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="maySubjectJson" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="channelJson" column="channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+		<result property="groupName" column="group_name"/>
+		<association property="packageImgFile" column="package_img_file" javaType="SysFile">
+			<id property="id" column="img_id"/>
+			<result property="name" column="img_name"/>
+			<result property="fileUrl" column="img_file_url"/>
+			<result property="saveType" column="img_save_type"/>
+			<result property="fileTypeIndex" column="img_file_type_index"/>
+			<result property="fileType" column="fileType"/>
+		</association>
+		<association property="packageVideoFile" column="package_video_file_id" javaType="SysFile">
+			<id property="id" column="video_img_id"/>
+			<result property="name" column="video_img_name"/>
+			<result property="fileUrl" column="video_img_file_url"/>
+			<result property="saveType" column="video_img_save_type"/>
+			<result property="fileTypeIndex" column="video_img_file_type_index"/>
+			<result property="fileType" column="video_fileType"/>
+		</association>
+
+		<collection property="users" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcUser">
+			<id property="id" column="u_id"/>
+			<result property="infoId" column="info_id"/>
+			<association property="info" column="id" javaType="GcUserInfo">
+				<id property="id" column="info_id"/>
+				<result property="lastName" column="lastName"/>
+				<result property="firstName" column="firstName"/>
+				<result property="avatarFileId" column="avatarFileId"/>
+				<result property="username" column="username"/>
+				<association property="avatarFile" column="avatarFile" javaType="SysFile">
+					<id property="id" column="f_id"/>
+					<result property="name" column="f_name"/>
+					<result property="fileUrl" column="f_file_url"/>
+					<result property="saveType" column="f_save_type"/>
+				</association>
+			</association>
+		</collection>
+
+	</resultMap>
+
+    <insert id="insertOrUpdateList" useGeneratedKeys="true" keyColumn="id" keyProperty="id" >
+		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,subject_json,must_subject_json,may_subject_json,update_time)
+		VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+		 (#{item.id},#{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
+		  #{item.groupName},
+		  #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+		  #{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+		  #{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+		  now())
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		master_id = values(master_id),
+		role_type = values(role_type),
+		admin_id = values(admin_id),
+		code = values(code),
+		subject_json = values(subject_json),
+		group_name = values(group_name),
+		must_subject_json = values(must_subject_json),
+		may_subject_json = values(may_subject_json),
+		create_time = now()
+	</insert>
+	<insert id="insertOrUpdateChannel">
+		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,channel_json,subscribe_json,subject_json,update_time)
+		VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+			(#{item.id},#{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
+			#{item.groupName},
+			#{item.channelJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+			#{item.subscribeJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+			 #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+			now())
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		master_id = values(master_id),
+		role_type = values(role_type),
+		admin_id = values(admin_id),
+		code = values(code),
+		subject_json = values(subject_json),
+		group_name = values(group_name),
+		channel_json = values(channel_json),
+		subscribe_json = values(subscribe_json),
+		create_time = now()
+	</insert>
+
+    <select id="getALlAccessCodeNumsByMasterId" resultType="Map">
+        select
+        COUNT(if(role_type=0,TRUE,NULL)) as adminNum,
+        COUNT(if(role_type=1,TRUE,NULL)) as userNum,
+        COUNT(if(code_type=1,TRUE,NULL)) as subjectAdminNum
+        FROM gc_access
+        WHERE master_id=#{masterId}
+    </select>
+
+
+    <sql id="baseColumn">
+	   a.id, a.master_id, a.role_type, a.admin_id, a.code, a.subject_json, a.update_time, a.create_time
+	</sql>
+
+    <select id="listContainsSub" resultMap="baseResultMap" >
+	   SELECT
+	   <include refid="baseColumn" />
+	   FROM gc_access a
+	   where master_id=#{masterId} and json_contains(subject_json,CONCAT('',#{subjectId},''))
+	</select>
+
+	<select id="getAllPackage" resultMap="baseResultMap" >
+		SELECT a.*,s.id as img_id, s.name as img_name, s.file_url as  img_file_url,
+			   s.save_type as img_save_type, s.file_type_index as img_file_type_index,s.file_type as fileType
+		FROM gc_access a
+				left join sys_file s on s.id = a.package_img_id
+		where a.package_name is not null and a.master_id=#{masterId} and a.package_show_flag!=#{showFlag}
+		<if test="null!=packageIdList and packageIdList.size != 0">
+			AND a.id IN
+			<foreach item="packageId" collection="packageIdList" open="(" separator="," close=")">
+				#{packageId}
+			</foreach>
+		</if>
+		<if test="null!=idList and idList.size != 0">
+			AND a.id not IN
+			<foreach item="subscriptionId" collection="idList" open="(" separator="," close=")">
+				#{subscriptionId}
+			</foreach>
+		</if>
+		order by a.`order`
+	</select>
+	<select id="selectAllPackage"  resultMap="baseResultMap">
+		SELECT a.*,s.id as img_id, s.name as img_name, s.file_url as  img_file_url,
+			   s.save_type as img_save_type, s.file_type_index as img_file_type_index,s.file_type as fileType FROM gc_access a
+				left join sys_file s on s.id = a.package_img_id
+		where a.package_name is not null and a.master_id=#{masterId}
+		order by a.order
+	</select>
+
+	<select id="getTeamAccessList"  resultMap="baseResultMap">
+		select * from gc_access ac
+		left join gc_user_access ua on ac.id = ua.access_id and ua.user_id = #{userId}
+		where ac.master_id = #{masterId}
+		and ac.group_name is not null
+		and ua.user_id = #{userId}
+	</select>
+
+	<select id="listAccess" resultMap="baseResultMap" >
+		select * from gc_access ac
+		left join gc_user_access ua on ac.id = ua.access_id and ua.user_id = #{userId}
+		where ua.master_id = #{masterId}
+		and ac.group_name is not null
+		and ua.user_id = #{userId}
+		and (ua.role_json like concat('%','groupAdmin','%')
+		    or
+		    ua.role_json like concat('%','orgAdmin','%')
+		)
+		<if test="name!=null">
+			and ac.group_name like concat('%',#{name},'%')
+		</if>
+	</select>
+	<select id="selectAccessByCodeAndMasterId" resultMap="baseResultMap">
+		select * from gc_access
+		where master_id = #{masterId}
+		<if test="null!=list and list.size() != 0">
+			AND code IN
+			<foreach item="code" collection="list" open="(" separator="," close=")">
+				#{code}
+			</foreach>
+		</if>
+
+	</select>
+    <select id="listAllAccess" resultMap="baseResultVoMap">
+		select * from (
+		select JSON_LENGTH(subject_json) as subjectNum,ifnull(JSON_LENGTH(subscribe_json),0) as channelNum,ac.*
+		,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
+		ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId,
+		u.username as username
+		from gc_access ac
+		left join  gc_user_access ua on ua.access_id = ac.id
+		left join gc_user u on u.id = ua.user_id
+		left join gc_user_info ui on u.info_id = ui.id
+		left join sys_file f on ui.avatar_file_id=f.id
+		where ac.master_id = #{query.masterId}
+	  <if test="query.userId != null and query.userId != ''">
+		and u.id = #{query.userId}
+	  </if>
+		and (ua.role_json like concat('%','Admin','%')
+		or ua.role_json like concat('%','superadmin','%')
+		)
+		<if test="query.name != null and query.name != ''">
+			and group_name like concat('%',#{query.name},'%')
+		</if>
+		) as b
+		where 1=1
+		<if test="query.orderType !=null and query.orderType != ''">
+			<if test="query.orderType == 'channel'">
+				order by b.channelNum ${query.order}
+			</if>
+			<if test="query.orderType == 'subject'">
+				order by b.subjectNum ${query.order}
+			</if>
+			<if test="query.orderType == 'contentGroup'">
+				order by b.group_name ${query.order}
+			</if>
+		</if>
+	</select>
+    <select id="getAccessBySubjectId" resultType="com.threeatom.guidecore.entity.GcAccess">
+		select * from gc_access
+		where 1=1
+		and master_id = #{masterId}
+		and JSON_CONTAINS(subject_json, CONVERT(#{id}, CHAR)) = 1
+	</select>
+	<select id="getAccessByChannelId" resultType="com.threeatom.guidecore.entity.GcAccess">
+		select * from gc_access
+		where 1=1
+		  and master_id = #{masterId}
+		  and (JSON_CONTAINS(channel_json, CONVERT(#{id}, CHAR)) = 1
+		      or
+			   JSON_CONTAINS(subscribe_json, CONVERT(#{id}, CHAR)) = 1
+		      )
+	</select>
+    <select id="getContainsAccessList" resultMap="baseResultMap">
+			select * from gc_access
+			where (JSON_CONTAINS(channel_json, #{ptId}) or JSON_CONTAINS(subscribe_json,#{ptId}))
+			and master_id = #{masterId}
+	</select>
+	<select id="selectAccessByIds" resultMap="baseResultMap">
+		select * from gc_access
+		where id in
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</select>
+	<select id="selectAccessBySubId" resultMap="baseResultMap">
+		select * from gc_access
+		where 1=1
+		and master_id = #{masterId}
+		and (JSON_CONTAINS(subject_json, #{subId}) or JSON_CONTAINS(must_subject_json,#{subId}) or JSON_CONTAINS(may_subject_json,#{subId}))
+	</select>
+	<select id="getAllAccessByMasterId" resultMap="baseResultMap">
+		select * from gc_access
+		where master_id = #{masterId}
+	</select>
+	<select id="selectAccessLevel0" resultMap="baseResultMap">
+		select ac.*,ua.parent_code from gc_access ac
+			left join gc_user_access ua on ua.access_id = ac.id
+		where
+			ua.master_id= #{masterId}
+		  and ua.user_id = #{userId}
+		  and ac.group_name is not null
+		  and (ua.role_json like concat('%','groupAdmin','%')
+			or
+			   ua.role_json like concat('%','orgAdmin','%')
+			)
+	</select>
+
+
+</mapper>

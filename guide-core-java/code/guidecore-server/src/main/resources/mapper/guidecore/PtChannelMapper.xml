@@ -1,0 +1,883 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.PtchannelMapper">
+
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.PtChannel">
+        <id property="id" column="id"/>
+        <result property="channelName" column="channel_name"  />
+        <result property="channelImgFileId" column="channel_img_file_id"  />
+        <result property="desc" column="desc"  />
+        <result property="createUserId" column="create_user_id"  />
+        <result property="visibleFlag" column="visible_flag"  />
+        <result property="categoryId" column="category_id"  />
+        <result property="level" column="level"  />
+        <result property="fid" column="fid"  />
+        <result property="order" column="order"  />
+        <result property="masterId" column="masterId"  />
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="followFlag" column="followFlag"/>
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="channelSlug" column="channel_slug"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createUserFirstName" column="createUserFirstName"/>
+        <result property="createUserLastName" column="createUserLastName"/>
+        <result property="channelAvatarFileId" column="channel_avatar_file_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="channelTags" column="channelTags"/>
+        <result property="subscribeUserIds" column="subscribeUserIds"/>
+        <result property="fileId" column="fileId"/>
+        <result property="likeNum" column="likeNum"/>
+        <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="userInfo_lastName"/>
+            <id property="firstName" column="userInfo_firstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
+        <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
+            <id property="id" column="channel_file_id" />
+            <result property="name" column="channel_video_f_name"/>
+            <result property="fileUrl" column="channel_video_file_url"/>
+            <result property="saveType" column="channel_video_f_save_type"/>
+            <result property="fileTypeIndex" column="channel_video_f_file_index"/>
+            <result property="fileType" column="channel_video_f_file_type"/>
+            <result property="thumbNailId" column="channel_thumb_nail_id"/>
+            <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
+            <result property="videoLong" column="channel_video_long"/>
+            <result property="ptChannelContentId" column="pt_channel_content_id"/>
+        </collection>
+        <collection property="accessIdList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcAccess">
+            <id property="id" column="code_id" />
+            <result property="code" column="team_codename"/>
+            <result property="groupName" column="accessGroupName"/>
+        </collection>
+        <collection property="subscribeAccessIdList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcAccess">
+            <id property="id" column="subscribe_code_id" />
+            <result property="code" column="subscribe_code_name"/>
+            <result property="groupName" column="groupName"/>
+        </collection>
+        <collection property="userList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="subscribe_user_id"/>
+            <id property="username" column="subscribe_user_username"/>
+            <id property="lastName" column="subscribe_userInfo_lastName"/>
+            <id property="firstName" column="subscribe_userInfo_firstName"/>
+            <id property="avatarFileId" column="subscribe_userInfo_avatar_file_id"/>
+        </collection>
+        <collection property="allTags" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.PtTags">
+            <id property="id" column="tag_id"/>
+            <id property="channelId" column="tag_channel_id"/>
+            <id property="type" column="tag_type"/>
+            <id property="tagText" column="tag_text"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="baseResultSearchMap" type="com.threeatom.guidecore.entity.PtChannel">
+        <result property="id" column="id"/>
+        <result property="channelName" column="channel_name"  />
+        <result property="channelImgFileId" column="channel_img_file_id"  />
+        <result property="desc" column="desc"  />
+        <result property="createUserId" column="create_user_id"  />
+        <result property="visibleFlag" column="visible_flag"  />
+        <result property="categoryId" column="category_id"  />
+        <result property="level" column="level"  />
+        <result property="fid" column="fid"  />
+        <result property="order" column="order"  />
+        <result property="masterId" column="masterId"  />
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="followFlag" column="followFlag"/>
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="channelSlug" column="channel_slug"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createUserFirstName" column="createUserFirstName"/>
+        <result property="createUserLastName" column="createUserLastName"/>
+        <result property="channelAvatarFileId" column="channel_avatar_file_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="channelTags" column="channelTags"/>
+        <result property="subscribeUserIds" column="subscribeUserIds"/>
+        <result property="fileId" column="fileId"/>
+        <result property="likeNum" column="likeNum"/>
+        <result property="likedFlag" column="likedFlag"/>
+        <result property="channelContentId" column="channelContentId"/>
+        <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="userInfo_lastName"/>
+            <id property="firstName" column="userInfo_firstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
+        <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
+            <id property="id" column="channel_file_id" />
+            <result property="name" column="channel_video_f_name"/>
+            <result property="fileUrl" column="channel_video_file_url"/>
+            <result property="saveType" column="channel_video_f_save_type"/>
+            <result property="fileTypeIndex" column="channel_video_f_file_index"/>
+            <result property="fileType" column="channel_video_f_file_type"/>
+            <result property="thumbNailId" column="channel_thumb_nail_id"/>
+            <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
+            <result property="videoLong" column="channel_video_long"/>
+            <result property="ptChannelContentId" column="pt_channel_content_id"/>
+        </collection>
+    </resultMap>
+
+
+    <resultMap id="baseResultSearchVideoMap" type="com.threeatom.guidecore.entity.PtChannel">
+        <result property="id" column="id"/>
+        <result property="channelName" column="channel_name"  />
+        <result property="channelImgFileId" column="channel_img_file_id"  />
+        <result property="desc" column="desc"  />
+        <result property="createUserId" column="create_user_id"  />
+        <result property="visibleFlag" column="visible_flag"  />
+        <result property="categoryId" column="category_id"  />
+        <result property="level" column="level"  />
+        <result property="fid" column="fid"  />
+        <result property="order" column="order"  />
+        <result property="masterId" column="masterId"  />
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="followFlag" column="followFlag"/>
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="channelSlug" column="channel_slug"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createUserFirstName" column="createUserFirstName"/>
+        <result property="createUserLastName" column="createUserLastName"/>
+        <result property="channelAvatarFileId" column="channel_avatar_file_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="channelTags" column="channelTags"/>
+        <result property="subscribeUserIds" column="subscribeUserIds"/>
+        <result property="fileId" column="fileId"/>
+        <result property="likeNum" column="likeNum"/>
+        <result property="likedFlag" column="likedFlag"/>
+        <result property="channelContentId" column="channelContentId"/>
+        <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="createUserLastName"/>
+            <id property="firstName" column="createUserFirstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
+        <association property="videoFile" column="video_file_id" javaType="com.threeatom.system.entity.SysFile">
+            <id property="id" column="video_file_id" />
+            <result property="name" column="channel_video_name"/>
+            <result property="fileUrl" column="channel_video_file_url"/>
+            <result property="saveType" column="channel_video_save_type"/>
+            <result property="fileTypeIndex" column="channel_video_type_index"/>
+            <result property="fileType" column="channel_video_type"/>
+            <result property="thumbNailId" column="channel_thumb_nail_id"/>
+            <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
+            <result property="videoLong" column="channel_video_long"/>
+            <result property="ptChannelContentId" column="pt_channel_content_id"/>
+        </association>
+
+    </resultMap>
+
+    <select id="selectNewIndexHomeChannels" resultMap="baseResultMap">
+        select chan.* from (
+        select channels.*,count(channels.userAccessId) as subscribeNum
+        from (
+        SELECT
+        channel.*,
+        info.last_name AS createUserLastName,
+        info.first_name AS createUserFirstName,
+        tags.id AS tag_id,
+        tags.channel_id AS tag_channel_id,
+        tags.type AS tag_type,
+        tags.tag_text AS tag_text,
+        ssubscribeNumUserAccess.user_id as userAccessId,
+        subscribeNumPermission.subscribe_permission,
+        subscribeNumPermission.channel_permission
+        <if test="userId!=null">
+            ,IF(
+            IFNULL((
+            SELECT count(1)
+            FROM gc_user_access_permission per
+            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+            WHERE
+            JSON_CONTAINS( per.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            and acc.user_id = #{userId}
+            and acc.master_id=#{masterId}
+            GROUP BY acc.user_id
+            ), 0 )
+            =0,0,1) AS followFlag/*区分自己订阅的还是小队默认绑定的*/
+        </if>
+        FROM
+        pt_channel channel
+        left join gc_user us on us.id = channel.create_user_id
+        left join gc_user_info info on info.id = us.info_id
+        left join pt_tags tags on tags.channel_id = channel.id
+        LEFT JOIN gc_user_access_permission subscribeNumPermission ON JSON_CONTAINS(ifnull(subscribeNumPermission.subscribe_permission,'[]'), CONVERT ( channel.id, CHAR ))= 1
+        LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        WHERE
+        1 = 1 and level=0/*type为0查不是自己创建的channel，为1查询自己创建的channel*/
+        AND ssubscribeNumUserAccess.master_id =#{masterId}
+        and channel.create_user_id != #{userId}
+        GROUP BY channel.id,ssubscribeNumUserAccess.user_id
+        <if test="userId!=null">
+            order by ssubscribeNumUserAccess.user_id = #{userId} desc
+        </if>
+        <if test="userId==null">
+            order by channel.create_time desc
+        </if>
+        ) as channels
+        group by channels.id
+        order by channels.create_time desc
+        ) as chan
+        LEFT JOIN pt_channel_subscribe sub on chan.id = sub.channel_id and user_id = #{userId}
+        where 1=1
+        AND (JSON_CONTAINS(ifnull(chan.subscribe_permission,'[]'), CONVERT ( chan.id, CHAR ))= 1 )
+        and chan.create_user_id != #{userId}
+        <if test="userId != null">
+            and chan.userAccessId = #{userId}
+        </if>
+        group by chan.id
+        order by sub.create_time desc,chan.create_time desc
+    </select>
+
+    <select id="selectChannelList" resultMap="baseResultMap">
+        <if test="type==0">
+        select * from (
+        </if>
+        SELECT
+        channel.*,GROUP_CONCAT(ssubscribeNumUserAccess.user_id) as subscribeUserIds,
+        <if test="userId!=null">
+            IF(
+            IFNULL((
+
+            SELECT count(1)
+            FROM gc_user_access_permission per
+            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+            WHERE
+            JSON_CONTAINS( per.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            and acc.user_id = #{userId}
+            and acc.master_id=#{masterId}
+            GROUP BY acc.user_id
+
+            ), 0 )
+            =0,0,1) AS followFlag,/*区分自己订阅的还是小队默认绑定的*/
+        </if>
+
+        info.last_name AS createUserLastName,/*用户信息*/
+        info.first_name AS createUserFirstName, /*用户信息*/
+        tags.id AS tag_id, /*用户标签*/
+        tags.channel_id AS tag_channel_id, /*用户标签*/
+        tags.type AS tag_type,/*用户标签*/
+        tags.tag_text AS tag_text,/*用户标签*/
+        group_concat( tags.tag_text ) AS channelTags/*用户标签*/
+
+        FROM
+        pt_channel channel  /*channle表*/
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id   /*订阅频道表*/
+        left join gc_user us on us.id = channel.create_user_id
+        left join gc_user_info info on info.id = us.info_id  /*user用户信息*/
+        left join pt_tags tags on tags.channel_id = channel.id  /*channel标签表*/
+
+
+        LEFT JOIN gc_user_access_permission permission ON
+        JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1/*存在就连接*/
+
+        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id /*权限表*/
+
+
+        LEFT JOIN gc_user_access_permission accessPermission ON
+        JSON_CONTAINS( accessPermission.channel_permission, CONVERT ( channel.id, CHAR ))= 1
+
+        LEFT JOIN gc_user_access access     on     access.id = accessPermission.user_access_id
+
+        LEFT JOIN gc_user_access_permission subscribeNumPermission ON
+        JSON_CONTAINS( subscribeNumPermission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+
+        LEFT JOIN gc_user_access ssubscribeNumUserAccess
+        on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        WHERE
+        1 = 1 and level=0/*type为0查不是自己创建的channel，为1查询自己创建的channel*/
+        <if test="type==1">/*查询channel上面的*/
+            and userAccess.user_id = #{userId}
+            and userAccess.master_id =#{masterId}
+            and JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            or ( channel.create_user_id =#{userId} and channel.level=0 and channel.master_id = #{masterId})
+        </if>
+        <if test="type==0">/*查詢channel下面的*/
+            and access.user_id = #{userId}
+            and access.master_id=#{masterId}
+            and (JSON_CONTAINS( accessPermission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 0
+            or JSON_CONTAINS(accessPermission.subscribe_permission,CONVERT ( channel.id, CHAR )) is  null
+            )
+            /*如果两个字段都有就代表强制绑定的课程*/
+            and JSON_CONTAINS(accessPermission.channel_permission, CONVERT(channel.id, CHAR))=1
+            and (	channel.create_user_id !=#{userId} and channel.level=0 )
+            and channel.master_id = #{masterId}
+        </if>
+        GROUP BY channel.id
+        order by channel.create_time desc
+        <if test="type==0">
+        ) as channels
+        where channels.followFlag=0
+        order by channels.create_time desc
+        </if>
+    </select>
+
+    <select id="selectChannelsByTeam" resultMap="baseResultMap">
+        SELECT
+            channel.*,
+            IFNULL((select count(ua.id) from gc_access access
+                                                 LEFT JOIN gc_user_access ua on ua.access_id=access.id
+                    where JSON_CONTAINS(access.subscribe_json,concat('',channel.id,''))
+                   ),0) as subscribeNum,info.last_name as createUserLastName,
+            info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
+            group_concat(tags.tag_text) as channelTags
+        FROM
+            pt_channel channel
+                left join gc_user us on us.id = channel.create_user_id
+                left join gc_user_info info on info.id = us.info_id
+                left join pt_tags tags on tags.channel_id = channel.id
+                left join gc_user_access_permission permission on JSON_CONTAINS(permission.channel_permission, CONVERT(channel.id, CHAR))=1
+                left join gc_user_access ua on ua.id = permission.user_access_id
+                left join gc_access access on access.id = ua.access_id
+        where access.id=#{accessId} and ua.master_id=#{masterId}
+        group by channel.id
+    </select>
+
+    <select id="selectChannelDetail" resultMap="baseResultMap">
+        SELECT
+            channel.*,us.username as channel_create_user_username,us.id as channel_create_uid,
+            GROUP_CONCAT(userAccess.user_id) as subscribeUserIds,
+            info.last_name as userInfo_lastName,info.first_name as userInfo_firstName,subscribe_us.id as subscribe_user_id,subscribe_us.username as subscribe_user_username,subscribe_info.last_name as subscribe_userInfo_lastName,
+            subscribe_info.first_name as subscribe_userInfo_firstName,subscribe_info.avatar_file_id as subscribe_userInfo_avatar_file_id,
+            access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
+            subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName
+        FROM
+            pt_channel channel
+                left join gc_user us on us.id = channel.create_user_id
+                left join gc_user_info info on info.id = us.info_id
+                left join pt_channel sec on sec.fid = channel.id
+                left join pt_channel_subscribe sub on sub.channel_id = channel.id
+                left join (SELECT u.* FROM pt_channel_subscribe sub LEFT JOIN gc_user u ON u.id = sub.user_id ORDER BY sub.create_time desc LIMIT 6 )subscribe_us on subscribe_us.id = sub.user_id
+                left join gc_user_info subscribe_info on subscribe_info.id = subscribe_us.info_id
+                left join gc_access access on JSON_CONTAINS(access.channel_json, CONVERT(channel.id, CHAR))=1
+                left join gc_access subscribeAccess on JSON_CONTAINS(subscribeAccess.subscribe_json, CONVERT(channel.id, CHAR))=1
+                LEFT JOIN gc_user_access_permission permission ON
+                    JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+                LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
+        WHERE 1=1
+        <if test="channelId!=null">
+            and channel.id = #{channelId}
+        </if>
+        <if test="slug != null">
+            and channel.channel_slug = #{slug}
+        </if>
+        <if test="masterId !=null">
+            and channel.master_id = #{masterId}
+        </if>
+        group by channel.id ,sec.id,sub.id,subscribe_us.id,subscribe_info.id,access.id,subscribeAccess.id
+        order by sec.create_time ${order}
+    </select>
+
+    <select id="selectVideosInSection" resultType="com.threeatom.system.entity.SysFile">
+        SELECT
+        file.*,
+        content.id AS ptChannelContentId
+        FROM
+        sys_file file
+        right JOIN pt_channel_content content on content.file_id=file.id
+        right JOIN(
+        select channel.* from pt_channel channel
+        LEFT JOIN pt_channel section on section.fid = channel.id
+        where channel.id = #{sectionId}
+        <if test="level==0">
+            union
+            select section.* from pt_channel channel
+            LEFT JOIN pt_channel section on section.fid = channel.id
+            where section.fid = #{sectionId}
+        </if>
+        )channel on channel.id = content.channel_id
+        WHERE
+        1 = 1 and  file.id is not null
+        <if test="searchName!=null">
+            AND file.NAME LIKE concat('%',#{searchName},'%')
+        </if>
+        group by file.id
+        <choose>
+            <when test="order!=null">
+                order by file.create_time ${order}
+            </when>
+            <otherwise>
+                order by content.create_time asc
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="selectSectionList" resultType="com.threeatom.guidecore.entity.PtChannel">
+        select * from pt_channel where 1=1
+        <if test="slug != null">
+            and fid = (select id from pt_channel where channel_slug = #{slug} and master_id = #{masterId})
+        </if>
+        <if test="channelId != null">
+            and fid=#{channelId}
+        </if>
+        <if test="masterId !=null">
+            and master_id = #{masterId}
+        </if>
+        order by create_time ${order}
+    </select>
+
+    <select id="selectFollowedChannel" resultMap="baseResultMap">
+        select access.*,GROUP_CONCAT(access.subscribe_json) as subscribeAccessIds from gc_access access
+                                                                                           LEFT JOIN gc_user_access ua on ua.access_id = access.id
+        where ua.user_id = #{userId} and ua.master_id=#{masterId}
+    </select>
+
+    <select id="newSelectChannelsByIdAndName">
+        select ch.*,
+               u.username as channel_create_user_username,u.id as channel_create_uid,info.last_name as createUserLastName,
+               info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
+               group_concat(tags.tag_text) as channelTags,
+               info.avatar_file_id as userInfo_avatar_file_id
+        from pt_channel ch
+                 left join gc_access ac ON JSON_CONTAINS(ac.channel_json, CONVERT(ch.ID, CHAR))=1
+                 left join gc_user_access ua on ac.id = ua.access_id and ac.master_id = ua.master_id
+                 left join gc_user u on u.id = ch.create_user_id
+                 left join gc_user_info info on info.id = u.info_id
+                 left join sys_file file  on file.id = info.avatar_file_id
+                 left join pt_tags tags on tags.channel_id = ch.id
+        where 1=1
+            and ua.user_id = #{userId}
+            and ua.master_id = #{userId}
+        <if test="idList!= null and idList.size()!=0">
+            and ch.id not in
+            <foreach collection="idList" item="channelId" open="(" separator="," close=")">
+                #{channelId}
+            </foreach>
+        </if>
+        <if test="name!=null">
+            and ch.channel_name like concat('%',#{name},'%')
+        </if>
+        and ch.master_id = #{masterId}
+        and ch.level = 0
+        group by ch.id
+        order by ch.create_time desc
+    </select>
+
+    <select id="selectChannelsByIdAndName"  resultMap="baseResultMap">
+        select ch.*,
+        u.username as channel_create_user_username,u.id as channel_create_uid,info.last_name as createUserLastName,
+        info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
+        group_concat(tags.tag_text) as channelTags,
+        info.avatar_file_id as userInfo_avatar_file_id
+        from pt_channel ch
+        left join gc_user u on u.id = ch.create_user_id
+        left join gc_user_info info on info.id = u.info_id
+        left join sys_file file  on file.id = info.avatar_file_id
+        left join pt_tags tags on tags.channel_id = ch.id
+        where 1=1
+          <if test="idList!= null and idList.size()!=0">
+        and ch.id not in
+        <foreach collection="idList" item="channelId" open="(" separator="," close=")">
+            #{channelId}
+        </foreach>
+          </if>
+        <if test="name!=null">
+            and ch.channel_name like concat('%',#{name},'%')
+        </if>
+        <if test="userId!=null">
+            and ch.create_user_id = #{userId}
+        </if>
+        and ch.master_id = #{masterId}
+        and ch.level = 0
+        group by ch.id
+        order by ch.create_time desc
+    </select>
+
+
+    <select id="selectChannelsByIdsAndName"  resultMap="baseResultMap">
+        select ch.*,
+        u.username as channel_create_user_username,u.id as channel_create_uid,info.last_name as createUserLastName,
+        info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
+        group_concat(tags.tag_text) as channelTags,
+        info.avatar_file_id as userInfo_avatar_file_id
+        from pt_channel ch
+        left join gc_user u on u.id = ch.create_user_id
+        left join gc_user_info info on info.id = u.info_id
+        left join sys_file file  on file.id = info.avatar_file_id
+        left join pt_tags tags on tags.channel_id = ch.id
+        <if test="idList!=null">
+        where 1=1
+        and ch.id in
+        <foreach collection="idList" item="channelId" open="(" separator="," close=")">
+            #{channelId}
+        </foreach>
+        </if>
+        <if test="idList==null">
+            where 1=2
+        </if>
+        <if test="name!=null">
+            and ch.channel_name like concat('%',#{name},'%')
+        </if>
+        group by ch.id
+    </select>
+    <select id="selectFollowedUsers" resultType="map">
+        select
+            b.channelSlug as channel_slug,
+            count(b.userid) as subscribeUserIds
+        from (
+                 select
+                     channel.id as id,
+                     channel.channel_slug as channelSlug,
+                     userAccess.user_id as userid
+                 from
+                     pt_channel channel
+                         LEFT JOIN
+                     gc_user_access_permission permission
+                     ON JSON_CONTAINS( permission.subscribe_permission,
+                                       CONVERT ( channel.id,
+                                                 CHAR ))= 1
+                         LEFT JOIN
+                     gc_user_access userAccess
+                     on userAccess.id = permission.user_access_id
+                 where  1=1
+                    and channel.channel_slug in
+                    <foreach collection="slug" item="slug" index="String" open="(" close=")" separator=",">
+                        #{slug}
+                    </foreach>
+                   and channel.master_id = #{masterId}
+                 group by channel.channel_slug,userAccess.user_id
+             ) as b
+        group by b.channelSlug
+
+    </select>
+    <select id="searchChannels"  resultMap="baseResultMap">
+        select * from (
+        <if test="type==0">
+            select * from (
+        </if>
+        SELECT
+        channel.*,GROUP_CONCAT(ssubscribeNumUserAccess.user_id) as subscribeUserIds,
+        <if test="userId!=null">
+            IF(
+            IFNULL((
+
+            SELECT count(1)
+            FROM gc_user_access_permission per
+            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+            WHERE
+            JSON_CONTAINS( per.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            and acc.user_id = #{userId}
+            and acc.master_id=#{masterId}
+            GROUP BY acc.user_id
+
+            ), 0 )
+            =0,0,1) AS followFlag,/*区分自己订阅的还是小队默认绑定的*/
+        </if>
+
+        info.last_name AS createUserLastName,/*用户信息*/
+        info.first_name AS createUserFirstName, /*用户信息*/
+        tags.id AS tag_id, /*用户标签*/
+        tags.channel_id AS tag_channel_id, /*用户标签*/
+        tags.type AS tag_type,/*用户标签*/
+        tags.tag_text AS tag_text,/*用户标签*/
+        group_concat( tags.tag_text ) AS channelTags/*用户标签*/
+
+        FROM
+        pt_channel channel  /*channle表*/
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id   /*订阅频道表*/
+        left join gc_user us on us.id = channel.create_user_id
+        left join gc_user_info info on info.id = us.info_id  /*user用户信息*/
+        left join pt_tags tags on tags.channel_id = channel.id  /*channel标签表*/
+
+
+        LEFT JOIN gc_user_access_permission permission ON
+        JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1/*存在就连接*/
+
+        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id /*权限表*/
+
+
+        LEFT JOIN gc_user_access_permission accessPermission ON
+        JSON_CONTAINS( accessPermission.channel_permission, CONVERT ( channel.id, CHAR ))= 1
+
+        LEFT JOIN gc_user_access access     on     access.id = accessPermission.user_access_id
+
+        LEFT JOIN gc_user_access_permission subscribeNumPermission ON
+        JSON_CONTAINS( subscribeNumPermission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+
+        LEFT JOIN gc_user_access ssubscribeNumUserAccess
+        on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        WHERE
+        1 = 1
+        and ((accessPermission.id is not null) or (subscribeNumPermission.id is not null))
+        and (userAccess.user_id = #{userId} or access.user_id = #{userId})
+        and level=0/*type为0查不是自己创建的channel，为1查询自己创建的channel*/
+        <if test="type==1">/*查询channel上面的*/
+            and userAccess.user_id = #{userId}
+            and userAccess.master_id =#{masterId}
+            and JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            or ( channel.create_user_id =#{userId} and channel.level=0 and channel.master_id = #{masterId})
+        </if>
+        <if test="type==0">/*查詢channel下面的*/
+            and access.user_id = #{userId}
+            and access.master_id=#{masterId}
+            and (JSON_CONTAINS( accessPermission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 0
+            or JSON_CONTAINS(accessPermission.subscribe_permission,CONVERT ( channel.id, CHAR )) is  null
+            )
+            /*如果两个字段都有就代表强制绑定的课程*/
+            and JSON_CONTAINS(accessPermission.channel_permission, CONVERT(channel.id, CHAR))=1
+            and (	channel.create_user_id !=#{userId} and channel.level=0 )
+            and channel.master_id = #{masterId}
+        </if>
+        GROUP BY channel.id
+        order by channel.create_time desc
+        <if test="type==0">
+            ) as
+            channels
+            where channels.followFlag=0
+            order by channels.create_time desc
+        </if>
+        ) as chs where 1=1
+        <if test="searchName!=null and searchName != ''">
+            and concat(chs.channel_name,chs.channel_slug) like concat('%',#{searchName},'%')
+        </if>
+    </select>
+    <select id="searchChannelsBySysFile" resultMap="baseResultSearchMap">
+        select channel.channel_img_file_id,channel.`desc`,channel.create_user_id,channel.visible_flag,channel.category_id,
+               channel.level,channel.fid,channel.`order`,channel.master_id,ifnull(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
+               channel.update_time,channel.channel_avatar_file_id,
+            ifnull(ch2.id,channel.id) as id,
+            ifnull(ch2.channel_name,channel.channel_name) as channel_name,
+            file.id as fileId,
+            info.last_name AS createUserLastName,
+            info.first_name AS createUserFirstName,
+            info.avatar_file_id as userInfo_avatar_file_id,
+            us2.id as channel_create_uid,
+            count(vac.id) as likeNum,
+            if(vac.user_id=#{userId},1,0) as likedFlag,
+            pcc.id as channelContentId
+            from sys_file file
+           left join pt_channel_content pcc on file.id = pcc.file_id
+           left join pt_channel channel on pcc.channel_id = channel.id
+           left join pt_channel ch2 on ch2.id = channel.fid
+           left join gc_user_access_permission permission ON JSON_CONTAINS(JSON_MERGE(ifnull(permission.subscribe_permission,'[]'),ifnull(permission.channel_permission,'[]')),CONVERT ( ifnull(ch2.id,channel.id), CHAR ))= 1
+           left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+           left join gc_user us on us.id = userAccess.user_id
+           left join gc_user us2 on us2.id = channel.create_user_id
+           left join gc_user_info info on info.id = us2.info_id
+           left join gc_user_video_action vac on vac.file_id = file.id and vac.`type` = 1
+        where 1=1
+        and (userAccess.user_id = #{userId}
+        and us.id = #{userId}
+        and userAccess.master_id = #{masterId}
+        OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
+        and pcc.id is not null)
+        <if test=" searchName!= null and searchName != ''">
+            and file.`name` like concat('%',#{searchName},'%')
+        </if>
+        GROUP BY file.id
+        order by file.update_time desc
+    </select>
+
+
+    <select id="selectPtchannelVideo" resultMap="baseResultSearchVideoMap">
+    select file.file_url channel_video_file_url,
+         file.save_type as channel_video_save_type,
+         file.file_type_index as channel_video_type_index,
+         file.thumb_nail_id as channel_thumb_nail_id,
+         file.thumb_nail_url as channel_thumb_nail_url
+        ,file.id as video_file_id,
+       channel.*,
+       us.username as channel_create_user_username,us.id as channel_create_uid,info.last_name as createUserLastName,
+       info.first_name as createUserFirstName,
+       info.avatar_file_id as userInfo_avatar_file_id
+        from pt_channel channel
+        left join pt_channel_content pcc on channel.id = pcc.channel_id
+        left join gc_user_access_permission permission ON JSON_CONTAINS(JSON_MERGE(ifnull(permission.channel_permission,'[]'),ifnull(permission.subscribe_permission,'[]')),CONVERT ( channel.id, CHAR ))= 1
+        left join gc_user_access ac on ac.id = permission.user_access_id
+        left join gc_user us on ac.user_id = us.id
+        left join gc_user_info info on info.id = us.info_id
+        left join sys_file file on file.id = pcc.file_id
+        where 1=1
+        and ac.user_id = #{userId}
+        and ac.master_id = #{masterId}
+        and file.id is not null
+        <!--<if test=" name!= null and name != ''">
+            and file.name like concat('%',#{name},'%')
+        </if>-->
+        group by file.id
+        order by file.update_time desc
+    </select>
+
+    <select id="indexPtChannels" resultMap="baseResultMap">
+        select * from (
+        select channels.*,count(channels.userAccessId) as subscribeNum
+        from (
+        SELECT
+        channel.*,
+        info.last_name AS createUserLastName,
+        info.first_name AS createUserFirstName,
+        tags.id AS tag_id,
+        tags.channel_id AS tag_channel_id,
+        tags.type AS tag_type,
+        tags.tag_text AS tag_text,
+        ssubscribeNumUserAccess.user_id as userAccessId,
+        subscribeNumPermission.subscribe_permission,
+        subscribeNumPermission.channel_permission
+        <if test="userId!=null">
+            ,IF(
+            IFNULL((
+
+            SELECT count(1)
+            FROM gc_user_access_permission per
+            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+            WHERE
+            JSON_CONTAINS( per.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+            and acc.user_id = #{userId}
+            and acc.master_id=#{masterId}
+            GROUP BY acc.user_id
+
+            ), 0 )
+            =0,0,1) AS followFlag/*区分自己订阅的还是小队默认绑定的*/
+        </if>
+        FROM
+        pt_channel channel
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id
+        left join gc_user us on us.id = channel.create_user_id
+        left join gc_user_info info on info.id = us.info_id
+        left join pt_tags tags on tags.channel_id = channel.id
+        LEFT JOIN gc_user_access_permission subscribeNumPermission ON JSON_CONTAINS( JSON_MERGE(ifnull(subscribeNumPermission.subscribe_permission,'[]'),ifnull(subscribeNumPermission.channel_permission,'[]')), CONVERT ( channel.id, CHAR ))= 1
+        LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        WHERE
+        1 = 1 and level=0/*type为0查不是自己创建的channel，为1查询自己创建的channel*/
+        AND ssubscribeNumUserAccess.master_id =#{masterId}
+        <if test="channelName!=null and channelName != ''">
+            and concat(channel.channel_name,channel.channel_slug) like concat('%',#{channelName},'%')
+        </if>
+        <if test="userId!=null">
+            or (channel.create_user_id = #{userId} and channel.master_id = #{masterId})
+        </if>
+        /*公共*/
+        <if test="type==0 and userId!=null">
+        or (channel.visible_flag = 3 and channel.master_id = #{masterId} and channel.create_user_id != #{userId})
+        </if>
+        <if test="type==1 and userId!=null">
+        or (channel.visible_flag = 3 and channel.master_id = #{masterId} and channel.create_user_id = #{userId})
+        </if>
+        GROUP BY channel.id,ssubscribeNumUserAccess.user_id
+        <if test="userId!=null">
+            order by ssubscribeNumUserAccess.user_id = #{userId} desc
+        </if>
+        <if test="userId==null">
+            order by channel.create_time desc
+        </if>
+        ) as channels
+        group by channels.id
+        order by channels.create_time desc
+        ) as chan
+        where 1=1
+        <if test="type==1">
+        AND (JSON_CONTAINS( chan.subscribe_permission, CONVERT ( chan.id, CHAR )) = 1 )
+            <if test="userId != null">
+                and chan.userAccessId = #{userId}
+            </if>
+            OR ( chan.create_user_id = #{userId} AND chan.LEVEL = 0 AND chan.master_id = #{masterId})
+            or (chan.visible_flag = 3 and chan.master_id = #{masterId} and chan.create_user_id = #{userId})
+        </if>
+        <if test="type==0 and userId!=null">
+            AND (JSON_CONTAINS(chan.subscribe_permission, CONVERT ( chan.id, CHAR ))= 0 OR JSON_CONTAINS(chan.subscribe_permission, CONVERT ( chan.id, CHAR )) IS NULL  )
+            AND JSON_CONTAINS(chan.channel_permission, CONVERT ( chan.id, CHAR ))= 1
+            and chan.create_user_id != #{userId}
+            <if test="userId != null">
+                and chan.userAccessId = #{userId}
+            </if>
+            /*公共*/
+            or (chan.visible_flag = 3 and chan.master_id = #{masterId} and chan.create_user_id != #{userId})
+        </if>
+        <if test="channelName!=null and channelName != ''">
+            and concat(chan.channel_name,chan.channel_slug) like concat('%',#{channelName},'%')
+        </if>
+    </select>
+    <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
+        select f.*,count( vac.id ) AS likeNum ,
+        if(vac.user_id=#{userId},1,0) as likedFlag
+        from (select
+        channel.channel_img_file_id,channel.`desc`,channel.create_user_id,channel.visible_flag,channel.category_id,
+        channel.level,channel.fid,channel.`order`,channel.master_id,ifnull(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
+        channel.update_time,
+        ifnull(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
+        ifnull(ch2.id,channel.id) as id,
+        ifnull(ch2.channel_name,channel.channel_name) as channel_name,
+        file.id as fileId,
+        info.last_name AS userInfo_lastName,
+        info.first_name AS userInfo_firstName,
+        info.avatar_file_id as userInfo_avatar_file_id,
+        us2.id as  channel_create_uid,
+        us2.username as channel_create_user_username,
+        pcc.id as channelContentId
+        from sys_file file
+        left join pt_channel_content pcc on file.id = pcc.file_id
+        left join pt_channel channel on pcc.channel_id = channel.id
+        left join pt_channel ch2 on ch2.id = channel.fid
+        left join gc_user_access_permission permission ON JSON_CONTAINS(ifnull(permission.subscribe_permission,'[]'),CONVERT ( ifnull(ch2.id,channel.id), CHAR ))= 1
+        left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+        left join gc_user us on us.id = userAccess.user_id
+        left join gc_user us2 on us2.id = channel.create_user_id
+        left join gc_user_info info on info.id = us2.info_id
+        where 1=1
+        and userAccess.user_id = #{userId}
+        and us.id = #{userId}
+        and channel.create_user_id != #{userId}
+        and userAccess.master_id = #{masterId}
+        and pcc.id is not null
+        GROUP BY file.id
+        order by file.update_time desc
+        ) as f
+        left join gc_user_video_action vac on f.fileId = vac.file_id and vac.`type` = 1
+        GROUP BY f.fileId
+        order by f.update_time desc
+    </select>
+
+
+
+    <select id="indexVideoNowChannel" resultMap="baseResultSearchMap">
+        select b.*,count(play.id) as playNum from (
+        select channel.channel_img_file_id,channel.`desc`,channel.create_user_id,channel.visible_flag,channel.category_id,
+               channel.level,channel.fid,channel.`order`,channel.master_id,ifnull(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
+               channel.update_time,
+               ifnull(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
+               ifnull(ch2.id,channel.id) as id,
+               ifnull(ch2.channel_name,channel.channel_name) as channel_name,
+               file.id as fileId,
+               file.create_time as file_create_time,
+               file.update_time as file_update_time,
+               info.last_name AS createUserLastName,
+               info.first_name AS createUserFirstName,
+               info.avatar_file_id as userInfo_avatar_file_id,
+               count(vac.id) as likeNum,
+               if(vac.user_id=#{userId},1,0) as likedFlag,
+
+               info.last_name AS userInfo_lastName,
+               info.first_name AS userInfo_firstName,
+               us2.id as  channel_create_uid,
+               us2.username as channel_create_user_username,
+               pcc.id as channelContentId
+        from sys_file file
+                 left join pt_channel_content pcc on file.id = pcc.file_id
+                 left join pt_channel channel on pcc.channel_id = channel.id
+                 left join pt_channel ch2 on ch2.id = channel.fid
+                 left join gc_user_access_permission permission ON JSON_CONTAINS(JSON_MERGE(ifnull(permission.subscribe_permission,'[]'),ifnull(permission.channel_permission,'[]')),CONVERT ( ifnull(ch2.id,channel.id), CHAR ))= 1
+                 left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+                 left join gc_user us on us.id = userAccess.user_id
+                 left join gc_user us2 on us2.id = channel.create_user_id
+                 left join gc_user_info info on info.id = us2.info_id
+                 left join gc_user_video_action vac on vac.file_id = file.id and vac.`type` = 1
+        where 1=1
+          and userAccess.user_id = #{userId}
+          and us.id = #{userId}
+          and userAccess.master_id = #{masterId}
+          and pcc.id is not null
+          and channel.id is not null
+        OR ( channel.create_user_id =#{userId} AND channel.LEVEL = 0  AND channel.master_id = #{masterId})
+        GROUP BY file.id,permission.id
+        order by count(vac.id) desc ,file.update_time desc
+        ) as b
+        left join gc_user_video_play play on play.file_id = b.fileId
+        GROUP BY b.fileId
+        order by likeNum desc ,count(play.id) desc,file_update_time desc
+
+    </select>
+
+</mapper>

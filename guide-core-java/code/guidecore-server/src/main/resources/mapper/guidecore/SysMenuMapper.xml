@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.SysMenuMapper">
+
+    <select id="getSysMenuList" resultType="com.threeatom.guidecore.entity.SysMenu">
+        select * from sys_menu
+        where `level` = 2
+        order by `order`
+    </select>
+    <select id="getLevel3List" resultType="com.threeatom.guidecore.entity.SysMenu">
+        select * from sys_menu
+        where `level` = 3
+        order by `order`
+    </select>
+</mapper>

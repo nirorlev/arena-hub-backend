@@ -1,0 +1,92 @@
+server:
+   port: 80
+    
+spring:
+   time-zone: GMT
+   resources:
+       #配置静态资源路径
+       static-locations: classpath:/static/,classpath:/public/,file:${web.profile-path:config/static}
+   redis:
+     password: powtoon_guide0002
+     host: master.staging-guide-cache.gqbxbp.use1.cache.amazonaws.com
+     port: 6379
+     ssl: true     
+     jedis:
+       pool:
+         max-active: 5000
+         max-wait: -1
+         max-idle: 30
+         min-idle: 5
+     timeout: 50000
+     #cluster:
+     # nodes: 127.0.0.1:6379
+     database: 9
+   datasource:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://powtoon-guide-db-stage2.caehxz6ziu8i.us-east-1.rds.amazonaws.com:3306/powtoon_guide?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT&allowMultiQueries=true
+      username: powtoon_guide
+      password: "powtoon_guide0002"
+      druid: 
+            # 初始连接数
+            initial-size: 10
+            # 最大连接池数量
+            max-active: 100
+            # 最小连接池数量
+            min-idle: 10
+            # 配置获取连接等待超时的时间
+            max-wait: 60000
+            # 打开PSCache，并且指定每个连接上PSCache的大小
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+            timeBetweenEvictionRunsMillis: 60000
+            # 配置一个连接在池中最小生存的时间，单位是毫秒
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            filter:
+                stat:
+                    log-slow-sql: true
+                    slow-sql-millis: 1000
+                    merge-sql: false
+                wall:
+                    config:
+                        multi-statement-allow: true  
+
+       
+aws:
+  durationSeconds: 900
+  region: us-east-1
+  roleArn: arn:aws:iam::369576378958:role/S3UploadRole
+  roleSessionName: S3Upload
+  bucketName: powtoon-store-stage
+
+#powtoon config
+#redirectUri: https://userpt.govidigo.cn/,https://dev.demoguide.xyz/,https://stage.guide.staging.powtoon.com/,https://stage.demoguide.xyz/
+clientId: 8J4YCyV1WLCWGWhQiAh9atsFehuXrSEQ5C8Vk1mA
+ptRootUrl: https://grigorii.dev-public.k8s.powtoon.com
+oauthToken: /api/v1.0/oauth/token
+userUrl: /api/v1.0/users/me/profile
+logOut: /api/v1.0/oauth/revoke_token
+groups: /api/v2/org/groups
+#暂无用
+clientSecret: 0qg1wUKUvxbjDP24d17byqCgSvgrjR99C4DELKBtKF3VlceU3O0TpYP6Jm2quGPbhqSuHEROcRmxXDpBcAu0VTF8279YpJcxfhoLUffgyUmShX0S2vGS4aPyvTyFz2FJ
+logoutUrl: /account/logout?next_page=/arena/
+#powtoon的首页写死的频道ids
+channel:
+  id: 1805,1806,1809
+#S3 cloudfront signed url
+uploadsignurl:
+  distributionDomain: stage.store.demoguide.xyz
+  privateKeyFilePath: dev-stage_signed_links_private_key.der
+  keyPairId: K1JQYEVI2UZJ98
+  limitToIpAddressCIDR: 0.0.0.0/0
+
+permit:
+  apiKey: permit_key_udA2LsMaHVC7nMD08bSKJ3iiCaFgGgGMJCOPg0ENlHG2Slz7wa2g0Vf9CnH9xwgoYGL7fMeD2S9djpER3p5Con
+  pdpAddress: http://47.111.191.189:7766
+
+registercode: xxx

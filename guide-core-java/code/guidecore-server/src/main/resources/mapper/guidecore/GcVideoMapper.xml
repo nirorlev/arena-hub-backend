@@ -1,0 +1,738 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcVideoMapper">
+
+    <resultMap id="baseResultMap" type="GcVideo">
+	    <id property="id" column="id"/>
+	    <result property="videoName" column="video_name"  />
+	     <result property="videoNameIndex" column="video_name_index" />
+	    <result property="videoDesc" column="video_desc"  />
+	    <result property="fileId" column="file_id"  />
+	    <result property="subId" column="sub_id"/>	 
+	    <result property="sourceUrl" column="source_url"/>
+	    <result property="videoSource" column="video_source"/>        
+	    <result property="order" column="order"/>
+	    <result property="updateTime" column="update_time" />
+	    <result property="createTime" column="create_time" />
+		<result property="commentNums" column="comment_nums"/>
+		<result property="topSubId" column="top_sub_id" />
+        <result property="subjectName" column="subjectName" />
+        <result property="topicName" column="topicName" />
+        <result property="subId0" column="subId0" />
+        <result property="starvalue" column="starvalue" />
+        <result property="subjectName" column="subjectName"/>
+
+        <result property="resourceNum" column="resourceNum"/>
+
+        <result property="permissionId" column="permission_id"/>
+		<association property="videoFile" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+            <result property="fileType" column="f_file_type"/>
+            <result property="videoLong" column="f_video_long"/>
+            <result property="fileTypeIndex" column="f_file_type_index"/>
+            <result property="snapshotUrl" column="thumbNailUrl"/>
+            <result property="thumbNailId" column="thumb_nail_id"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+            <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        </association>
+        <collection property="eventList" javaType="ArrayList" column="id" ofType="GcEvent">
+            <id property="id" column="e_id"/>
+            <result property="eventTitle" column="e_event_title"/>
+        </collection>
+        
+	</resultMap>
+
+    <resultMap id="videoLongMap" type="com.threeatom.guidecore.controller.user.vo.videoLongVo">
+        <result property="subId" column="sub_id"  />
+        <result property="videoLong" column="video_long" />
+        <result property="videoCount" column="video_count"/>
+    </resultMap>
+
+	
+	<sql id="baseColumn">
+	    v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source,v.update_time, v.create_time
+	</sql>
+
+    <sql id="baseColumnSub1">
+	    v.id , v.sub_id,v.video_name, v.video_name_index, v.video_desc, v.file_id, v.source_url,v.video_source,v.update_time, v.create_time,v.order
+	</sql>
+	
+	<sql id="fileBaseColumn">
+	   ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long
+	   ,f.file_type_index as f_file_type_index,f.thumb_nail_url as thumb_nail_url,f.thumb_nail_id as thumb_nail_id,f.file_type as f_file_type
+	</sql>
+	
+	<sql id="leftJoinSysFile">
+	   left join sys_file f on v.file_id=f.id
+	</sql>
+    <sql id="leftJoinSysFile2">
+        left join sys_file f2 on f.thumb_nail_id = f2.id
+    </sql>
+	<sql id="leftJoinGcMaster">
+		LEFT JOIN gc_master m ON m.id=s.master_id
+	</sql>
+	
+	<sql id="leftJoinUserVideoAtion">
+	   LEFT JOIN gc_user_video_action uva ON v.id=uva.video_id
+	</sql>
+	
+	<sql id="where_gcSubject_state_not_hidden">
+    	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+	<sql id="where_gcSubject_state_not_hidden_t">
+    	and t.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+	<sql id="where_gcSubject_state_not_hidden_s0">
+    	and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+    
+	<select id="getMasterVideoListByFuzzyName" resultMap="baseResultMap">
+		select
+	    <include refid="baseColumn" />
+	    <include refid="fileBaseColumn" />
+	    from gc_video v 
+	     <include refid="leftJoinSysFile" />
+	     LEFT JOIN gc_subject s ON s.id=v.sub_id
+	     LEFT JOIN gc_user_access_permission uap  on json_contains(uap.sub_permission,CONCAT('',s.fid,''))
+	     <!-- s.fid 也可以用关联多一层父subject的id替换 -->
+	     <!-- left join gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission, CONVERT(s.fid, char))=1  两个都可以 -->
+		 LEFT JOIN gc_user_access ua on ua.id=uap.user_access_id
+	    <where>
+	   	ua.master_id=#{masterId} and 
+	   	v.video_name like '%${videoName}%' and ua.user_id=#{userId}
+	   	<include refid="where_gcSubject_state_not_hidden" />
+	    </where>
+    </select>
+    
+	<select id="getFuzzyNameVideoInMaster" resultMap="baseResultMap">
+		select
+	    <include refid="baseColumn" />
+	    <include refid="fileBaseColumn" />
+		,f2.thumb_nail_url as thumb_nail_url
+	    from gc_video v 
+	     <include refid="leftJoinSysFile" />
+	    left  join sys_file f2 on f2.id = f.thumb_nail_id
+	     LEFT JOIN gc_subject s ON s.id=v.sub_id
+		  <include refid="leftJoinGcMaster" />
+	    <where>
+	   	m.id=#{masterId} and 
+	   	v.video_name like '%${videoName}%'
+	   	<include refid="where_gcSubject_state_not_hidden" />
+	    </where>
+    </select>    
+    
+	<select id="selectVideoByid" resultMap="baseResultMap">
+	    select
+	    <include refid="baseColumn" />
+	    <include refid="fileBaseColumn" />
+        ,f.target_lang_json as target_lang_json,
+	    s.fid as subId0, s.name as topicName
+	    from gc_video v 
+	     <include refid="leftJoinSysFile" />
+	     left join gc_subject s on s.id = v.sub_id
+	    where v.id=#{id}
+        order by v.`order`
+    </select>
+    
+    <select id="selectLikeVideoByUserId" resultMap="baseResultMap">
+	    select
+	    <include refid="baseColumn" />
+	    <include refid="fileBaseColumn" />
+	    ,s.name as topicName, s0.name as subjectName,
+	    f.thumb_nail_url as thumb_nail_url
+	    from gc_video v 
+	     <include refid="leftJoinSysFile" />
+	     LEFT JOIN gc_subject s ON s.id=v.sub_id
+	     LEFT JOIN gc_subject s0 ON s0.id=s.fid
+	    <include refid="leftJoinUserVideoAtion" />
+	    where uva.user_id=#{userId} and s.master_id = #{masterId} and uva.type =1
+	    <include refid="where_gcSubject_state_not_hidden" />
+	    <include refid="where_gcSubject_state_not_hidden_s0" />
+        order by uva.create_time desc
+    </select>
+	
+	<select id="selectVideoListBySubIds" resultMap="baseResultMap" parameterType="list">
+	    select
+        <include refid="baseColumnSub1" />
+        <include refid="fileBaseColumn" />
+	    ,f.thumb_nail_url as thumb_nail_url,s.fid as subId0
+        from gc_video v 
+         <include refid="leftJoinSysFile" />
+	    left join gc_subject s on s.id = v.sub_id
+        where v.sub_id in
+		<foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+	      #{subId}
+	    </foreach>
+	    order by v.`order`,v.create_time asc,v.id
+    </select>
+
+    <select id="selectVideosOneLevelSubIds" resultMap="baseResultMap" parameterType="list">
+        SELECT
+            <include refid="baseColumnSub1" />
+            <include refid="fileBaseColumn" />
+            , S.`fid` AS subId0
+            ,s.id as sub_id
+        FROM GC_SUBJECT S
+        LEFT JOIN GC_VIDEO V ON S.ID = V.SUB_ID
+        <include refid="leftJoinSysFile" />
+        WHERE S.FID IN
+        <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+        and v.id is not null
+        order by v.order,v.create_time asc,v.id
+    </select>
+
+    <select id="selectVideosSubIds" resultMap="baseResultMap" parameterType="list">
+        SELECT
+        <include refid="baseColumnSub1" />
+        <include refid="fileBaseColumn" />
+        , S.`fid` AS subId0
+        ,s.id as sub_id,
+        count(r.id) as resourceNum
+        FROM GC_VIDEO v
+        LEFT JOIN gc_subject s ON S.ID = V.SUB_ID
+        left join gc_resource r on r.video_id = v.id
+        <include refid="leftJoinSysFile" />
+        WHERE v.sub_id IN
+        <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+        and v.id is not null
+        GROUP BY v.id
+        order by v.order asc,v.create_time asc,v.id
+    </select>
+
+
+    <select id="getVideoIdListBySubId0" resultMap="baseResultMap" parameterType="list">
+        SELECT
+        <include refid="baseColumnSub1" />
+        <include refid="fileBaseColumn" />
+        , S.`fid` AS subId0
+        ,s.id as sub_id
+        FROM GC_SUBJECT S
+        LEFT JOIN GC_VIDEO V ON S.ID = V.SUB_ID
+        <include refid="leftJoinSysFile" />
+        WHERE S.FID IN
+        <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+    </select>
+
+<!--*根据视频id和视频名称查询-->
+    <select id="selectVideosBySubIdsAndVideoName" resultMap="baseResultMap" >
+	    select
+        <include refid="baseColumn" />
+        <include refid="fileBaseColumn" />
+        , S.`fid` AS subId0
+        from gc_video v
+         <include refid="leftJoinSysFile" />
+        LEFT JOIN GC_SUBJECT S ON S.ID = V.SUB_ID
+        where
+            S.FID IN
+            <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+                #{subId}
+            </foreach>
+            <if test="videoName != null and videoName !=''">
+                and v.video_name like concat('%',#{videoName},'%')
+            </if>
+        order by v.order asc,v.create_time asc,v.id
+    </select>
+
+    <select id="selectVideoListBySubId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="fileBaseColumn" />
+        ,round(avg(star_value),2) as starvalue,
+        v.order
+        from gc_video v 
+         <include refid="leftJoinSysFile" />
+        left join  gc_user_video_action ac on ac.video_id = v.id
+        where v.sub_id=#{subId}
+        group by v.id
+        /*order by v.`order`,v.create_time desc,v.id*/
+        order by v.`order` asc,v.create_time asc,v.id
+    </select>
+
+    <select id="selectVideoListByTopSubIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        ,s.sub_id as top_sub_id,s.fid as subId0,
+        file.id as f_id,file.name as f_name,file.folder as f_folder,file.file_url as f_file_url,
+        file.file_type as f_file_type,file.file_type_index as f_file_type_index,file.master_id as f_master_id,
+        file.save_type as f_save_type
+        from gc_video v 
+        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN sys_file file on file.id = v.file_id
+        WHERE 1=1
+        <if test="subIds != null and subIds.size() > 0">
+        	AND s.id in
+	        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+	          #{subId}
+	        </foreach>
+        </if>
+        <include refid="where_gcSubject_state_not_hidden" />
+        order by v.order asc,v.create_time asc,v.id
+    </select>
+
+    <select id="selectVideoAndEventByTopSubIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        ,s.sub_id as top_sub_id,s.fid as subId0,
+        file.id as f_id,file.name as f_name,file.folder as f_folder,file.file_url as f_file_url,
+        file.file_type as f_file_type,file.file_type_index as f_file_type_index,file.master_id as f_master_id,
+        file.save_type as f_save_type
+        from gc_video v
+        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN sys_file file on file.id = v.file_id
+        left join gc_event event on event.video_id = v.id
+        WHERE 1=1
+        <if test="subIds != null and subIds.size() > 0">
+            AND s.sub_id in
+            <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+                #{subId}
+            </foreach>
+        </if>
+        <include refid="where_gcSubject_state_not_hidden" />
+        order by v.order asc,v.create_time asc,v.id
+    </select>
+    
+    <select id="selectVideoListByIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        ,v.`order`
+        <include refid="fileBaseColumn" />
+        from gc_video v 
+         <include refid="leftJoinSysFile" />
+        where
+        v.id in
+        <foreach collection="list" item="vid" index="index" open="(" close=")" separator=",">
+          #{vid}
+        </foreach>
+        order by v.`order`
+    </select>
+    
+    <select id="selectVideoSubIdsbyVids" resultType="Integer">
+        select s.sub_id 
+        FROM gc_video v 
+        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        WHERE v.id in
+        <foreach collection="list" item="vid" index="index" open="(" close=")" separator=",">
+          #{vid}
+        </foreach>
+        <include refid="where_gcSubject_state_not_hidden" />
+        GROUP BY s.sub_id
+    </select>
+    
+    <select id="selectSubIdByVid" resultType="Integer">
+        select s.sub_id 
+        FROM gc_video v 
+        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        WHERE v.id = #{vid}
+        <include refid="where_gcSubject_state_not_hidden" />
+        order by v.`order`
+    </select>
+    
+    <select id="selectVideoTopicSubjectInfo" resultType="map">
+            
+            select 
+            v.id vid,t.id topicId,s.id subId,s.master_id masterId,t.name topicName,s.name subName,v.video_name videoName
+            from gc_video v 
+			LEFT JOIN gc_subject t ON v.sub_id=t.id
+			LEFT JOIN gc_subject s ON t.sub_id=s.id
+			WHERE v.id=#{vid}
+			<include refid="where_gcSubject_state_not_hidden" />
+			<include refid="where_gcSubject_state_not_hidden_t" />
+    </select>
+
+    <select id="selectSeenVideoListByTopSubIds" resultType="GcVideo">
+        SELECT
+            s.sub_id,
+            v.id,
+            v.video_name,
+            uvp.play_state
+        FROM
+            gc_video AS v
+                LEFT JOIN gc_user_video_play AS uvp  ON v.id = uvp.video_id
+                LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        WHERE
+            uvp.user_id = #{uid}
+          <if test="subIds.size()!=0">
+          AND s.sub_id IN
+                <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+                    #{subId}
+                </foreach>
+          </if>
+        AND uvp.play_state = 1
+        GROUP BY
+            v.id
+    </select>
+    
+    <select id="countVideoNameInSub0" resultType="Integer">
+		select count(1) from gc_video v
+		left join gc_subject sub on sub.id = v.sub_id
+		where 
+		<choose>
+            <when test="videoNameIndex==null">
+                video_name = #{videoName} 
+            </when>
+            <otherwise>
+                video_name_index=#{videoNameIndex}
+            </otherwise>
+        </choose>
+		and sub.fid = (select fid from gc_subject where id=#{subId})
+		 <if test="id!=null">
+	        and v.id !=#{id}
+	    </if >
+	</select>
+	
+	<select id="selectVideoByVideoAndSub0NameIndex" resultMap="baseResultMap">
+	    select
+	    <include refid="baseColumn" />
+	    <include refid="fileBaseColumn" />
+	    ,sub1.fid as subId0
+	    ,f.thumb_nail_url as thumb_nail_url
+	    from gc_video v 
+	     <include refid="leftJoinSysFile" />
+	     left join gc_subject sub1 on v.sub_id =sub1.id
+		left join gc_subject sub0 on sub1.fid =sub0.id
+	    where v.video_name_index =#{videoNameIndex} and sub0.name_index = #{subNameIndex}
+	    AND sub0.master_id =#{masterId}
+    </select>
+    <!--计算视频的总时长-->
+    <select id="sumVideoLongByIdUser" resultType="java.lang.Long">
+        SELECT
+            SUM(f.video_long)
+        FROM
+            sys_file f
+            LEFT JOIN gc_video v ON f.id = v.file_id
+        WHERE
+            f.video_long IS NOT NULL
+            and v.id IN
+            <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
+                #{videoId}
+            </foreach>
+    </select>
+    <select id="sumVideoLong" resultType="java.lang.Long">
+        SELECT
+        SUM(f.video_long)
+        FROM
+        sys_file f
+        LEFT JOIN gc_video v ON f.id = v.file_id
+        WHERE
+        f.video_long IS NOT NULL
+        and v.id IN
+        <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
+            #{videoId}
+        </foreach>
+
+
+    </select>
+    <select id="sumVideoLongBySubId" resultMap="videoLongMap">
+        SELECT
+        f.video_long as video_long,s.sub_id as sub_id
+        FROM
+        sys_file f
+        LEFT JOIN gc_video v ON f.id = v.file_id
+        left join gc_subject s on s.id=v.sub_id
+        WHERE
+        f.video_long IS NOT NULL
+        and v.id IN(SELECT id from gc_video where sub_id in (select id from gc_subject where sub_id in
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+            #{subId}
+        </foreach>
+        ))
+    </select>
+      <!--计算视频的播放时长-->
+    <select id="sumPlayVideoLongByIdUser" resultType="java.lang.Long">
+        SELECT
+            SUM(END_TIME) - SUM(START_TIME) AS SUB_TIME
+        FROM (
+            SELECT
+                T.VIDEO_ID, T.USER_ID, MAX(T.END_TIME) AS END_TIME, MIN(T.START_TIME) AS START_TIME
+            FROM (
+                SELECT
+                    UVP.VIDEO_ID, UVP.USER_ID, UVPN.END_TIME, UVPN.START_TIME
+                FROM
+                    GC_USER_VIDEO_PLAY UVP
+                LEFT JOIN GC_USER_VIDEO_PLAYS_NODE UVPN ON UVPN.VIDEOPLAY_ID = UVP.ID
+                WHERE
+                    VIDEO_ID IN
+                    <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
+                        #{videoId}
+                    </foreach>
+                    AND UVPN.END_TIME > UVPN.START_TIME
+                    AND USER_ID=#{userId} AND UVPN.START_TIME>= 0 AND UVPN.END_TIME>=0
+            ) T
+            GROUP BY T.VIDEO_ID, T.USER_ID
+        ) T
+    </select>
+
+
+    <select id="pageVideo" parameterType="java.util.Map" resultMap="baseResultMap">
+        select
+            <include refid="baseColumn" />
+            <include refid="fileBaseColumn" />
+            ,s1.name as subjectName
+        from gc_video v
+            <include refid="leftJoinSysFile" />
+            LEFT JOIN gc_subject s ON s.id=v.sub_id
+            left join gc_subject s1 on s1.id = s.fid
+            LEFT JOIN gc_user_access_permission uap  on json_contains(uap.sub_permission,CONCAT('',s.fid,''))
+            LEFT JOIN gc_user_access ua on ua.id=uap.user_access_id
+        <where>
+            <if test="null != videoNum">
+                <if test="videoName != null and videoName != ''">
+                    and v.video_name like concat('%',#{videoName},'%')
+                </if>
+            </if>
+            <if test="state !=null">
+                and s1.state = #{state}
+            </if>
+            <if test="subId != null and subId != ''">
+                and v.sub_id =#{subId}
+            </if>
+            <if test="userId != null ">
+                and ua.user_id = #{userId}
+            </if>
+            <if test="masterId != null ">
+                and ua.master_id = #{masterId}
+            </if>
+        </where>
+        GROUP by v.id
+        <if test="null != videoNum">
+            order by v.create_time desc
+        </if>
+    </select>
+    <select id="selectVideoAndTimeByIds" resultMap="baseResultMap">
+        select
+        v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source
+        <include refid="fileBaseColumn" />
+        from gc_video v
+        left join gc_user_save_content sc on sc.master_id = #{masterId} and sc.video_id = v.id
+        <include refid="leftJoinSysFile" />
+        <if test="list.size()!=0">
+        where v.id in
+        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        </if>
+        group by v.id
+        order by sc.create_time
+    </select>
+    <select id="countVideosBySubId" resultType="java.lang.Integer">
+        select count(g.id) from gc_video g
+        <where>
+            <if test="ids != null and ids.size() != 0">
+                AND g.sub_id in
+                <foreach collection="ids" item="subjectId" separator="," open="(" close=")">
+                    #{subjectId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="selectVideoInfoBySubId" resultMap="baseResultMap" >
+        select
+        <include refid="baseColumn" />
+        <include refid="fileBaseColumn" />
+        from gc_video v
+        <include refid="leftJoinSysFile" />
+        where 1=1
+        <if test="list != null and list.size() != 0">
+            AND v.sub_id in
+            <foreach collection="list" item="subjectId" separator="," open="(" close=")">
+                #{subjectId}
+            </foreach>
+        </if>
+        order by v.`order`
+    </select>
+    <select id="selectLastVideoIdBySubjectId" resultType="integer" >
+        select vp.video_id from gc_user_video_play vp
+                left join gc_video v on v.id = vp.video_id
+                left join gc_subject s1 on v.sub_id=s1.id
+                left join gc_subject s0 on s1.fid=s0.id
+        where s0.id=#{subId}
+        and vp.user_id = #{userId}
+        and vp.master_id = #{masterId}
+        order by vp.update_time desc limit 1
+    </select>
+    <select id="getStudentSubTimeNum" resultType="com.threeatom.guidecore.entity.StudentInfoVO">
+        SELECT
+            sum(uvpn.end_time - uvpn.start_time) as subTime,uvp.user_id as userId
+        FROM
+            gc_user_video_play uvp
+            LEFT JOIN gc_user_video_plays_node uvpn ON uvpn.videoplay_id = uvp.ID
+        WHERE
+          uvpn.end_time > uvpn.start_time
+          AND uvp.user_id in
+        <foreach collection="userIdList" item="userIdList" separator="," open="(" close=")">
+            #{userIdList}
+        </foreach>
+          AND uvpn.start_time>= 0 AND uvpn.end_time>=0
+        and
+        video_id IN
+        <foreach collection="videoList" item="videoList" separator="," open="(" close=")">
+            #{videoList}
+        </foreach>
+        group by uvp.user_id
+    </select>
+    <select id="getVideoIdListBySubId" resultType="integer">
+        select v.id from gc_video v
+        where v.sub_id in
+        (select id from gc_subject s1 where s1.fid in
+        <foreach collection="subIds" item="subId" separator="," open="(" close=")">
+            #{subId}
+        </foreach>)
+
+    </select>
+
+    <select id="getVideoListBySubId" resultMap="baseResultMap">
+        select * from gc_video v
+        where v.sub_id in
+        (select id from gc_subject s1 where s1.fid in
+        <foreach collection="subIds" item="subId" separator="," open="(" close=")">
+            #{subId}
+        </foreach>)
+
+    </select>
+    <select id="getVideoLongListByVideoId" resultType="com.threeatom.guidecore.entity.GcVideo">
+        SELECT f.video_long,v.*,s.sub_id as subjectSubId FROM gc_video v
+        LEFT JOIN sys_file f on f.id=v.file_id
+        LEFT JOIN gc_subject s on v.sub_id=s.id
+        <if test="videoIds.size()!=0">
+        where v.id in
+        <foreach collection="videoIds" item="videoId" separator="," open="(" close=")">
+            #{videoId}
+        </foreach>
+        </if>
+    </select>
+    <select id="countVideoNumInPortal" resultType="Integer">
+        select count(1) from gc_video v where 1=1
+        <if test="subIds==null">
+            and v.sub_id in
+            (select  s.id from gc_subject s where s.sub_id in
+            (select DISTINCT id from gc_subject s where s.master_id=#{masterId} and s.type=#{state} and s.state!=#{state})
+            UNION ALL
+            (select s.id from gc_subject s where s.type=#{type} and s.state!=#{state} and s.sub_id in
+            (select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId})) )
+        </if>
+        <if test="subIds!=null and subIds.size!=0">
+            and v.sub_id in
+            (select s.id from gc_subject s where s.fid in
+            <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+                #{subId}
+            </foreach>
+            )
+        </if>
+
+    </select>
+    <select id="getVideoIdListByPermissionId" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumnSub1" />
+        <include refid="fileBaseColumn" />
+        , s2.`fid` AS subId0
+        ,s2.id as sub_id,
+        ap.id as permission_id
+        from GC_SUBJECT s
+        left join gc_user_access_permission ap on json_contains(ap.sub_permission,convert(s.id,char))=1
+        left join gc_subject s2 on s2.fid = s.id
+        LEFT JOIN GC_VIDEO V ON S2.ID = V.SUB_ID
+        <include refid="leftJoinSysFile" />
+        where ap.id in
+        <foreach collection="accessPermissionId" item="accessPermissionId" index="index" open="(" close=")" separator=",">
+            #{accessPermissionId}
+        </foreach>
+        and v.id is not null
+    </select>
+    <select id="getSysFileByIdsOrVideos" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="fileBaseColumn" />
+        ,ifnull(v.video_name,f.name) as video_name,
+        v.`order` as `order`
+        from gc_video v
+        right join sys_file f on v.file_id=f.id
+        where 1=2
+        <if test="videoList.size()!=0 or fileList.size() != 0">
+            <if test="videoList != null and videoList.size() != 0">
+                or (
+                v.id in
+                <foreach collection="videoList" item="videoList" separator="," open="(" close=")">
+                    #{videoList}
+                </foreach>)
+            </if>
+            <if test="fileList != null and fileList.size() != 0">
+                or(
+                f.id in
+                <foreach collection="fileList" item="fileList" separator="," open="(" close=")">
+                    #{fileList}
+                </foreach>
+                )
+            </if>
+        </if>
+        order by v.`order`
+    </select>
+    <select id="selectVideoPlayListBySubId" resultType="com.threeatom.guidecore.entity.GcVideo">
+        select max(p.play_state) as play_state,v.id as id
+        from gc_subject s
+        left join gc_subject s2 on s2.fid = s.id
+        left join gc_video v on v.sub_id = s2.id
+        left join gc_user_video_play p on p.video_id = v.id and user_id = #{userId}
+        where s.id = #{subId}
+        and v.id is not null
+        GROUP BY v.id
+    </select>
+    <select id="selectVideoPlayByVideo" resultType="com.threeatom.guidecore.entity.GcVideo">
+        SELECT
+            max( p.play_state ) AS play_state,
+            v.id AS id
+        FROM
+            gc_video v
+            LEFT JOIN gc_user_video_play p ON p.video_id = v.id AND user_id = #{userId}
+        WHERE
+            v.id = #{video}
+        GROUP BY v.id
+    </select>
+    <select id="getIdsBySubIds" resultType="java.lang.Integer">
+        select id from gc_video where sub_id in
+        <foreach collection="subIds" item="subIds" separator="," open="(" close=")">
+            #{subIds}
+        </foreach>
+    </select>
+    <select id="getVideoLongMapBySubjectId" resultMap="videoLongMap" >
+        select s.id as sub_id,sum(file.video_long) as video_long,
+        count(v.id) as video_count
+        from gc_video v
+                 left join gc_subject s2 on s2.id = v.sub_id
+                 left join gc_subject s on s.id = s2.fid
+                 left join sys_file file on file.id = v.file_id
+        where 1=1
+          and s.id in
+        <foreach collection="subjectIds" item="subIds" separator="," open="(" close=")">
+            #{subIds}
+        </foreach>
+        GROUP BY s.id
+    </select>
+    <select id="getVideoListByUserIdsAndSubjectId" resultType="com.threeatom.guidecore.entity.GcVideo">
+        SELECT
+        <include refid="baseColumnSub1" />
+        <include refid="fileBaseColumn" />
+        , s2.`fid` AS subId0
+        ,s2.id as sub_id,
+        u.id as userId
+        from gc_video v
+        left join sys_file f on f.id = v.file_id
+        left join gc_subject s2 on s2.id = v.sub_id
+        left join gc_subject s1 on s1.id = s2.fid
+        left join gc_user u on u.id in
+        <foreach collection="userIdList" item="userId" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    where 1=1
+    and s1.id = #{subjectId}
+    </select>
+
+</mapper>

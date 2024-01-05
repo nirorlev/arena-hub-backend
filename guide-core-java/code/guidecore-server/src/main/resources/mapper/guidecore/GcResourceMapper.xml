@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcResourceMapper">
+
+    <resultMap id="baseResultMap" type="GcResource">
+	    <id property="id" column="id"/>
+	    <result property="videoId" column="video_id"  />
+	    <result property="resourceName" column="resource_name"  />
+	    <result property="fileId" column="file_id"  />
+	    <result property="resourceType" column="resource_type"/>	 
+	    <result property="resUrl" column="res_url"/>
+	    <result property="ifEndPopup" column="if_end_popup"/>
+	    <result property="updateTime" column="update_time" />
+	    <result property="createTime" column="create_time" />
+	    
+	    <association property="resFile" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+			<result property="description" column="description"/>
+        </association>
+	    
+	</resultMap>
+	
+	<sql id="baseColumn">
+	    r.id , r.video_id, r.resource_name, r.file_id, r.resource_type, r.res_url,r.update_time, r.create_time
+	    ,r.if_end_popup
+	</sql>
+	
+	<select id="selectResListByVid" resultMap="baseResultMap">
+	    select
+	    <include refid="baseColumn" />
+	    ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
+	    f.description
+	    from 
+	    gc_resource r
+	    left join sys_file f on r.file_id=f.id
+	    where r.video_id=#{vid}
+	
+	</select>
+
+	<select id="countResourceNum" resultType="Integer">
+		select count(1) from gc_resource r where 1=1
+		<if test="subIds==null">
+		   and r.video_id in
+			(select v.id from gc_video v where v.sub_id in
+			(select  s.id from gc_subject s where 1=1 and s.master_id = #{masterId}
+			UNION ALL
+			(select s.id from gc_subject s where s.type=#{type} and s.state!=#{state} and s.sub_id in
+			(select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId})) ))
+		</if>
+		<if test="subIds!=null and subIds.size!=0">
+			and r.video_id in
+			(select v.id from gc_video v where v.sub_id in
+			(select s.id from gc_subject s where s.fid in
+			<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+			    )
+			)
+		</if>
+
+
+	</select>
+	
+	
+</mapper>

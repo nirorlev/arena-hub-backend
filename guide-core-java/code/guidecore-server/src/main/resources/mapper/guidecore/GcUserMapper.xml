@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserMapper">
+
+    <resultMap id="baseResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id"/>
+        <result property="username" column="username"/>
+        <result property="state" column="state"/>
+        <result property="password" column="password"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="infoId" column="info_id"/>
+        <result property="pid" column="pid"/>
+        <result property="groupName" column="group_name"/>
+        <result property="logInTime" column="log_in_time"/>
+        <!-- <result property="avatarFileId" column="avatarFileId"/> -->
+        <result property="lastName" column="lastName"/>
+        <result property="firstName" column="firstName"/>
+        <!-- <association property="avatarFile" column="avatarFile" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+        </association> -->
+
+        <association property="info" column="id" javaType="GcUserInfo">
+            <id property="id" column="info_id"/>
+            <result property="lastName" column="lastName"/>
+            <result property="firstName" column="firstName"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="avatarFileId" column="avatarFileId"/>
+            <association property="avatarFile" column="avatarFile" javaType="SysFile">
+                <id property="id" column="f_id"/>
+                <result property="name" column="f_name"/>
+                <result property="fileUrl" column="f_file_url"/>
+                <result property="saveType" column="f_save_type"/>
+            </association>
+        </association>
+
+        <association property="userMessage" column="userMessage" javaType="GcUserMessage">
+            <id property="id" column="mid"/>
+            <result property="message" column="m_message"/>
+            <result property="createTime" column="m_create_time"/>
+            <result property="newMesCount" column="newMesCount"/>
+        </association>
+
+
+    </resultMap>
+
+    <resultMap id="userCommonInfoMap" type="com.threeatom.guidecore.controller.user.vo.UserCommonInfo">
+        <result property="userId" column="userId"/>
+        <result property="userAccessId" column="userAccessId"/>
+        <result property="username" column="username"/>
+        <result property="lastName" column="lastName"/>
+        <result property="firstName" column="firstName"/>
+        <result property="lastLogin" column="lastLogin"/>
+
+        <association property="avatarFile" column="avatarFile" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="StudentBehaviorDataExcel" type="com.threeatom.guidecore.excel.vo.StudentBehaviorDataExcel">
+        <result property="userId" column="user_id"/>
+        <result property="lastName" column="lastName"/>
+        <result property="firstName" column="firstName"/>
+        <result property="userName" column="user_name"/>
+        <result property="watchedNum" column="watched_num"/>
+        <result property="allPlayTime" column="all_play_time"/>
+        <result property="answerNum" column="answer_num"/>
+        <result property="subPermission" column="sub_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+    </resultMap>
+
+    <sql id="baseColumn">
+        u.id , u.sys_id,u.pid, u.state, u.username, ui.avatar_file_id as avatarFileId ,u.update_time, u.create_time
+    </sql>
+
+    <sql id="infoBaseColumn">
+        ,ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName, ui.gender as gender, ui.phone as phone
+    </sql>
+
+
+    <select id="userTalkerList" resultMap="baseResultMap">
+        select u.id, info.id as info_id, info.last_name as lastName, info.first_name as firstName, info.avatar_file_id as avatarFileId
+        ,f.id as f_id, f.file_url as f_file_url,f.name as f_name, f.save_type as f_save_type
+        ,cc.mid as mid, cc.message as m_message, cc.create_time as m_create_time,count(m.id) as newMesCount
+        from gc_user_access ua
+        left join gc_access access on access.id = ua.access_id
+        <choose>
+            <when test="ifStudent">
+                left join gc_user_access uaTar on uaTar.access_id = access.admin_id
+            </when>
+            <otherwise>
+                left join gc_access accessStu on accessStu.admin_id=access.id
+                left join gc_user_access uaTar on uaTar.access_id = accessStu.id
+                <if test="groupId != null">
+                    left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(uaTar.id, char))=1  and g.master_id = uaTar.master_id
+                </if>
+            </otherwise>
+        </choose>
+        left join gc_user u on u.id = uaTar.user_id
+        left join gc_user_info info on info.id= u.info_id
+        left join sys_file f on f.id = info.avatar_file_id
+        left join gc_user_message m on m.user_id=u.id and m.target_user_id = ua.user_id  and m.master_id=ua.master_id and read_state=0
+
+        left join (
+        select a.uid, um.id,um.message,um.create_time,mid from gc_user_message um,
+        (
+        select u.id as uid, u.username, max(m.id) as mid from gc_user u left join
+        gc_user_message m on (m.target_user_id = u.id or m.user_id=u.id) and u.id !=#{userId}
+        where m.id in (
+        select  max(id)  from gc_user_message m  where (m.target_user_id= #{userId} or m.user_id =#{userId}) and master_id =#{masterId}  group by m.target_user_id,m.user_id
+
+        ) group by u.id
+        ) a where um.id=mid) cc on cc.uid=u.id
+
+        where ua.master_id = #{masterId} and ua.user_id =#{userId}
+        <if test="groupId != null">
+            and g.id=#{groupId}
+        </if>
+        and u.id is not null
+        group by m.user_id, u.id
+        order by newMesCount desc, m_create_time desc
+    </select>
+
+
+    <select id="getGcUserByUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        , u.password,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        <include refid="infoBaseColumn"/>
+        from
+        gc_user u
+        left join gc_user_info ui on ui.id=u.info_id
+        left join sys_file f on ui.avatar_file_id=f.id
+        where u.id=#{userId}
+    </select>
+
+    <select id="getGcUserByUserIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        <include refid="infoBaseColumn"/>
+        from
+        gc_user u
+        left join gc_user_info ui on ui.id=u.info_id
+        left join sys_file f on ui.avatar_file_id=f.id
+        where u.id In
+        <foreach collection="list" item="userIds" index="index" open="(" close=")" separator=",">
+            #{userIds}
+        </foreach>
+    </select>
+
+    <select id="selectGetTalkerByUserIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        <include refid="infoBaseColumn"/>
+        from
+        gc_user u
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        where u.id In
+        <foreach collection="list" item="userIds" index="index" open="(" close=")" separator=",">
+            #{userIds}
+        </foreach>
+    </select>
+
+    <select id="getUserByUserAccessIds" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        <include refid="infoBaseColumn"/>
+        FROM
+        gc_user u
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file AS f ON ui.avatar_file_id=f.id
+        LEFT JOIN gc_user_access AS ua ON ua.user_id = u.id
+        WHERE ua.id IN
+        <foreach collection="userAccessIds" item="userAccessId" index="index" open="(" close=")" separator=",">
+            #{userAccessId}
+        </foreach>
+    </select>
+
+    <select id="getUserCommonInfo" resultType="java.util.Map">
+        SELECT
+        student_ua.user_id as userId,student_ua.id as userAccessId, student_u.username as username,student_ui.last_name as lastName,
+        student_ui.first_name as firstName,student_ui.avatar_file_id as avatarFileId, max(student_uae.log_in_time) as lastLogin,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
+        uap.id as permission_id,student_a.code as code,student_a.subject_json as permission,max(mess.update_time) as lastActivityTime
+        from gc_access teacher_a
+        LEFT JOIN gc_access p on p.id = teacher_a.admin_id
+        LEFT JOIN gc_user_access teacher_ua ON teacher_ua.access_id = teacher_a.id or teacher_ua.access_id = p.id
+        left join gc_access student_a on student_a.admin_id=teacher_a.id
+        left join gc_user_access student_ua on student_ua.access_id=student_a.id
+        left join gc_user student_u on student_u.id=student_ua.user_id
+        left join gc_user_info student_ui on student_ui.id=student_u.info_id
+        left join gc_user_access_ext student_uae on student_uae.user_access_id=student_ua.id
+        left join sys_file f on student_ui.avatar_file_id=f.id
+        <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
+            left join gc_group g on g.id = #{userCommonInfo.groupId}
+        </if>
+        left join gc_user_access_permission uap on uap.user_access_id = student_ua.id
+        LEFT JOIN (select DISTINCT id,master_id,target_user_id,user_id,max(update_time) as update_time
+        from gc_master_message where master_id=#{userCommonInfo.masterId}
+        and target_user_id=#{userCommonInfo.userId} group by user_id)mess on mess.user_id = student_ua.user_id
+        <where>
+            teacher_ua.access_id=#{userCommonInfo.accessId} and teacher_ua.master_id= #{userCommonInfo.masterId}
+            and student_ua.user_id IS NOT NULL and student_a.role_type=1
+            <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
+                and json_contains(g.group_access_ids, json_array(student_ua.id))=1
+            </if>
+            <if test="userCommonInfo.userIds != null">
+
+                <if test="userCommonInfo.userIds.size()!=0">
+                    and student_ua.user_id in
+                    <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
+                        #{userIds}
+                    </foreach>
+                </if>
+                <if test="userCommonInfo.userIds.size()==0">
+                    and 1=2
+                </if>
+            </if>
+            <if test="userCommonInfo.name != null and userCommonInfo.name !=''">
+                and REPLACE(concat( student_ui.first_name, student_ui.last_name, student_u.username ),' ','') like concat('%',#{userCommonInfo.name},'%')
+            </if>
+            <if test="pageParam.lastDaysScope != null">
+                and    mess.update_time  >    date_sub(now(), interval #{pageParam.lastDaysScope} day)
+            </if>
+        </where>
+        group by student_uae.user_access_id
+        <choose>
+            <when test="pageParam !=null and pageParam.orderByString != null and pageParam.orderByString != ''">
+                ORDER BY lastActivityTime ${pageParam.orderByString}
+            </when>
+            <otherwise>
+                ORDER BY lastActivityTime DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getUserAgeCommonInfo" resultType="java.util.Map">
+        SELECT student_ua.user_id AS userId,student_ua.id AS userAccessId,student_u.username AS username,student_ui.last_name AS lastName,student_ui.first_name AS firstName,
+            student_ui.avatar_file_id AS avatarFileId,f.id AS f_id,f.NAME AS f_name,f.file_url AS f_file_url,f.save_type AS f_save_type,uap.id AS permission_id,
+            student_a.CODE AS CODE,student_a.subject_json AS permission
+            from
+            gc_access teacher_a
+            LEFT JOIN gc_user_access teacher_ua ON teacher_ua.access_id = teacher_a.id
+            LEFT JOIN gc_access student_a ON student_a.admin_id = teacher_a.id
+            LEFT JOIN gc_user_access student_ua ON student_ua.access_id = student_a.id
+            LEFT JOIN gc_user student_u ON student_u.id = student_ua.user_id
+            LEFT JOIN gc_user_info student_ui ON student_ui.id = student_u.info_id
+            LEFT JOIN sys_file f ON student_ui.avatar_file_id = f.id
+            LEFT JOIN gc_user_access_permission uap ON uap.user_access_id = student_ua.id
+            where
+            teacher_ua.user_id=#{userCommonInfo.userId} and teacher_ua.master_id= #{userCommonInfo.masterId}
+            and student_ua.user_id IS NOT NULL
+            <if test="userCommonInfo.userIds != null">
+                <if test="userCommonInfo.userIds.size()!=0">
+                    and student_ua.user_id in
+                    <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
+                        #{userIds}
+                    </foreach>
+                </if>
+                <if test="userCommonInfo.userIds.size()==0">
+                    and 1=2
+                </if>
+            </if>
+    </select>
+
+    <!--    覆盖mybtis-plus的count预查询，把关联的多余表删除，对应上面的getUserCommonInfo查询，后面加个_COUNT会被mybatis-plus默认识别-->
+    <select id="getUserCommonInfo_COUNT" resultType="Long">
+        select count(1) from (
+        SELECT
+        student_ua.user_id
+        from gc_access teacher_a
+        LEFT JOIN gc_access p on p.id = teacher_a.admin_id
+        LEFT JOIN gc_user_access teacher_ua ON teacher_ua.access_id = teacher_a.id or teacher_ua.access_id = p.id
+        left join gc_access student_a on student_a.admin_id=teacher_a.id
+        left join gc_user_access student_ua on student_ua.access_id=student_a.id
+        left join gc_user student_u on student_u.id=student_ua.user_id
+        left join gc_user_info student_ui on student_ui.id=student_u.info_id
+        <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
+            left join gc_group g on g.id = #{userCommonInfo.groupId}
+        </if>
+        LEFT JOIN (select DISTINCT id,master_id,target_user_id,user_id,max(update_time) as update_time
+        from gc_master_message where master_id=#{userCommonInfo.masterId}
+        and target_user_id=#{userCommonInfo.userId} group by user_id)mess on mess.user_id = student_ua.user_id
+        where teacher_ua.access_id=#{userCommonInfo.accessId} and teacher_ua.master_id= #{userCommonInfo.masterId} and
+        student_a.role_type=1
+        <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
+            and json_contains(g.group_access_ids, json_array(student_ua.id))=1
+        </if>
+        <if test="null!=userCommonInfo.userIds">
+            <if test="userCommonInfo.userIds.size()!=0">and student_ua.user_id in
+                <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
+                #{userIds}
+            </foreach>
+          </if>
+            <if test="userCommonInfo.userIds.size()==0">
+                and 1=2
+            </if>
+        </if>
+        <if test="pageParam.lastDaysScope != null">
+            and    mess.update_time  >    date_sub(now(), interval #{pageParam.lastDaysScope} day)
+        </if>
+        <if test="userCommonInfo.name != null and userCommonInfo.name !=''">
+            and REPLACE(concat( student_ui.first_name, student_ui.last_name, student_u.username ),' ','') like concat('%',#{userCommonInfo.name},'%')
+        </if>
+        and student_ua.user_id IS NOT NULL
+        GROUP BY student_ua.user_id
+)a
+    </select>
+
+    <select id="getStudentBehaviorExcelData" resultMap="StudentBehaviorDataExcel">
+        SELECT
+        u.id as user_id,u.username as user_name,
+        a.sub_permission as sub_permission
+        <include refid="infoBaseColumn"/>
+        FROM gc_user u
+                 LEFT JOIN gc_user_video_play uvp ON uvp.user_id = u.id
+                 LEFT JOIN gc_user_info ui ON ui.id = u.info_id
+                 LEFT JOIN gc_user_access ua ON ua.user_id = u.id
+                 LEFT JOIN gc_user_access_permission a ON ua.id = a.user_access_id
+                 LEFT JOIN gc_access ac ON ac.id = ua.access_id
+                 left join gc_access ac2 on ac.admin_id = ac2.id
+                 LEFT JOIN gc_video v ON uvp.video_id = v.id
+                 LEFT JOIN gc_subject s ON v.sub_id = s.id
+        <if test="ew.emptyOfWhere == false">
+            ${ew.customSqlSegment}
+        </if>
+    </select>
+
+    <!-- 统计课程的参与人数 -->
+    <select id="getUsersBySubject" resultType="com.threeatom.guidecore.entity.GcUser">
+        SELECT subject_id as "subjectId", SUM(SUBJECT_USERS) as "subjectUsers"  FROM (
+        SELECT
+        S.ID AS SUBJECT_ID, COUNT(USER.ID) AS SUBJECT_USERS,S.master_id as master_id
+        FROM GC_USER USER
+        LEFT JOIN GC_USER_ACCESS UA ON USER.ID = UA.USER_ID
+        LEFT JOIN GC_USER_ACCESS_PERMISSION UAP ON UA.ID = UAP.USER_ACCESS_ID
+        LEFT JOIN GC_SUBJECT S ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+        WHERE UA.master_id=#{masterId} and S.ID IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY S.ID
+        ) T WHERE SUBJECT_ID IS NOT NULL
+        group by SUBJECT_ID
+    </select>
+
+    <!-- 统计看过视频的用户人数 -->
+    <select id="getWatchedUserNum" resultType="com.threeatom.guidecore.entity.GcUser">
+        select s0.id as "subjectId",count(DISTINCT p.user_id) as "subjectUsers"  from gc_user u
+        LEFT JOIN gc_user_video_play p on p.user_id=u.id
+        LEFT JOIN gc_video v on v.id = p.video_id
+        LEFT JOIN gc_subject s1 on s1.id = v.sub_id
+        LEFT JOIN gc_subject s0 on s0.id = s1.fid
+        where 1=1
+        <if test="null!=subjectIds and subjectIds.size()!=0">
+        and s0.id in
+        <foreach item="subjectId" collection="subjectIds" open="(" separator="," close=")">
+            #{subjectId}
+        </foreach>
+        </if>
+        and p.master_id=#{masterId}
+        GROUP BY s0.id
+
+    </select>
+
+    <select id="getStudentVideoNum" resultType="com.threeatom.guidecore.entity.StudentInfoVO">
+        SELECT uap.id as permissionId,count(v.id) as videoNum,u.user_id as userId FROM gc_user_access_permission uap
+        left join gc_subject g1 ON JSON_CONTAINS(uap.sub_permission,CONVERT ( g1.id, CHAR ))= 1
+        left join gc_subject g2 on g2.fid=g1.id
+        left join gc_video v on v.sub_id = g2.id
+        left join gc_user_access u on u.id = uap.user_access_id
+        <if test="list.size()!=0">
+            where uap.id in
+            <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
+                #{list}
+            </foreach>
+        </if>
+        group by uap.id
+    </select>
+
+    <select id="selectTeacherListByMasterId" resultType="map">
+        select info.*,ua.id as userAccessId from gc_user_info info
+        LEFT JOIN gc_user u on u.info_id=info.id
+        LEFT JOIN gc_user_access ua on ua.user_id = u.id
+        LEFT JOIN gc_access ac on ac.id = ua.access_id
+        where ua.master_id=#{masterId} and ac.role_type=0 and ua.user_id!=#{userId}
+    </select>
+
+    <select id="getTeamUser" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        <include refid="infoBaseColumn"/>
+        ,max(ext.log_in_time) log_in_time,ac.group_name
+        from  `gc_user` u
+        left join gc_user_info ui on  u.info_id = ui.id
+        left join gc_user_access uac on uac.user_id = u.id
+        left join sys_file f on f.id = ui.avatar_file_id
+        left join gc_user_access_ext ext on ext.user_access_id = uac.id
+        left join gc_access ac on ac.id = uac.access_id
+        where uac.access_id = #{params.accessId}
+        and uac.master_id = #{params.masterId}
+        <if test="params.name != null ">
+        and concat(ui.last_name,first_name) like concat('%',#{params.name},'%')
+        </if>
+        GROUP BY uac.id
+    </select>
+</mapper>

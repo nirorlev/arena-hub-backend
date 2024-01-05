@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserSaveFolderMapper">
+
+     <resultMap id="baseResultMap" type="GcUserSaveFolder">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="userId" column="user_id"/>
+        <result property="state" column="state"/>
+        <result property="fileId" column="file_id"/>
+        <result property="masterId" column="master_id"/>
+        <result property="updateTime" column="update_time"/>
+		<result property="ifPrivate" column="if_private"/>
+        <result property="createTime" column="create_time"/>
+		<result property="videoNum" column="videoNum"/>
+		<result property="firstVideoFileId" column="firstVideoFileId"/>
+		 <result property="videoSource" column="video_source"/>
+		 <association property="user" column="user_id" javaType="GcUser">
+			 <id property="id" column="u_id"/>
+			 <result property="infoId" column="info_id"/>
+			 <association property="info" column="id" javaType="GcUserInfo">
+				 <id property="id" column="info_id"/>
+				 <result property="lastName" column="lastName"/>
+				 <result property="firstName" column="firstName"/>
+				 <result property="avatarFileId" column="avatarFileId"/>
+				 <result property="username" column="username"/>
+				 <association property="avatarFile" column="avatarFile" javaType="SysFile">
+					 <id property="id" column="u_f_id"/>
+					 <result property="name" column="u_f_name"/>
+					 <result property="fileUrl" column="u_f_file_url"/>
+					 <result property="saveType" column="u_f_save_type"/>
+				 </association>
+			 </association>
+		 </association>
+
+            <collection property="saveContentList" javaType="ArrayList" column="folder_id" ofType="GcUserSaveContent">
+				<id property="id" column="sc_id" />
+				<result property="videoId" column="sc_video_id" />
+				<result property="subId" column="sc_sub_id" />
+				<result property="fileId" column="sc_file_id" />
+			    <association property="subject" javaType="GcSubject" column="sub_id" >
+					<result property="id" column="s_id" />
+					<result property="name" column="s_name" />
+					<result property="name" column="s_name_index" />
+					<result property="description" column="s_description" />
+					<result property="type" column="s_type" />
+					<result property="subImgId" column="s_subImgId" />
+					<result property="isPublic" column="s_isPublic" />
+			        <association property="subImgFile" column="sub_img_id" javaType="SysFile">
+			            <id property="id" column="fs_id"/>
+			            <result property="name" column="fs_name"/>
+			            <result property="fileUrl" column="fs_file_url"/>
+			            <result property="saveType" column="fs_save_type"/>
+			            <result property="fileTypeIndex" column="fs_file_type_index"/>
+			        </association>
+				</association>
+		        <association property="video" column="video_id" javaType="GcVideo">
+		            <id property="id" column="v_id"/>
+		            <result property="videoName" column="v_video_name"/>
+		            <result property="videoNameIndex" column="v_video_name_index"/>
+		            <result property="fileId" column="v_file_id"/>
+		            <result property="videoDesc" column="v_video_desc"/>
+					<result property="videoSource" column="v_video_source"/>
+					<!--<association property="videoFile" column="file_id" javaType="SysFile">
+			            <id property="id" column="f_id"/>
+			            <result property="name" column="f_name"/>
+			            <result property="fileUrl" column="f_file_url"/>
+			            <result property="saveType" column="f_save_type"/>
+			            <result property="videoLong" column="f_video_long"/>
+			            <result property="fileTypeIndex" column="f_file_type_index"/>
+			        </association>-->
+		        </association>
+				<association property="videoFile" column="file_id" javaType="SysFile">
+					<id property="id" column="f_id"/>
+					<result property="name" column="f_name"/>
+					<result property="fileUrl" column="f_file_url"/>
+					<result property="saveType" column="f_save_type"/>
+					<result property="videoLong" column="f_video_long"/>
+					<result property="fileTypeIndex" column="f_file_type_index"/>
+				</association>
+			</collection>
+    </resultMap>
+
+	<sql id="userColumn">
+		,u.id as u_id, u.info_id as info_id, info.last_name as lastName, info.first_name as firstName, info.avatar_file_id as avatarFileId,
+		    uf.id as u_f_id, uf.name as u_f_name, uf.file_url as u_f_file_url, uf.save_type as u_f_save_type,u.username
+	</sql>
+
+    <sql id="baseColumn">
+	    sf.id as id, sf.name , sf.user_id , sf.state , sf.file_id , sf.master_id, sf.update_time , sf.create_time,sf.if_private
+    </sql>
+
+    <sql id="videoFileColumn">
+        ,f.id as f_id, f.name as f_name, f.file_url as f_file_url, f.save_type as f_save_type, f.file_type_index as f_file_type_index
+        ,f.video_long as f_video_long
+    </sql>
+
+    <sql id="subjectFileColumn">
+        ,fs.id as fs_id, fs.name as fs_name, fs.file_url as fs_file_url, fs.save_type as fs_save_type, fs.file_type_index as fs_file_type_index
+    </sql>
+
+    <select id="selectFolderForUserMaster" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
+		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
+        v2.video_source as video_source,
+		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
+        <include refid="userColumn"/>
+        <include refid="videoFileColumn" />
+        <include refid="subjectFileColumn" /> ,
+		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+        (select f.id from gc_user_save_content sc
+         left join sys_file f on f.id = sc.file_id
+		where sc.folder_id=sf.id and sc.master_id=#{masterId}
+         order by sc.create_time asc limit 1) as firstVideoFileId
+		from gc_user_save_folder sf
+		left join gc_user_save_content sc on sc.folder_id = sf.id
+		<if test="userId!=null and playListName==null">
+			AND (sc.user_id=#{userId})
+		</if>
+		<if test="userId!=null and playListName!=null">
+			AND (sc.user_id=#{userId} or sf.if_private != 1)
+		</if>
+		left join gc_video v on v.id = sc.video_id
+		left join gc_subject s on s.id= sc.sub_id
+		left join sys_file fs on s.sub_img_id=fs.id
+		left join sys_file f on v.file_id=f.id
+		left join gc_user u on u.id = sf.user_id
+		left join gc_user_info info on info.id = u.info_id
+		left join sys_file uf on info.avatar_file_id = uf.id
+		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
+		left join gc_video v2 on v2.file_id = f.id
+		where 1=1
+		<if test="userId!=null and playListName==null">
+			AND sf.user_id=#{userId}
+		</if>
+		<if test="playListName!=null">
+			and sf.name like CONCAT('%',#{playListName},'%')
+		</if>
+		and (sf.if_private != 1 or sf.user_id=#{userId}) <!-- 1为私有 -->
+		and
+		sf.master_id=#{masterId}
+		<if test="folderIdList!=null and folderIdList.size()!=0">
+			AND sf.id in
+			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
+				#{folderId}
+			</foreach>
+		</if>
+		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+			AND sf.id not in
+			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
+				#{myFolderId}
+			</foreach>
+		</if>
+        group by sf.id
+        order by
+            sf.create_time DESC,
+            sc.create_time DESC
+    </select>
+
+
+
+
+	<select id="getPtNewHomePlayList" resultMap="baseResultMap">
+		SELECT
+		<include refid="baseColumn" />
+		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
+		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
+		v2.video_source as video_source,
+		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
+		<include refid="userColumn"/>
+		<include refid="videoFileColumn" />
+		<include refid="subjectFileColumn" /> ,
+		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		(select f.id from gc_user_save_content sc
+		left join sys_file f on f.id = sc.file_id
+		where sc.folder_id=sf.id and sc.master_id=#{masterId}
+		order by sc.create_time asc limit 1) as firstVideoFileId
+		from gc_user_save_folder sf
+		left join gc_user_save_content sc on sc.folder_id = sf.id
+		left join gc_video v on v.id = sc.video_id
+		left join gc_subject s on s.id= sc.sub_id
+		left join sys_file fs on s.sub_img_id=fs.id
+		left join sys_file f on v.file_id=f.id
+		left join gc_user u on u.id = sf.user_id
+		left join gc_user_info info on info.id = u.info_id
+		left join sys_file uf on info.avatar_file_id = uf.id
+		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
+		left join gc_video v2 on v2.file_id = f.id
+		where 1=1
+		<if test="userId!=null">
+			AND sf.user_id !=#{userId}
+		</if>
+		and (sf.if_private != 1) <!-- 1为私有 -->
+		and
+		sf.master_id=#{masterId}
+		<if test="folderIdList!=null and folderIdList.size()!=0">
+			AND sf.id in
+			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
+				#{folderId}
+			</foreach>
+		</if>
+		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+			AND sf.id not in
+			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
+				#{myFolderId}
+			</foreach>
+		</if>
+		group by sf.id
+		order by
+		sf.create_time DESC,
+		sc.create_time DESC
+	</select>
+
+	<select id="selectFolderAllVideo" resultMap="baseResultMap">
+		SELECT
+		<include refid="baseColumn" />
+		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
+		sc.file_id,
+		sc.file_id as sc_file_id,
+		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
+		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
+		<include refid="videoFileColumn" />
+		<include refid="subjectFileColumn" /> ,
+		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		(select f.id from gc_user_save_content sc
+		left join sys_file f on f.id = sc.file_id
+		where sc.folder_id=sf.id and sc.master_id=#{masterId}
+		order by sc.create_time asc limit 1) as firstVideoFileId
+		from gc_user_save_folder sf
+		left join gc_user_save_content sc on sc.folder_id = sf.id
+		<if test="userId!=null ">
+			AND sc.user_id=#{userId}
+		</if>
+		left join gc_video v on v.id = sc.video_id
+		left join gc_subject s on s.id= sc.sub_id
+		left join sys_file fs on s.sub_img_id=fs.id
+		left join sys_file f on v.file_id=f.id
+
+		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
+
+		where 1=1
+		<if test="userId!=null ">
+			AND sf.user_id=#{userId}
+		</if>
+
+		and
+		sf.master_id=#{masterId}
+		<if test="folderIdList!=null and folderIdList.size()!=0">
+			AND sf.id in
+			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
+				#{folderId}
+			</foreach>
+		</if>
+		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+			AND sf.id not in
+			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
+				#{myFolderId}
+			</foreach>
+		</if>
+		group by sc.file_id
+		order by sf.create_time asc,sc.create_time asc
+	</select>
+
+    <select id="selectFolderByIdsAndUser" resultType="java.lang.Integer">
+		select count(1) from gc_user_save_folder
+		where 1=1
+		<if test="folderIds != null and folderIds.size()!=0">
+		and id in
+		<foreach item="folderId" index="index" collection="folderIds"  open="(" separator="," close=")">
+			#{folderId}
+		</foreach>
+		</if>
+		and user_id = #{userId}
+	</select>
+	<select id="getPlayListMetaConfig" resultMap="baseResultMap">
+		SELECT
+		sf.name,c.file_id as sc_file_id,GREATEST(sf.update_time, c.update_time) AS update_time,	c.video_id as sc_video_id
+		    from gc_user_save_folder sf
+		LEFT JOIN  gc_user_save_content c on sf.id=c.folder_id
+		WHERE sf.id=#{folderId}
+		<if test="fileId != null">
+			and c.file_id=#{fileId}
+		</if>
+		ORDER BY
+		ABS(TIMESTAMPDIFF( SECOND, sf.update_time, c.update_time ))  desc
+		 LIMIT 1
+	</select>
+
+
+</mapper>

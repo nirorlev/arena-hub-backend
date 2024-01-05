@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.NewUIUserMapper">
+
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcMasterMessage">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"  />
+        <result property="masterId" column="master_id"  />
+        <result property="targetUserId" column="target_user_id"  />
+        <result property="eventType" column="event_type"  />
+        <result property="resId" column="res_id"  />
+        <result property="userAnswerId" column="user_answer_id"  />
+        <result property="userScheduleId" column="user_schedule_id"  />
+        <result property="message" column="message"  />
+        <result property="readState" column="read_state"  />
+        <result property="updateTime" column="update_time"  />
+        <result property="createTime" column="create_time"  />
+    </resultMap>
+
+    <resultMap id="portalResultMap" type="com.threeatom.guidecore.entity.GcMaster">
+        <id property="id" column="id"/>
+        <result property="id" column="id"  />
+        <result property="managerId" column="manager_id"  />
+        <result property="orgName" column="org_name"  />
+        <result property="portalName" column="portal_name"  />
+        <result property="context" column="context"  />
+        <result property="state" column="state"  />
+        <result property="logoId" column="logo_id"  />
+        <result property="introVideoId" column="intro_video_id"  />
+        <result property="sourceType" column="source_type"  />
+        <result property="sourceUrl" column="source_url"  />
+        <result property="calendarLink" column="calendar_link"  />
+        <result property="templateId" column="template_id"  />
+        <result property="updateTime" column="update_time"  />
+    </resultMap>
+
+
+
+
+<!--    <select id="countNewMessages" resultType="java.lang.Integer">-->
+<!--        select count(1) from gc_master_message mess-->
+<!--                          LEFT JOIN gc_user_event_resource res on res.id = mess.res_id-->
+<!--                          LEFT JOIN gc_user_answer ans on ans.id = mess.user_answer_id-->
+<!--                          LEFT JOIN gc_event e on e.id = ans.event_id and e.id = res.event_id-->
+<!--                          LEFT JOIN gc_video v on v.id = e.video_id-->
+<!--                          LEFT JOIN gc_subject s1 on s1.id = v.sub_id-->
+<!--                          LEFT JOIN gc_subject s0 on s0.id = s1.fid-->
+<!--                          LEFT JOIN gc_user_access_permission per on json_contains(per.sub_permission,CONCAT('',s0.id,''))-->
+<!--        WHERE-->
+<!--            mess.read_state = 0-->
+<!--          AND mess.target_user_id =#{uid}-->
+<!--          AND mess.master_id =#{portalId}-->
+<!--          and per.user_access_id = #{teacherAccessId}-->
+<!--    </select>-->
+
+    <select id="countNewMessagesDetail" resultType="com.threeatom.guidecore.entity.GcUserMessage">
+        select a.* from(
+                           select * from gc_master_message mess WHERE
+                               mess.read_state = 0
+                               AND mess.target_user_id =#{uid}
+                               AND mess.master_id =#{portalId})a
+                           LEFT JOIN gc_user_event_resource res ON res.id = a.res_id
+                           LEFT JOIN gc_user_answer ans ON ans.id = a.user_answer_id
+                           LEFT JOIN gc_event e ON e.id = ans.event_id
+                           or e.id = res.event_id
+                           LEFT JOIN gc_video v ON v.id = e.video_id
+                           LEFT JOIN gc_subject s1 ON s1.id = v.sub_id
+                           LEFT JOIN gc_subject s0 ON s0.id = s1.fid
+                           LEFT JOIN gc_user_access_permission per ON json_contains(
+                per.sub_permission,
+                CONCAT( '', s0.id, '' ))
+        WHERE  per.user_access_id = #{teacherAccessId}
+    </select>
+
+
+
+</mapper>

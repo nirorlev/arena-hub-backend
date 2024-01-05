@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.system.mapper.SysFileMapper">
+
+
+
+    <resultMap id="baseResultMap" type="SysFile">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id" />
+        <result property="uploadUid" column="upload_uid" />
+        <result property="userRole" column="user_role" />
+        <result property="name" column="name" />
+        <result property="folder" column="folder" />
+        <result property="fileUrl" column="file_url" />
+        <result property="description" column="description" />
+        <result property="videoLong" column="video_long" />
+        <result property="fileType" column="file_type" />
+        <result property="fileTypeIndex" column="file_type_index" />
+        <result property="fileRemark" column="file_remark"  typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="saveType" column="save_type" />
+        <result property="md5" column="md5" />
+        <result property="size" column="size" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="uuid" column="uuid"/>
+    </resultMap>
+
+    <resultMap id="baseUserResultMap" type="SysFile">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id" />
+        <result property="uploadUid" column="upload_uid" />
+        <result property="userRole" column="user_role" />
+        <result property="name" column="name" />
+        <result property="folder" column="folder" />
+        <result property="fileUrl" column="file_url" />
+        <result property="description" column="description" />
+        <result property="videoLong" column="video_long" />
+        <result property="fileType" column="file_type" />
+        <result property="fileTypeIndex" column="file_type_index" />
+        <result property="fileRemark" column="file_remark"  typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="saveType" column="save_type" />
+        <result property="md5" column="md5" />
+        <result property="size" column="size" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="uuid" column="uuid"/>
+
+        <association property="gcUser" column="user_id" javaType="GcUser">
+            <id property="id" column="u_id"/>
+            <result property="username" column="username"/>
+            <result property="infoId" column="info_id"/>
+            <association property="info" column="id" javaType="GcUserInfo">
+                <id property="id" column="info_id"/>
+                <result property="lastName" column="lastName"/>
+                <result property="firstName" column="firstName"/>
+                <result property="avatarFileId" column="avatarFileId"/>
+                <association property="avatarFile" column="avatarFile" javaType="SysFile">
+                    <id property="id" column="f_id"/>
+                    <result property="name" column="f_name"/>
+                    <result property="fileUrl" column="f_file_url"/>
+                    <result property="saveType" column="f_save_type"/>
+                </association>
+            </association>
+        </association>
+
+    </resultMap>
+
+    <resultMap id="tagResult" type="Map">
+        <result property="tagJSONArray" column="tagJSONArray" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+    </resultMap>
+    
+    
+    <sql id="baseColumn">
+        id,sys_id,upload_uid,user_role,name,folder,file_url,file_type,file_type_index,file_remark,save_type,md5,size,update_time,create_time,description,video_long,uuid
+    </sql>
+    
+    <select id="selectFilesByTypeIndexAndTagSearch" resultMap="baseResultMap">
+    
+        select 
+        <include refid="baseColumn" />,
+        thumb_nail_id
+		FROM  sys_file
+        WHERE 1=1
+        <if test="masterId!=null and masterId !=''">
+            and master_id=#{masterId}
+        </if>
+        <if test="folder !=null and folder !=''">
+        and folder = #{folder}
+        </if>
+		and file_type_index in
+       <foreach item="typeIndexId" index="index" collection="typeIndexIds"  open="(" separator="," close=")">
+       		#{typeIndexId}
+       </foreach>
+       <if test="searchKey != null and searchKey != ''">
+		  AND JSON_CONTAINS(file_remark, JSON_ARRAY(#{searchKey}))
+		</if>
+        <if test="searchString != null and searchString != ''">
+            AND name like concat('%', #{searchString}, '%')
+        </if>
+        <if test="fileId != null and fileId != ''">
+            AND id=#{fileId}
+        </if>
+        <if test="uploadUid != null and uploadUid != ''">
+            AND upload_uid=#{uploadUid}
+        </if>
+		ORDER BY id desc
+		<!-- , file_remark desc -->
+    
+    </select>
+    
+    <select id="selectFileTagJSONStrByFolder" resultMap="tagResult">
+        select JSON_ARRAYAGG(file_remark) as tagJSONArray from sys_file 
+		WHERE 1=1
+		AND sys_id=#{sysId}
+		<!-- AND folder=#{folder} -->
+		AND folder in 
+		<foreach item="folder" index="index" collection="folders"  open="(" separator="," close=")">
+       		#{folder}
+       </foreach>
+		AND master_id=#{masterId}
+		AND JSON_LENGTH(file_remark)!=0
+    </select>
+    
+    <select id="selectCountNotBelongMaster" parameterType="Integer" resultType="java.lang.Integer">
+	    SELECT count(1) FROM sys_file WHERE id IN 
+		<foreach item="id" index="index" collection="ids"  open="(" separator="," close=")">
+       		#{id}
+       </foreach>
+		AND (master_id != #{masterId} or master_id is null)
+	</select>
+
+    <select id="selectByLogoId"  resultType="com.threeatom.system.entity.SysFile">
+        SELECT * FROM  sys_file where id=#{masterId}
+    </select>
+
+<!--    <select id="selectBySubId"  resultType="com.threeatom.system.entity.SysFile">-->
+<!--        SELECT * FROM  sys_file where sub_id=#{subId}-->
+<!--    </select>-->
+
+    <select id="selectFileTypeIndexByVideoId"  resultType="java.lang.Integer">
+        SELECT file_type_index  FROM sys_file s
+        LEFT join  gc_video v on s.id = v.file_id
+        where v.id=#{videoId}
+    </select>
+
+    <select id="getHistoryUpload" resultType="com.threeatom.system.entity.SysFile">
+        select * from sys_file
+        where upload_uid = #{userId}
+        and master_id = #{masterId}
+        and folder = #{folder}
+    </select>
+    <select id="selectById" resultMap="baseResultMap">
+        select * from sys_file
+        where id = #{id}
+    </select>
+
+    <select id="selectBatchByFileIds" resultMap="baseResultMap">
+        select * from sys_file
+        where id in
+        <foreach item="id" index="index" collection="fileIdList"  open="(" separator="," close=")">
+        #{id}
+    </foreach>
+    </select>
+    <select id="getFilesUploadByFileIds" resultMap="baseUserResultMap">
+        select f.id,u.id as u_id,u.username,f2.id as f_id,f2.name as f_name,f2.file_url as f_file_url,f2.save_type as f_save_type,
+        ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId
+        from sys_file f
+        left join gc_user u on u.id = f.upload_uid
+        left join gc_user_info ui on ui.id = u.info_id
+        LEFT JOIN sys_file f2 ON ui.avatar_file_id=f2.id
+        where f.id in
+        <foreach item="id" index="index" collection="fileIdList"  open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

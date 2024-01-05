@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper">
+
+	<resultMap id="baseResultMap" type="GcUserAccessPermission">
+   	 <id property="id" column="id"/>
+	 <result property="userAccessId" column="user_access_id"  />
+	 <result property="subPermission" column="sub_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	 <result property="updateTime" column="update_time"  />
+	 <result property="createTime" column="create_time"  />
+     <result property="shortTermPermission" column="short_term_permission"  typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+     <result property="mustSubjectJson" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+     <result property="maySubjectJson" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+     <result property="channelPermission" column="channel_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+     <result property="subscribePermission" column="subscribe_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+    </resultMap>
+
+
+ 	<sql id="baseColumn">
+	   a.id, a.user_access_id, a.sub_permission, a.update_time, a.create_time,a.short_term_permission,a.must_subject_json,a.may_subject_json
+	</sql>
+    
+	<select id="listContainsSubPremission" resultMap="baseResultMap" >
+	   SELECT
+	   <include refid="baseColumn" />
+	   FROM gc_user_access_permission a 
+	   left join gc_user_access ua on ua.id = a.user_access_id
+	   where ua.master_id=#{masterId} and json_contains(a.sub_permission,CONCAT('',#{subjectId},''))
+	</select>
+
+    <select id="getPermissionByUid" resultMap="baseResultMap" >
+        SELECT
+        <include refid="baseColumn" />
+        FROM gc_user_access_permission a
+        left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+    </select>
+	
+	
+    <select id="updateGcUserAccessPermissions" resultType="Integer">
+        <![CDATA[drop temporary table if exists `temp_update_permission`;]]>
+
+        <![CDATA[ create temporary table `temp_update_permission` (
+         `id` INT AUTO_INCREMENT PRIMARY KEY ,
+         `sub_per` text,
+        `must_subject_json` text,
+        `may_subject_json` text
+        )
+         ; ]]>
+
+        INSERT INTO temp_update_permission(id,sub_per,must_subject_json,may_subject_json)
+        VALUES
+        <foreach collection="preList" item="item" index="index" separator=",">
+            (#{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},#{item.mustSubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+             #{item.maySubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler})
+        </foreach>
+        ;
+        update gc_user_access_permission uap,temp_update_permission temp
+        set uap.sub_permission=temp.sub_per,
+        uap.must_subject_json = temp.must_subject_json,
+        uap.may_subject_json = temp.may_subject_json
+        WHERE temp.id=uap.id;
+
+        select row_count();
+
+    </select>
+
+
+
+    <select id="deleteGroupByGroupId" resultType="integer">
+        DELETE FROM gc_user_access_permission WHERE group_id = #{groupId}
+    </select>
+
+    <select id="selectAllUsersInPortal" resultMap="baseResultMap">
+        select * from gc_user_access_permission per
+        left join gc_user_access ua on ua.id = per.user_access_id
+        where ua.master_id = #{masterId}
+    </select>
+
+
+    <select id="getPermissionId" resultType="integer">
+        SELECT
+        a.id
+        FROM gc_user_access_permission a
+        left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.user_id = #{userId} and ua.master_id = #{portalId}
+    </select>
+
+    <insert id="saveUserAccessPermissionList">
+        insert into gc_user_access_permission
+        (user_access_id , sub_permission)
+        values
+        <foreach collection="userAccessPermissionList" item="item" separator=",">
+            (#{item.userAccessId},
+            #{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler})
+        </foreach>
+    </insert>
+    <insert id="insertUserPermission">
+        insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
+        values
+        <foreach collection="list" index="index" item="item" separator=",">
+            (#{item.userAccessId},#{item.subPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.channelPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.subscribePermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        user_access_id = values(user_access_id)
+    </insert>
+
+    <insert id="removeUserPermission">
+        insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
+        values
+        <foreach collection="list" index="index" item="item" separator=",">
+            (#{item.userAccessId},#{item.subPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.channelPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            ,#{item.subscribePermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        user_access_id = values(user_access_id)
+        ,sub_permission = values(sub_permission)
+        ,channel_permission = values(channel_permission)
+        ,must_subject_json = values(must_subject_json)
+        ,may_subject_json = values(may_subject_json)
+        ,subscribe_permission = values(subscribe_permission)
+    </insert>
+
+    <update id="updatePermissionsByUserAccessIds">
+        update gc_user_access_permission
+        set sub_permission = #{subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+        WHERE user_access_id IN(
+        <foreach collection="ids" item="item" separator=",">
+            #{item}
+        </foreach>)
+    </update>
+    <update id="updateGcUserAccessPermissionsChannel">
+        <![CDATA[drop temporary table if exists `temp_update_permission`;]]>
+
+        <![CDATA[ create temporary table `temp_update_permission` (
+         `id` INT AUTO_INCREMENT PRIMARY KEY ,
+         `sub_per` text,
+        `channel_permission` text,
+        `subscribe_permission` text
+        )
+         ; ]]>
+        INSERT INTO temp_update_permission(id,sub_per,channel_permission,subscribe_permission)
+        VALUES
+        <foreach collection="preList" item="item" index="index" separator=",">
+            (#{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+            #{item.channelPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+            #{item.subscribePermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            )
+        </foreach>
+        ;
+        update gc_user_access_permission uap,temp_update_permission temp
+        set
+        uap.channel_permission = temp.channel_permission,
+        uap.subscribe_permission = temp.subscribe_permission
+        WHERE temp.id=uap.id;
+        select row_count();
+    </update>
+
+    <select id="getPermissionByUserAccessId" resultMap="baseResultMap">
+        SELECT *
+        FROM gc_user_access_permission
+        where user_access_id = #{userAccessId}
+    </select>
+
+    <select id="getUserNumByPortal" resultType="integer">
+
+        select count(a.id)
+        from (
+                 select acc.*, per.sub_permission, count(acc.id)
+                 from gc_user_access acc
+                          LEFT JOIN gc_user_access_permission per on per.user_access_id = acc.id
+                          LEFT JOIN gc_subject s
+                                    on JSON_CONTAINS(per.sub_permission, CONVERT(s.id, CHAR)) = 1
+                 where s.master_id = #{masterId}
+                 GROUP BY acc.id
+             )a
+    </select>
+
+    <select id="userListContainSub" resultType="map">
+          select per.user_access_id,u.username,info.first_name,info.last_name from gc_user_access_permission per
+              left join gc_user_access access on access.id = per.user_access_id
+              left join gc_user u on u.id = access.user_id
+              left join gc_user_info info on info.id = u.info_id
+              where access.master_id = #{masterId} and
+                  JSON_CONTAINS(per.sub_permission, CONVERT(#{subId}, CHAR)) = 1
+    </select>
+    <select id="getPermissionByUidList"  resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        FROM gc_user_access_permission a
+        left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+    </select>
+    <select id="getContainsAccessPermissionList" resultMap="baseResultMap">
+        select a.*
+        from gc_user_access_permission a
+                 left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.master_id = #{masterId}
+          and ( JSON_CONTAINS(a.channel_permission,#{ptId})
+              or
+               JSON_CONTAINS(a.subscribe_permission,#{ptId}))
+    </select>
+
+    <select id="getContainsSubjectAccessPermissionList" resultMap="baseResultMap">
+        select a.*
+        from gc_user_access_permission a
+        where (JSON_CONTAINS(a.sub_permission,#{ptId}) or  JSON_CONTAINS(a.must_subject_json,#{ptId}) or json_contains(a.may_subject_json,#{ptId}))
+    </select>
+    <select id="getGroupMemberPermissionByUidList" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        FROM gc_user_access_permission a
+        left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+        and ua.role_json like concat('%',#{roleName},'%')
+    </select>
+    <select id="getGroupMemberByUidList" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        FROM gc_user_access_permission a
+        left join gc_user_access ua on ua.id = a.user_access_id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+        and ua.role_json like concat('%','groupMember','%')
+
+    </select>
+
+</mapper>

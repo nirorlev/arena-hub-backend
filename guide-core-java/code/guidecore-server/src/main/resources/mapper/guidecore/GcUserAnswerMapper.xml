@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserAnswerMapper">
+    <resultMap id="baseResultMap" type="GcUserAnswer">
+        <id property="id" column="id"/>
+        <result property="eventId" column="event_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="lastName" column="last_name"/>
+        <result property="firstName" column="first_name"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="saveType" column="save_type"/>
+        <result property="answerJson" column="answer_json"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="baseColumn">
+        ua.id,ua.event_id,ua.user_id,ua.answer_json,ua.update_time,ua.create_time
+    </sql>
+
+    <select id="selectGetAnswerListByEventId" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn"/>
+        ,ui.id as info_id,ui.first_name,ui.last_name,sf.file_url AS avatar_url,sf.save_type
+        FROM
+        gc_user_answer AS ua
+        LEFT JOIN gc_user AS u ON u.id=ua.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file AS sf ON sf.id = ui.avatar_file_id
+        WHERE ua.event_id=#{eventId} and ua.master_id=#{masterId}
+        <if test="userId != null">
+             and ua.user_id !=#{userId}
+        </if>
+    </select>
+
+    <select id="getAllAnswerListByEventIds" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn"/>
+--         ,ui.first_name,ui.last_name,sf.file_url AS avatar_url,sf.save_type
+        FROM
+        gc_user_answer AS ua
+--         LEFT JOIN gc_user AS u ON u.id=ua.user_id
+--         LEFT JOIN sys_file AS sf ON sf.id = u.avatar_file_id
+        WHERE 1=1
+        <if test="eventIds != null and eventIds.size() > 0">
+	        AND ua.event_id IN
+	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+	            #{eventId}
+	        </foreach>
+        </if>
+        AND ua.user_id = #{studentId}
+        ORDER BY ua.update_time DESC
+    </select>
+
+    <select id="getUserAnswerNum" resultType="map">
+
+        SELECT
+            COUNT( id ) AS answerNum  ,DATE_FORMAT(update_time,'%Y-%m-%d') AS update_time
+        FROM
+            gc_user_answer ua
+        WHERE
+            user_id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        AND DATE_FORMAT( update_time, '%Y-%m-%d' ) &gt;= #{startDate}
+        AND DATE_FORMAT( update_time, '%Y-%m-%d' ) &lt;= #{endDate}
+        GROUP BY
+            DATE_FORMAT(update_time,'%Y-%m-%d')
+
+    </select>
+
+    <select id="getAnswerListByEvent" resultMap="baseResultMap">
+
+        SELECT * from gc_user_answer answer
+        left join gc_event e on e.id=answer.event_id
+        where event_id in
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator="," >
+            #{eventId}
+        </foreach>
+        and answer.master_id=#{masterId} or(e.upload_type != #{type} and answer.user_id=#{userId})
+
+    </select>
+
+    <select id="getMyAnswerListByEvent" resultMap="baseResultMap">
+
+        SELECT * from gc_user_answer answer
+        left join gc_event e on e.id=answer.event_id
+        where event_id in
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator="," >
+            #{eventId}
+        </foreach>
+        and answer.master_id=#{masterId} and answer.user_id = #{userId}
+
+    </select>
+
+    <select id="getAnswerLearningRecords" resultMap="baseResultMap">
+
+        select * from gc_user_answer answer
+        LEFT JOIN gc_event event on event.id = answer.event_id
+        LEFT JOIN gc_video video on video.id = event.video_id
+        LEFT JOIN gc_subject sub1 on sub1.id = video.sub_id
+        LEFT JOIN gc_subject sub0 on sub0.id = sub1.fid
+        where answer.user_id=#{userId} and answer.master_id=#{masterId}
+        <if test="videoId!=null">
+            and video.id=#{videoId}
+        </if>
+        <if test="sub0Id!=null">
+            and sub0.id=#{sub0Id}
+        </if>
+        <if test="sub1Id!=null">
+            and sub1.id=#{sub1Id}
+        </if>
+    </select>
+</mapper>

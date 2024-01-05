@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcGroupMapper">
+    
+    <resultMap id="baseResultMap" type="GcGroup">
+        <id property="id" column="id"/>
+        
+        <result property="name" column="name" />
+        <result property="userAccessId" column="user_access_id" />
+        <result property="masterId" column="master_id" />
+        
+        <result property="subIds" column="sub_ids" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+       <result property="code" column="code" />
+        
+        <result property="groupAccessIds" column="group_access_ids" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="accessId" column="access_id" />
+        
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        
+        <association property="gcAccess" column="gcAccess" javaType="GcAccess">
+            <id property="id" column="a_id"/>
+            <result property="masterId" column="a_master_id"/>
+            <result property="roleType" column="a_role_type"/>
+            <result property="code" column="a_code"/>
+        </association>
+        
+    </resultMap>
+    
+    <sql id="baseColumn">
+        g.id,g.name,g.user_access_id,g.master_id,
+        g.sub_ids,g.code,g.schedule_date,
+        g.group_access_ids,g.access_id,
+        g.update_time,g.create_time,a.code as codeName
+    </sql>
+    
+    <sql id="accessBaseColumn">
+        ,a.id as a_id, a.master_id as a_master_id, a.role_type as a_role_type, a.code as a_code
+    </sql>
+    
+    <select id="selectGroupListByUserIdAndMasterId" resultMap="baseResultMap">
+    select
+     <include refid="baseColumn"/>
+     <include refid="accessBaseColumn"/>
+      FROM gc_group g
+      left join gc_access a on a.id=g.access_id
+      LEFT JOIN gc_user_access AS ua ON ua.id = g.user_access_id
+      WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId}
+        <if test="name != null and name !=''">
+            and g.`name` like concat('%',#{name},'%')
+        </if>
+    </select>
+    
+    <select id="selectGetGroupListByUserId" resultType="Map">
+        SELECT g.id,g.name,g.update_time,g.code,g.schedule_date,g.group_access_ids,GROUP_CONCAT( u.user_id SEPARATOR ',' ) AS userIds
+        FROM gc_group AS g
+        LEFT JOIN gc_user_access AS ua ON ua.id = g.user_access_id
+        LEFT JOIN gc_user_access AS u on JSON_CONTAINS(g.group_access_ids, CONVERT(u.id,CHAR))=1
+        WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId}
+        GROUP BY g.id
+        ORDER BY g.update_time DESC
+    </select>
+    
+    <select id="selectGcGroupByUserAccessIds" resultMap="baseResultMap">
+        SELECT id,name,sub_ids,group_access_ids,update_time,create_time
+        from gc_group 
+        WHERE 1=1
+        
+        <if test="whereSql != null">
+           and ${whereSql}
+        </if>
+        
+    </select>
+    <select id="getUserIdByGroupIds" resultType="com.threeatom.guidecore.entity.GcGroup">
+        select g.id as id ,a.user_id as userId
+        from gc_group g
+        LEFT join gc_user_access a ON JSON_CONTAINS(g.group_access_ids,CONVERT ( a.id, CHAR ))= 1 AND g.master_id = a.master_id
+        where g.id in
+        <foreach collection="groupIds" item="ids" index="index" open="(" close=")" separator=",">
+            #{ids}
+        </foreach>
+    </select>
+
+    <select id="selectGroupList" resultType="com.threeatom.guidecore.entity.GcGroup">
+        select distinct <include refid="baseColumn"/>
+        from gc_group g
+        left join  gc_group_mentor m on m.group_id = g.id
+        left join  gc_access a on a.id = g.access_id
+        where m.user_access_id = #{userAccessId} or g.user_access_id=#{userAccessId}
+    </select>
+
+    
+</mapper>

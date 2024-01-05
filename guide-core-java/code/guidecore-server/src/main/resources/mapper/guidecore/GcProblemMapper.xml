@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcProblemMapper">
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcProblem">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="context" jdbcType="VARCHAR" property="context"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+    </resultMap>
+
+    <resultMap id="knowlegeMap" type="com.threeatom.guidecore.entity.GcKnowledgebase">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="level" jdbcType="VARCHAR" property="level"/>
+        <result column="fileId" jdbcType="TIMESTAMP" property="fileId"/>
+        <result column="order" jdbcType="TIMESTAMP" property="order"/>
+        <result column="fid" jdbcType="INTEGER" property="fid"/>
+        <result column="videoUrl" jdbcType="INTEGER" property="videoUrl"/>
+        <collection property="knowledgebase" column="knowledgebase" javaType="arraylist" ofType="com.threeatom.guidecore.entity.GcKnowledgebase">
+            <id property="id" column="fa_id"/>
+            <result property="name" column="fa_name"/>
+            <result property="level" column="fa_level"/>
+            <result property="fileId" column="fa_file_id"/>
+            <result property="order" column="fa_order"/>
+            <result property="videoUrl" column="fa_video_url"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="categoryMap" type="com.threeatom.guidecore.entity.GcCategory">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="category_name" jdbcType="VARCHAR" property="categoryName"/>
+        <result column="level" jdbcType="VARCHAR" property="level"/>
+        <result column="pid" jdbcType="INTEGER" property="pid"/>
+        <result column="fileName" jdbcType="VARCHAR" property="fileName"/>
+        <collection property="gcCategory" column="gcCategory" javaType="arraylist" ofType="com.threeatom.guidecore.entity.GcCategory">
+            <id property="id" column="ca_id"/>
+            <result property="categoryName" column="ca_name"/>
+            <result property="level" column="ca_level"/>
+            <result property="pid" column="ca_pid"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectProblemList" resultMap="baseResultMap">
+        select id,title,context from gc_problem
+        <where>
+            `status` !=0
+        </where>
+        order by update_time desc
+    </select>
+
+    <select id="selectFaqList" resultType="com.threeatom.guidecore.entity.GcFaq">
+        select * from gc_faq where del_flag=#{delFlag} order by faq_order
+    </select>
+
+    <select id="selectKnowledgebaseVideo" resultMap="knowlegeMap">
+        select f.*,fa.name as fa_name,fa.level as fa_level ,fa.order as fa_order,fa.id as fa_id,fa.file_id as fa_file_id,s.file_url as fa_video_url from gc_knowledgebase f
+        right join gc_knowledgebase fa on fa.fid=f.id
+        left join sys_file s on s.id=fa.file_id
+        where f.del_flag=#{delFlag}
+        order by fa_order asc,f.order asc
+    </select>
+
+    <select id="selectCategoryList" resultMap="categoryMap">
+        select ca.*,cate.id as ca_id,cate.category_name as ca_name,cate.level as ca_level,cate.pid as ca_pid,ca.file_name as fileName from gc_category  ca
+        left join gc_category cate on ca.id=cate.pid
+        where ca.level = #{level}
+        order by ca.order asc
+    </select>
+
+
+
+</mapper>

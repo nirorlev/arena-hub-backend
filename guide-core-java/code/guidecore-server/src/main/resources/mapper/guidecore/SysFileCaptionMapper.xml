@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.system.mapper.SysFileCaptionMapper">
+
+    <resultMap id="baseResultMap" type="com.threeatom.system.entity.SysFileCaption">
+        <id property="id" column="id"/>
+        <result property="ymTaskId" column="ym_task_id"  />
+        <result property="ymCode" column="ym_code"  />
+        <result property="ymSrtData" column="ym_srt_data"  />
+        <result property="ymMessage" column="ym_message"  />
+        <result property="lang" column="lang"  />
+        <result property="captionFileId" column="caption_file_id"/>
+    </resultMap>
+
+    <resultMap id="sysFileResultMap" type="com.threeatom.system.entity.SysFile">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id" />
+        <result property="uploadUid" column="upload_uid" />
+        <result property="userRole" column="user_role" />
+        <result property="name" column="name" />
+        <result property="folder" column="folder" />
+        <result property="fileUrl" column="file_url" />
+        <result property="fileType" column="file_type" />
+        <result property="fileTypeIndex" column="file_type_index" />
+        <result property="saveType" column="save_type" />
+        <result property="md5" column="md5" />
+        <result property="size" column="size" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <sql id="baseColumn">
+        a.id, a.ym_task_id, a.ym_code, a.ym_srt_data, a.ym_message, a.lang
+    </sql>
+    <update id="updateCaptionState">
+        update
+        sys_file_caption
+        set `state` = 0
+        where video_id = #{videoId}
+        and lang not in
+        <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
+            #{list}
+        </foreach>
+        and ym_task_id is null
+    </update>
+    <update id="updateInCaptionState">
+        update
+        sys_file_caption
+        set `state` = 1
+        where video_id = #{videoId}
+        and lang in
+        <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
+            #{list}
+        </foreach>
+    </update>
+
+    <select id="selectFileCaption" resultMap="sysFileResultMap" >
+        SELECT
+        s.file_type,s.file_type_index,s.create_time,s.file_url,s.folder,s.id,s.if_caption,s.name,s.update_time,s.save_type
+        FROM sys_file s
+        INNER JOIN sys_file_caption a on a.caption_file_id= s.id
+        where a.id=#{id}
+    </select>
+
+    <select id="selectSysFileCaptionId" resultMap="baseResultMap" >
+        SELECT
+        <include refid="baseColumn" />,
+        f.id as caption_file_id
+        FROM sys_file_caption a
+        INNER JOIN gc_video g on a.video_id=g.id
+        left join sys_file f on f.id = a.caption_file_id
+        where video_id=#{id}
+        and a.`state` = 1
+    </select>
+
+    <insert id="saveYmTaskId">
+        INSERT
+        INTO sys_file_caption (ym_task_id,ym_code,ym_srt_data,ym_message,lang) VALUES (#{id})
+    </insert>
+
+    <select id="selectById" resultMap="baseResultMap">
+        select * from sys_file_caption
+        where id = #{id}
+    </select>
+
+    <select id="selectMainSysFile" resultMap="baseResultMap">
+        select * from sys_file_caption where  video_id=#{id} and ym_code is not null
+    </select>
+    <select id="getCaptionInfo" resultMap="baseResultMap">
+        select * from sys_file_caption
+        where video_id = #{caption.videoId}
+        and lang = #{caption.lang}
+    </select>
+    <select id="selectSrtData" resultMap="baseResultMap">
+        select * from sys_file_caption
+        where video_id = #{videoId}
+        and ym_srt_data is not null
+        and ym_code = 0
+    </select>
+
+</mapper>

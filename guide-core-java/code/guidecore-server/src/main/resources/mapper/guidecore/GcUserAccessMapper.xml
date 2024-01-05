@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserAccessMapper">
+
+    <resultMap id="baseResultMap" type="GcUserAccess">
+        <id property="id" column="id"/>
+        <result property="masterId" column="master_id"  />
+        <result property="usersNumInPortal" column="usersNumInPortal"  />
+        <result property="userId" column="user_id" />
+        <result property="accessId" column="access_id" />
+        <result property="code" column="code" />
+        <result property="state" column="state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="joinType" column="joinType" />
+
+        <association property="access" column="access_id" javaType="GcAccess">
+            <id property="id" column="a_id"/>
+            <result property="code" column="a_code"/>
+            <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="roleType" column="a_role_type"/>
+            <result property="adminId" column="a_admin_id"/>
+            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        </association>
+
+        <association property="gcUserAccessPermission" column="id" javaType="GcUserAccessPermission">
+            <id property="id" column="p_id"/>
+            <result property="userAccessId" column="p_user_access_id"/>
+            <result property="subPermission" column="p_sub_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="shortTermPermission" column="p_short_term_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        </association>
+
+        <collection property="masterList" javaType="ArrayList" column="master_id" ofType="GcMaster">
+            <id property="id" column="master_id" />
+            <result property="portalName" column="portalName" />
+        </collection>
+
+    </resultMap>
+
+    <resultMap id="gcUserResultMap" type="GcUserAccess">
+        <id property="id" column="id"/>
+        <result property="masterId" column="master_id"  />
+
+        <result property="userId" column="user_id" />
+        <result property="accessId" column="access_id" />
+        <result property="state" column="state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+
+        <association property="user" column="user_id" javaType="GcUser">
+            <id property="id" column="u_id"/>
+            <result property="infoId" column="info_id"/>
+            <association property="info" column="id" javaType="GcUserInfo">
+                <id property="id" column="info_id"/>
+                <result property="lastName" column="lastName"/>
+                <result property="firstName" column="firstName"/>
+                <result property="avatarFileId" column="avatarFileId"/>
+                <association property="avatarFile" column="avatarFile" javaType="SysFile">
+                    <id property="id" column="f_id"/>
+                    <result property="name" column="f_name"/>
+                    <result property="fileUrl" column="f_file_url"/>
+                    <result property="saveType" column="f_save_type"/>
+                </association>
+            </association>
+        </association>
+
+    </resultMap>
+
+    <resultMap id="gcMasterResultMap" type="GcUserAccess">
+        <id property="id" column="id"/>
+        <result property="masterId" column="master_id"  />
+
+        <result property="userId" column="user_id" />
+        <result property="accessId" column="access_id" />
+        <result property="state" column="state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+
+        <association property="master" column="master_id" javaType="GcMaster">
+            <id property="id" column="m_id"/>
+            <result property="portalName" column="m_portal_name"/>
+            <result property="context" column="m_context" />
+        </association>
+
+    </resultMap>
+
+    <resultMap id="fullResultMap" type="GcUserAccess">
+        <id property="id" column="id"/>
+        <result property="masterId" column="master_id"  />
+
+        <result property="userId" column="user_id" />
+        <result property="accessId" column="access_id" />
+        <result property="state" column="state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+
+        <association property="master" column="master_id" javaType="GcMaster">
+            <id property="id" column="m_id"/>
+            <result property="portalName" column="m_portal_name"/>
+            <result property="redirectUrl" column="m_redirect_url"/>
+            <result property="context" column="m_context" />
+            <result property="redirectUrl" column="m_redirect_url" />
+<!--            <result property="redirectUrl" column="m_redirect_url" />-->
+            <association property="logoFile" column="logo_id" javaType="SysFile">
+                <id property="id" column="f_id"/>
+                <result property="name" column="f_name"/>
+                <result property="fileUrl" column="f_file_url"/>
+                <result property="saveType" column="f_save_type"/>
+            </association>
+        </association>
+
+        <association property="access" column="access_id" javaType="GcAccess">
+            <id property="id" column="a_id"/>
+            <result property="code" column="a_code"/>
+            <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="roleType" column="a_role_type"/>
+            <result property="adminId" column="a_admin_id"/>
+            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+            <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        </association>
+
+    </resultMap>
+
+    <sql id="baseColumn">
+        ua.id , ua.master_id, ua.user_id, ua.access_id, ua.state,ua.update_time, ua.create_time
+    </sql>
+
+    <sql id="gcAccessbaseColumn">
+        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type,a.admin_id as a_admin_id,
+        a.must_subject_json as a_must_subject_json,a.may_subject_json as a_may_subject_json,a.channel_json as a_channel_json,a.subscribe_json as a_subscribe_json
+    </sql>
+
+    <sql id="gcUserColumn">
+        ,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
+        ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId
+    </sql>
+
+    <select id="selectUserAccessListByIds" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        WHERE 1=1
+        <if test="ids != null and ids.size() > 0">
+            and ua.id in
+            <foreach collection="ids" item="id" index="index" open="(" close=")" separator="," >
+                #{id}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="selectUserAccessByUserAndMaster" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        WHERE ua.master_id=#{masterId}
+        <if test="userId != null">
+            AND ua.user_id=#{userId}
+        </if>
+</select>
+
+    <select id="selectUserAccessByManagerAndMaster" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        WHERE ua.master_id=#{masterId} AND ua.manager_id=#{managerId}
+    </select>
+
+    <select id="selectUserAccessByUserAndMasterContext" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        LEFT JOIN gc_master m on ua.master_id=m.id
+        WHERE m.context=#{context} AND ua.user_id=#{userId}
+    </select>
+
+
+
+    <select id="selectUserAccessByUser" resultMap="fullResultMap">
+        select
+        <include refid="baseColumn" />
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+        ,m.id as m_id,m.portal_name as m_portal_name,m.context as m_context,m.redirect_url as m_redirect_url
+        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_master m on ua.master_id=m.id
+        left join sys_file f on m.logo_id=f.id
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        WHERE ua.user_id=#{userId} and m.state=1
+    </select>
+
+    <select id="selectGetUserAccessListUserIds" resultType="Integer">
+        SELECT
+        user_id
+        FROM
+        gc_user_access
+        WHERE
+        access_id IN <foreach collection="accessIds" item="accessId" index="index" open="(" close=")" separator="," >
+        #{accessId}
+    </foreach>
+        AND master_id =#{masterId}
+    </select>
+
+    <select id="selectGetUserAccessIdListUserIds" resultType="Integer">
+        SELECT
+        id
+        FROM
+        gc_user_access
+        WHERE
+        access_id IN <foreach collection="accessIds" item="accessId" index="index" open="(" close=")" separator="," >
+        #{accessId}
+    </foreach>
+        AND master_id =#{masterId}
+    </select>
+
+    <!--     <select id="selectTeacherListWithSameCode" resultMap="gcUserResultMap">
+         select
+            <include refid="baseColumn" />
+            <include refid="gcUserColumn" />
+            FROM
+            gc_user_access ua
+        </select> -->
+
+    <select id="selectUserAccessListByAccessIds" resultMap="gcUserResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcUserColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_user u on ua.user_id=u.id
+        left join gc_user_info ui on ui.id=u.info_id
+        left join sys_file f on ui.avatar_file_id=f.id
+        WHERE
+        ua.user_id is not null and
+        ua.access_id in
+        <foreach collection="list" item="accessId" index="index" open="(" close=")" separator="," >
+            #{accessId}
+        </foreach>
+        <if test="null!=info">
+            <if test="info.name!=null and info.name !=''">
+                and concat(ui.last_name,ui.first_name) like concat('%',#{info.name},'%')
+            </if>
+        </if>
+    </select>
+    <select id="selectUserAccessExtListByMasterIdAndUserIds" resultType="map">
+        SELECT ua.user_id,ui.id as info_id,ui.first_name,ui.last_name,
+        uae.log_in_time as lastLogInDate
+        from gc_user_access_ext uae
+        LEFT JOIN gc_user_access ua on uae.user_access_id=ua.id
+        LEFT JOIN gc_user u on u.id=ua.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        WHERE 1=1
+        <if test="userIds != null and userIds.size() > 0">
+            AND ua.user_id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        </if>
+        and master_id=#{masterId}
+        <if test="order == 'asc'">
+            ORDER BY lastLogInDate asc
+        </if>
+        <if test="order == 'desc'">
+            ORDER BY lastLogInDate desc
+        </if>
+
+    </select>
+    <select id="selectUsersNum" resultType="map">
+        select
+            COUNT(if(a.role_type=0,TRUE,NULL)) as teacherNum,
+            COUNT(if(a.role_type=1,TRUE,NULL)) as studentNum
+        FROM gc_user_access ua
+                 LEFT JOIN gc_access a ON ua.access_id=a.id
+        WHERE ua.master_id=#{masterId}
+    </select>
+    <select id="selectUserAccessesByMasterId" resultType="Integer">
+        select count(id) from gc_user_access where master_id=#{masterId}
+        and user_id=#{userId}
+        and role_json like concat('%',#{role},'%')
+    </select>
+    <select id="getAllUserInThisMaster" resultType="map">
+        SELECT
+        ua.user_id,a.code,u.update_time
+        ,f.id as f_id,f.name as f_name,
+        ui.id as info_id,ui.first_name,ui.last_name,u.create_time as dateSignedUp ,per.sub_permission as sub_permission,ua.id as userAccessId,
+        u.username as email,ui.avatar_file_id as f_file_url,f.save_type as f_save_type,count(pay.id) as joinType,count(DISTINCT a.master_id) as portalNums,
+        GROUP_CONCAT(DISTINCT a.master_id,':',ma.portal_name)AS userPortals,ua.access_id as accessId
+        FROM gc_user_access ua
+        LEFT JOIN gc_access a ON ua.access_id=a.id
+        left join gc_user_access_permission per on per.user_access_id = ua.id
+        left join gc_master ma on ma.id = a.master_id
+        /*LEFT JOIN gc_user u ON ua.user_id = u.id*/
+        /*gc_user_access表改为有两种类型的注册码，左查询会匹配出与用户ID不符的数据*/
+        JOIN gc_user u ON ua.user_id = u.id
+        left join gc_user_info ui on ui.id=u.info_id
+        left join sys_file f on ui.avatar_file_id=f.id
+        left join sys_weixin_pay pay on pay.access_id = a.id and a.master_id = pay.master_id and order_status = 1
+        WHERE 1=1
+        <if test="masterIds != null and masterIds.size>0">
+            and ua.master_id in
+            <foreach collection="masterIds" item="masterId" index="index" open="(" close=")" separator="," >
+                #{masterId}
+            </foreach>
+        </if>
+        <if test="accessId != null">
+            and a.id = #{accessId}
+        </if>
+        <if test="searchFilter != null">
+            and REPLACE(concat_ws( ',', concat( ui.first_name,ui.last_name  ), u.username, a.CODE ), ' ', '' ) LIKE concat( '%', #{searchFilter}, '%' )
+        </if>
+        group by ua.user_id
+        ORDER BY u.update_time DESC
+    </select>
+
+    <select id="getAllManagerInThisMaster" resultType="Map">
+        SELECT
+            ua.user_id,a.code
+             ,m.last_name,m.first_name,m.update_time
+        FROM gc_user_access ua
+                 LEFT JOIN gc_access a ON ua.access_id=a.id
+                 JOIN gc_manager m ON ua.manager_id = m.id
+        WHERE ua.master_id = #{masterId}
+        ORDER BY m.update_time DESC
+    </select>
+
+    <select id="selectGcUserAccessExtByAccessId" resultType="gcUserAccessExt">
+        select id,user_access_id,log_in_time from gc_user_access_ext WHERE user_access_id=#{userAccessId}
+    </select>
+
+    <select id="selectLastUsersNum" resultType="map">
+        select
+        <foreach collection="lastDays" index="index" item="lastday" separator=",">
+            COUNT(IF(DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ >= ]]> date(ua.create_time),TRUE,NULL)) as day_#{lastday}
+        </foreach>
+        from gc_user_access ua
+        LEFT JOIN gc_access a ON ua.access_id=a.id
+        WHERE
+        a.admin_id=#{teacherAccessId}
+    </select>
+
+    <select id="selectActiveUsersNum" resultType="map">
+
+        select
+        <foreach collection="lastDays" index="index" item="lastday" separator=",">
+
+            COUNT(
+            IF(
+            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
+            and
+            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+30) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
+            ,TRUE,NULL
+            )) as day_#{lastday}_30day,
+            COUNT(
+            IF(
+            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
+            and
+            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+7) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
+            ,TRUE,NULL
+            )) as day_#{lastday}_7day,
+            COUNT(
+            IF(
+            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
+            and
+            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+1) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
+            ,TRUE,NULL
+            )) as day_#{lastday}_1day
+        </foreach>
+
+        from gc_user_access_ext uae
+        LEFT JOIN gc_user_access ua ON ua.id=uae.user_access_id
+        LEFT JOIN gc_access a ON ua.access_id=a.id
+        WHERE
+        a.admin_id=#{teacherAccessId}
+
+
+    </select>
+
+    <insert id="insertGcUserAccessExt" parameterType="GcUserAccessExt" useGeneratedKeys="true" keyProperty="id">
+        insert into gc_user_access_ext
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+
+            <if test="userAccessId != null">
+                user_access_id,
+            </if>
+            <if test="logInTime != null">
+                log_in_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userAccessId != null">
+                #{userAccessId,jdbcType=INTEGER},
+            </if>
+            <if test="logInTime != null">
+                #{logInTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+
+    </insert>
+    <insert id="insertUserAccessList">
+        insert into gc_user_access (user_id,master_id,access_id,role_json,parent_code)
+        values
+        <foreach collection="list" index="index" item="item" separator=",">
+         (#{item.userId},#{item.masterId},#{item.accessId},
+          #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+          #{item.parentCode})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        user_id = values(user_id),
+        master_id = values(master_id),
+        access_id = values(access_id),
+        role_json = values(role_json),
+        parent_code = values(parent_code)
+    </insert>
+
+    <update id="updateGcUserAccessExtById" parameterType="GcUserAccessExt">
+
+        update gc_user_access_ext
+        <set>
+            <if test="userAccessId != null">
+                user_access_id = #{userAccessId,jdbcType=INTEGER},
+            </if>
+            <if test="logInTime != null">
+                log_in_time = #{logInTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectStudentByAdmin" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_access a
+        LEFT JOIN gc_user_access ua on ua.access_id = a.id
+        WHERE
+        a.admin_id = #{adminId}
+        <if test="userIds != null and userIds.size() > 0">
+            AND ua.user_id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="getAccessByUserIdMaster" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />,
+               p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        from gc_user_access ua
+        left join gc_access a on a.id = ua.access_id
+        left join gc_user_access_permission p on p.user_access_id = ua.id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+    </select>
+    <select id="getUserAccessListByMasterIdAndUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />
+        FROM
+        gc_user_access ua
+        LEFT JOIN gc_access a on ua.access_id=a.id
+        WHERE ua.master_id=#{masterId}
+        <if test="userIdList != null">
+            AND ua.user_id in
+            <foreach collection="userIdList" item="userId" index="index" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getIdsListAccessIds" resultMap="baseResultMap">
+        select id from gc_user_access
+        where master_id = #{masterId}
+        <if test="accessIds != null">
+            AND access_id in
+            <foreach collection="accessIds" item="ids" index="index" open="(" close=")" separator=",">
+                #{ids}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="countUsersInPortal" resultMap="baseResultMap">
+        SELECT a.*,max( mess.update_time ) AS userLastActivityTime
+        from (
+                 select
+                     ua.master_id AS master_id,
+                     count( ua.user_id ) AS usersNumInPortal,
+                     ua.id as userid
+                 FROM
+                     gc_user_access ua
+                         LEFT JOIN gc_user us ON us.id = ua.user_id
+                 GROUP BY
+                     ua.master_id
+             )a
+                 LEFT JOIN gc_master_message mess on mess.master_id=a.master_id
+        GROUP BY a.master_id
+    </select>
+
+    <select id="selectPtUserAccessByMasterIdAndUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn" />
+        <include refid="gcAccessbaseColumn" />,
+        p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        from gc_user_access ua
+        left join gc_access a on a.id = ua.access_id
+        left join gc_user_access_permission p on p.user_access_id = ua.id
+        where ua.user_id = #{userId} and ua.master_id = #{masterId}
+    </select>
+
+    <select id="getGroupAdmin" resultType="java.lang.Integer">
+        select count(1) from gc_user_access
+        where user_id = #{userId}
+        and master_id = #{masterId}
+        and role_json like concat('%','groupAdmin','%')
+    </select>
+    <select id="getAccessListBySuperAdmin" resultType="java.lang.Integer">
+        select access_id from gc_user_access
+        where 1=1
+        and user_id = #{userId}
+        and master_id = #{masterId}
+        and role_json like concat('%','superadmin','%')
+    </select>
+</mapper>

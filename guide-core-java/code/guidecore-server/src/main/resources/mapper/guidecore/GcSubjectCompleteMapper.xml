@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcSubjectCompleteMapper">
+
+    <resultMap id="baseResultMap" type="GcSubjectComplete">
+        <id property="id" column="id"/>
+        <result property="masterId" column="master_id"  />
+        <result property="subjectId" column="subject_id"/>
+        <result property="subjectState" column="subject_state"/>
+        <result property="userId" column="user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="inProgress" column="in_progress"/>
+    </resultMap>
+    <update id="updateStateByVideoId">
+        update gc_subject_complete com
+            left join gc_subject s on s.id = com.subject_id
+            left join gc_subject s2 on s2.fid = s.id
+            left join gc_video v on v.sub_id = s2.id
+            set com.subject_state = 2
+        where
+            v.id = #{videoId}
+          and com.master_id = #{masterId}
+    </update>
+
+    <select id="getSubjectCompleteInfo" resultMap="baseResultMap">
+        select * from gc_subject_complete
+        where user_id = #{userId}
+        and master_id = #{masterId}
+        and subject_id = #{subjectId}
+        limit 1
+    </select>
+    <select id="selectBySubjectId" resultMap="baseResultMap">
+        select * from gc_subject_complete
+        where master_id = #{masterId}
+        and subject_id = #{subjectId}
+    </select>
+
+
+</mapper>

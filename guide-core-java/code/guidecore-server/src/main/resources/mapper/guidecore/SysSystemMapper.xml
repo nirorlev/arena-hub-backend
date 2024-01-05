@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.system.mapper.SysSystemMapper">
+
+
+    <resultMap id="baseResultMap" type="SysSystem">
+        <id property="id" column="id"/>
+        <result property="businessId" column="business_id"  />
+        <result property="name" column="name"  />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        
+        <association property="business" column="business_id" javaType="SysBusiness">
+            <id property="id" column="b_id"/>
+            <result property="name" column="b_name"/>
+            <result property="key" column="b_key"/>
+        </association>
+        
+    </resultMap>
+    
+    <sql id="baseColumn">
+        s.id,s.business_id,s.`name`,s.update_time,s.create_time
+    </sql>
+    
+
+    <select id="selectSysSystemListByBusinessKey" resultMap="baseResultMap" parameterType="String">
+        SELECT 
+        <include refid="baseColumn" />
+        ,b.id as b_id,b.`name` as b_name,b.key as b_key 
+        from sys_system s 
+        LEFT JOIN sys_business b ON s.business_id=b.id
+        where b.`key`=#{businessKey}
+    </select>
+    
+    <select id="selectSystemById" resultMap="baseResultMap">
+        SELECT 
+        <include refid="baseColumn" />
+        ,b.id as b_id,b.name as b_name,b.key as b_key
+        from 
+        sys_system s
+        left join sys_business b on s.business_id=b.id
+        where s.id=#{id}
+    </select>
+
+</mapper>

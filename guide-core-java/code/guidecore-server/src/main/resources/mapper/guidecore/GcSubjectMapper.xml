@@ -1,0 +1,2495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcSubjectMapper">
+
+	<resultMap id="baseResultMap" type="GcSubject">
+		<id property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="name" column="name"  />
+		<result property="nameIndex" column="name_index"  />
+		<result property="description" column="description"  />
+		<result property="subId" column="sub_id"/>
+		<result property="type" column="type"/>
+		<result property="level" column="level"/>
+		<result property="fid" column="fid"/>
+		<result property="order" column="order"/>
+		<result property="subImgId" column="sub_img_id"/>
+
+		<result property="templateId" column="template_id"/>
+		<result property="introOnOff" column="intro_on_off"/>
+
+		<result property="state" column="state"/>
+		<result property="token" column="token"/>
+		<result property="isPublic" column="is_public"/>
+		<result property="videosTotalLong" column="sumVideoLong"/>
+		<result property="starUsers" column="subjectStarUsers"/>
+		<result property="starValue" column="subjectStarAvg"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="cateId" column="cate_id"/>
+		<result property="language" column="language"/>
+		<result property="lastActivityTime" column="lastActivityTime"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="sub0Name" column="sub0Name"/>
+		<result property="sub0Id" column="sub0Id"/>
+		<result property="videosTotalNum" column="videosTotalNum"/>
+
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+
+		<result property="subjectAssociationId" column="subjectAssociation_id" />
+		<result property="subjectAssociationOrder" column="subjectAssociation_order" />
+		<result property="subjectAssociationRelationType" column="subjectAssociation_relationType" />
+		<result property="orderNum" column="orderNum"/>
+		<result property="certificatesFlag" column="certificates_flag"/>
+		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="subdetail_img_id" column="subdetail_img_id" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
+		<result property="cpdHours" column="cpd_hours"/>
+		<result property="userId" column="user_id"/>
+		<result property="badgeId" column="badge_id"/>
+		<result property="badgeContent" column="badge_content"/>
+		<result property="createUser" column="create_user"/>
+		<result property="publishedTime" column="published_time"/>
+		<result property="videoProgressPercent" column="videoProgressPercent"/>
+		<result property="identifying" column="identifying"/>
+
+		<association property="subImgFile" column="sub_img_id" javaType="SysFile">
+			<id property="id" column="f_id"/>
+			<result property="name" column="f_name"/>
+			<result property="fileUrl" column="f_file_url"/>
+			<result property="saveType" column="f_save_type"/>
+		</association>
+		<collection property="videoChildList" javaType="ArrayList" column="id" ofType="GcVideo">
+			<id property="id" column="gcVideo_id" />
+			<result property="videoName" column="gcVideo_videoName" />
+			<result property="videoDesc" column="gcVideo_videoDesc" />
+			<result property="subId" column="gcVideo_subId" />
+			<result property="order" column="gcVideo_order" />
+			<result property="videoLong" column="gcVideo_long" />
+			<result property="targetLang" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+			<result property="lang" column="lang"/>
+			<result property="videoSource" column="video_source"/>
+			<association property="videoFile" column="file_id" javaType="SysFile">
+				<id property="id" column="video_f_id"/>
+				<result property="name" column="video_f_name"/>
+				<result property="fileUrl" column="video_file_url"/>
+				<result property="saveType" column="video_f_save_type"/>
+				<result property="fileTypeIndex" column="video_f_file_index"/>
+				<result property="fileType" column="video_f_file_type"/>
+				<result property="thumbNailId" column="thumb_nail_id"/>
+				<result property="thumbNailUrl" column="thumb_nail_url"/>
+			</association>
+
+			<collection property="eventList" javaType="ArrayList" column="video_id" ofType="GcEvent">
+				<id property="id" column="gcEvent_id" />
+				<result property="eventType" column="gcEvent_eventType" />
+				<result property="eventTime" column="gcEvent_eventTime" />
+				<result property="eventTitle" column="gcEvent_eventTitle" />
+				<result property="timeLimit" column="gcEvent_time_limit" />
+				<result property="ext" column="gcEvent_ext" />
+				<result property="uploadUser" column="gcEvent_uploadUser" />
+				<result property="resourceNum" column="gcEvent_resourceNum" />
+				<result property="futurePreEventId" column="gcEvent_pre_event_id"/>
+				<result property="futureDelayTime" column="gcEvent_delay_time"/>
+				<result property="userAnserFabulousNum" column="userAnserFabulousNum"/>
+
+				<association property="futurePreEvent" column="future_pre_event_id" javaType="GcEvent">
+					<id property="id" column="futurePreEvent_id"/>
+					<result property="eventType" column="futurePreEvent_event_type"/>
+					<result property="eventTime" column="futurePreEvent_event_time"/>
+					<result property="eventTitle" column="futurePreEvent_event_title"/>
+					<result property="futurePreEventId" column="futurePreEvent_pre_event_id"/>
+					<result property="futureDelayTime" column="futurePreEvent_delay_time"/>
+
+					<collection property="answerList" javaType="ArrayList" column="futurePreEventAnswer_id" ofType="GcUserAnswer">
+						<id property="id" column="futurePreEventAnswer_id" />
+						<result property="userId" column="futurePreEventAnswer_userId" />
+						<result property="eventId" column="futurePreEventAnswer_eventId" />
+						<result property="answerJson" column="futurePreEventAnswer_answerJson" />
+						<result property="updateTime" column="futurePreEventAnswer_updateTime" />
+						<result property="createTime" column="futurePreEventAnswer_createTime"/>
+					</collection>
+				</association>
+
+				<association property="theUploadUser" column="upload_user" javaType="GcUser">
+					<id property="id" column="student_id"/>
+					<association property="info" column="info_id" javaType="GcUserInfo">
+						<id property="id" column="userInfo__id"/>
+						<result property="firstName" column="userInfo_firstName"/>
+						<result property="lastName" column="userInfo_lastName"/>
+					</association>
+				</association>
+
+				<association property="eventImageFile" column="ext" javaType="SysFile">
+					<id property="id" column="event_f_id"/>
+					<result property="name" column="event_f_name"/>
+					<result property="fileUrl" column="event_f_file_url"/>
+					<result property="saveType" column="event_f_save_type"/>
+				</association>
+
+				<association property="myAnswer" column="id" javaType="GcUserAnswer">
+					<id property="id" column="answer_id" />
+					<result property="userId" column="answer_userId" />
+					<result property="eventId" column="answer_eventId" />
+					<result property="answerJson" column="answer_answerJson" />
+					<result property="updateTime" column="answer_updateTime" />
+					<association property="masterMessage" column="id" javaType="GcMasterMessage">
+						<id property="id" column="mm_id"/>
+						<result property="readState" column="mm_read_state"/>
+					</association>
+				</association>
+
+
+				<!-- <collection property="answerList" javaType="ArrayList" column="event_id" ofType="GcUserAnswer">
+					<id property="id" column="answer_id" />
+					<result property="userId" column="answer_userId" />
+					<result property="eventId" column="answer_eventId" />
+					<result property="answerJson" column="answer_answerJson" />
+					<result property="updateTime" column="answer_updateTime" />
+				</collection> -->
+
+
+			</collection>
+
+		</collection>
+
+		<!--	   <collection property="subjects" javaType="ArrayList" column="fid" ofType="com.threeatom.guidecore.entity.GcSubject">-->
+		<!--		   <id property="id" column="topic_id" />-->
+		<!--		   <result property="name" column="topic_name" />-->
+
+		<!--		   <collection property="videoChildList" javaType="ArrayList" column="sub_id" ofType="GcVideo">-->
+		<!--			   <id property="id" column="gcVideo_id" />-->
+		<!--			   <result property="videoName" column="videoName" />-->
+		<!--			   <result property="videoDesc" column="gcVideo_videoDesc" />-->
+		<!--			   <result property="subId" column="gcVideo_subId" />-->
+		<!--			   <result property="order" column="gcVideo_order" />-->
+		<!--			   <result property="videoLong" column="gcVideo_long" />-->
+		<!--			   <association property="videoFile" column="file_id" javaType="SysFile">-->
+		<!--				   <id property="id" column="video_f_id"/>-->
+		<!--				   <result property="name" column="video_f_name"/>-->
+		<!--				   <result property="fileUrl" column="video_file_url"/>-->
+		<!--				   <result property="saveType" column="video_f_save_type"/>-->
+		<!--				   <result property="fileType" column="fileType"/>-->
+		<!--			   </association>-->
+		<!--		   </collection>-->
+		<!--	   </collection>-->
+
+		<!-- <association property="gcSubjectAssociation" column="id" javaType="GcSubjectAssociation">
+            <id property="id" column="subjectAssociation_id"/>
+            <result property="order" column="subjectAssociation_order"/>
+            <result property="relationType" column="subjectAssociation_relationType"/>
+        </association> -->
+
+	</resultMap>
+
+	<resultMap id="baseResultVoMap" type="GcSubject">
+		<result property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="sub0Name" column="sub0Name"/>
+		<result property="name" column="name"  />
+		<result property="nameIndex" column="name_index"  />
+		<result property="description" column="description"  />
+		<result property="subId" column="sub_id"/>
+		<result property="type" column="type"/>
+		<result property="level" column="level"/>
+		<result property="fid" column="fid"/>
+		<result property="order" column="order"/>
+		<result property="subImgId" column="sub_img_id"/>
+
+		<result property="templateId" column="template_id"/>
+		<result property="introOnOff" column="intro_on_off"/>
+
+		<result property="state" column="state"/>
+		<result property="token" column="token"/>
+		<result property="isPublic" column="is_public"/>
+		<result property="videosTotalLong" column="sumVideoLong"/>
+		<result property="starUsers" column="subjectStarUsers"/>
+		<result property="starValue" column="subjectStarAvg"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="cateId" column="cate_id"/>
+		<result property="language" column="language"/>
+		<result property="lastActivityTime" column="lastActivityTime"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="sub0Name" column="sub0Name"/>
+		<result property="sub0Id" column="sub0Id"/>
+		<result property="videosTotalNum" column="videosTotalNum"/>
+
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+
+		<result property="subjectAssociationId" column="subjectAssociation_id" />
+		<result property="subjectAssociationOrder" column="subjectAssociation_order" />
+		<result property="subjectAssociationRelationType" column="subjectAssociation_relationType" />
+		<result property="orderNum" column="orderNum"/>
+		<result property="certificatesFlag" column="certificates_flag"/>
+		<result property="userId" column="user_id"/>
+		<result property="subjectsSize" column="subjectsSize"/>
+		<result property="publishedTime" column="published_time"/>
+		<result property="publishedUserId" column="published_user_id"/>
+
+		<association property="subImgFile" column="sub_img_id" javaType="SysFile">
+			<id property="id" column="f_id"/>
+			<result property="name" column="f_name"/>
+			<result property="fileUrl" column="f_file_url"/>
+			<result property="saveType" column="f_save_type"/>
+		</association>
+		<association property="userInfo" column="user_id" javaType="GcUser">
+			<id property="id" column="user_id"/>
+			<result property="infoId" column="info_id"/>
+			<result property="username" column="username"/>
+			<association property="info" column="info_id" javaType="GcUserInfo">
+				<id property="id" column="info_id"/>
+				<result property="lastName" column="u_last_name"/>
+				<result property="firstName" column="u_first_name"/>
+				<result property="avatarFileId" column="avatarFileId"/>
+				<association property="avatarFile" column="avatar_file_id" javaType="SysFile">
+					<id property="id" column="u_f_id"/>
+					<result property="name" column="u_f_name"/>
+					<result property="fileUrl" column="u_f_file_url"/>
+					<result property="saveType" column="u_f_save_type"/>
+				</association>
+			</association>
+		</association>
+
+		<collection property="videoChildList" javaType="ArrayList" column="id" ofType="GcVideo">
+			<id property="id" column="gcVideo_id" />
+			<result property="videoName" column="gcVideo_videoName" />
+			<result property="videoDesc" column="gcVideo_videoDesc" />
+			<result property="subId" column="gcVideo_subId" />
+			<result property="order" column="gcVideo_order" />
+			<result property="videoLong" column="gcVideo_long" />
+			<result property="lang" column="lang"/>
+			<result property="answeredNums" column="answeredNums"/>
+			<result property="answeredSumNums" column="answeredSumNums"/>
+			<result property="playState" column="play_state"/>
+			<association property="videoFile" column="file_id" javaType="SysFile">
+				<id property="id" column="video_f_id"/>
+				<result property="name" column="video_f_name"/>
+				<result property="fileUrl" column="video_file_url"/>
+				<result property="saveType" column="video_f_save_type"/>
+				<result property="fileTypeIndex" column="video_f_file_index"/>
+				<result property="fileType" column="video_f_file_type"/>
+				<result property="thumbNailId" column="thumb_nail_id"/>
+				<result property="thumbNailUrl" column="thumb_nail_url"/>
+			</association>
+		</collection>
+	</resultMap>
+	<resultMap id="idMap" type="GcSubject">
+		<id property="id" column="id"/>
+		<result property="id2" column="id2"  />
+	</resultMap>
+	<resultMap id="subjectOrderMap" type="GcSubject">
+		<result property="subjectOrder" column="subject_order" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+	</resultMap>
+
+	<resultMap id="JsonArray" type="GcSubject">
+		<result property="mustJsonArray" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="mayJsonArray" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+	</resultMap>
+
+	<sql id="baseColumn">
+		s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
+	   s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+	   ,s.state, s.token, s.is_public,s.cate_id ,s.language,s.certificates_flag,s.course_tagline,
+		s.cpd_hours,s.badge_id,s.subdetail_img_id,s.badge_content,s.create_user,s.published_time,s.published_user_id
+	</sql>
+
+	<sql id="baseColumnAsso">
+		s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
+		s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+		,s.state <!-- , s.token, s.is_public -->,s.cpd_hours
+	</sql>
+
+	<sql id="baseColumnAssoOrderCase">
+		s.id,s.master_id,s.name, s.description, s.sub_id,
+	   s.type, s.level, s.fid,
+
+	   case s.master_id when #{masterId} then s.order
+		else
+		(select sa.order from gc_subject_association sa where sa.master_id = #{masterId} and sa.subject_id=s.id)
+		end
+
+		as 'order', s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+	   ,s.state, s.token, s.is_public
+	</sql>
+
+	<sql id="fileJoinColumn">
+		,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+	</sql>
+	<sql id="associationColumn">
+		,asso.id as asso_id,asso.subject_id as asso_subject_id
+	</sql>
+	<sql id="eventFileJoinColumn">
+		,f.id as event_f_id,f.name as event_f_name,f.file_url as event_f_file_url,f.save_type as event_f_save_type
+	</sql>
+
+	<sql id="videoJoinColumn">
+		,gcVideo.id as gcVideo_id, gcVideo.video_name as gcVideo_videoName,
+	   gcVideo.video_desc as gcVideo_videoDesc, gcVideo.sub_id as gcVideo_subId,gcVideo.order as gcVideo_order
+	</sql>
+
+	<sql id="eventJoinColumn">
+		,gcEvent.id as gcEvent_id, gcEvent.event_type as gcEvent_eventType,
+	   gcEvent.event_time as gcEvent_eventTime, gcEvent.event_title as gcEvent_eventTitle,
+	   gcEvent.time_limit as gcEvent_time_limit, gcEvent.ext as gcEvent_ext, gcEvent.upload_user as gcEvent_uploadUser,
+       gcEvent.future_pre_event_id as gcEvent_pre_event_id,gcEvent.future_delay_time as gcEvent_delay_time,
+       futurePreEvent.id  as futurePreEvent_id, futurePreEvent.event_type as  futurePreEvent_event_type,
+        futurePreEvent.event_time as  futurePreEvent_event_time, futurePreEvent.event_title as  futurePreEvent_event_title,
+        futurePreEvent.future_pre_event_id as futurePreEvent_pre_event_id,futurePreEvent.future_delay_time as futurePreEvent_delay_time
+	</sql>
+
+	<sql id="studentJoinColumn">
+		,student.id as student_id,
+          userInfo.first_name as userInfo_firstName,
+          userInfo.last_name as userInfo_lastName
+	</sql>
+
+	<sql id="messageJoinColumn">
+		,mm.id as mm_id ,mm.read_state as mm_read_state
+	</sql>
+
+	<sql id="answerListColumn">
+		,answer.id as answer_id, answer.user_id as answer_userId, answer.event_id as answer_eventId,
+        answer.answer_json as answer_answerJson,answer.update_time as answer_updateTime
+        ,futurePreEventAnswer.id as futurePreEventAnswer_id, futurePreEventAnswer.user_id as futurePreEventAnswer_userId,
+        futurePreEventAnswer.event_id as futurePreEventAnswer_eventId,
+        futurePreEventAnswer.answer_json as futurePreEventAnswer_answerJson,futurePreEventAnswer.update_time as futurePreEventAnswer_updateTime,
+        futurePreEventAnswer.create_time as futurePreEventAnswer_createTime
+	</sql>
+
+	<sql id="subjectAssociationJoinColumn">
+		,subjectAssociation.id as subjectAssociation_id,
+	    subjectAssociation.order as subjectAssociation_order,
+	    subjectAssociation.relation_type as subjectAssociation_relationType
+	</sql>
+
+	<sql id="where_gcSubject_state_not_hidden">
+		and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+	</sql>
+
+	<sql id="where_gcSubject_state_not_hidden_s0">
+		and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+	</sql>
+
+	<select id="selectSubjectById" resultMap="baseResultMap">
+		select
+		<include refid="baseColumn" />
+		<include refid="videoJoinColumn" />
+		,vFile.video_long AS gcVideo_long,
+		vFile.file_url as video_file_url,
+		vFile.name as video_f_name,
+		vFile.id as video_f_id,
+		vFile.save_type as video_f_save_type,
+		vFile.file_type_index as video_f_file_index,
+		vFile.target_lang_json as target_lang_json,
+		cation.lang as lang
+		from gc_subject s
+		left join gc_video gcVideo on gcVideo.sub_id=s.id
+		left join sys_file vFile on vFile.id=gcVideo.file_id
+		left join sys_file_caption cation on cation.video_id = gcVideo.id
+		where s.fid=#{subId}
+		group by s.id,gcVideo.id
+		order by s.order,gcVideo.order asc
+	</select>
+
+	<select id="getSubVideoEventList" resultMap="baseResultMap" >
+		select
+		<include refid="baseColumn" />
+		<include refid="videoJoinColumn" />
+		<include refid="eventJoinColumn" />
+		<include refid="studentJoinColumn" />
+		<include refid="answerListColumn" />
+		,vFile.video_long AS gcVideo_long,
+		vFile.file_url as video_file_url,
+		vFile.name as video_f_name,
+		vFile.id as video_f_id,
+		vFile.save_type as video_f_save_type,
+		vFile.file_type_index as video_f_file_index,
+		vFile.thumb_nail_id as thumb_nail_id,
+		vFile2.thumb_nail_url as thumb_nail_url,
+
+		count(resource.id) as gcEvent_resourceNum,
+		count(fab.id) as userAnserFabulousNum
+
+		from gc_subject s
+		left join gc_video gcVideo on gcVideo.sub_id=s.id
+		left join sys_file vFile on vFile.id=gcVideo.file_id
+		left join sys_file vFile2 on vFile2.id = vFile.thumb_nail_id
+
+		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
+		left join gc_event futurePreEvent on gcEvent.future_pre_event_id=futurePreEvent.id
+		left join gc_user_answer futurePreEventAnswer on futurePreEventAnswer.event_id=futurePreEvent.id and futurePreEventAnswer.user_id=#{studentId}
+		LEFT JOIN gc_user_event userEvent on userEvent.event_id = gcEvent.id
+		<!-- 学生的问题回答 -->
+		left join gc_user_answer answer on answer.event_id=gcEvent.id and answer.user_id=#{studentId} and answer.master_id=#{masterId}
+		<!-- 本学生相关的上传的资源数量，本人上传+老师上传 -->
+		left join gc_user_event_resource resource on resource.event_id =gcEvent.id and resource.master_id=#{masterId} and (resource.user_id=#{studentId} or target_user_id=#{studentId})
+
+		LEFT JOIN gc_user student on student.id=gcEvent.upload_user
+		LEFT JOIN gc_user_info userInfo on userInfo.id=student.info_id
+		left join gc_user_fabulous fab on fab.event_id = gcEvent.id and fab.target_user_id = #{studentId}
+
+		where s.fid=#{subId}
+		and (gcEvent.upload_user is null || userEvent.user_id=#{studentId})
+		group by s.id,gcVideo.id,gcEvent.id,resource.event_id,fab.event_id
+		order by s.order asc
+	</select>
+
+	<select id="getLevel1VideoEventList" resultMap="baseResultMap" >
+		select
+		<include refid="baseColumn" />
+		<include refid="videoJoinColumn" />
+		<include refid="eventJoinColumn" />
+		<include refid="answerListColumn" />
+		<include refid="eventFileJoinColumn" />
+		<include refid="studentJoinColumn" />
+		<if test="teacherId!=null">
+			<include refid="messageJoinColumn" />
+		</if>
+		from gc_subject s
+		left join gc_video gcVideo on gcVideo.sub_id=s.id
+		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
+		left join gc_user_answer answer on answer.event_id=gcEvent.id and answer.user_id=#{userId}
+		left join sys_file f on json_extract(gcEvent.ext,"$.quesImgId")=f.id
+		left join gc_event futurePreEvent on gcEvent.future_pre_event_id=futurePreEvent.id
+		left join gc_user_answer futurePreEventAnswer on futurePreEventAnswer.event_id=futurePreEvent.id and futurePreEventAnswer.user_id=#{userId}
+		LEFT JOIN gc_user_event userEvent on userEvent.event_id = gcEvent.id
+		LEFT JOIN gc_user student on student.id=gcEvent.upload_user
+		LEFT JOIN gc_user_info userInfo on userInfo.id=student.info_id
+		<if test="teacherId!=null">
+			left join gc_master_message mm on mm.user_answer_id =  answer.id  and mm.user_id = #{userId} and mm.target_user_id = #{teacherId}
+		</if>
+		where s.id=#{subId}
+		and (gcEvent.upload_user is null || userEvent.user_id=#{userId})
+		ORDER  BY gcVideo.order ASC, gcVideo.id asc, gcEvent.event_time asc
+	</select>
+
+
+	<select id="selectEventResNumMapForWorkbook" resultType="map">
+		select
+			case when  a.target_user_id !=0 and a.target_user_id is not null then CONCAT(a.event_id,"_others_",a.state)
+		else CONCAT(a.event_id,"_my") end numKey,count(1) as num
+		/* ,a.state,a.event_id,a.target_user_id   */
+
+		from(
+
+		select eventRes.*, case when eventRes.user_id!=#{userId} then mm.read_state else null end state
+		from gc_user_event_resource eventRes
+		LEFT JOIN gc_master_message mm on mm.res_id = eventRes.id
+
+		LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
+		LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
+		LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+
+		where sub.id = #{subId}  and (eventRes.target_user_id=#{userId} or eventRes.user_id=#{userId}) group by eventRes.id
+
+		) a group by  IFNULL(a.state,1),  a.target_user_id, a.event_id;
+	</select>
+
+	<select id="selectEventResNumMapForWorkbookTeacher" resultType="map">
+		select
+			case when  a.target_user_id !=0 and a.target_user_id is not null then  CONCAT(a.event_id,"_my")
+		else CONCAT(a.event_id,"_others_",a.state) end numKey,count(1) as num
+		/* ,a.state,a.event_id,a.target_user_id, a.user_id */
+
+		from(
+
+		select  eventRes.*
+		,gcEvent.`event_title`
+		 , mm.read_state,
+		/*  , mm.id, mm.read_state,mm.target_user_id, mm.user_id */
+		/* case when eventRes.user_id!=112 and state is null then 1 else mm.read_state end state */
+
+		case when eventRes.user_id!=#{teacherId} and mm.read_state is null then 1 else mm.read_state end state
+		from gc_user_event_resource eventRes
+		LEFT JOIN gc_master_message mm on mm.res_id = eventRes.id AND (mm.target_user_id = eventRes.target_user_id or eventRes.target_user_id is null) and mm.target_user_id=#{teacherId}
+
+		LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
+		LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
+		LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+
+		where sub.id = #{subId}
+		and (
+		(eventRes.user_id=#{teacherId} and eventRes.target_user_id=#{studentId}) or
+		(eventRes.user_id=#{studentId})
+		)
+
+		group by eventRes.id
+		) a group by  IFNULL(a.state,1),  a.target_user_id, a.event_id;
+	</select>
+
+	<select id="getAnswerMessageMapForTeacherWorkbook" resultType="map">
+		select gcEvent.id as eventId, mm.read_state as readState from gc_subject s
+		left join gc_video gcVideo on gcVideo.sub_id=s.id
+		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
+		left join gc_user_answer answer on answer.event_id=gcEvent.id
+		left join gc_master_message mm on mm.user_answer_id = answer.id
+		where s.id=#{subId} and answer.user_id=#{studentId} and mm.target_user_id = #{teacherId} and mm.read_state = 0
+		<!-- #{subId} 话题级别课程id -->
+	</select>
+
+	<select id="getSubjectListCommon" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		,concat('[',GROUP_CONCAT('"',tags.tag_text,'"' SEPARATOR ','),']') as course_tags
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
+		WHERE s.master_id = #{masterId}
+		<if test="level!=null">
+			AND s.level = #{level}
+		</if>
+		<if test="level!=null">
+			AND s.state = #{state}
+		</if>
+		GROUP BY s.id
+		ORDER BY s.order ASC,s.create_time desc,s.id
+	</select>
+
+	<select id="selectSubjectPt" resultMap="baseResultMap">
+		select 	s2.num as subjectsSize,vnum.videoNum as videosTotalNum,s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
+			s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+			 ,s.state, s.token, s.is_public,s.cate_id ,s.language,s.certificates_flag,s.course_tagline,
+			s.cpd_hours,s.badge_id,s.subdetail_img_id,s.badge_content,s.create_user,s.available_type
+			 ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+		/*,count(v.id) as videosTotalNum*/
+		from (
+		select count(if(b.play_state=1,1,null)) as nums,b.* from(
+				 SELECT
+					max(p.play_state) as play_state,
+					 a.*
+				 FROM
+					 (SELECT
+							 u.id AS user_id,
+							 u.info_id AS info_id,
+							 s.*,
+							v.id as video_id,
+							v.`video_name`
+						 FROM
+							 gc_subject s
+								<if test="type == null and createUser == null">
+									LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(JSON_MERGE(ifnull(may_subject_json,'[]'),ifnull(must_subject_json,'[]')),CONVERT ( s.id, CHAR ))=1
+								</if>
+								 <if test="type==3 or type==1">
+								 LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull(uap.must_subject_json,'[]'),CONVERT ( s.id, CHAR ))= 1
+								 </if>
+							     <if test="type==4 or (type == null and createUser != null)">
+								 LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull(uap.may_subject_json,'[]'),CONVERT ( s.id, CHAR ))= 1
+								<if test="subIdList != null and subIdList.size()!=0">
+							     and s.id not in
+							     <foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
+									 ${subIdList}
+								 </foreach>
+									 </if>
+								 </if>
+								<if test="(type==0 or type ==2 )  and (null == subIdList or subIdList.size()==0)">
+									LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull(uap.sub_permission,'[]'),CONVERT ( s.id, CHAR ))= 1
+								</if>
+								<if test="(type==0 or type ==2 )and null!= subIdList and subIdList.size()!=0">
+									LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(JSON_MERGE(ifnull(uap.sub_permission,'[]'),
+									<foreach item="subIdList" index="index" collection="subIdList"  open="'[" separator="," close="]'">
+										${subIdList}
+									</foreach>
+									),CONVERT ( s.id, CHAR ))= 1
+								</if>
+								 LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+								 LEFT JOIN gc_user u ON u.id = ua.user_id
+								 LEFT JOIN gc_subject s2 ON s2.fid = s.id
+								 LEFT JOIN gc_video v ON v.sub_id = s2.id
+						 WHERE
+							 1 = 1
+							<if test="null==type and userId!=null" >
+								and u.id = #{userId}
+							</if>
+							<if test="null!=type and createUser==null">
+								AND ua.master_id = #{masterId}
+								AND u.id = #{userId} /*#AND s.id IN ()*/
+							</if>
+							and s.master_id = #{masterId}
+					 	    AND s.state = #{state}
+							and ua.role_json like concat('%','groupMember','%')
+
+							<if test="null==type and createUser!=null">
+								or (s.create_user = #{userId} and s.master_id = #{masterId} and s.state = #{state})
+							</if>
+							<if test="type == 4 ">
+								or ((s.available_type = 3 or s.available_type = 1 )
+								    <if test="subIdList != null and subIdList.size()!=0">
+								    and
+								    s.id not in
+										<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
+											${subIdList}
+										</foreach>
+									</if>
+								    and s.master_id= #{masterId}
+								)
+							</if>
+						 GROUP BY
+						v.id,
+						u.id,
+						s.id
+		) AS a
+		LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id AND p.user_id = a.user_id AND p.play_state = 1  AND p.play_state IS NOT NULL
+		GROUP BY
+					 a.id,
+					 a.user_id,
+		         p.video_id
+
+		) as b
+		<if test="null!=subjectName">
+		where b.name like CONCAT('%',#{subjectName},'%')
+		</if>
+		GROUP BY b.id,b.user_id
+			 ) as s
+			left join sys_file f on s.sub_img_id=f.id
+			left join gc_subject sub1 on sub1.fid = s.id
+			left join gc_video v on v.sub_id = sub1.id
+
+			left join (select count(v.id) as videoNum,s.id as id   from gc_subject  s
+			left join gc_subject s2 on s2.fid = s.id
+			left join gc_video v on v.sub_id = s2.id
+			GROUP BY s.id ) vNum on
+			<if test="type == 2">
+				vNum.videoNum = s.nums and
+			</if>
+			s.id = vNum.id
+			left join (	select count(*)as num,fid from gc_subject where `level` = 1 GROUP BY fid ) s2 on s2.fid = s.id
+			left join (SELECT * FROM
+			(SELECT sum(IF( answer_json IS NULL, 0, 1 )) AS anNums,
+			sum(IF( event_nums.event_id IS NULL, 0, 1 )) AS eventNums,
+			event_nums.*
+			FROM
+			(
+			SELECT
+			an.answer_json,
+			u.id AS user_id,
+			e.id AS event_id,
+			s.id AS subject_id
+			FROM
+			gc_subject s
+			LEFT JOIN gc_subject s2 ON s.id = s2.fid
+			LEFT JOIN gc_video v ON v.sub_id = s2.id
+			LEFT JOIN gc_event e ON e.video_id = v.id
+			LEFT JOIN gc_user u ON u.id = #{userId}
+			LEFT JOIN gc_user_event ue ON ue.event_id = e.id
+			AND ue.user_id = u.id
+			AND ue.master_id = #{masterId}
+			LEFT JOIN gc_user_answer an ON an.event_id = e.id
+			AND an.user_id = u.id
+			AND an.master_id = #{masterId} /*#where s.id in()*/
+			AND ((
+			e.upload_type = 2
+			AND ue.id IS NOT NULL
+			)
+			OR ( e.upload_type = 1 )
+			OR ( e.upload_type IS NULL AND e.id IS NULL )
+			)
+			) event_nums
+			GROUP BY
+			event_nums.user_id,
+			subject_id
+			) comEvents
+			<if test="type == 2">
+			WHERE annums = eventNums
+			</if>
+			    )
+			eu on eu.user_id = s.user_id and s.id = eu.subject_id
+		  where
+		  1=1
+		  and s.level = 0
+		<if test="type == null and createUser == null">
+			<if test="subIdList != null and subIdList.size()!=0">
+				and s.id not in
+				<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
+					${subIdList}
+				</foreach>
+			</if>
+			and ((vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
+			    or(s.nums = 0)
+			    )
+		</if>
+		/*已开始*/
+		<if test="type == 0">
+			and (eu.anNums !=0 or s.nums !=0)
+			and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
+		</if>
+		/*未开始*/
+		<if test="type == 1">
+			AND ( eu.anNums = 0 AND s.nums = 0 )
+		</if>
+		/*已完成*/
+		<if test="type == 2">
+			and vNum.videoNum is not null
+			and eu.anNums is not null
+		    and
+			(vNum.videoNum != 0 or eu.anNums != 0)
+		</if>
+		<if test="channelIds!=null and channelIds.size()!=0">
+			AND s.id not in
+			<foreach item="channelId" index="index" collection="channelIds"  open="(" separator="," close=")">
+				#{channelId}
+			</foreach>
+		</if>
+		<if test="type == 4">
+			and s.master_id = #{masterId}
+			or ((s.available_type = 3 or s.available_type = 1 )
+			and s.available_type != 4 and s.master_id = #{masterId})
+			
+		</if>
+		<if test="createUser!=null">
+			and s.create_user = #{createUser}
+			and s.master_id = #{masterId}
+		</if>
+		GROUP BY s.id
+		ORDER BY s.create_time desc
+	</select>
+
+	<select id="getSubjectList" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		,count(v.id) as videosTotalNum
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		left join gc_subject sub1 on sub1.fid = s.id
+		left join gc_video v on v.sub_id = sub1.id
+		WHERE s.level = #{level} and s.state = #{state}
+		<if test="channelIds!=null and channelIds.size()!=0">
+			AND s.id not in
+			<foreach item="channelId" index="index" collection="channelIds"  open="(" separator="," close=")">
+				#{channelId}
+			</foreach>
+		</if>
+		<if test="createUser!=null">
+			and s.create_user = #{createUser}
+		</if>
+		and s.master_id = #{masterId}
+		GROUP BY s.id
+		ORDER BY s.order ASC,s.create_time desc,s.id
+	</select>
+
+	<select id="listSubWithAssoByIds" resultMap="baseResultMap" >
+		select
+		<include refid="baseColumnAssoOrderCase" />
+		<include refid="fileJoinColumn" />
+		from gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		WHERE 1=1
+		<if test="list.size()!=0">
+			and s.id in
+			<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
+				#{ids}
+			</foreach>
+		</if>
+		<include refid="where_gcSubject_state_not_hidden" />
+		order by 'order' asc
+	</select>
+
+
+	<select id="listSubWithAssoWithChildSubNotHiddenByIds" resultMap="baseResultMap" >
+		select
+		<include refid="baseColumnAssoOrderCase" />
+		<include refid="fileJoinColumn" />
+		from gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		WHERE s.id in
+		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+		or s.fid in
+		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+		order by 'order' asc
+	</select>
+
+	<select id="listSubByIds" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+
+		WHERE s.id in
+		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+		<include refid="where_gcSubject_state_not_hidden" />
+		order by 'order' asc
+	</select>
+
+	<select id="listSubByIdsAndName" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		<if test="list!=null">
+		WHERE s.id in
+		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+		</if>
+		<if test="list == null">
+			where 1=2
+		</if>
+		<if test="name != null">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		<include refid="where_gcSubject_state_not_hidden" />
+		order by 'order' asc
+	</select>
+
+	<select id="selectSubjectAssociation" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumnAsso" />
+		<include refid="subjectAssociationJoinColumn"/>
+		<include refid="fileJoinColumn" />
+		,concat('[',GROUP_CONCAT('"',tags.tag_text,'"' SEPARATOR ','),']') as course_tags
+		FROM gc_subject s
+		left join gc_subject_association subjectAssociation on s.id=subjectAssociation.subject_id or s.fid=subjectAssociation.subject_id
+		left join sys_file f on s.sub_img_id=f.id
+		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
+		where subjectAssociation.master_id=#{masterId}
+		<include refid="where_gcSubject_state_not_hidden" />
+		<if test="subIds!=null and subIds.size()>0">
+			and subjectAssociation.subject_id in
+			<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+		</if>
+		<if test="ifLevel0">
+			and s.level=0
+		</if>
+		GROUP BY s.id
+	</select>
+	<!-- 	<select id="selectImportedSubject" resultMap="baseResultMap" >
+            SELECT so.id as thisId, so.order as thisOrder,
+            <include refid="baseColumn" />
+            FROM gc_subject s
+            left join gc_subject so on s.id = so.related_subject_id or s.fid=so.related_subject_id
+            where so.master_id=#{masterId}
+        </select> -->
+
+	<select id="selectByid" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		WHERE s.id = #{id}
+		<include refid="where_gcSubject_state_not_hidden" />
+	</select>
+
+	<select id="selectSubByVid" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		FROM gc_video v
+		LEFT JOIN gc_subject s on s.id=v.sub_id
+		WHERE v.id = #{vid}
+		<include refid="where_gcSubject_state_not_hidden" />
+	</select>
+
+	<select id="selectGetSubIdByEventId" resultType="Integer">
+		SELECT v.sub_id
+		FROM gc_event AS e
+				 LEFT JOIN gc_video AS v ON v.id = e.video_id
+		WHERE e.id = #{eventId}
+	</select>
+
+	<select id="getTopSubByVideoId" resultType="Integer">
+		SELECT s.sub_id
+		FROM gc_video AS v
+		LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+		WHERE v.id = #{videoId}
+		<include refid="where_gcSubject_state_not_hidden" />
+	</select>
+
+	<select id="countCourseForName" resultType="Integer">
+		select count(1) from gc_subject
+		where
+		<choose>
+			<when test="nameIndex==null">
+				name=#{name}
+			</when>
+			<otherwise>
+				name_index=#{nameIndex}
+			</otherwise>
+		</choose>
+		and master_id = #{masterId} and
+		<choose>
+			<when test="fid==null || fid==0">
+				fid is null
+			</when>
+			<otherwise>
+				fid = #{fid}
+			</otherwise>
+		</choose>
+		<if test="id!=null">
+			and id !=#{id}
+		</if >
+	</select>
+
+	<select id="selectS1ByS0NameIndex" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		from gc_subject s left join gc_subject s0 on s0.id = s.fid
+		where s0.master_id = #{masterId} and s0.name_index = #{nameIndex}
+		<include refid="where_gcSubject_state_not_hidden_s0" />
+	</select>
+
+	<select id="selecUnitNumForVideo" resultMap="idMap" >
+		select s11.id as id ,v.sub_id as id2 from gc_video v
+													  left join gc_subject s1 on s1.id=v.sub_id
+													  left join gc_subject s11 on s11.fid=s1.fid
+		where v.id = #{videoId}
+		order by s11.order asc
+	</select>
+
+	<select id="selectSubListById" resultType="com.threeatom.guidecore.entity.GcSubject" >
+		select * from gc_subject where fid=#{id}
+	</select>
+
+	<select id="selectAllSubByUserId" resultType="com.threeatom.guidecore.entity.GcSubject" >
+		SELECT s.*,
+		if( s.master_id = #{masterId}, s.order, sa.order ) as orders
+		FROM gc_subject s
+		LEFT JOIN gc_user_access_permission p ON JSON_CONTAINS(P.sub_permission,CONVERT ( S.id, CHAR ))= 1
+		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
+		AND  sa.master_id = #{masterId}
+		WHERE
+		P.ID =(SELECT pe.id FROM gc_user_access_permission pe
+		LEFT JOIN gc_user_access ac ON ac.id = pe.user_access_id
+		WHERE
+		ac.user_id = #{userId} and ac.master_id=#{masterId})
+		<include refid="where_gcSubject_state_not_hidden" />
+		order by orders,s.id
+	</select>
+
+	<select id="selectFirstSubForMaster" resultType="com.threeatom.guidecore.entity.GcSubject" >
+		select * from gc_subject where master_id =#{masterId} order by create_time asc limit 1
+	</select>
+
+	<select id="selectSubjectByVids" resultType="com.threeatom.guidecore.entity.GcSubject" >
+		select  distinct s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
+		s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+		,s.state, s.token, s.is_public from gc_subject s
+		left join gc_video v on v.sub_id=s.sub_id
+		where v.id in
+		<foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
+			#{vid}
+		</foreach>
+	</select>
+
+	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.GcSubject" >
+		select  * from gc_subject where fid in
+		<foreach collection="fids" item="fid" index="index" open="(" close=")" separator=",">
+			#{fid}
+		</foreach>
+	</select>
+
+	<select id="countCourseInPortal" resultType="Integer">
+		select count(1) from gc_subject s
+		<if test="managerId!=null">
+			left join gc_user_access access on access.manager_id=#{managerId}
+			left join gc_user_access_permission per on per.user_access_id=access.id
+		</if>
+		where
+		<if test="subIds==null">
+			s.master_id = #{masterId} and s.type=#{type} and s.state!=#{type} or (s.id in (select ass.subject_id from gc_subject_association ass where ass.master_id=#{masterId}))
+		</if>
+		<if test="subIds!=null and subIds.size!=0">
+			s.master_id=#{masterId} and s.type=#{type} and s.state!=#{type} and s.id in
+			<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="countImportedToicNum" resultType="Integer">
+		select count(1) from gc_subject s
+		where s.type=#{type} and  s.state!=#{state} and s.sub_id in
+		(select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId}
+		<if test="subIds!=null and subIds.size!=0">
+			and asso.subject_id in
+			<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+		</if>
+		)
+	</select>
+
+	<select id="selectAllSubList" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select * from gc_subject s
+		where s.master_id=#{masterId} and s.type=#{stateAndType} and  s.state!=#{stateAndType}
+		union all
+		select * from gc_subject sub
+		where sub.type=#{stateAndType} and  sub.state!=#{stateAndType} and sub.id in
+			(select ass.subject_id from gc_subject_association ass where ass.master_id=#{masterId})
+	</select>
+
+	<select id="selectAllLevel1SubList" resultMap="baseResultMap">
+		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
+		ifnull(max(answer.update_time),0)as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
+		from gc_subject s
+		left join gc_subject s0 on s0.id = s.fid
+		left join gc_video v on v.sub_id=s.id
+		left join sys_file f on v.file_id=f.id
+		left join gc_event e on e.video_id=v.id
+		left join gc_user_answer answer on answer.event_id = e.id
+		<if test="null!=masterId">
+			left join gc_subject_association ass on s.fid=ass.subject_id and ass.master_id = #{masterId}
+		</if>
+		where s.fid in
+		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+			#{subId}
+		</foreach>
+		group by s.id
+		<choose>
+			<when test="order!=null">
+				order by max(answer.update_time) ${order}
+			</when>
+			<otherwise>
+				<if test="null!=masterId">
+					order by s.order asc,s.create_time asc,s.id
+				</if>
+				<if test="null==masterId">
+					order by s.order desc
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="gvgSelectAllLevel1SubList" resultMap="baseResultMap">
+		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
+		ifnull(max(answer.update_time),0)as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
+		from gc_subject s
+		left join gc_subject s0 on s0.id = s.fid
+		left join gc_video v on v.sub_id=s.id
+		left join sys_file f on v.file_id=f.id
+		left join gc_event e on e.video_id=v.id
+		left join gc_user_answer answer on answer.event_id = e.id
+		<if test="null!=masterId">
+			left join gc_subject_association ass on s.fid=ass.subject_id and ass.master_id = #{masterId}
+		</if>
+		where s.fid in
+		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+			#{subId}
+		</foreach>
+		group by s.id,v.id
+		<choose>
+			<when test="order!=null">
+				order by max(answer.update_time) ${order}
+			</when>
+			<otherwise>
+				<if test="null!=masterId">
+					/*order by s.order asc,s.create_time desc,s.id*/
+					order by s.order asc,s.create_time asc,s.id
+				</if>
+				<if test="null==masterId">
+					order by s.order asc
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectSubjectVideoList" resultMap="baseResultMap">
+		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,
+		v.video_source as video_source,
+		f.file_type as video_f_file_type,
+		f.id as video_f_id,
+		f.file_url as video_file_url,
+		f.file_type_index as video_f_file_index,
+		f.name as video_f_name,
+		f.save_type as video_f_save_type,s0.name as sub0Name,s0.Id as sub0Id,
+		f.thumb_nail_url as thumb_nail_url
+		from gc_subject s
+		left join gc_subject s0 on s0.id = s.fid
+		left join gc_video v on v.sub_id=s.id
+		left join sys_file f on v.file_id=f.id
+		left join gc_event e on e.video_id=v.id
+		left join gc_user_answer answer on answer.event_id = e.id
+		<if test="null!=masterId">
+			left join gc_subject_association ass on s.fid=ass.subject_id and ass.master_id = #{masterId}
+		</if>
+		where s.fid in
+		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+			#{subId}
+		</foreach>
+		<if test="context != null">
+			and concat(v.video_name,v.video_name_index) like concat('%',#{context},'%')
+		</if>
+		<choose>
+			<when test="order!=null">
+				order by max(answer.update_time) ${order}
+			</when>
+			<otherwise>
+				<if test="null!=masterId">
+					order by ifnull(ass.ORDER,s.order) asc,s.id asc
+				</if>
+				<if test="null==masterId">
+					order by s.order desc
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectCategorySubject" resultMap="baseResultMap">
+		select DISTINCT
+		a.ID,
+		a.MASTER_ID,
+		a.NAME,
+		a.DESCRIPTION,
+		a.TYPE,
+		a.SUB_ID,
+		a.LEVEL,
+		a.FID,
+		a.ORDER,
+		a.SUB_IMG_ID,
+		a.STATE,
+		a.TOKEN,
+		a.IS_PUBLIC,
+		a.UPDATE_TIME,
+		a.CREATE_TIME,
+		a.INTRO_ON_OFF,
+		a.TEMPLATE_ID,
+		a.COURSE_TAGLINE,
+		a.cate_id,
+		sys.ID AS F_ID,
+		sys.NAME AS F_NAME,
+		sys.FILE_URL AS F_FILE_URL,
+		sys.SAVE_TYPE AS F_SAVE_TYPE,
+		a.video_name as videoName,
+		sys.file_type as fileType,
+		a.activate_size as price,
+		iFNULL(sum(sys.video_long),0) as sumVideoLong,
+		iFNULL(count(UVA.id),0) as subjectStarUsers,
+		iFNULL(AVG(UVA.STAR_VALUE),0.0) as subjectStarAvg,
+		iFNULL(count(record.id),0) as orderNum
+		from (
+		select s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
+		s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+		,s.state, s.token, s.is_public,s.cate_id ,s.language,s.course_tagline,v.video_name,active.activate_size,v.file_id from gc_subject s
+		left join gc_subject sub1 on s.id = sub1.fid
+		left join gc_video v on v.sub_id=sub1.id
+		where 1=1 and s.level=0
+		<if test="cateParams.categoryIds !=null">
+			and s.cate_id in
+			<foreach collection="cateParams.categoryIds" item="categoryId" index="index" open="(" close=")" separator=",">
+				#{categoryId}
+			</foreach>
+		</if >
+		<if test="cateParams.languages!=null">
+			and s.language in
+			<foreach collection="cateParams.languages" item="language" index="index" open="(" close=")" separator=",">
+				#{language}
+			</foreach>
+		</if>
+		<if test="cateParams.subjectName != null and cateParams.subjectName != ''">
+			and s.name LIKE CONCAT(CONCAT('%', #{cateParams.subjectName}),'%')
+		</if>
+		<if test="cateParams.subIds != null and cateParams.subIds.size()!=0">
+			and S.id in
+			<foreach collection="cateParams.subIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+		</if>
+		group by s.id
+		)a
+		left join sys_file sys on sys.id=a.file_id
+		left join gc_user_video_action uva on uva.sub_id = a.id
+		left join gc_master_pay_records record on record.subject_id = a.id and record.state=1
+		where 1=1
+		group by a.id,record.id
+		<if test="cateParams.durationMax1 !=null or cateParams.durationMax2 !=null or cateParams.durationMax3 !=null or cateParams.durationMin4 !=null">
+			HAVING 1=2 or(
+			1=2
+			<if test="cateParams.durationMax1 !=null and cateParams.durationMax1 !=''">
+				or (sumVideoLong&lt;=#{cateParams.durationMax1} and sumVideoLong&gt;=#{cateParams.durationMin1})
+			</if>
+			<if test="cateParams.durationMax2 !=null and cateParams.durationMax2 !=''">
+				or (sumVideoLong&lt;=#{cateParams.durationMax2} and sumVideoLong&gt;=#{cateParams.durationMin2})
+			</if>
+			<if test="cateParams.durationMax3 !=null and cateParams.durationMax3 !=''">
+				or (sumVideoLong&lt;=#{cateParams.durationMax3} and sumVideoLong&gt;=#{cateParams.durationMin3})
+			</if>
+			<if test="cateParams.durationMin4 !=null and cateParams.durationMin4 !=''">
+				or (sumVideoLong&gt;=#{cateParams.durationMin4})
+			</if>
+			)
+			<if test="cateParams.starMax1 !=null or cateParams.starMax2 !=null or cateParams.starMax3!=null or cateParams.starMax5 !=null">
+				and (
+				1=2
+				<if test="cateParams.starMax1 != null and cateParams.starMax1 != ''">
+					or (subjectStarAvg&gt;=#{cateParams.starMin1} and subjectStarAvg&lt;=#{cateParams.starMax1})
+				</if>
+				<if test="cateParams.starMax2 != null and cateParams.starMax2 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin2} and subjectStarAvg&lt;=#{cateParams.starMax2})
+				</if>
+				<if test="cateParams.starMax3 != null and cateParams.starMax3 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin3} and subjectStarAvg&lt;=#{cateParams.starMax3})
+				</if>
+				<if test="cateParams.starMax4 != null and cateParams.starMax4 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin4} and subjectStarAvg&lt;=#{cateParams.starMax4})
+				</if>
+				<if test="cateParams.starMax5 != null and cateParams.starMax5 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin5} and subjectStarAvg&lt;=#{cateParams.starMax5})
+				</if>
+				)
+			</if>
+		</if>
+		<if test="cateParams.durationMax1 ==null and cateParams.durationMax2 ==null and cateParams.durationMax3 ==null and cateParams.durationMin4 ==null">
+			<if test="cateParams.starMax1 !=null or cateParams.starMax2 !=null or cateParams.starMax3!=null or cateParams.starMax5 !=null">
+				Having 1=2 or(
+				1=2
+				<if test="cateParams.starMax1 != null and cateParams.starMax1 != ''">
+					or (subjectStarAvg&gt;=#{cateParams.starMin1} and subjectStarAvg&lt;=#{cateParams.starMax1})
+				</if>
+				<if test="cateParams.starMax2 != null and cateParams.starMax2 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin2} and subjectStarAvg&lt;=#{cateParams.starMax2})
+				</if>
+				<if test="cateParams.starMax3 != null and cateParams.starMax3 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin3} and subjectStarAvg&lt;=#{cateParams.starMax3})
+				</if>
+				<if test="cateParams.starMax4 != null and cateParams.starMax4 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin4} and subjectStarAvg&lt;=#{cateParams.starMax4})
+				</if>
+				<if test="cateParams.starMax5 != null and cateParams.starMax5 != ''">
+					or (subjectStarAvg&gt;#{cateParams.starMin5} and subjectStarAvg&lt;=#{cateParams.starMax5})
+				</if>
+				)
+			</if>
+		</if>
+		order by orderNum desc
+	</select>
+
+	<select id="selectAllSubsByPartipants" resultType="com.threeatom.guidecore.entity.GcUser">
+		SELECT subject_id as "subjectId", SUM(SUBJECT_USERS) as "subjectUsers" ,master_id as subjectMasterId FROM (
+		SELECT
+		S.ID AS SUBJECT_ID, COUNT(USER.ID) AS SUBJECT_USERS,S.master_id as master_id
+		FROM GC_USER USER
+		LEFT JOIN GC_USER_ACCESS UA ON USER.ID = UA.USER_ID
+		LEFT JOIN GC_USER_ACCESS_PERMISSION UAP ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN GC_SUBJECT S ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+		where 1=1
+		<if test="params.subjectIds != null">
+			and    S.id in
+			<foreach collection="params.subjectIds" item="subId" index="index" open="(" close=")" separator=",">
+				#{subId}
+			</foreach>
+		</if>
+		GROUP BY S.ID
+		) T WHERE SUBJECT_ID IS NOT NULL
+		group by SUBJECT_ID
+	</select>
+
+	<select id="recommentCourse" resultMap="baseResultMap">
+		select DISTINCT s.id,s.master_id,s.name,s.description,s.cate_id,s.sub_img_id,avg(va.star_value) as subjectStarAvg from gc_subject s
+																																															  LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
+																																															  LEFT JOIN gc_video v on v.sub_id = sub1.id
+																																															  LEFT JOIN gc_user_video_action va on va.sub_id = s.id
+
+		where s.cate_id in
+			  (select cate_id from gc_subject where id in
+													(select DISTINCT subject_id from gc_master_pay_records where user_id = #{userId} and subject_id is not null))
+		group by s.id
+		order by orderNum desc
+	</select>
+	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select gc.*,concat('[',GROUP_CONCAT('"',tags.tag_text,'"' SEPARATOR ','),']') as course_tags from gc_subject gc
+																											  left join gc_subject_tags tags on tags.subject_id = gc.id and tags.master_id = #{masterId}
+		where gc.id = #{id}
+		GROUP BY gc.id
+			limit 1
+	</select>
+	<select id="selectListByMasterId" resultMap="baseResultMap">
+		select gc.*,concat('[',GROUP_CONCAT('"',tags.tag_text,'"' SEPARATOR ','),']') as course_tags
+		from gc_subject gc
+				 left join gc_subject_tags tags on tags.subject_id = gc.id and tags.master_id = #{masterId}
+		GROUP BY gc.id
+	</select>
+
+	<select id="selectSubjectByIdList" resultMap="subjectOrderMap">
+		select tags.id as id,s.`name`,s.description,s.`order`,
+		case JSON_CONTAINS(ifnull(tagass.close_subject,tags.close_subject),CONVERT(s.id,char))
+		when 1 then 0
+		else 1
+		end as subjectShowFlag,
+		case tags.master_id when #{masterId} then 0
+		else 1
+		end as tagType,
+
+		case tagass.master_id
+		when #{masterId} then tagass.subject_order
+		else tags.subject_order
+		end as subject_order,
+		s.id as id2
+		from gc_subject s
+		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )AND ua.master_id = sa.master_id
+		left join gc_subject_tags tags on tags.subject_id = s.id and(
+		(sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)
+		or(tags.master_id = #{masterId}))
+		left join gc_subject_tag_association tagass on tagass.tag_id = tags.id and tagass.master_id = #{masterId}
+		<if test="tag != null and tag != ''">
+			where s.id in
+			<foreach collection="list" item="subId" separator="," open="(" close=")">
+				#{subId}
+			</foreach>
+			and tags.tag_text = #{tag}
+		</if>
+		group by s.id
+		order by s.`order`
+	</select>
+	<select id="selectSubIdListByMaster" resultType="java.lang.Integer">
+		select s.id
+		from gc_subject s
+				 left join gc_subject_association subjectAssociation on s.id=subjectAssociation.subject_id or s.fid=subjectAssociation.subject_id
+		where s.level = 0
+		  and (s.master_id = #{masterId} or subjectAssociation.master_id = #{masterId})
+		  and s.`state` != 0
+		order by s.`order`
+	</select>
+
+	<select id="getSublistWithImg" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select * from gc_subject where sub_img_id is not null  limit 0,7
+	</select>
+	<select id="getSubListByPermissionIds" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select s.*,p.id as subjectAssociationId from gc_subject s
+		LEFT JOIN gc_user_access_permission p ON JSON_CONTAINS( p.sub_permission,CONVERT ( s.id, CHAR )) = 1
+		where
+		p.id in
+		<foreach collection="permissionIds" item="permissionIds" separator="," open="(" close=")" >
+			#{permissionIds}
+		</foreach>
+		and s.id is not null
+	</select>
+
+	<select id="getSubListByPermissionIdsFid" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select
+		s2.*,
+		ap.id as subjectAssociationId
+		from GC_SUBJECT s
+		left join gc_user_access_permission ap on json_contains(ap.sub_permission,convert(s.id,char))=1
+		left join gc_subject s2 on s2.fid = s.id
+		where ap.id in
+		<foreach collection="permissionIds" item="permissionIds" index="index" open="(" close=")" separator=",">
+			#{permissionIds}
+		</foreach>
+		and s2.id is not null
+	</select>
+	<select id="getSubjectByNameIndex" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select s.* from GC_SUBJECT s
+							left join gc_master m on m.id = s.master_id
+		where m.context = #{portalId}
+		  and name_index = #{nameIndex}
+			limit 1
+	</select>
+	<select id="getSubjectUserInfo" resultMap="baseResultVoMap">
+		select
+		s.name as sub0Name,
+		s2.*,
+		u.id as user_id,
+		v.video_name as gcVideo_videoName,
+		v.id as gcVideo_id,
+		f.video_long as gcVideo_long,
+		f.file_type as video_f_file_type,
+		f.id as video_f_id,
+		f.file_url as video_file_url,
+		f.file_type_index as video_f_file_index,
+		f.name as video_f_name,
+		f.save_type as video_f_save_type,
+		p.play_state as play_state,
+
+		info.avatar_file_id AS avatarFileId,
+		info.first_name AS u_first_name,
+		info.last_name AS u_last_name,
+		f2.id AS u_f_id,
+		f2.`name` AS u_f_name,
+		f2.file_url AS u_f_file_url,
+		f2.save_type AS u_f_save_type,
+
+		ifnull(eu.anNums,0) as answeredNums,
+		ifnull(eu.eventNums,0) as answeredSumNums
+
+		from gc_subject s
+		left join gc_subject s2 on s.id = s2.fid
+		left join gc_video v on v.sub_id = s2.id
+		left join sys_file f on v.file_id = f.id
+		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(s.id, CHAR))=1
+		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN GC_USER u ON u.ID = UA.USER_ID
+		left join (select max(play_state) as play_state,id,video_id,master_id,user_id from gc_user_video_play  uvp GROUP BY user_id,video_id,master_id ) p on (u.id = p.user_id and p.video_id = v.id )
+		LEFT JOIN gc_user_info info ON info.id = u.info_id
+		left join sys_file f2 on f2.id = info.avatar_file_id
+
+		left join (select * from (
+		select sum(if(answer_json is null,0,1)) as anNums,
+		sum(if(event_nums.event_id is null,0,1)) as eventNums
+		,event_nums.* from
+		(select
+		an.answer_json,
+		u.id as user_id,e.id as event_id,s.id as subject_id,s2.id as subject_id2 from gc_subject s
+		left join gc_subject s2 on s.id = s2.fid
+		left join gc_video v on v.sub_id = s2.id
+		left join gc_event e on e.video_id = v.id
+		left join gc_user u on u.id in
+		<foreach collection="userIdList" item="userIdList" index="index" open="(" close=")" separator=",">
+			#{userIdList}
+		</foreach>
+		left join gc_user_event ue on ue.event_id = e.id and ue.user_id = u.id
+		left join gc_user_answer an on an.event_id = e.id and an.user_id = u.id
+		where s.id in
+		<foreach collection="subList" item="subList" index="index" open="(" close=")" separator=",">
+			#{subList}
+		</foreach>
+		and (((e.upload_type = 2 and ue.id is not null ) or(e.upload_type = 1 )) or (e.upload_type is null and e.id is null) )
+		) event_nums
+		GROUP BY event_nums.user_id,subject_id2
+		) comEvents ) eu on eu.user_id = u.id and eu.subject_id2 = s2.id
+
+		where
+		<if test="userIdList.size()!=0 and userIdList.size()!=0">
+			u.id in
+			<foreach collection="userIdList" item="userIdList" index="index" open="(" close=")" separator=",">
+				#{userIdList}
+			</foreach>
+			and
+			s2.id in
+			<foreach collection="subList" item="subList" index="index" open="(" close=")" separator=",">
+				#{subList}
+			</foreach>
+		</if>
+		<if test="userIdList.size()==0 or userIdList.size()==0">
+			1=2
+		</if>
+		/*group by s2.id,u.id*/
+	</select>
+
+	<select id="getUserSubjectList" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select s2.*,u.id as userId,s.name as sub0Name
+		from gc_access ac
+		left join gc_user_access uac on uac.access_id = ac.id
+		left join gc_user_access_permission p on p.user_access_id = uac.id
+		left join gc_user u on u.id = uac.user_id
+		left join gc_user_info info on info.id = u.info_id
+		left join gc_subject s on JSON_CONTAINS(p.sub_permission,convert(s.id,char))=1
+		left join gc_subject s2 on s2.fid = s.id
+		where ac.id in
+		<foreach collection="param.accessIds" item="accessIds" index="index" open="(" close=")" separator=",">
+			#{accessIds}
+		</foreach>
+		and u.id is not null
+		<if test="param.sub0Ids != null and param.sub0Ids.size()!=0">
+			and s.id in
+			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<if test="param.subIds != null and param.subIds.size()!=0">
+			and s2.id in
+			<foreach collection="param.subIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<choose>
+			<when test="param.order !=null and param.order != ''">
+				order by concat(info.first_name,info.last_name) ${param.order}
+			</when>
+			<otherwise>
+				order by concat(info.first_name,info.last_name) desc
+			</otherwise>
+		</choose>
+
+		<if test="param.limit != null">
+			limit #{param.limit}
+		</if>
+	</select>
+	<select id="getCompleteSubject" resultMap="baseResultVoMap">
+		select s2.num as subjectsSize,
+		vnum.videoNum,
+		info.avatar_file_id AS avatarFileId,
+		info.first_name AS u_first_name,
+		info.last_name AS u_last_name,
+		f.id AS u_f_id,
+		f.`name` AS u_f_name,
+		f.file_url AS u_f_file_url,
+		f.save_type AS u_f_save_type,
+		b.* from (
+		select count(1) as nums,a.* from
+		(SELECT u.id as user_id ,u.info_id as info_id,p.video_id,s.*
+		FROM gc_subject s
+		LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission,CONVERT ( s.id, CHAR ))= 1
+		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		left join gc_user u on u.id = ua.user_id
+		left join gc_subject s2 on s2.fid = s.id
+		left join gc_video v on v.sub_id = s2.id
+		left join gc_user_video_play p on p.video_id = v.id and p.user_id = u.id
+		where 1=1
+		and p.play_state = 1
+		and ua.master_id = #{param.masterId}
+		and p.play_state is not null
+		and
+		u.id in
+		<foreach collection="param.userIds" item="userIds" index="index" open="(" close=")" separator=",">
+			#{userIds}
+		</foreach>
+		and s.id in
+		<foreach collection="param.accessSubIds" item="accessSubIds" index="index" open="(" close=")" separator=",">
+			#{accessSubIds}
+		</foreach>
+		GROUP BY
+		p.video_id,
+		p.user_id
+		) as a
+		GROUP BY a.id,a.user_id
+		) b
+		left join (select count(v.id) as videoNum,s.id as id   from gc_subject  s
+		left join gc_subject s2 on s2.fid = s.id
+		left join gc_video v on v.sub_id = s2.id
+		GROUP BY s.id ) vNum on vNum.videoNum = b.nums and b.id = vNum.id
+		LEFT JOIN gc_user_info info ON info.id = b.info_id
+		LEFT JOIN sys_file f ON f.id = info.avatar_file_id
+		left join (	select count(*)as num,fid from gc_subject where `level` = 1 GROUP BY fid ) s2 on s2.fid = b.id
+		left join (
+		select * from (
+		select sum(if(answer_json is null,0,1)) as anNums,
+		sum(if(event_nums.event_id is null,0,1)) as eventNums,
+		event_nums.* from
+		(select
+		an.answer_json,
+		u.id as user_id,e.id as event_id,s.id as subject_id from gc_subject s
+		left join gc_subject s2 on s.id = s2.fid
+		left join gc_video v on v.sub_id = s2.id
+		left join gc_event e on e.video_id = v.id
+		left join gc_user u on u.id in
+		<foreach collection="param.userIds" item="userIds" index="index" open="(" close=")" separator=",">
+			#{userIds}
+		</foreach>
+		left join gc_user_event ue on ue.event_id = e.id and ue.user_id = u.id and ue.master_id = #{param.masterId}
+		left join gc_user_answer an on an.event_id = e.id and an.user_id = u.id and an.master_id = #{param.masterId}
+		where s.id in
+		<foreach collection="param.accessSubIds" item="accessSubIds" index="index" open="(" close=")" separator=",">
+			#{accessSubIds}
+		</foreach>
+		and ((e.upload_type = 2 and ue.id is not null ) or(e.upload_type = 1 ) or (e.upload_type is null and e.id is null) )
+		) event_nums
+		GROUP BY event_nums.user_id,subject_id
+		) comEvents
+		where annums = eventNums
+		) eu on eu.user_id = b.user_id and b.id = eu.subject_id
+
+		where vNum.videoNum is not null
+		and eu.anNums is not null
+		<if test="param.sub0Ids!=null and param.sub0Ids.size()!=0">
+			and b.id in
+			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<choose>
+			<when test="param.order !=null and param.order != ''">
+				order by concat(info.first_name,info.last_name) ${param.order}
+			</when>
+			<otherwise>
+				order by concat(info.first_name,info.last_name) desc
+			</otherwise>
+		</choose>
+	</select>
+	<select id="productNums" resultType="integer">
+		select sum(a.num) from(
+								  select count(0) num from gc_subject where master_id=#{masterId}
+								  UNION all
+								  select count(0) num from gc_master_remote_coach where master_id=#{masterId})a
+	</select>
+	<select id="getCreateUserPublished" resultType="java.lang.Integer">
+		select count(1) from gc_subject
+		where `level` = 0
+		  and `state` = #{state}
+		  and create_user = #{userId}
+		  and master_id = #{masterId}
+	</select>
+	<select id="getDiscoverNum" resultType="java.lang.Integer">
+		select count(1) from (
+								 select s.id from gc_subject s
+													  LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission,CONVERT ( s.id, CHAR ))= 1
+													  LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+													  LEFT JOIN gc_user u ON u.id = ua.user_id
+								 where
+											 s.LEVEL = 0
+										 AND s.state = 1
+										 AND ua.master_id = #{masterId}
+										 AND u.id = #{userId}
+									OR ( s.available_type = 3 OR s.available_type = 1 )
+								 GROUP BY s.id
+							 )  a
+	</select>
+	<select id="getPublicSubjectIds" resultType="java.lang.Integer">
+		select id from gc_subject
+		where available_type = 1
+		   or available_type = 3
+	</select>
+	<select id="selectNotNullVideoList" resultType="java.lang.Integer">
+		select a.fid  from (SELECT
+		count(v.id) as vnums  ,
+		s.fid
+		FROM
+		gc_subject s
+		LEFT JOIN gc_subject s0 ON s0.id = s.fid
+		LEFT JOIN gc_video v ON v.sub_id = s.id
+		WHERE
+		1 = 1
+		AND s.fid IN
+		<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		GROUP BY s.fid
+		) as a
+		where a.vnums >0
+
+	</select>
+
+	<select id="newGetAvailableCourses" resultMap="baseResultMap">
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join gc_access ac ON JSON_CONTAINS(ac.may_subject_json, CONVERT(S.ID, CHAR))=1
+		left join gc_user_access ua on ac.id = ua.access_id and ac.master_id = ua.master_id
+		left join sys_file f on s.sub_img_id=f.id
+		where 1=1
+		and s.`level` = 0
+		and ua.user_id = #{userId}
+		and s.master_id = #{masterId}
+		and ua.master_id = #{masterId}
+		<include refid="where_gcSubject_state_not_hidden" />
+		<if test="subIds!=null and subIds.size()!=0">
+			and s.id not in
+			<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<if test="name!=null and name != ''">
+			and s.`name` like concat('%',#{name},'%')
+		</if>
+		group by s.id
+		<if test="orderType !=null and orderType != ''">
+			order by s.create_time ${orderType}
+		</if>
+
+	</select>
+
+	<select id="getAvailableCourses" resultMap="baseResultMap">
+		SELECT
+		<include refid="baseColumn" />
+		<include refid="fileJoinColumn" />
+		FROM gc_subject s
+		left join sys_file f on s.sub_img_id=f.id
+		WHERE /*s.available_type = 3 or s.available_type = 4*/
+		1=1
+		and s.`level` = 0
+		<include refid="where_gcSubject_state_not_hidden" />
+		<if test="subIds!=null and subIds.size()!=0">
+			and s.id not in
+			<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<if test="name!=null and name != ''">
+			and s.`name` like concat('%',#{name},'%')
+		</if>
+		<if test="userId!=null">
+			and s.create_user = #{userId}
+		</if>
+		and s.master_id = #{masterId}
+		<if test="orderType !=null and orderType != ''">
+			order by s.create_time ${orderType}
+		</if>
+	</select>
+
+	<select id="getCompletedTwoCourse" resultMap="baseResultVoMap" >
+		select * from (
+		select s.id,u.id as userId,s.name as sub0Name,
+		ifnull( eu.anNums, 0 ) AS answeredNums,
+		ifnull( eu.eventNums, 0 ) AS answeredSumNums ,
+		count(v.id) as subVideoNum ,
+		ifnull(plays.playNum,0) as playNum
+		from gc_subject s
+		LEFT JOIN gc_subject s2 ON s.id = s2.fid
+		LEFT JOIN gc_video v ON v.sub_id = s2.id
+		LEFT JOIN GC_USER u ON u.ID in
+		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		left join (select count(if(b.play_state=1,1,null)) as playNum,b.user_id,b.video_id,b.sub_id from (
+		SELECT max( uvp.play_state )AS play_state, uvp.id, uvp.video_id, uvp.master_id, uvp.user_id,v.sub_id FROM gc_user_video_play uvp
+		left join gc_video v on v.id = uvp.video_id
+		where uvp.user_id in
+		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		and uvp.master_id = #{param.masterId}
+		GROUP BY uvp.user_id, uvp.video_id, uvp.master_id
+		) as b
+		GROUP BY b.user_id,b.sub_id) plays on plays.sub_id = s2.id and plays.user_id = u.id
+		LEFT JOIN gc_user_info info ON info.id = u.info_id
+		LEFT JOIN sys_file f ON  f.id = info.avatar_file_id
+		LEFT JOIN (SELECT * FROM
+		(SELECT sum( IF ( answer_json IS NULL, 0, 1 )) AS anNums,
+		sum( IF ( event_nums.event_id IS NULL, 0, 1 )) AS eventNums,
+		event_nums.*
+		FROM
+		( SELECT an.answer_json,u.id AS user_id,e.id AS event_id,s.id AS subject_id,s2.id AS subject_id2 FROM gc_subject s
+		LEFT JOIN gc_subject s2 ON s.id = s2.fid
+		LEFT JOIN gc_video v ON v.sub_id = s2.id
+		LEFT JOIN gc_event e ON e.video_id = v.id
+		LEFT JOIN gc_user u ON u.id IN
+		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		LEFT JOIN gc_user_event ue ON ue.event_id = e.id
+		AND ue.user_id = u.id
+		LEFT JOIN gc_user_answer an ON an.event_id = e.id
+		AND an.user_id = u.id
+		WHERE
+		1=1
+		AND (((
+		e.upload_type = 2
+		AND ue.id IS NOT NULL
+		)
+		OR ( e.upload_type = 1 ))
+		OR ( e.upload_type IS NULL AND e.id IS NULL )
+		)
+		) event_nums
+		GROUP BY
+		event_nums.user_id,
+		subject_id2
+		) comEvents
+		) eu ON eu.user_id = u.id
+		AND eu.subject_id2 = s.id
+		where 1=1
+		and s.id in
+		<foreach collection="param.subIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		and u.id in
+		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
+			#{ids}
+		</foreach>
+		group by s2.id,u.id
+		) as k
+		where (k.answeredNums !=0
+		or k.playNum !=0)
+		and
+		(k.subVideoNum != 0
+		and k.answeredSumNums !=0)
+		group by k.id,k.userId
+	</select>
+	<select id="selectSubjectByCreateUser" resultType="java.lang.Integer">
+		select sub.id from gc_subject sub where id not in (
+		select s.id from gc_user_access ua
+		left join gc_user_access_permission uap  on ua.id = uap.user_access_id
+		left join gc_subject s on JSON_CONTAINS( ifnull(uap.must_subject_json,'[]'),CONVERT ( s.id, CHAR )) = 1
+		where 1=1
+		and s.master_id = #{masterId}
+		and s.create_user = #{createUser}
+		and ua.master_id = #{masterId}
+		group by s.id
+		)
+		and sub.master_id = #{masterId}
+		and sub.create_user = #{createUser}
+	</select>
+	<select id="selectSubjectByNewIndexHome" resultMap="baseResultMap">
+		SELECT
+			s2.num AS subjectsSize,
+			vnum.videoNum AS videosTotalNum,
+			s.id,
+			s.master_id,
+			s.NAME,
+			s.name_index,
+			s.description,
+			s.sub_id,
+			s.type,
+			s.LEVEL,
+			s.fid,
+			s.ORDER,
+			s.sub_img_id,
+			s.template_id,
+			s.intro_on_off,
+			s.update_time,
+			s.create_time,
+			s.state,
+			s.token,
+			s.is_public,
+			s.cate_id,
+			s.LANGUAGE,
+			s.certificates_flag,
+			s.course_tagline,
+			s.cpd_hours,
+			s.badge_id,
+			s.subdetail_img_id,
+			s.badge_content,
+			s.create_user,
+			s.available_type,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type
+		FROM
+			(SELECT count(IF( b.play_state = 1, 1, NULL )) AS nums,b.*
+				FROM(SELECT max( p.play_state ) AS play_state,a.*
+						FROM(SELECT
+								u.id AS user_id,
+								u.info_id AS info_id,
+								s.*,
+								v.id AS video_id,
+								v.`video_name`
+								FROM
+									gc_subject s
+										LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS( ifnull( must_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+										LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+										LEFT JOIN gc_user u ON u.id = ua.user_id
+										LEFT JOIN gc_subject s2 ON s2.fid = s.id
+										LEFT JOIN gc_video v ON v.sub_id = s2.id
+								WHERE
+									1 = 1
+								  AND u.id = #{userId}
+								  AND s.master_id = #{masterId}
+								  AND s.state = 1
+								  AND ua.role_json LIKE concat( '%', 'groupMember', '%' )
+								GROUP BY
+									v.id,
+									u.id,
+									s.id
+							) AS a
+								LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id
+								AND p.user_id = a.user_id
+								AND p.play_state = 1
+								AND p.play_state IS NOT NULL
+						GROUP BY
+							a.id,
+							a.user_id,
+							p.video_id
+					) AS b
+				GROUP BY
+					b.id,
+					b.user_id
+			) AS s
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+				LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
+				LEFT JOIN gc_video v ON v.sub_id = sub1.id
+				LEFT JOIN (SELECT count( v.id ) AS videoNum, s.id AS id
+				FROM gc_subject s
+					 LEFT JOIN gc_subject s2 ON s2.fid = s.id
+					 LEFT JOIN gc_video v ON v.sub_id = s2.id
+					 GROUP BY s.id
+				) vNum ON s.id = vNum.id
+				LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE `level` = 1 GROUP BY fid ) s2 ON s2.fid = s.id
+				LEFT JOIN ( SELECT * FROM ( SELECT sum( IF ( answer_json IS NULL, 0, 1 )) AS anNums, sum( IF ( event_nums.event_id IS NULL, 0, 1 )) AS eventNums,
+							event_nums.*
+						FROM
+						(SELECT an.answer_json, u.id AS user_id, e.id AS event_id, s.id AS subject_id
+							FROM gc_subject s
+							LEFT JOIN gc_subject s2 ON s.id = s2.fid
+							LEFT JOIN gc_video v ON v.sub_id = s2.id
+							LEFT JOIN gc_event e ON e.video_id = v.id
+							LEFT JOIN gc_user u ON u.id = #{userId}
+							LEFT JOIN gc_user_event ue ON ue.event_id = e.id
+							AND ue.user_id = u.id
+							AND ue.master_id = #{masterId}
+							LEFT JOIN gc_user_answer an ON an.event_id = e.id
+							AND an.user_id = u.id
+							AND an.master_id = #{masterId}
+							AND (( e.upload_type = 2 AND ue.id IS NOT NULL ) OR ( e.upload_type = 1 ) OR ( e.upload_type IS NULL AND e.id IS NULL ))
+						) event_nums
+						GROUP BY event_nums.user_id, subject_id
+					) comEvents
+			) eu ON eu.user_id = s.user_id
+				AND s.id = eu.subject_id
+		WHERE
+			1 = 1
+		  AND s.LEVEL = 0
+		  <if test="subIdList!=null and subIdList.size()!=0">
+		  AND s.id NOT IN
+			<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
+				${subIdList}
+			</foreach>
+		  </if>
+		  AND (( vNum.videoNum != s.nums OR eu.anNums != eu.eventNums ) OR ( s.nums = 0 ) )
+		  GROUP BY s.id
+		  ORDER BY ( eu.anNums = 0 AND s.nums = 0 ) desc , s.update_time desc
+	</select>
+	<select id="selectMaySubjectByNewIndexHome" resultMap="baseResultMap">
+		SELECT
+			s2.num AS subjectsSize,
+			vnum.videoNum AS videosTotalNum,
+			s.id,
+			s.master_id,
+			s.NAME,
+			s.name_index,
+			s.description,
+			s.sub_id,
+			s.type,
+			s.LEVEL,
+			s.fid,
+			s.ORDER,
+			s.sub_img_id,
+			s.template_id,
+			s.intro_on_off,
+			s.update_time,
+			s.create_time,
+			s.state,
+			s.token,
+			s.is_public,
+			s.cate_id,
+			s.LANGUAGE,
+			s.certificates_flag,
+			s.course_tagline,
+			s.cpd_hours,
+			s.badge_id,
+			s.subdetail_img_id,
+			s.badge_content,
+			s.create_user,
+			s.available_type,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type
+		FROM
+			(
+				SELECT
+					count(
+							IF
+								( b.play_state = 1, 1, NULL )) AS nums,
+					b.*
+				FROM
+					(
+						SELECT
+							max( p.play_state ) AS play_state,
+							a.*
+						FROM
+							(
+								SELECT
+									u.id AS user_id,
+									u.info_id AS info_id,
+									s.*,
+									v.id AS video_id,
+									v.`video_name`
+								FROM
+									gc_subject s
+										LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS( ifnull( uap.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+										LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+										LEFT JOIN gc_user u ON u.id = ua.user_id
+										LEFT JOIN gc_subject s2 ON s2.fid = s.id
+										LEFT JOIN gc_video v ON v.sub_id = s2.id
+								WHERE 1 = 1
+										AND ua.master_id = #{masterId}
+										AND u.id = #{userId}
+										AND s.master_id = #{masterId}
+										AND s.state = 1
+										AND ua.role_json LIKE concat( '%', 'groupMember', '%' )
+								GROUP BY v.id, u.id, s.id
+							) AS a
+								LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id
+								AND p.user_id = a.user_id
+								AND p.play_state = 1
+								AND p.play_state IS NOT NULL
+						GROUP BY
+							a.id,
+							a.user_id,
+							p.video_id
+					) AS b
+				GROUP BY
+					b.id,
+					b.user_id
+			) AS s
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+				LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
+				LEFT JOIN gc_video v ON v.sub_id = sub1.id
+				LEFT JOIN (
+				SELECT
+					count( v.id ) AS videoNum,
+					s.id AS id
+				FROM
+					gc_subject s
+						LEFT JOIN gc_subject s2 ON s2.fid = s.id
+						LEFT JOIN gc_video v ON v.sub_id = s2.id
+				GROUP BY
+					s.id
+			) vNum ON s.id = vNum.id
+				LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE `level` = 1 GROUP BY fid ) s2 ON s2.fid = s.id
+				LEFT JOIN ( SELECT * FROM
+					( SELECT sum( IF ( answer_json IS NULL, 0, 1 )) AS anNums,
+							sum( IF ( event_nums.event_id IS NULL, 0, 1 )) AS eventNums,
+							event_nums.*
+						FROM
+							( SELECT
+									an.answer_json,
+									u.id AS user_id,
+									e.id AS event_id,
+									s.id AS subject_id
+								FROM
+									gc_subject s
+										LEFT JOIN gc_subject s2 ON s.id = s2.fid
+										LEFT JOIN gc_video v ON v.sub_id = s2.id
+										LEFT JOIN gc_event e ON e.video_id = v.id
+										LEFT JOIN gc_user u ON u.id = #{userId}
+										LEFT JOIN gc_user_event ue ON ue.event_id = e.id
+										AND ue.user_id = u.id
+										AND ue.master_id = #{userId}
+										LEFT JOIN gc_user_answer an ON an.event_id = e.id
+										AND an.user_id = u.id
+										AND an.master_id = #{masterId}
+
+										AND (( e.upload_type = 2 AND ue.id IS NOT NULL  )
+											OR ( e.upload_type = 1 )
+											OR ( e.upload_type IS NULL AND e.id IS NULL ) )
+							) event_nums
+						GROUP BY
+							event_nums.user_id,
+							subject_id
+					) comEvents
+			) eu ON eu.user_id = s.user_id
+				AND s.id = eu.subject_id
+		WHERE
+					1 = 1
+				AND s.LEVEL = 0
+				AND s.master_id = #{masterId}
+		   OR ((s.available_type = 3 OR s.available_type = 1)
+			AND s.available_type != 4
+		  AND s.master_id = #{masterId})
+		<if test="progress != null and progress == 0">
+		and (eu.anNums !=0 or s.nums !=0)
+		and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
+		</if>
+		GROUP BY
+			s.id
+		ORDER BY
+			s.create_time DESC
+	</select>
+	<select id="selectActiveSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+			if(co.subject_state= 1,2,null) as identifying,
+			ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull( uap.must_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+				left join gc_user_access_permission uap2 ON JSON_CONTAINS(ifnull( uap2.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+				<if test="subjectState!=1">
+					or ua.id = uap2.user_access_id
+				</if>
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+
+		where 1=1
+		  and (u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
+		  and s.state = 1
+		  and s.level = 0
+		  and (uap.id is not null or(uap2.id is not null and (co.subject_state = 2))))
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		<if test="subjectState == 1">
+			and (co.id is null  or co.subject_state = 0)
+		</if>
+		<if test="subjectState == 2">
+			and co.subject_state = 2
+		</if>
+		<if test="subjectState == 3">
+			and co.subject_state = 1
+
+		</if>
+		and (co.subject_state !=1 or co.subject_state is null)
+		GROUP BY s.id
+		order by
+		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size()!=0">
+			s.id in
+			<foreach collection="orgMustSubjectIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+			 desc,
+		</if>
+		JSON_CONTAINS(ifnull( uap.must_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1 desc,
+		JSON_CONTAINS(ifnull( uap2.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1 desc,
+		co.in_progress desc
+	</select>
+	<select id="selectCompletedSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+			if(co.subject_state= 1,2,null) as identifying,
+			ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(JSON_MERGE(ifnull(uap.may_subject_json,'[]'),ifnull(uap.must_subject_json,'[]')),CONVERT ( s.id, CHAR ))=1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and (u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and co.subject_state = 1
+		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
+		 and s.state = 1)
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		<if test="subjectState == 1">
+			and (co.id is null  or co.subject_state = 0)
+		</if>
+		<if test="subjectState == 2">
+			and co.subject_state = 2
+		</if>
+		<if test="subjectState == 3">
+			and co.subject_state = 1
+		</if>
+		group by s.id
+		order by co.update_time desc
+	</select>
+	<select id="selectDiscoverSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+		if(co.subject_state= 1,2,null) as identifying,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull( uap.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and (u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
+	      or ((s.available_type = 1 or s.available_type = 3) and s.master_id = #{masterId} and s.state = 1)
+	      and s.state = 1)
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		<if test="subjectState == 1">
+			and (co.id is null  or co.subject_state = 0)
+		</if>
+		<if test="subjectState == 2">
+			and co.subject_state = 2
+		</if>
+		<if test="subjectState == 3">
+			and co.subject_state = 1
+		</if>
+		group by s.id
+		order by JSON_CONTAINS(ifnull( uap.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1 desc,
+		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
+			s.id in
+			<foreach collection="orgMaySubjectIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+			desc,
+		</if>
+		((s.available_type = 1 or s.available_type = 3) and s.master_id = #{masterId}) desc,
+		s.published_time desc
+	</select>
+	<select id="selectDraftsSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user u ON u.id = s.create_user
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and u.id =#{userId}
+		  and s.master_id = #{masterId}
+		  and s.state = 0
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		group by s.id
+		order by s.update_time desc
+	</select>
+
+	<select id="selectPublishedSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user u ON u.id = s.create_user
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and u.id =#{userId}
+		  and s.master_id = #{masterId}
+		  and s.state = 1
+		  and s.level = 0
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		group by s.id
+		order by s.published_time desc
+	</select>
+	<select id="selectFromMyTeamSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+			if(co.subject_state= 1,2,null) as identifying,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull( uap.may_subject_json, '[]' ), CONVERT ( s.id, CHAR ))= 1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
+		and s.state = 1
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		and (co.subject_state != 1 or co.id is null)
+		group by s.id
+		order by s.published_time desc
+	</select>
+	<select id="selectCompanyResourcesSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = #{userId}
+				LEFT JOIN gc_user u ON u.id = co.user_id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and u.id =#{userId}
+		  and s.master_id = #{masterId}
+		and s.state = 1
+		and (co.subject_state != 1 or co.id is null )
+		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
+			and s.id in
+			<foreach collection="orgMaySubjectIds" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		group by s.id
+	</select>
+	<select id="selectAllCourseSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+			    left join gc_subject s2 on s2.fid = s.id
+			    left join gc_video v on v.sub_id = s2.id
+				LEFT JOIN gc_user u ON u.id = s.create_user
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+				left join sys_file f2 on f2.id = v.file_id
+				left join gc_user_video_action ac on ac.video_id =v.id and ac.`type` = 1
+		where 1=1
+		  and s.`level` = 0
+		  and (s.available_type = 1 or s.available_type = 3)
+		  and s.master_id = #{masterId}
+		and s.state = 1
+		and (co.subject_state != 1 or co.id is null)
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		group by s.id
+		<if test="orderType==null or orderType == 0">
+			order by s.published_time desc
+		</if>
+		<if test="orderType == 1">
+			order by count(v.id) desc
+		</if>
+		<if test="orderType == 2">
+			order by sum(f2.video_long) asc
+		</if>
+		<if test="orderType == 3">
+			order by sum(f2.video_long) desc
+		</if>
+		<if test="orderType == 4">
+			order by count(ac.id) desc
+		</if>
+	</select>
+	<select id="selectOrgMustJsonArrayList" resultMap="JsonArray">
+		select ac.must_subject_json from gc_user_access ua
+		left join gc_access ac on ac.id = ua.access_id
+		where ua.master_id = #{masterId} and ua.user_id = #{userId}
+		and ua.parent_code is null
+		and ac.must_subject_json is not null
+	</select>
+	<select id="selectOrgMayJsonArrayList" resultMap="JsonArray">
+		select ac.may_subject_json from gc_user_access ua
+		left join gc_access ac on ac.id = ua.access_id
+		where ua.master_id = #{masterId} and ua.user_id = #{userId}
+		  and ua.parent_code is null
+		  and ac.may_subject_json is not null
+	</select>
+	<select id="getNewAssignments" resultType="java.lang.Integer">
+		select s.id from gc_subject s
+		LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(ifnull( uap.must_subject_json, '[]' ),CONVERT ( s.id, CHAR ))= 1
+		left join gc_user_access uac on uac.id = UAP.USER_ACCESS_ID
+		left join gc_access ac on ac.id = uac.access_id
+		left join gc_user u on u.id = uac.user_id
+		left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+		where 1=1
+		and s.state = 1
+		and
+		uac.master_id = #{masterId}
+		and u.id = #{userId}
+		and (co.id is null or co.subject_state = 0)
+	</select>
+	<select id="selectCreatedByTeamsSubject" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+			if(co.subject_state= 1,2,null) as identifying,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(JSON_MERGE(ifnull(uap.may_subject_json,'[]'),ifnull(uap.must_subject_json,'[]')),CONVERT ( s.id, CHAR ))=1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+			    left join gc_access ac on ac.id = ua.access_id
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and (JSON_CONTAINS(ua.role_json,'"groupMember"') = 1 or JSON_CONTAINS(ua.role_json,'"groupAdmin"') = 1)
+		  and (s.published_user_id != #{userId} or s.published_user_id is null )
+		and s.master_id = #{masterId}
+		and s.state = 1
+		and s.level = 0
+		<if test="groupCodeList!=null and groupCodeList.size()!=0">
+			and ac.code in
+			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+		group by s.id
+		<if test="orderType==null or orderType == 0">
+		order by s.published_time desc
+		</if>
+		<if test="orderType == 1">
+			order by
+		</if>
+	</select>
+	<select id="selectCreateByTeamsOrgAdmin" resultMap="baseResultMap">
+		SELECT
+			s.*,
+			f.id AS f_id,
+			f.NAME AS f_name,
+			f.file_url AS f_file_url,
+			f.save_type AS f_save_type,
+			if(co.subject_state= 1,2,null) as identifying,
+		ifnull(co.in_progress,0) as videoProgressPercent
+		FROM
+			gc_subject s
+				LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(JSON_MERGE(ifnull(uap.may_subject_json,'[]'),ifnull(uap.must_subject_json,'[]')),CONVERT ( s.id, CHAR ))=1
+				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+			    left join gc_access ac on ac.id = ua.access_id
+				LEFT JOIN gc_user u ON u.id = ua.user_id
+				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
+				LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		where 1=1
+		  and (u.id =#{userId}
+		  and ua.master_id = #{masterId}
+		  and s.available_type != 4
+		and s.state = 1
+		<if test="groupCodeList!=null and groupCodeList.size()!=0">
+			and ac.code in
+			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
+				#{ids}
+			</foreach>
+		</if>
+		or ((s.available_type = 1 or s.available_type = 3) and s.master_id = #{masterId}))
+		<if test="name!=null and name !=''">
+			and s.name like concat('%',#{name},'%')
+		</if>
+
+		group by s.id
+		order by s.published_time desc
+	</select>
+	<select id="getSubjectNameIndex" resultType="java.lang.Integer">
+		select count(1) from gc_subject where
+		master_id = #{masterId}
+		and name_index = #{nameIndex}
+	</select>
+	<select id="getNewMyAssignmentNew" resultType="java.lang.Integer">
+		select count(b.id) as nums from (
+		SELECT
+			s.id
+		FROM
+			gc_subject s
+			LEFT JOIN gc_user_access_permission uap ON JSON_CONTAINS(
+			ifnull( uap.must_subject_json, '[]' ),
+			CONVERT ( s.id, CHAR ))= 1
+			LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+			LEFT JOIN gc_user u ON u.id = ua.user_id
+			LEFT JOIN gc_subject_complete co ON s.id = co.subject_id
+			AND co.user_id = u.id
+			LEFT JOIN sys_file f ON s.sub_img_id = f.id
+		WHERE
+			1 = 1
+		  AND ( u.id =#{userId} AND ua.master_id = #{masterId} AND JSON_CONTAINS( ua.role_json, '"groupMember"' ) = 1
+		  AND s.state = 1
+		  AND s.LEVEL = 0
+		  AND ( uap.id IS NOT NULL))
+		  AND ( co.id IS NULL OR co.subject_state = 0 )
+		  AND ( co.subject_state != 1 OR co.subject_state IS NULL )
+		GROUP BY
+			s.id
+					  ) as b
+	</select>
+
+</mapper>

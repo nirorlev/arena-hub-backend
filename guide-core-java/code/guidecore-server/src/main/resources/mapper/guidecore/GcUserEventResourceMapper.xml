@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserEventResourceMapper">
+
+    <resultMap id="baseResultMap" type="GcUserEventResource">
+        <id property="id" column="id"/>
+        <result property="eventId" column="event_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="targetUserId" column="target_user_id"/>
+        <result property="type" column="type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="timeNode" column="time_node"/>
+        <result property="content" column="content"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="videoName" column="videoName"/>
+        <result property="sub1Name" column="sub1Name"/>
+        <result property="sub0Name" column="sub0Name"/>
+        <result property="readState" column="readState"/>
+        <result property="unreadMessageNum" column="unreadMessageNum"/>
+
+        <association property="avatarFile" javaType="SysFile">
+            <id property="id" column="a_f_id"/>
+            <result property="name" column="a_f_name"/>
+            <result property="fileUrl" column="a_f_file_url"/>
+            <result property="saveType" column="a_f_save_type"/>
+        </association>
+        
+        <association property="resFile" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+            <result property="videoLong" column="f_video_long"/>
+            <result property="fileType" column="fileType"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+            <result property="fileTypeIndex" column="f_file_type_index"/>
+        </association>
+        
+        <association property="message" column="id" javaType="GcMasterMessage">
+            <id property="id" column="mm_id"/>
+            <result property="readState" column="mm_read_state"/>
+            <result property="updateTime" column="mm_update_time"/>
+        </association>
+		
+		<association property="thisUser" column="user_id" javaType="GcUser">
+            <id property="id" column="thisUser_id"/>
+            <result property="username" column="thisUser_username"/>
+            <association property="info" column="info_id" javaType="GcUserInfo">
+            	<id property="id" column="thisUserInfo_id"/>
+	            <result property="lastName" column="thisUserInfo_last_name"/>
+	            <result property="firstName" column="thisUserInfo_first_name"/>
+	            <association property="avatarFile" column="avatar_file_id" javaType="SysFile">
+	            	<id property="id" column="thisUserFile_id"/>
+		            <result property="name" column="thisUserFile_name"/>
+		            <result property="fileUrl" column="thisUserFile_file_url"/>
+		            <result property="saveType" column="thisUserFile_save_type"/>
+	            </association>
+            </association>
+        </association>
+        
+        <association property="targetUser" column="target_user_id" javaType="GcUser">
+            <id property="id" column="targetUser_id"/>
+            <result property="username" column="targetUser_username"/>
+            <association property="info" column="info_id" javaType="GcUserInfo">
+            	<id property="id" column="targetUserInfo_id"/>
+	            <result property="lastName" column="targetUserInfo_last_name"/>
+	            <result property="firstName" column="targetUserInfo_first_name"/>
+	            <association property="avatarFile" column="avatar_file_id" javaType="SysFile">
+	            	<id property="id" column="targetUserFile_id"/>
+		            <result property="name" column="targetUserFile_name"/>
+		            <result property="fileUrl" column="targetUserFile_file_url"/>
+		            <result property="saveType" column="targetUserFile_save_type"/>
+	            </association>
+            </association>
+        </association>
+    </resultMap>
+
+    <sql id="baseColumn">
+	    r.id , r.event_id, r.user_id, r.type, r.content, r.update_time, r.create_time,r.target_user_id,r.target_id,r.time_node
+	</sql>
+	
+	<sql id="workBookEventJoinColumn">
+	    ,mm.id as mm_id, mm.read_state as mm_read_state, mm.update_time as mm_update_time
+		,resFile.id as f_id, resFile.name as f_name, resFile.file_url as f_file_url, resFile.save_type as f_save_type, resFile.video_long as f_video_long,resFile.file_type_index as f_file_type_index
+		
+		,thisUser.id as thisUser_id, thisUser.username as thisUser_username
+		,thisUserInfo.id as thisUserInfo_id, thisUserInfo.last_name as thisUserInfo_last_name, thisUserInfo.first_name as thisUserInfo_first_name
+		,thisUserFile.id as thisUserFile_id, thisUserFile.name as thisUserFile_name, thisUserFile.file_url as thisUserFile_file_url, thisUserFile.save_type as thisUserFile_save_type
+		
+		,targetUser.id as targetUser_id, targetUser.username as targetUser_username 
+		,targetUserInfo.id as targetUserInfo_id, targetUserInfo.last_name as targetUserInfo_last_name, targetUserInfo.first_name as targetUserInfo_first_name
+		,targetUserFile.id as targetUserFile_id, targetUserFile.name as targetUserFile_name, targetUserFile.file_url as targetUserFile_file_url, targetUserFile.save_type as targetUserFile_save_type
+	</sql>
+
+	<sql id="where_gcSubject_state_not_hidden">
+    	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+    <sql id="where_gcSubject_state_not_hidden_s0">
+    	and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+    
+    <select id="getEventResListForWorkBook" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        <include refid="workBookEventJoinColumn"/>,
+        resFile.thumb_nail_url as thumb_nail_url
+        from gc_user_event_resource r 
+		left join gc_master_message mm on mm.res_id = r.id  and (mm.target_user_id = r.target_user_id or r.target_user_id is null)  and mm.target_user_id =#{userId}
+		left join sys_file resFile on r.file_id = resFile.id
+
+		left join gc_user thisUser on thisUser.id= r.user_id
+		left join gc_user_info thisUserInfo on thisUserInfo.id=thisUser.info_id
+		left join sys_file thisUserFile on thisUserInfo.avatar_file_id = thisUserFile.id
+		
+		left join gc_user targetUser on targetUser.id = r.target_user_id
+		left join gc_user_info targetUserInfo on targetUserInfo.id=targetUser.info_id
+		left join sys_file targetUserFile on targetUserInfo.avatar_file_id = targetUserFile.id
+		where event_id = #{eventId} and r.master_id=#{masterId} and (r.user_id = #{userId} or mm.target_user_id = #{userId})
+        <if test="envType != null and envType == 1">
+        and r.user_id = #{userId}
+        </if>
+        <if test="envType != null and envType == 2">
+            and mm.target_user_id = #{userId}
+        </if>
+        <if test="envType == null">
+            and (r.user_id = #{userId} or mm.target_user_id = #{userId})
+        </if>
+		
+		order by r.update_time desc
+    </select>
+    
+    <select id="selectGetFilesByUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long
+        from
+        gc_user_event_resource r
+        left join sys_file f on r.file_id=f.id
+        where r.user_id = #{userId}
+        and r.type != ${@com.threeatom.guidecore.constant.EventResType@TEXT_0} 
+        and r.event_id in
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+            #{eventId}
+        </foreach>
+    </select>
+
+    <select id="selectGetEventResourceByEventIdAndUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long,
+        f.thumb_nail_url as thumb_nail_url
+        from
+        gc_user_event_resource r
+        left join sys_file f on r.file_id=f.id
+        where r.event_id = #{eventId} AND (r.user_id = #{userId} OR r.target_user_id = #{userId})
+    </select>
+
+    <select id="selectGetEventResourceByEventIdAndTargetUserId" resultMap="baseResultMap">
+        select
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long,
+        f.thumb_nail_url as thumb_nail_url
+        from
+        gc_user_event_resource r
+        left join sys_file f on r.file_id=f.id
+        where r.event_id = #{eventId} AND (r.target_user_id = #{userId})
+        and r.target_id = #{commentResourceFileId}
+    </select>
+
+    <select id="selectUsersUploadResNumByUserIdsAndSubIds" resultType="map">
+        select u.id as user_id,ui.id as info_id,ui.first_name,ui.last_name,
+        COUNT(IF(s.sub_id in
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+        and ur.type!=${@com.threeatom.guidecore.constant.EventResType@TEXT_0}
+        ,TRUE,NULL)) as uploadResNum
+        from gc_user u
+        LEFT JOIN gc_user_event_resource ur ON u.id=ur.user_id
+        LEFT JOIN gc_event e on ur.event_id=e.id
+        LEFT JOIN gc_video v on e.video_id=v.id
+        LEFT JOIN gc_subject s ON v.sub_id=s.id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        WHERE 1=1
+        <include refid="where_gcSubject_state_not_hidden" />
+        <if test="userIds != null and userIds.size() > 0">
+            AND u.id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY u.id
+        <if test="order == 'asc'">
+            ORDER BY uploadResNum asc
+        </if>
+        <if test="order == 'desc'">
+            ORDER BY uploadResNum desc
+        </if>
+    </select>
+
+    <select id="selectGetUserListForRespond" resultType="Map">
+        SELECT e.event_title,vr.user_id,vr.update_time,vr.event_id
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_video AS v ON v.id = e.video_id
+        LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        WHERE
+        s.master_id = #{masterId} AND
+        (vr.target_user_id = 0 or vr.target_user_id is null)
+        AND ((vr.type = ${@com.threeatom.guidecore.constant.EventResType@VIDEO_2} and vr.time_node=-1) or vr.time_node!=-1)
+        <if test="userIds != null and userIds.size()>0">
+	        AND vr.user_id IN
+	        <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
+	            #{uId}
+	        </foreach>
+        </if>
+        OR
+        vr.user_id = #{userId}
+        <if test="userIds != null and userIds.size()>0">
+	        AND vr.target_user_id IN
+	        <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
+	            #{uId}
+	        </foreach>
+        </if>
+        <include refid="where_gcSubject_state_not_hidden" />
+        ORDER BY vr.update_time DESC
+    </select>
+
+    <select id="selectGetListByUserId" resultType="Map">
+        SELECT
+        e.event_title,vr.user_id,vr.update_time,vr.event_id,ui.id as info_id,ui.first_name,ui.last_name,f2.file_url AS file_url_video,f2.save_type AS save_type_video
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_user AS u ON u.id = vr.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f2 on ui.avatar_file_id=f2.id
+        WHERE vr.user_id = #{userId}
+        OR vr.target_user_id = #{userId}
+        ORDER BY vr.update_time DESC
+    </select>
+
+    <select id="selectGetVideoTalksByEventIds" resultType="Map">
+        SELECT
+        vr.id,e.event_title,vr.user_id,vr.update_time,vr.target_user_id,vr.event_id,vr.time_node,vr.target_id,vr.type,vr.content
+        ,ui.id as info_id,ui.first_name,ui.last_name,f2.file_url AS file_url_video,f2.save_type AS save_type_video,v.video_name
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_user AS u ON u.id = vr.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
+        LEFT JOIN gc_video AS v ON v.id = e.video_id
+        WHERE 1=1
+        <if test="eventIds != null and eventIds.size() > 0">
+            AND vr.event_id IN
+	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+	            #{eventId}
+	        </foreach>
+        </if>
+        AND (vr.user_id = #{studentId} OR vr.target_user_id = #{studentId})
+        AND ((vr.type = ${@com.threeatom.guidecore.constant.EventResType@VIDEO_2} and vr.time_node=-1) or vr.time_node!=-1)
+        order by vr.update_time desc
+    </select>
+    <select id="selectTimeNodeEventResource" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn"/>
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long
+        ,f2.id as a_f_id,f2.name as a_f_name,f2.file_url as a_f_file_url,f2.save_type as a_f_save_type
+        FROM gc_user_event_resource r
+        LEFT JOIN sys_file f ON r.file_id=f.id
+        LEFT JOIN gc_user u ON r.user_id=u.id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f2 ON ui.avatar_file_id=f2.id
+        WHERE r.target_id=#{targetId} and r.time_node!=-1
+        <if test="userId!=null">
+         and r.user_id=#{userId}
+        </if>
+    </select>
+
+    <select id="getALLResourceListByEventIds" resultType="Map">
+        SELECT
+        vr.id,
+        m.id as message_id,
+        m.target_user_id AS m_target_user_id,
+        e.event_title,
+        vr.user_id,
+        vr.content,
+        vr.type,
+        vr.time_node,
+        vr.update_time,
+        vr.target_user_id,
+        vr.target_id,
+        vr.event_id,
+        ui.id as info_id,ui.first_name,ui.last_name,
+        f.file_url,
+        f.save_type,
+        f2.file_url AS file_url_video,
+        f2.save_type AS save_type_video,
+        f2.name AS file_name,m.read_state
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_user AS u ON u.id = vr.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
+        LEFT JOIN gc_master_message AS m ON m.res_id = vr.id
+        WHERE 1=1
+        <if test="eventIds != null and eventIds.size() > 0">
+	        AND vr.event_id IN
+	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+	            #{eventId}
+	        </foreach>
+	    </if>
+	    
+	    <!-- 旧 -->
+       <!--  <if test="teacherId != null">
+            AND (
+            (m.target_user_id = #{teacherId} AND m.user_id = #{studentId})  
+            OR 
+            (m.target_user_id = #{studentId} AND m.user_id = #{teacherId}) )
+		</if> -->
+	    
+        <if test="teacherId != null"><!-- 这里后加的 or vr.user_id = #{studentId}) 主要因为如果老师注册前学生回答的资源老师看不到 20210402-->
+            AND (
+            (
+            (m.target_user_id = #{teacherId} AND m.user_id = #{studentId}) 
+            or vr.user_id = #{studentId}
+            )
+            OR 
+            (m.target_user_id = #{studentId} AND m.user_id = #{teacherId}) 
+            )
+        </if>
+        
+         <!-- 旧 -->
+        <!-- <if test="teacherId == null">
+            AND (m.user_id = #{studentId} OR m.target_user_id = #{studentId})
+        </if> -->
+        <if test="teacherId == null"> <!-- 这里后加的 vr.user_id = #{studentId} OR  主要因为如果无老师，学生上传的资源学生自己看不到 20210402-->
+            AND (m.user_id = #{studentId} OR m.target_user_id = #{studentId} OR vr.user_id = #{studentId})
+        </if>
+        ORDER BY vr.update_time DESC
+    </select>
+    
+    <sql id="messageCommonColumn">
+	   m.id             AS message_id,
+       m.target_user_id AS m_target_user_id,
+       gv.video_name    AS video_name,
+       gv.id            AS video_id,
+       s.sub_id         AS sub_id,
+       s.id as topic_id,
+       e.event_title,  
+       ui.id            AS info_id,
+       ui.first_name,
+       ui.last_name,
+       f.file_url,
+       f.save_type,      
+       m.read_state
+	</sql>
+    
+    <sql id="messageCommonJoin">
+        LEFT JOIN gc_video AS gv ON gv.id = e.video_id
+        LEFT JOIN gc_subject AS s ON s.id=gv.sub_id
+        LEFT JOIN gc_subject AS s0 ON s0.id=s.fid        
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file AS f on ui.avatar_file_id=f.id
+        LEFT join sys_file AS sys on sys.id=s0.sub_img_id
+        left join gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission, CONVERT(s0.id, char))=1
+        left join gc_user_access ua on uap.user_access_id =  ua.id
+    </sql>
+    
+    
+    <sql id="ALLResourceListByGcMasterMessageTargetUserId_common">
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_user AS u ON u.id = vr.user_id
+        LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
+        LEFT JOIN gc_master_message AS m ON m.res_id = vr.id
+        <include refid="messageCommonJoin"/>
+        <if test="groupId != null">
+           left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+		   left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+        </if>
+        WHERE 
+         m.master_id=#{masterId} 
+        and m.target_user_id = #{thisUserId}
+        and ua.user_id=#{thisUserId}
+         and vr.user_id!=#{thisUserId}
+        and ua.master_id=#{masterId}
+		
+		<if test="readState != null">
+			and m.read_state = #{readState}
+		</if>
+		<if test="lastDaysScope != null">
+			and    vr.update_time  >    date_sub(now(), interval #{lastDaysScope} day)
+		</if>
+		<if test="sendUserId != null">
+			and vr.user_id = #{sendUserId} 
+		</if>
+		<if test="groupId != null">
+		 and g.id=#{groupId}
+		</if>
+       
+    </sql>
+    
+    
+    <select id="getALLResourceListByGcMasterMessageTargetUserId" resultType="Map">
+		SELECT
+		<include refid="messageCommonColumn"/>
+        ,vr.id,
+        vr.user_id,
+        vr.content,
+        vr.type,
+        vr.time_node,
+        vr.update_time,
+        vr.target_user_id,
+        vr.target_id,
+        vr.event_id,
+       f2.save_type     AS res_save_type,
+       f2.name          AS res_file_name,
+       f2.file_url as res_file_url,
+       f2.file_type_index as res_file_type_index,
+        f2.thumb_nail_url as thumb_nail_url,
+		s0.name as sub0Name,
+	    s.name as sub1Name
+        FROM gc_user_event_resource AS vr
+        LEFT JOIN gc_event AS e ON e.id = vr.event_id
+        LEFT JOIN gc_user AS u ON u.id = vr.user_id
+        LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
+        LEFT JOIN gc_master_message AS m ON m.res_id = vr.id
+        <include refid="messageCommonJoin"/>
+        <if test="message.groupId != null">
+            left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+            left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+        </if>
+        WHERE
+        m.master_id=#{message.masterId}
+        and m.target_user_id = #{message.thisUserId}
+        and ua.user_id=#{message.thisUserId}
+        and vr.user_id!=#{message.thisUserId}
+        and ua.master_id=#{message.masterId}
+
+        <if test="message.readState != null">
+            and m.read_state = #{message.readState}
+        </if>
+        <if test="message.lastDaysScope != null">
+            and    vr.update_time  >    date_sub(now(), interval #{message.lastDaysScope} day)
+        </if>
+        <if test="message.sendUserId != null">
+            and vr.user_id = #{message.sendUserId}
+        </if>
+        <if test="message.groupId != null">
+            and g.id=#{message.groupId}
+        </if>
+        <if test="message.subIdList!=null and message.subIdList.size() != 0 ">
+            and s.sub_id in
+            <foreach collection="message.subIdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="videoIds!=null and videoIds.size() != 0 ">
+            and gv.id in
+            <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator=",">
+                #{videoId}
+            </foreach>
+        </if>
+        <if test="message.sub0IdList!=null and message.sub0IdList.size() != 0 ">
+            and s0.sub_id in
+            <foreach collection="message.sub0IdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <choose>
+            <when test="pageParam !=null and pageParam.orderByString != null and pageParam.orderByString != ''">
+                ORDER BY vr.update_time ${pageParam.orderByString}
+            </when>
+            <otherwise>
+                ORDER BY vr.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="countALLResourceListByGcMasterMessageTargetUserId" parameterType="Integer" resultType="java.lang.Integer">    
+    	select count(1) 
+    	 <include refid="ALLResourceListByGcMasterMessageTargetUserId_common"/>
+     </select>
+     
+    <select id="countALLResourceListByGcMasterMessageTargetUserId_map" resultType="Map">
+    	SELECT vr.user_id ,COUNT(1) AS nunms
+    	<include refid="ALLResourceListByGcMasterMessageTargetUserId_common"/>
+    	   group by vr.user_id
+    </select>
+    
+    <sql id="AnswerMessageListByGcMasterMessageTargetUserId_common">
+   		 FROM   gc_user_answer AS answer 
+		LEFT JOIN gc_master_message AS m ON m.user_answer_id = answer.id            
+       LEFT JOIN gc_event AS e ON e.id = answer.event_id
+       LEFT JOIN gc_user AS u ON u.id = answer.user_id
+              
+        <include refid="messageCommonJoin"/> 
+        <if test="groupId != null">
+           left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+		   left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+        </if>
+             
+        WHERE 
+		m.master_id=#{masterId} and m.target_user_id = #{thisUserId}
+        and ua.user_id=#{thisUserId} and ua.master_id=#{masterId}
+        
+        <if test="readState != null">
+			and m.read_state = #{readState}
+		</if>
+		<if test="lastDaysScope != null">
+			and answer.update_time  >    date_sub(now(), interval #{lastDaysScope} day)
+		</if>
+		<if test="sendUserId != null">
+			and answer.user_id = #{sendUserId}
+		</if>
+        <if test="groupId != null">
+		 	and g.id=#{groupId}
+		</if>
+        
+    </sql>
+     
+    <select id="getAnswerMessageListByGcMasterMessageTargetUserId" resultType="Map">
+		SELECT 
+		<include refid="messageCommonColumn"/>
+       ,answer.id as answer_id,
+       answer.user_id,
+       m.update_time,
+       answer.event_id,
+       answer.answer_json,
+		s.name as topicName,
+		s0.name as subjectName,
+        sys.file_url as subjectAvatarFileUrl,
+		sys.save_type as subjectAvatarSaveType
+        FROM   gc_user_answer AS answer
+        LEFT JOIN gc_master_message AS m ON m.user_answer_id = answer.id
+        LEFT JOIN gc_event AS e ON e.id = answer.event_id
+        LEFT JOIN gc_user AS u ON u.id = answer.user_id
+
+        <include refid="messageCommonJoin"/>
+        <if test="message.groupId != null">
+            left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+            left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+        </if>
+
+        WHERE
+        m.master_id=#{message.masterId} and m.target_user_id = #{message.thisUserId}
+        and ua.user_id=#{message.thisUserId} and ua.master_id=#{message.masterId}
+
+        <if test="message.readState != null">
+            and m.read_state = #{message.readState}
+        </if>
+        <if test="message.lastDaysScope != null">
+            and answer.update_time  >    date_sub(now(), interval #{message.lastDaysScope} day)
+        </if>
+        <if test="message.sendUserId != null">
+            and answer.user_id = #{message.sendUserId}
+        </if>
+        <if test="message.groupId != null">
+            and g.id=#{message.groupId}
+        </if>
+        <if test="message.eventId != null">
+            and e.id=#{message.eventId}
+        </if>
+        <if test="message.subIdList!=null and message.subIdList.size() != 0 ">
+            and s.sub_id in
+            <foreach collection="message.subIdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <choose>
+            <when test="pageParam !=null and pageParam.orderByString != null and pageParam.orderByString != ''">
+                ORDER BY answer.update_time ${pageParam.orderByString}
+            </when>
+            <otherwise>
+                ORDER BY answer.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="countAnswerMessageListByGcMasterMessageTargetUserId" parameterType="Integer" resultType="java.lang.Integer">    
+    	select count(1) 
+    	<include refid="AnswerMessageListByGcMasterMessageTargetUserId_common"/>
+     </select>
+     
+    <select id="countAnswerMessageListByGcMasterMessageTargetUserId_map" resultType="Map">
+    	SELECT answer.user_id ,COUNT(1) AS nunms
+    	<include refid="AnswerMessageListByGcMasterMessageTargetUserId_common"/>
+    	   group by answer.user_id
+    </select>
+    <select id="countVideoResourceListByGcMasterMessageTargetUserId" resultType="java.lang.Integer">
+        select count(1)
+        <include refid="ALLResourceListByGcMasterMessageTargetUserId_common"/>
+        <if test="fileTypeIndex != null">
+            and f2.file_type_index = #{fileTypeIndex}
+        </if>
+    </select>
+
+    <select id="selectUnCheckedTeacherMessage" resultType="com.threeatom.guidecore.entity.GcUserEventResource">
+        SELECT r.*,m.read_state as readState FROM gc_user_event_resource r
+        LEFT JOIN gc_master_message m on r.id=m.res_id
+        where r.target_user_id=#{userId} and r.master_id=#{masterId}   and r.event_id in
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+            #{eventId}
+        </foreach>
+    </select>
+
+    <select id="selectUnCheckedStudentMessage" resultType="com.threeatom.guidecore.entity.GcUserEventResource">
+        SELECT r.*,m.read_state as readState FROM gc_user_event_resource r
+        LEFT JOIN gc_master_message m on r.id=m.res_id
+        where r.user_id=#{studentId} and r.master_id=#{masterId} and m.target_user_id=#{userId} and r.target_user_id is null and r.target_id is null and r.event_id in
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+            #{eventId}
+        </foreach>
+    </select>
+</mapper>

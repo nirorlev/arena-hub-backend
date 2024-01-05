@@ -1,0 +1,33 @@
+server:
+   tomcat:
+      basedir: log/tomcat  
+      accesslog:
+         enabled: true 
+         pattern: '%h %l %u %t "%r" %s %b (%D ms)'
+
+mybatis-plus:
+  mapperLocations: classpath*:mapper/*/*.xml
+  typeAliasesPackage: com.threeatom.*.entity
+  configLocation: classpath:mybatis-config.xml
+
+web:
+  profile-path: /run/profile
+
+spring:
+  i18n: i18n/guidecore/master
+  
+  mvc:
+    #表示所有的访问都经过静态资源路径
+    static-path-pattern: /**
+    
+  profiles:
+    active: ptreleasestage
+      
+  servlet:
+    multipart:
+      max-file-size:  64MB
+      max-request-size:  64MB
+
+
+systemId: 2
+youtubeApiKey: AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao

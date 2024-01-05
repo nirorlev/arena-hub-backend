@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserSaveContentFollowMapper">
+
+     <resultMap id="baseResultMap" type="GcUserSaveContentFollow">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="userId" column="user_id"/>
+        <result property="folderId" column="folder_id"/>
+		 <association property="gcUserSaveFolder" column="folder_id" javaType="GcUserSaveFolder">
+			 <result property="id" column="f_id"/>
+			 <result property="name" column="f_name"/>
+			 <result property="userId" column="f_user_id"/>
+			 <result property="state" column="f_state"/>
+			 <result property="fileId" column="f_file_id"/>
+			 <result property="masterId" column="f_master_id"/>
+		 </association>
+
+    </resultMap>
+    
+
+    <select id="selectFollowList" resultType="int">
+        SELECT follow.folder_id from gc_user_save_content_follow follow
+        left join gc_user_save_folder folder on follow.folder_id = folder.id
+        where follow.user_id = #{userId} and folder.master_id = #{masterId}
+    </select>
+
+    <select id="selectFollowListByPlayListId"  resultMap="baseResultMap">
+        SELECT * from gc_user_save_content_follow where folder_id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator="," >
+            #{id}
+        </foreach>
+
+    </select>
+
+
+
+
+</mapper>

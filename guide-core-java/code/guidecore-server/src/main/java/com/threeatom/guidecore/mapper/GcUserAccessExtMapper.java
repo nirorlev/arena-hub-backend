@@ -1,0 +1,30 @@
+package com.threeatom.guidecore.mapper;
+
+import com.threeatom.guidecore.entity.GcUserAccessExt;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Component;
+
+import javax.xml.crypto.Data;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author qiaoxide
+ * @since 2019-12-25
+ */
+@Component
+public interface GcUserAccessExtMapper extends BaseMapper<GcUserAccessExt> {
+    List<Map<String,Object>> getUserLoginNum(List<Integer> userIds, String startDate, String endDate);
+
+    GcUserAccessExt getOneByUserAccessId(@Param("userAccessId") Integer userAccessId);
+
+    List<Map<String,Object>> getByManagerId(Integer managerId, String startDate, String endDate);
+
+    List<Map<String,Object>> getAllUserLastLogin(@Param("lastDaysScope")Integer lastDaysScope);
+}

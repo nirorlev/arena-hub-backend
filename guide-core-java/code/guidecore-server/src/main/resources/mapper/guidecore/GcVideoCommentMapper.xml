@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcVideoCommentMapper">
+
+
+    <resultMap id="showBaseResultMap" type="GcVideoComment">
+        <id property="id" column="id"/>
+        
+        <result property="lastName" column="last_name" />
+        
+        <result property="firstName" column="first_name" />
+        <result property="comment" column="comment" />
+        <result property="fileId" column="file_id"  />
+        <result property="videoId" column="video_id"  />
+        
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+
+        <result property="userId" column="user_id"/>
+        <result property="fabulousNum" column="fabulous_num"/>
+        <result property="commentNum" column="comment_num"/>
+        <result property="username" column="username"/>
+        <result property="targetLastName" column="target_last_name"/>
+        <result property="targetFirstName" column="target_first_name"/>
+        <result property="targetUsername" column="target_username"/>
+        <result property="targetUserId" column="target_user_id"/>
+        <result property="isFabulous" column="is_fabulous"/>
+        <result property="mainCommentId" column="main_comment_id"/>
+
+        <result property="readState" column="read_state"/>
+        <result property="messageId" column="message_id"/>
+        <association property="userAvatarFile" column="avatar_file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+        </association>
+        
+        <association property="commentFile" column="file_id" javaType="SysFile">
+            <id property="id" column="cf_id"/>
+            <result property="name" column="cf_name"/>
+            <result property="fileUrl" column="cf_file_url"/>
+            <result property="fileType" column="thumb_file_type"/>
+            <result property="saveType" column="cf_save_type"/>
+            <result property="fileTypeIndex" column="cf_file_type_index"/>
+            <result property="videoLong" column="cf_video_long"/>
+            <result property="thumbNailId" column="thumb_nail_id"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+        </association>
+
+    </resultMap>
+
+    <sql id="baseColumn">
+        vc.id,vc.video_id,vc.user_id,vc.comment,vc.file_id,vc.update_time,vc.create_time
+    </sql>
+    
+    <sql id="userAvatarFileColumn">
+        ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+    </sql>
+    
+    <sql id="commentFileColumn">
+        ,cf.id as cf_id, cf.name as cf_name, cf.file_url as cf_file_url, cf.save_type as cf_save_type, cf.file_type_index as cf_file_type_index
+        ,cf.video_long as cf_video_long,
+        cf.thumb_nail_id as thumb_nail_id,
+        cf.thumb_nail_url as thumb_nail_url,cf.file_type as thumb_file_type
+    </sql>
+    <insert id="insertComment" useGeneratedKeys="true" keyProperty="id" >
+        insert into gc_video_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+
+            <if test="videoId != null">
+                video_id,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="comment != null">
+                comment,
+            </if>
+            <if test="fileId != null">
+                file_id,
+            </if>
+            <if test="replyCommentId != null">
+                reply_comment_id,
+            </if>
+            <if test="mainCommentId != null">
+                main_comment_id,
+            </if>
+            <if test="targetUserId != null">
+                target_user_id
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="videoId != null">
+                #{videoId,jdbcType=INTEGER},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="comment != null">
+                #{comment,jdbcType=VARCHAR},
+            </if>
+            <if test="fileId != null">
+                #{fileId,jdbcType=INTEGER},
+            </if>
+            <if test="replyCommentId != null">
+                #{replyCommentId,jdbcType=INTEGER},
+            </if>
+            <if test="mainCommentId != null">
+                #{mainCommentId,jdbcType=INTEGER},
+            </if>
+            <if test="targetUserId != null">
+                #{targetUserId,jdbcType=INTEGER}
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectGetAllCommentByVideoId" resultMap="showBaseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        
+        <include refid="userAvatarFileColumn" />
+        <include refid="commentFileColumn" />
+        ,ui.id as info_id,ui.first_name,ui.last_name
+        FROM
+        gc_video_comment AS vc
+        LEFT JOIN gc_user AS u ON u.id=vc.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file cf on vc.file_id=cf.id
+        WHERE vc.video_id=#{vid}
+        ORDER BY create_time DESC
+        <if test="limit != null">
+				limit #{limit}
+		</if>
+        
+    </select>
+
+
+    <select id="getVideoComments" resultMap="showBaseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        <include refid="userAvatarFileColumn" />
+        <include refid="commentFileColumn" />
+        ,ui.id as info_id,ui.first_name,ui.last_name
+        FROM
+        gc_video_comment AS vc
+        LEFT JOIN gc_user AS u ON u.id=vc.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file cf on vc.file_id=cf.id
+        WHERE
+        vc.master_id=#{masterId} and vc.video_id in
+        <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
+            #{videoId}
+        </foreach>
+    </select>
+    
+	<select id="countCommentForVideo" resultType="Integer">
+		select count(1)  from gc_video_comment where video_id = #{videoId} and master_id=#{masterId}
+		<if test="userId != null">
+				and user_id=#{userId}
+		</if>
+	</select>
+    <select id="selectCommentByMainCommentId" resultMap="showBaseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+
+        <include refid="userAvatarFileColumn" />
+        <include refid="commentFileColumn" />
+        ,ui.id as info_id,ui.first_name,ui.last_name,vc.reply_comment_id,vc.main_comment_id,vc.target_user_id,
+        u.username,
+        ui2.first_name as target_first_name,
+        ui2.last_name as target_last_name,
+        u2.username as target_username,
+        mm.read_state as read_state,
+        mm.id as message_id,
+        cf.thumb_nail_url as thumb_nail_url
+        FROM
+        gc_video_comment AS vc
+        LEFT JOIN gc_user AS u ON u.id=vc.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file cf on vc.file_id=cf.id
+        LEFT JOIN gc_user u2 on vc.target_user_id = u2.id
+        LEFT JOIN gc_user_info ui2 on ui2.id = u2.info_id
+        left join gc_master_message mm on mm.video_comment_id = vc.id
+
+        WHERE vc.main_comment_id = #{mainId}
+        ORDER BY create_time DESC
+    </select>
+    <select id="selectGetAllCommentByVideoIdAndUserId" resultMap="showBaseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+
+        <include refid="userAvatarFileColumn" />
+        <include refid="commentFileColumn" />
+        ,ui.id as info_id,ui.first_name,ui.last_name
+
+        ,(select count(1) from gc_video_comment where main_comment_id = vc.id) as comment_num
+        ,(select count(1) from gc_user_fabulous where video_id = vc.video_id and target_user_id = vc.user_id and comment_id = vc.id) as fabulous_num
+        <if test="userId != null">
+        ,ifnull((select count(1) from gc_user_fabulous where user_id = #{userId} and video_id = vc.video_id and target_user_id = vc.user_id and comment_id = vc.id),0)
+        as is_fabulous
+        </if>
+        FROM
+        gc_video_comment AS vc
+        LEFT JOIN gc_user AS u ON u.id=vc.user_id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+        LEFT JOIN sys_file cf on vc.file_id=cf.id
+        WHERE vc.video_id=#{vid}
+        AND   vc.main_comment_id is null
+        AND   vc.master_id=#{masterId}
+        ORDER BY create_time DESC
+    </select>
+    <select id="countCommentByVideoList" resultType="java.lang.Integer">
+        select count(1) from gc_video_comment
+        <if test="list.size()!=0">
+            where video_id in
+            <foreach collection="list" item="list" index="index" open="(" close=")" separator="," >
+                #{list}
+            </foreach>
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserNoteCommentMapper">
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcUserNoteComment">
+        <result property="id" column="id"/>
+        <result property="context" column="context"/>
+        <result property="userId" column="user_id"/>
+        <result property="eventId" column="event_id"/>
+        <result property="fileId" column="file_id"/>
+        <result property="targetUserId" column="target_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="nodeCommentResultMap" type="com.threeatom.guidecore.controller.user.vo.UserNoteCommentVo">
+        <result column="id" property="id"/>
+        <result column="first_name" property="firstName"/>
+        <result column="last_name" property="lastName"/>
+        <result column="username" property="username"/>
+        <result column="sending_time" property="sendingTime"/>
+        <result column="user_id" property="userId"/>
+        <result column="master_id" property="masterId"/>
+        <result column="event_id" property="eventId"/>
+        <result column="context" property="context"/>
+        <result column="file_id" property="fileId"/>
+        <result column="read_state" property="readState"/>
+        <result column="message_id" property="messageId"/>
+        <result column="roleType" property="roleType"/>
+        <association property="resFile" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+            <result property="videoLong" column="f_video_long"/>
+            <result property="fileTypeIndex" column="f_file_type_index"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+        </association>
+
+        <association property="userAvatarFile" column="avatar_file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_user_name"/>
+            <result property="fileUrl" column="f_user_file_url"/>
+            <result property="saveType" column="f_user_save_type"/>
+        </association>
+    </resultMap>
+
+    <sql id="baseFile">
+        ,resFile.id as f_id, resFile.name as f_name, resFile.file_url as f_file_url, resFile.save_type as f_save_type, resFile.video_long as f_video_long,
+        resFile.file_type_index as f_file_type_index
+    </sql>
+
+    <sql id="userAvatarFileColumn">
+        ,f.id as f_user_id,f.name as f_user_name,f.file_url as f_user_file_url,f.save_type as f_user_save_type
+    </sql>
+
+    <select id="selectUserNoteComment" resultMap="nodeCommentResultMap">
+        SELECT
+            unc.id,
+            ui.first_name,
+            ui.last_name,
+            u.username,
+            unc.create_time AS sending_time,
+            unc.user_id,
+            unc.event_id,
+            unc.context,
+            mm.read_state as read_state,
+            mm.id as message_id,
+            ac.role_type as roleType
+        <include refid="baseFile"/>
+        <include refid="userAvatarFileColumn" />
+        ,resFile.thumb_nail_url as thumb_nail_url
+        FROM
+            gc_user_note_comment unc
+                LEFT JOIN gc_user u ON u.id = unc.user_id
+                LEFT JOIN gc_user_access uac on uac.user_id=u.id and uac.master_id=#{masterId}
+                LEFT JOIN gc_access ac on ac.id = uac.access_id
+                LEFT JOIN gc_user_info ui ON u.info_id = ui.id
+                LEFT JOIN sys_file resFile ON unc.file_id = resFile.id
+                LEFT JOIN sys_file f on ui.avatar_file_id=f.id
+                left join gc_master_message mm on mm.user_note_comment_id = unc.id
+        <where>
+            1=1 and unc.master_id=#{masterId}
+            <if test="eventId != null">
+                and unc.event_id = #{eventId}
+            </if>
+            <if test="targetUserId != null">
+                and unc.target_user_id = #{targetUserId}
+            </if>
+        </where>
+        group by unc.id
+        order by unc.create_time
+    </select>
+
+    <select id="selectCommentNum" resultType="java.lang.Integer">
+        select count(1) from gc_user_note_comment
+        <where>
+            1=1 and master_id=#{masterId}
+            <if test="eventId != null">
+                and event_id = #{eventId}
+            </if>
+            <if test="targetUserId != null">
+                and target_user_id = #{targetUserId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCommentNumList" resultMap="baseResultMap">
+        select * from gc_user_note_comment
+        <where>
+            1=1 and master_id=#{masterId}
+            <if test="eventId != null">
+                and event_id = #{eventId}
+            </if>
+            <if test="targetUserIdList != null">
+                and target_user_id in
+                <foreach item="targetId" collection="targetUserIdList" open="(" separator="," close=")">
+                    #{targetId}
+                </foreach>
+            </if>
+        </where>
+        group by id
+    </select>
+
+
+</mapper>

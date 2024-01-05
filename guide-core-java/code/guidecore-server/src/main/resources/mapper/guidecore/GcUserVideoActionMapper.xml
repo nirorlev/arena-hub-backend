@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.threeatom.guidecore.mapper.GcUserVideoActionMapper">
+
+	<resultMap id="subjectUserStarAvg" type="java.util.Map">
+		<!-- 不可缺少 -->
+		<result column="SUBJECT_ID" property="age"></result>
+		<collection property="person" javaType="arrayList"
+			ofType="com.threeatom.guidecore.entity.GcUserVideoAction">
+			<result property="subjectStarUsers"
+				column="subject_star_users"></result>
+			<result property="subjectStarAvg" column="subject_star_avg"></result>
+		</collection>
+	</resultMap>
+
+	<resultMap id="baseaResultMap" type="com.threeatom.guidecore.entity.GcUserVideoAction">
+		<id property="id" column="id"/>
+		<result property="type" column="type"/>
+		<result property="starValue" column="starValue" />
+		<result property="subjectId" column="subId" />
+		<result property="reviewTitle" column="reviewTitle"/>
+		<result property="reviewContent" column="reviewContent" />
+		<result property="userFirstName" column="reviewUserFirstName" />
+		<result property="userLastName" column="reviewUserLastName" />
+		<result property="videoId" column="videoId" />
+		<result property="videoLikeNum" column="videoLikeNum" />
+	</resultMap>
+
+	<select id="countTypeRateForVideo" resultType="map">
+		select value, count(1) as count from gc_user_video_action
+		where video_id=#{videoId} and type=#{type} group by value
+	</select>
+
+	<select id="getVideoActionBySubject"
+		parameterType="java.util.Map"
+		resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		SELECT
+		S.ID AS "subjectId",UVA.VIDEO_ID as "videoId", UVA.TYPE as "type",
+		UVA.STAR_VALUE as "starValue", UVA.VALUE as "value"
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		LEFT JOIN GC_VIDEO V ON
+		V.SUB_ID = S0.ID
+		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
+		V.ID
+		<where>
+			<if test="videoId != null">
+				AND UVA.VIDEO_ID = #{videoId}
+			</if>
+			<if test="type != null">
+				AND UVA.TYPE = #{type}
+			</if>
+			<if test="videoIds != null">
+				AND UVA.VIDEO_ID IN
+				<foreach item="videoId" collection="videoIds" open="("
+					separator="," close=")">
+					#{videoId}
+				</foreach>
+			</if>
+			<if test="ids != null">
+				AND S.ID IN
+				<foreach item="id" collection="subjectIds" open="("
+					separator="," close=")">
+					#{id}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+
+	<!-- 统计课程下的打星总人数和平均值 -->
+	<select id="getSubjectUserStar" parameterType="java.util.Map"
+		resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		SELECT
+		S.ID AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		ROUND(AVG(UVA.STAR_VALUE),1) as "subjectStarAvg"
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		LEFT JOIN GC_VIDEO V ON
+		V.SUB_ID = S0.ID
+		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
+		V.ID
+		WHERE UVA.type=3
+		<if test="subjectIds != null and subjectIds.size()!=0">
+			AND S.ID IN
+			<foreach item="id" collection="subjectIds" open="("
+				separator="," close=")">
+				#{id}
+			</foreach>
+		</if>
+		<if test="videoIds != null">
+			AND UVA.VIDEO_ID IN
+			<foreach item="videoId" collection="videoIds" open="("
+				separator="," close=")">
+				#{videoId}
+			</foreach>
+		</if>
+		GROUP BY s.id
+	</select>
+
+	<!-- 统计课程下的打星总人数和平均值 -->
+	<select id="gvggetSubjectUserStar" parameterType="java.util.Map"
+			resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		SELECT
+		UVA.sub_id AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		ROUND(AVG(UVA.STAR_VALUE),1) as "subjectStarAvg"
+		FROM
+	    GC_USER_VIDEO_ACTION UVA
+		left join gc_subject s on s.id=UVA.sub_id
+		WHERE UVA.type=4 and s.id in
+		<foreach item="id" collection="subjectIds" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+		GROUP BY s.id
+	</select>
+
+	<!-- 根据课程ID和视频IDlist统计课程下的打星总人数和平均值 -->
+	<select id="getSubjectUserStars" parameterType="java.util.Map"
+			resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		SELECT
+		S.ID AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		AVG(UVA.STAR_VALUE) as "subjectStarAvg"
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		LEFT JOIN GC_VIDEO V ON
+		V.SUB_ID = S0.ID
+		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
+		V.ID
+		WHERE UVA.type=3 AND S.id=#{subId}
+		<if test="videoList != null">
+			AND UVA.VIDEO_ID IN
+			<foreach item="videoId" collection="videoList" open="("
+					 separator="," close=")">
+				#{videoId}
+			</foreach>
+		</if>
+		GROUP BY S.id
+	</select>
+
+	<select id="getStarList" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		SELECT a.user_id as userId,a.*,s.sub_id as subjectId from gc_user_video_action a
+        left join gc_video v on v.id=a.video_id
+        left join gc_subject s on s.id = v.sub_id
+        where v.id in
+		<foreach item="videoId" collection="videoIds" open="("
+				 separator="," close=")">
+			#{videoId}
+		</foreach>
+	</select>
+
+
+
+	<select id="countLikeForVideo" resultType="Integer">
+		select count(1) from
+		gc_user_video_action where type =1 and video_id = #{videoId}
+	</select>
+
+	<select id="countLikeForVideos" resultMap="baseaResultMap">
+		select count(1) as videoLikeNum,video_id as videoId from
+			gc_user_video_action where type =1 and video_id in
+		<foreach item="videoId" collection="videoIds" open="("
+				 separator="," close=")">
+			#{videoId}
+		</foreach>
+          group by video_id
+	</select>
+
+	<select id="getReviewListByCourseId" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		select ac.*,info.avatar_file_id as userAvatarFileId,info.last_name as userLastName,info.first_name as userFirstName from gc_user_video_action ac
+		left join gc_user us on us.id = ac.user_id
+		left join gc_user_info info on info.id = us.info_id
+		where ac.sub_id=#{subId} and type=#{starType}
+		<if test="starFilter != null">
+			AND ac.star_value=#{starFilter}
+		</if>
+		<if test="starOrder==0">
+			order by ac.star_value desc
+		</if>
+		<if test="starOrder==1">
+			order by ac.star_value asc
+		</if>
+	    <if test="starOrder==null">
+			order by ac.update_time desc
+		</if>
+	</select>
+	<select id="countLikeForFiles" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
+		select count(1) as videoLikeNum,file_id as videoId from
+		gc_user_video_action where type =1 and file_id in
+		<foreach item="fileId" collection="fileIds" open="("
+				 separator="," close=")">
+			#{fileId}
+		</foreach>
+		group by file_id
+	</select>
+	<select id="countLikeForFile" resultType="java.lang.Integer">
+		select count(1) from
+			gc_user_video_action where type =1 and file_id = #{fileId}
+	</select>
+
+</mapper>

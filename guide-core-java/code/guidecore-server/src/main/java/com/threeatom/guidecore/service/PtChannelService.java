@@ -1,0 +1,43 @@
+package com.threeatom.guidecore.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcFeedBack;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.system.entity.SysFile;
+import org.apache.catalina.LifecycleState;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
+public interface PtChannelService extends IService<PtChannel> {
+    List<PtChannel> selectPtChannels(Integer userId, Integer type,HttpServletRequest request,Integer masterId);
+
+    List<PtChannel> indexPtChannels(Integer userId, Integer type,HttpServletRequest request,Integer masterId);
+
+    PtChannel selectChannelDetail(Integer channelId,String slug,HttpServletRequest request,String order,Integer masterId);
+
+    List<PtChannel> selectSectionList(Integer fid,String slug,HttpServletRequest request,Integer masterId);
+
+    List<SysFile> selectVideosInSection(Integer sectionId,String order,HttpServletRequest request,String searchName,Integer level);
+
+    List<PtChannel> selectChannelsByTeam(Integer accessId,Integer masterId,Integer userId,HttpServletRequest request);
+
+    List<PtChannel> selectChannelsByIdAndName(List<Integer> idList,String name,Integer userId,Integer masterId);
+
+    List<PtChannel> selectChannelsByIdsAndName(List<Integer> idList,String name);
+
+    List<PtChannel> indexSearchChannels(Integer userId, Integer type,HttpServletRequest request,Integer masterId);
+
+    List<PtChannel> newIndexHomeChannels(Integer userId,HttpServletRequest request,Integer masterId);
+
+    List<PtChannel> searchChannelsBySysFile(Integer userId,HttpServletRequest request,Integer masterId);
+
+    List<PtChannel> searchChannelsBySysFileNew(Integer userId, HttpServletRequest request, Integer masterId);
+
+    List<PtChannel> getPtChannelVideoNow(Integer userId, HttpServletRequest request, Integer masterId);
+
+
+    PtChannel getbyChannelSlug(String channelName);
+}

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserMessageMapper">
+
+    <resultMap id="baseResultMap" type="GcUserMessage">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="masterId" column="master_id"/>
+        <result property="readState" column="read_state"/>
+        <result property="targetUserId" column="target_user_id"/>
+        <result property="message" column="message"/>
+        <result property="fileId" column="file_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        
+         <association property="file" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+            <result property="fileTypeIndex" column="f_file_type_index"/>
+            <result property="videoLong" column="f_video_long"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+        </association>        
+    </resultMap>
+
+    <sql id="baseColumn">
+    	m.id, m.user_id ,  m.master_id ,  m.read_state ,  m.target_user_id ,  m.message ,  m.file_id ,  m.update_time ,   m.create_time
+    </sql>
+    
+    <sql id="fileColumn">
+        ,f.id as f_id, f.name as f_name, f.file_url as f_file_url, f.save_type as f_save_type, f.file_type_index as f_file_type_index
+        ,f.video_long as f_video_long
+    </sql>
+
+    <select id="selectGetMessageListByTargetUserIdAndUserId" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumn" />
+        <include refid="fileColumn" />
+        ,f.thumb_nail_url as thumb_nail_url
+        FROM gc_user_message m
+        LEFT JOIN sys_file f on m.file_id=f.id
+        WHERE
+        (m.user_id = #{userId} AND m.target_user_id = #{targetUserId} AND m.master_id = #{masterId} )
+         OR (m.user_id = #{targetUserId} AND m.target_user_id = #{userId} AND m.master_id = #{masterId} )
+        ORDER BY m.create_time DESC
+    </select>
+    
+    <select id="setIsReadByTargetUserId" resultType="Boolean">
+        UPDATE gc_user_message
+        SET read_state = 1
+        WHERE target_user_id = #{userId} AND user_id = #{targetUserId} AND read_state = 0;
+    </select>
+    
+    <select id="selectGetNewMessage" resultType="GcUserMessage">
+         SELECT
+       *
+        FROM
+        gc_user_message
+        WHERE
+        (user_id = #{userId} AND target_user_id = #{targetUserId} AND master_id = #{masterId})
+         OR (user_id = #{targetUserId} AND target_user_id = #{userId} AND master_id = #{masterId})
+        ORDER BY create_time DESC
+         LIMIT 1
+    </select>
+    
+    <select id="selectGetLastMessageByUserIds" resultType="GcUserMessage">
+        SELECT
+        *
+        FROM gc_user_message
+        WHERE id IN (
+             SELECT
+             MAX(id)
+             FROM gc_user_message
+             WHERE user_id IN
+                <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
+                    #{userId}
+                </foreach>
+             AND target_user_id = #{targetUserId}
+             GROUP BY user_id
+            )
+    </select>
+    
+    <select id="selectUsersMessageByTeacherIdAndUserIds" resultType="map">
+        select u.id as user_id,ui.id as info_id,ui.first_name,ui.last_name,COUNT(if(m.target_user_id=#{teacherId},TRUE,NULL)) as messageNum
+		from gc_user u 
+		LEFT JOIN gc_user_message m ON m.user_id=u.id
+        LEFT JOIN gc_user_info ui on ui.id=u.info_id
+		WHERE 1=1
+		<if test="userIds != null and userIds.size() > 0">
+            AND u.id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        </if>
+		GROUP BY u.id
+		<if test="order == 'asc'">
+             ORDER BY messageNum asc
+        </if>
+        <if test="order == 'desc'">
+             ORDER BY messageNum desc
+        </if>
+    </select>
+    
+    <select id="countUnReadUserMessage" parameterType="Integer" resultType="java.lang.Integer">
+		select count(1) from gc_user_message um
+		<if test="groupId != null">
+           left join gc_user_access ua on ua.user_id = um.user_id and um.master_id = ua.master_id
+		   left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua.id, char))=1  and g.master_id = um.master_id
+        </if>
+		where um.target_user_id =#{targetUserId} and um.master_id =#{masterId} and um.read_state =0 
+		<if test="groupId != null">
+		 and g.id=#{groupId}
+		</if>
+	</select>
+
+    <select id="selectRemoteMessages" resultMap="baseResultMap">
+        select me.*,file.id as f_id,file.name as f_name,file.file_url as f_file_url,file.save_type as f_save_type from gc_user_message me
+        left join sys_file file on file.id = me.file_id
+        where me.type=#{messageType}
+        <if test="targetUserId != null">
+            and me.target_user_id=#{targetUserId}
+        </if>
+        <if test="targetManagerId != null">
+            and me.targetManagerId=#{targetManagerId}
+        </if>
+    </select>
+	
+</mapper>

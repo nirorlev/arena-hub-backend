@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcUserVideoPlayMapper">
+
+
+
+    <resultMap id="GcVideoPlayStatisticsMap" type="GcVideo">
+        <id property="id" column="id"/>
+        <result property="videoName" column="video_name"  />
+        <result property="subId" column="sub_id"/>
+        <result property="videoTime" column="video_time" />
+        <result property="videoSource" column="video_source" />
+        <result property="videoPlayNum" column="videoPlayNum"/>
+        <result property="mostRecentlyDate" column="mostRecentlyDate" />
+        <association property="videoFile" column="file_id" javaType="SysFile">
+            <id property="id" column="f_id"/>
+            <result property="name" column="f_name"/>
+            <result property="fileUrl" column="f_file_url"/>
+            <result property="saveType" column="f_save_type"/>
+            <result property="videoLong" column="f_video_long"/>
+            <result property="thumbNailUrl" column="f_thumb_nail_url"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="GcUserVideoPlayMap" type="GcUserVideoPlay">
+        <id property="id" column="id"/>
+        <result property="videoId" column="video_id"  />
+        <result property="masterId" column="master_id"/>
+        <result property="userId" column="user_id" />
+        <result property="playState" column="play_state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <!--
+    <resultMap id="GcUserVideoPlayAndNodesMap" type="GcUserVideoPlay">
+        <id property="id" column="id"/>
+        <result property="videoId" column="video_id"  />
+        <result property="masterId" column="master_id"/>
+        <result property="userId" column="user_id" />
+        <result property="playState" column="play_state" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <collection  property="videoPlaysNodes" column="id" javaType="ArrayList" ofType="GcUserVideoPlaysNode" select="selectUserVideoPlayNodesById"/>
+
+    </resultMap>
+
+    <select id="selectUserVideoPlayNodesById" parameterType="int" resultType="GcUserVideoPlaysNode">
+        SELECT
+            *
+        FROM gc_user_video_plays_node uvpn
+        WHERE uvpn.videoplay_id = #{id}
+    </select>
+
+
+-->
+    <!--    <select id="getVideoPlayByVideoId" resultMap="GcUserVideoPlayMap">
+            SELECT
+                uvpn.start_time, uvpn.id as node_Id , uvpn.end_time ,uvpn.videoplay_id, uvp.video_id , uvp.master_id ,uvp.user_id,uvp.user_id,uvp.play_state,uvp.update_time,uvp.create_time
+            FROM
+                gc_user_video_play uvp
+                    LEFT JOIN gc_user_video_plays_node uvpn  on uvp.id = uvpn. videoplay_id
+                    LEFT JOIN gc_video v on uvp.video_id = v.id
+            WHERE
+                uvp.video_id = #{vid}
+            ORDER BY uvpn.start_time
+        </select>-->
+
+    <select id="getVideoPlayByVideoId" resultMap="GcUserVideoPlayMap">
+        SELECT
+            uvp.id,uvp.video_id , uvp.master_id ,uvp.user_id,uvp.user_id,uvp.play_state,uvp.update_time,uvp.create_time
+        FROM
+            gc_user_video_play uvp
+             LEFT JOIN gc_video v on uvp.video_id = v.id
+        WHERE
+            uvp.video_id = #{vid}
+        ORDER BY uvp.create_time
+    </select>
+
+
+    <sql id="where_gcSubject_state_not_hidden">
+    	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    </sql>
+
+    <select id="selectGetNewVideoListByUserIds" resultType="Map">
+        SELECT
+        uvp.user_id,s.name,uvp.update_time,uvp.video_id
+        FROM gc_user_video_play AS uvp
+        LEFT JOIN gc_video AS v ON v.id = uvp.video_id
+        LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        WHERE uvp.user_id IN
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+        <include refid="where_gcSubject_state_not_hidden" />
+        ORDER BY uvp.update_time DESC
+    </select>
+
+
+
+
+    <select id="selectVideoWatchedDataByUserIdsAndSubIds" resultType="Map">
+
+        SELECT u.id as user_id,ui.id as info_id,ui.first_name,
+        <!--        <choose>
+                <when test="subIds != null and subIds.size() > 0">
+                    COUNT(IF(s.sub_id IN
+                    <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+                        #{subId}
+                    </foreach>
+                    ,TRUE,null)) as videoNum
+                </when>
+                <otherwise>
+                    IFNULL(sum(vp.total_time),0) as videoNum
+                </otherwise>
+                </choose>-->
+        FROM gc_user u
+        LEFT JOIN gc_user_video_play vp ON u.id=vp.user_id
+        LEFT JOIN gc_video v ON vp.video_id=v.id
+        LEFT JOIN gc_subject s ON v.sub_id=s.id
+        left join gc_user_info ui on ui.id=u.info_id
+        WHERE 1=1
+        <if test="userIds != null and userIds.size() > 0">
+            AND u.id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        </if>
+        <include refid="where_gcSubject_state_not_hidden" />
+        GROUP BY u.id
+        <!--        <if test="order == 'asc'">
+                     ORDER BY videoNum asc
+                </if>
+                <if test="order == 'desc'">
+                     ORDER BY videoNum desc
+                </if>-->
+    </select>
+
+    <select id="selectVideosPlayTimeByUserIdsAndSubIds" resultType="Map">
+
+        SELECT u.id as user_id, ui.id as info_id,ui.first_name,
+        <!--        <choose>
+                <when test="subIds != null and subIds.size() > 0">
+                    IFNULL(sum(IF (s.sub_id IN
+                    <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+                        #{subId}
+                    </foreach>
+                    , vp.total_time, 0)),0) as videoPlayTime
+                </when>
+                <otherwise>
+                    IFNULL(sum(vp.total_time),0) as videoPlayTime
+                </otherwise>
+                </choose>-->
+        FROM gc_user u
+        LEFT JOIN gc_user_video_play vp ON u.id=vp.user_id
+        LEFT JOIN gc_video v ON vp.video_id=v.id
+        LEFT JOIN gc_subject s ON v.sub_id=s.id
+        left join gc_user_info ui on ui.id=u.info_id
+        WHERE 1=1
+        <if test="userIds != null and userIds.size() > 0">
+            AND u.id in
+            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+                #{userId}
+            </foreach>
+        </if>
+        <include refid="where_gcSubject_state_not_hidden" />
+        GROUP BY u.id
+        <!--        <if test="order == 'asc'">
+                     ORDER BY videoPlayTime asc
+                </if>
+                <if test="order == 'desc'">
+                     ORDER BY videoPlayTime desc
+                </if>-->
+
+    </select>
+
+    <select id="selectVideosPlayHistoryBySubIds" resultMap="GcVideoPlayStatisticsMap">
+
+        SELECT
+            v.sub_id,v.id,v.video_name,v.video_time,v.video_source,COUNT(uvp.id) AS videoPlayNum,max(uvp.create_time) mostRecentlyDate,
+               f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type ,f.video_long as f_video_long,
+                f.thumb_nail_url as f_thumb_nail_url
+        FROM
+            gc_video v
+                JOIN gc_user_video_play uvp ON v.id = uvp.video_id
+                LEFT JOIN gc_subject s ON v.sub_id = s.id
+                LEFT JOIN sys_file f on v.file_id=f.id
+        WHERE
+        s.sub_id = #{subId}
+        AND uvp.user_id = #{userId}
+        AND uvp.master_id = #{masterId}
+        GROUP BY video_id
+
+    </select>
+
+    <select id="selectVideosPlayHistoryInterval" resultType="GcUserVideoPlay">
+        SELECT
+            uvp.id,
+            MAX(end_time ) AS endTime ,
+            MIN(start_time ) AS startTime,
+            uvp.create_time,uvp.update_time
+        FROM
+            gc_user_video_play uvp
+                LEFT JOIN gc_video v ON v.id = uvp.video_id
+                LEFT JOIN gc_user_video_plays_node uvpn ON uvpn.videoplay_id = uvp.id
+        WHERE
+            uvp.video_id = #{vid}
+              and uvp.user_id = #{userId}
+              and uvp.master_id = #{masterId}
+              and uvpn.videoplay_id is not null
+        GROUP BY uvp.id
+    </select>
+
+    <select id="showAllSubjectVideoPlayHistoryNum" resultType="Map">
+        SELECT
+        COUNT( v.sub_id ) AS watchNum,
+        DATE_FORMAT(uvp.create_time,'%Y-%m-%d') AS create_time
+        FROM
+        gc_user_video_play uvp
+        LEFT JOIN gc_video v ON uvp.video_id = v.id
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        WHERE
+        uvp.user_id IN
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+            #{userId}
+        </foreach>
+        AND
+        s.sub_id IN
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+            #{subId}
+        </foreach>
+        AND uvp.master_id = #{masterId}
+
+        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &gt;= #{startTime}
+        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &lt;= #{endTime}
+        GROUP BY
+        DATE_FORMAT(uvp.create_time,'%Y-%m-%d')
+    </select>
+
+    <select id="showVideoPlayHistoryNumByStudentIdsAndSubject" resultType="Map">
+        SELECT
+        <if test="subIds != null and subIds.size() > 0">
+            topSub.name,
+            topSub.id,
+        </if>
+        COUNT( v.sub_id ) AS watchNum,
+        DATE_FORMAT(uvp.create_time,'%Y-%m-%d') AS create_time
+        FROM
+        gc_user_video_play uvp
+        LEFT JOIN gc_video v ON uvp.video_id = v.id
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        <if test="subIds != null and subIds.size() > 0">
+            JOIN ( SELECT id, NAME FROM gc_subject WHERE id IN
+            <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+                #{subId}
+            </foreach> ) AS topSub ON  s.sub_id =topSub.id
+        </if>
+        WHERE
+        uvp.user_id IN
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+            #{userId}
+        </foreach>
+        AND uvp.master_id = #{masterId}
+        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &gt;= #{startTime}
+        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &lt;= #{endTime}
+        GROUP BY
+        <if test="subIds != null and subIds.size() > 0">
+            topSub.id,
+        </if>
+        DATE_FORMAT(uvp.create_time,'%Y-%m-%d')
+    </select>
+
+
+
+    <select id="getWatchCompletedStudentBySubject" resultType="GCUser">
+        SELECT
+            COUNT( uvp.video_id ) AS viewNum,vs.videoNum,uvp.user_id AS id,v.sub_id  AS subId
+        FROM
+            gc_user_video_play uvp
+                LEFT JOIN gc_video v ON uvp.video_id = v.id
+                LEFT JOIN gc_subject s ON v.sub_id = s.id
+                INNER JOIN (
+                SELECT
+                    COUNT( v.id ) AS videoNum
+                FROM
+                    gc_video v
+                        LEFT JOIN gc_subject s ON v.sub_id = s.id
+                WHERE
+                    ( s.sub_id IN ( #{subId} ) OR v.sub_id IN ( #{subId} ) )
+                GROUP BY
+                    s.sub_id
+            ) AS vs
+        WHERE
+            uvp.master_id = #{masterId}
+          AND
+            ( s.sub_id IN ( #{subId} ) OR v.sub_id IN ( #{subId} ))
+          AND play_state = 1
+        GROUP BY
+            uvp.user_id
+        HAVING
+            videoNum = viewNum
+    </select>
+    <select id="getWatchCompletedStudentBySubjectList" resultType="GCUser">
+        select *,count(b.video_id) as viewNum from (
+        SELECT
+            vs.videoNum,uvp.user_id AS id,s.sub_id  AS subId,
+        uvp.video_id
+        FROM
+            gc_user_video_play uvp
+                LEFT JOIN gc_video v ON uvp.video_id = v.id
+                LEFT JOIN gc_subject s ON v.sub_id = s.id
+                INNER JOIN (
+                SELECT
+                    COUNT( v.id ) AS videoNum,v.sub_id
+                FROM
+                    gc_video v
+                        LEFT JOIN gc_subject s ON v.sub_id = s.id
+                WHERE
+                    ( s.sub_id IN (
+                    <foreach collection="subIds" item="subIds" index="index" separator="," >
+                        #{subIds}
+                    </foreach> )
+                OR v.sub_id IN
+                ( <foreach collection="subIds" item="subIds" index="index"  separator="," >
+                        #{subIds}
+                    </foreach>) )
+                GROUP BY
+                    s.sub_id
+            ) AS vs on v.sub_id = vs.sub_id
+        WHERE
+            uvp.master_id = #{masterId}
+          AND
+            ( s.sub_id IN
+            ( <foreach collection="subIds" item="subIds" index="index" separator="," >
+                        #{subIds}
+                    </foreach> )
+        OR v.sub_id IN
+            ( <foreach collection="subIds" item="subIds" index="index" separator="," >
+                #{subIds}
+            </foreach>))
+          AND play_state = 1
+        GROUP BY uvp.video_id ,uvp.user_id
+        ) b
+        GROUP BY b.subId,b.id
+        HAVING videoNum = viewNum
+    </select>
+
+    <select id="getWatchCompletedStudentByTwoSubjectList" resultType="com.threeatom.guidecore.entity.GcUser">
+
+        select *,count(b.video_id) as viewNum from (
+
+        SELECT
+        vs.videoNum,
+        uvp.user_id AS id,
+        s.id AS subjectId ,
+        uvp.video_id
+        FROM
+        gc_user_video_play uvp
+        LEFT JOIN gc_video v ON uvp.video_id = v.id
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        INNER JOIN (
+        SELECT
+        COUNT( v.id ) AS videoNum,v.sub_id
+        FROM
+        gc_video v
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        WHERE
+        ( s.id IN (
+        <foreach collection="subIds" item="subIds" index="index" separator="," >
+            #{subIds}
+        </foreach> )
+        OR v.sub_id IN
+        ( <foreach collection="subIds" item="subIds" index="index"  separator="," >
+        #{subIds}
+    </foreach>) )
+        GROUP BY
+        s.id
+        ) AS vs on v.sub_id = vs.sub_id
+        WHERE
+        uvp.master_id = #{masterId}
+        AND
+        ( s.id IN
+        ( <foreach collection="subIds" item="subIds" index="index" separator="," >
+        #{subIds}
+    </foreach> )
+        OR v.sub_id IN
+        ( <foreach collection="subIds" item="subIds" index="index" separator="," >
+        #{subIds}
+    </foreach>))
+        AND play_state = 1
+        GROUP BY
+        uvp.user_id,
+        uvp.video_id
+        ) b
+        GROUP BY b.subjectId,b.id
+        HAVING
+        videoNum = viewNum
+    </select>
+
+    <select id="showAllSubjectVideoWatchNum" resultType="com.threeatom.guidecore.excel.vo.StudentBehaviorDataExcel">
+        SELECT COUNT(*) AS watchedNum,a.user_id FROM (	        SELECT
+        COUNT( uvp.user_id ) AS watchNum ,uvp.user_id,uvp.video_id
+        FROM
+        gc_user_video_play uvp
+        LEFT JOIN gc_video v ON uvp.video_id = v.id
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        WHERE
+        uvp.user_id IN
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+            #{userId}
+        </foreach>
+        <if test="subIds.size()!=0">
+        AND
+        s.sub_id IN
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+            #{subId}
+        </foreach>
+        </if>
+        AND uvp.master_id = #{masterId}
+        GROUP BY uvp.user_id ,uvp.video_id) as a GROUP BY a.user_id
+    </select>
+
+    <select id="getWatchedSubject" resultType="GcSubject">
+        SELECT
+        s.sub_id as id
+        FROM
+        gc_subject s
+        LEFT JOIN gc_video v ON v.sub_id = s.id
+        LEFT JOIN gc_user_video_play uvp ON uvp.video_id = v.id
+        WHERE
+        uvp.master_id = #{masterId}
+        AND s.sub_id IN
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
+            #{subId}
+        </foreach>
+        AND uvp.user_id = #{userId}
+        GROUP BY
+        s.sub_id
+    </select>
+
+
+    <select id="getVideoPlayNowTimeByVidsAndGroupByVid" resultType="Map">
+        SELECT
+        count( video_id ),user_id,video_id,master_id
+        FROM
+        gc_user_video_play
+        WHERE
+        video_id IN
+        <foreach collection="vids" item="vid" index="index" open="(" close=")" separator="," >
+            #{vid}
+        </foreach>
+        AND master_id = #{masterId}
+        AND user_id = #{userId}
+        GROUP BY
+        video_id,
+        user_id,
+        master_id
+    </select>
+    <!-- 根据课程，用户查询课程视频观看进度 -->
+    <select id="findVideoPlayBySubject" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT
+        SUBJECT_ID,
+        t.VIDEO_ID,
+        t.MASTER_ID,
+        t.USER_ID,
+        MAX(PLAY_STATE) AS PLAY_STATE
+        FROM
+        (   SELECT
+        S.ID AS SUBJECT_ID,
+        P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        P.PLAY_STATE
+        FROM
+        GC_USER_VIDEO_PLAY P
+        LEFT JOIN GC_VIDEO V ON P.VIDEO_ID = V.ID
+        LEFT JOIN GC_SUBJECT S ON V.SUB_ID = S.ID
+        WHERE
+        P.USER_ID=#{userId}
+        AND S.ID IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY S.ID,
+        P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        P.PLAY_STATE
+        ) T
+        GROUP BY SUBJECT_ID, T.VIDEO_ID, T.MASTER_ID, T.USER_ID
+    </select>
+
+
+
+    <!-- 根据课程，用户查询课程视频观看进度 -->
+    <select id="findVideoPalyStateByVideoUser" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT
+            VIDEO_ID,
+            MASTER_ID,
+            USER_ID,
+            MAX(PLAY_STATE) AS PLAY_STATE
+        FROM
+          (SELECT
+            P.VIDEO_ID,
+            P.MASTER_ID,
+            P.USER_ID,
+            P.PLAY_STATE
+          FROM
+            GC_USER_VIDEO_PLAY P
+          WHERE P.USER_ID=#{userId}
+            AND P.VIDEO_ID =#{videoId}
+          GROUP BY P.VIDEO_ID,
+            P.MASTER_ID,
+            P.USER_ID,
+            P.PLAY_STATE) t GROUP BY  VIDEO_ID, MASTER_ID, USER_ID
+	</select>
+
+    <!-- 根据视频id，用户查询课程视频观看进度 -->
+    <select id="findVideoPalyStateByVideos" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT
+        VIDEO_ID AS "videoId",
+        MASTER_ID as "masterId",
+        USER_ID as "userId",
+        MAX(PLAY_STATE) AS "playState",
+        MAX(minTime) as "updateTime"
+        FROM
+        (SELECT
+        P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        max(P.PLAY_STATE) as PLAY_STATE,
+        MIN(case when P.play_state=1 then P.update_time end) as minTime
+        FROM
+        GC_USER_VIDEO_PLAY P
+        WHERE
+        1=1
+        <if test="userId!=null">
+            and P.USER_ID=#{userId}
+        </if>
+        and P.master_id=#{masterId}
+        <if test="videoIds!=null and videoIds.size()!=0">
+        AND P.VIDEO_ID IN
+        <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+        </if>
+        GROUP BY P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        P.PLAY_STATE) t GROUP BY  VIDEO_ID, MASTER_ID, USER_ID
+    </select>
+
+    <select id="selectUserVideoPlay" resultType="java.lang.Integer">
+        SELECT
+        g.video_id from gc_user_video_play g where g.master_id=#{portalId} and g.user_id=#{userId}
+    </select>
+    <select id="getVideoIdsByUserIds" resultType="java.lang.Integer">
+        SELECT
+        g.video_id from gc_user_video_play g where g.master_id=#{masterId}
+        and g.user_id in
+        <foreach item="ids" collection="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </select>
+    <select id="getLastVideoPlayList" resultType="map">
+        select sub_id as subId,video_id as videoId,MAX(update_time) from
+        (SELECT
+        distinct s0.id as sub_id,vp.video_id,
+        vp.update_time as update_time
+        FROM
+        gc_user_video_play vp
+        LEFT JOIN gc_video v ON v.id = vp.video_id
+        LEFT JOIN gc_subject s1 ON v.sub_id = s1.id
+        LEFT JOIN gc_subject s0 ON s1.fid = s0.id
+        where
+        vp.user_id = #{userId}
+        and s0.id in
+        <foreach item="list" collection="list" open="(" separator="," close=")">
+            #{list}
+        </foreach>
+        and vp.master_id = #{masterId}
+        order by vp.update_time desc) as b
+        GROUP BY b.sub_id
+    </select>
+    <select id="getWatchedSubjectById" resultType="com.threeatom.guidecore.entity.GcSubject">
+        SELECT
+        s.id as id
+        FROM
+        gc_subject s
+        LEFT JOIN gc_video v ON v.sub_id = s.id
+        LEFT JOIN gc_user_video_play uvp ON uvp.video_id = v.id
+        WHERE
+        uvp.master_id = #{masterId}
+        AND (s.sub_id IN
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+        or
+        s.id IN
+        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
+            #{subId}
+        </foreach>
+        )
+        AND uvp.user_id = #{userId}
+        GROUP BY
+        s.id
+    </select>
+    <select id="findVideoPalyStateByVideosUsers" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT
+        VIDEO_ID AS "videoId",
+        MASTER_ID as "masterId",
+        USER_ID as "userId",
+        MAX(PLAY_STATE) AS "playState"
+        FROM
+        (SELECT
+        P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        P.PLAY_STATE
+        FROM
+        GC_USER_VIDEO_PLAY P
+        WHERE
+        1=1
+        <if test="userIdList!=null and userIdList.size()!=0">
+            and P.USER_ID in
+            <foreach item="userIdList" collection="userIdList" open="(" separator="," close=")">
+                #{userIdList}
+            </foreach>
+        </if>
+        and P.master_id=#{masterId}
+        AND P.VIDEO_ID IN
+        <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+        GROUP BY P.VIDEO_ID,
+        P.MASTER_ID,
+        P.USER_ID,
+        P.PLAY_STATE) t GROUP BY  VIDEO_ID, MASTER_ID, USER_ID
+    </select>
+    <select id="getUserVideoPlayInfo" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT
+            userId,
+            SUM( playTime ) as PlayTime
+        FROM
+            (
+                SELECT
+                    vp.user_id userId,
+                    end_time - start_time playTime
+                FROM
+                    gc_user_video_plays_node vpn
+                    LEFT JOIN gc_user_video_play vp ON vp.id = vpn.videoplay_id
+                WHERE
+                    end_time - start_time > 0
+                    and
+                    vp.video_id in
+        <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+            ) a
+        GROUP BY
+            a.userid
+    </select>
+    <select id="getUserVideoPlayList" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        SELECT s.id as subjectId ,p.user_id as userId,p.video_id as videoId
+        from GC_USER_VIDEO_PLAY p
+        left join gc_video v on v.id = p.video_id
+        left join gc_subject s on v.sub_id = s.id
+        where 1=1
+        and p.master_id=#{masterId}
+        <if test="list!=null and list.size()!=0">
+        AND P.VIDEO_ID IN
+        <foreach item="videoId" collection="list" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+        </if>
+        <if test="userList!=null">
+            and p.USER_ID in
+            <foreach item="userList" collection="userList" open="(" separator="," close=")">
+                #{userList}
+            </foreach>
+        </if>
+        group by s.id,p.user_id
+    </select>
+    <select id="getVideoPlayCount" resultType="map">
+        select count(*) as countNum,video_id as videoId
+        from GC_USER_VIDEO_PLAY
+        where
+        video_id in
+        <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+        GROUP BY video_id
+    </select>
+
+    <select id="getLearningRecords" resultType="com.threeatom.guidecore.entity.GcUserVideoPlay">
+        select * from gc_user_video_play play
+        LEFT JOIN gc_video video on video.id = play.video_id
+        LEFT JOIN gc_subject sub1 on sub1.id = video.sub_id
+        LEFT JOIN gc_subject sub0 on sub0.id = sub1.fid
+        where play.play_state=1 and play.user_id=#{userId} and play.master_id=#{masterId}
+        <if test="videoId!=null">
+            and play.video_id=#{videoId}
+        </if>
+        <if test="sub0Id!=null">
+            and sub0.id=#{sub0Id}
+        </if>
+        <if test="sub1Id!=null">
+            and sub1.id=#{sub1Id}
+        </if>
+    </select>
+
+</mapper>
