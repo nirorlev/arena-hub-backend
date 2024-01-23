@@ -2463,9 +2463,9 @@ public class PowtoonController extends GuideCoreController {
 
 			}
 		}
-		if(code==null){
-			if(redisOperator.get("PT:"+user.getUsername())==null||
-					redisOperator.get("access_token_userid"+user.getId())==null){
+		if(code==null&&redirectUri.contains("https")){
+			if(null==redisOperator.get("PT:"+user.getUsername())||
+					null==redisOperator.get("access_token_userid"+user.getId())){
 				return message.error(401, "Login has expired!");
 			}
 			Map<String, String> body = new HashMap<>();
