@@ -61,5 +61,6 @@ public class SysMenu {
      */
     private Integer updateSwitch;
 
+
     private  Integer masterId;
 }

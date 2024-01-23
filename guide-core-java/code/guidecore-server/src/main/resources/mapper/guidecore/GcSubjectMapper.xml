@@ -2071,10 +2071,6 @@
 	<select id="selectActiveSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 			if(co.subject_state= 1,2,null) as identifying,
 			ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2087,8 +2083,6 @@
 				</if>
 				LEFT JOIN gc_user u ON u.id = ua.user_id
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
-
 		where 1=1
 		  and (u.id =#{userId}
 		  and ua.master_id = #{masterId}

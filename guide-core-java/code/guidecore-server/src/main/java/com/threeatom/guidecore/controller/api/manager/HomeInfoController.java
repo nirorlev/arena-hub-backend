@@ -66,7 +66,7 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "门户首页数据")
 public class HomeInfoController extends GuideCoreController {
 
-
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(HomeInfoController.class);
 	@Value("${subscription.id:0}")
 	private List<Integer> subscriptionIdList;
@@ -76,35 +76,35 @@ public class HomeInfoController extends GuideCoreController {
 	GcMasterService masterService;
 	@Autowired
 	private SysFileService sysFileService;
-	@Autowired
-	private SysSystemService systemService;
-	@Autowired
+    @Autowired
+    private SysSystemService systemService;
+    @Autowired
 	private GcSubjectAssociationService gcSubjectAssociationService;
 	@Autowired
-	private Environment env;
-
+    private Environment env;
+	
 	@Autowired
-	private GcUserVideoPlayService userVideoPlayService;
+    private GcUserVideoPlayService userVideoPlayService; 
+	
+    @Autowired
+    private GcSubjectService subjectService;
+    
+    @Autowired
+    private GcVideoService gcVideoService;
 
-	@Autowired
-	private GcSubjectService subjectService;
-
-	@Autowired
-	private GcVideoService gcVideoService;
-
-	@Autowired
+    @Autowired
 	private GcMasterService gcMasterService;
 
-	@Autowired
+    @Autowired
 	private GcUserVideoActionService gcUserVideoActionService;
 
-	@Autowired
+    @Autowired
 	private NewUiGcSubjectService newUiGcSubjectService;
 
-	@Autowired
+    @Autowired
 	private GcAccessService gcAccessService;
 
-	@Autowired
+    @Autowired
 	private GcUserAccessPermissionService gcUserAccessPermissionService;
 
 	@Autowired
@@ -134,16 +134,16 @@ public class HomeInfoController extends GuideCoreController {
 
 
 	@ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
-	@PostMapping("/saveOrUpdate")
-	public Message saveOrUpdate(@RequestBody List<GcMasterHomeInfo> list,HttpServletRequest request) {
+    @PostMapping("/saveOrUpdate")
+    public Message saveOrUpdate(@RequestBody List<GcMasterHomeInfo> list,HttpServletRequest request) {
 		//name需要做判断 TableConstant的gc_master_home_info
-
+		
 		LOGGER.info(JSONObject.toJSONString(list));
 		GcMaster master=this.getMaster();
 		if(Objects.isNull(master)){
 			master = masterService.getMasterById(request.getIntHeader("masterId"));
 		}
-
+		
 		if(iGcMasterHomeInfoService.saveGcMasterHomeInfo(master.getId(), list)){
 			/*Set<String> keys = redisOperator.keys("getTagSubjectList "+master.getId());
 			redisOperator.del(keys);
@@ -152,25 +152,25 @@ public class HomeInfoController extends GuideCoreController {
 			return new Message().ok();
 		}
 		return new Message().error();
-	}
+    }
 	@ApiOperation(value = "获取首页信息", httpMethod = "GET")
-	@GetMapping("/get")
-	public Message get(HttpServletRequest request) {
+    @GetMapping("/get")
+	 public Message get(HttpServletRequest request) {
 		GcMaster master=this.getMaster();
 		SysSystem sys = this.getSystem();
 		return new Message().ok().addData("homeInfoList", iGcMasterHomeInfoService.getGcMasterHomeInfoList(master.getId(), TableConstant.gcMasterHomeInfo_name_homepage_list, sys, request));
-	}
-
+    }
+	
 	@ApiOperation(value = "获取欢迎视频信息", httpMethod = "GET")
-	@GetMapping("/getWelcomeVideos")
-	public Message getWelcomeVideos(HttpServletRequest request) {
+    @GetMapping("/getWelcomeVideos")
+	 public Message getWelcomeVideos(HttpServletRequest request) {
 		GcMaster master=this.getMaster();
 		SysSystem sys = this.getSystem();
 //		String sysIds = env.getProperty("systemId");
 //    	int sysId = Integer.parseInt(sysIds);
 //    	SysSystem sys = systemService.getSystemById(sysId);
 		return new Message().ok().addData("welcomeVideosList", iGcMasterHomeInfoService.getGcMasterHomeInfoList(master.getId(), TableConstant.gcMasterHomeInfo_name_welcomeVideo_list, sys, request));
-	}
+    }
 
 	@ApiOperation(value = "用户端获取欢迎视频信息，学生及老师", httpMethod = "GET")
 	@GetMapping("/getWelcomeVideosUserSide/{userRole}")
@@ -188,118 +188,118 @@ public class HomeInfoController extends GuideCoreController {
 		}
 		SysSystem sys = this.getSystem();
 		return new Message().ok().addData("welcomeVideosList", iGcMasterHomeInfoService.getGcMasterHomeInfoList(masterId, list, sys, request));
-	}
+    }
 
-	public GcMaster getMaster(String portalId) {
-		GcMaster gcMaster = masterService.getMasterByContext(portalId);
-		if(gcMaster==null) {
-			return null;
-		}
+    public GcMaster getMaster(String portalId) {
+    	GcMaster gcMaster = masterService.getMasterByContext(portalId);
+    	if(gcMaster==null) {
+    		return null;
+    	}
 //    	SysConfig s=new SysConfig();
 //    	int sysId = s.getId();
-		String sysIds = env.getProperty("systemId");
-		int sysId = Integer.parseInt(sysIds);
-		if(gcMaster.getIntroVideoFile()!=null) {
-			SysFile sf = gcMaster.getIntroVideoFile();
+    	String sysIds = env.getProperty("systemId");
+    	int sysId = Integer.parseInt(sysIds);
+    	if(gcMaster.getIntroVideoFile()!=null) {
+        	SysFile sf = gcMaster.getIntroVideoFile();
 //        	sf.setFullFileUrl(sysFileService.getResFullUrl(gcMaster.getIntroVideoFile(), sys, request));
-			//文件完成路径
-			sysFileService.getResFullUrlSaveType2(gcMaster.getIntroVideoFile());
-			//视频截图
-			gcMaster.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcMaster.getIntroVideoFile()));
+        	//文件完成路径
+        	sysFileService.getResFullUrlSaveType2(gcMaster.getIntroVideoFile());
+        	//视频截图
+        	gcMaster.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcMaster.getIntroVideoFile()));
 //        	应该在文件对象里面设置截图url更合理：
 //        	gcMaster.getIntroVideoFile().setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcMaster.getIntroVideoFile(), sys));
-		}
-		gcMaster.setLogoFullUrl(sysFileService.getResFullUrlSaveType2(gcMaster.getLogoFile()));
-		return gcMaster;
-	}
-
-
-	@PostMapping("/getSubByLevel0Sub")
-	public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams,HttpServletRequest request) {
+        }
+    	gcMaster.setLogoFullUrl(sysFileService.getResFullUrlSaveType2(gcMaster.getLogoFile()));
+    	return gcMaster;
+    }
+    
+    
+    @PostMapping("/getSubByLevel0Sub")
+    public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams,HttpServletRequest request) {
 //    	String portalId = requestParams.getString("portalId");
 //    	GcMaster gcMaster = masterService.getMasterByContext(portalId);
 //    	if(gcMaster==null) {
 //    		return m.error("guidecore.getForHome.portalIdNotExist");
 //    	}
-		Message m = new Message();
-
-		String portalId = requestParams.getString("portalId");
-		GcMaster gcMaster = this.getMaster(portalId);
-		if(gcMaster==null) {
-			return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-		}
-		Integer level0subId = requestParams.getInteger("level0subId");
-		String level0subNameIndex = requestParams.getString("level0subName");
-
-
-		List<GcSubject> level0sublist = subjectService.getLevel0SubLis(gcMaster.getId());
-
-
-
-		String sysIds = env.getProperty("systemId");
-		int sysId = Integer.parseInt(sysIds);
-		SysSystem sys = systemService.getSystemById(sysId);
-
-		GcSubject subject = new GcSubject();
-		subject.setId(level0subId);
-		subject.setNameIndex(level0subNameIndex);
-		subject.setMasterId(gcMaster.getId());
-		JSONArray a = userVideoPlayService.getSubAndVideoPlayListForHome(subject, sys,request);
-
-		m.addData("gcMaster", gcMaster);
-		m.ok().addData("subjectList", level0sublist);
-		m.ok().addData("topicList", a);
-		//m.addData("说明","videoSource的值: "+env.getProperty("videoSourceType"));
-
-
-
-		return m;
-	}
-
-	@PostMapping("/getVideoByLevel0SubNameAndVideoName")
-	public Message getVideoByLevel0SubNameAndVideoName(@RequestBody JSONObject requestParams,HttpServletRequest request) {
-		String portalId = requestParams.getString("portalId");
-		String videoNameIndex = requestParams.getString("videoName");
-		String level0subNameIndex = requestParams.getString("level0subName");
-		Message m = new Message();
-
-		GcMaster gcMaster = this.getMaster(portalId);
-		if(gcMaster==null) {
-			return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-		}
-		GcVideo video = null;
-		List<GcVideo> videoList = gcVideoService.selectVideoByVideoAndSub0NameIndex(videoNameIndex,level0subNameIndex,gcMaster.getId());
-		if(videoList!=null && videoList.size()>0)video=videoList.get(0);
-
-		if(video!=null) {
+    	Message m = new Message();
+    	
+    	String portalId = requestParams.getString("portalId");
+    	GcMaster gcMaster = this.getMaster(portalId);
+    	if(gcMaster==null) {
+    		return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
+    	}
+    	Integer level0subId = requestParams.getInteger("level0subId");
+    	String level0subNameIndex = requestParams.getString("level0subName");
+    	
+    	
+    	List<GcSubject> level0sublist = subjectService.getLevel0SubLis(gcMaster.getId());
+    	
+    	
+    	
+    	String sysIds = env.getProperty("systemId");
+    	int sysId = Integer.parseInt(sysIds);
+    	SysSystem sys = systemService.getSystemById(sysId);
+    	
+    	GcSubject subject = new GcSubject();
+    	subject.setId(level0subId);
+    	subject.setNameIndex(level0subNameIndex);
+    	subject.setMasterId(gcMaster.getId());
+    	JSONArray a = userVideoPlayService.getSubAndVideoPlayListForHome(subject, sys,request);
+    	
+    	m.addData("gcMaster", gcMaster);
+    	m.ok().addData("subjectList", level0sublist);
+    	m.ok().addData("topicList", a);
+    	//m.addData("说明","videoSource的值: "+env.getProperty("videoSourceType"));
+    	
+    	
+    	
+    	return m;
+    }
+	
+    @PostMapping("/getVideoByLevel0SubNameAndVideoName")
+    public Message getVideoByLevel0SubNameAndVideoName(@RequestBody JSONObject requestParams,HttpServletRequest request) {
+    	String portalId = requestParams.getString("portalId");
+    	String videoNameIndex = requestParams.getString("videoName");
+    	String level0subNameIndex = requestParams.getString("level0subName");
+    	Message m = new Message();
+    	
+    	GcMaster gcMaster = this.getMaster(portalId);
+    	if(gcMaster==null) {
+    		return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
+    	}
+    	GcVideo video = null;
+    	List<GcVideo> videoList = gcVideoService.selectVideoByVideoAndSub0NameIndex(videoNameIndex,level0subNameIndex,gcMaster.getId());
+    	if(videoList!=null && videoList.size()>0)video=videoList.get(0);
+    	
+    	if(video!=null) {
 			video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video.getVideoFile()));
 		}
+    	
+    	m.ok().addData("video", video);
+    	m.addData("gcMaster", gcMaster);
+    	return m;
+    }
+    
+    
+    @PostMapping("/ipn5")
+    public void ipn(@RequestBody JSONObject requestParams) {
 
-		m.ok().addData("video", video);
-		m.addData("gcMaster", gcMaster);
-		return m;
-	}
-
-
-	@PostMapping("/ipn5")
-	public void ipn(@RequestBody JSONObject requestParams) {
-
-	}
-
-
-	@PostMapping("/ipn1")
-	public void ipn1(@RequestBody JSONObject requestParams2,HttpServletRequest request) {
-		//获取参数名称
-		Enumeration<String> requestParams = request.getParameterNames();
-		//遍历获取参数
-		while (requestParams.hasMoreElements()) {
-			String param = requestParams.nextElement();
-			String value = request.getParameter(param);
-			System.out.println("ipn回调-----"+param+":"+value);
-		}
-
-		int a=1;
-	}
+    }
+    
+    
+    @PostMapping("/ipn1")
+    public void ipn1(@RequestBody JSONObject requestParams2,HttpServletRequest request) {
+    	//获取参数名称
+    	Enumeration<String> requestParams = request.getParameterNames();
+    	//遍历获取参数
+    	while (requestParams.hasMoreElements()) {
+    	    String param = requestParams.nextElement();
+    	    String value = request.getParameter(param);
+            System.out.println("ipn回调-----"+param+":"+value);
+    	}
+    	
+    	int a=1;
+    }
 
 
 	@ApiOperation(value="home页面,package查询", httpMethod = "GET")
@@ -310,7 +310,7 @@ public class HomeInfoController extends GuideCoreController {
 //		subscriptionIdList.add(subscriptionId1);
 //		subscriptionIdList.add(subscriptionId2);
 //		subscriptionIdList.add(subscriptionId3);
-		Integer masterId = request.getIntHeader("masterId");
+        Integer masterId = request.getIntHeader("masterId");
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
@@ -348,27 +348,27 @@ public class HomeInfoController extends GuideCoreController {
 		if(Objects.nonNull(yearlyFlag)){
 			packageList = gcAccessService.getAllPackage(masterId,new PageParam(request),subscriptionIdList,null);
 		}
-		//初始化套餐下的平均星级，评星人数，课程总时长,课程id
+        //初始化套餐下的平均星级，评星人数，课程总时长,课程id
 		JSONArray allSubId = new JSONArray();
-		for(GcAccess packages :packageList){
-			packages.setOwnedFlag(TableConstant.COMMON_ZERO);
-			packages.setPackageCourseStarUsers(TableConstant.LONG_ZERO);
-			packages.setPackageCourseAvgStars(TableConstant.DOUBLE_ZERO);
-			packages.setPackageCourseTotalTime(TableConstant.LONG_ZERO);
-			//待优化，套餐封面package
+        for(GcAccess packages :packageList){
+        	packages.setOwnedFlag(TableConstant.COMMON_ZERO);
+        	packages.setPackageCourseStarUsers(TableConstant.LONG_ZERO);
+        	packages.setPackageCourseAvgStars(TableConstant.DOUBLE_ZERO);
+        	packages.setPackageCourseTotalTime(TableConstant.LONG_ZERO);
+        	//待优化，套餐封面package
 			if(null!=packages.getPackageImgId()) {
 				SysFile imgFile = sysFileService.getById(packages.getPackageImgId());
 				sysFileService.getResFullUrl(imgFile, request);
 				packages.setPackageImgFile(imgFile);
 			}
 			if(null!=packages.getPackageVideoFileId()){
-				SysFile videoFile = sysFileService.getById(packages.getPackageVideoFileId());
-				String fullUrl = sysFileService.getVideoSnapshotUrl(videoFile);
-				packages.setPackageSnapShotUrl(fullUrl);
+                SysFile videoFile = sysFileService.getById(packages.getPackageVideoFileId());
+                String fullUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+                packages.setPackageSnapShotUrl(fullUrl);
 			}
 			allSubId.addAll(packages.getSubjectJson());
 		}
-		List<Integer> subIds = allSubId.toJavaList(Integer.class);
+        List<Integer> subIds = allSubId.toJavaList(Integer.class);
 		if(subIds.size()!=TableConstant.COMMON_ZERO) {
 			//计算package下所有课程的总时长,赋值到packagelist中
 			Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(subIds);
@@ -450,7 +450,7 @@ public class HomeInfoController extends GuideCoreController {
 //				newPackageList = newPackageList.subList(0,newPackageList.size()-3);
 				PageInfo<GcAccess> subscriptionPageInfo = new PageInfo<>(subscriptionList);
 				message.ok().addData("subscriptionList",JSON.parse(JSON.toJSONString(subscriptionPageInfo)));
-			}
+ 			}
 			pageInfo.setList(newPackageList);
 			message.ok().addData("packageList", pageInfo);
 
@@ -478,22 +478,22 @@ public class HomeInfoController extends GuideCoreController {
 		GcMaster gcMaster = masterService.getMasterById(masterId);
 //		GcUser user = this.getGcUser();
 		SysSystem sys = this.getSystem();
-		GcAccess gcAccess = gcAccessService.getAccessById(accessId);
-		gcAccess.setOwnedFlag(TableConstant.COMMON_ZERO);
-		if(null != gcAccess.getPackageImgId()) {
+        GcAccess gcAccess = gcAccessService.getAccessById(accessId);
+        gcAccess.setOwnedFlag(TableConstant.COMMON_ZERO);
+        if(null != gcAccess.getPackageImgId()) {
 			SysFile imgFile = sysFileService.getById(gcAccess.getPackageImgId());
 			String fullUrl = sysFileService.getResFullUrl(imgFile, request);
 			gcAccess.setPackageImgFullUrl(fullUrl);
 			gcAccess.setFileType(imgFile.getFileType());
 		}
-		if(null != gcAccess.getPackageVideoFileId()){
-			SysFile videoFile = sysFileService.getById(gcAccess.getPackageVideoFileId());
-			String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
-			sysFileService.getResFullUrl(videoFile, request);
-			videoFile.setSnapshotUrl(snapShotUrl);
+        if(null != gcAccess.getPackageVideoFileId()){
+        	SysFile videoFile = sysFileService.getById(gcAccess.getPackageVideoFileId());
+        	String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+        	sysFileService.getResFullUrl(videoFile, request);
+        	videoFile.setSnapshotUrl(snapShotUrl);
 			gcAccess.setPackageVideoFile(videoFile);
 		}
-		List<Integer> subIds = new ArrayList<>();
+        List<Integer> subIds = new ArrayList<>();
 		for(int i=0;i<gcAccess.getSubjectJson().size();i++){
 			subIds.add(Integer.parseInt(gcAccess.getSubjectJson().get(i).toString()));
 		}
@@ -501,7 +501,7 @@ public class HomeInfoController extends GuideCoreController {
 		Map<Integer, GcSubject> subjectsDurationMap=newUiGcSubjectService.sumSubjectDuration(subIds);
 		Long learningHours = TableConstant.LONG_ZERO;
 		for(Integer key : subjectsDurationMap.keySet()){
-			learningHours += subjectsDurationMap.get(key).getSubjectVideoDuration();
+            learningHours += subjectsDurationMap.get(key).getSubjectVideoDuration();
 		}
 
 		//视频数量
@@ -515,25 +515,25 @@ public class HomeInfoController extends GuideCoreController {
 		videoParams.put("type", TableConstant.gcUserVideoAction_type_star3);
 		Map<Integer, GcUserVideoAction> subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
 		Double totalStars = TableConstant.DOUBLE_ZERO;
-		Long totalStarsUsers = TableConstant.LONG_ZERO;
-		Integer times = TableConstant.COMMON_ZERO;
+        Long totalStarsUsers = TableConstant.LONG_ZERO;
+        Integer times = TableConstant.COMMON_ZERO;
 		for(Integer key : subjectUserStar.keySet()){
 			if(subjectUserStar.get(key).getSubjectStarAvg()!=null) {
 				totalStars += subjectUserStar.get(key).getSubjectStarAvg();
-				times++;
+                times++;
 			}
 			if(subjectUserStar.get(key).getSubjectStarUsers()!=null){
 				totalStarsUsers += subjectUserStar.get(key).getSubjectStarUsers();
 			}
 		}
 		if(totalStars!=TableConstant.DOUBLE_ZERO && times!=TableConstant.COMMON_ZERO){
-			BigDecimal stars = new BigDecimal(totalStars);
-			BigDecimal time = new BigDecimal((times));
-			gcAccess.setPackageCourseAvgStars(stars.divide(time,2).doubleValue());
-		}
+		    BigDecimal stars = new BigDecimal(totalStars);
+		    BigDecimal time = new BigDecimal((times));
+		    gcAccess.setPackageCourseAvgStars(stars.divide(time,2).doubleValue());
+        }
 		//话题list
 		Map<String, Object> subjectParams = new HashMap<>();
-		subjectParams.put("userId",TableConstant.COMMON_ZERO);
+        subjectParams.put("userId",TableConstant.COMMON_ZERO);
 		subjectParams.put("masterId",masterId);
 		subjectParams.put("subjectIds",subIds);
 
@@ -544,7 +544,7 @@ public class HomeInfoController extends GuideCoreController {
 				level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
 				if(videoMap.get(level1Subject.getId())!=null ) {
 					List<GcVideo> videos = videoMap.get(level1Subject.getId());
-					Integer videoTotalLong = videos.stream().filter(e->e.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
+                    Integer videoTotalLong = videos.stream().filter(e->e.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 					level1Subject.setVideosTotalLong(videoTotalLong);
 
 					level1Subject.setVideoChildList(videoMap.get(level1Subject.getId()));
@@ -576,14 +576,14 @@ public class HomeInfoController extends GuideCoreController {
 		if(null!=token && !"".equals(token) && !("undefined").equals(token)){
 			GcUser user = this.getGcUser();
 			if (user != null) {
-			}else {
-				gcAccess.setOwnedFlag(TableConstant.COMMON_ZERO);
-			}
-			GcUserAccess gcUserAccess = this.gcUserAccessService.getAccessByUserIdMaster(user.getId(),masterId);
-			if(Objects.nonNull(gcUserAccess)) {
-				GcAccess gcaccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
-				message.addData("userAccess", gcaccess);
-			}
+				}else {
+					gcAccess.setOwnedFlag(TableConstant.COMMON_ZERO);
+				}
+				GcUserAccess gcUserAccess = this.gcUserAccessService.getAccessByUserIdMaster(user.getId(),masterId);
+				if(Objects.nonNull(gcUserAccess)) {
+					GcAccess gcaccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
+					message.addData("userAccess", gcaccess);
+				}
 		}
 
 
@@ -744,21 +744,21 @@ public class HomeInfoController extends GuideCoreController {
 		}
 
 	}
-	// 1 加注释
+// 1 加注释
 //	2 不能写死值，从枚举类获取
 //	3. 默认图片url
 //	4. 怎加meta配置类
 //	5.return 报错信息
 //      James - this was: @GetMapping("/html/hub/index.html")
-	@Value("${frontendPath}")
-	private  String  hubUrl;
+@Value("${frontendPath}")
+private  String  hubUrl;
 
 
-	@Autowired
-	private metarielConfig metarielConfig;
+@Autowired
+private metarielConfig metarielConfig;
 
 
-	//@RequestMapping(value = {"/html${frontendPath}", "/html${frontendPath}", "/html${frontendPath}/index.html"}, method = RequestMethod.GET)
+//@RequestMapping(value = {"/html${frontendPath}", "/html${frontendPath}", "/html${frontendPath}/index.html"}, method = RequestMethod.GET)
 //@GetMapping({"/html${frontendPath}/index.html", "/html${frontendPath}/indexFromCloudfront.html", "/html${frontendPath}", "/html${frontendPath}/", "/html${frontendPath}/course**", "/html${frontendPath}/course-statics**"})
 	@GetMapping({"/html${frontendPath}/index.html", "/html${frontendPath}/indexFromCloudfront.html", "/html${frontendPath}", "/html${frontendPath}/"})
 	public void html(HttpServletRequest request,HttpServletResponse response) {
@@ -797,14 +797,14 @@ public class HomeInfoController extends GuideCoreController {
 			}
 		}
 
-		String addMetaContent = "";
-		String desc = "";
-		String title = "";
-		String homeUrl="";
-		GcMaster gcMaster = new GcMaster();
-		if (hubUrl!=""){
-			homeUrl=hubUrl+"/";
-		}
+	String addMetaContent = "";
+	String desc = "";
+	String title = "";
+	String homeUrl="";
+	GcMaster gcMaster = new GcMaster();
+	if (hubUrl!=""){
+		homeUrl=hubUrl+"/";
+	}
 		Integer stats=0;
 		Integer folderId = null;
 		Integer courseId= null;
@@ -964,8 +964,8 @@ public class HomeInfoController extends GuideCoreController {
 
 			addMetaContent=metaHtmlConfig(gcMaster,"playListPageShareTitle","playListPageShareDesc","playListPageShareImg",host,request);
 
-		}else if(//Course-Statics   /course/123
-				stats==1 && containNumber){
+	}else if(//Course-Statics   /course/123
+			stats==1 && containNumber){
 //			Integer courseId = Integer.parseInt(host.substring(host.lastIndexOf("/")+1,host.length()));
 			GcSubject gcSubject = subjectService.getById(subOrVid);
 			if(Objects.isNull(gcSubject)){
@@ -985,8 +985,8 @@ public class HomeInfoController extends GuideCoreController {
 			addMetaContent = metaHtml(gcSubject.getName(), gcSubject.getDescription(), fullFileUrl, host, request);
 
 
-		}else if(//Course-Video   /course/123/12
-				stats==2  && containNumber){
+	}else if(//Course-Video   /course/123/12
+			stats==2  && containNumber){
 //			Integer vid = Integer.parseInt(host.substring(host.lastIndexOf("/")+1,host.length()));
 			GcVideo gcVideo = gcVideoService.getById(subOrVid);
 			GcSubject gcSubject = subjectService.getById(courseId);
@@ -1014,7 +1014,7 @@ public class HomeInfoController extends GuideCoreController {
 			if(Objects.isNull(gcVideo.getVideoDesc())){
 				gcVideo.setVideoDesc("");
 			}
-			title = "\"" + gcVideo.getVideoName() + "\"" + " in " + "\"" + gcSubject.getName() + "\"" + " courses";
+			 title = "\"" + gcVideo.getVideoName() + "\"" + " in " + "\"" + gcSubject.getName() + "\"" + " courses";
 			addMetaContent = metaHtml(title, gcSubject.getDescription(), fullFileUrl, host, request);
 
 		}// /hub/course
@@ -1039,7 +1039,7 @@ public class HomeInfoController extends GuideCoreController {
 		}
 		else if(xRequestUri.contains(metarielConfig.getPlaylist()) && containNumber &&
 				!((hubUrl!="" && split.length==5 && split[2].trim().equals("playlist"))
-						||!(hubUrl=="" && split.length==4 && split[1].trim().equals("playlist")))
+				||!(hubUrl=="" && split.length==4 && split[1].trim().equals("playlist")))
 		){
 			GcUserSaveFolder gcUserSaveFolder = new GcUserSaveFolder();
 			gcUserSaveFolder.setId(subOrVid);
@@ -1208,7 +1208,7 @@ public class HomeInfoController extends GuideCoreController {
 
 	private String metaHtml(String title,String desc,String fullFileUrl,String host,HttpServletRequest request){
 		String addMetaContent =
-				"  <title>"+title+"</title>\n" +
+				        "  <title>"+title+"</title>\n" +
 						"  <meta name=\"title\" content=\""+title+"\" />\n" +
 						"  <meta name=\"description\" content=\""+desc+"\" />\n" +
 						"  <meta property=\"og:image\" content=\""+fullFileUrl+"\"/>\n" +
@@ -1238,10 +1238,10 @@ public class HomeInfoController extends GuideCoreController {
 		}
 
 
-		String str = "/playlist/12551/8015";
-		String[] parts = str.split("/");
-		String secondLastPart = parts[parts.length - 2];
-		System.out.println("倒数第二个斜杠后面的数字是：" + secondLastPart);
+			String str = "/playlist/12551/8015";
+			String[] parts = str.split("/");
+			String secondLastPart = parts[parts.length - 2];
+			System.out.println("倒数第二个斜杠后面的数字是：" + secondLastPart);
 
 	}
 

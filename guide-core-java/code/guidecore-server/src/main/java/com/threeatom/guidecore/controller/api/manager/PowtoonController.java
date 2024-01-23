@@ -458,20 +458,11 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(portalId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
-		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-		queryWrapper.in("master_id",getHeaderMasterId(request));
-		queryWrapper.in("type",TableConstant.COMMON_TWO);
-		queryWrapper.groupBy("tag_text");
-		if (null!=name){
-			queryWrapper.like("tag_text",name);
-		}
-		PageParam pageParam = new PageParam(request);
-		Integer pageNum = pageParam.getPageNum();
-		Integer pageSize=pageParam.getPageSize();
-		if (pageNum > 0 && pageSize > 0) {
-			PageHelper.startPage(pageNum, pageSize);
-		}
-		List<String> allVideoTag = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
+		PtTags ptTags = new PtTags();
+		ptTags.setMasterId(getHeaderMasterId(request));
+		ptTags.setType(TableConstant.COMMON_TWO);
+		ptTags.setTagText(name);
+		List<String> allVideoTag = ptTagsService.selectPtTagList(ptTags,request);
 		//allVideoTag = allVideoTag.stream().distinct().collect(Collectors.toList());
 		PageInfo<String> pageInfo = new PageInfo<>(allVideoTag);
 		return new Message().ok().addData("allVideoTag",pageInfo);
@@ -484,20 +475,12 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(portalId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
-		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-		queryWrapper.in("master_id",getHeaderMasterId(request));
-		queryWrapper.in("type",TableConstant.COMMON_ONE);
-		if (null!=name){
-			queryWrapper.like("tag_text",name);
-		}
-		queryWrapper.groupBy("tag_text");
-		PageParam pageParam = new PageParam(request);
-		Integer pageNum = pageParam.getPageNum();
-		Integer pageSize=pageParam.getPageSize();
-		if (pageNum > 0 && pageSize > 0) {
-			PageHelper.startPage(pageNum, pageSize);
-		}
-		List<String> allVideoTag = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
+		PtTags ptTags = new PtTags();
+		ptTags.setMasterId(getHeaderMasterId(request));
+		ptTags.setType(TableConstant.COMMON_ONE);
+		ptTags.setTagText(name);
+
+		List<String> allVideoTag = ptTagsService.selectPtTagList(ptTags,request);
 		//allVideoTag = allVideoTag.stream().distinct().collect(Collectors.toList());
 		PageInfo<String> pageInfo = new PageInfo<>(allVideoTag);
 		return new Message().ok().addData("allSubjectTag",pageInfo);
@@ -510,11 +493,12 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(portalId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
-		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-		queryWrapper.in("master_id",getHeaderMasterId(request));
-		queryWrapper.in("type",TableConstant.COMMON_THREE);
-		List<String> allResourceTag = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-		allResourceTag = allResourceTag.stream().distinct().collect(Collectors.toList());
+
+		PtTags ptTags = new PtTags();
+		ptTags.setMasterId(getHeaderMasterId(request));
+		ptTags.setType(TableConstant.COMMON_THREE);
+
+		List<String> allResourceTag = ptTagsService.selectPtTagList(ptTags,request);
 		return new Message().ok().addData("allResourceTag",allResourceTag);
 	}
 
@@ -998,7 +982,7 @@ public class PowtoonController extends GuideCoreController {
 					.filter(e->e.getFileId()!=null)
 					.map(GcUserSaveContent::getFileId)
 					.collect(Collectors.toList());
-			//查询出点赞表
+            //查询出点赞表
 			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(fileIdList);
 			Map<Integer,GcUserVideoAction> isLikeMap = new HashMap<>();
 			if (TableConstant.COMMON_ZERO!=fileIdList.size()){
@@ -1191,11 +1175,11 @@ public class PowtoonController extends GuideCoreController {
 			}
 			accessList = new PageInfo<>(accessService.findAccessListByMasterId(masterId));
 		}else {*/
-		PageParam pageParam = new PageParam(request);
-		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-		}
-		accessList =new PageInfo<>(accessService.listAccess(name,masterId,user.getId(),request));
+			PageParam pageParam = new PageParam(request);
+			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
+			}
+			accessList =new PageInfo<>(accessService.listAccess(name,masterId,user.getId(),request));
 		//}
 		return new Message().ok().addData("accessList",accessList);
 	}
@@ -1606,21 +1590,21 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}else {
 				for (Integer integer : idList) {
-					if (null!=userAccessPermission.getSubPermission()){
-						while (userAccessPermission.getSubPermission().contains(integer)){
-							userAccessPermission.getSubPermission().remove(integer);
+						if (null!=userAccessPermission.getSubPermission()){
+							while (userAccessPermission.getSubPermission().contains(integer)){
+								userAccessPermission.getSubPermission().remove(integer);
+							}
 						}
-					}
-					if (null!=userAccessPermission.getMustSubjectJson()){
-						while (userAccessPermission.getMustSubjectJson().contains(integer)){
-							userAccessPermission.getMustSubjectJson().remove(integer);
+						if (null!=userAccessPermission.getMustSubjectJson()){
+							while (userAccessPermission.getMustSubjectJson().contains(integer)){
+								userAccessPermission.getMustSubjectJson().remove(integer);
+							}
 						}
-					}
-					if (null!=userAccessPermission.getMaySubjectJson()){
-						while (userAccessPermission.getMaySubjectJson().contains(integer)){
-							userAccessPermission.getMaySubjectJson().remove(integer);
+						if (null!=userAccessPermission.getMaySubjectJson()){
+							while (userAccessPermission.getMaySubjectJson().contains(integer)){
+								userAccessPermission.getMaySubjectJson().remove(integer);
+							}
 						}
-					}
 				}
 			}
 		}
@@ -1648,7 +1632,7 @@ public class PowtoonController extends GuideCoreController {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
 		if (null!= adminFlag&&adminFlag==TableConstant.COMMON_ONE){
-			channels = ptChannelService.selectChannelsByIdAndName(idList, name, null,masterId);
+				channels = ptChannelService.selectChannelsByIdAndName(idList, name, null,masterId);
 		}else {
 			//channels = ptChannelService.selectChannelsByIdAndName(idList, name, user.getId(),masterId);
 			//2023-12-07更新
@@ -2048,6 +2032,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = null;
 		String token = null;
 		String accessToken = null;
+		String refreshToken=null;
 		if (null==code){
 			if (null != tokens && !"".equals(tokens) && !"undefined".equals(tokens)){
 				Integer uid = Integer.parseInt(JwtUtil.getValueByToken(tokens, "uid"));
@@ -2180,6 +2165,7 @@ public class PowtoonController extends GuideCoreController {
 				throw new SystemException("Powtoon accessToken is null");
 			}
 			accessToken = requestJson.getString("access_token");
+			refreshToken = requestJson.getString("refresh_token");
 			//获取用户信息
 			JSONObject object = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getUserUrl(),"Bearer "+accessToken);
 			log.info("PT登录接口返回::"+object.toJSONString());
@@ -2417,6 +2403,7 @@ public class PowtoonController extends GuideCoreController {
 			//同步到permit
 			assignUser(user,roleLists,permissions,masterId);
 			redisOperator.set("PT:"+user.getUsername(),accessToken);
+			redisOperator.set("PT_refresh_token:"+user.getUsername(),refreshToken);
 			//access_token存入redis
 			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
 		}else if(!redirectUri.contains("https")){
@@ -2476,7 +2463,22 @@ public class PowtoonController extends GuideCoreController {
 
 			}
 		}
-
+		if(code==null){
+			if(redisOperator.get("PT:"+user.getUsername())==null||
+					redisOperator.get("access_token_userid"+user.getId())==null){
+				return message.error(401, "Login has expired!");
+			}
+			Map<String, String> body = new HashMap<>();
+			body.put("client_id",ptLoginConfig.getClientId());
+			body.put("grant_type","refresh_token");
+			body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:"+user.getUsername()));
+			body.put("client_secret",ptLoginConfig.getClientSecret());
+			String JsonRequest = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken(),body);
+			JSONObject requestJson = JSONObject.parseObject(JsonRequest);
+			accessToken = requestJson.getString("access_token");
+			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
+			redisOperator.set("PT_refresh_token:"+user.getUsername(),requestJson.getString("refresh_token"));
+		}
 		/*//判断原数据中是否已有账号数据
 		GcUserAccess userIsTeacher = gcUserAccessService.getAccessByUserIdMaster(user.getId(),master.getId());
 		if(null!=userIsTeacher&&userIsTeacher.getAccessId().equals(studentAccess.getId())){
@@ -3221,241 +3223,241 @@ public class PowtoonController extends GuideCoreController {
 		}
 		try {
 
-			if(Objects.nonNull(ptChannel.getVisibleFlag())) {
-				if (ptChannel.getVisibleFlag() == 2) {
-					if (ptChannelService.saveOrUpdate(ptChannel)) {
-						if (null!=ptChannel.getTags()){
-							//tag
-							PtTags ptTags = new PtTags();
-							ptTags.setChannelId(ptChannel.getId());
-							ptTags.setMasterId(masterId);
-							List<String> tagList = ptChannel.getTags().toJavaList(String.class);
-							List<PtTags> newTagList = new ArrayList<>();
-							int finalMasterId = masterId;
-							tagList.forEach(i -> {
-								//if (!newTagText.contains(i)){
-								PtTags newTags = new PtTags();
-								newTags.setMasterId(finalMasterId);
-								newTags.setTagText(i);
-								newTags.setChannelId(ptChannel.getId());
-								newTags.setType(TableConstant.COMMON_ONE);
-								newTags.setOrder(TableConstant.COMMON_ZERO);
-								newTagList.add(newTags);
-								//}
-							});
-							QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
-							queryWrapper2.in("master_id", masterId);
-							queryWrapper2.in("channel_id", ptChannel.getId());
-							queryWrapper2.in("type", TableConstant.COMMON_ONE);
-							ptTagsService.remove(queryWrapper2);
-							ptTagsService.saveOrUpdateBatch(newTagList);
-							ptChannel.setAllTags(tagList);
-						}
-
-						List <Integer> subscribeAccessList = new ArrayList<>();
-						if ((null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO))||(null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))){
-							if (isOrgAdmin){
-								subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
-							}else {
-								subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
-							}
-							ptChannel.setAccessIdList(new ArrayList<>());
-							ptChannel.setSubscribeAccessIdList(new ArrayList<>());
-							if (null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)){
-								ptChannel.getAccessIdList().addAll(subscribeAccessList);
-							}else {
-								ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
-							}
-						}
-
-						List<GcAccess> accessList = gcAccessService.getContainsAccessList(ptChannel.getId().toString(),masterId);
-						if (null!=accessList&&accessList.size()!=0){
-							for (GcAccess access : accessList) {
-								if (null!=access.getChannelJson()){
-									access.getChannelJson().remove(ptChannel.getId());
-								}
-								if (null!=access.getSubscribeJson()){
-									access.getSubscribeJson().remove(ptChannel.getId());
-								}
-							}
-							accessService.insertOrUpdateChannel(accessList);
-						}
-
-						List<GcUserAccessPermission> permissionList = gcUserAccessPermissionService.getContainsAccessPermissionList(ptChannel.getId().toString(),masterId);
-						if (null!=permissionList&&permissionList.size()!=0){
-							for (GcUserAccessPermission permission : permissionList) {
-								if (null!=permission.getChannelPermission()){
-									permission.getChannelPermission().remove(ptChannel.getId());
-								}
-								if (null!=permission.getSubscribePermission()){
-									permission.getSubscribePermission().remove(ptChannel.getId());
-								}
-							}
-							gcUserAccessPermissionService.updateGcUserAccessPermissionsChannel(permissionList);
-						}
-						//发布channel到team
-						if (CollectionUtils.isNotEmpty(ptChannel.getAccessIdList())&&ptChannel.getAccessIdList().size()!=TableConstant.COMMON_ZERO) {
-							List<GcAccess> gcAccessList = gcAccessService.selectAccessByIds(ptChannel.getAccessIdList());
-							if (CollectionUtils.isNotEmpty(gcAccessList)) {
-								for (GcAccess access : gcAccessList) {
-									JSONArray jsonArray = access.getChannelJson();
-									if (Objects.isNull(jsonArray)) {
-										JSONArray array = new JSONArray();
-										array.add(ptChannel.getId());
-										access.setChannelJson(array);
-									} else {
-										if (!jsonArray.contains(ptChannel.getId())) {
-											jsonArray.add(ptChannel.getId());
-										}
-									}
-								}
-								gcAccessService.saveOrUpdateBatch(gcAccessList);
-							}
-
-
-							List<Integer> permissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getAccessIdList());
-							if (CollectionUtils.isNotEmpty(permissionUserIds)) {
-//					List<GcUserAccess> gcUserAccessList = gcUserAccessService.selectUserAccesses(ptChannel.getAccessIdList(), permissionUserIds, masterId);
-//					gcUserAccessService.selectUserAccesses()
-//						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-								List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(permissionUserIds);
-								for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
-									JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
-									if (Objects.isNull(jsonArray)) {
-										JSONArray array = new JSONArray();
-										array.add(ptChannel.getId());
-										gcUserAccessPermission.setChannelPermission(array);
-									} else {
-										if (!jsonArray.contains(ptChannel.getId())) {
-											jsonArray.add(ptChannel.getId());
-										}
-										gcUserAccessPermission.setChannelPermission(jsonArray);
-									}
-
-								}
-								gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
-							}
-						}
-
-						if (CollectionUtils.isNotEmpty(ptChannel.getSubscribeAccessIdList())&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO) {
-							List<GcAccess> gcAccessList = gcAccessService.selectAccessByIds(ptChannel.getSubscribeAccessIdList());
-							if (CollectionUtils.isNotEmpty(gcAccessList)) {
-								for (GcAccess access : gcAccessList) {
-									JSONArray subscribeJsonArray = access.getSubscribeJson();
-									if (Objects.isNull(subscribeJsonArray)) {
-										JSONArray array = new JSONArray();
-										array.add(ptChannel.getId());
-										access.setSubscribeJson(array);
-									} else {
-										if (!subscribeJsonArray.contains(ptChannel.getId())) {
-											subscribeJsonArray.add(ptChannel.getId());
-										}
-									}
-								}
-								gcAccessService.saveOrUpdateBatch(gcAccessList);
-							}
-							List<Integer> subscribePermissionUserIds = new ArrayList<>();
-							if (null!=ptChannel.getSubscribeAccessIdList()&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO){
-								subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getSubscribeAccessIdList());
-							}
-							if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
-//						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-								List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
-								for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
-									JSONArray jsonArray = gcUserAccessPermission.getSubscribePermission();
-									if (Objects.isNull(jsonArray)) {
-										JSONArray array = new JSONArray();
-										array.add(ptChannel.getId());
-										gcUserAccessPermission.setSubscribePermission(array);
-									} else {
-										if (!jsonArray.contains(ptChannel.getId())) {
-											jsonArray.add(ptChannel.getId());
-										}
-										gcUserAccessPermission.setSubscribePermission(jsonArray);
-									}
-
-								}
-								gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
-							}
-						}
-						return message.ok("success").addData("channel", ptChannel);
+		if(Objects.nonNull(ptChannel.getVisibleFlag())) {
+			if (ptChannel.getVisibleFlag() == 2) {
+				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					if (null!=ptChannel.getTags()){
+						//tag
+						PtTags ptTags = new PtTags();
+						ptTags.setChannelId(ptChannel.getId());
+						ptTags.setMasterId(masterId);
+						List<String> tagList = ptChannel.getTags().toJavaList(String.class);
+						List<PtTags> newTagList = new ArrayList<>();
+						int finalMasterId = masterId;
+						tagList.forEach(i -> {
+							//if (!newTagText.contains(i)){
+							PtTags newTags = new PtTags();
+							newTags.setMasterId(finalMasterId);
+							newTags.setTagText(i);
+							newTags.setChannelId(ptChannel.getId());
+							newTags.setType(TableConstant.COMMON_ONE);
+							newTags.setOrder(TableConstant.COMMON_ZERO);
+							newTagList.add(newTags);
+							//}
+						});
+						QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
+						queryWrapper2.in("master_id", masterId);
+						queryWrapper2.in("channel_id", ptChannel.getId());
+						queryWrapper2.in("type", TableConstant.COMMON_ONE);
+						ptTagsService.remove(queryWrapper2);
+						ptTagsService.saveOrUpdateBatch(newTagList);
+						ptChannel.setAllTags(tagList);
 					}
-				} else if (ptChannel.getVisibleFlag() == 1) {
 
-					List<Integer> subscribePermissionUserIds = new ArrayList<>();
 					List <Integer> subscribeAccessList = new ArrayList<>();
-					if (null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)){
+					if ((null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO))||(null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))){
 						if (isOrgAdmin){
 							subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}else {
 							subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}
-						ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
-					}
-					ptChannelService.saveOrUpdate(ptChannel);
-
-					List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.selectAllUsersInPortal(masterId);
-					for (GcUserAccessPermission gcUserAccessPermission : userAccessPermissionList) {
-						JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
-						if (Objects.isNull(jsonArray)) {
-							JSONArray array = new JSONArray();
-							array.add(ptChannel.getId());
-							gcUserAccessPermission.setChannelPermission(array);
-						} else {
-							if (!jsonArray.contains(ptChannel.getId())) {
-								jsonArray.add(ptChannel.getId());
-							}
-							gcUserAccessPermission.setChannelPermission(jsonArray);
+						ptChannel.setAccessIdList(new ArrayList<>());
+						ptChannel.setSubscribeAccessIdList(new ArrayList<>());
+						if (null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)){
+							ptChannel.getAccessIdList().addAll(subscribeAccessList);
+						}else {
+							ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
 						}
 					}
-					gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissionList);
 
-					if (null!=ptChannel.getSubscribeAccessIdList()){
-						List<GcUserAccessPermission> gcUserAccessPermissionList = new ArrayList<>();
+					List<GcAccess> accessList = gcAccessService.getContainsAccessList(ptChannel.getId().toString(),masterId);
+					if (null!=accessList&&accessList.size()!=0){
+						for (GcAccess access : accessList) {
+							if (null!=access.getChannelJson()){
+								access.getChannelJson().remove(ptChannel.getId());
+							}
+							if (null!=access.getSubscribeJson()){
+								access.getSubscribeJson().remove(ptChannel.getId());
+							}
+						}
+						accessService.insertOrUpdateChannel(accessList);
+					}
+
+					List<GcUserAccessPermission> permissionList = gcUserAccessPermissionService.getContainsAccessPermissionList(ptChannel.getId().toString(),masterId);
+					if (null!=permissionList&&permissionList.size()!=0){
+						for (GcUserAccessPermission permission : permissionList) {
+							if (null!=permission.getChannelPermission()){
+								permission.getChannelPermission().remove(ptChannel.getId());
+							}
+							if (null!=permission.getSubscribePermission()){
+								permission.getSubscribePermission().remove(ptChannel.getId());
+							}
+						}
+						gcUserAccessPermissionService.updateGcUserAccessPermissionsChannel(permissionList);
+					}
+					//发布channel到team
+					if (CollectionUtils.isNotEmpty(ptChannel.getAccessIdList())&&ptChannel.getAccessIdList().size()!=TableConstant.COMMON_ZERO) {
+						List<GcAccess> gcAccessList = gcAccessService.selectAccessByIds(ptChannel.getAccessIdList());
+						if (CollectionUtils.isNotEmpty(gcAccessList)) {
+							for (GcAccess access : gcAccessList) {
+								JSONArray jsonArray = access.getChannelJson();
+								if (Objects.isNull(jsonArray)) {
+									JSONArray array = new JSONArray();
+									array.add(ptChannel.getId());
+									access.setChannelJson(array);
+								} else {
+									if (!jsonArray.contains(ptChannel.getId())) {
+										jsonArray.add(ptChannel.getId());
+									}
+								}
+							}
+							gcAccessService.saveOrUpdateBatch(gcAccessList);
+						}
+
+
+						List<Integer> permissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getAccessIdList());
+						if (CollectionUtils.isNotEmpty(permissionUserIds)) {
+//					List<GcUserAccess> gcUserAccessList = gcUserAccessService.selectUserAccesses(ptChannel.getAccessIdList(), permissionUserIds, masterId);
+//					gcUserAccessService.selectUserAccesses()
+//						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
+							List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(permissionUserIds);
+							for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
+								JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
+								if (Objects.isNull(jsonArray)) {
+									JSONArray array = new JSONArray();
+									array.add(ptChannel.getId());
+									gcUserAccessPermission.setChannelPermission(array);
+								} else {
+									if (!jsonArray.contains(ptChannel.getId())) {
+										jsonArray.add(ptChannel.getId());
+									}
+									gcUserAccessPermission.setChannelPermission(jsonArray);
+								}
+
+							}
+							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
+						}
+					}
+
+					if (CollectionUtils.isNotEmpty(ptChannel.getSubscribeAccessIdList())&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO) {
+						List<GcAccess> gcAccessList = gcAccessService.selectAccessByIds(ptChannel.getSubscribeAccessIdList());
+						if (CollectionUtils.isNotEmpty(gcAccessList)) {
+							for (GcAccess access : gcAccessList) {
+								JSONArray subscribeJsonArray = access.getSubscribeJson();
+								if (Objects.isNull(subscribeJsonArray)) {
+									JSONArray array = new JSONArray();
+									array.add(ptChannel.getId());
+									access.setSubscribeJson(array);
+								} else {
+									if (!subscribeJsonArray.contains(ptChannel.getId())) {
+										subscribeJsonArray.add(ptChannel.getId());
+									}
+								}
+							}
+							gcAccessService.saveOrUpdateBatch(gcAccessList);
+						}
+						List<Integer> subscribePermissionUserIds = new ArrayList<>();
 						if (null!=ptChannel.getSubscribeAccessIdList()&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO){
 							subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getSubscribeAccessIdList());
 						}
 						if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
 //						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-							gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
-							for (GcUserAccessPermission permission : gcUserAccessPermissionList) {
-								JSONArray array = new JSONArray();
-								if (null==permission.getSubscribePermission()){
+							List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
+							for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
+								JSONArray jsonArray = gcUserAccessPermission.getSubscribePermission();
+								if (Objects.isNull(jsonArray)) {
+									JSONArray array = new JSONArray();
+									array.add(ptChannel.getId());
+									gcUserAccessPermission.setSubscribePermission(array);
+								} else {
+									if (!jsonArray.contains(ptChannel.getId())) {
+										jsonArray.add(ptChannel.getId());
+									}
+									gcUserAccessPermission.setSubscribePermission(jsonArray);
+								}
+
+							}
+							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
+						}
+					}
+					return message.ok("success").addData("channel", ptChannel);
+				}
+			} else if (ptChannel.getVisibleFlag() == 1) {
+
+				List<Integer> subscribePermissionUserIds = new ArrayList<>();
+				List <Integer> subscribeAccessList = new ArrayList<>();
+				if (null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)){
+					if (isOrgAdmin){
+						subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
+					}else {
+						subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
+					}
+					ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
+				}
+				ptChannelService.saveOrUpdate(ptChannel);
+
+				List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.selectAllUsersInPortal(masterId);
+				for (GcUserAccessPermission gcUserAccessPermission : userAccessPermissionList) {
+					JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
+					if (Objects.isNull(jsonArray)) {
+						JSONArray array = new JSONArray();
+						array.add(ptChannel.getId());
+						gcUserAccessPermission.setChannelPermission(array);
+					} else {
+						if (!jsonArray.contains(ptChannel.getId())) {
+							jsonArray.add(ptChannel.getId());
+						}
+						gcUserAccessPermission.setChannelPermission(jsonArray);
+					}
+				}
+				gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissionList);
+
+				if (null!=ptChannel.getSubscribeAccessIdList()){
+					List<GcUserAccessPermission> gcUserAccessPermissionList = new ArrayList<>();
+					if (null!=ptChannel.getSubscribeAccessIdList()&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO){
+						subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getSubscribeAccessIdList());
+					}
+					if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
+//						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
+						gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
+						for (GcUserAccessPermission permission : gcUserAccessPermissionList) {
+							JSONArray array = new JSONArray();
+							if (null==permission.getSubscribePermission()){
 									array.add(ptChannel.getId());
 									permission.setSubscribePermission(array);
-								}else {
-									array = permission.getSubPermission();
-									array.add(ptChannel.getId());
-									if (!permission.getSubscribePermission().contains(ptChannel.getId())){
-										permission.setSubscribePermission(array);
-									}
+							}else {
+								array = permission.getSubPermission();
+								array.add(ptChannel.getId());
+								if (!permission.getSubscribePermission().contains(ptChannel.getId())){
+									permission.setSubscribePermission(array);
 								}
 							}
 						}
-						gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 					}
-					return message.ok("success").addData("channel", ptChannel);
-				} else if (ptChannel.getVisibleFlag() == 0) {
-					if (ptChannelService.saveOrUpdate(ptChannel)) {
-						return message.ok("success").addData("channel", ptChannel);
-					} else {
-						return message.error();
-					}
-					//公共
-				}else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
-					if (ptChannelService.saveOrUpdate(ptChannel)) {
-						return message.ok("success").addData("channel", ptChannel);
-					} else {
-						return message.error();
-					}
+					gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 				}
-			}else {
+				return message.ok("success").addData("channel", ptChannel);
+			} else if (ptChannel.getVisibleFlag() == 0) {
+				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					return message.ok("success").addData("channel", ptChannel);
+				} else {
+					return message.error();
+				}
+			//公共
+			}else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
 					return message.ok("success").addData("channel", ptChannel);
 				} else {
 					return message.error();
 				}
 			}
+		}else {
+			if (ptChannelService.saveOrUpdate(ptChannel)) {
+				return message.ok("success").addData("channel", ptChannel);
+			} else {
+				return message.error();
+			}
+		}
 		}catch (DuplicateKeyException e){
 			throw new SystemException(I18NUtil.get("userpt.channel.slug"));
 		}

@@ -102,7 +102,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcUserService gcUserService;//用户服务类--统计参与人数
     @Autowired
     private GcUserVideoActionService videoActionService;//用户视频操作--查询评论、点赞、星级评价
-
+    
     @Override
     public boolean saveSub(GcSubject sub) {
         // TODO Auto-generated method stub
@@ -193,29 +193,29 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         root.setId(0);
         return TreeUtil.createTree(list, root);
     }
-
+    
     @Override
     public List<GcSubject> getSubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request){
 //    	 List<GcSubject> list =this.getSubListWithHidden(masterId);
-        List<GcSubject> list =this.baseMapper.getSubjectListCommon(masterId, null, null);
-        if(list != null && list.size() > 0){
-            for(GcSubject li:list) {
-                if (null!=li.getCourseTags()&&li.getCourseTags().size()!=0) {
-                    List lists = JSONArray.parseArray(li.getCourseTags().toJSONString());
-                    HashSet hs = new HashSet(lists);
-                    li.setCourseTags(JSONArray.parseArray(JSONObject.toJSONString(hs)));
-                }
-                sysFileService.getResFullUrl(li.getSubImgFile(), request);
-                if(CollectionUtils.isNotEmpty(li.getSubdetail_img_id()) && Objects.nonNull(li.getSubdetail_img_id().get("subDetailImgId"))){
-                    SysFile sysFile = sysFileService.getById(Integer.parseInt(li.getSubdetail_img_id().get("subDetailImgId").toString()));
-                    String fullUrl = sysFileService.getResFullUrl(sysFile,request);
-                    li.setSubDetailImgUrl(fullUrl);
-                }
-            }
-        }
-        return list;
+    	 List<GcSubject> list =this.baseMapper.getSubjectListCommon(masterId, null, null);
+    	 if(list != null && list.size() > 0){
+             for(GcSubject li:list) {
+                 if (null!=li.getCourseTags()&&li.getCourseTags().size()!=0) {
+                     List lists = JSONArray.parseArray(li.getCourseTags().toJSONString());
+                     HashSet hs = new HashSet(lists);
+                     li.setCourseTags(JSONArray.parseArray(JSONObject.toJSONString(hs)));
+                 }
+                 sysFileService.getResFullUrl(li.getSubImgFile(), request);
+                 if(CollectionUtils.isNotEmpty(li.getSubdetail_img_id()) && Objects.nonNull(li.getSubdetail_img_id().get("subDetailImgId"))){
+                     SysFile sysFile = sysFileService.getById(Integer.parseInt(li.getSubdetail_img_id().get("subDetailImgId").toString()));
+                     String fullUrl = sysFileService.getResFullUrl(sysFile,request);
+                     li.setSubDetailImgUrl(fullUrl);
+                 }
+             }
+         }
+    	 return list;
     }
-
+    
     @Override
     public List<GcSubject> getLevel0SubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request, PageParam pageParam,List<Integer> channelIds){
 //          List<GcSubject> list = this.getLevel0SubLis(masterId);
@@ -278,13 +278,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
             list =this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
         }
-        if(list != null && list.size() > 0){
-            for(GcSubject li:list) {
-                sysFileService.getResFullUrl(li.getSubImgFile(), request);
-            }
-        }
+          if(list != null && list.size() > 0){
+              for(GcSubject li:list) {
+                  sysFileService.getResFullUrl(li.getSubImgFile(), request);
+              }
+          }
 
-        return list;
+    	 return list;
     }
 
     @Override
@@ -621,7 +621,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 }
                 //视频长度数量
                 if (null!=videosTotalLongMap.get(li.getId())){
-                    videoLongVo vo =  videosTotalLongMap.get(li.getId());
+                   videoLongVo vo =  videosTotalLongMap.get(li.getId());
                     li.setVideosTotalLong(vo.getVideoLong());
                     li.setVideosTotalNum(vo.getVideoCount());
                 }
@@ -845,7 +845,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<GcSubject> setSubListImg(List<GcSubject> list,SysSystem sys, HttpServletRequest request) {
-        if(list != null && list.size() > 0){
+    	if(list != null && list.size() > 0){
             for(GcSubject li:list) {
                 if(li.getSubImgId()==null ) {
                     continue;
@@ -860,7 +860,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         return list;
     }
-
+    
     //编码不合理，需改造
     @Override
     public List<GcSubject> getSubListWithImgByIds(List<Integer> subIds,SysSystem sys, HttpServletRequest request,Integer masterId) {
@@ -891,18 +891,18 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<GcSubject> getLevel0SubLis(Integer masterId){
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
-        queryWrapper.eq("master_id", masterId);
-        queryWrapper.eq("level", 0);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
-        List<GcSubject> list = this.list(queryWrapper);
-        return list;
+    	 QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+         queryWrapper.eq("master_id", masterId);
+         queryWrapper.eq("level", 0);
+         queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+         queryWrapper.orderByAsc("`order`");
+         List<GcSubject> list = this.list(queryWrapper);
+         return list;
     }
-
+    
     @Override
     public List<GcSubject> getSubListWithHidden(Integer masterId) {
-        //显示隐藏课程
+    	//显示隐藏课程
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
@@ -910,23 +910,23 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return this.list(queryWrapper);
     }
 
-    @Override
-    public List<GcSubject> selectSubjectAssociation(Integer masterId,List<Integer> subIds,boolean ifLevel0) {
-        List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId,subIds,ifLevel0);
-        for (GcSubject subject:list) {
-            if (null!=subject.getCourseTags()&&subject.getCourseTags().size()!=0) {
+     @Override
+     public List<GcSubject> selectSubjectAssociation(Integer masterId,List<Integer> subIds,boolean ifLevel0) {
+   	  List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId,subIds,ifLevel0);
+   	  	for (GcSubject subject:list) {
+   	  	    if (null!=subject.getCourseTags()&&subject.getCourseTags().size()!=0) {
                 List lists = JSONArray.parseArray(subject.getCourseTags().toJSONString());
                 HashSet hs = new HashSet(lists);
                 subject.setCourseTags(JSONArray.parseArray(JSONObject.toJSONString(hs)));
             }
-            sysFileService.getResFullUrlSaveType2(subject.getSubImgFile());
-            if(subject.getType()==TableConstant.gcSubject_type_subject0) {
-                subject.setOrder(subject.getSubjectAssociationOrder());//使用门户自己的排序
-            }
-        }
-
-        return list;
-    }
+   	  	sysFileService.getResFullUrlSaveType2(subject.getSubImgFile());
+   		  if(subject.getType()==TableConstant.gcSubject_type_subject0) {
+   			  subject.setOrder(subject.getSubjectAssociationOrder());//使用门户自己的排序
+    	  }
+      }
+   	  	
+   	  return list;
+     }
 //    @Override
 //    public List<GcSubject> selectImportedSubject(Integer masterId) {
 //    	 List<GcSubject> list = this.baseMapper.selectImportedSubject(masterId);
@@ -998,12 +998,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<GcSubject> getSubListTop(Integer masterId) {
-        List<GcSubject> l = this.getTopSubList(masterId);
-        List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId,null,false);
-        l.addAll(list);
+    	List<GcSubject> l = this.getTopSubList(masterId);
+    	List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId,null,false);
+    	l.addAll(list);
         return l;
     }
-
+    
 
     public List<GcSubject> getTopSubList(Integer masterId) {
         // TODO Auto-generated method stub
@@ -1021,7 +1021,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         GcSubject subject = this.getById(subId);
         if(subject.getMasterId().intValue()==masterId.intValue()) {
-            List<GcSubject> list = this.getSubListWithHidden(subject.getMasterId());
+        	List<GcSubject> list = this.getSubListWithHidden(subject.getMasterId());
 
             //计算当前属于第几层
             List<GcSubject> resultList = new ArrayList<GcSubject>();
@@ -1034,56 +1034,56 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             videoService.deleteVideoBySubIds(subIds);
             return this.removeByIds(subIds);
         }else {
-            if(gcSubjectAssociationMapper.deleteGcSubjectAssociation(subId, masterId)>0) {
-                //删除关联课程，删除gc_user_access_permission及gc_access的课程，否则用户端还会出现
-                if(this.deleteSubAccessInJson(subId, masterId) && this.deleteUserSubAccessInJson(subId, masterId))return true;
-            }
+        	 if(gcSubjectAssociationMapper.deleteGcSubjectAssociation(subId, masterId)>0) {
+        		 //删除关联课程，删除gc_user_access_permission及gc_access的课程，否则用户端还会出现
+        		 if(this.deleteSubAccessInJson(subId, masterId) && this.deleteUserSubAccessInJson(subId, masterId))return true;
+        	 }
 
-            return false;
+        	 return false;
         }
 
     }
 
     public boolean deleteSubAccessInJson(int subId,int masterId) {
-        List<GcAccess> gcAccessList = gcAccessMapper.listContainsSub(masterId,subId);
-        if(gcAccessList!=null && !gcAccessList.isEmpty() ) {
-            for(GcAccess access: gcAccessList) {
-                JSONArray accessArray  = access.getSubjectJson();
-                List list = new ArrayList();
-                for (int i=0;i<accessArray.size();i++) {
-                    if(subId!=(int)accessArray.get(i)) {
-                        list.add((int)accessArray.get(i));
-                    }
-                }
-                access.setSubjectJson(new JSONArray(list));
-            }
-        }
-        if(gcAccessList==null || gcAccessList.size()==0) {
-            return true;
-        }
-        boolean a = gcAccessService.updateBatchById(gcAccessList);
-        return a;
+    	List<GcAccess> gcAccessList = gcAccessMapper.listContainsSub(masterId,subId);
+    	if(gcAccessList!=null && !gcAccessList.isEmpty() ) {
+    		for(GcAccess access: gcAccessList) {
+    			JSONArray accessArray  = access.getSubjectJson();
+    			List list = new ArrayList();
+    			for (int i=0;i<accessArray.size();i++) {
+    	    		if(subId!=(int)accessArray.get(i)) {
+    	    			list.add((int)accessArray.get(i));
+    	    		}
+    			}
+    			access.setSubjectJson(new JSONArray(list));
+    		}
+    	}
+    	if(gcAccessList==null || gcAccessList.size()==0) {
+    		return true;
+    	}
+    	boolean a = gcAccessService.updateBatchById(gcAccessList);
+    	return a;
     }
 
     public boolean deleteUserSubAccessInJson(int subId,int masterId) {
-        List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionMapper.listContainsSubPremission(masterId, subId);
-        if(gcUserAccessPermissionList!=null && !gcUserAccessPermissionList.isEmpty() ) {
-            for(GcUserAccessPermission permission: gcUserAccessPermissionList) {
-                JSONArray permissionArray  = permission.getSubPermission();
-                List list = new ArrayList();
-                for (int i=0;i<permissionArray.size();i++) {
-                    if(subId!=(int)permissionArray.get(i)) {
-                        list.add((int)permissionArray.get(i));
-                    }
-                }
-                permission.setSubPermission(new JSONArray(list));
-            }
-        }
-        if(gcUserAccessPermissionList==null || gcUserAccessPermissionList.size()==0) {
-            return true;
-        }
-        boolean a = gcUserAccessPermissionService.updateBatchById(gcUserAccessPermissionList);
-        return a;
+    	List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionMapper.listContainsSubPremission(masterId, subId);
+    	if(gcUserAccessPermissionList!=null && !gcUserAccessPermissionList.isEmpty() ) {
+    		for(GcUserAccessPermission permission: gcUserAccessPermissionList) {
+    			JSONArray permissionArray  = permission.getSubPermission();
+    			List list = new ArrayList();
+    			for (int i=0;i<permissionArray.size();i++) {
+    	    		if(subId!=(int)permissionArray.get(i)) {
+    	    			list.add((int)permissionArray.get(i));
+    	    		}
+    			}
+    			permission.setSubPermission(new JSONArray(list));
+    		}
+    	}
+    	if(gcUserAccessPermissionList==null || gcUserAccessPermissionList.size()==0) {
+    		return true;
+    	}
+    	boolean a = gcUserAccessPermissionService.updateBatchById(gcUserAccessPermissionList);
+    	return a;
     }
 
     @Override
@@ -1095,7 +1095,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         queryWrapper.eq("level", 1);
         queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
         if(subIds !=null && subIds.size()!=TableConstant.COMMON_ZERO){
-            queryWrapper.in(true,"fid",subIds);
+           queryWrapper.in(true,"fid",subIds);
         }
         //查询导入课程的topic数量
         Integer importedTopicNum = this.baseMapper.countImportedToicNum(masterId,TableConstant.COMMON_ONE,TableConstant.gcSubject_state_hidden_0,subIds,managerId);
@@ -1141,7 +1141,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<Integer> list = this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
         return list;
     }
-
+    
     @Override
     public List<GcSubject> getSubjectChild(Integer subId) {
         // TODO Auto-generated method stub
@@ -1165,27 +1165,27 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> getSubjectUserInfo(List<Integer> userIdList,List<Integer> subList,Integer masterId) {
         List<GcSubject> gcSubjectList = this.baseMapper.getSubjectUserInfo(userIdList,subList,masterId);
         gcSubjectList.forEach(i->{
-            Integer videoPlayState = 0;
-            Integer answeredNums = 0;
-            Integer answeredSumNums = 0;
-            for (GcVideo video : i.getVideoChildList()) {
-                video.setCompleteStatus(buildCompleteStatusEventNum(video.getPlayState(),video.getAnsweredNums(),video.getAnsweredSumNums()));
-                if (null!= video.getPlayState() && video.getPlayState().equals(TableConstant.gcUserVideoAction_value_rate2_1)){
-                    videoPlayState++;
+                Integer videoPlayState = 0;
+                Integer answeredNums = 0;
+                Integer answeredSumNums = 0;
+                for (GcVideo video : i.getVideoChildList()) {
+                    video.setCompleteStatus(buildCompleteStatusEventNum(video.getPlayState(),video.getAnsweredNums(),video.getAnsweredSumNums()));
+                    if (null!= video.getPlayState() && video.getPlayState().equals(TableConstant.gcUserVideoAction_value_rate2_1)){
+                        videoPlayState++;
+                    }
+                    answeredNums+=video.getAnsweredNums();
+                    answeredSumNums+=video.getAnsweredSumNums();
                 }
-                answeredNums+=video.getAnsweredNums();
-                answeredSumNums+=video.getAnsweredSumNums();
-            }
-            if (TableConstant.COMMON_ZERO!=videoPlayState&&TableConstant.COMMON_ZERO!=i.getVideoChildList().size()){
-                BigDecimal completedPercent = new BigDecimal(answeredNums).add(new BigDecimal(videoPlayState));
-                BigDecimal allPercent = new BigDecimal(i.getVideoChildList().size()).add(new BigDecimal(answeredSumNums));
-                BigDecimal percent = completedPercent.divide(allPercent, 2, BigDecimal.ROUND_DOWN).multiply(new BigDecimal("100"));
-                i.setTotalPercent(percent);
-            }else {
-                i.setTotalPercent(new BigDecimal("0"));
-            }
-            sysFileService.getResFullUrl(i.getUserInfo().getInfo().getAvatarFile(),null);
-        });
+                if (TableConstant.COMMON_ZERO!=videoPlayState&&TableConstant.COMMON_ZERO!=i.getVideoChildList().size()){
+                    BigDecimal completedPercent = new BigDecimal(answeredNums).add(new BigDecimal(videoPlayState));
+                    BigDecimal allPercent = new BigDecimal(i.getVideoChildList().size()).add(new BigDecimal(answeredSumNums));
+                    BigDecimal percent = completedPercent.divide(allPercent, 2, BigDecimal.ROUND_DOWN).multiply(new BigDecimal("100"));
+                    i.setTotalPercent(percent);
+                }else {
+                    i.setTotalPercent(new BigDecimal("0"));
+                }
+                sysFileService.getResFullUrl(i.getUserInfo().getInfo().getAvatarFile(),null);
+            });
         return gcSubjectList;
     }
 
@@ -1233,28 +1233,28 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         return this.baseMapper.getSubVideoEventList(subId,studentId,masterId);
     }
-
+    
     @Override
     public List<GcSubject> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId) {
         return this.baseMapper.getLevel1VideoEventList(subId,userId,teacherId);
     }
-
+    
     @Override
     public Map<String,Object> selectEventResNumMapForWorkbook(Integer subId, Integer userId){
-        return this.baseMapper.selectEventResNumMapForWorkbook(subId, userId);
+    	return this.baseMapper.selectEventResNumMapForWorkbook(subId, userId);
     }
-
+    
     @Override
     public Map<String,Object> getAnswerMessageMapForTeacherWorkbook(Integer subId, Integer studentId, Integer teacherId){
-        return this.baseMapper.getAnswerMessageMapForTeacherWorkbook(subId, studentId, teacherId);
-
+    	return this.baseMapper.getAnswerMessageMapForTeacherWorkbook(subId, studentId, teacherId);
+    	
     }
-
+    
     @Override
     public Map<String,Object> selectEventResNumMapForWorkbookTeacher(Integer subId, Integer studentId, Integer teacherId){
-        return this.baseMapper.selectEventResNumMapForWorkbookTeacher(subId, studentId,teacherId);
+    	return this.baseMapper.selectEventResNumMapForWorkbookTeacher(subId, studentId,teacherId);
     }
-
+    
 
     @Override
     public List<GcSubject> getSubListByIds(List<Integer> subIds,HttpServletRequest request) {
@@ -1362,33 +1362,33 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 //         List<GcSubject> allSubList=this.list(queryWrapper);
 //         List<Integer> allSubMasterIds = allSubList.stream().map(GcSubject::getMasterId).collect(Collectors.toList());
 //
-        //subIds可能包含导入的课程，通过masterId判断
+         //subIds可能包含导入的课程，通过masterId判断
         List<GcSubject> subjectList = new ArrayList<>();
         List<GcSubjectAssociation> subjectAssociationList=new ArrayList<>();
 
         Integer order = 1;
         for (Integer subId : subIds) {
-            GcSubject thisSub = this.getById(subId);
+        	GcSubject thisSub = this.getById(subId);
 
-            if(thisSub.getMasterId().intValue()==masterId.intValue()) {
+        	if(thisSub.getMasterId().intValue()==masterId.intValue()) {
 //        		GcSubject newSubject = new GcSubject();
 //                newSubject.setId(subId);
                 thisSub.setOrder(order);
-
+                
                 subjectList.add(thisSub);
                 order++;
-            }else {
-                GcSubjectAssociation sa = new GcSubjectAssociation();
-                sa.setMasterId(masterId);
-                sa.setSubjectId(subId);
-                sa.setOrder(order);
-                subjectAssociationList.add(sa);
-                order++;
-            }
+        	}else {
+        		GcSubjectAssociation sa = new GcSubjectAssociation();
+        		sa.setMasterId(masterId);
+        		sa.setSubjectId(subId);
+        		sa.setOrder(order);
+        		subjectAssociationList.add(sa);
+        		order++;
+        	}
 
         }
         if(subjectAssociationList!=null && subjectAssociationList.size()>0) {
-            long result = gcSubjectAssociationMapper.bulkUpdatOrderByMasterIdAndSubjetId(subjectAssociationList);
+        	long result = gcSubjectAssociationMapper.bulkUpdatOrderByMasterIdAndSubjetId(subjectAssociationList);
         }
         boolean a = this.updateBatchById(subjectList);
         return a;
@@ -1408,11 +1408,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 //        return this.updateBatchById(subjectList);
 //    }
 
-    @Override
-    public List<GcSubject> listSubByIds(List<Integer> subIds) {
+	@Override
+	public List<GcSubject> listSubByIds(List<Integer> subIds) {
 //		GcSubject a = this.baseMapper.selectByid(375);
-        return this.baseMapper.listSubByIds(subIds);
-    }
+		 return this.baseMapper.listSubByIds(subIds);
+	}
 
     @Override
     public List<GcSubject> listSubByIdsAndName(List<Integer> subIds,String name) {
@@ -1420,21 +1420,21 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> listSubWithAssoByIds(Integer masterId,List<Integer> subIds) {
+	public List<GcSubject> listSubWithAssoByIds(Integer masterId,List<Integer> subIds) {
 //		GcSubject a = this.baseMapper.selectByid(375);
-        return this.baseMapper.listSubWithAssoByIds(masterId,subIds);
-    }
+		 return this.baseMapper.listSubWithAssoByIds(masterId,subIds);
+	}
 
-
-    @Override
-    public Integer countCourseForName(GcSubject subject) {
-        return this.baseMapper.countCourseForName(subject);
-    }
-
-    @Override
-    public List<GcSubject> selecUnitNumForVideo(Integer videoId){
-        return this.baseMapper.selecUnitNumForVideo(videoId);
-    }
+	
+	@Override
+	public Integer countCourseForName(GcSubject subject) {
+		return this.baseMapper.countCourseForName(subject);
+	}
+	
+	@Override
+	public List<GcSubject> selecUnitNumForVideo(Integer videoId){
+		return this.baseMapper.selecUnitNumForVideo(videoId);
+	}
 
     @Override
     public List<Integer> countSessions(List<Integer> id){
@@ -1561,7 +1561,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
             //全部可查看不加入权限表
             if (sub.getAvailableType().equals(TableConstant.COMMON_ONE)||sub.getAvailableType().equals(TableConstant.COMMON_THREE)){
-                //私有
+            //私有
             }else if (TableConstant.COMMON_FOUR == sub.getState()){
 
             }

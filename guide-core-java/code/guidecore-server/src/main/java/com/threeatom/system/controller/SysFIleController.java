@@ -43,17 +43,17 @@ public class SysFIleController extends GuideCoreController {
 
 	@Autowired
 	private PtTagsService tagsService;
-
+	
 	@ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
-	@PostMapping("/saveLink")
+    @PostMapping("/saveLink")
 	public Message saveLink(@RequestBody SysFile sysFile,HttpServletRequest request) {
 		if (null==sysFile.getId()){
-			ApiAssert.notNull(sysFile.getFileUrl());//file url不可空
-			//判断folder是否是正确值
+		ApiAssert.notNull(sysFile.getFileUrl());//file url不可空
+		//判断folder是否是正确值
 //		ApiAssert.ifStringInList(sysFile.getFolder(), TableConstant.sysFile_folder_link_list, "foler字段错误，请于后端人员确认");
-			ApiAssert.ifStringInList(sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
-			//因s3上传文件取消
-			//ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),EventUnifyType.video_links_JSON_STR,"fileTypeIndex字段错误，请于后端人员确认");
+		ApiAssert.ifStringInList(sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
+		//因s3上传文件取消
+		//ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),EventUnifyType.video_links_JSON_STR,"fileTypeIndex字段错误，请于后端人员确认");
 		}
 		GcMaster master = this.getMaster();
 		if (null==master&&null!=request.getHeader("masterId")) {
@@ -69,7 +69,7 @@ public class SysFIleController extends GuideCoreController {
 			sysFile.setUploadUid(this.getGcUser().getId());
 			sysFile.setMasterId(master.getId());
 		}else {
-			throw new SystemException("userRole不存在，请查看通用枚举配置");
+			throw new SystemException("userRole不存在，请查看通用枚举配置"); 
 		}
 		SysSystem sys = this.getSystem();
 		sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
@@ -103,7 +103,7 @@ public class SysFIleController extends GuideCoreController {
 			return new Message().ok().addData("file", sysFile);
 		}
 		return new Message().error("保存失败");
-
+		
 	}
 
 //	@ApiOperation(value = "批量保存youtube视频", httpMethod = "POST")
@@ -159,15 +159,15 @@ public class SysFIleController extends GuideCoreController {
 		}
 		return new Message().error("保存失败");
 	}
-
+	
 	@ApiOperation(value = "保存视频时长到文件库", httpMethod = "POST")
-	@PostMapping("/saveVdeoLong")
+    @PostMapping("/saveVdeoLong")
 	public Message saveVdeoLong(@RequestBody SysFile sysFile) {
 		if(sysFile.getVideoLong()==null)throw new SystemException("视频长度不可空");
 		SysFile file=sysFileService.getById(sysFile);
-		if(file==null)throw new SystemException("视频id不存在");
+		if(file==null)throw new SystemException("视频id不存在"); 
 		file.setVideoLong(sysFile.getVideoLong());
-
+		
 		if(sysFileService.updateById(file)) {
 			return new Message().ok("保存成功").addData("file", file);
 		}

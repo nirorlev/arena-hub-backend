@@ -1192,7 +1192,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 			//1、分页查询出课程信息
 			//if(CollectionUtils.isNotEmpty(subIds)){
-			page = newUiGcSubjectService.list(params,system, request,envFlag);
+				page = newUiGcSubjectService.list(params,system, request,envFlag);
 			//}
 			//2.查询出学生的所有课程
 			List<GcSubject> allSubList = subjectService.selectAllSubByUserId(masterId,userId,request);
@@ -2487,38 +2487,38 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
 			return new Message().error(I18NUtil.get("guidecore.resource.deleteSucc"));
 		}else if(envFlag==EnvType.PT.getCode()){
-			subService.deleteSub(subId, master.getId());
-			List<GcAccess> accessList = gcAccessService.selectAccessBySubId(subId,master.getId());
-			if(CollectionUtils.isNotEmpty(accessList)){
-				for(GcAccess gcAccess:accessList){
-					if (null!=gcAccess.getSubjectJson()){
-						gcAccess.getSubjectJson().remove(subId);
-					}
-					if (null!=gcAccess.getMaySubjectJson()){
-						gcAccess.getMaySubjectJson().remove(subId);
-					}
-					if (null!=gcAccess.getMustSubjectJson()){
-						gcAccess.getMustSubjectJson().remove(subId);
-					}
-				}
-			}
-			gcAccessService.updateBatchById(accessList);
-			List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.getContainsSubjectAccessPermissionList(subId.toString());
-			if(CollectionUtils.isNotEmpty(userAccessPermissions)){
-				for(GcUserAccessPermission gcUserAccessPermission:userAccessPermissions){
-					if (null!=gcUserAccessPermission.getSubPermission()){
-						gcUserAccessPermission.getSubPermission().remove(subId);
-					}
-					if (null!=gcUserAccessPermission.getMaySubjectJson()){
-						gcUserAccessPermission.getMaySubjectJson().remove(subId);
-					}
-					if (null!=gcUserAccessPermission.getMustSubjectJson()){
-						gcUserAccessPermission.getMustSubjectJson().remove(subId);
+				subService.deleteSub(subId, master.getId());
+				List<GcAccess> accessList = gcAccessService.selectAccessBySubId(subId,master.getId());
+				if(CollectionUtils.isNotEmpty(accessList)){
+					for(GcAccess gcAccess:accessList){
+						if (null!=gcAccess.getSubjectJson()){
+							gcAccess.getSubjectJson().remove(subId);
+						}
+						if (null!=gcAccess.getMaySubjectJson()){
+							gcAccess.getMaySubjectJson().remove(subId);
+						}
+						if (null!=gcAccess.getMustSubjectJson()){
+							gcAccess.getMustSubjectJson().remove(subId);
+						}
 					}
 				}
-			}
-			gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
-			return new Message().ok();
+				gcAccessService.updateBatchById(accessList);
+				List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.getContainsSubjectAccessPermissionList(subId.toString());
+				if(CollectionUtils.isNotEmpty(userAccessPermissions)){
+					for(GcUserAccessPermission gcUserAccessPermission:userAccessPermissions){
+						if (null!=gcUserAccessPermission.getSubPermission()){
+							gcUserAccessPermission.getSubPermission().remove(subId);
+						}
+						if (null!=gcUserAccessPermission.getMaySubjectJson()){
+							gcUserAccessPermission.getMaySubjectJson().remove(subId);
+						}
+						if (null!=gcUserAccessPermission.getMustSubjectJson()){
+							gcUserAccessPermission.getMustSubjectJson().remove(subId);
+						}
+					}
+				}
+				gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
+				return new Message().ok();
 		}
 		return new Message().error("删除失败");
 	}

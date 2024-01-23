@@ -40,41 +40,41 @@ public class ShiroConfiguration {
 	@Bean("adminUserRealm")
 	@DependsOn("lifecycleBeanPostProcessor")
 	public AdminUserRealm adminUserRealm() {
-
+		
 		AdminUserRealm adminUserRealm=new AdminUserRealm();
 		adminUserRealm.setName("admin");
 		return adminUserRealm;
-
+		
 	}
 	@Bean("guideCoreUserRealm")
 	@DependsOn("lifecycleBeanPostProcessor")
 	public GuideCoreUserRealm guideCoreUserRealm() {
-
+		
 		GuideCoreUserRealm realm=new GuideCoreUserRealm();
 		realm.setName("guidecore");
 		return realm;
-
+		
 	}
-
+	
 
 	private ShiroRedisCacheManager cacheManager(RedisTemplate<String,Object> template){
-		return new ShiroRedisCacheManager(template);
-	}
+        return new ShiroRedisCacheManager(template);
+    }
 
 	@Value("${frontendPath}")
 	private  String  hubUrl;
 	@Bean
-	public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
 		ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
 		shiroFilterFactoryBean.setSecurityManager(securityManager);
 		//拦截器.
-		// 添加自己的过滤器并且取名为jwt
-		Map<String, Filter> filterMap = new HashMap<>();
-		//设置我们自定义的JWT过滤器
-		filterMap.put("weappjwt", new WeappJwtFilter());
-		filterMap.put("adminjwt", new AdminJwtFilter());
-		filterMap.put("guidecorejwt",new GuideCoreJwtFilter());
-		shiroFilterFactoryBean.setFilters(filterMap);
+		 // 添加自己的过滤器并且取名为jwt
+	    Map<String, Filter> filterMap = new HashMap<>();
+	    //设置我们自定义的JWT过滤器
+	    filterMap.put("weappjwt", new WeappJwtFilter());
+	    filterMap.put("adminjwt", new AdminJwtFilter());
+	    filterMap.put("guidecorejwt",new GuideCoreJwtFilter());
+	    shiroFilterFactoryBean.setFilters(filterMap);
 		Map<String,String> filterChainDefinitionMap = new LinkedHashMap<String,String>();
 		filterChainDefinitionMap.put("/api/*/weapp/runCheck", "anon");
 		filterChainDefinitionMap.put("/api/*/weapp/user/login", "anon");
@@ -82,7 +82,7 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/api/*/admin/user/login", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/sendEmailCaptcha", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/changePassword", "anon");
-
+		
 		filterChainDefinitionMap.put("/api/*/guidecore/callback/**", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/login", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/register", "anon");
@@ -93,12 +93,12 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/api/*/guidecore/user/weapp/sendEmailCaptcha", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/user/weapp/changePassword", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/user/weapp/bindLogin", "anon");
-
+		
 		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getForHome", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/getIp", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/*", "anon");
 		filterChainDefinitionMap.put("/api/*/guidecore/subversion/gcManagerCollection", "anon");
-
+		
 		filterChainDefinitionMap.put("/api/*/guidecore/subjectIntroInfo/getSubjectIntroInfo/*", "anon");
 		filterChainDefinitionMap.put("/api/v1/guidecore/newui/help/center/getFaq", "anon");
 		filterChainDefinitionMap.put("/api/v1/govidigo/home/homePage", "anon");
@@ -108,7 +108,7 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/api/v1/powtoon/home/getToken","anon");
 
 
-
+		
 		//测试用
 		filterChainDefinitionMap.put("/api/*/guidecore/user/test", "anon");
 		filterChainDefinitionMap.put("/api/v1/guidecore/video/search","anon");
@@ -146,7 +146,7 @@ public class ShiroConfiguration {
 //		filterChainDefinitionMap.put("/api/*/guidecore/manager/getSubjectImportTokenTest", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/getStudentListByClass", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/getClassList", "anon");
-
+		
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/test", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/manager/*/*", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/manager/*", "anon");
@@ -158,7 +158,7 @@ public class ShiroConfiguration {
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/*/*/*", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/sysFile/*", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/getStudentHomeDataForTeacher/*", "anon");
-
+		
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/getLikeVideoByUserId", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getWelcomeVideosUserSide/*", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getWelcomeVideos", "anon");
@@ -170,7 +170,7 @@ public class ShiroConfiguration {
 //		filterChainDefinitionMap.put("/api/*/guidecore/getSocialMedia", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/workBookMessageList", "anon");
-
+		
 		filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
 		filterChainDefinitionMap.put("/api/*/weapp/**", "weappjwt");
 		filterChainDefinitionMap.put("/api/*/admin/**", "adminjwt");
@@ -178,62 +178,62 @@ public class ShiroConfiguration {
 
 		shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
 		return shiroFilterFactoryBean;
-	}
+    }
 
 	@Bean("realms")
 	public List<Realm> realms(AdminUserRealm adminUserRealm,GuideCoreUserRealm guideCoreUserRealm){
 		List<Realm> realms = new ArrayList<>();
-		realms.add(adminUserRealm);
-		realms.add(guideCoreUserRealm);
-		return realms;
+        realms.add(adminUserRealm);
+        realms.add(guideCoreUserRealm);
+        return realms;
 	}
-
+	
 	@Bean
 	public SessionsSecurityManager securityManager(List<Realm> realms,RedisTemplate<String, Object> template) {
 		DefaultWebSecurityManager securityManager=new DefaultWebSecurityManager();
 		//注入缓存管理器
 		securityManager.setCacheManager(this.cacheManager(template));
 		// 无状态subjectFactory设置
-		DefaultSessionStorageEvaluator evaluator = (DefaultSessionStorageEvaluator)((DefaultSubjectDAO) securityManager.getSubjectDAO()).getSessionStorageEvaluator();
-		evaluator.setSessionStorageEnabled(Boolean.FALSE);
-
-		securityManager.setAuthenticator(new UserModularRealmAuthenticator());
-		securityManager.setAuthorizer(new UserModularRealmAuthorizer());
-
-		securityManager.setRealms(realms);
-		return securityManager;
+        DefaultSessionStorageEvaluator evaluator = (DefaultSessionStorageEvaluator)((DefaultSubjectDAO) securityManager.getSubjectDAO()).getSessionStorageEvaluator();
+        evaluator.setSessionStorageEnabled(Boolean.FALSE);
+        
+        securityManager.setAuthenticator(new UserModularRealmAuthenticator());
+        securityManager.setAuthorizer(new UserModularRealmAuthorizer());
+        
+        securityManager.setRealms(realms);
+        return securityManager;
 	}
-
-
-
-
+	
+	
+	
+	
 	/**
-	 * Shiro生命周期处理器
-	 * @return
-	 */
-	@Bean(name = "lifecycleBeanPostProcessor")
-	public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
-		return new LifecycleBeanPostProcessor();
-	}
-
-	/**
-	 * 开启Shiro注解(如@RequiresRoles,@RequiresPermissions)
-	 * @return
-	 */
-	@Bean
-	@DependsOn("lifecycleBeanPostProcessor")
-	public DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator(){
-		DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
-		advisorAutoProxyCreator.setProxyTargetClass(true);
-		return advisorAutoProxyCreator;
-	}
-
-	@Bean
-	public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
-		AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
-		authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
-		return authorizationAttributeSourceAdvisor;
-	}
-
-
+     * Shiro生命周期处理器
+     * @return
+     */
+    @Bean(name = "lifecycleBeanPostProcessor")
+    public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+        return new LifecycleBeanPostProcessor();
+    }
+    
+    /**
+     * 开启Shiro注解(如@RequiresRoles,@RequiresPermissions)
+     * @return
+     */
+    @Bean
+    @DependsOn("lifecycleBeanPostProcessor")
+    public DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator(){
+        DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
+        advisorAutoProxyCreator.setProxyTargetClass(true);
+        return advisorAutoProxyCreator;
+    }
+	
+    @Bean
+    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
+        AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
+        authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
+        return authorizationAttributeSourceAdvisor;
+    }
+    
+	
 }
