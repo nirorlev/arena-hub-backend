@@ -797,6 +797,7 @@
         channel.channel_img_file_id,channel.`desc`,channel.create_user_id,channel.visible_flag,channel.category_id,
         channel.level,channel.fid,channel.`order`,channel.master_id,ifnull(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
         channel.update_time,
+        file.update_time as file_update_time,
         ifnull(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
         ifnull(ch2.id,channel.id) as id,
         ifnull(ch2.channel_name,channel.channel_name) as channel_name,
@@ -819,15 +820,16 @@
         where 1=1
         and userAccess.user_id = #{userId}
         and us.id = #{userId}
-        and channel.create_user_id != #{userId}
         and userAccess.master_id = #{masterId}
         and pcc.id is not null
+        or((channel.create_user_id = #{userId} or ch2.create_user_id = #{userId}) and channel.master_id = #{masterId})
+        and channel.master_id = #{masterId}
         GROUP BY file.id
         order by file.update_time desc
         ) as f
         left join gc_user_video_action vac on f.fileId = vac.file_id and vac.`type` = 1
         GROUP BY f.fileId
-        order by f.update_time desc
+        order by f.file_update_time desc
     </select>
 
 

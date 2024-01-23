@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.mapper.SysMenuMapper;
 import com.threeatom.guidecore.service.SysMenuService;
@@ -20,12 +22,29 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
 
     @Override
-    public List<SysMenu> getSysMenuList() {
-        return this.baseMapper.getSysMenuList();
+    public List<SysMenu> getSysMenuList(Integer masterId) {
+        return this.baseMapper.getSysMenuList(masterId);
     }
 
     @Override
-    public List<SysMenu> getLevel3List() {
-        return this.baseMapper.getLevel3List();
+    public List<SysMenu> getLevel3List(Integer masterId) {
+        return this.baseMapper.getLevel3List(masterId);
+    }
+
+    @Override
+    public List<SysMenu> getByMaster(Integer masterId) {
+        QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<SysMenu>();
+        queryWrapper.eq("master_id", masterId);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<Integer> getParentIdList(Integer masterId) {
+        return this.baseMapper.getParentIdList(masterId);
+    }
+
+    @Override
+    public List<SysMenu> getChildLevelList(Integer masterId) {
+        return this.baseMapper.getChildLevelList(masterId);
     }
 }

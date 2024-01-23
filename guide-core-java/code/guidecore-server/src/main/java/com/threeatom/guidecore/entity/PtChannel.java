@@ -44,7 +44,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(value = "`level`")
     private Integer level;
-    
+
     private Integer fid;
 
     private Integer order;
@@ -177,6 +177,12 @@ public class PtChannel implements Serializable, TreeNodeEntity {
      */
     @TableField(exist = false)
     private Integer likedFlag;
+
+    @TableField(exist = false)
+    private List<GcAccess> subscribeAccessList;
+
+    @TableField(exist = false)
+    private List<GcAccess> accessList;
 
 
 //    @TableField(exist = false)

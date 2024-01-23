@@ -2094,7 +2094,7 @@
 		  and ua.master_id = #{masterId}
 		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
 		  and s.state = 1
-		  and s.level = 0
+		  and s.`level` = 0
 		  and (uap.id is not null or(uap2.id is not null and (co.subject_state = 2))))
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
@@ -2145,6 +2145,7 @@
 		  and co.subject_state = 1
 		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
 		 and s.state = 1)
+		and s.`level` = 0
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2182,6 +2183,8 @@
 		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
 	      or ((s.available_type = 1 or s.available_type = 3) and s.master_id = #{masterId} and s.state = 1)
 	      and s.state = 1)
+		and s.`level` = 0
+		  and (co.subject_state != 1 or co.id is null)
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2223,6 +2226,7 @@
 		  and u.id =#{userId}
 		  and s.master_id = #{masterId}
 		  and s.state = 0
+		and s.`level` = 0
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2247,7 +2251,7 @@
 		  and u.id =#{userId}
 		  and s.master_id = #{masterId}
 		  and s.state = 1
-		  and s.level = 0
+		  and s.`level` = 0
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2275,6 +2279,7 @@
 		  and ua.master_id = #{masterId}
 		  and JSON_CONTAINS(ua.role_json,'"groupMember"') = 1
 		and s.state = 1
+		and s.`level` = 0
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2300,6 +2305,7 @@
 		  and s.master_id = #{masterId}
 		and s.state = 1
 		and (co.subject_state != 1 or co.id is null )
+		and s.`level` = 0
 		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
 			and s.id in
 			<foreach collection="orgMaySubjectIds" item="ids" index="index" open="(" close=")" separator=",">
@@ -2445,6 +2451,7 @@
 		  and (u.id =#{userId}
 		  and ua.master_id = #{masterId}
 		  and s.available_type != 4
+		and s.`level` = 0
 		and s.state = 1
 		<if test="groupCodeList!=null and groupCodeList.size()!=0">
 			and ac.code in

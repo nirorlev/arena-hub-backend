@@ -62,4 +62,6 @@ public interface GcUserAccessPermissionMapper extends BaseMapper<GcUserAccessPer
     List<GcUserAccessPermission> getContainsAccessPermissionList(@Param("ptId")String ptId,@Param("masterId")Integer masterId);
 
     List<GcUserAccessPermission> getContainsSubjectAccessPermissionList(@Param("ptId")String ptId);
+
+    void updatePermissionData(@Param("masterId") Integer masterId,@Param("userId")Integer userId);
 }
