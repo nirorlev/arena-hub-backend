@@ -1845,7 +1845,7 @@ public class PowtoonController extends GuideCoreController {
 		queryWrapper.isNotNull("master_id");
 		queryWrapper.eq("id",TableConstant.COMMON_ONE);
 		PtConfig config = ptConfigService.getOne(queryWrapper);
-		if (null==config){
+		if (null==config ){
 			return new Message().ok().addData("config",null);
 		}
 		GcMaster master = masterService.getById(config.getMasterId());
