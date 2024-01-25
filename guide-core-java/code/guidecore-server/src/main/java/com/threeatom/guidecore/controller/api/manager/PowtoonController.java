@@ -85,6 +85,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -93,6 +94,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -169,6 +171,9 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private GvgMasterService gvgMasterService;
+
+	@Autowired
+	private DataSource dataSource;
 
 	@Autowired
 	private GcUserService userService;
@@ -1892,6 +1897,8 @@ public class PowtoonController extends GuideCoreController {
 			sysMenuList=sysMenuService.getSysMenuList(null);
 			homePageSections=sysMenuService.getLevel3List(null);
 		}
+		//预热接口,优化第一次启动
+		gcSubjectService.initJit();
 		return new Message().ok().addData("sysMenuList",sysMenuList).addData("homePageSections",homePageSections);
 	}
 

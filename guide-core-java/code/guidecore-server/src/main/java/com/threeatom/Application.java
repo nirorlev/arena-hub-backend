@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication(exclude = {ErrorMvcAutoConfiguration.class})
 @MapperScan("com.threeatom.*.mapper")
+@MapperScan("com.threeatom.common.database")
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
