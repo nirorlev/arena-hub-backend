@@ -1847,7 +1847,7 @@ public class PowtoonController extends GuideCoreController {
 		}else {
 			ptConfig = config.get(config.size()-TableConstant.COMMON_ONE);
 		}
-		return new Message().ok().addData("master",master).addData("config",ptConfig);
+		return new Message().ok().addData("master",master).addData("config",ptConfig).addData("test","1");
 	}
 
 	@GetMapping("/getPtConfig")
