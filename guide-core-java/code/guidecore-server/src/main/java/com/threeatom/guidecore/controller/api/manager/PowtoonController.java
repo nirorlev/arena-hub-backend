@@ -1836,8 +1836,11 @@ public class PowtoonController extends GuideCoreController {
 		queryWrapper.eq("master_id", master.getId());
 		List<PtConfig> config = ptConfigService.list(queryWrapper);
 		PtConfig ptConfig = new PtConfig();
-		if (config.size()!=TableConstant.COMMON_ONE){
-			ptConfig = null;
+		if (null==config){
+			return new Message().ok().addData("master",master).addData("config",null);
+		}
+		if (null!=config&&config.size()<=TableConstant.COMMON_ONE){
+			ptConfig = config.get(TableConstant.COMMON_ZERO);
 		}else {
 			ptConfig = config.get(config.size()-TableConstant.COMMON_ONE);
 		}
