@@ -1085,7 +1085,7 @@ public class PowtoonController extends GuideCoreController {
 				.addData("ptRootURL",ptLoginConfig.getPtRootUrl()).addData("clientSecret",ptLoginConfig.getClientSecret())
 				.addData("test1027","updated2022-10-27")
 				.addData("ptLoginConfig",ptLoginConfig)
-				.addData("???????","??????");
+				.addData("测试",new Date());
 	}
 
 	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
