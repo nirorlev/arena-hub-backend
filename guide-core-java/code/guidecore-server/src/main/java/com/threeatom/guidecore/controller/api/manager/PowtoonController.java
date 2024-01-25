@@ -1832,7 +1832,7 @@ public class PowtoonController extends GuideCoreController {
 		List<PtConfig> config = ptConfigService.list(queryWrapper);
 		PtConfig ptConfig = new PtConfig();
 		if (config.size()!=TableConstant.COMMON_ONE){
-			ptConfig = config.get(TableConstant.COMMON_ZERO);
+			ptConfig = null;
 		}else {
 			ptConfig = config.get(config.size()-TableConstant.COMMON_ONE);
 		}
@@ -1845,6 +1845,9 @@ public class PowtoonController extends GuideCoreController {
 		queryWrapper.isNotNull("master_id");
 		queryWrapper.eq("id",TableConstant.COMMON_ONE);
 		PtConfig config = ptConfigService.getOne(queryWrapper);
+		if (null==config){
+			return new Message().ok().addData("config",null);
+		}
 		GcMaster master = masterService.getById(config.getMasterId());
 		return new Message().ok().addData("config",config).addData("master",master);
 	}
