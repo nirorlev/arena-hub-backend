@@ -1832,6 +1832,9 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getPtGlobalConfig")
 	public Message getPtGlobalConfig(Integer ptMasterId,HttpServletRequest request){
 		GcMaster master = gcMasterService.getById(ptMasterId);
+		if (null==master){
+			return new Message().ok();
+		}
 		QueryWrapper<PtConfig> queryWrapper = new QueryWrapper<PtConfig>();
 		queryWrapper.eq("master_id", master.getId());
 		List<PtConfig> config = ptConfigService.list(queryWrapper);
