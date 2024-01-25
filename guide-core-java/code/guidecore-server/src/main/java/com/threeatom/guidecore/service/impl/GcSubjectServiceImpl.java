@@ -351,6 +351,14 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
+    public void initJit(){
+        for (int i = 0; i < 30000; i++) {
+            // 加入一些无关紧要的操作
+            int result = 1 + 1;
+        }
+    }
+
+    @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
         List<GcSubject> orgMustIds = this.baseMapper.selectOrgMustJsonArrayList(userId,masterId);

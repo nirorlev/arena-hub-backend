@@ -2120,10 +2120,6 @@
 	<select id="selectCompletedSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 			if(co.subject_state= 1,2,null) as identifying,
 			ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2132,7 +2128,6 @@
 				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
 				LEFT JOIN gc_user u ON u.id = ua.user_id
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and (u.id =#{userId}
 		  and ua.master_id = #{masterId}
@@ -2158,10 +2153,6 @@
 	<select id="selectDiscoverSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 		if(co.subject_state= 1,2,null) as identifying,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2170,7 +2161,6 @@
 				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
 				LEFT JOIN gc_user u ON u.id = ua.user_id
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and (u.id =#{userId}
 		  and ua.master_id = #{masterId}
@@ -2206,16 +2196,11 @@
 	<select id="selectDraftsSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
 			gc_subject s
 				LEFT JOIN gc_user u ON u.id = s.create_user
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and u.id =#{userId}
 		  and s.master_id = #{masterId}
@@ -2231,16 +2216,11 @@
 	<select id="selectPublishedSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
 			gc_subject s
 				LEFT JOIN gc_user u ON u.id = s.create_user
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and u.id =#{userId}
 		  and s.master_id = #{masterId}
@@ -2255,10 +2235,6 @@
 	<select id="selectFromMyTeamSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 			if(co.subject_state= 1,2,null) as identifying,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2267,7 +2243,6 @@
 				LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
 				LEFT JOIN gc_user u ON u.id = ua.user_id
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and u.id =#{userId}
 		  and ua.master_id = #{masterId}
@@ -2284,16 +2259,11 @@
 	<select id="selectCompanyResourcesSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
 			gc_subject s
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = #{userId}
 				LEFT JOIN gc_user u ON u.id = co.user_id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		where 1=1
 		  and u.id =#{userId}
 		  and s.master_id = #{masterId}
@@ -2314,10 +2284,6 @@
 	<select id="selectAllCourseSubject" resultMap="baseResultMap">
 		SELECT
 			s.*,
-			f.id AS f_id,
-			f.NAME AS f_name,
-			f.file_url AS f_file_url,
-			f.save_type AS f_save_type,
 		ifnull(co.in_progress,0) as videoProgressPercent
 		FROM
 			gc_subject s
@@ -2325,7 +2291,6 @@
 			    left join gc_video v on v.sub_id = s2.id
 				LEFT JOIN gc_user u ON u.id = s.create_user
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
-				LEFT JOIN sys_file f ON s.sub_img_id = f.id
 				left join sys_file f2 on f2.id = v.file_id
 				left join gc_user_video_action ac on ac.video_id =v.id and ac.`type` = 1
 		where 1=1

@@ -1892,6 +1892,8 @@ public class PowtoonController extends GuideCoreController {
 			sysMenuList=sysMenuService.getSysMenuList(null);
 			homePageSections=sysMenuService.getLevel3List(null);
 		}
+		//预热接口,优化第一次启动
+		gcSubjectService.initJit();
 		return new Message().ok().addData("sysMenuList",sysMenuList).addData("homePageSections",homePageSections);
 	}
 

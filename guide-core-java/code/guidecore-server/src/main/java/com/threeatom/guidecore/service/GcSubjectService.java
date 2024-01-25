@@ -158,4 +158,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 	Integer getSubjectNameIndex(Integer masterId,String nameIndex);
 
 	Integer getNewMyAssignmentNew(Integer masterId,Integer userId);
+
+	void initJit();
 }
