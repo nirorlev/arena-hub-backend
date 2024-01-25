@@ -85,6 +85,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -93,6 +94,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -169,6 +171,9 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private GvgMasterService gvgMasterService;
+
+	@Autowired
+	private DataSource dataSource;
 
 	@Autowired
 	private GcUserService userService;
@@ -280,7 +285,6 @@ public class PowtoonController extends GuideCoreController {
 		String token = request.getHeader("Authorization");
 		if (null != token && !"".equals(token) && !"undefined".equals(token)){
 			GcUser user = this.getGcUser();
-			gvgMasterService.newPtIndexHome(requestParams,request,system,user);
 			return gvgMasterService.portalInfosUnlogin(requestParams,request,system,user,EnvType.PT.getCode()).addData("times",new Date());
 		}
 		return gvgMasterService.portalInfosUnlogin(requestParams,request,system,null,EnvType.PT.getCode()).addData("times",new Date());
