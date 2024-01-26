@@ -295,11 +295,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             List<Integer> idLists = this.baseMapper.selectSubjectByCreateUser(masterId,userId);
             Integer pageNum = pageParam.getPageNum();
             Integer pageSize=pageParam.getPageSize();
-
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
             }
             subjects = this.baseMapper.selectSubjectByNewIndexHome(userId,masterId,idLists);
+            for (GcSubject subject : subjects) {
+                subject.setIsToDo(TableConstant.COMMON_ZERO);
+            }
             //may
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);

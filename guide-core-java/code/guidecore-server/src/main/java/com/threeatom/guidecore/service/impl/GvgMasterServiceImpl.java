@@ -276,11 +276,29 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
+
+					List<Integer> identifyingList = new ArrayList<>();
+					//完成
+					if (null!=li.getPercents()&&li.getPercents().equals(100)){
+						li.setIdentifying(TableConstant.COMMON_TWO);
+						identifyingList.add(TableConstant.COMMON_TWO);
+					}
+					//未开始
+					/*if (null==li.getPercents()||li.getPercents().equals(0)){
+						li.setIdentifying(TableConstant.COMMON_ZERO);
+						identifyingList.add(TableConstant.COMMON_ZERO);
+					}*/
+					//证书
+					if (null!=li.getCertificatesFlag()&&li.getCertificatesFlag().equals(TableConstant.COMMON_ONE)){
+						identifyingList.add(TableConstant.COMMON_FOUR);
+					}
+					li.setIdentifyings(identifyingList);
 				}
 			}
 
 			//subjectList的循环
 			if(subjectList != null && subjectList.size() > 0){
+				System.out.println("????????");
 				for(GcSubject li:subjectList) {
 					if (null !=li.getSubImgId()&&null!=sysFileMap.get(li.getSubImgId())){
 						SysFile file = sysFileMap.get(li.getSubImgId());
@@ -323,6 +341,22 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
+					List<Integer> identifyingList = new ArrayList<>();
+					//完成
+					if (null!=li.getPercents()&&li.getPercents().equals(100)){
+						li.setIdentifying(TableConstant.COMMON_TWO);
+						identifyingList.add(TableConstant.COMMON_TWO);
+					}
+					//未开始
+					if (null==li.getPercents()||li.getPercents().equals(0)&&li.getIsToDo()==TableConstant.COMMON_ZERO){
+						li.setIdentifying(TableConstant.COMMON_ZERO);
+						identifyingList.add(TableConstant.COMMON_ZERO);
+					}
+					//证书
+					if (null!=li.getCertificatesFlag()&&li.getCertificatesFlag().equals(TableConstant.COMMON_ONE)){
+						identifyingList.add(TableConstant.COMMON_FOUR);
+					}
+					li.setIdentifyings(identifyingList);
 				}
 			}
 
