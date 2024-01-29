@@ -1,6 +1,6 @@
 FROM maven:latest
 
-ENV START_ENVIRONMENT user
+ENV START_ENVIRONMENT ${START_ENVIRONMENT}
 
 EXPOSE 80
 
@@ -14,6 +14,9 @@ RUN curl --silent --show-error --fail "https://awscli.amazonaws.com/awscli-exe-l
 RUN unzip awscliv2.zip
 RUN ./aws/install
 
+# COPY startup.sh .
+# RUN "./startup.sh"
+
 RUN ["mvn", "-Dmaven.compiler.source=15", "-Dmaven.compiler.target=15", "clean", "install", "package", "-Dmaven.test.skip=true"]
 
-CMD ["java", "-Xms256m", "-Xmx512m", "-jar", "-Dloader.path=.,config,lib", "target/guidecore.jar", "--spring.profiles.active=user"]
+CMD ["java", "-Xms256m", "-Xmx512m", "-jar", "-Dloader.path=.,config,lib", "target/guidecore.jar", "--spring.profiles.active=${START_ENVIRONMENT}"]
