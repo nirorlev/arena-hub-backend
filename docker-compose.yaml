@@ -1,0 +1,70 @@
+version: '3'
+
+services:
+  mysql-db:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: arena-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: arena-hub
+      MYSQL_USER: your-username
+      MYSQL_PASSWORD: your-password
+      MYSQL_ROOT_HOST: "%" 
+    volumes:
+      - ./other-services/mysql/mysql-dump.sql:/docker-entrypoint-initdb.d/mysql-dump.sql
+      - ./other-services/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql    
+    command: ["mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 3306:3306
+    networks:
+      - network_app
+
+  # Redis
+  redis:
+    image: redis:6.2
+    container_name: redis
+    volumes:
+      - ./other-services/redis/redis.conf:/etc/redis/redis.conf 
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    ports:
+      - 6379:6379
+    networks:
+      - network_app
+
+  # # Policy Decision Point (PDP)
+  # pdp:
+  #   image: permitio/pdp-v2:latest
+  #   ports:
+  #     - 7000:7766
+  #   # Add other configurations for your PDP container if needed
+  #   # apiKey: ${PDP_API_KEY:permit_key_xxx
+  #   # pdpUrl: ${PDP_URL:http://localhost:7000}
+
+  java-app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: arena-java-app
+    restart: always
+    ports:
+      - 8080:80
+    depends_on:
+      - mysql-db
+      - redis
+      # - pdp
+    networks:
+      - network_app
+    # environment:
+    #   - PDP_URL=http://pdp:7000
+    #   - PDP_API_KEY=permit_key_xxx
+#volumes:
+#  frontendbuild:
+#    name: frontendbuild
+networks:
+  network_app:
+    name: network_app
+# volumes:
+#   mydatavolume:
+
