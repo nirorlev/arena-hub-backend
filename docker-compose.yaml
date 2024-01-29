@@ -5,16 +5,17 @@ services:
     image: mysql:5.7
     platform: linux/amd64
     container_name: arena-mysql
-    restart: always
+    # restart: always
     environment:
+      MYSQL_ROOT_HOST: "%" # allow root login from any host
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: arena-hub
-      MYSQL_USER: your-username
-      MYSQL_PASSWORD: your-password
-      MYSQL_ROOT_HOST: "%" 
+      MYSQL_USER: arena-be-user
+      MYSQL_PASSWORD: LlDbCsqvnXMtAgd
     volumes:
-      - ./other-services/mysql/mysql-dump.sql:/docker-entrypoint-initdb.d/mysql-dump.sql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql    
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql-dump.sql:/docker-entrypoint-initdb.d/mysql-dump.sql    
+    # command: ["/bin/chown -R root:root /docker-entrypoint-initdb.d", "mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
     command: ["mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
     ports:
       - 3306:3306
@@ -24,7 +25,7 @@ services:
   # Redis
   redis:
     image: redis:6.2
-    container_name: redis
+    container_name: arena-redis
     volumes:
       - ./redis.conf:/etc/redis/redis.conf 
     command: ["redis-server", "/etc/redis/redis.conf"]
@@ -33,21 +34,24 @@ services:
     networks:
       - network_app
 
-  # # Policy Decision Point (PDP)
-  # pdp:
-  #   image: permitio/pdp-v2:latest
-  #   ports:
-  #     - 7000:7766
-  #   # Add other configurations for your PDP container if needed
-  #   # apiKey: ${PDP_API_KEY:permit_key_xxx
-  #   # pdpUrl: ${PDP_URL:http://localhost:7000}
+  # Policy Decision Point (PDP)
+  pdp:
+    image: permitio/pdp-v2:latest
+    ports:
+      - 7000:7766
+    environment:
+      PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
+      PATH: /:/home/permit
+    networks:
+      - network_app
 
   java-app:
     build:
       context: .
       dockerfile: ./Dockerfile
+      tags: ["1.0"]
     container_name: arena-java-app
-    restart: always
+    # restart: always
     ports:
       - 8080:80
     depends_on:
@@ -59,12 +63,11 @@ services:
     # environment:
     #   - PDP_URL=http://pdp:7000
     #   - PDP_API_KEY=permit_key_xxx
-#volumes:
-#  frontendbuild:
-#    name: frontendbuild
+
 networks:
   network_app:
     name: network_app
-# volumes:
-#   mydatavolume:
+volumes:
+  mydatavolume:
+  # frontendbuild:
 
