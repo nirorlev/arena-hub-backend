@@ -41,7 +41,6 @@ services:
       - 7000:7766
     environment:
       PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
-      PATH: /:/home/permit
     networks:
       - network_app
 
@@ -61,8 +60,7 @@ services:
     networks:
       - network_app
     # environment:
-    #   - PDP_URL=http://pdp:7000
-    #   - PDP_API_KEY=permit_key_xxx
+    #   - PDP_URL=http://pdp:7000 or PDP_ADDRESS: http://localhost:7000 ??
 
 networks:
   network_app:
