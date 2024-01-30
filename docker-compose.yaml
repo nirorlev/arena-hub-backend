@@ -21,7 +21,6 @@ services:
     networks:
       - network_app
 
-  # Redis
   redis:
     image: redis:6.2
     container_name: redis
@@ -54,6 +53,12 @@ services:
     environment:      
       START_ENVIRONMENT: environmentVars
       FRONTENDPATH: arena-hub
+      MYSQL_HOST: mysql-db
+      MYSQL_USER: arena-be-user
+      MYSQL_PASS: LlDbCsqvnXMtAgd
+      MYSQL_DB_NAME: arena-hub
+      MYSQL_PORT: '3306'
+      MYSQL_SSL: 'false'
       REDIS_HOST: redis
       REDIS_PASS: xxx
       REDIS_PORT: '6379'
@@ -73,8 +78,6 @@ services:
       # GUIDE_API_PORT: '8080'
       # GUIDE_USER_STORE_CIDR: 0.0.0.0/0
       # GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
-      # MYSQL_PORT: '3306'
-      # MYSQL_SSL: 'false'
       # PDP_ADDRESS: http://localhost:7000
       # POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/      
       # SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com      
