@@ -14,8 +14,7 @@ services:
       MYSQL_PASSWORD: LlDbCsqvnXMtAgd
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./mysql-dump.sql:/docker-entrypoint-initdb.d/mysql-dump.sql    
-    # command: ["/bin/chown -R root:root /docker-entrypoint-initdb.d", "mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
+      - ./mysql-dump.sql:/docker-entrypoint-initdb.d/mysql-dump.sql        
     command: ["mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
     ports:
       - 3306:3306
@@ -25,7 +24,8 @@ services:
   # Redis
   redis:
     image: redis:6.2
-    container_name: arena-redis
+    container_name: redis
+    hostname: redis
     volumes:
       - ./redis.conf:/etc/redis/redis.conf 
     command: ["redis-server", "/etc/redis/redis.conf"]
@@ -34,21 +34,13 @@ services:
     networks:
       - network_app
 
-  # Policy Decision Point (PDP)
-  pdp:
-    image: permitio/pdp-v2:latest
-    ports:
-      - 7000:7766
-    environment:
-      PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
-    networks:
-      - network_app
-
   java-app:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      tags: ["1.0"]
+    image: arena-be-java:1.4
+    platform: linux/amd64
+    # build:
+    #   context: .
+    #   dockerfile: ./target/Dockerfile
+    #   platform: linux/amd64
     container_name: arena-java-app
     # restart: always
     ports:
@@ -59,13 +51,48 @@ services:
       # - pdp
     networks:
       - network_app
-    # environment:
-    #   - PDP_URL=http://pdp:7000 or PDP_ADDRESS: http://localhost:7000 ??
+    environment:      
+      START_ENVIRONMENT: environmentVars
+      FRONTENDPATH: arena-hub
+      REDIS_HOST: redis
+      REDIS_PASS: xxx
+      REDIS_PORT: '6379'
+      REDIS_SSL: 'false'
+      PERMIT_LICENSE_KEY: permit_key_XXX
+      # AWS_STS_REGIONAL_ENDPOINTS: regional
+      # AWS_DEFAULT_REGION: us-east-1
+      # AWS_REGION: us-east-1
+      # AWS_ROLE_ARN: arn:aws:iam::861419891964:role/Powtoon-dev-arena-role
+      # AWS_WEB_IDENTITY_TOKEN_FILE:      
+      # AWS_CLOUDFRONT_IDS:     
+      # AWS_ROLE_SESSION_NAME: S3Upload
+      # AWS_S3_BUCKET: dev-arena-storage
+      # AWS_S3_REGION: us-east-1
+      # AWS_S3_SITE_BUCKET: dev-arena-site
+      # CHANNEL_SUBJECT_ID_CSV: 1805,1806,1809,1832
+      # GUIDE_API_PORT: '8080'
+      # GUIDE_USER_STORE_CIDR: 0.0.0.0/0
+      # GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
+      # MYSQL_PORT: '3306'
+      # MYSQL_SSL: 'false'
+      # PDP_ADDRESS: http://localhost:7000
+      # POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/      
+      # SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com      
+
+  # Policy Decision Point (PDP)
+  # pdp:
+  #   image: permitio/pdp-v2:latest
+  #   ports:
+  #     - 7000:7766
+  #   environment:
+  #     PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW #${PDP_API_KEY}
+  #     # PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
+  #   networks:
+  #     - network_app
 
 networks:
   network_app:
     name: network_app
 volumes:
   mydatavolume:
-  # frontendbuild:
 
