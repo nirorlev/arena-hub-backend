@@ -16,7 +16,7 @@
 
     <name>guidecore</name>
     <description>核心业务</description>
-    <packaging>jar</packaging>
+    <!--  <packaging>war</packaging>-->
 
 
     <properties>
@@ -501,6 +501,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <layout>ZIP</layout>
+                    <includes>
+                        <include>
+                            <groupId>non-exists</groupId>
+                            <artifactId>non-exists</artifactId>
+                        </include>
+                    </includes>
+                </configuration>
             </plugin>
 
             <plugin>
