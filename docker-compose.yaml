@@ -39,7 +39,7 @@ services:
     platform: linux/amd64
     # build:
     #   context: .
-    #   dockerfile: ./target/Dockerfile
+    #   dockerfile: ./Dockerfile
     #   platform: linux/amd64
     container_name: arena-java-app
     # restart: always
