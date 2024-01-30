@@ -3963,6 +3963,10 @@ public class PowtoonController extends GuideCoreController {
 						sysFile.setSnapshotUrl(snapShotUrl);
 						channelContent.setVideoFile(sysFile);
 					}
+					if (null!=sysFile.getGcUser().getAvatarFileId()){
+						SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+						sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
+					}
 				}
 			}
 			ptTagsService.saveOrUpdateBatch(tagsList);
