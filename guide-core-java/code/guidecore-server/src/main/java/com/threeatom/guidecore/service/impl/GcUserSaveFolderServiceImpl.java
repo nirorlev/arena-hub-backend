@@ -168,6 +168,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             }
             if (null!=gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
                 SysFile sysFile =sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
+                sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
                 gcUserSaveFolder.getUser().getInfo().setAvatarFile(sysFile);
             }
 
