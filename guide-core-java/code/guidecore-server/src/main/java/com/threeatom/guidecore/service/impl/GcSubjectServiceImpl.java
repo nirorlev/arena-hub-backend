@@ -361,6 +361,21 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
+    public List<Integer> getUserCreateSubject(Integer masterId, Integer userId) {
+        return this.baseMapper.getUserCreateSubject(masterId,userId);
+    }
+
+    @Override
+    public List<Integer> getUserCreateSubjectAdmin(Integer masterId, Integer userId) {
+        return this.baseMapper.getUserCreateSubjectAdmin(masterId,userId);
+    }
+
+    @Override
+    public List<Integer> getUserPublicSubject(Integer masterId, Integer userId){
+        return this.baseMapper.getUserPublicSubject(masterId);
+    }
+
+    @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
         List<GcSubject> orgMustIds = this.baseMapper.selectOrgMustJsonArrayList(userId,masterId);

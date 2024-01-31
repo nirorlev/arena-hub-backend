@@ -160,4 +160,10 @@ public interface GcSubjectService extends IService<GcSubject> {
 	Integer getNewMyAssignmentNew(Integer masterId,Integer userId);
 
 	void initJit();
+
+	List<Integer> getUserCreateSubject(Integer masterId,Integer userId);
+
+	List<Integer> getUserCreateSubjectAdmin(Integer masterId,Integer userId);
+
+	List<Integer> getUserPublicSubject(Integer masterId,Integer userId);
 }

@@ -2458,4 +2458,29 @@
 					  ) as b
 	</select>
 
+	<select id="getUserCreateSubject" resultType="java.lang.Integer">
+		select s.id from gc_subject s
+		where s.create_user = #{userId}
+		and s.master_id = #{masterId}
+		and s.state = 1
+		and s.level = 0
+	</select>
+
+	<select id="getUserCreateSubjectAdmin" resultType="java.lang.Integer">
+		select s.id from gc_subject s
+		where (s.available_type = 1 or s.available_type = 3)
+		and s.master_id = #{masterId}
+		and s.state = 1
+		and s.level = 0
+	</select>
+
+	<select id="getUserPublicSubject" resultType="java.lang.Integer">
+		select s.id from gc_subject s
+		where
+		s.available_type = 4
+		  and s.`level` = 0
+		  and s.state = 1
+		  and s.master_id = #{masterId}
+	</select>
+
 </mapper>

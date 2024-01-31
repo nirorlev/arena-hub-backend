@@ -1160,6 +1160,32 @@ public class PowtoonController extends GuideCoreController {
 		return new Message().ok().addData("accessList",accessList);
 	}
 
+	@ApiOperation(value = "getTeamAccessSubjectNumList", httpMethod = "GET")
+	@GetMapping("/getTeamAccessSubjectNumList")
+	public Message getTeamAccessSubjectNumList(String name,HttpServletRequest request){
+		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
+		GcUser user = this.getGcUser();
+		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
+		PageInfo<GcAccess> accessList = null;
+		if (null!=adminFlag&&!adminFlag.equals(TableConstant.COMMON_ZERO)){
+			List<Integer> availableTypeFour = subService.getUserPublicSubject(masterId,user.getId());
+			List<Integer> availableTypeOneAndThree = subService.getUserCreateSubjectAdmin(masterId,user.getId());
+			PageParam pageParam = new PageParam(request);
+			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
+			}
+			accessList = new PageInfo<>(accessService.getTeamAccessSubjectNumAdminList(name,masterId,user.getId(),availableTypeFour,availableTypeOneAndThree));
+		}else {
+			List<Integer> subIds = subService.getUserCreateSubject(user.getId(),masterId);
+			PageParam pageParam = new PageParam(request);
+			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
+			}
+			accessList = new PageInfo<>(accessService.getTeamAccessSubjectNumList(name,masterId,user.getId(),subIds,request));
+		}
+		return new Message().ok().addData("accessList",accessList);
+	}
+
 
 	@ApiOperation(value = "getAccessList", httpMethod = "GET")
 	@GetMapping("/getAccessList")

@@ -150,6 +150,12 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
 
     Integer getNewMyAssignmentNew(@Param("masterId") Integer masterId,@Param("userId") Integer userId);
 
+    List<Integer> getUserCreateSubject(@Param("masterId") Integer masterId,@Param("userId") Integer userId);
+
+    List<Integer> getUserCreateSubjectAdmin(@Param("masterId")Integer masterId,@Param("userId")Integer userId);
+
+    List<Integer> getUserPublicSubject(@Param("masterId")Integer masterId);
+
     List<GcSubject> selectOrgMustJsonArrayList(@Param("userId")Integer userId,@Param("masterId")Integer masterId);
 
     List<GcSubject> selectOrgMayJsonArrayList(@Param("userId")Integer userId,@Param("masterId")Integer masterId);
