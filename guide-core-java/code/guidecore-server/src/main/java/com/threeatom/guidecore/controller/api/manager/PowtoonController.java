@@ -939,6 +939,14 @@ public class PowtoonController extends GuideCoreController {
 		GcUser gcUser = gcUserService.getById(list.get(0).getUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
 		gcUser.setInfo(gcUserInfo);
+		if (null!=gcUserInfo.getAvatarFileId()){
+			SysFile sysFile =sysFileService.getById(gcUserInfo.getAvatarFileId());
+			sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
+			gcUser.getInfo().setAvatarFile(sysFile);
+		}
+
+
+
 		list.get(0).setUser(gcUser);
 		List<Integer> listIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
 		List<GcUserSaveContentFollow> gcUserSaveContentFollowList = gcUserSaveContentFollowService.selectFollowListByPlayListId(listIds);
