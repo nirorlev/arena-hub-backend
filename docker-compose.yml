@@ -38,7 +38,7 @@ services:
       - network_app
 
   java-app:
-    image: arena-be-java:1.4
+    image: arena-be-java:2.1
     platform: linux/amd64
     # build:
     #   context: .
@@ -47,7 +47,7 @@ services:
     container_name: arena-java-app
     # restart: always
     ports:
-      - 8080:9999
+      - 9999:9999
     depends_on:
       - mysql-db
       - redis
@@ -89,6 +89,7 @@ services:
  
   pdp:
     image: permitio/pdp-v2:latest
+    container_name: pdp
     ports:
       - 7000:7766
     environment:

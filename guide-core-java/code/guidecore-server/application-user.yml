@@ -1,0 +1,107 @@
+server:
+   port: 9999
+   servlet:
+      context-path: /arena-hub
+frontendPath: /arena-hub
+spring:
+   time-zone: GMT
+   resources:
+       #配置静态资源路径
+       static-locations: classpath:/static/,classpath:/public/,file:${web.profile-path:config/static}
+   redis:
+     password: kyle2020TBfIU584
+     host: redis
+     port: 6379
+     ssl: false
+     jedis:
+       pool:
+         max-active: 5000
+         max-wait: -1
+         max-idle: 30
+         min-idle: 5
+     timeout: 50000
+     #cluster:
+     # nodes: 127.0.0.1:6379
+     database: 9
+   datasource:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://mysql-db:3306/arena_hub?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT&allowMultiQueries=true
+      username: user
+      password: userpass240109
+      druid: 
+            # 初始连接数
+            initial-size: 10
+            # 最大连接池数量
+            max-active: 100
+            # 最小连接池数量
+            min-idle: 10
+            # 配置获取连接等待超时的时间
+            max-wait: 60000
+            # 打开PSCache，并且指定每个连接上PSCache的大小
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+            timeBetweenEvictionRunsMillis: 60000
+            # 配置一个连接在池中最小生存的时间，单位是毫秒
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            filter:
+                stat:
+                    log-slow-sql: true
+                    slow-sql-millis: 1000
+                    merge-sql: false
+                wall:
+                    config:
+                        multi-statement-allow: true
+       
+aws:
+  durationSeconds: 900
+  region: us-east-1
+  roleArn: arn:aws:iam::161933537528:role/Powtoon-staging-ec-arena-role
+  roleSessionName: S3Upload
+  bucketName: staging-ec-arena-storage
+
+#powtoon config
+#redirectUri: ${SSO_REDIRECT_URL_LIST:comma separated values of allowed URLs}
+clientId: ${SSO_CLIENT_ID:default client ID for sso}
+ptRootURL: https://${SSO_TOKEN_HOST:hostname of sso service}
+oauthToken: /api/v1.0/oauth/token
+userUrl: /api/v1.0/users/me/profile
+logOut: /api/v1.0/oauth/revoke_token
+videoUrl: /api/v2/powtoons/{id}/player-page
+groups: /api/v2/org/groups
+#暂无用
+clientSecret: ${SSO_CLIENT_SECRET:0qg1wUKUvxbjDP24d17byqCgSvgrjR99C4DELKBtKF3VlceU3O0TpYP6Jm2quGPbhqSuHEROcRmxXDpBcAu0VTF8279YpJcxfhoLUffgyUmShX0S2vGS4aPyvTyFz2FJ}
+logoutUrl: /account/logout?next_page=/arena-hub/
+#powtoon的首页写死的频道ids
+channel:
+  id: ${CHANNEL_SUBJECT_ID_CSV:1805,1806,1809}
+#S3 cloudfront signed url
+uploadsignurl:
+  distributionDomain: ${GUIDE_USER_STORE_DOMAIN:stage.store.demoguide.xyz}
+  privateKeyFilePath: ${GUIDE_USER_STORE_PRIVATE_KEY:dev-stage_signed_links_private_key.der}
+  keyPairId: ${GUIDE_USER_STORE_KEY_PAIR_ID:K1JQYEVI2UZJ98}
+  limitToIpAddressCIDR: ${GUIDE_USER_STORE_CIDR:0.0.0.0/0}
+
+sitemap:
+  defaultId: ${DEFAULT_ID:228}
+  siteUrl: ${SITE_URL:guide.i10s.onearena.io}
+  
+permit:
+  apiKey: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
+  pdpAddress: http://localhost:7766
+  # 0 = 开；1=关，不调用permit
+  permitSwitch: 0
+registercode: ${REGISTER_CODE:someExampleCode}
+
+metaurl:
+  course: "course"
+  courseStatics: "course-statics"
+  courseVideo: "course-video"
+  channel: "channel"
+  playlist: "playlist"
+  playlistVideo: "playlist-video"
