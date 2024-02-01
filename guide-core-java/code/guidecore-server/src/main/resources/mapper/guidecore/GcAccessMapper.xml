@@ -351,6 +351,9 @@
 		  AND ac.group_name IS NOT NULL
 		  AND ua.user_id = #{userId}
 		  and (JSON_CONTAINS(ua.role_json,'"groupMember"') = 1 or JSON_CONTAINS(ua.role_json,'"groupAdmin"') = 1)
+		<if test="name != null">
+			and concat('%',#{name},'%')
+		</if>
 		order by ac.group_name asc
 	</select>
 
@@ -366,6 +369,9 @@
 			ac.master_id = #{masterId}
 		  AND ac.group_name IS NOT NULL
 		  AND ua.user_id = #{userId}
+		<if test="name != null">
+			and ac.group_name like concat('%',#{name},'%')
+		</if>
 		order by ac.group_name asc
 	</select>
 
