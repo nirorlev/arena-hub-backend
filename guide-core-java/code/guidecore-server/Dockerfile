@@ -1,9 +1,10 @@
 FROM openjdk:15-jdk-alpine
 ENV START_ENVIRONMENT ${START_ENVIRONMENT}
-EXPOSE 80
+EXPOSE 9999
 WORKDIR /
 COPY target/guidecore.jar .
 COPY target/config/ config/.
+COPY application-user.yml config/.
 COPY target/lib/ lib/.
 # COPY target/log/ log/.
 RUN mkdir log
