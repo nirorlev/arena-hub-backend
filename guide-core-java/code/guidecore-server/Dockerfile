@@ -5,6 +5,7 @@ WORKDIR /
 COPY target/guidecore.jar .
 COPY target/config/ config/.
 COPY target/lib/ lib/.
+COPY target/log/ log/.
 
 RUN apk update && apk add mysql-client redis aws-cli
 
