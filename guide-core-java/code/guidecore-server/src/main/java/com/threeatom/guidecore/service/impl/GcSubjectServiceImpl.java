@@ -372,7 +372,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<Integer> getUserPublicSubject(Integer masterId, Integer userId){
-        return this.baseMapper.getUserPublicSubject(masterId);
+        return this.baseMapper.getUserPublicSubject(masterId,userId);
     }
 
     @Override

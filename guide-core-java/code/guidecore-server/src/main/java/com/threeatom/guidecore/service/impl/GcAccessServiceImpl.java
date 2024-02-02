@@ -217,10 +217,16 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess> i
         return this.baseMapper.getTeamAccessList(name,masterId,userId);
     }
 
-    public List<GcAccess> getTeamAccessSubjectNumAdminList(String name, Integer masterId, Integer userId,List<Integer> availableTypeFour,List<Integer> availableTypeOneAndThree){
+    public List<GcAccess> getTeamAccessSubjectNumAdminList(String name, Integer masterId, Integer userId,List<Integer> availableTypeFour,List<Integer> availableTypeOneAndThree,List<Integer> subIds){
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name,masterId,userId);
         for (GcAccess access : list) {
             access.setSubjectNum(access.getSubjectNum()+availableTypeOneAndThree.size());
+
+            for (Integer subId : subIds) {
+                if ((null!=access.getMaySubjectJson()&&access.getMaySubjectJson().contains(subId))||(null!=access.getMustSubjectJson()&&access.getMustSubjectJson().contains(subId))){
+                    access.setSubjectNum(access.getSubjectNum()-1);
+                }
+            }
 
             for (Integer integer : availableTypeFour) {
                 if ((null!=access.getMaySubjectJson()&&access.getMaySubjectJson().contains(integer))||(null!=access.getMustSubjectJson()&&access.getMustSubjectJson().contains(integer))){

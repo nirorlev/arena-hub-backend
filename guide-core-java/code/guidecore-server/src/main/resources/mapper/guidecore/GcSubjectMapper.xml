@@ -2470,6 +2470,7 @@
 		select s.id from gc_subject s
 		where (s.available_type = 1 or s.available_type = 3)
 		and s.master_id = #{masterId}
+		and s.create_user != #{userId}
 		and s.state = 1
 		and s.level = 0
 	</select>
@@ -2481,6 +2482,7 @@
 		  and s.`level` = 0
 		  and s.state = 1
 		  and s.master_id = #{masterId}
+		and s.create_user != #{userId}
 	</select>
 
 </mapper>
