@@ -2410,8 +2410,6 @@
 		  and (u.id =#{userId}
 		  and ua.master_id = #{masterId}
 		  and s.available_type != 4
-		and s.`level` = 0
-		and s.state = 1
 		<if test="groupCodeList!=null and groupCodeList.size()!=0">
 			and ac.code in
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
@@ -2419,6 +2417,8 @@
 			</foreach>
 		</if>
 		or ((s.available_type = 1 or s.available_type = 3) and s.master_id = #{masterId}))
+		and s.`level` = 0
+		and s.state = 1
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
@@ -2470,7 +2470,6 @@
 		select s.id from gc_subject s
 		where (s.available_type = 1 or s.available_type = 3)
 		and s.master_id = #{masterId}
-		and s.create_user != #{userId}
 		and s.state = 1
 		and s.level = 0
 	</select>
@@ -2482,7 +2481,6 @@
 		  and s.`level` = 0
 		  and s.state = 1
 		  and s.master_id = #{masterId}
-		and s.create_user != #{userId}
 	</select>
 
 </mapper>

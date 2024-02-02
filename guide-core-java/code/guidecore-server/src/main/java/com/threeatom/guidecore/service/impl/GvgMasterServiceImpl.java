@@ -1848,7 +1848,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			thisUserId=otherUserId;
 		}
 		thisUserEventAnswer = userAnswerService.getMyEventAnswerByEventId(eventId, thisUserId, masterId);
-		if (null!=thisUserEventAnswer.getUserId()){
+		if (null!=thisUserEventAnswer&&null!=thisUserEventAnswer.getUserId()){
 			GcUser gcUser = userService.getUserInfo(thisUserEventAnswer.getUserId());
 			thisUserEventAnswer.setUser(gcUser);
 		}

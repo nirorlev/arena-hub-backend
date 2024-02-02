@@ -340,12 +340,29 @@
 	</select>
 	<select id="getTeamAccessSubjectNumList" resultMap="baseResultMap">
 		SELECT
-				ifnull(JSON_LENGTH(ac.may_subject_json),0)+ifnull(JSON_LENGTH(ac.must_subject_json),0) as subjectNum,
-				ac.*
+				ifnull(JSON_LENGTH(uap.may_subject_json),0)+ifnull(JSON_LENGTH(uap.must_subject_json),0) as subjectNum,
+				ac.id,
+				ac.master_id ,
+				ac.role_type,
+				ac.admin_id,
+				ac.`code`,
+				ac.package_learning_hours,
+				ac.subject_json,
+				ac.update_time,
+				ac.create_time,
+				ac.code_type,
+				ac.free_flag,
+				ac.package_name,
+				ac.channel_json,
+				ac.group_name,
+				ac.subscribe_json,
+				ac.role_json,
+		uap.may_subject_json as may_subject_json,
+		uap.must_subject_json as must_subject_json
 		FROM
 			gc_access ac
-				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id
-				AND ua.user_id =  #{userId}
+				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
+				left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		WHERE
 			ac.master_id = #{masterId}
 		  AND ac.group_name IS NOT NULL
@@ -359,12 +376,29 @@
 
 	<select id="getTeamAccessSubjectNumAdminList" resultMap="baseResultMap">
 		SELECT
-				ifnull(JSON_LENGTH(ac.may_subject_json),0)+ifnull(JSON_LENGTH(ac.must_subject_json),0) as subjectNum,
-				ac.*
+				ifnull(JSON_LENGTH(uap.may_subject_json),0)+ifnull(JSON_LENGTH(uap.must_subject_json),0) as subjectNum,
+		ac.id,
+		ac.master_id ,
+		ac.role_type,
+		ac.admin_id,
+		ac.`code`,
+		ac.package_learning_hours,
+		ac.subject_json,
+		ac.update_time,
+		ac.create_time,
+		ac.code_type,
+		ac.free_flag,
+		ac.package_name,
+		ac.channel_json,
+		ac.group_name,
+		ac.subscribe_json,
+		ac.role_json,
+		uap.may_subject_json as may_subject_json,
+		uap.must_subject_json as must_subject_json
 		FROM
 			gc_access ac
-				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id
-				AND ua.user_id =  #{userId}
+				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
+				left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		WHERE
 			ac.master_id = #{masterId}
 		  AND ac.group_name IS NOT NULL

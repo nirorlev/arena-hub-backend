@@ -1170,7 +1170,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=adminFlag&&!adminFlag.equals(TableConstant.COMMON_ZERO)){
 			List<Integer> availableTypeFour = subService.getUserPublicSubject(masterId,user.getId());
 			List<Integer> availableTypeOneAndThree = subService.getUserCreateSubjectAdmin(masterId,user.getId());
-			List<Integer> subIds = subService.getUserCreateSubject(user.getId(),masterId);
+			List<Integer> subIds = subService.getUserCreateSubject(masterId,user.getId());
 			PageParam pageParam = new PageParam(request);
 			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());

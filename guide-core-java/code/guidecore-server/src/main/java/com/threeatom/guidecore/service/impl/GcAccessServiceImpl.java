@@ -221,13 +221,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess> i
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name,masterId,userId);
         for (GcAccess access : list) {
             access.setSubjectNum(access.getSubjectNum()+availableTypeOneAndThree.size());
-
-            for (Integer subId : subIds) {
-                if ((null!=access.getMaySubjectJson()&&access.getMaySubjectJson().contains(subId))||(null!=access.getMustSubjectJson()&&access.getMustSubjectJson().contains(subId))){
-                    access.setSubjectNum(access.getSubjectNum()-1);
-                }
-            }
-
             for (Integer integer : availableTypeFour) {
                 if ((null!=access.getMaySubjectJson()&&access.getMaySubjectJson().contains(integer))||(null!=access.getMustSubjectJson()&&access.getMustSubjectJson().contains(integer))){
                     access.setSubjectNum(access.getSubjectNum()-1);
