@@ -1853,6 +1853,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			thisUserEventAnswer.setUser(gcUser);
 		}
 
+
 		Message m = new Message().ok();
 		m.addData("参数说明", "otherUserId-点他人头像时，传该用户的id，可空，空时返回本人的数据");
 		m.addData("thisUserEventAnswer", thisUserEventAnswer);
