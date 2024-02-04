@@ -55,13 +55,29 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             tagMap = tagsList.stream().collect(Collectors.groupingBy(PtTags::getChannelId));
         }
 
+
+        List<Integer> channelIdList = channels.stream() .map(PtChannel::getId) .collect(Collectors.toList());
+        Map<Integer,PtChannel> ptChannelMap = new HashMap<>();
+        if (channelIdList.size()!=TableConstant.COMMON_ZERO) {
+            List<PtChannel> accessChannelList = this.baseMapper.getAccessChannelList(channelIdList, masterId, userId);
+            ptChannelMap = accessChannelList.stream().collect(Collectors.toMap(PtChannel::getId,PtChannel -> PtChannel, (key1, key2) -> key2, LinkedHashMap::new));
+        }
+
         for(PtChannel channel : channels){
             if (null!=tagMap.get(channel.getId())){
                 List<PtTags> tagsList = tagMap.get(channel.getId());
                 List<String> strings = tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setChannelTags(StringUtils.join(strings, ","));
             }
-
+            if (null!=ptChannelMap&&null!=ptChannelMap.get(channel.getId())){
+                PtChannel accessChannel = ptChannelMap.get(channel.getId());
+                if (null!=accessChannel.getSubscribeAccessList()){
+                    channel.setSubscribeAccessList(accessChannel.getSubscribeAccessList());
+                }
+                if (null!=accessChannel.getAccessList()){
+                    channel.setAccessList(accessChannel.getAccessList());
+                }
+            }
             if(Objects.nonNull(channel.getChannelAvatarFileId())){
                 SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
                 channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile,request));
@@ -220,11 +236,22 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
         List<SysFile> videos = this.baseMapper.selectVideosInSection(sectionId,order,searchName,request.getIntHeader("masterId"),level);
         if(CollectionUtils.isNotEmpty(videos)) {
+            Map<Integer,SysFile> createFileMap = new HashMap<>();
+            List<GcUser> userList = videos.stream().map(SysFile::getGcUser).collect(Collectors.toList());
+            if (null!=userList&&TableConstant.COMMON_ZERO!=userList.size()){
+                List<SysFile> createFile = sysFileService.listByIds(userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
+                createFileMap = createFile.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+            }
             for (SysFile sysFile : videos) {
                 String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
                 String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                 sysFile.setSnapshotUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
+                if (null!=sysFile.getGcUser().getAvatarFileId()){
+                    if (null!=createFileMap&&null!=createFileMap.get(sysFile.getGcUser().getAvatarFileId())){
+                        sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(createFileMap.get(sysFile.getGcUser().getAvatarFileId()),request));
+                    }
+                }
             }
         }
         return videos;

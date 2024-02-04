@@ -49,4 +49,16 @@ public class PtTagsServiceImpl extends ServiceImpl<PtTagsMapper, PtTags> impleme
         return this.list(queryWrapper);
     }
 
+    @Override
+    public List<String> selectPtTagList(PtTags ptTags,HttpServletRequest request) {
+        PageParam pageParam = new PageParam(request);
+        Integer pageNum = pageParam.getPageNum();
+        Integer pageSize=pageParam.getPageSize();
+        if (pageNum > 0 && pageSize > 0) {
+            PageHelper.startPage(pageNum, pageSize);
+        }
+        return this.baseMapper.selectPtTagList(ptTags);
+    }
+
+
 }

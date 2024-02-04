@@ -178,6 +178,12 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer likedFlag;
 
+    @TableField(exist = false)
+    private List<GcAccess> subscribeAccessList;
+
+    @TableField(exist = false)
+    private List<GcAccess> accessList;
+
 
 //    @TableField(exist = false)
 //    private String subscribeNum;

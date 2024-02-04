@@ -68,7 +68,17 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private GcUserInfoService infoService;
 
 
-
+    @Override
+    public GcUser getUserInfo(Integer id){
+        GcUser user = this.baseMapper.selectById(id);
+        GcUserInfo info = infoService.getById(user.getInfoId());
+        if (null!=info.getAvatarFileId()){
+            SysFile file = sysFileService.getById(info.getAvatarFileId());
+            info.setAvatarFile(file);
+        }
+        user.setInfo(info);
+        return user;
+    }
 
 
 

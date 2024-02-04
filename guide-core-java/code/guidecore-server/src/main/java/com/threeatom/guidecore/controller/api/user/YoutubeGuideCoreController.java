@@ -13,6 +13,7 @@ import com.threeatom.common.redis.RedisOperator;
 
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
+import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.PtLoginConfigService;
@@ -20,8 +21,11 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.utils.HttpUtil;
 import io.swagger.annotations.ApiOperation;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -46,13 +50,15 @@ import static org.apache.shiro.web.filter.mgt.DefaultFilter.user;
 @RequestMapping("/api/v1/guidecore/user/youtube")
 public class YoutubeGuideCoreController extends GuideCoreController{
 
+	private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
+
 	public YoutubeGuideCoreController() throws IOException {
 	}
 
 	@Value("${youtubeApiKey:AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao}")
 	private String youtubeApiKey;
 
-	@Value("${videoUrl:https://www.youtube.com/watch?v=}")
+	@Value("${videoUrl:/api/v2/powtoons/{id}/player-page}")
 	private String getVideoDetails;
 
 	@Autowired
@@ -61,6 +67,8 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	@Autowired
 	private PtLoginConfigService ptLoginConfigService;
 
+	@Autowired
+	private Environment env;
 
 	@ApiOperation(value = "统一下单，并组装所需支付参数")
 	@PostMapping("/getYoutubeUrl")
@@ -417,9 +425,9 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	@PostMapping("/getKalturaVideos")
 	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest re) {
 		Message message = new Message();
-//		String site = videoUrl.substring(videoUrl.indexOf("//") + 2, videoUrl.indexOf("/", videoUrl.indexOf("//") + 2));
-//		if (!myListConfig.getPtVideoList().contains(site)){
-//			return message.error(I18NUtil.get("videoURL.not.exist"));
+		String domain = re.getServerName();
+//		if (!videoUrl.contains(domain)){
+//			return message.error("The video domain is inconsistent with the API domain!");
 //		}
 		try {
 //			videoUrl = URLEncoder.encode(videoUrl, "UTF-8");
@@ -564,9 +572,27 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 
 		}catch (Exception e){
 			e.printStackTrace();
-			System.out.println(e);
+			String extractedInfo=e.getMessage();
+			if(e.getMessage().contains("detail")){
+				int startIndex = e.getMessage().indexOf("detail\":\"") + "detail\":\"".length();
+				int endIndex = e.getMessage().indexOf("\"", startIndex);
+				extractedInfo = e.getMessage().substring(startIndex, endIndex);
+				return message.error(extractedInfo+"\n"+"API:"+re.getServerName());
+			}
+			return message.error(extractedInfo);
 		}
 		return  message.ok();
 	}
 
+	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
+		if (null==ptLoginConfig){
+			ptLoginConfig = new PtLoginConfig();
+			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
+		}else {
+			if (null==ptLoginConfig.getPtRootUrl()||ptLoginConfig.getPtRootUrl().equals("")){
+				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
+			}
+		}
+		return ptLoginConfig;
+	}
 }

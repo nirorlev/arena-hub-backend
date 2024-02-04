@@ -14,7 +14,14 @@ import java.util.List;
  */
 public interface SysMenuService extends IService<SysMenu> {
 
-    List<SysMenu> getSysMenuList();
+    List<SysMenu> getSysMenuList(Integer masterId);
 
-    List<SysMenu> getLevel3List();
+    List<SysMenu> getLevel3List(Integer masterId);
+
+
+    List<SysMenu> getByMaster(Integer masterId);
+
+    List<Integer> getParentIdList(Integer masterId);
+
+    List<SysMenu> getChildLevelList(Integer masterId);
 }

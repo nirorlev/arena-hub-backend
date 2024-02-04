@@ -276,11 +276,29 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
+
+					List<Integer> identifyingList = new ArrayList<>();
+					//完成
+					if (null!=li.getPercents()&&li.getPercents().equals(100)){
+						li.setIdentifying(TableConstant.COMMON_TWO);
+						identifyingList.add(TableConstant.COMMON_TWO);
+					}
+					//未开始
+					/*if (null==li.getPercents()||li.getPercents().equals(0)){
+						li.setIdentifying(TableConstant.COMMON_ZERO);
+						identifyingList.add(TableConstant.COMMON_ZERO);
+					}*/
+					//证书
+					if (null!=li.getCertificatesFlag()&&li.getCertificatesFlag().equals(TableConstant.COMMON_ONE)){
+						identifyingList.add(TableConstant.COMMON_FOUR);
+					}
+					li.setIdentifyings(identifyingList);
 				}
 			}
 
 			//subjectList的循环
 			if(subjectList != null && subjectList.size() > 0){
+				System.out.println("????????");
 				for(GcSubject li:subjectList) {
 					if (null !=li.getSubImgId()&&null!=sysFileMap.get(li.getSubImgId())){
 						SysFile file = sysFileMap.get(li.getSubImgId());
@@ -323,6 +341,22 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
+					List<Integer> identifyingList = new ArrayList<>();
+					//完成
+					if (null!=li.getPercents()&&li.getPercents().equals(100)){
+						li.setIdentifying(TableConstant.COMMON_TWO);
+						identifyingList.add(TableConstant.COMMON_TWO);
+					}
+					//未开始
+					if (null==li.getPercents()||li.getPercents().equals(0)&&li.getIsToDo()==TableConstant.COMMON_ZERO){
+						li.setIdentifying(TableConstant.COMMON_ZERO);
+						identifyingList.add(TableConstant.COMMON_ZERO);
+					}
+					//证书
+					if (null!=li.getCertificatesFlag()&&li.getCertificatesFlag().equals(TableConstant.COMMON_ONE)){
+						identifyingList.add(TableConstant.COMMON_FOUR);
+					}
+					li.setIdentifyings(identifyingList);
 				}
 			}
 
@@ -439,166 +473,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-		List<GcSubject> level0sublist = new ArrayList<>();
-		List<Integer> channelIdList = new ArrayList<>();
-		List<String> nameList = new ArrayList<>();
-		nameList.add("channelIds");
-		List<GcMasterHomeInfo> gcMasterHomeInfos = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),nameList,system,request);
-		if(CollectionUtils.isNotEmpty(gcMasterHomeInfos)){
-			//channelIdList = gcMasterHomeInfos.get(TableConstant.COMMON_ZERO).getChannelIds().toJavaList(Integer.class);
-		}
-
-		if(null!=channelIdList && channelIdList.size()>TableConstant.COMMON_ZERO){
-			List<GcSubject> gcSubjects = gcSubjectService.selectAllLevel1SubList(channelIdList,null,null);
-			List<Integer> level1Subids = gcSubjects.stream().map(GcSubject::getId).collect(Collectors.toList());
-			List<GcVideo> videos = new ArrayList<>();
-			Map<Integer,List<GcVideo>> videoMap = new HashMap<>();
-			Map<Integer,List<GcSubject>> subMap = new HashMap<>();
-			List<GcSubject> channelSubList = subjectService.getSubListByIds(channelIdList,request);
-			if(CollectionUtils.isNotEmpty(gcSubjects)) {
-				subMap = gcSubjects.stream().collect(Collectors.groupingBy(GcSubject::getFid));
-				videos = gcVideoService.getVideoListBySubIds(level1Subids);
-				for (GcSubject gcSubject : channelSubList) {
-					List<GcSubject> subjects = subMap.get(gcSubject.getId());
-					if(CollectionUtils.isNotEmpty(subjects)) {
-						gcSubject.setFirstTopic(subjects.get(0));
-					}
-					if(CollectionUtils.isNotEmpty(videos)) {
-						videoMap = videos.stream().collect(Collectors.groupingBy(GcVideo::getSubId0));
-						List<GcVideo> gcVideoList = videoMap.get(gcSubject.getId());
-						if(CollectionUtils.isNotEmpty(gcVideoList)) {
-							gcSubject.setFirstVideoId(gcVideoList.get(0).getId());
-						}
-					}
-				}
-			}
-			//查询主页课程
-			level0sublist = subjectService.getLevel0SubListWithImg(gcMaster.getId(), system, request, new PageParam(request), channelIdList);
-			level0sublist.addAll(channelSubList);
-		} else {
-			level0sublist = subjectService.getLevel0SubListWithImg(gcMaster.getId(), system, request,new PageParam(request),null);
-		}
-
-		List<Integer> level0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-		List<SysFile> sysFileList = new ArrayList<>();
-		if (TableConstant.COMMON_ZERO!=level0subIds.size()){
-			sysFileList = sysFileService.listByIds(level0subIds);
-		}
-		Map<Integer,SysFile> sysFileMap = sysFileList.stream().collect(Collectors.toMap(SysFile::getId,SysFile -> SysFile, (key1, key2) -> key2, LinkedHashMap::new));
-
-		List<Integer> allLevel0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-
-		Map<Integer, GcUser> subjectUsers = gcUserService.getWatchedUserNum(allLevel0subIds,gcMaster.getId());
-
-
-		//
-		List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
-		List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
-		if (null!=user){
-			videoList = gcVideoService.buildVideoInfo(user.getId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
-		}
-		Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
-//		List<GcUserVideoAction> gcUserVideoActionslist = gcUserVideoActionService.getStarList(videoIdlist);
-//		Map<Integer,List<GcUserVideoAction>> starMap = gcUserVideoActionslist.stream().collect(Collectors.groupingBy(GcUserVideoAction::getSubjectId));
-
-//		查询评论总数和星级评价
-//		Map<Integer, GcUserVideoAction> subjectUserStar = newUiGcSubjectService.getStarActions(allLevel0subIds);
-
-		Map<String, Object> videoParams = new HashMap<>(2);
-		Integer ids = TableConstant.COMMON_ZERO;
-		videoParams.put("ids",ids);
-		videoParams.put("subjectIds", level0subIds);
-		Map<Integer, GcUserVideoAction> subjectUserStar = new HashMap<>();
-		if(envFlag==EnvType.GVG.getCode()){
-			subjectUserStar = videoActionService.gvggetSubjectUserStar(videoParams);
-		}else{
-			subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
-		}
-		GcUserAccessPermission gcUserAccessPermission = null;
-		if (null!=user&&envFlag.equals(EnvType.GVG.getCode())){
-			GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(),gcMaster.getId());
-			gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
-		}
-
-		if(level0sublist != null && level0sublist.size() > 0){
-			for(GcSubject li:level0sublist) {
-				if(li.getSubImgId()==null ) {
-					//continue;
-				}
-				if (null!=sysFileMap.get(li.getSubImgId())){
-					SysFile file = sysFileMap.get(li.getSubImgId());
-					file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
-					li.setSubImgFile(file);
-				}
-
-				if(CollectionUtils.isNotEmpty(subjectUsers)) {
-					GcUser gcUser = subjectUsers.get(li.getId());
-					if (null != gcUser) {
-						li.setSubjectUsers(gcUser.getSubjectUsers());
-					}else {
-						li.setSubjectUsers(TableConstant.COMMON_ZERO);
-					}
-				}
-
-				//
-				if(groupBySubId.get(li.getId())!=null){
-					List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-					Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
-					li.setVideosTotalLong(totalSeconds);
-				}
-
-				GcUserVideoAction videoActions = subjectUserStar.get(li.getId());
-				if(videoActions != null) {
-					//按type 进行分组
-					// 1.2k type=3的平均值 1.2k是打星的总人数
-					li.setStarValue(videoActions.getSubjectStarAvg());//星级平均值
-					// 打星总人数
-					li.setStarUsers(videoActions.getSubjectStarUsers());
-				}else {
-					li.setStarValue(TableConstant.starValue0);//星级平均值
-					li.setStarUsers(TableConstant.starUsers);
-				}
-				if (null!=gcUserAccessPermission) {
-					if (gcUserAccessPermission.getSubPermission().contains(li.getId())) {
-						li.setOwnFlag(TableConstant.COMMON_ONE);
-					} else {
-						li.setOwnFlag(TableConstant.COMMON_ZERO);
-					}
-				}
-				if (null!=user) {
-					if (null!=groupBySubId.get(li.getId())){
-						Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-						List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-						SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, gcMaster.getId(), envFlag);
-						li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-					}
-				}
-
-			}
-		}
-		PageInfo<GcSubject> pageInfo = new PageInfo<>(level0sublist);
-
-		if (null==requestParams.get("user")&&null==requestParams.get("type")){
-			List<PtChannel> channels = new ArrayList<>();
-			if(Objects.isNull(user)){
-				channels = ptChannelService.indexPtChannels(null,null,request,gcMaster.getId());
-			}else {
-				List<PtChannel> publicChannels = ptChannelService.indexPtChannels(user.getId(),TableConstant.COMMON_ZERO,request,gcMaster.getId());
-				List<PtChannel> mychannels =     ptChannelService.indexPtChannels(user.getId(),TableConstant.COMMON_ONE,request,gcMaster.getId());
-				/*channels = ptChannelService.selectPtChannels(user.getId(),TableConstant.COMMON_ONE,request,gcMaster.getId());*/
-				if(publicChannels.size()>0&&mychannels.size()>0){
-					publicChannels.addAll(mychannels);//合并我的频道和公共频道
-					channels = publicChannels;
-				}else if(publicChannels.size()>0){
-					channels = publicChannels;
-				}else {
-					channels = mychannels;
-				}
-			}
-			PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channels);
-			channelPageInfo.setTotal(channels.size());
-			message.ok().addData("channelList", channelPageInfo);
-
 			//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
 			//taglist
 			List<String> subWithTagList = new ArrayList<>();
@@ -611,25 +485,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
 			}
 
-			//recommenplaylist
-			List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
-			List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-			List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtHomePlayList(null, gcMaster.getId(),recommenFolderIds,request);
-			for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
-				//缩略图
-				if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-					SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-					String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
-					if (null!=gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)){
-						gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).setVideoFile(sysFile);
-						gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile().setSnapshotUrl(fullfileurl);
-					}
-					gcUserSaveFolder.setSnapshotUrl(fullfileurl);
-				}
-			}
-			PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-
-
 			List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
 			if (null!=user&&envFlag.equals(EnvType.PT.getCode())){
 				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
@@ -640,19 +495,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
 			}
 
-			List<SysMenu> menuList = sysMenuService.getLevel3List();
+			List<SysMenu> menuList = sysMenuService.getLevel3List(null);
 			message.ok().addData("allTags",subWithTagList);
 			message.ok().addData("homeInfo",infoList);
 			message.ok().addData("homeInfoIndex",menuList);
-			message.ok().addData("playList",recommenFolderListPageInfo);
-		}
-
-
-//		List<PtChannel> channels = ptChannelService.selectPtChannels(user.getId(), TableConstant.COMMON_ZERO, request, gcMaster.getId());
-//		PageInfo channelPageInfo = new PageInfo<>(channels);
-//		message.ok().addData("channelList",channelPageInfo);
-		message.ok().addData("master",gcMaster);
-		message.ok().addData("page",pageInfo);
+			message.ok().addData("master",gcMaster);
 		return message.ok();
 	}
 
@@ -1493,13 +1340,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				queryWrapper.in("master_id", masterId);
 				List<String> tagsLists = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
 				subject.setCourseTags(JSONArray.parseArray(JSON.toJSONString(tagsLists)));
-				queryWrapper = new QueryWrapper<>();
-				queryWrapper.in("master_id", masterId);
-				queryWrapper.in("type",TableConstant.COMMON_ONE);
-				tagsLists = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-				//去重
-				tagsLists = tagsLists.stream().distinct().collect(Collectors.toList());
-				subject.setAllTags(tagsLists);
 			}
 			//课程详情页封面
 			if(envFlag.equals(EnvType.PT.getCode()) && CollectionUtils.isNotEmpty(subject.getSubdetail_img_id())){
@@ -1530,6 +1370,13 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}else {
 				subject.setCourseState(TableConstant.COMMON_ZERO);
 			}
+
+			if ((subject.getCreateUser().equals(userId)||gcUser.getIsOrgAdmin()==true)&&subject.getState().equals(TableConstant.COMMON_ZERO)){
+				subject.setMode(TableConstant.COMMON_ONE);
+			}else {
+				subject.setMode(TableConstant.COMMON_ZERO);
+			}
+
 			msg.addData("subject", subject);
 			msg.addData("master",gcMaster);
 			return msg;
@@ -2001,6 +1848,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			thisUserId=otherUserId;
 		}
 		thisUserEventAnswer = userAnswerService.getMyEventAnswerByEventId(eventId, thisUserId, masterId);
+		if (null!=thisUserEventAnswer&&null!=thisUserEventAnswer.getUserId()){
+			GcUser gcUser = userService.getUserInfo(thisUserEventAnswer.getUserId());
+			thisUserEventAnswer.setUser(gcUser);
+		}
+
 
 		Message m = new Message().ok();
 		m.addData("参数说明", "otherUserId-点他人头像时，传该用户的id，可空，空时返回本人的数据");

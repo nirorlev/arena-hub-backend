@@ -27,6 +27,8 @@ public interface GcUserService extends IService<GcUser> {
      */
     GcUser getUserByIdCache(Integer id);
 
+    GcUser getUserInfo(Integer id);
+
     /***
      * 登录检查
      * @param username

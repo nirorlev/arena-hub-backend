@@ -27,6 +27,39 @@
         <result property="uuid" column="uuid"/>
     </resultMap>
 
+
+    <resultMap id="createUserResultMap" type="SysFile">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id" />
+        <result property="uploadUid" column="upload_uid" />
+        <result property="userRole" column="user_role" />
+        <result property="name" column="name" />
+        <result property="folder" column="folder" />
+        <result property="fileUrl" column="file_url" />
+        <result property="description" column="description" />
+        <result property="videoLong" column="video_long" />
+        <result property="fileType" column="file_type" />
+        <result property="fileTypeIndex" column="file_type_index" />
+        <result property="fileRemark" column="file_remark"  typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="saveType" column="save_type" />
+        <result property="md5" column="md5" />
+        <result property="size" column="size" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="uuid" column="uuid"/>
+
+        <association property="gcUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="createUserLastName"/>
+            <id property="firstName" column="createUserFirstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
+    </resultMap>
+
+
     <resultMap id="baseUserResultMap" type="SysFile">
         <id property="id" column="id"/>
         <result property="sysId" column="sys_id" />
@@ -158,13 +191,22 @@
         where id = #{id}
     </select>
 
-    <select id="selectBatchByFileIds" resultMap="baseResultMap">
-        select * from sys_file
-        where id in
+    <select id="selectBatchByFileIds" resultMap="createUserResultMap">
+        select f.*,
+        u.username as channel_create_user_username,
+        u.id as channel_create_uid,
+        ui.last_name as createUserLastName,
+        ui.first_name as createUserFirstName,
+        ui.avatar_file_id as userInfo_avatar_file_id
+        from sys_file f
+        left join gc_user u on u.id = f.upload_uid
+        left join gc_user_info ui on ui.id = u.info_id
+        where f.id in
         <foreach item="id" index="index" collection="fileIdList"  open="(" separator="," close=")">
-        #{id}
-    </foreach>
+            #{id}
+        </foreach>
     </select>
+
     <select id="getFilesUploadByFileIds" resultMap="baseUserResultMap">
         select f.id,u.id as u_id,u.username,f2.id as f_id,f2.name as f_name,f2.file_url as f_file_url,f2.save_type as f_save_type,
         ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId

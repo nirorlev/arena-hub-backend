@@ -1084,7 +1084,7 @@ private metarielConfig metarielConfig;
 					"<head>\n" +
 					addMetaContent +
 					"  <meta charset=\"utf-8\" />\n" +
-					"  <meta content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0;\" name=\"viewport\" />\n" +
+					"  <meta content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,\" name=\"viewport\" />\n" +
 					"  <meta name=\"theme-color\" content=\"#000000\" />\n" +
 					"  <link rel=\"apple-touch-icon\" href=\""+hubUrl+"/apple-touch-icon.png\" />\n" +
 					"  <link rel=\"manifest\" href=\""+hubUrl+"/manifest.json\" />\n" +
@@ -1111,7 +1111,8 @@ private metarielConfig metarielConfig;
 					"</body>\n" +
 					"\n" +
 					"</html>\n" +
-					"<!-- x-request-uri: "+xRequestUri+" -->\n" );
+					"<!-- x-request-uri: "+xRequestUri+" -->\n"+
+					"<!-- test1001: "+xRequestUri+" -->\n");
 			printWriter.flush();
 		} catch (Exception e) {
 			e.printStackTrace();

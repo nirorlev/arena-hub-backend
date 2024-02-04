@@ -51,4 +51,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
     List<PtChannel> indexSubscribeChannel(@Param("userId")Integer userId,@Param("masterId")Integer masterId);
 
     List<PtChannel> indexVideoNowChannel(@Param("userId")Integer userId,@Param("masterId")Integer masterId);
+
+    List<PtChannel> getAccessChannelList(@Param("channelIds")List<Integer> channelIds,@Param("masterId")Integer masterId,@Param("userId")Integer userId);
 }

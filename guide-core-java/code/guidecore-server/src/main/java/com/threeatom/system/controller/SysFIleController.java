@@ -1,9 +1,14 @@
 package com.threeatom.system.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.service.PtTagsService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +40,21 @@ public class SysFIleController extends GuideCoreController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SysFIleController.class);
 	@Autowired
 	private SysFileService sysFileService;
+
+	@Autowired
+	private PtTagsService tagsService;
 	
 	@ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
     @PostMapping("/saveLink")
 	public Message saveLink(@RequestBody SysFile sysFile,HttpServletRequest request) {
+		if (null==sysFile.getId()){
 		ApiAssert.notNull(sysFile.getFileUrl());//file url不可空
 		//判断folder是否是正确值
 //		ApiAssert.ifStringInList(sysFile.getFolder(), TableConstant.sysFile_folder_link_list, "foler字段错误，请于后端人员确认");
 		ApiAssert.ifStringInList(sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
 		//因s3上传文件取消
 		//ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),EventUnifyType.video_links_JSON_STR,"fileTypeIndex字段错误，请于后端人员确认");
+		}
 		GcMaster master = this.getMaster();
 		if (null==master&&null!=request.getHeader("masterId")) {
 			master = new GcMaster();
@@ -64,10 +74,32 @@ public class SysFIleController extends GuideCoreController {
 		SysSystem sys = this.getSystem();
 		sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
 		sysFile.setSysId(sys.getId());
-		if(sysFileService.save(sysFile)) {
+		if(sysFileService.saveOrUpdate(sysFile)) {
 			sysFileService.getVideoSnapshotUrl(sysFile);
 			sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
 			sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile,request));
+
+
+			if (null!=sysFile.getCourseTags()){
+				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
+				queryWrapper.eq("master_id",master.getId());
+				queryWrapper.in("file_id",sysFile.getId());
+				queryWrapper.eq("type",TableConstant.COMMON_TWO);
+				tagsService.remove(queryWrapper);
+				List<String> tagList = sysFile.getCourseTags();
+				List<PtTags> ptTagsList = new ArrayList<>();
+				Integer finalMasterId = master.getId();
+				tagList.forEach(i->{
+					PtTags newTags = new PtTags();
+					newTags.setMasterId(finalMasterId);
+					newTags.setTagText(i);
+					newTags.setFileId(sysFile.getId());
+					newTags.setType(TableConstant.COMMON_TWO);
+					newTags.setOrder(TableConstant.COMMON_ZERO);
+					ptTagsList.add(newTags);
+				});
+				tagsService.saveOrUpdateBatch(ptTagsList);
+			}
 			return new Message().ok().addData("file", sysFile);
 		}
 		return new Message().error("保存失败");

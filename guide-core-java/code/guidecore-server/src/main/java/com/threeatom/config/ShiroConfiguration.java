@@ -141,6 +141,7 @@ public class ShiroConfiguration {
 		filterChainDefinitionMap.put("/api/v1/guidecore/screenrock/changeUserInfo", "anon");
 		filterChainDefinitionMap.put("/api/v1/guidecore/screenrock/register", "anon");
 		filterChainDefinitionMap.put("/api/v1/guidecore/screenrock/videoDetail","anon");
+		filterChainDefinitionMap.put("/api/v1/powtoon/home/updateData","anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/manager/getSubjectImportToken", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/manager/getSubjectImportTokenTest", "anon");
 //		filterChainDefinitionMap.put("/api/*/guidecore/user/getStudentListByClass", "anon");

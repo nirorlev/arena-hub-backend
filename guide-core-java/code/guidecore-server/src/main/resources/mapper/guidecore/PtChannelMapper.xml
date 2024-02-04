@@ -71,6 +71,75 @@
         </collection>
     </resultMap>
 
+    <resultMap id="baseResultAccessMap" type="com.threeatom.guidecore.entity.PtChannel">
+        <id property="id" column="id"/>
+        <result property="channelName" column="channel_name"  />
+        <result property="channelImgFileId" column="channel_img_file_id"  />
+        <result property="desc" column="desc"  />
+        <result property="createUserId" column="create_user_id"  />
+        <result property="visibleFlag" column="visible_flag"  />
+        <result property="categoryId" column="category_id"  />
+        <result property="level" column="level"  />
+        <result property="fid" column="fid"  />
+        <result property="order" column="order"  />
+        <result property="masterId" column="masterId"  />
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="followFlag" column="followFlag"/>
+        <result property="subscribeNum" column="subscribeNum"/>
+        <result property="channelSlug" column="channel_slug"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createUserFirstName" column="createUserFirstName"/>
+        <result property="createUserLastName" column="createUserLastName"/>
+        <result property="channelAvatarFileId" column="channel_avatar_file_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="channelTags" column="channelTags"/>
+        <result property="subscribeUserIds" column="subscribeUserIds"/>
+        <result property="fileId" column="fileId"/>
+        <result property="likeNum" column="likeNum"/>
+        <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="userInfo_lastName"/>
+            <id property="firstName" column="userInfo_firstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
+        <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
+            <id property="id" column="channel_file_id" />
+            <result property="name" column="channel_video_f_name"/>
+            <result property="fileUrl" column="channel_video_file_url"/>
+            <result property="saveType" column="channel_video_f_save_type"/>
+            <result property="fileTypeIndex" column="channel_video_f_file_index"/>
+            <result property="fileType" column="channel_video_f_file_type"/>
+            <result property="thumbNailId" column="channel_thumb_nail_id"/>
+            <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
+            <result property="videoLong" column="channel_video_long"/>
+            <result property="ptChannelContentId" column="pt_channel_content_id"/>
+        </collection>
+        <collection property="accessList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcAccess">
+            <id property="id" column="code_id" />
+            <result property="code" column="team_codename"/>
+            <result property="groupName" column="accessGroupName"/>
+        </collection>
+        <collection property="subscribeAccessList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcAccess">
+            <id property="id" column="subscribe_code_id" />
+            <result property="code" column="subscribe_code_name"/>
+            <result property="groupName" column="groupName"/>
+        </collection>
+        <collection property="userList" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="subscribe_user_id"/>
+            <id property="username" column="subscribe_user_username"/>
+            <id property="lastName" column="subscribe_userInfo_lastName"/>
+            <id property="firstName" column="subscribe_userInfo_firstName"/>
+            <id property="avatarFileId" column="subscribe_userInfo_avatar_file_id"/>
+        </collection>
+        <collection property="allTags" javaType="ArrayList" column="id" ofType="com.threeatom.guidecore.entity.PtTags">
+            <id property="id" column="tag_id"/>
+            <id property="channelId" column="tag_channel_id"/>
+            <id property="type" column="tag_type"/>
+            <id property="tagText" column="tag_text"/>
+        </collection>
+    </resultMap>
+
     <resultMap id="baseResultSearchMap" type="com.threeatom.guidecore.entity.PtChannel">
         <result property="id" column="id"/>
         <result property="channelName" column="channel_name"  />
@@ -167,6 +236,38 @@
             <result property="ptChannelContentId" column="pt_channel_content_id"/>
         </association>
 
+    </resultMap>
+
+
+    <resultMap id="baseResultSysFileMap" type="SysFile">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id" />
+        <result property="uploadUid" column="upload_uid" />
+        <result property="userRole" column="user_role" />
+        <result property="name" column="name" />
+        <result property="folder" column="folder" />
+        <result property="fileUrl" column="file_url" />
+        <result property="description" column="description" />
+        <result property="videoLong" column="video_long" />
+        <result property="fileType" column="file_type" />
+        <result property="fileTypeIndex" column="file_type_index" />
+        <result property="fileRemark" column="file_remark"  typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="saveType" column="save_type" />
+        <result property="md5" column="md5" />
+        <result property="size" column="size" />
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+        <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="ptChannelContentId" column="ptChannelContentId"/>
+        <association property="gcUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
+            <id property="id" column="channel_create_uid"/>
+            <id property="username" column="channel_create_user_username"/>
+            <id property="lastName" column="createUserLastName"/>
+            <id property="firstName" column="createUserFirstName"/>
+            <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+        </association>
     </resultMap>
 
     <select id="selectNewIndexHomeChannels" resultMap="baseResultMap">
@@ -335,6 +436,27 @@
         group by channel.id
     </select>
 
+    <select id="getAccessChannelList" resultMap="baseResultAccessMap">
+        SELECT
+            channel.*,
+        access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
+        subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName
+        FROM
+            pt_channel channel
+                left join gc_access access on JSON_CONTAINS(access.channel_json, CONVERT(channel.id, CHAR))=1
+                left join gc_access subscribeAccess on JSON_CONTAINS(subscribeAccess.subscribe_json, CONVERT(channel.id, CHAR))=1
+                LEFT JOIN gc_user_access_permission permission ON JSON_CONTAINS( permission.subscribe_permission, CONVERT ( channel.id, CHAR ))= 1
+                LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
+        where 1=1
+         and   channel.id in
+        <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
+            #{channelId}
+        </foreach>
+	    and userAccess.master_id = #{masterId}
+	    and userAccess.user_id = #{userId}
+        group by channel.id,access.id,subscribeAccess.id
+    </select>
+
     <select id="selectChannelDetail" resultMap="baseResultMap">
         SELECT
             channel.*,us.username as channel_create_user_username,us.id as channel_create_uid,
@@ -370,9 +492,16 @@
         order by sec.create_time ${order}
     </select>
 
-    <select id="selectVideosInSection" resultType="com.threeatom.system.entity.SysFile">
+    <select id="selectVideosInSection" resultMap="baseResultSysFileMap">
         SELECT
         file.*,
+
+        u.username as channel_create_user_username,
+        u.id as channel_create_uid,
+        info.last_name as createUserLastName,
+        info.first_name as createUserFirstName,
+        info.avatar_file_id as userInfo_avatar_file_id,
+
         content.id AS ptChannelContentId
         FROM
         sys_file file
@@ -388,6 +517,9 @@
             where section.fid = #{sectionId}
         </if>
         )channel on channel.id = content.channel_id
+        left join gc_user u on u.id = file.upload_uid
+        left join gc_user_info info on info.id = u.info_id
+
         WHERE
         1 = 1 and  file.id is not null
         <if test="searchName!=null">
@@ -797,6 +929,7 @@
         channel.channel_img_file_id,channel.`desc`,channel.create_user_id,channel.visible_flag,channel.category_id,
         channel.level,channel.fid,channel.`order`,channel.master_id,ifnull(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
         channel.update_time,
+        file.update_time as file_update_time,
         ifnull(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
         ifnull(ch2.id,channel.id) as id,
         ifnull(ch2.channel_name,channel.channel_name) as channel_name,
@@ -819,15 +952,16 @@
         where 1=1
         and userAccess.user_id = #{userId}
         and us.id = #{userId}
-        and channel.create_user_id != #{userId}
         and userAccess.master_id = #{masterId}
         and pcc.id is not null
+        or((channel.create_user_id = #{userId} or ch2.create_user_id = #{userId}) and channel.master_id = #{masterId})
+        and channel.master_id = #{masterId}
         GROUP BY file.id
         order by file.update_time desc
         ) as f
         left join gc_user_video_action vac on f.fileId = vac.file_id and vac.`type` = 1
         GROUP BY f.fileId
-        order by f.update_time desc
+        order by f.file_update_time desc
     </select>
 
 
@@ -879,5 +1013,6 @@
         order by likeNum desc ,count(play.id) desc,file_update_time desc
 
     </select>
+
 
 </mapper>
