@@ -20,7 +20,7 @@ import org.springframework.context.annotation.PropertySource;
 @Data
 public class PermitConfiguration {
 
-    @Value("${permit.apiKey:permit_key_udA2LsMaHVC7nMD08bSKJ3iiCaFgGgGMJCOPg0ENlHG2Slz7wa2g0Vf9CnH9xwgoYGL7fMeD2S9djpER3p5Con}")
+    @Value("${permit.apiKey:permit_key_ZW0KTH0icmdLZbJvG1fDN4JUMNS4OMMnRZBC3gyj7qSmkisJZR4K2ngtQs1932Mam5qIOpF5ySxy5tegMZXR8y}")
     private String apiKey;
 
     @Value("${permit.pdpAddress:http://47.111.191.189:7766}")
