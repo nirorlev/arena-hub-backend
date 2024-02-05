@@ -39,11 +39,12 @@ Software architecture description
     cd guide-core-java/code/guidecore-server
     mvn -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
     ```
-5. Build docker image:
+    As a result `target` folder should be created
+5. Build docker image in `guide-core-java/code/guidecore-server` directory:
     ```bash
     docker build --platform linux/amd64 -t arena-be-java:2.1 .
     ```
-6. Go to `arena-hub-backend` and run:
+6. Go to the project root directory: `arena-hub-backend` and run:
     ```bash
     finch compose up # in case of issues run docker-compose up
     ```
