@@ -2158,7 +2158,7 @@ public class PowtoonController extends GuideCoreController {
 		//String ptEnvironment = env.getProperty("redirectUri");
 		//List<String> prList = Arrays.asList(ptEnvironment.split(","));
 		//if (prList.contains(redirectUri)&&null!=code){
-		if (redirectUri.contains("https://")&&null!=code){
+		if (null!=code){
 			Map<String, String> body = new HashMap<>();
 			body.put("client_id",ptLoginConfig.getClientId());
 			body.put("grant_type","authorization_code");
@@ -2457,64 +2457,8 @@ public class PowtoonController extends GuideCoreController {
 			redisOperator.set("PT_refresh_token:"+user.getUsername(),refreshToken);
 			//access_token存入redis
 			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
-		}else if(!redirectUri.contains("https")){
-			if (null==gcUser){
-				//为空时创建一个用户
-				user = userService.createGcUser(2, "test@user.com", "test111111", "test", "User");
-				user.setInfo(infoService.getById(user.getInfoId()));
-				accessService.checkUserAccess(master.getId(), user.getId(), gcAccess.getCode(), null, null, null);
-			}else {
-				//不为空时从数据库获取
-				user = userService.getUserByUserName("test@user.com");
-				user = userService.getUserByIdCache(user.getId());
-				//List<GcUserAccess> userAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);
-				List<GcAccess> accessList = gcAccessService.getAllAccessByMasterId(masterId);
-				GcUser finalUser = user;
-				if (null!=accessList&&TableConstant.COMMON_ZERO!=accessList.size()) {
-					List<GcUserAccess> userAccessList = new ArrayList<>();
-					accessList.forEach(i -> {
-						GcUserAccess gcUserAccess = new GcUserAccess();
-						JSONArray array = new JSONArray();
-						array.add(GroupsType.groupAdmin);
-						array.add(GroupsType.groupMember);
-						gcUserAccess.setRoleJson(array);
-						gcUserAccess.setAccessId(i.getId());
-						gcUserAccess.setMasterId(masterId);
-						gcUserAccess.setUserId(finalUser.getId());
-						gcUserAccess.setState(TableConstant.COMMON_ONE);
-						userAccessList.add(gcUserAccess);
-					});
-					gcUserAccessService.insertUserAccessList(userAccessList);
-				}
-				/*if (userAccessList.size()!=TableConstant.COMMON_ZERO){
-					for (GcUserAccess gcUserAccess : userAccessList) {
-						JSONArray array = new JSONArray();
-						array.add(GroupsType.groupAdmin);
-						gcUserAccess.setRoleJson(array);
-					}
-					gcUserAccessService.insertUserAccessList(userAccessList);
-				}*/
-				//创建用户权限
-				List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-				List<Integer> userIds = new ArrayList<>();
-				userIds.add(user.getId());
-				List<GcUserAccess> userAccesses = gcUserAccessService.getUserAccessListByMasterIdAndUserId(userIds,masterId);
-				for (GcUserAccess gcUserAccess : userAccesses) {
-					GcUserAccessPermission permission = new GcUserAccessPermission();
-					permission.setUserAccessId(gcUserAccess.getId());
-					permission.setSubPermission(gcUserAccess.getAccess().getSubjectJson());
-					permission.setChannelPermission(gcUserAccess.getAccess().getChannelJson());
-					permission.setMaySubjectJson(gcUserAccess.getAccess().getMaySubjectJson());
-					permission.setMustSubjectJson(gcUserAccess.getAccess().getMustSubjectJson());
-					userAccessPermissions.add(permission);
-				}
-				if(TableConstant.COMMON_ZERO!=userAccessPermissions.size()) {
-					gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
-				}
-
-			}
 		}
-		if(code==null&&redirectUri.contains("https")){
+		if(code==null){
 			if(null==redisOperator.get("PT:"+user.getUsername())||
 					null==redisOperator.get("access_token_userid"+user.getId())){
 				return message.error(401, "Login has expired!");
