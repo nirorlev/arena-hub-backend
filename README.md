@@ -1,4 +1,5 @@
 # arena-hub-backend
+Visual Native / Powtoon Backend Java
 #### Description
 
 #### Software Architecture
@@ -19,6 +20,8 @@ Software architecture description
     ```bash
     brew update
     brew install maven finch
+    # Check the status of the Finch virtual machine
+    finch vm status
     ```
     {**in case of issues with finch use docker-compose instead**}
 
@@ -29,7 +32,7 @@ Software architecture description
     aws s3 cp dump.sql.tar.gz s3://powtoon-dev-develop-static/arena-hub-be-db-dump
     unzip dump.sql.tar.gz
     ```
-3. Copy `dump.sql`:
+3. Copy `dump.sql` to the project root directory: `arena-hub-backend`:
     ```bash
     cd arena-hub-backend/
     cp your_location/dump.sql .
