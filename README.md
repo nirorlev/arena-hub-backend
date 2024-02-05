@@ -7,10 +7,11 @@ Software architecture description
 #### Installation
 
 1. This application requires the following components:
-   * maven
-   * openjdk 15.0
-   * redis 6.2
-   * mysql 5.7
+
+    * maven
+    * openjdk 15.0
+    * redis 6.2
+    * mysql 5.7
   
 2. For running on docker containers, install the followings:
 
@@ -46,13 +47,14 @@ Software architecture description
     ```bash
     finch compose up # in case of issues run docker-compose up
     ```
-7.  Test the application: localhost:9999/arena-hub/api/v1/guidecore/
+7.  Test the application: localhost:9999/arena-hub/api/v1/guidecore/ 
+
     The expected response:
     ```json
     {"meta":{"msg":"没有TOKEN","code":401,"success":false,"systemTime":"2024-02-05 07:31:36","timestamp":1707118296666}}
     ```
 
-{**add a new section in case we decide to run backend locally without not using docker image**}
+{**add a new section in case we decide to run backend locally not using docker image**}
       
 #### Contribution
 
