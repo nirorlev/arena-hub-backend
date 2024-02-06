@@ -58,7 +58,7 @@ Software architecture description
     {"meta":{"msg":"没有TOKEN","code":401,"success":false,"systemTime":"2024-02-05 07:31:36","timestamp":1707118296666}}
     ```
 ### Things To Know
-1. If `finch` encounters issues, Docker desktop or alternative tool can be used. Install docker and docker-compose, and employ the appropriate commands.
+1. If `finch` encounters issues, Docker desktop or alternative tool can be used. Install docker and docker-compose, and use the appropriate commands.
 2. Keep properly stop containers:
     ```bash
     finch compose down
