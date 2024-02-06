@@ -27,9 +27,9 @@ Software architecture description
 
 #### Instructions
 1. Clone this repository
-2. Get `dump.sql` from s3 bucket
+2. Get `dump.sql` zipped file from s3 bucket
     ```bash
-    aws s3 cp dump.sql.tar.gz s3://powtoon-dev-develop-static/arena-hub-be-db-dump
+    wget https://powtoon-dev-develop-static.s3.amazonaws.com/arena-hub-be-db-dump/dump.sql.tar.gz
     unzip dump.sql.tar.gz
     ```
 3. Copy `dump.sql` to the project root directory: `arena-hub-backend`:
