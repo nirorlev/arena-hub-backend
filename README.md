@@ -57,6 +57,29 @@ Software architecture description
     ```json
     {"meta":{"msg":"没有TOKEN","code":401,"success":false,"systemTime":"2024-02-05 07:31:36","timestamp":1707118296666}}
     ```
+### Things To Know
+1. If `finch` encounters issues, Docker desktop or alternative tool can be used. Install docker and docker-compose, and employ the appropriate commands.
+2. Keep properly stop containers:
+    ```bash
+    finch compose down
+    ```
+3. Once the above setup was installed and runs, be aware of loosing data in case the container dies, the data can be copied to local machine with this command:
+    ```bash
+    finch cp <container_id_or_name>:<path_inside_container> <local_destination_path>
+    ```
+4. Useful commands:
+    Run java container in interactive mode:
+    ```bash
+    finch exec -it arena-java-app /bin/sh
+    ```    
+    Run mysql container in interactive mode:
+    ```bash
+    finch exec -it mysql-db /bin/sh
+    # inside container
+    mysql -h $MYSQL_HOST -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD
+    ```
+5. docker image tag hard-coded in docker-compose: 2.1. 
+    In case of java docker image rebuild, docker-compose will take the latest one even you didn't retag it. So before the image rebuild stop the docker-compose, rebuild the image and start compose.
 
 {**add a new section in case we decide to run backend locally not using docker image**}
       
