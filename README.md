@@ -13,6 +13,7 @@ Software architecture description
     * openjdk 15.0
     * redis 6.2
     * mysql 5.7
+    * pdp-v2
   
 2. For running on docker containers, install the followings:
 
@@ -45,7 +46,8 @@ Software architecture description
     As a result `target` folder should be created
 5. Build docker image in `guide-core-java/code/guidecore-server` directory:
     ```bash
-    docker build --platform linux/amd64 -t arena-be-java:2.1 .
+    finch build --platform linux/amd64 --tqg arena-be-java:2.1 .
+    # or use docker command: docker build --platform linux/amd64 -t arena-be-java:2.1 .
     ```
 6. Go to the project root directory: `arena-hub-backend` and run:
     ```bash
@@ -78,8 +80,8 @@ Software architecture description
     # inside container
     mysql -h $MYSQL_HOST -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD
     ```
-5. docker image tag hard-coded in docker-compose: 2.1. 
-    In case of java docker image rebuild, docker-compose will take the latest one even you didn't retag it. So before the image rebuild stop the docker-compose, rebuild the image and start compose.
+5. The java image tag is hard-coded in docker-compose and it's 2.1 
+    In case of the image rebuild, the latest image will be taken even if you didn't retag it. So before the image rebuild stop the finch-compose, rebuild the image and start compose.
 
 {**add a new section in case we decide to run backend locally not using docker image**}
       
