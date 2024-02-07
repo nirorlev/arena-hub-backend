@@ -46,7 +46,7 @@ Software architecture description
     As a result `target` folder should be created
 5. Build docker image in `guide-core-java/code/guidecore-server` directory:
     ```bash
-    finch build --platform linux/amd64 --tqg arena-be-java:2.1 .
+    finch build --platform linux/amd64 --tag arena-be-java:2.1 .
     # or use docker command: docker build --platform linux/amd64 -t arena-be-java:2.1 .
     ```
 6. Go to the project root directory: `arena-hub-backend` and run:
