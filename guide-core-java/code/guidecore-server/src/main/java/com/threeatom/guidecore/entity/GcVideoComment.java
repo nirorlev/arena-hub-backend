@@ -1,15 +1,13 @@
 package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.threeatom.system.entity.SysFile;
-
-import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 
 /**
@@ -21,10 +19,10 @@ import lombok.Data;
  * @since 2019-11-27
  */
 @Data
-@ApiModel(value="GcVideoComment对象", description="视频评论")
+@ApiModel(value = "GcVideoComment对象", description = "视频评论")
 public class GcVideoComment implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -103,7 +101,4 @@ public class GcVideoComment implements Serializable {
 
     @TableField(exist = false)
     private Integer isFabulous;
-
-
-
 }

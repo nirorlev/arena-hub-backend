@@ -5,9 +5,7 @@ import com.threeatom.guidecore.entity.GcCategory;
 import com.threeatom.guidecore.entity.GcFaq;
 import com.threeatom.guidecore.entity.GcKnowledgebase;
 import com.threeatom.guidecore.entity.GcProblem;
-
 import java.util.List;
-import java.util.Locale;
 
 public interface GcProblemMapper extends BaseMapper<GcProblem> {
 

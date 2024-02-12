@@ -1,18 +1,11 @@
 package com.threeatom.guidecore.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-import com.threeatom.system.entity.SysFile;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 
 /**
@@ -23,11 +16,11 @@ import lombok.Data;
  * @author qiaoxide
  * @since 2019-11-18
  */
-@ApiModel(value="GcFaq", description="常见问题")
+@ApiModel(value = "GcFaq", description = "常见问题")
 @Data
 public class GcFaq implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
@@ -53,6 +46,4 @@ public class GcFaq implements Serializable {
 
     @ApiModelProperty(value = "父级Id")
     private Integer faqId;
-
-
 }

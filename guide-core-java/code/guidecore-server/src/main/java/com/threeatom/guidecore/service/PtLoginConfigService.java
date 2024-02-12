@@ -10,6 +10,4 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
  * @description: TODO
  * @date 2022/12/9/00914:17
  */
-public interface PtLoginConfigService extends IService<PtLoginConfig> {
-
-}
+public interface PtLoginConfigService extends IService<PtLoginConfig> {}

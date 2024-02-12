@@ -12,8 +12,7 @@ import javax.servlet.ServletResponse;
 import org.apache.shiro.web.util.WebUtils;
 
 public class ShiroGlobalExceptionUtil {
-    public ShiroGlobalExceptionUtil() {
-    }
+    public ShiroGlobalExceptionUtil() {}
 
     public static void exceptionHandler(Exception e, ServletResponse response) {
         Message msg = (new Message()).error(401, e.getMessage());
@@ -31,6 +30,5 @@ public class ShiroGlobalExceptionUtil {
         } catch (Exception var4) {
             var4.printStackTrace();
         }
-
     }
 }

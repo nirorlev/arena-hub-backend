@@ -1,8 +1,7 @@
 package com.threeatom.guidecore.controller.user.vo;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /**
  * @author Administrator

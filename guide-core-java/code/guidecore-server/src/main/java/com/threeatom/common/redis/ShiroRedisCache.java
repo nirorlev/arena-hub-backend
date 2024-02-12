@@ -30,7 +30,6 @@ public class ShiroRedisCache implements Cache<Object, Object> {
         if (!StringUtils.isEmpty(prefix)) {
             this.prefix = prefix;
         }
-
     }
 
     public String getPrefix() {
@@ -54,8 +53,8 @@ public class ShiroRedisCache implements Cache<Object, Object> {
         Set<Object> objSet = new HashSet();
         Iterator var3 = set.iterator();
 
-        while(var3.hasNext()) {
-            String k = (String)var3.next();
+        while (var3.hasNext()) {
+            String k = (String) var3.next();
             objSet.add(k);
         }
 
@@ -90,7 +89,7 @@ public class ShiroRedisCache implements Cache<Object, Object> {
         List<Object> values = new ArrayList();
         Iterator var3 = keys.iterator();
 
-        while(var3.hasNext()) {
+        while (var3.hasNext()) {
             Object k = var3.next();
             values.add(this.get(k));
         }

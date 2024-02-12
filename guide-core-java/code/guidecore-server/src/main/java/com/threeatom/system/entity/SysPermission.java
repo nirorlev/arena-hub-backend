@@ -11,27 +11,24 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 
-@ApiModel(
-    value = "SysPermission对象",
-    description = "角色权限表"
-)
+@ApiModel(value = "SysPermission对象", description = "角色权限表")
 public class SysPermission implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("角色id")
     private Integer roleId;
+
     @ApiModelProperty("模块id")
     private Integer moduleId;
+
     @ApiModelProperty("权限功能字符")
     private String permCode;
 
-    public SysPermission() {
-    }
+    public SysPermission() {}
 
     public Integer getId() {
         return this.id;
@@ -66,6 +63,14 @@ public class SysPermission implements Serializable {
     }
 
     public String toString() {
-        return "SysPermission{id=" + this.id + ", roleId=" + this.roleId + ", moduleId=" + this.moduleId + ", permCode=" + this.permCode + "}";
+        return "SysPermission{id="
+                + this.id
+                + ", roleId="
+                + this.roleId
+                + ", moduleId="
+                + this.moduleId
+                + ", permCode="
+                + this.permCode
+                + "}";
     }
 }

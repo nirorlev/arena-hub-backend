@@ -1,12 +1,5 @@
 package com.threeatom.guidecore.entity;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -19,14 +12,17 @@ import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author qiaoxide
@@ -37,437 +33,431 @@ import lombok.Data;
 @TableName(autoResultMap = true)
 public class GcSubject implements Serializable, TreeNodeEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@ApiModelProperty(value = "主键")
-	@TableId(value = "id", type = IdType.AUTO)
-	private Integer id;
-	
-	@JSONField(deserialize = false)
-	private Integer id2;
+    @ApiModelProperty(value = "主键")
+    @TableId(value = "id", type = IdType.AUTO)
+    private Integer id;
 
-	@JSONField(deserialize = true)
-	private Integer masterId;
+    @JSONField(deserialize = false)
+    private Integer id2;
 
-	@ApiModelProperty(value = "主题name")
-	private String name;
+    @JSONField(deserialize = true)
+    private Integer masterId;
 
-	@ApiModelProperty(value = "课程index，单个门户内唯一")
-	private String nameIndex;
+    @ApiModelProperty(value = "主题name")
+    private String name;
 
-	@ApiModelProperty(value = "课程语言")
-	private String language;
+    @ApiModelProperty(value = "课程index，单个门户内唯一")
+    private String nameIndex;
 
-	@ApiModelProperty(value = "课程语言")
-	private Integer cateId;
-	
-	@ApiModelProperty(value = "描述信息")
-	private String description;
-	
-	@JSONField(deserialize = false)
-	@ApiModelProperty(value = "主题类型")
-	private Integer type;
+    @ApiModelProperty(value = "课程语言")
+    private String language;
 
-	@JSONField(deserialize = false)
-	@ApiModelProperty(value = "主题Id")//后续层级关联都用fid，后续将弃用subId
-	@Deprecated
-	private Integer subId;
+    @ApiModelProperty(value = "课程语言")
+    private Integer cateId;
 
-	@TableField(value = "`order`")
-	private Integer order;
+    @ApiModelProperty(value = "描述信息")
+    private String description;
 
-	@ApiModelProperty(value = "subject科目图片id")
-	private Integer subImgId;
+    @JSONField(deserialize = false)
+    @ApiModelProperty(value = "主题类型")
+    private Integer type;
 
-	@ApiModelProperty(value = "subject科目图片文件")
-	@TableField(exist = false)
-	private SysFile subImgFile;
+    @JSONField(deserialize = false)
+    @ApiModelProperty(value = "主题Id") // 后续层级关联都用fid，后续将弃用subId
+    @Deprecated
+    private Integer subId;
 
-	@ApiModelProperty(value = "父级ID")//后续层级关联都用fid，后续将弃用subId
-	private Integer fid;
+    @TableField(value = "`order`")
+    private Integer order;
 
-	@ApiModelProperty(value = "父级ID")
-	private Integer aliasSubId;
-	
-	@JSONField(deserialize = false)
-	@ApiModelProperty(value = "树状结构层")
-	private Integer level;
+    @ApiModelProperty(value = "subject科目图片id")
+    private Integer subImgId;
 
-	@JSONField(deserialize = false)
-	private Date updateTime;
+    @ApiModelProperty(value = "subject科目图片文件")
+    @TableField(exist = false)
+    private SysFile subImgFile;
 
-	@JSONField(deserialize = false)
-	private Date createTime;
+    @ApiModelProperty(value = "父级ID") // 后续层级关联都用fid，后续将弃用subId
+    private Integer fid;
 
-    //workbook接口中使用，主题下的视频list
-	@TableField(exist = false)
-	@ApiModelProperty(value = "主题下的视频list")
+    @ApiModelProperty(value = "父级ID")
+    private Integer aliasSubId;
+
+    @JSONField(deserialize = false)
+    @ApiModelProperty(value = "树状结构层")
+    private Integer level;
+
+    @JSONField(deserialize = false)
+    private Date updateTime;
+
+    @JSONField(deserialize = false)
+    private Date createTime;
+
+    // workbook接口中使用，主题下的视频list
+    @TableField(exist = false)
+    @ApiModelProperty(value = "主题下的视频list")
     private List<GcVideo> videoChildList;
 
-	@ApiModelProperty(value = "是否需要课程介绍页面，1=需要，null=不需要")
-	private Integer introOnOff;
-
-	@ApiModelProperty(value = "首页样式id")
-	private Integer templateId;
-	
-	@ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
-	private Integer state;
-
-	@ApiModelProperty(value = "课程标语")
-	private String courseTagline;
-
-	@ApiModelProperty("课程tag标签")
-	@TableField(
-			value = "course_tags",
-			typeHandler = FastJsonArrayTypeHandler.class,
-			exist = false
-	)
-	private JSONArray courseTags = new JSONArray();
-	
-	@TableField(updateStrategy = FieldStrategy.IGNORED )
-	@ApiModelProperty(value = "其他课程导入该课程的密匙token")
-	private String token;
-	
-	@ApiModelProperty(value = "该课程是否是公共课程，1=是，如是其他课程导入该课程不需要token")
-	private Integer isPublic;
-
-	@ApiModelProperty(value = "课程时长")
-	@TableField(updateStrategy = FieldStrategy.IGNORED)
-	private String cpdHours;
-
-	@ApiModelProperty("课程开关 1开 0关")
-	@TableField(exist = false)
-	private Integer subjectShowFlag;
-
-	@ApiModelProperty("总条数")
-	@TableField(exist = false)
-	private Integer total;
-	
-	@TableField(exist = false)
-	private Integer subjectAssociationId;
-	@TableField(exist = false)
-	private Integer subjectAssociationOrder;
-	@TableField(exist = false)
-	private Integer subjectAssociationRelationType;
-
-	@TableField(exist = false)
-	private GcUserVideoPlay userVideoPlay;
-	//观看状态
-	@TableField(exist = false)
-	private Integer watchedStatus;
-	
-	// add by 20210815
-	@TableField(exist = false)
-	private Long subjectVideoDuration;//课程视频时长，单位秒
-
-	@TableField(exist = false)
-	private List<GcUserVideoPlay> userVideoPlays;//课程下的视频播放进度list
-
-	@TableField(exist = false)
-	private List<GcVideo> gcVideos;//课程下的视频
-
-
-	@TableField(exist = false)
-	private List<GcSubject> subjects;//一级课程下的二级课程
-
-	@TableField(exist = false)
-	private Short subjectCompleteStatus;//一级课程下的二级课程完成状态
-
-
-
-
-	@TableField(exist = false)
-	private List<GcVideo> gcVideoCompletes;//课程下的视频
-
-	@TableField(exist = false)
-	private Integer videoProgressPercent;//视频进度百分比
-	@TableField(exist = false)
-	private Integer subjectUsers;//课程下的参与人数
-
-	@TableField(exist = false)
-	private Double starValue;//星级评价值
-
-	@TableField(exist = false)
-	private Long starUsers;//星级评价总人数
-
-	@TableField(exist = false)
-	private Long commentNumber;//评论总数
-	@TableField(exist = false)
-	private Long giveLike;//点赞数
-
-	@TableField(exist = false)
-	private Short completeStatus;//课程完成状态
-
-	@TableField(exist = false)
-	private Integer videosTotalNum;//其下视频总数量;
-	@TableField(exist = false)
-	private Integer videosTotalLong;//其下视频总时长;
-	@TableField(exist = false)
-	private Integer eventTotalNum;//其下视频其下的总问题数event;
-	@TableField(exist = false)
-	private Integer answeredEventNum;//其下视频其下的总问题的已回答数answer;
-	@TableField(exist = false)
-	private Long videoFinishedNum;//课程下已观看完的视频
+    @ApiModelProperty(value = "是否需要课程介绍页面，1=需要，null=不需要")
+    private Integer introOnOff;
 
-	@TableField(exist = false)
-	private String snapshotUrl;//快照
+    @ApiModelProperty(value = "首页样式id")
+    private Integer templateId;
 
-	@TableField(exist = false)
-	private Integer lastVideoId;
+    @ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
+    private Integer state;
 
-	@TableField(exist = false)
-	private Integer subPlayState;
+    @ApiModelProperty(value = "课程标语")
+    private String courseTagline;
 
-	@TableField(exist = false)
-	private SubjectTotals subjectTotals;
+    @ApiModelProperty("课程tag标签")
+    @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
+    private JSONArray courseTags = new JSONArray();
 
-	@TableField(exist = false)
-	private GcMaster gcMaster;
-
-	@ApiModelProperty(value = "未来事件的前置事件")
-	@TableField(exist = false)
-	private GcEvent futurePreEvent;
-		
-	@TableField(exist = false)
-	private GcSubjectAssociation gcSubjectAssociation;
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @ApiModelProperty(value = "其他课程导入该课程的密匙token")
+    private String token;
 
-	@ApiModelProperty(value = "被购买次数")
-	@TableField(exist = false)
-	private Integer orderNum;
+    @ApiModelProperty(value = "该课程是否是公共课程，1=是，如是其他课程导入该课程不需要token")
+    private Integer isPublic;
 
-	@ApiModelProperty(value = "音频总时长")
-	@TableField(exist = false)
-	private Integer audioTotalLong;
+    @ApiModelProperty(value = "课程时长")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String cpdHours;
 
-	@ApiModelProperty(value = "课程adminid")
-	@TableField(exist = false)
-	private Integer managerId;
+    @ApiModelProperty("课程开关 1开 0关")
+    @TableField(exist = false)
+    private Integer subjectShowFlag;
 
-	@ApiModelProperty(value = "当前用户是否已拥有")
-	@TableField(exist = false)
-	private Integer ownFlag;
+    @ApiModelProperty("总条数")
+    @TableField(exist = false)
+    private Integer total;
 
-	@ApiModelProperty(value = "tag的类型 1为主门户 2为导入的门户")
-	@TableField(exist = false)
-	private Integer tagType;
+    @TableField(exist = false)
+    private Integer subjectAssociationId;
 
-	@ApiModelProperty(value = "tag内容")
-	@TableField(exist = false)
-	private String tagText;
+    @TableField(exist = false)
+    private Integer subjectAssociationOrder;
 
-	@ApiModelProperty(value = "workbook上一次回答问题时间")
-	@TableField(exist = false)
-	private String lastActivityTime;
+    @TableField(exist = false)
+    private Integer subjectAssociationRelationType;
 
-	@ApiModelProperty(value = "一级课程名字")
-	@TableField(exist = false)
-	private String sub0Name;
+    @TableField(exist = false)
+    private GcUserVideoPlay userVideoPlay;
 
-	@ApiModelProperty(value = "一级课程名字")
-	@TableField(exist = false)
-	private String sub0Id;
+    // 观看状态
+    @TableField(exist = false)
+    private Integer watchedStatus;
 
-	@ApiModelProperty(value = "是否允许证书下载flag")
-	private Integer certificatesFlag;
+    // add by 20210815
+    @TableField(exist = false)
+    private Long subjectVideoDuration; // 课程视频时长，单位秒
 
-	@ApiModelProperty(value = "是否允许证书下载flag")
-	@TableField(exist = false)
-	private Integer enableCertificatesFlag;
+    @TableField(exist = false)
+    private List<GcUserVideoPlay> userVideoPlays; // 课程下的视频播放进度list
 
-	@ApiModelProperty(value = "用户id")
-	@TableField(exist = false)
-	private Integer userId;
+    @TableField(exist = false)
+    private List<GcVideo> gcVideos; // 课程下的视频
 
-	@ApiModelProperty(value = "用户id")
-	@TableField(exist = false)
-	private Object user;
+    @TableField(exist = false)
+    private List<GcSubject> subjects; // 一级课程下的二级课程
 
-	@ApiModelProperty(value = "用户信息")
-	@TableField(exist = false)
-	private GcUser userInfo;
+    @TableField(exist = false)
+    private Short subjectCompleteStatus; // 一级课程下的二级课程完成状态
 
-	@ApiModelProperty(value = "进度")
-	@TableField(exist = false)
-	private BigDecimal totalPercent;
-
-	@ApiModelProperty(value = "课程标题描述的字体颜色" )
-	private String color;
+    @TableField(exist = false)
+    private List<GcVideo> gcVideoCompletes; // 课程下的视频
 
-	@TableField(exist = false)
-	private Integer answerFabulousNum;
-
-	@TableField(exist = false)
-	private Integer firstVideoId;
-
-	@TableField(exist =  false)
-	private GcSubject firstTopic;
-
-	@TableField(exist = false)
-	private Integer subjectsSize;
-
-	@TableField(exist = false)
-	private String tagName;
-
-	@ApiModelProperty("课程按tag排序")
-	@TableField(
-			value = "course_tags",
-			typeHandler = FastJsonArrayTypeHandler.class,
-			exist = false
-	)
-	private JSONArray subjectOrder;
-
-	@ApiModelProperty("课程详情页封面id")
-	@TableField(
-			value = "subdetail_img_id",
-			typeHandler = FastJsonObjectTypeHandler.class,
-			exist = true
-	)
-	private JSONObject subdetail_img_id = new JSONObject();
-
-	@TableField(exist = false)
-	private String subDetailImgUrl;
-
-	@TableField(exist = false)
-	private Integer publicMasterId;
-
-	@TableField(updateStrategy = FieldStrategy.IGNORED)
-	private Integer badgeId;
-
-	private Integer cpdFlag;
-
-	private String badgeContent;
-
-	private Integer resourceNum;
-
-	@ApiModelProperty(value = "进度")
-	@TableField(exist = false)
-	private BigDecimal percents;
-
-	@ApiModelProperty(value = "所有tag")
-	@TableField(exist = false)
-	private List<String> allTags;
-
-	@TableField(exist = false)
-	private Integer tagId;
-
-	/**
-	 * 创建人id
-	 */
-	private Integer createUser;
-
-	/**
-	 * 是否是pt课程
-	 */
-	@ApiModelProperty(value = "是否是pt课程")
-	@TableField(exist = false)
-	private Integer isPtSubject;
-
-
-	@TableField(exist = false)
-	private List<Integer> accessIds;
-
-	/**
-	 * 发布选项
-	 * 公共选项1
-	 */
-	private Integer availableType;
-
-	/**
-	 * 是否是must课程 0是 1否
-	 */
-	@TableField(exist = false)
-	private Integer isMustSubject;
-
-	/**
-	 * 必须学习的组
-	 */
-	@TableField(exist = false)
-	private List<Integer> mustAccessIds;
-
-	/**
-	 * 是否选择全部,0是 1否
-	 */
-	@TableField(exist = false)
-	private Integer allPublished;
-
-	/**
-	 * may是否选择全部,0是 1否
-	 */
-	@TableField(exist = false)
-	private Integer allPublishedMay;
-
-	@TableField(exist = false)
-	Integer currentStudentUserId;
-
-	/**
-	 * 是否自己可见 0是 1否
-	 */
-	@TableField(exist = false)
-	private Integer isMyView;
-
-	/**
-	 * 移动到草稿箱 0是
-	 */
-	@TableField(exist = false)
-	private Integer moveDrafts;
-
-	@TableField(exist = false)
-	private Integer courseState;
-
-	@TableField(exist = false)
-	private JSONArray mustJsonArray;
-
-	@TableField(exist = false)
-	private JSONArray mayJsonArray;
-
-	/**
-	 *  0 to do 新发布的没有开始的must课程
-	 *  1 overdue 暂无
-	 *  2 completed 完成
-	 *  3 draft 草稿
-	 *  4 Earn a Certificate 有证书下载的课程
-	 */
-	@TableField(exist = false)
-	private Integer identifying;
-
-	@TableField(exist = false)
-	private List<Integer> identifyings;
-
-	/**
-	 * 发布时间
-	 */
-	private Date publishedTime;
-
-	/**
-	 * 发布者id
-	 */
-	private Integer publishedUserId;
-
-	/**
-	 * 模式 0查看 1编辑
-	 */
-	@TableField(exist = false)
-	private Integer mode;
-
-	/**
-	 * 不为空时反显是否是to-do课程
-	 */
-	@TableField(exist = false)
-	private Integer isToDo;
-
-
-//	@ApiModelProperty(value = "关联课程的gc_subject的id")
-//	private Integer relatedSubjectId;
-//	
-//	@ApiModelProperty(value = "关联课程的关联关系，1=导入import，2=别名alias")
-//	private Integer relationType;
-//    
-//	@TableField(exist = false)
-//	private Integer thisId;//当前门户的课的id
-//	
-//	@TableField(exist = false)
-//	private Integer thisOrder;//当前门户的课的排序
-//	
-//	@TableField(exist = false)
-//	private Integer originalId;//导入的原课id
+    @TableField(exist = false)
+    private Integer videoProgressPercent; // 视频进度百分比
+
+    @TableField(exist = false)
+    private Integer subjectUsers; // 课程下的参与人数
+
+    @TableField(exist = false)
+    private Double starValue; // 星级评价值
+
+    @TableField(exist = false)
+    private Long starUsers; // 星级评价总人数
+
+    @TableField(exist = false)
+    private Long commentNumber; // 评论总数
+
+    @TableField(exist = false)
+    private Long giveLike; // 点赞数
+
+    @TableField(exist = false)
+    private Short completeStatus; // 课程完成状态
+
+    @TableField(exist = false)
+    private Integer videosTotalNum; // 其下视频总数量;
+
+    @TableField(exist = false)
+    private Integer videosTotalLong; // 其下视频总时长;
+
+    @TableField(exist = false)
+    private Integer eventTotalNum; // 其下视频其下的总问题数event;
+
+    @TableField(exist = false)
+    private Integer answeredEventNum; // 其下视频其下的总问题的已回答数answer;
+
+    @TableField(exist = false)
+    private Long videoFinishedNum; // 课程下已观看完的视频
+
+    @TableField(exist = false)
+    private String snapshotUrl; // 快照
+
+    @TableField(exist = false)
+    private Integer lastVideoId;
+
+    @TableField(exist = false)
+    private Integer subPlayState;
+
+    @TableField(exist = false)
+    private SubjectTotals subjectTotals;
+
+    @TableField(exist = false)
+    private GcMaster gcMaster;
+
+    @ApiModelProperty(value = "未来事件的前置事件")
+    @TableField(exist = false)
+    private GcEvent futurePreEvent;
+
+    @TableField(exist = false)
+    private GcSubjectAssociation gcSubjectAssociation;
+
+    @ApiModelProperty(value = "被购买次数")
+    @TableField(exist = false)
+    private Integer orderNum;
+
+    @ApiModelProperty(value = "音频总时长")
+    @TableField(exist = false)
+    private Integer audioTotalLong;
+
+    @ApiModelProperty(value = "课程adminid")
+    @TableField(exist = false)
+    private Integer managerId;
+
+    @ApiModelProperty(value = "当前用户是否已拥有")
+    @TableField(exist = false)
+    private Integer ownFlag;
+
+    @ApiModelProperty(value = "tag的类型 1为主门户 2为导入的门户")
+    @TableField(exist = false)
+    private Integer tagType;
+
+    @ApiModelProperty(value = "tag内容")
+    @TableField(exist = false)
+    private String tagText;
+
+    @ApiModelProperty(value = "workbook上一次回答问题时间")
+    @TableField(exist = false)
+    private String lastActivityTime;
+
+    @ApiModelProperty(value = "一级课程名字")
+    @TableField(exist = false)
+    private String sub0Name;
+
+    @ApiModelProperty(value = "一级课程名字")
+    @TableField(exist = false)
+    private String sub0Id;
+
+    @ApiModelProperty(value = "是否允许证书下载flag")
+    private Integer certificatesFlag;
+
+    @ApiModelProperty(value = "是否允许证书下载flag")
+    @TableField(exist = false)
+    private Integer enableCertificatesFlag;
+
+    @ApiModelProperty(value = "用户id")
+    @TableField(exist = false)
+    private Integer userId;
+
+    @ApiModelProperty(value = "用户id")
+    @TableField(exist = false)
+    private Object user;
+
+    @ApiModelProperty(value = "用户信息")
+    @TableField(exist = false)
+    private GcUser userInfo;
+
+    @ApiModelProperty(value = "进度")
+    @TableField(exist = false)
+    private BigDecimal totalPercent;
+
+    @ApiModelProperty(value = "课程标题描述的字体颜色")
+    private String color;
+
+    @TableField(exist = false)
+    private Integer answerFabulousNum;
+
+    @TableField(exist = false)
+    private Integer firstVideoId;
+
+    @TableField(exist = false)
+    private GcSubject firstTopic;
+
+    @TableField(exist = false)
+    private Integer subjectsSize;
+
+    @TableField(exist = false)
+    private String tagName;
+
+    @ApiModelProperty("课程按tag排序")
+    @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
+    private JSONArray subjectOrder;
+
+    @ApiModelProperty("课程详情页封面id")
+    @TableField(
+            value = "subdetail_img_id",
+            typeHandler = FastJsonObjectTypeHandler.class,
+            exist = true)
+    private JSONObject subdetail_img_id = new JSONObject();
+
+    @TableField(exist = false)
+    private String subDetailImgUrl;
+
+    @TableField(exist = false)
+    private Integer publicMasterId;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private Integer badgeId;
+
+    private Integer cpdFlag;
+
+    private String badgeContent;
+
+    private Integer resourceNum;
+
+    @ApiModelProperty(value = "进度")
+    @TableField(exist = false)
+    private BigDecimal percents;
+
+    @ApiModelProperty(value = "所有tag")
+    @TableField(exist = false)
+    private List<String> allTags;
+
+    @TableField(exist = false)
+    private Integer tagId;
+
+    /**
+     * 创建人id
+     */
+    private Integer createUser;
+
+    /**
+     * 是否是pt课程
+     */
+    @ApiModelProperty(value = "是否是pt课程")
+    @TableField(exist = false)
+    private Integer isPtSubject;
+
+    @TableField(exist = false)
+    private List<Integer> accessIds;
+
+    /**
+     * 发布选项
+     * 公共选项1
+     */
+    private Integer availableType;
+
+    /**
+     * 是否是must课程 0是 1否
+     */
+    @TableField(exist = false)
+    private Integer isMustSubject;
+
+    /**
+     * 必须学习的组
+     */
+    @TableField(exist = false)
+    private List<Integer> mustAccessIds;
+
+    /**
+     * 是否选择全部,0是 1否
+     */
+    @TableField(exist = false)
+    private Integer allPublished;
+
+    /**
+     * may是否选择全部,0是 1否
+     */
+    @TableField(exist = false)
+    private Integer allPublishedMay;
+
+    @TableField(exist = false)
+    Integer currentStudentUserId;
+
+    /**
+     * 是否自己可见 0是 1否
+     */
+    @TableField(exist = false)
+    private Integer isMyView;
+
+    /**
+     * 移动到草稿箱 0是
+     */
+    @TableField(exist = false)
+    private Integer moveDrafts;
+
+    @TableField(exist = false)
+    private Integer courseState;
+
+    @TableField(exist = false)
+    private JSONArray mustJsonArray;
+
+    @TableField(exist = false)
+    private JSONArray mayJsonArray;
+
+    /**
+     *  0 to do 新发布的没有开始的must课程
+     *  1 overdue 暂无
+     *  2 completed 完成
+     *  3 draft 草稿
+     *  4 Earn a Certificate 有证书下载的课程
+     */
+    @TableField(exist = false)
+    private Integer identifying;
+
+    @TableField(exist = false)
+    private List<Integer> identifyings;
+
+    /**
+     * 发布时间
+     */
+    private Date publishedTime;
+
+    /**
+     * 发布者id
+     */
+    private Integer publishedUserId;
+
+    /**
+     * 模式 0查看 1编辑
+     */
+    @TableField(exist = false)
+    private Integer mode;
+
+    /**
+     * 不为空时反显是否是to-do课程
+     */
+    @TableField(exist = false)
+    private Integer isToDo;
+
+    //	@ApiModelProperty(value = "关联课程的gc_subject的id")
+    //	private Integer relatedSubjectId;
+    //
+    //	@ApiModelProperty(value = "关联课程的关联关系，1=导入import，2=别名alias")
+    //	private Integer relationType;
+    //
+    //	@TableField(exist = false)
+    //	private Integer thisId;//当前门户的课的id
+    //
+    //	@TableField(exist = false)
+    //	private Integer thisOrder;//当前门户的课的排序
+    //
+    //	@TableField(exist = false)
+    //	private Integer originalId;//导入的原课id
 }

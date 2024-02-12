@@ -3,9 +3,8 @@ package com.threeatom.guidecore.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.entity.SysRoleMenu;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @author Administrator

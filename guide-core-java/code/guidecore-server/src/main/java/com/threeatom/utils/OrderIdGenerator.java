@@ -9,8 +9,7 @@ import java.util.Date;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public class OrderIdGenerator {
-    public OrderIdGenerator() {
-    }
+    public OrderIdGenerator() {}
 
     public static String getOrderNumber() {
         String time = Long.toString((new Date()).getTime());

@@ -24,12 +24,9 @@ import org.springframework.context.annotation.Lazy;
 
 public class CommonApiRealm extends AuthorizingRealm {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonApiRealm.class);
-    @Autowired
-    @Lazy
-    private SysSystemService sysService;
+    @Autowired @Lazy private SysSystemService sysService;
 
-    public CommonApiRealm() {
-    }
+    public CommonApiRealm() {}
 
     public boolean supports(AuthenticationToken token) {
         return token instanceof JwtToken;
@@ -41,8 +38,9 @@ public class CommonApiRealm extends AuthorizingRealm {
         return info;
     }
 
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        String tokenStr = (String)token.getCredentials();
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token)
+            throws AuthenticationException {
+        String tokenStr = (String) token.getCredentials();
         LOGGER.info(tokenStr);
 
         try {

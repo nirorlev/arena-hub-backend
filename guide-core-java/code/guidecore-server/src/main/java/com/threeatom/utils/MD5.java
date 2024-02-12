@@ -12,10 +12,10 @@ import java.security.NoSuchAlgorithmException;
  * @date 2021/11/11/01115:40
  */
 public class MD5 {
-    private static final char[] hexDigits = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    private static final char[] hexDigits =
+            new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    public MD5() {
-    }
+    public MD5() {}
 
     public static String md5(String input) {
         if (input == null) {
@@ -41,7 +41,7 @@ public class MD5 {
             }
 
             FileInputStream in = new FileInputStream(file);
-            String result = md5((InputStream)in);
+            String result = md5((InputStream) in);
             in.close();
             return result;
         } catch (FileNotFoundException var3) {
@@ -60,7 +60,7 @@ public class MD5 {
             boolean var3 = false;
 
             int read;
-            while((read = in.read(buffer)) != -1) {
+            while ((read = in.read(buffer)) != -1) {
                 messagedigest.update(buffer, 0, read);
             }
 
@@ -84,7 +84,7 @@ public class MD5 {
         byte[] var6 = byteArray;
         int var5 = byteArray.length;
 
-        for(int var4 = 0; var4 < var5; ++var4) {
+        for (int var4 = 0; var4 < var5; ++var4) {
             byte b = var6[var4];
             resultCharArray[index++] = hexDigits[b >>> 4 & 15];
             resultCharArray[index++] = hexDigits[b & 15];

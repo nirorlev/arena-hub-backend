@@ -10,6 +10,5 @@ public class ObjectStorageConstants {
     public static final int ALIYUN_OSS = 2;
     public static final String ALIYUN_OSS_TAG = "aliyun";
 
-    public ObjectStorageConstants() {
-    }
+    public ObjectStorageConstants() {}
 }

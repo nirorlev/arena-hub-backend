@@ -11,17 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
 public abstract class SystemConfig {
-    @Autowired
-    private SysBusinessService businessService;
+    @Autowired private SysBusinessService businessService;
 
-    public SystemConfig() {
-    }
+    public SystemConfig() {}
 
     public abstract String getBusinessKey();
 
-    @Bean(
-        name = {"currentBusiness"}
-    )
+    @Bean(name = {"currentBusiness"})
     public SysBusiness getCurrentBusiness() {
         String key = this.getBusinessKey();
         return this.businessService.getSysBusinessByKeyCache(key);

@@ -15,16 +15,16 @@ import org.springframework.web.servlet.mvc.condition.RequestCondition;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
-    public CustomRequestMappingHandlerMapping() {
-    }
+    public CustomRequestMappingHandlerMapping() {}
 
     protected RequestCondition<?> getCustomTypeCondition(Class<?> handlerType) {
-        ApiVersion apiVersion = (ApiVersion)AnnotationUtils.findAnnotation(handlerType, ApiVersion.class);
+        ApiVersion apiVersion =
+                (ApiVersion) AnnotationUtils.findAnnotation(handlerType, ApiVersion.class);
         return this.createRequestCondition(apiVersion);
     }
 
     protected RequestCondition<?> getCustomMethodCondition(Method method) {
-        ApiVersion apiVersion = (ApiVersion)AnnotationUtils.findAnnotation(method, ApiVersion.class);
+        ApiVersion apiVersion = (ApiVersion) AnnotationUtils.findAnnotation(method, ApiVersion.class);
         return this.createRequestCondition(apiVersion);
     }
 

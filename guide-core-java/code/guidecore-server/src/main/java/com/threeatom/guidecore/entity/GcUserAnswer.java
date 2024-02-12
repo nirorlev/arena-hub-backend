@@ -1,24 +1,15 @@
 package com.threeatom.guidecore.entity;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
-
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-
-import java.io.Serializable;
-import java.util.Map;
-
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.threeatom.common.controller.Message;
-import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
 import lombok.Data;
 
 /**
@@ -45,7 +36,7 @@ public class GcUserAnswer implements Serializable {
     @JSONField(deserialize = false)
     private Integer userId;
 
-//    @TableField(typeHandler = FastJsonArrayTypeHandler.class)
+    //    @TableField(typeHandler = FastJsonArrayTypeHandler.class)
     private String answerJson;
 
     private Integer masterId;
@@ -67,7 +58,7 @@ public class GcUserAnswer implements Serializable {
 
     @TableField(exist = false)
     public Integer saveType;
-    
+
     @TableField(exist = false)
     private GcMasterMessage masterMessage;
 
@@ -78,12 +69,11 @@ public class GcUserAnswer implements Serializable {
     private Integer commentNum;
 
     @TableField(exist = false)
-    private Map<String,Object> answerMap;
+    private Map<String, Object> answerMap;
 
     @TableField(exist = false)
     private Integer ifAnswerRight;
 
     @TableField(exist = false)
     private GcUser user;
-
 }

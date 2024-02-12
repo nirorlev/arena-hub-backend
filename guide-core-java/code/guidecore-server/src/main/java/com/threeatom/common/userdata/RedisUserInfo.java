@@ -15,11 +15,9 @@ import org.springframework.stereotype.Component;
 public class RedisUserInfo<T> {
     private static Logger LOGGER = LoggerFactory.getLogger(RedisUserInfo.class);
     private static final String KEY = "UserInfo";
-    @Autowired
-    RedisOperator redisOperator;
+    @Autowired RedisOperator redisOperator;
 
-    public RedisUserInfo() {
-    }
+    public RedisUserInfo() {}
 
     public boolean putData(Class<T> t, Integer uid, String key, Object value) {
         String fullKey = this.getFullKey(t) + uid.toString();
@@ -27,7 +25,7 @@ public class RedisUserInfo<T> {
     }
 
     public String getDataString(Class<T> clazz, Integer uid, String key) {
-        return (String)this.getData(clazz, uid, key);
+        return (String) this.getData(clazz, uid, key);
     }
 
     private String getFullKey(Class<T> clazz) {

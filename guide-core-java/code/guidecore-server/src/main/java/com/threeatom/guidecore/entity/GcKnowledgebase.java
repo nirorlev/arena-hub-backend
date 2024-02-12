@@ -5,23 +5,21 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import lombok.Data;
 
 /**
  * <p>
  * 知识库
  * </p>
  */
-@ApiModel(value="GcFaq", description="知识库")
+@ApiModel(value = "GcFaq", description = "知识库")
 @Data
 public class GcKnowledgebase implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
@@ -30,26 +28,19 @@ public class GcKnowledgebase implements Serializable {
     @ApiModelProperty(value = "title或者视频名字")
     private String name;
 
-    @ApiModelProperty
-    private Integer level;
+    @ApiModelProperty private Integer level;
 
-    @ApiModelProperty
-    private Integer fileId;
+    @ApiModelProperty private Integer fileId;
 
-    @ApiModelProperty
-    private Integer order;
+    @ApiModelProperty private Integer order;
 
-    @ApiModelProperty
-    private Integer delFlag;
+    @ApiModelProperty private Integer delFlag;
 
-    @ApiModelProperty
-    private Date createTime;
+    @ApiModelProperty private Date createTime;
 
-    @ApiModelProperty
-    private Date updateTime;
+    @ApiModelProperty private Date updateTime;
 
-    @ApiModelProperty
-    private Integer fid;
+    @ApiModelProperty private Integer fid;
 
     @ApiModelProperty
     @TableField(exist = false)
@@ -58,6 +49,4 @@ public class GcKnowledgebase implements Serializable {
     @ApiModelProperty
     @TableField(exist = false)
     private List<GcKnowledgebase> knowledgebase;
-
-
 }

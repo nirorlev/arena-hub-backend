@@ -1,135 +1,124 @@
 package com.threeatom.guidecore.excel.vo;
 
 public class ContentDataExcel {
-	
-	private Integer rowNum;
-	
-	private String videoId;
-	
-	private String masterContext;
-	
-	private String subjectName;
-	
-	private String topicName;
-	
-	private String videoFileId;
-	
-	private String videoTitle;
-	
-	private String videoDes;
-	
-	private Integer videoDBId;
-	
-	private Integer subDBId;
-	
-	private Integer topicDBId;
 
-	private String subjectId;
+    private Integer rowNum;
 
-	
-	
-	public String getVideoId() {
-		return videoId;
-	}
+    private String videoId;
 
-	public void setVideoId(String videoId) {
-		this.videoId = videoId;
-	}
+    private String masterContext;
 
-	public String getSubjectId() {
-		return subjectId;
-	}
+    private String subjectName;
 
-	public void setSubjectId(String subjectId) {
-		this.subjectId = subjectId;
-	}
+    private String topicName;
 
-	public Integer getRowNum() {
-		return rowNum;
-	}
+    private String videoFileId;
 
-	public void setRowNum(Integer rowNum) {
-		this.rowNum = rowNum;
-	}
+    private String videoTitle;
 
-	public String getMasterContext() {
-		return masterContext;
-	}
+    private String videoDes;
 
-	public void setMasterContext(String masterContext) {
-		this.masterContext = masterContext;
-	}
+    private Integer videoDBId;
 
-	public String getSubjectName() {
-		return subjectName;
-	}
+    private Integer subDBId;
 
-	public void setSubjectName(String subjectName) {
-		this.subjectName = subjectName;
-	}
+    private Integer topicDBId;
 
+    private String subjectId;
 
-	public String getTopicName() {
-		return topicName;
-	}
+    public String getVideoId() {
+        return videoId;
+    }
 
-	public void setTopicName(String topicName) {
-		this.topicName = topicName;
-	}
+    public void setVideoId(String videoId) {
+        this.videoId = videoId;
+    }
 
-	public String getVideoFileId() {
-		return videoFileId;
-	}
+    public String getSubjectId() {
+        return subjectId;
+    }
 
-	public void setVideoFileId(String videoFileId) {
-		this.videoFileId = videoFileId;
-	}
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
 
-	public String getVideoTitle() {
-		return videoTitle;
-	}
+    public Integer getRowNum() {
+        return rowNum;
+    }
 
-	public void setVideoTitle(String videoTitle) {
-		this.videoTitle = videoTitle;
-	}
+    public void setRowNum(Integer rowNum) {
+        this.rowNum = rowNum;
+    }
 
-	public String getVideoDes() {
-		return videoDes;
-	}
+    public String getMasterContext() {
+        return masterContext;
+    }
 
-	public void setVideoDes(String videoDes) {
-		this.videoDes = videoDes;
-	}
+    public void setMasterContext(String masterContext) {
+        this.masterContext = masterContext;
+    }
 
-	public Integer getVideoDBId() {
-		return videoDBId;
-	}
+    public String getSubjectName() {
+        return subjectName;
+    }
 
-	public void setVideoDBId(Integer videoDBId) {
-		this.videoDBId = videoDBId;
-	}
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
+    }
 
-	public Integer getSubDBId() {
-		return subDBId;
-	}
+    public String getTopicName() {
+        return topicName;
+    }
 
-	public void setSubDBId(Integer subDBId) {
-		this.subDBId = subDBId;
-	}
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
+    }
 
-	public Integer getTopicDBId() {
-		return topicDBId;
-	}
+    public String getVideoFileId() {
+        return videoFileId;
+    }
 
-	public void setTopicDBId(Integer topicDBId) {
-		this.topicDBId = topicDBId;
-	}
-	
-	
-	
-	
-	
-	
-	
+    public void setVideoFileId(String videoFileId) {
+        this.videoFileId = videoFileId;
+    }
 
+    public String getVideoTitle() {
+        return videoTitle;
+    }
+
+    public void setVideoTitle(String videoTitle) {
+        this.videoTitle = videoTitle;
+    }
+
+    public String getVideoDes() {
+        return videoDes;
+    }
+
+    public void setVideoDes(String videoDes) {
+        this.videoDes = videoDes;
+    }
+
+    public Integer getVideoDBId() {
+        return videoDBId;
+    }
+
+    public void setVideoDBId(Integer videoDBId) {
+        this.videoDBId = videoDBId;
+    }
+
+    public Integer getSubDBId() {
+        return subDBId;
+    }
+
+    public void setSubDBId(Integer subDBId) {
+        this.subDBId = subDBId;
+    }
+
+    public Integer getTopicDBId() {
+        return topicDBId;
+    }
+
+    public void setTopicDBId(Integer topicDBId) {
+        this.topicDBId = topicDBId;
+    }
 }

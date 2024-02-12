@@ -4,9 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * @author Administrator
@@ -18,14 +17,12 @@ import java.util.Date;
 @Data
 public class SysMenu {
     @ApiModelProperty("业务id")
-    @TableId(
-            value = "id",
-            type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     @TableField("`name`")
     private String name;
+
     @TableField("`key`")
     private String key;
 
@@ -61,6 +58,5 @@ public class SysMenu {
      */
     private Integer updateSwitch;
 
-
-    private  Integer masterId;
+    private Integer masterId;
 }

@@ -19,16 +19,15 @@ import org.slf4j.LoggerFactory;
 public class FastJsonArrayTypeHandler extends BaseTypeHandler<JSONArray> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FastJsonArrayTypeHandler.class);
 
-    public FastJsonArrayTypeHandler() {
-    }
+    public FastJsonArrayTypeHandler() {}
 
-    public void setNonNullParameter(PreparedStatement ps, int i, JSONArray parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(
+            PreparedStatement ps, int i, JSONArray parameter, JdbcType jdbcType) throws SQLException {
         if (parameter == null) {
             ps.setString(i, "[]");
         } else {
             ps.setString(i, parameter.toJSONString());
         }
-
     }
 
     public JSONArray getNullableResult(ResultSet rs, String columnName) throws SQLException {

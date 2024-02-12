@@ -9,22 +9,23 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 public class WebCorsConfiguration {
-	private CorsConfiguration buildConfig() {
-		CorsConfiguration corsConfiguration=new CorsConfiguration();
-		
-		corsConfiguration.addAllowedMethod("*");
-		corsConfiguration.addAllowedHeader("*");
-		corsConfiguration.addAllowedOrigin("*");
-		corsConfiguration.addExposedHeader("Content-Disposition");
-		return corsConfiguration;
-	}
-	
-	@Bean
-	public  FilterRegistrationBean<CorsFilter> corsFilter() {
-		UrlBasedCorsConfigurationSource source=new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", buildConfig());
-		FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<CorsFilter>(new CorsFilter(source));
-	    bean.setOrder(0);//配置CorsFilter优先级
-		return bean;
-	}
+    private CorsConfiguration buildConfig() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedOrigin("*");
+        corsConfiguration.addExposedHeader("Content-Disposition");
+        return corsConfiguration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<CorsFilter> corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", buildConfig());
+        FilterRegistrationBean<CorsFilter> bean =
+                new FilterRegistrationBean<CorsFilter>(new CorsFilter(source));
+        bean.setOrder(0); // 配置CorsFilter优先级
+        return bean;
+    }
 }

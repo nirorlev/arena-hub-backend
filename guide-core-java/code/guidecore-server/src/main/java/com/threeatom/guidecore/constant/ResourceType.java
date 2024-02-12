@@ -19,5 +19,4 @@ public class ResourceType {
     public static final String channel = "Channel";
 
     public static final String contentGroup = "ContentGroup";
-
 }

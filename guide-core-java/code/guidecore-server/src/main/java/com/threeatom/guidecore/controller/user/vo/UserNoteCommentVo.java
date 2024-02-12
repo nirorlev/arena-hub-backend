@@ -2,10 +2,8 @@ package com.threeatom.guidecore.controller.user.vo;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.threeatom.system.entity.SysFile;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * @author huangpei

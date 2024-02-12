@@ -1,15 +1,9 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAccessExt;
-import com.threeatom.guidecore.entity.GcUserAccessPermission;
-import com.threeatom.guidecore.service.bll.GcUserAccessServiceBll;
-
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * <p>
@@ -26,6 +20,6 @@ public interface GcUserAccessExtService extends IService<GcUserAccessExt> {
      * @param endDate
      * @return
      */
-    List<Map<String,Object>> getUserLoginNum(List<Integer> userIds,String startDate,String endDate);
-
+    List<Map<String, Object>> getUserLoginNum(
+            List<Integer> userIds, String startDate, String endDate);
 }

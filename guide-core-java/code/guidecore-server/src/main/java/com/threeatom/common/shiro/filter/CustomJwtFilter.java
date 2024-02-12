@@ -18,15 +18,15 @@ import org.slf4j.LoggerFactory;
 public class CustomJwtFilter extends BasicHttpAuthenticationFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomJwtFilter.class);
 
-    public CustomJwtFilter() {
-    }
+    public CustomJwtFilter() {}
 
     protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
         LOGGER.info("isLoginAttempt");
         return true;
     }
 
-    protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+    protected boolean isAccessAllowed(
+            ServletRequest request, ServletResponse response, Object mappedValue) {
         LOGGER.info("isAccessAllowed");
         String auth = this.getAuthzHeader(request);
         if (auth != null && !auth.equals("")) {
@@ -46,7 +46,8 @@ public class CustomJwtFilter extends BasicHttpAuthenticationFilter {
         }
     }
 
-    protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
+            throws Exception {
         LOGGER.info("onAccessDenied");
         return false;
     }

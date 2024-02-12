@@ -2,8 +2,6 @@ package com.threeatom.guidecore.controller.user.vo;
 
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * @author Administrator
  * @title: videoLongVo
@@ -13,47 +11,45 @@ import java.util.List;
  */
 @Data
 public class videoLongVo {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-        //视频时长
-        private Integer videoLong;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-        public Integer getVideoCount() {
-                return videoCount;
-        }
+    // 视频时长
+    private Integer videoLong;
 
-        public void setVideoCount(Integer videoCount) {
-                this.videoCount = videoCount;
-        }
+    public Integer getVideoCount() {
+        return videoCount;
+    }
 
-        //fid
-        private Integer subId;
-        //视频数量
-        private Integer videoCount;
+    public void setVideoCount(Integer videoCount) {
+        this.videoCount = videoCount;
+    }
 
-        public Integer getVideoLong() {
-                return videoLong;
-        }
+    // fid
+    private Integer subId;
+    // 视频数量
+    private Integer videoCount;
 
-        public void setVideoLong(Integer videoLong) {
-                this.videoLong = videoLong;
-        }
+    public Integer getVideoLong() {
+        return videoLong;
+    }
 
-        public Integer getSubId() {
-                return subId;
-        }
+    public void setVideoLong(Integer videoLong) {
+        this.videoLong = videoLong;
+    }
 
-        public void setSubId(Integer subId) {
-                this.subId = subId;
-        }
+    public Integer getSubId() {
+        return subId;
+    }
 
-        @Override
-        public String toString() {
-                return "videoLongVo{" +
-                        "videoLong=" + videoLong +
-                        ", subId=" + subId +
-                        '}';
-        }
+    public void setSubId(Integer subId) {
+        this.subId = subId;
+    }
+
+    @Override
+    public String toString() {
+        return "videoLongVo{" + "videoLong=" + videoLong + ", subId=" + subId + '}';
+    }
 }

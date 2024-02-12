@@ -1,13 +1,10 @@
 package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcUserVideoPlaysNode;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -20,20 +17,26 @@ import java.util.Map;
 @Component
 public interface GcUserVideoPlaysNodeMapper extends BaseMapper<GcUserVideoPlaysNode> {
 
-        GcUserVideoPlaysNode getVideoPlayNodeByNodeId(Integer nodeId);
+    GcUserVideoPlaysNode getVideoPlayNodeByNodeId(Integer nodeId);
 
-        List<GcUserVideoPlaysNode> getVideoPlayNodes(Integer videoplayId);
+    List<GcUserVideoPlaysNode> getVideoPlayNodes(Integer videoplayId);
 
-    List<GcUserVideoPlaysNode> getVideoPlayNodesByVideoId(Integer vid,Integer userId,Integer masterId);
+    List<GcUserVideoPlaysNode> getVideoPlayNodesByVideoId(
+            Integer vid, Integer userId, Integer masterId);
 
-    List<GcUserVideoPlaysNode> getVideoPlayNodesByUserId(Integer userId,Integer masterId);
+    List<GcUserVideoPlaysNode> getVideoPlayNodesByUserId(Integer userId, Integer masterId);
 
     List<Integer> getVideoNodeByPlayId(@Param("videoIds") List<Integer> videoIds);
 
     List<GcUserVideoPlaysNode> getPlayNodeByPlayId(@Param("playIds") List<Integer> playIds);
 
-    GcUserVideoPlaysNode getLastWatchDetail(@Param("masterId")Integer masterId,@Param("userId")Integer userId,@Param("vid")Integer vid);
+    GcUserVideoPlaysNode getLastWatchDetail(
+            @Param("masterId") Integer masterId,
+            @Param("userId") Integer userId,
+            @Param("vid") Integer vid);
 
-    List<GcUserVideoPlaysNode> getVideoPlayNodesByUserIds(@Param("userIds") List<Integer> userId,@Param("masterId") Integer masterId,@Param("videoIds") List<Integer> videoIds);
-
-    }
+    List<GcUserVideoPlaysNode> getVideoPlayNodesByUserIds(
+            @Param("userIds") List<Integer> userId,
+            @Param("masterId") Integer masterId,
+            @Param("videoIds") List<Integer> videoIds);
+}

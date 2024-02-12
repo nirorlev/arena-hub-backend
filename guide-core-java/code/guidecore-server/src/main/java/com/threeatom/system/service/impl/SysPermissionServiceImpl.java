@@ -13,11 +13,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements SysPermissionService {
-    public SysPermissionServiceImpl() {
-    }
+public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission>
+        implements SysPermissionService {
+    public SysPermissionServiceImpl() {}
 
     public List<SysPermission> getPermissionByUid(Integer uid) {
-        return ((SysPermissionMapper)this.baseMapper).queryEntityByUid(uid);
+        return ((SysPermissionMapper) this.baseMapper).queryEntityByUid(uid);
     }
 }

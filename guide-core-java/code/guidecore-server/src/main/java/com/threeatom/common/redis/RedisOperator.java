@@ -19,11 +19,9 @@ import org.springframework.util.CollectionUtils;
 @Component
 public class RedisOperator {
     private static Logger LOGGER = LoggerFactory.getLogger(RedisOperator.class);
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    @Autowired private RedisTemplate<String, Object> redisTemplate;
 
-    public RedisOperator() {
-    }
+    public RedisOperator() {}
 
     public boolean expire(String key, long time) {
         try {
@@ -59,14 +57,12 @@ public class RedisOperator {
                 this.redisTemplate.delete(CollectionUtils.arrayToList(key));
             }
         }
-
     }
 
     public void del(Set<String> keys) {
         if (keys != null && keys.size() > 0) {
             this.redisTemplate.delete(keys);
         }
-
     }
 
     public Object get(String key) {

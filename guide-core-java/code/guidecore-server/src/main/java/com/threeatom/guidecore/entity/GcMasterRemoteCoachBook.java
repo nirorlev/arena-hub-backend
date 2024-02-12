@@ -1,19 +1,14 @@
 package com.threeatom.guidecore.entity;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.google.api.client.json.Json;
-import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import lombok.Data;
 
 /**
  * 系统反馈
@@ -35,10 +30,7 @@ public class GcMasterRemoteCoachBook implements Serializable {
 
     private Integer remoteId;
 
-    @TableField(
-            value = "book_time",
-            typeHandler = FastJsonObjectTypeHandler.class
-    )
+    @TableField(value = "book_time", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject bookTime;
 
     private Integer timeZone;
@@ -67,6 +59,4 @@ public class GcMasterRemoteCoachBook implements Serializable {
 
     @TableField(exist = false)
     private GcMasterRemoteCoach gcMasterRemoteCoach;
-
-
 }

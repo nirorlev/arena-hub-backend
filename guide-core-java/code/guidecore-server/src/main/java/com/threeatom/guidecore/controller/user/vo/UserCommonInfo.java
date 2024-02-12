@@ -1,42 +1,40 @@
 package com.threeatom.guidecore.controller.user.vo;
 
+import com.threeatom.system.entity.SysFile;
 import java.util.Date;
 import java.util.List;
-
-import com.threeatom.system.entity.SysFile;
-
 import lombok.Data;
 
 @Data
-public class UserCommonInfo{
+public class UserCommonInfo {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	private Integer userId;
-	private Integer masterId;
-	
-	private Integer groupId;
-	
-	private Integer userAccessId;
-	
-	private String username;//邮箱
-	
-	private String lastName;
+    private Integer userId;
+    private Integer masterId;
 
-	private String firstName;
+    private Integer groupId;
 
-	private SysFile avatarFile;
-	
-	private Date lastLogin;
-	
-	private List<Integer> userIds;
+    private Integer userAccessId;
 
-	private Integer taskNum;
+    private String username; // 邮箱
 
-	private String name;
+    private String lastName;
 
-	private Integer accessId;
+    private String firstName;
+
+    private SysFile avatarFile;
+
+    private Date lastLogin;
+
+    private List<Integer> userIds;
+
+    private Integer taskNum;
+
+    private String name;
+
+    private Integer accessId;
 }

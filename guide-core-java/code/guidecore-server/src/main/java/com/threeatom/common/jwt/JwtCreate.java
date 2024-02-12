@@ -18,15 +18,22 @@ public class JwtCreate {
     public static final String sysIdLabel = "sysid";
     private static long expire_time = 86400L;
 
-    public JwtCreate() {
-    }
+    public JwtCreate() {}
 
     public static String createToken(String cliStr, String sysId, String uid, String key) {
         try {
             String jwtId = UUID.randomUUID().toString();
             Algorithm algorithm = Algorithm.HMAC256(key);
-            Builder builder = JWT.create().withClaim("uid", uid).withClaim("jwtid", jwtId).withClaim("client", cliStr).withClaim("sysid", sysId);
-            String token = builder.withExpiresAt(new Date(System.currentTimeMillis() + expire_time * 1000L)).sign(algorithm);
+            Builder builder =
+                    JWT.create()
+                            .withClaim("uid", uid)
+                            .withClaim("jwtid", jwtId)
+                            .withClaim("client", cliStr)
+                            .withClaim("sysid", sysId);
+            String token =
+                    builder
+                            .withExpiresAt(new Date(System.currentTimeMillis() + expire_time * 1000L))
+                            .sign(algorithm);
             return token;
         } catch (IllegalArgumentException var8) {
             var8.printStackTrace();
@@ -38,8 +45,15 @@ public class JwtCreate {
         try {
             String jwtId = UUID.randomUUID().toString();
             Algorithm algorithm = Algorithm.HMAC256(key);
-            Builder builder = JWT.create().withClaim("jwtid", jwtId).withClaim("client", "common_api").withClaim("sysid", sysId);
-            String token = builder.withExpiresAt(new Date(System.currentTimeMillis() + expire_time * 1000L)).sign(algorithm);
+            Builder builder =
+                    JWT.create()
+                            .withClaim("jwtid", jwtId)
+                            .withClaim("client", "common_api")
+                            .withClaim("sysid", sysId);
+            String token =
+                    builder
+                            .withExpiresAt(new Date(System.currentTimeMillis() + expire_time * 1000L))
+                            .sign(algorithm);
             return token;
         } catch (IllegalArgumentException var6) {
             var6.printStackTrace();

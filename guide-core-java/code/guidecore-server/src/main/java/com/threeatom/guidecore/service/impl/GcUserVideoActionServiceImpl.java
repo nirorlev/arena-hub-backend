@@ -1,24 +1,18 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.github.pagehelper.PageHelper;
-import com.threeatom.config.CourseStarConfiguration;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.GcVideo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.config.CourseStarConfiguration;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.mapper.GcUserVideoActionMapper;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
@@ -28,18 +22,15 @@ import com.threeatom.guidecore.service.GcUserVideoActionService;
  * @author qiaoxide
  * @since 2019-11-27
  */
-
-
-
-
 @Service
-public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionMapper, GcUserVideoAction> implements GcUserVideoActionService {
+public class GcUserVideoActionServiceImpl
+        extends ServiceImpl<GcUserVideoActionMapper, GcUserVideoAction>
+        implements GcUserVideoActionService {
 
-    @Autowired
-    private CourseStarConfiguration courseStarConfiguration;
+    @Autowired private CourseStarConfiguration courseStarConfiguration;
 
-
-//    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserVideoActionServiceImpl.class);
+    //    private static final Logger LOGGER =
+    // LoggerFactory.getLogger(GcUserVideoActionServiceImpl.class);
 
     @Override
     @Transactional
@@ -81,7 +72,7 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         queryWrapper.eq("user_id", userId);
         return this.list(queryWrapper);
     }
-    
+
     @Override
     public List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
@@ -103,12 +94,11 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
     public List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> fileId, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("file_id", fileId);
-        queryWrapper.eq("user_id",userId);
+        queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
         return this.list(queryWrapper);
     }
 
-    
     @Override
     public GcUserVideoAction getOldVideoAction(Integer vid, Integer userId, Integer type) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
@@ -145,22 +135,22 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         return this.remove(queryWrapper);
     }
 
-	@Override
-	public List<Map<String, Object>> countTypeRateForVideo(Integer videoId, Integer type) {
-		return this.baseMapper.countTypeRateForVideo(videoId, type);
-	}
-	
-	/**
-	 * 根据课程id查询评论、点赞、星级评价
-	 */
-	@Override
-	public Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params) {
-		List<GcUserVideoAction> vos = this.baseMapper.getVideoActionBySubject(params);
-		if(CollectionUtils.isNotEmpty(vos)){
-			return vos.stream().collect(Collectors.groupingBy(GcUserVideoAction::getVideoId));
-		}
-		return new HashMap<>(0);
-	}
+    @Override
+    public List<Map<String, Object>> countTypeRateForVideo(Integer videoId, Integer type) {
+        return this.baseMapper.countTypeRateForVideo(videoId, type);
+    }
+
+    /**
+     * 根据课程id查询评论、点赞、星级评价
+     */
+    @Override
+    public Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params) {
+        List<GcUserVideoAction> vos = this.baseMapper.getVideoActionBySubject(params);
+        if (CollectionUtils.isNotEmpty(vos)) {
+            return vos.stream().collect(Collectors.groupingBy(GcUserVideoAction::getVideoId));
+        }
+        return new HashMap<>(0);
+    }
 
     /**
      * 根据课程id，类型查询星级评价平均值和评论人数
@@ -169,27 +159,31 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
      */
     @Override
     public Map<Integer, GcUserVideoAction> getSubjectUserStar(Map<String, Object> videoParams) {
-        Map<Integer,GcUserVideoAction> map = this.baseMapper.getSubjectUserStar(videoParams);
+        Map<Integer, GcUserVideoAction> map = this.baseMapper.getSubjectUserStar(videoParams);
         List<GcUserVideoAction> starList = courseStarConfiguration.getStarcourselist();
-        //英国117门户的子域名造的假数据，其他的没有
-        if(CollectionUtils.isNotEmpty(starList)) {
+        // 英国117门户的子域名造的假数据，其他的没有
+        if (CollectionUtils.isNotEmpty(starList)) {
             for (GcUserVideoAction gcUserVideoAction : starList) {
                 GcUserVideoAction userVideoAction = map.get(gcUserVideoAction.getSubjectId());
                 if (Objects.nonNull(userVideoAction)) {
-                    Long newStarusers = gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
-                    Double newAvgStar = (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg()) / newStarusers;
+                    Long newStarusers =
+                            gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
+                    Double newAvgStar =
+                            (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
+                                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
+                                    / newStarusers;
                     userVideoAction.setSubjectStarUsers(newStarusers);
                     userVideoAction.setSubjectStarAvg(newAvgStar);
                     userVideoAction.setSubjectId(gcUserVideoAction.getSubjectId());
                     map.put(gcUserVideoAction.getSubjectId(), userVideoAction);
                     continue;
                 }
-//            else {
-//                GcUserVideoAction videoAction = new GcUserVideoAction();
-//                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
-//                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
-//                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
-//            }
+                //            else {
+                //                GcUserVideoAction videoAction = new GcUserVideoAction();
+                //                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
+                //                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
+                //                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
+                //            }
             }
         }
         return map;
@@ -197,46 +191,49 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
 
     @Override
     public Map<Integer, GcUserVideoAction> gvggetSubjectUserStar(Map<String, Object> videoParams) {
-        Map<Integer,GcUserVideoAction> map = this.baseMapper.gvggetSubjectUserStar(videoParams);
+        Map<Integer, GcUserVideoAction> map = this.baseMapper.gvggetSubjectUserStar(videoParams);
         List<GcUserVideoAction> starList = courseStarConfiguration.getStarcourselist();
-        //英国117门户的子域名造的假数据，其他的没有
-        if(CollectionUtils.isNotEmpty(starList)) {
+        // 英国117门户的子域名造的假数据，其他的没有
+        if (CollectionUtils.isNotEmpty(starList)) {
             for (GcUserVideoAction gcUserVideoAction : starList) {
                 GcUserVideoAction userVideoAction = map.get(gcUserVideoAction.getSubjectId());
                 if (Objects.nonNull(userVideoAction)) {
-                    Long newStarusers = gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
-                    Double newAvgStar = (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg()) / newStarusers;
+                    Long newStarusers =
+                            gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
+                    Double newAvgStar =
+                            (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
+                                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
+                                    / newStarusers;
                     userVideoAction.setSubjectStarUsers(newStarusers);
                     userVideoAction.setSubjectStarAvg(newAvgStar);
                     userVideoAction.setSubjectId(gcUserVideoAction.getSubjectId());
                     map.put(gcUserVideoAction.getSubjectId(), userVideoAction);
                     continue;
                 }
-//            else {
-//                GcUserVideoAction videoAction = new GcUserVideoAction();
-//                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
-//                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
-//                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
-//            }
+                //            else {
+                //                GcUserVideoAction videoAction = new GcUserVideoAction();
+                //                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
+                //                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
+                //                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
+                //            }
             }
         }
         return map;
     }
 
-	@Override
-	public Integer countLikeForVideo(Integer videoId) {
-		return this.baseMapper.countLikeForVideo(videoId);
-	}
+    @Override
+    public Integer countLikeForVideo(Integer videoId) {
+        return this.baseMapper.countLikeForVideo(videoId);
+    }
 
     @Override
     public Integer countLikeForFile(Integer fileId) {
         return this.baseMapper.countLikeForFile(fileId);
     }
 
-
     @Override
     public List<GcUserVideoAction> countLikeForFiles(List<Integer> fileId) {
-        if (null!=fileId&&fileId.size()>0){
+        if (null != fileId && fileId.size() > 0) {
             return this.baseMapper.countLikeForFiles(fileId);
         }
         return new ArrayList<>();

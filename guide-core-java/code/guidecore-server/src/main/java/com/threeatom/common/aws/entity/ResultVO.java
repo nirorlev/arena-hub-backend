@@ -1,7 +1,6 @@
 package com.threeatom.common.aws.entity;
 
 import com.threeatom.common.aws.constan.SystemCode;
-
 import java.io.Serializable;
 
 public class ResultVO<T> implements Serializable {
@@ -11,9 +10,7 @@ public class ResultVO<T> implements Serializable {
     private String message;
     private T data;
 
-    public ResultVO() {
-
-    }
+    public ResultVO() {}
 
     public ResultVO(boolean success, String message) {
         this(success, null, message, null);
@@ -31,22 +28,16 @@ public class ResultVO<T> implements Serializable {
     }
 
     public static <T> ResultVO<T> success() {
-        return new ResultVO(true, SystemCode.SUCCESS.getCode(), SystemCode.SUCCESS.getMessage(),
-                null);
+        return new ResultVO(true, SystemCode.SUCCESS.getCode(), SystemCode.SUCCESS.getMessage(), null);
     }
-
 
     public static <T> ResultVO<T> success(T data) {
-        return new ResultVO(true, SystemCode.SUCCESS.getCode(), SystemCode.SUCCESS.getMessage(),
-                data);
+        return new ResultVO(true, SystemCode.SUCCESS.getCode(), SystemCode.SUCCESS.getMessage(), data);
     }
-
 
     public static <T> ResultVO<T> fail() {
-        return new ResultVO(false, SystemCode.FAILED.getCode(), SystemCode.FAILED.getMessage(),
-                null);
+        return new ResultVO(false, SystemCode.FAILED.getCode(), SystemCode.FAILED.getMessage(), null);
     }
-
 
     public static <T> ResultVO<T> fail(String code, String message) {
         return new ResultVO(false, code, message, null);

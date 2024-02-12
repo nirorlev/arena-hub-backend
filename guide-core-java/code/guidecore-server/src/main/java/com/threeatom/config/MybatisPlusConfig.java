@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-//Spring boot方式
+// Spring boot方式
 @EnableTransactionManagement
 @Configuration
 public class MybatisPlusConfig {

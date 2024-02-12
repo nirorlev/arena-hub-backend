@@ -24,24 +24,16 @@ import org.apache.shiro.realm.Realm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 public class BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseController.class);
-    @Autowired
-    private SysUserService sysUserService;
-    @Autowired
-    private SysBusinessService sysBusinessService;
-    @Autowired
-    private SysSystemService systemService;
-    @Autowired
-    private SysBusiness currentBusiness;
-    @Autowired
-    HttpServletRequest request;
+    @Autowired private SysUserService sysUserService;
+    @Autowired private SysBusinessService sysBusinessService;
+    @Autowired private SysSystemService systemService;
+    @Autowired private SysBusiness currentBusiness;
+    @Autowired HttpServletRequest request;
 
-
-    public BaseController() {
-    }
+    public BaseController() {}
 
     public SysUser getSysUser() {
         Integer uid = Integer.parseInt(this.getTokenValue("uid"));
@@ -50,7 +42,7 @@ public class BaseController {
 
     public String getTokenValue(String field) {
         String token = this.request.getHeader("Authorization");
-        //验证token
+        // 验证token
         return JwtUtil.getValueByToken(token, field);
     }
 
@@ -60,12 +52,13 @@ public class BaseController {
     }
 
     public String getRealmName() {
-        String realmName = (String)SecurityUtils.getSubject().getPrincipals().getRealmNames().iterator().next();
+        String realmName =
+                (String) SecurityUtils.getSubject().getPrincipals().getRealmNames().iterator().next();
         return realmName;
     }
 
     public AuthorizingRealm getRealmByName(String realmName) {
-        List<Realm> realms = (List)SpringUtil.getBean("realms");
+        List<Realm> realms = (List) SpringUtil.getBean("realms");
         Iterator var3 = realms.iterator();
 
         Realm realm;
@@ -74,25 +67,22 @@ public class BaseController {
                 return null;
             }
 
-            realm = (Realm)var3.next();
-        } while(!realm.getName().equals(realmName));
+            realm = (Realm) var3.next();
+        } while (!realm.getName().equals(realmName));
 
-        return (AuthorizingRealm)realm;
+        return (AuthorizingRealm) realm;
     }
 
-    //后期需把sysSystem概念删除
+    // 后期需把sysSystem概念删除
     public SysSystem getSystem() {
-//        Integer sysId = Integer.parseInt(this.getTokenValue("sysId"));
-//        return this.systemService.getSystemById(sysId);
-    	return systemService.getSystem();
+        //        Integer sysId = Integer.parseInt(this.getTokenValue("sysId"));
+        //        return this.systemService.getSystemById(sysId);
+        return systemService.getSystem();
     }
 
-    
-    
-	
-    
     public SysSystem getSystem(String name) {
-        List<SysSystem> list = this.systemService.getSystemListByBusinessKeyCache(this.currentBusiness.getKey());
+        List<SysSystem> list =
+                this.systemService.getSystemListByBusinessKeyCache(this.currentBusiness.getKey());
         Iterator var3 = list.iterator();
 
         SysSystem sysSystem;
@@ -101,15 +91,16 @@ public class BaseController {
                 return null;
             }
 
-            sysSystem = (SysSystem)var3.next();
-        } while(!sysSystem.getName().equals(name));
+            sysSystem = (SysSystem) var3.next();
+        } while (!sysSystem.getName().equals(name));
 
         return sysSystem;
     }
 
     public SysSystem getSystemOne() {
-        List<SysSystem> list = this.systemService.getSystemListByBusinessKeyCache(this.currentBusiness.getKey());
-        return list != null && list.size() > 0 ? (SysSystem)list.get(0) : null;
+        List<SysSystem> list =
+                this.systemService.getSystemListByBusinessKeyCache(this.currentBusiness.getKey());
+        return list != null && list.size() > 0 ? (SysSystem) list.get(0) : null;
     }
 
     public SysBusiness getBusiness(String key) {

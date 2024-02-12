@@ -6,16 +6,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.google.api.client.json.Json;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
 import com.threeatom.system.entity.SysFile;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import lombok.Data;
 
 /**
  * 系统反馈
@@ -49,22 +45,13 @@ public class GcMasterRemoteCoach implements Serializable {
 
     private Integer remoteImgFileId;
 
-    @TableField(
-            value = "remote_available_call_length",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "remote_available_call_length", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray remoteAvailableCallLength;
 
-    @TableField(
-            value = "remote_available_date",
-            typeHandler = FastJsonObjectTypeHandler.class
-    )
+    @TableField(value = "remote_available_date", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject remoteAvailableDate;
 
-    @TableField(
-            value = "remote_available_time",
-            typeHandler = FastJsonObjectTypeHandler.class
-    )
+    @TableField(value = "remote_available_time", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject remoteAvailableTime;
 
     private Integer timezone;
@@ -76,7 +63,6 @@ public class GcMasterRemoteCoach implements Serializable {
 
     @TableField(exist = false)
     private String timeZoneValue;
-
 
     @TableField(exist = false)
     private Integer upcomingCalls;

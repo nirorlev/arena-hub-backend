@@ -1,49 +1,44 @@
 package com.threeatom.guidecore.websocket.message;
 
 public class WsMessage {
-	
-	private Integer fromId;
-	
-	private Integer toId;
-	
-	private Integer code;
-	
-	private String message;
 
-	
+    private Integer fromId;
 
-	public Integer getFromId() {
-		return fromId;
-	}
+    private Integer toId;
 
-	public void setFromId(Integer fromId) {
-		this.fromId = fromId;
-	}
+    private Integer code;
 
-	public Integer getToId() {
-		return toId;
-	}
+    private String message;
 
-	public void setToId(Integer toId) {
-		this.toId = toId;
-	}
+    public Integer getFromId() {
+        return fromId;
+    }
 
-	public Integer getCode() {
-		return code;
-	}
+    public void setFromId(Integer fromId) {
+        this.fromId = fromId;
+    }
 
-	public void setCode(Integer code) {
-		this.code = code;
-	}
+    public Integer getToId() {
+        return toId;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public void setToId(Integer toId) {
+        this.toId = toId;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
-	
-	
+    public Integer getCode() {
+        return code;
+    }
 
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

@@ -1,15 +1,8 @@
 package com.threeatom.guidecore.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.common.controller.Message;
-import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcUserVideoPlaysNode;
-import com.threeatom.system.entity.SysSystem;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>

@@ -10,5 +10,4 @@ import com.threeatom.guidecore.entity.PtConfig;
  * @description: TODO
  * @date 2023/4/10/01011:58
  */
-public interface PtConfigService  extends IService<PtConfig> {
-}
+public interface PtConfigService extends IService<PtConfig> {}

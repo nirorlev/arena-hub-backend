@@ -14,6 +14,5 @@ import org.springframework.stereotype.Service;
  * @date 2023/5/2514:46
  */
 @Service
-public class PtViewSubjectServiceImpl extends ServiceImpl<PtViewSubjectMapper, PtViewSubject> implements PtViewSubjectService {
-
-}
+public class PtViewSubjectServiceImpl extends ServiceImpl<PtViewSubjectMapper, PtViewSubject>
+        implements PtViewSubjectService {}

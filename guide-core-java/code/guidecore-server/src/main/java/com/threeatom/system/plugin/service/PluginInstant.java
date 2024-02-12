@@ -14,13 +14,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PluginInstant {
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginInstant.class);
-    @Autowired(
-        required = false
-    )
+
+    @Autowired(required = false)
     private UserHelper userTokenHelper;
 
-    public PluginInstant() {
-    }
+    public PluginInstant() {}
 
     public UserHelper getUserHelper() {
         return this.userTokenHelper;

@@ -30,7 +30,7 @@ public class ApiVersionCondition implements RequestCondition<ApiVersionCondition
         Matcher m = VERSION_PREFIX_PATTERN.matcher(request.getRequestURI());
         if (m.find()) {
             Double version = Double.valueOf(m.group(1));
-            if (version >= (double)this.apiVersion) {
+            if (version >= (double) this.apiVersion) {
                 return this;
             }
         }

@@ -1,38 +1,34 @@
 package com.threeatom.guidecore.excel.vo;
 
 public class ResourcesDataExcel {
-	
-	private String videoId;
-	
-	private String resourcesName;
-	
-	private String resourceId;
 
-	public String getVideoId() {
-		return videoId;
-	}
+    private String videoId;
 
-	public void setVideoId(String videoId) {
-		this.videoId = videoId;
-	}
+    private String resourcesName;
 
-	public String getResourcesName() {
-		return resourcesName;
-	}
+    private String resourceId;
 
-	public void setResourcesName(String resourcesName) {
-		this.resourcesName = resourcesName;
-	}
+    public String getVideoId() {
+        return videoId;
+    }
 
-	public String getResourceId() {
-		return resourceId;
-	}
+    public void setVideoId(String videoId) {
+        this.videoId = videoId;
+    }
 
-	public void setResourceId(String resourceId) {
-		this.resourceId = resourceId;
-	}
-	
-	
-	
+    public String getResourcesName() {
+        return resourcesName;
+    }
 
+    public void setResourcesName(String resourcesName) {
+        this.resourcesName = resourcesName;
+    }
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
 }

@@ -1,27 +1,21 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
-import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.GcUserMessage;
 import com.threeatom.guidecore.mapper.GcUserMessageMapper;
 import com.threeatom.guidecore.service.GcUserMessageService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import org.apache.ibatis.annotations.Param;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -32,14 +26,13 @@ import java.util.stream.Collectors;
  * @since 2019-12-09
  */
 @Service
-public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, GcUserMessage> implements GcUserMessageService {
+public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, GcUserMessage>
+        implements GcUserMessageService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcUserMessageServiceImpl.class);
 
-    @Autowired
-    private SysFileService sysFileService;
-    
-    
+    @Autowired private SysFileService sysFileService;
+
     @Override
     @Transactional
     public boolean saveUserMessage(GcUserMessage userMessage) {
@@ -66,14 +59,21 @@ public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, G
     }
 
     @Override
-    public List<GcUserMessage> getMessageListByTargetUserIdAndUserId(Integer targetUserId, Integer userId, Integer offset, Integer page,Integer masterId,HttpServletRequest request) {
+    public List<GcUserMessage> getMessageListByTargetUserIdAndUserId(
+            Integer targetUserId,
+            Integer userId,
+            Integer offset,
+            Integer page,
+            Integer masterId,
+            HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
-        Integer pageSize=pageParam.getPageSize();
+        Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-	    return this.baseMapper.selectGetMessageListByTargetUserIdAndUserId(targetUserId, userId, (page - 1) * offset, offset,masterId);
+        return this.baseMapper.selectGetMessageListByTargetUserIdAndUserId(
+                targetUserId, userId, (page - 1) * offset, offset, masterId);
     }
 
     @Override
@@ -82,15 +82,16 @@ public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, G
     }
 
     @Override
-    public GcUserMessage getNewMessage(Integer targetUserId, Integer userId,Integer masterId) {
-        return this.baseMapper.selectGetNewMessage(targetUserId, userId,masterId);
+    public GcUserMessage getNewMessage(Integer targetUserId, Integer userId, Integer masterId) {
+        return this.baseMapper.selectGetNewMessage(targetUserId, userId, masterId);
     }
 
-	@Override
-	public List<Map<String, Object>> getMessageNumByTeacherIdAndUserIds(Integer teacherId, List<Integer> userIds,String order) {
-		// TODO Auto-generated method stub
-		return this.baseMapper.selectUsersMessageByTeacherIdAndUserIds(teacherId, userIds,order);
-	}
+    @Override
+    public List<Map<String, Object>> getMessageNumByTeacherIdAndUserIds(
+            Integer teacherId, List<Integer> userIds, String order) {
+        // TODO Auto-generated method stub
+        return this.baseMapper.selectUsersMessageByTeacherIdAndUserIds(teacherId, userIds, order);
+    }
 
     @Override
     public int update(GcUserMessage userMessage) {

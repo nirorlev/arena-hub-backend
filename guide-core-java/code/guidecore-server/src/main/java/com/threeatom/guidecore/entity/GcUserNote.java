@@ -2,16 +2,12 @@ package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.threeatom.system.entity.SysFile;
-
-import java.io.Serializable;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 
 /**
@@ -40,7 +36,7 @@ public class GcUserNote implements Serializable {
 
     @ApiModelProperty(value = "笔记内容")
     private String noteContent;
-    
+
     @ApiModelProperty(value = "文件id")
     private Integer fileId;
 
@@ -50,13 +46,13 @@ public class GcUserNote implements Serializable {
     @ApiModelProperty(value = "文件")
     @TableField(exist = false)
     private SysFile file;
-    
+
     @ApiModelProperty(value = "更新时间")
     private Date updateTime;
 
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
-    
+
     @ApiModelProperty(value = "该笔记的所在视频")
     @TableField(exist = false)
     private String videoName;
@@ -64,6 +60,4 @@ public class GcUserNote implements Serializable {
     @ApiModelProperty(value = "该笔记有多少个文件")
     @TableField(exist = false)
     private Integer fileNum;
-
-
 }

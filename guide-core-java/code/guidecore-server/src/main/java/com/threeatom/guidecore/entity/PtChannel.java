@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.entity;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -12,18 +11,17 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import lombok.Data;
+
 @Data
-@ApiModel(value="PtChannel", description="")
+@ApiModel(value = "PtChannel", description = "")
 @TableName(autoResultMap = true)
 public class PtChannel implements Serializable, TreeNodeEntity {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -44,7 +42,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(value = "`level`")
     private Integer level;
-    
+
     private Integer fid;
 
     private Integer order;
@@ -61,7 +59,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private String avatarFullFileUrl;
 
-    //订阅用户list
+    // 订阅用户list
     @TableField(exist = false)
     private List<GcUser> userList;
 
@@ -80,11 +78,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     private Date createTime;
 
     @ApiModelProperty("课程tag标签")
-    @TableField(
-            value = "tags",
-            typeHandler = FastJsonArrayTypeHandler.class,
-            exist = false
-    )
+    @TableField(value = "tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray tags = new JSONArray();
 
     @TableField(exist = false)
@@ -129,23 +123,18 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(
             value = "subscribeAccessIds",
             typeHandler = FastJsonArrayTypeHandler.class,
-            exist = false
-    )
+            exist = false)
     private JSONArray subscribeAccessIds;
 
-//    @TableField(
-//            value = "subscribeUserIds",
-//            typeHandler = FastJsonArrayTypeHandler.class,
-//            exist = false
-//    )
+    //    @TableField(
+    //            value = "subscribeUserIds",
+    //            typeHandler = FastJsonArrayTypeHandler.class,
+    //            exist = false
+    //    )
     @TableField(exist = false)
     private String subscribeUserIds = new String();
 
-    @TableField(
-            value = "accessIds",
-            typeHandler = FastJsonArrayTypeHandler.class,
-            exist = false
-    )
+    @TableField(value = "accessIds", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray accessIds;
 
     /**
@@ -184,7 +173,6 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<GcAccess> accessList;
 
-
-//    @TableField(exist = false)
-//    private String subscribeNum;
+    //    @TableField(exist = false)
+    //    private String subscribeNum;
 }

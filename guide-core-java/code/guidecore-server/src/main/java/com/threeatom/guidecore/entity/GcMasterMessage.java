@@ -3,14 +3,13 @@ package com.threeatom.guidecore.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 @Data
 public class GcMasterMessage implements Serializable {
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
@@ -33,10 +32,10 @@ public class GcMasterMessage implements Serializable {
 
     @ApiModelProperty(value = "问题回答gc_user_answer的id")
     private Integer userAnswerId;
-    
+
     @ApiModelProperty(value = "日程gc_user_schedule的id")
     private Integer userScheduleId;
-    
+
     @ApiModelProperty(value = "消息内容")
     private String message;
 
@@ -52,5 +51,4 @@ public class GcMasterMessage implements Serializable {
     private Date updateTime;
 
     private Date createTime;
-
 }

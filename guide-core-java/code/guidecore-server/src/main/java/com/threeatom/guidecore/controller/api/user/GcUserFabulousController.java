@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 
+ *
  *
  * @author huangpei
  * @date 2021-10-29 12:06:51
@@ -21,24 +21,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/guidecore/user/fabulous")
 public class GcUserFabulousController extends GuideCoreController {
 
-    @Autowired
-    private GcUserFabulousService gcUserFabulousService;
+    @Autowired private GcUserFabulousService gcUserFabulousService;
 
     @ApiOperation(value = "点赞评论", httpMethod = "POST")
     @PostMapping("/saveFabulous")
-    public Message saveFabulous(@RequestBody GcUserFabulous gcUserFabulous){
+    public Message saveFabulous(@RequestBody GcUserFabulous gcUserFabulous) {
         GcUser user = this.getGcUser();
         gcUserFabulous.setUserId(user.getId());
         GcUserFabulous fabulous = gcUserFabulousService.getUserFabulous(gcUserFabulous);
-        if (fabulous !=null){
+        if (fabulous != null) {
             gcUserFabulousService.removeById(fabulous.getId());
-        }else{
-            if (null!=gcUserFabulous.getEventId()){
+        } else {
+            if (null != gcUserFabulous.getEventId()) {
                 gcUserFabulous.setCommentId(gcUserFabulous.getTargetUserId());
             }
             gcUserFabulousService.saveOrUpdate(gcUserFabulous);
         }
         return new Message().ok();
     }
-
 }

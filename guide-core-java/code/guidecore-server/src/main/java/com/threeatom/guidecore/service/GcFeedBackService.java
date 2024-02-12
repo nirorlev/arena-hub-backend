@@ -9,6 +9,4 @@ import com.threeatom.guidecore.entity.GcFeedBack;
  * @author huangpei
  * @Date 2021-10-26
  */
-public interface GcFeedBackService extends IService<GcFeedBack> {
-
-}
+public interface GcFeedBackService extends IService<GcFeedBack> {}

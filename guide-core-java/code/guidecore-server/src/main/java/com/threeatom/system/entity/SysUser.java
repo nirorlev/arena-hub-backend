@@ -13,44 +13,46 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-@ApiModel(
-    value = "SysUser对象",
-    description = "系统用户表，统一用户管理每个用户在学校中的角色会不一样"
-)
+@ApiModel(value = "SysUser对象", description = "系统用户表，统一用户管理每个用户在学校中的角色会不一样")
 public class SysUser implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("系统实例Id")
     private Integer sysId;
+
     @ApiModelProperty("用户名")
     private String username;
+
     @ApiModelProperty("密码字段")
     private String password;
+
     @ApiModelProperty("盐")
     private String salt;
+
     @ApiModelProperty("姓名")
     private String name;
+
     @ApiModelProperty("手机号码")
     private String phone;
+
     @ApiModelProperty("账号的状态")
     private Integer state;
+
     @ApiModelProperty("认证状态")
     private Integer authentication;
-    @JSONField(
-        format = "yyyyMMdd HH:mm:ss"
-    )
+
+    @JSONField(format = "yyyyMMdd HH:mm:ss")
     @ApiModelProperty("创建时间")
     private Date createTime;
+
     @ApiModelProperty("更新时间")
     private Date updateTime;
 
-    public SysUser() {
-    }
+    public SysUser() {}
 
     public Integer getId() {
         return this.id;
@@ -141,6 +143,26 @@ public class SysUser implements Serializable {
     }
 
     public String toString() {
-        return "SysUser{id=" + this.id + ", sysId=" + this.sysId + ", username=" + this.username + ", password=" + this.password + ", name=" + this.name + ", phone=" + this.phone + ", state=" + this.state + ", authentication=" + this.authentication + ", createTime=" + this.createTime + ", updateTime=" + this.updateTime + "}";
+        return "SysUser{id="
+                + this.id
+                + ", sysId="
+                + this.sysId
+                + ", username="
+                + this.username
+                + ", password="
+                + this.password
+                + ", name="
+                + this.name
+                + ", phone="
+                + this.phone
+                + ", state="
+                + this.state
+                + ", authentication="
+                + this.authentication
+                + ", createTime="
+                + this.createTime
+                + ", updateTime="
+                + this.updateTime
+                + "}";
     }
 }

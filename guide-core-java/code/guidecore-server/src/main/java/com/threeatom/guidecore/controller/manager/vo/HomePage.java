@@ -1,34 +1,42 @@
 package com.threeatom.guidecore.controller.manager.vo;
 
 import com.threeatom.guidecore.entity.GcMaster;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-
 
 @ApiModel(description = "首页仪表盘VO")
 public class HomePage {
 
     @ApiModelProperty(value = "活动用户")
     private Integer activeUserNum;
+
     @ApiModelProperty(value = "空间信息")
     private GcMaster master;
+
     @ApiModelProperty(value = "主题数")
     private Integer subNum;
+
     @ApiModelProperty(value = "专题数量")
     private Integer topicNum;
+
     @ApiModelProperty(value = "视频数量")
     private Integer videoNum;
+
     @ApiModelProperty(value = "资源数量")
     private Integer resNum;
+
     @ApiModelProperty(value = "空间管理员用户")
     private Integer adminCodeUserNum;
+
     @ApiModelProperty(value = "空间普通用户")
     private Integer userCodeUserNum;
+
     @ApiModelProperty(value = "课程管理员用户")
     private Integer subjectAdminCodeUserNum;
+
     @ApiModelProperty(value = "空间管理员code")
     private Integer adminCodeNum;
+
     @ApiModelProperty(value = "空间普通code")
     private Integer userCodeNum;
 
@@ -119,6 +127,4 @@ public class HomePage {
     public void setUserCodeUserNum(Integer userCodeUserNum) {
         this.userCodeUserNum = userCodeUserNum;
     }
-
-
 }

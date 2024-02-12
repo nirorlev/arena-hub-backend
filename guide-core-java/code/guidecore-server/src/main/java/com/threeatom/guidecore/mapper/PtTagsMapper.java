@@ -2,9 +2,8 @@ package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.entity.PtTags;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @author Administrator

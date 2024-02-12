@@ -7,12 +7,9 @@ import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAccessExt;
 import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.service.bll.GcUserAccessServiceBll;
-import org.apache.ibatis.annotations.Param;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -24,7 +21,6 @@ import java.util.Map;
  */
 public interface GcUserAccessService extends GcUserAccessServiceBll {
 
-
     /***
      * 创建数据，同时创建副表
      * @param userAccess
@@ -34,11 +30,11 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId);
 
-    GcUserAccess selectUserAccessByManagerAndMaster(Integer managerId,Integer masterId);
+    GcUserAccess selectUserAccessByManagerAndMaster(Integer managerId, Integer masterId);
 
-    List<GcUserAccess> selectPtUserAccessByMasterIdAndUserId(Integer userId,Integer masterId);
+    List<GcUserAccess> selectPtUserAccessByMasterIdAndUserId(Integer userId, Integer masterId);
 
-    List<GcUserAccess> getUserAccessListByUserId(Integer userId,HttpServletRequest request);
+    List<GcUserAccess> getUserAccessListByUserId(Integer userId, HttpServletRequest request);
 
     void clearCache(Integer userId, Integer masterId);
 
@@ -48,7 +44,7 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<Integer> selectGetUserAccessIdListUserIds(Integer masterId, List<Integer> accessIds);
 
-    Integer selectUserAccessesByMasterId(Integer userId, Integer masterId,String role);
+    Integer selectUserAccessesByMasterId(Integer userId, Integer masterId, String role);
 
     /***
      * 获取当前空间下教师对应的全部学生表
@@ -56,7 +52,8 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
      * @param masterId
      * @return
      */
-    List<GcUserAccess> getStudentsAccessByTeacherId(Integer userId, Integer masterId, Integer page, Integer pageNum);
+    List<GcUserAccess> getStudentsAccessByTeacherId(
+            Integer userId, Integer masterId, Integer page, Integer pageNum);
 
     /***
      * 获取accessIds下的所有用户
@@ -67,7 +64,8 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     Integer createOrUpdateById(GcUserAccessExt userAccessExt);
 
-    List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(Integer masterId, List<Integer> userIds, String order);
+    List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
+            Integer masterId, List<Integer> userIds, String order);
 
     /***
      * 获取权限表
@@ -75,7 +73,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
      * @return
      */
     GcUserAccessPermission getUserAccessPermission(Integer userAccessId);
-
 
     /***
      * 获取影响用户的权限表
@@ -114,9 +111,15 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
      */
     Map<String, Long> getMasterIdUsersNum(Integer masterId);
 
-    List<Map<String, Object>> getAllUserInThisMaster(List<Integer> masterId, String searchFilter, HttpServletRequest request, PageParam pageParam,Integer accessId);
+    List<Map<String, Object>> getAllUserInThisMaster(
+            List<Integer> masterId,
+            String searchFilter,
+            HttpServletRequest request,
+            PageParam pageParam,
+            Integer accessId);
 
     List<Map<String, Object>> getAllManagerInThisMaster(Integer masterId);
+
     /***
      * 更新相关用户的权限
      * @param userAccessIds 用户userAccessIds
@@ -126,28 +129,28 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     Integer saveUserAccessPermission(GcUserAccessPermission userAccessPermission);
 
-	int deleteById(Integer id);
+    int deleteById(Integer id);
 
-	GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId);
+    GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId);
 
     List<GcUserAccess> getAccessByAccessId(Integer accessId);
 
     GcUserAccess getByUserId(Integer userId);
 
-    List<GcUserAccess> getUserAccessListByMasterIdAndUserId(List<Integer> userIdList,Integer masterId);
+    List<GcUserAccess> getUserAccessListByMasterIdAndUserId(
+            List<Integer> userIdList, Integer masterId);
 
     List<GcUserAccess> getAccessListByUser(Integer userId);
 
-    List<GcUserAccess> getAccessListByUserAndMasterId(Integer userId,Integer masterId);
+    List<GcUserAccess> getAccessListByUserAndMasterId(Integer userId, Integer masterId);
 
     List<Integer> getAccessListBySuperAdmin(Integer userId, Integer masterId);
 
     void insertUserAccessList(List<GcUserAccess> list);
 
-    void deleteUserAccess(Integer userId,Integer masterId,List<Integer> accessId);
+    void deleteUserAccess(Integer userId, Integer masterId, List<Integer> accessId);
 
-    Integer getGroupAdmin(Integer userId,Integer masterId);
+    Integer getGroupAdmin(Integer userId, Integer masterId);
 
-    List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId,Integer masterId);
-
+    List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
 }

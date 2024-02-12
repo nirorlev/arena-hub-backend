@@ -1,23 +1,31 @@
 package com.threeatom.guidecore.controller.api.manager;
 
-import java.io.*;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-//import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONArray;
+import com.threeatom.common.ApiAssert;
+import com.threeatom.common.controller.Message;
+import com.threeatom.common.redis.RedisOperator;
+import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.controller.GuideCoreController;
+import com.threeatom.guidecore.controller.manager.vo.HomePage;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.system.entity.SysFile;
+import com.threeatom.system.entity.SysSystem;
+import com.threeatom.system.service.SysFileService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -28,104 +36,66 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.threeatom.common.ApiAssert;
-import com.threeatom.common.controller.Message;
-import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.constant.SysConstant;
-import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.controller.manager.vo.HomePage;
-import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.entity.SysFile;
-import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.service.SysFileService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
-
 @RestController
 @RequestMapping("/api/v1/guidecore")
 @Api(tags = "仪表盘数据")
 public class HomeGuideCoreController extends GuideCoreController {
-	
-    @Autowired
-    private GcManagerService managerService;
-    @Autowired
-    private GcMasterService masterService;
-    @Autowired
-    private SysFileService sysFileService;
-    @Autowired
-    private GcSubjectService subjectService;
-    @Autowired
-    private GcVideoService videoService;
-    @Autowired
-    private GcResourceService resourceService;
-    @Autowired
-    private GcUserAccessService userAccessService;
-    @Autowired
-    private GcAccessService accessService;
-    @Autowired
-	RedisOperator redisOperator;
-	@Autowired
-    private Environment env;
-    @Autowired
-    private GcTeacherDataService teacherDataService;
-    @Autowired
-    private NewUiGcSubjectService newUiGcSubjectService;
-    @Autowired
-    private GcProblemService gcProblemService;
-    @Autowired
-    private GcManagerService gcManagerService;
-    @Autowired
-    private GcUserService gcUserService;
-    @Autowired
-    private GcAccessService gcAccessService;
+
+    @Autowired private GcManagerService managerService;
+    @Autowired private GcMasterService masterService;
+    @Autowired private SysFileService sysFileService;
+    @Autowired private GcSubjectService subjectService;
+    @Autowired private GcVideoService videoService;
+    @Autowired private GcResourceService resourceService;
+    @Autowired private GcUserAccessService userAccessService;
+    @Autowired private GcAccessService accessService;
+    @Autowired RedisOperator redisOperator;
+    @Autowired private Environment env;
+    @Autowired private GcTeacherDataService teacherDataService;
+    @Autowired private NewUiGcSubjectService newUiGcSubjectService;
+    @Autowired private GcProblemService gcProblemService;
+    @Autowired private GcManagerService gcManagerService;
+    @Autowired private GcUserService gcUserService;
+    @Autowired private GcAccessService gcAccessService;
 
     @PostMapping("/saveHomeVideo")
     public Message saveHomeVideo(@RequestBody JSONObject jsonRequest) {
-    	if(jsonRequest==null|| jsonRequest.getInteger("fileId")==null||jsonRequest.getInteger("fileId")==null) {
-    		return new Message().error("fileId不可为空");
-    	}
-        
+        if (jsonRequest == null
+                || jsonRequest.getInteger("fileId") == null
+                || jsonRequest.getInteger("fileId") == null) {
+            return new Message().error("fileId不可为空");
+        }
+
         GcMaster master = this.getMaster();
-        
+
         master.setIntroVideoId(jsonRequest.getInteger("fileId"));
-        
-        if(masterService.setMaster(master)) {
-        	return new Message().ok().addData("master", master);
+
+        if (masterService.setMaster(master)) {
+            return new Message().ok().addData("master", master);
         }
         return new Message().error();
-        
     }
-    
 
-    
     @ApiOperation(value = "获取首页数据", httpMethod = "GET")
     @GetMapping("/getHomeData")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = HomePage.class)
-    })
+    @ApiResponses({@ApiResponse(code = 200, message = "请求成功", response = HomePage.class)})
     public Message homePageData(HttpServletRequest request) {
         SysSystem sys = this.getSystem();
         GcManager manager = this.getManager();
         GcMaster master = this.getMaster();
-        if(Objects.nonNull(master.getFaviconLogoFileId())){
+        if (Objects.nonNull(master.getFaviconLogoFileId())) {
             SysFile sysFile = sysFileService.getById(master.getFaviconLogoFileId());
-            String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
             master.setFaviconFullFileUrl(fullFileUrl);
         }
-        //查询此门户下是否有免费code
+        // 查询此门户下是否有免费code
         GcAccess gcAccess = gcAccessService.selectFreeCodeByMaster(master.getId());
-        if(Objects.nonNull(gcAccess)){
+        if (Objects.nonNull(gcAccess)) {
             master.setFreeAccessCode(gcAccess);
         }
-        if(master.getIntroVideoFile()!=null) {
-        	SysFile sf = master.getIntroVideoFile();
-        	sf.setFullFileUrl(sysFileService.getResFullUrl(master.getIntroVideoFile(), request));
+        if (master.getIntroVideoFile() != null) {
+            SysFile sf = master.getIntroVideoFile();
+            sf.setFullFileUrl(sysFileService.getResFullUrl(master.getIntroVideoFile(), request));
         }
         HomePage gp = new HomePage();
 
@@ -143,32 +113,33 @@ public class HomeGuideCoreController extends GuideCoreController {
         gp.setUserCodeUserNum(userNum);
         gp.setSubjectAdminCodeUserNum(subjectAdminNum);
 
-
-        if(TableConstant.COMMON_ZERO==manager.getLevel()) {
-            gp.setSubNum(subjectService.getSubjectNum(master.getId(),null,null));
-            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(),null,null));
-            gp.setVideoNum(videoService.getVideoNum(master.getId(),null,null));
-            gp.setResNum(resourceService.getResourceNum(master.getId(),null,null));
-        }else if(TableConstant.COMMON_ONE==manager.getLevel()){
-            GcUserAccess gcUserAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
-            GcUserAccessPermission gcUserAccessPermission = userAccessService.getUserAccessPermission(gcUserAccess.getId());
-            List<Integer> subIds  = gcUserAccessPermission.getSubPermission().toJavaList(Integer.class);
+        if (TableConstant.COMMON_ZERO == manager.getLevel()) {
+            gp.setSubNum(subjectService.getSubjectNum(master.getId(), null, null));
+            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(), null, null));
+            gp.setVideoNum(videoService.getVideoNum(master.getId(), null, null));
+            gp.setResNum(resourceService.getResourceNum(master.getId(), null, null));
+        } else if (TableConstant.COMMON_ONE == manager.getLevel()) {
+            GcUserAccess gcUserAccess =
+                    userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
+            GcUserAccessPermission gcUserAccessPermission =
+                    userAccessService.getUserAccessPermission(gcUserAccess.getId());
+            List<Integer> subIds = gcUserAccessPermission.getSubPermission().toJavaList(Integer.class);
             gp.setSubNum(subIds.size());
-            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(),subIds,manager.getId()));
-            gp.setVideoNum(videoService.getVideoNum(master.getId(),subIds,manager.getId()));
-            gp.setResNum(resourceService.getResourceNum(master.getId(),subIds,manager.getId()));
+            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(), subIds, manager.getId()));
+            gp.setVideoNum(videoService.getVideoNum(master.getId(), subIds, manager.getId()));
+            gp.setResNum(resourceService.getResourceNum(master.getId(), subIds, manager.getId()));
         }
-        master.setLogoFullUrl(sysFileService.getResFullUrl(master.getLogoFile(),request));
-        if(Objects.nonNull(master.getAdminLogoFileId())){
+        master.setLogoFullUrl(sysFileService.getResFullUrl(master.getLogoFile(), request));
+        if (Objects.nonNull(master.getAdminLogoFileId())) {
             SysFile sysFile = sysFileService.getById(master.getAdminLogoFileId());
-            String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
             master.setAdminLogoFullFileUrl(fullFileUrl);
         }
         Integer fid = null;
-        if(master.getExtVar()!=null){
-        	fid = master.getExtVar().getInteger("bgFid");
+        if (master.getExtVar() != null) {
+            fid = master.getExtVar().getInteger("bgFid");
         }
-        
+
         if (fid != null) {
             SysFile file = sysFileService.getById(fid);
             if (file != null) {
@@ -181,27 +152,28 @@ public class HomeGuideCoreController extends GuideCoreController {
         gp.setMaster(master);
         Message msg = new Message().ok();
 
-        //languagelist的返回
+        // languagelist的返回
         LanuageType[] lanuageTypes = LanuageType.values();
         Map<String, String> languageList = new HashMap<>();
         for (LanuageType lanuageType : lanuageTypes) {
             languageList.put(lanuageType.getCode(), lanuageType.getDesc());
         }
 
-        //category
+        // category
         List<GcCategory> gcCategories = gcProblemService.selectCategoryList();
 
-        msg.addData("category",gcCategories);
-        msg.addData("language",languageList);
+        msg.addData("category", gcCategories);
+        msg.addData("language", languageList);
         msg.addData("HomeData", gp);
-        msg.addData("platForm",VideoCallPlateformType.values());
+        msg.addData("platForm", VideoCallPlateformType.values());
         msg.addData("timeZone", TimeZoneType.values());
         return msg;
     }
 
     @ApiOperation(value = "获取门户下用户行为数据图表", httpMethod = "POST")
     @PostMapping("/homeUserBehaviorChartsData")
-    public Message homeUserBehaviorChartsData(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
+    public Message homeUserBehaviorChartsData(
+            @RequestBody JSONObject jsonRequest, HttpServletRequest request) {
         Message message = new Message();
         Integer masterId = getHeaderMasterId(request);
         ApiAssert.notNull(jsonRequest, "参数缺失");
@@ -211,24 +183,29 @@ public class HomeGuideCoreController extends GuideCoreController {
         Integer overDate = jsonRequest.getInteger("overDate");
         ApiAssert.notNull(overDate, "必填参数overDate缺失");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        //根据天数计算时间
+        // 根据天数计算时间
         Date end = new Date();
         Calendar cld = Calendar.getInstance();
         cld.setTime(new Date());
-        cld.add(Calendar.DAY_OF_MONTH,(~(overDate - 2)));
+        cld.add(Calendar.DAY_OF_MONTH, (~(overDate - 2)));
 
         String startTime = sdf.format(cld.getTime());
         String endTime = sdf.format(end);
-        List<Map<String, Object>> allUserInThisMaster = userAccessService.getAllUserInThisMaster(masterIds,null,request,new PageParam(request),null);
-        List<Integer> user_id = allUserInThisMaster.stream().map(p -> (Integer) p.get("user_id")).collect(Collectors.toList());
+        List<Map<String, Object>> allUserInThisMaster =
+                userAccessService.getAllUserInThisMaster(
+                        masterIds, null, request, new PageParam(request), null);
+        List<Integer> user_id =
+                allUserInThisMaster.stream()
+                        .map(p -> (Integer) p.get("user_id"))
+                        .collect(Collectors.toList());
         List<Integer> subjectIds = subjectService.getSubjectIds(masterId);
-        JSONObject jsonObject = teacherDataService.getStudentBehaviorChartsData(user_id, subjectIds,masterId, startTime, endTime, message,this.getManager().getId());
+        JSONObject jsonObject =
+                teacherDataService.getStudentBehaviorChartsData(
+                        user_id, subjectIds, masterId, startTime, endTime, message, this.getManager().getId());
 
-        //查询门户登录次数
+        // 查询门户登录次数
 
-
-        return message.ok("查询成功").addData("studentBehaviorChartsData",jsonObject);
-
+        return message.ok("查询成功").addData("studentBehaviorChartsData", jsonObject);
     }
 
     @ApiOperation(value = "关闭网站", httpMethod = "POST")
@@ -237,7 +214,6 @@ public class HomeGuideCoreController extends GuideCoreController {
         Integer managerId = this.getManager().getId();
         if (masterService.setMasterState(managerId, 0)) return new Message().ok();
         else return new Message().error();
-
     }
 
     @ApiOperation(value = "打开网站", httpMethod = "POST")
@@ -251,9 +227,9 @@ public class HomeGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "关闭网站", httpMethod = "POST")
     @PostMapping("/superAdminClose")
     public Message close(@RequestBody GcMaster gcMaster) {
-        if (masterService.superAdminSetMasterState(gcMaster.getId(), 0)) return new Message().ok("success");
+        if (masterService.superAdminSetMasterState(gcMaster.getId(), 0))
+            return new Message().ok("success");
         else return new Message().ok("fail");
-
     }
 
     @ApiOperation(value = "打开网站", httpMethod = "POST")
@@ -263,12 +239,16 @@ public class HomeGuideCoreController extends GuideCoreController {
         else return new Message().error();
     }
 
-
     @ApiOperation(value = "登录", httpMethod = "POST")
-    @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "username", value = "用户名，邮箱", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "password", value = "密码", required = true, dataType = "String")
-    })
+    @ApiImplicitParams(
+            value = {
+                @ApiImplicitParam(
+                        name = "username",
+                        value = "用户名，邮箱",
+                        required = true,
+                        dataType = "String"),
+                @ApiImplicitParam(name = "password", value = "密码", required = true, dataType = "String")
+            })
     @PostMapping("/login")
     public Message Login(@RequestBody JSONObject jsonRequest) {
         String username = jsonRequest.getString("username");
@@ -279,20 +259,19 @@ public class HomeGuideCoreController extends GuideCoreController {
 
         String token = managerService.loginGetToken(username, password);
         GcManager gcManager = this.gcManagerService.getManagerByUsername(username);
-        //userAccessExtService.save(new GcUserAccessExt(null,new Date(),gcManager.getId()));//新增登录记录
+        // userAccessExtService.save(new GcUserAccessExt(null,new Date(),gcManager.getId()));//新增登录记录
         return new Message().ok().addData("token", token);
-
     }
 
-
     @ApiOperation(value = "注册", httpMethod = "POST")
-    @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "email", value = "email", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "password", value = "密码", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "firstName", value = "名字前缀", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "lastName", value = "名字后缀", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "code", value = "注册码", dataType = "String")
-    })
+    @ApiImplicitParams(
+            value = {
+                @ApiImplicitParam(name = "email", value = "email", required = true, dataType = "String"),
+                @ApiImplicitParam(name = "password", value = "密码", required = true, dataType = "String"),
+                @ApiImplicitParam(name = "firstName", value = "名字前缀", required = true, dataType = "String"),
+                @ApiImplicitParam(name = "lastName", value = "名字后缀", required = true, dataType = "String"),
+                @ApiImplicitParam(name = "code", value = "注册码", dataType = "String")
+            })
     @PostMapping("/register")
     public Message Register(@RequestBody JSONObject jsonRequest) {
         String email = jsonRequest.getString("email");
@@ -307,83 +286,82 @@ public class HomeGuideCoreController extends GuideCoreController {
 
         List<SysSystem> sysList = this.getSystemList("guidecore");
 
-        if (null!=type){
+        if (null != type) {
             String registerCode = env.getProperty("registercode");
-            if (null==registerCode){
+            if (null == registerCode) {
                 registerCode = "6WajnPPO";
             }
-            if (type.equals(EnvType.PT.getDesc())){
-                if (!registerCode.equals(code)){
+            if (type.equals(EnvType.PT.getDesc())) {
+                if (!registerCode.equals(code)) {
                     return new Message().error(I18NUtil.get("guidecore.master.codeError"));
-                }else {
+                } else {
                     code = null;
                 }
             }
         }
-        managerService.createManager(sysList.get(0).getId(), email, password, fName, lName,code);
+        managerService.createManager(sysList.get(0).getId(), email, password, fName, lName, code);
 
         return new Message().ok(I18NUtil.get("guidecore.master.register.success"));
-
     }
-	
-    //newgt站点，admin忘记密码前缀，与用户端WechatUserGuideCoreController的发送验证码区分开
-    private static final String email_prefix_newgt = "newgt_";//用于重置密码
-    private static final String email_prefix_newgt_resend_es = "newgt_60_";//用户判断1分账只能发一次
 
+    // newgt站点，admin忘记密码前缀，与用户端WechatUserGuideCoreController的发送验证码区分开
+    private static final String email_prefix_newgt = "newgt_"; // 用于重置密码
+    private static final String email_prefix_newgt_resend_es = "newgt_60_"; // 用户判断1分账只能发一次
 
-	@ApiOperation(value = "修改密码", httpMethod = "POST")
-	@PostMapping("/editMasterUserInfo")
-	public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
-		String email = gcManager.getUsername();
-		String password = gcManager.getPassword();
-		String lastName = gcManager.getLastName();
-		String firstName = gcManager.getFirstName();
+    @ApiOperation(value = "修改密码", httpMethod = "POST")
+    @PostMapping("/editMasterUserInfo")
+    public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
+        String email = gcManager.getUsername();
+        String password = gcManager.getPassword();
+        String lastName = gcManager.getLastName();
+        String firstName = gcManager.getFirstName();
 
-		ApiAssert.notEmpty(email, I18NUtil.get("guidecore.master.noEmail"));
+        ApiAssert.notEmpty(email, I18NUtil.get("guidecore.master.noEmail"));
         ApiAssert.notEmpty(lastName, I18NUtil.get("guidecore.native.noLastName"));
         ApiAssert.notEmpty(firstName, I18NUtil.get("guidecore.native.noFirstName"));
 
-//		GcManager user = managerService.getManagerByUsername(email);
+        //		GcManager user = managerService.getManagerByUsername(email);
         GcManager user = this.getManager();
-		if (user == null) {
-			return new Message().error(I18NUtil.get("guidecore.master.login.usernameError"));
-		}
+        if (user == null) {
+            return new Message().error(I18NUtil.get("guidecore.master.login.usernameError"));
+        }
 
-		user.setLastName(gcManager.getLastName());
-		user.setFirstName(gcManager.getFirstName());
-		user.setUsername(gcManager.getUsername());
-		if(null != password) {
-            String pwdHash = new SimpleHash("MD5", password, user.getSalt() + SysConstant.PASS_SALT).toHex();
+        user.setLastName(gcManager.getLastName());
+        user.setFirstName(gcManager.getFirstName());
+        user.setUsername(gcManager.getUsername());
+        if (null != password) {
+            String pwdHash =
+                    new SimpleHash("MD5", password, user.getSalt() + SysConstant.PASS_SALT).toHex();
             user.setPassword(pwdHash);
         }
-		if(managerService.saveOrUpdateManager(user)){
-			return new Message().ok().addData("user",user);
-		}else{
-			return new Message().error();
-		}
-	}
+        if (managerService.saveOrUpdateManager(user)) {
+            return new Message().ok().addData("user", user);
+        } else {
+            return new Message().error();
+        }
+    }
 
     //    @ApiOperation(value = "修改门户用户基础信息", httpMethod = "POST")
-//    @PostMapping("/editMasterUserInfo")
-//    public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
-//        Message message = new Message();
-//        GcManager gcManager1 = managerService.getManagerByUsername(gcManager.getUsername());
-//        if(null !=gcManager.getPassword()){
-//            String pwdHash = new SimpleHash("MD5", gcManager.getPassword(), gcManager1.getSalt() + SysConstant.PASS_SALT).toHex();
-//            gcManager1.setPassword(pwdHash);
-//            String salt= PasswordSecretUtil.createSalt();
-//            gcManager1.setSalt(salt);
-//        }
-//        gcManager1.setLastName(gcManager.getLastName());
-//        gcManager1.setFirstName(gcManager.getFirstName());
-//        gcManager1.setUsername(gcManager.getUsername());
-//        if(managerService.saveOrUpdateManager(gcManager1)){
-//            return new Message().ok();
-//        }else{
-//            return new Message().error();
-//        }
-//    }
-
+    //    @PostMapping("/editMasterUserInfo")
+    //    public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
+    //        Message message = new Message();
+    //        GcManager gcManager1 = managerService.getManagerByUsername(gcManager.getUsername());
+    //        if(null !=gcManager.getPassword()){
+    //            String pwdHash = new SimpleHash("MD5", gcManager.getPassword(), gcManager1.getSalt()
+    // + SysConstant.PASS_SALT).toHex();
+    //            gcManager1.setPassword(pwdHash);
+    //            String salt= PasswordSecretUtil.createSalt();
+    //            gcManager1.setSalt(salt);
+    //        }
+    //        gcManager1.setLastName(gcManager.getLastName());
+    //        gcManager1.setFirstName(gcManager.getFirstName());
+    //        gcManager1.setUsername(gcManager.getUsername());
+    //        if(managerService.saveOrUpdateManager(gcManager1)){
+    //            return new Message().ok();
+    //        }else{
+    //            return new Message().error();
+    //        }
+    //    }
 
     @ApiOperation(value = "修改密码", httpMethod = "POST")
     @PostMapping("/changePassword")
@@ -401,75 +379,77 @@ public class HomeGuideCoreController extends GuideCoreController {
             return new Message().error(I18NUtil.get("guidecore.master.login.usernameError"));
         }
 
-        String rb = (String) redisOperator.get(email_prefix_newgt+email);
+        String rb = (String) redisOperator.get(email_prefix_newgt + email);
 
         ApiAssert.notEmpty(rb, I18NUtil.get("guidecore.master.invalidEmailCaptcha"));
-        if(!rb.equals(captcha)){
+        if (!rb.equals(captcha)) {
             return new Message().error(I18NUtil.get("guidecore.master.errorEmailCaptcha"));
         }
 
-        String pwdHash = new SimpleHash("MD5", password, user.getSalt() + SysConstant.PASS_SALT).toHex();
+        String pwdHash =
+                new SimpleHash("MD5", password, user.getSalt() + SysConstant.PASS_SALT).toHex();
         user.setPassword(pwdHash);
-        if(managerService.saveOrUpdateManager(user)){
+        if (managerService.saveOrUpdateManager(user)) {
             return new Message().ok();
-        }else{
+        } else {
             return new Message().error();
         }
     }
-	
-	//2021-01-(新)增加&更新社交媒体信息
-//	@ApiOperation(value = "保存社交媒体账号配置", httpMethod = "POST")
-//    @PostMapping("/save")
-//    public Message save(@RequestBody List<SocialMediaConfig> list) {
-//		GcMaster master=this.getMaster();
-//		
-//		if(socialMediaService.saveSocialMediaConfig(master.getId(), list))
-//			return new Message().ok();
-//		return new Message().error();
-//    }
-	
-//	@ApiOperation(value="修改社交账号",httpMethod = "POST")
-//	@PostMapping("/updateSocialMedia")
-//	public Message updateSocialMedia(@RequestBody JSONObject requestParams) {
-//		//GcMaster master=this.getMaster();
-//		//int masterId=master.getId();
-//		int masterId=65;//测试数据masterId
-//		GcSocialMedia gcSocialMedia = socialMediaService.getSocialMediaByMasterId(masterId);
-//		if(gcSocialMedia==null) {
-//			return new Message().error();
-//		}
-//		int fileId = Integer.parseInt(requestParams.getString("fileId"));
-//		//if(fileId) {}
-//		String name = requestParams.getString("name");
-//		String link = requestParams.getString("link");
-//		int type = Integer.parseInt(requestParams.getString("type"));
-//		int onOff = Integer.parseInt(requestParams.getString("onOff"));
-//		gcSocialMedia.setFileId(fileId);
-//		gcSocialMedia.setName(name);
-//		gcSocialMedia.setLink(link);
-//		gcSocialMedia.setType(type);
-//		gcSocialMedia.setOnOff(onOff);
-//		
-//		if(socialMediaService.saveOrUpdate(gcSocialMedia)){
-//			return new Message().ok();
-//		}else{
-//			return new Message().error();
-//		}
-//	}
 
-//  It was this before: - James
-//    @GetMapping("/version")
-//    @GetMapping("/hub/api/v1/guidecore/version")
+    // 2021-01-(新)增加&更新社交媒体信息
+    //	@ApiOperation(value = "保存社交媒体账号配置", httpMethod = "POST")
+    //    @PostMapping("/save")
+    //    public Message save(@RequestBody List<SocialMediaConfig> list) {
+    //		GcMaster master=this.getMaster();
+    //
+    //		if(socialMediaService.saveSocialMediaConfig(master.getId(), list))
+    //			return new Message().ok();
+    //		return new Message().error();
+    //    }
+
+    //	@ApiOperation(value="修改社交账号",httpMethod = "POST")
+    //	@PostMapping("/updateSocialMedia")
+    //	public Message updateSocialMedia(@RequestBody JSONObject requestParams) {
+    //		//GcMaster master=this.getMaster();
+    //		//int masterId=master.getId();
+    //		int masterId=65;//测试数据masterId
+    //		GcSocialMedia gcSocialMedia = socialMediaService.getSocialMediaByMasterId(masterId);
+    //		if(gcSocialMedia==null) {
+    //			return new Message().error();
+    //		}
+    //		int fileId = Integer.parseInt(requestParams.getString("fileId"));
+    //		//if(fileId) {}
+    //		String name = requestParams.getString("name");
+    //		String link = requestParams.getString("link");
+    //		int type = Integer.parseInt(requestParams.getString("type"));
+    //		int onOff = Integer.parseInt(requestParams.getString("onOff"));
+    //		gcSocialMedia.setFileId(fileId);
+    //		gcSocialMedia.setName(name);
+    //		gcSocialMedia.setLink(link);
+    //		gcSocialMedia.setType(type);
+    //		gcSocialMedia.setOnOff(onOff);
+    //
+    //		if(socialMediaService.saveOrUpdate(gcSocialMedia)){
+    //			return new Message().ok();
+    //		}else{
+    //			return new Message().error();
+    //		}
+    //	}
+
+    //  It was this before: - James
+    //    @GetMapping("/version")
+    //    @GetMapping("/hub/api/v1/guidecore/version")
     @Order(1)
     @GetMapping("/version")
-    public Message getVersion(){
+    public Message getVersion() {
         StringBuilder sb = null;
         try {
-            //InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("version.json");
+            // InputStream inputStream =
+            // this.getClass().getClassLoader().getResourceAsStream("version.json");
             InputStream in = new BufferedInputStream(new FileInputStream("./version.json"));
-            InputStreamReader inputStreamReader = new InputStreamReader(in,"UTF-8");
+            InputStreamReader inputStreamReader = new InputStreamReader(in, "UTF-8");
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            sb= new StringBuilder();
+            sb = new StringBuilder();
             String text = "";
             while ((text = bufferedReader.readLine()) != null) {
                 sb.append(text);
@@ -479,17 +459,15 @@ public class HomeGuideCoreController extends GuideCoreController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //return new Message().ok().addData("context",sb.toString());
-        //return new Message().ok();
+        // return new Message().ok().addData("context",sb.toString());
+        // return new Message().ok();
 
-	    //JSONObject json = new JSONObject(sb.toString()); 
-        //return new Message().ok().addJson(JSONObject.parse(sb.toString()));
-        //String jsonStringTest = "{\"JSON2\":\"Hello my World!\",\"JSON3\":{\"key1\":\"value1\"},\"JSON1\":\"Hello World!\"}";
+        // JSONObject json = new JSONObject(sb.toString());
+        // return new Message().ok().addJson(JSONObject.parse(sb.toString()));
+        // String jsonStringTest = "{\"JSON2\":\"Hello my
+        // World!\",\"JSON3\":{\"key1\":\"value1\"},\"JSON1\":\"Hello World!\"}";
         JSONObject jsonStringJson = (JSONObject) JSONObject.parse(sb.toString());
-        //return new Message().ok().mergeJson(jsonStringJson);
+        // return new Message().ok().mergeJson(jsonStringJson);
         return new Message().ok().setJsonData(jsonStringJson);
-        
     }
-
 }
-

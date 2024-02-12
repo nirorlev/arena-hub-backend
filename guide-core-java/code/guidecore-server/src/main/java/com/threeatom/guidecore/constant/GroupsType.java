@@ -32,38 +32,40 @@ public class GroupsType {
 
     public static final String groupAdmin = "groupAdmin";
 
+    public static final List<String> memberList =
+            new ArrayList<String>() {
+                {
+                    this.add(teamMember);
+                    this.add(teamGuest);
+                    this.add(groupMember);
+                    this.add(orgMember);
+                }
+            };
 
-    public static final List<String> memberList = new ArrayList<String>() {
-        {
-            this.add(teamMember);
-            this.add(teamGuest);
-            this.add(groupMember);
-            this.add(orgMember);
-        }
-    };
+    public static final List<String> adminList =
+            new ArrayList<String>() {
+                {
+                    this.add(orgAdmin);
+                    this.add(admin);
+                    this.add(groupAdmin);
+                }
+            };
 
-    public static final List<String> adminList = new ArrayList<String>() {
-        {
-            this.add(orgAdmin);
-            this.add(admin);
-            this.add(groupAdmin);
-        }
-    };
+    public static final List<String> superAdminList =
+            new ArrayList<String>() {
+                {
+                    this.add(superAdmin);
+                }
+            };
 
-    public static final List<String> superAdminList = new ArrayList<String>() {
-        {
-            this.add(superAdmin);
-        }
-    };
-
-    public static final List<String> groupList = new ArrayList<String>() {
-        {
-            /*this.add(superAdmin);
-            this.add(admin);
-            this.add(member);*/
-            this.add(orgAdmin);
-            this.add(orgMember);
-        }
-    };
-
+    public static final List<String> groupList =
+            new ArrayList<String>() {
+                {
+                    /*this.add(superAdmin);
+                    this.add(admin);
+                    this.add(member);*/
+                    this.add(orgAdmin);
+                    this.add(orgMember);
+                }
+            };
 }

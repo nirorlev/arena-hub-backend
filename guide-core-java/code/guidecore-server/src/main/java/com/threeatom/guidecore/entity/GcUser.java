@@ -1,32 +1,29 @@
 package com.threeatom.guidecore.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-
-import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author qiaoxide
  * @since 2019-11-25
  */
-@ApiModel(value="GcUser对象", description="")
+@ApiModel(value = "GcUser对象", description = "")
 @Data
 public class GcUser implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -63,12 +60,13 @@ public class GcUser implements Serializable {
 
     @TableField(exist = false)
     private String firstName;
-//
-//    @TableField(exist = false)
-//    private Integer avatarFileId;
-//
-//    @TableField(exist = false)
-//    private SysFile avatarFile;
+
+    //
+    //    @TableField(exist = false)
+    //    private Integer avatarFileId;
+    //
+    //    @TableField(exist = false)
+    //    private SysFile avatarFile;
 
     @ApiModelProperty(value = "父id：老师的id")
     private Integer pid;
@@ -79,7 +77,7 @@ public class GcUser implements Serializable {
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 
-    //临时判断该门户下有没有学生子账号
+    // 临时判断该门户下有没有学生子账号
     @TableField(exist = false)
     private Integer studentFlag;
 
@@ -94,24 +92,24 @@ public class GcUser implements Serializable {
 
     @TableField(exist = false)
     private GcUserMessage userMessage;
-    
-    @TableField(exist = false)
-    private Integer subjectId;//课程id
 
     @TableField(exist = false)
-    private Integer subjectUsers;//课程下的用户数
+    private Integer subjectId; // 课程id
 
     @TableField(exist = false)
-    private Integer subjectMasterId;//课程所在的门户
+    private Integer subjectUsers; // 课程下的用户数
 
     @TableField(exist = false)
-    private String thumbUrl;//pt用户头像
+    private Integer subjectMasterId; // 课程所在的门户
 
     @TableField(exist = false)
-    private String ptEmail;//pt用户邮箱
+    private String thumbUrl; // pt用户头像
 
     @TableField(exist = false)
-    private String ptId;//pt用户Id
+    private String ptEmail; // pt用户邮箱
+
+    @TableField(exist = false)
+    private String ptId; // pt用户Id
 
     @TableField(exist = false)
     private List<GcAccess> accessList;
@@ -134,8 +132,7 @@ public class GcUser implements Serializable {
     @TableField(exist = false)
     private String groupName;
 
-    public GcUser() {
-    }
+    public GcUser() {}
 
     public GcUser(Integer sysId, String username, String password, String salt, Integer infoId) {
         this.sysId = sysId;

@@ -1,9 +1,8 @@
 package com.threeatom.guidecore.service;
 
-import java.util.List;
-
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcSubjectAssociation;
+import java.util.List;
 
 /**
  * <p>
@@ -13,9 +12,9 @@ import com.threeatom.guidecore.entity.GcSubjectAssociation;
  */
 public interface GcSubjectAssociationService extends IService<GcSubjectAssociation> {
 
-	public Integer selectCount(Integer subjectId,Integer masterId);
+    public Integer selectCount(Integer subjectId, Integer masterId);
 
-	List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId);
+    List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId);
 
-	Integer selectPackageStatus(Integer masterId);
+    Integer selectPackageStatus(Integer masterId);
 }

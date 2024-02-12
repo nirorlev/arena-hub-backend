@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component;
 public final class SpringUtil implements BeanFactoryPostProcessor {
     private static ConfigurableListableBeanFactory beanFactory;
 
-    public SpringUtil() {
-    }
+    public SpringUtil() {}
 
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
+            throws BeansException {
         beanFactory = beanFactory;
     }
 

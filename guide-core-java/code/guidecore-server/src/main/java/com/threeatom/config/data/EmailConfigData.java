@@ -4,17 +4,16 @@ import lombok.Data;
 
 @Data
 public class EmailConfigData {
-	
-	private String regionId;
-	
-	private String accessKey;
-	
-	private String secret;
-	
-	private String accountName;
 
-	private String templateName;
+    private String regionId;
 
-	private String url;
+    private String accessKey;
 
+    private String secret;
+
+    private String accountName;
+
+    private String templateName;
+
+    private String url;
 }

@@ -17,5 +17,5 @@ public interface SysSystemService extends IService<SysSystem> {
 
     SysSystemConfig getSystemConfig(Integer sysId);
 
-	SysSystem getSystem();
+    SysSystem getSystem();
 }

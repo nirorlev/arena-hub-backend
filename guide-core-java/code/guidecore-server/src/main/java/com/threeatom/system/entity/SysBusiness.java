@@ -13,31 +13,29 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-@ApiModel(
-    value = "SysBusiness对象",
-    description = "业务表，用来描述业务"
-)
+@ApiModel(value = "SysBusiness对象", description = "业务表，用来描述业务")
 public class SysBusiness implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("业务id")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("业务名称")
     @TableField("`name`")
     private String name;
+
     @ApiModelProperty("业务代码")
     @TableField("`key`")
     private String key;
+
     @ApiModelProperty("留言")
     private String remark;
+
     private Date createTime;
     private Date updateTime;
 
-    public SysBusiness() {
-    }
+    public SysBusiness() {}
 
     public Integer getId() {
         return this.id;
@@ -88,6 +86,18 @@ public class SysBusiness implements Serializable {
     }
 
     public String toString() {
-        return "SysBusiness{id=" + this.id + ", name=" + this.name + ", key=" + this.key + ", remark=" + this.remark + ", createTime=" + this.createTime + ", updateTime=" + this.updateTime + "}";
+        return "SysBusiness{id="
+                + this.id
+                + ", name="
+                + this.name
+                + ", key="
+                + this.key
+                + ", remark="
+                + this.remark
+                + ", createTime="
+                + this.createTime
+                + ", updateTime="
+                + this.updateTime
+                + "}";
     }
 }

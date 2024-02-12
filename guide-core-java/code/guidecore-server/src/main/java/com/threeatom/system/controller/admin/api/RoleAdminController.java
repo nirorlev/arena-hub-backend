@@ -25,11 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoleAdminController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleAdminController.class);
     private static final String PERM_PREFIX = "system:role:";
-    @Autowired
-    private SysRoleService roleService;
+    @Autowired private SysRoleService roleService;
 
-    public RoleAdminController() {
-    }
+    public RoleAdminController() {}
 
     @ApiOperation("权限列表")
     @GetMapping({"/list"})

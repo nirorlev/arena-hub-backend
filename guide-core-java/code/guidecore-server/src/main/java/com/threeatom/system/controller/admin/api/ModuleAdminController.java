@@ -21,13 +21,12 @@ public class ModuleAdminController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleAdminController.class);
     private static final String PERM_PREFIX = "system:module:";
 
-    public ModuleAdminController() {
-    }
+    public ModuleAdminController() {}
 
     @ApiOperation("模块列表")
     @GetMapping({"/list"})
     @RequiresPermissions({"system:module:add"})
     public Message list() {
-        return (new Message()).ok(200, "").addData("list", (Object)null);
+        return (new Message()).ok(200, "").addData("list", (Object) null);
     }
 }

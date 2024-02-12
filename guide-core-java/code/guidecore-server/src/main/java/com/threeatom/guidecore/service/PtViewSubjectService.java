@@ -10,7 +10,4 @@ import com.threeatom.guidecore.entity.PtViewSubject;
  * @description: TODO
  * @date 2023/5/2514:33
  */
-public interface PtViewSubjectService extends IService<PtViewSubject> {
-
-
-}
+public interface PtViewSubjectService extends IService<PtViewSubject> {}

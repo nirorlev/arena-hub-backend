@@ -11,25 +11,21 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 
-@ApiModel(
-    value = "SysUserRole对象",
-    description = ""
-)
+@ApiModel(value = "SysUserRole对象", description = "")
 public class SysUserRole implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("用户id")
     private Integer userId;
+
     @ApiModelProperty("角色id")
     private Integer roleId;
 
-    public SysUserRole() {
-    }
+    public SysUserRole() {}
 
     public Integer getId() {
         return this.id;
@@ -56,6 +52,12 @@ public class SysUserRole implements Serializable {
     }
 
     public String toString() {
-        return "SysUserRole{id=" + this.id + ", userId=" + this.userId + ", roleId=" + this.roleId + "}";
+        return "SysUserRole{id="
+                + this.id
+                + ", userId="
+                + this.userId
+                + ", roleId="
+                + this.roleId
+                + "}";
     }
 }

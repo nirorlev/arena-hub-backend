@@ -2,15 +2,11 @@ package com.threeatom.guidecore.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
-import java.util.Date;
-
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.io.Serializable;
-
-import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -20,16 +16,16 @@ import io.swagger.annotations.ApiModelProperty;
  * @author qiaoxide
  * @since 2019-11-11
  */
-@ApiModel(value="GcManager对象", description="商户管理员")
+@ApiModel(value = "GcManager对象", description = "商户管理员")
 public class GcManager implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-    
-    @JSONField(deserialize=false)
+
+    @JSONField(deserialize = false)
     @ApiModelProperty(value = "业务实例id")
     private Integer sysId;
 
@@ -53,23 +49,22 @@ public class GcManager implements Serializable {
     @ApiModelProperty(value = "状态")
     @JSONField(serialize = false)
     private Integer state;
-    
+
     @ApiModelProperty(value = "名字前缀")
-    private	String firstName;
-    
+    private String firstName;
+
     @ApiModelProperty(value = "名字后缀")
     private String lastName;
 
-    @JSONField(deserialize=false,serialize = false)
+    @JSONField(deserialize = false, serialize = false)
     @ApiModelProperty(value = "更新时间")
     private Date updateTime;
 
-    @JSONField(deserialize=false,serialize = false)
+    @JSONField(deserialize = false, serialize = false)
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 
     private Integer superAdminFlag;
-
 
     public Integer getId() {
         return id;
@@ -88,14 +83,14 @@ public class GcManager implements Serializable {
     }
 
     public Integer getSysId() {
-		return sysId;
-	}
+        return sysId;
+    }
 
-	public void setSysId(Integer sysId) {
-		this.sysId = sysId;
-	}
+    public void setSysId(Integer sysId) {
+        this.sysId = sysId;
+    }
 
-	public String getUsername() {
+    public String getUsername() {
         return username;
     }
 
@@ -126,26 +121,24 @@ public class GcManager implements Serializable {
     public void setState(Integer state) {
         this.state = state;
     }
-    
-    
 
     public String getFirstName() {
-		return firstName;
-	}
+        return firstName;
+    }
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	public Date getUpdateTime() {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
@@ -183,19 +176,36 @@ public class GcManager implements Serializable {
 
     @Override
     public String toString() {
-        return "GcManager{" +
-                "id=" + id +
-                ", sysId=" + sysId +
-                ", masterId=" + masterId +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", level=" + level +
-                ", salt='" + salt + '\'' +
-                ", state=" + state +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", updateTime=" + updateTime +
-                ", createTime=" + createTime +
-                '}';
+        return "GcManager{"
+                + "id="
+                + id
+                + ", sysId="
+                + sysId
+                + ", masterId="
+                + masterId
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", level="
+                + level
+                + ", salt='"
+                + salt
+                + '\''
+                + ", state="
+                + state
+                + ", firstName='"
+                + firstName
+                + '\''
+                + ", lastName='"
+                + lastName
+                + '\''
+                + ", updateTime="
+                + updateTime
+                + ", createTime="
+                + createTime
+                + '}';
     }
 }

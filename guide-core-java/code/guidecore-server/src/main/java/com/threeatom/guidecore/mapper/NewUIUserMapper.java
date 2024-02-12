@@ -1,14 +1,9 @@
 package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserMessage;
-import com.threeatom.system.entity.SysFileCaption;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Administrator
@@ -19,10 +14,8 @@ import java.util.Map;
  */
 public interface NewUIUserMapper extends BaseMapper<GcUser> {
 
+    //    Integer countNewMessagesDetail( Integer uid,Integer portalId);
 
-
-//    Integer countNewMessagesDetail( Integer uid,Integer portalId);
-
-    List<GcUserMessage> countNewMessagesDetail(Integer uid,Integer portalId,Integer teacherAccessId);
-
+    List<GcUserMessage> countNewMessagesDetail(
+            Integer uid, Integer portalId, Integer teacherAccessId);
 }

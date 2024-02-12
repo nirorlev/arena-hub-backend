@@ -24,21 +24,22 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
+public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
+        implements SysUserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SysUserServiceImpl.class);
     private static final String CACHE_TAG = "SysUser";
 
-    public SysUserServiceImpl() {
-    }
+    public SysUserServiceImpl() {}
 
     public SysUser getSysUserBySysIdAndUsername(Integer sysId, String username) {
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper();
         queryWrapper.eq("sys_id", sysId);
         queryWrapper.eq("username", username);
-        return (SysUser)this.getOne(queryWrapper);
+        return (SysUser) this.getOne(queryWrapper);
     }
 
-    public SysUser createSysUserByPhoneAndName(Integer sysId, String phone, String name, String password) {
+    public SysUser createSysUserByPhoneAndName(
+            Integer sysId, String phone, String name, String password) {
         SysUser user = new SysUser();
         user.setSysId(sysId);
         user.setPhone(phone);
@@ -56,12 +57,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Cacheable(
-        value = {"SysUser"},
-        key = "'entity:'+#p0"
-    )
+            value = {"SysUser"},
+            key = "'entity:'+#p0")
     public SysUser getSysUserByIdCache(Integer id) {
         LOGGER.info("获取SysUser");
-        return (SysUser)this.getById(id);
+        return (SysUser) this.getById(id);
     }
 
     public String getTokenByLoginUser(Integer sysId, String username, String password) {
