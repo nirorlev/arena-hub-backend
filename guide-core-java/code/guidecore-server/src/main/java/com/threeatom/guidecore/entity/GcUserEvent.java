@@ -6,22 +6,18 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-
 import java.io.Serializable;
 import java.util.Date;
 
-
-
-@ApiModel(value="GcUserAccess对象", description="")
+@ApiModel(value = "GcUserAccess对象", description = "")
 public class GcUserEvent implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    
     @ApiModelProperty(value = "用户id")
     private Integer userId;
 
@@ -30,7 +26,7 @@ public class GcUserEvent implements Serializable {
 
     @ApiModelProperty(value = "事件id")
     private Integer eventId;
-    
+
     @ApiModelProperty(value = "用户实体")
     @TableField(exist = false)
     private GcUser user;
@@ -38,12 +34,11 @@ public class GcUserEvent implements Serializable {
     @ApiModelProperty(value = "删除状态")
     private Integer state;
 
-
-    @JSONField(deserialize = false,serialize = false)
+    @JSONField(deserialize = false, serialize = false)
     @ApiModelProperty(value = "更新时间")
     private Date updateTime;
 
-    @JSONField(deserialize = false,serialize = false)
+    @JSONField(deserialize = false, serialize = false)
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 
@@ -111,12 +106,11 @@ public class GcUserEvent implements Serializable {
         this.createTime = createTime;
     }
 
-    public GcUserEvent(Integer userId, Integer eventId,Integer masterId) {
+    public GcUserEvent(Integer userId, Integer eventId, Integer masterId) {
         this.userId = userId;
         this.eventId = eventId;
         this.masterId = masterId;
     }
 
-    public GcUserEvent() {
-    }
+    public GcUserEvent() {}
 }

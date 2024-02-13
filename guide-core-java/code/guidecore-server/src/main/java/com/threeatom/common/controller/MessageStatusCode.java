@@ -16,9 +16,8 @@ public class MessageStatusCode {
     public static final int INTERNAL_SERVER_ERROR = 505;
     public static final int OPENID_NOT_FOUND = 606;
     public static final int NO_CERTIFICATION = 607;
-    
-    public static final int FrontEndError=5000;
-    
-    public MessageStatusCode() {
-    }
+
+    public static final int FrontEndError = 5000;
+
+    public MessageStatusCode() {}
 }

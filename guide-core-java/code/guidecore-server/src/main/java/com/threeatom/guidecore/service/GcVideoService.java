@@ -1,23 +1,19 @@
 package com.threeatom.guidecore.service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.scheduling.annotation.Async;
-import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 
 /**
  * <p>
@@ -28,122 +24,147 @@ import com.threeatom.guidecore.controller.user.vo.videoLongVo;
  * @since 2019-11-11
  */
 public interface GcVideoService extends GcVideoServiceBll {
-	
-	List<GcVideo> getVideoListBySubIds(List<Integer> subIds);
-	
-	List<GcVideo> getVideoListByTopSubIds(List<Integer> subIds);
-	
-	List<GcVideo> getVideoListBySubId(Integer subId);
-	GcVideo getVideoById(Integer vid);
-	
-	boolean saveVideo(GcVideo video);
 
-	boolean deleteVideo(Integer vid);
+    List<GcVideo> getVideoListBySubIds(List<Integer> subIds);
 
-	
-	boolean deleteVideoBySubIds(List<Integer> subIds);
-	
-	int getVideoNum(Integer masterId,List<Integer> subIds,Integer managerId);
-	
-	GcVideo callbackSaveVideo(JSONObject object);
-	
-	Integer getSubIdByVid(Integer vid);
+    List<GcVideo> getVideoListByTopSubIds(List<Integer> subIds);
 
-	boolean changeVideoOrder(List<Integer> videoIds);
+    List<GcVideo> getVideoListBySubId(Integer subId);
 
-	SysFile unifiedFileSave(JSONObject jsonObject);
+    GcVideo getVideoById(Integer vid);
 
-	GcMaster callbackSaveMasterVideo(JSONObject jsonObject);
+    boolean saveVideo(GcVideo video);
 
-	List<GcVideo> selectLikeVideoByUserId(Integer userId,Integer masterId);
+    boolean deleteVideo(Integer vid);
 
+    boolean deleteVideoBySubIds(List<Integer> subIds);
 
-	List<GcVideo> getFuzzyNameVideoInMaster(Integer masterId, String videoName);
+    int getVideoNum(Integer masterId, List<Integer> subIds, Integer managerId);
 
-	/**
-	 * 根据视频id查询总时长
-	 */
-	Long sumVideoLongByIdUser(List<Integer> videoIds, Integer userId);
+    GcVideo callbackSaveVideo(JSONObject object);
 
-	/**
-	 * 	根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
-	 * @param subjectIds
-	 * @return
-	 */
-	Message getVideosBySubIds(Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
+    Integer getSubIdByVid(Integer vid);
 
-	/**
-	 * 根据视频id和用户id查询播放的时长
-	 * @param videoIds
-	 * @param userId
-	 * @return
-	 */
-	Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
+    boolean changeVideoOrder(List<Integer> videoIds);
 
-	/**
-	 * 根据课程id查询视频是否完成，根据 播放进度和问题回答数
-	 * @param subjectIds
-	 * @return
-	 */
-//	Map<Integer, List<GcVideo>> getVideoCompleteStatusBySubject(List<Integer> subjectIds, int userId);
+    SysFile unifiedFileSave(JSONObject jsonObject);
 
+    GcMaster callbackSaveMasterVideo(JSONObject jsonObject);
 
-	/**
-	 * 根据一级课id集合查询视频并返回二级课程id
-	 * @param subjectIds
-	 * @param userId
-	 * @return
-	 */
-	List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId,Integer masterId,HttpServletRequest request,Integer envFlag);
+    List<GcVideo> selectLikeVideoByUserId(Integer userId, Integer masterId);
 
-	List<GcVideo> getVideoIdListBySubId0(List<Integer> subIds,Integer userId,Integer masterId,HttpServletRequest request,Integer envFlag);
+    List<GcVideo> getFuzzyNameVideoInMaster(Integer masterId, String videoName);
 
-	List<GcVideo> getVideoIdListByAccessId0(List<Integer> accessPermissionId,List<Integer> userId,Integer masterId,HttpServletRequest request);
+    /**
+     * 根据视频id查询总时长
+     */
+    Long sumVideoLongByIdUser(List<Integer> videoIds, Integer userId);
 
-	List<GcVideo> getVideoListByUserIdAndSubject(List<Integer> userId,Integer subjectId,Integer masterId,HttpServletRequest request);
+    /**
+     * 	根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
+     * @param subjectIds
+     * @return
+     */
+    Message getVideosBySubIds(
+            Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
+    /**
+     * 根据视频id和用户id查询播放的时长
+     * @param videoIds
+     * @param userId
+     * @return
+     */
+    Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
 
+    /**
+     * 根据课程id查询视频是否完成，根据 播放进度和问题回答数
+     * @param subjectIds
+     * @return
+     */
+    //	Map<Integer, List<GcVideo>> getVideoCompleteStatusBySubject(List<Integer> subjectIds, int
+    // userId);
 
-	/**
-	 * 分页查询视频
-	 * @param params
-	 * @param request
-	 * @return
-	 */
-	PageInfo<GcVideo> page(Map<String, Object> params, SysSystem sys, HttpServletRequest request);
+    /**
+     * 根据一级课id集合查询视频并返回二级课程id
+     * @param subjectIds
+     * @param userId
+     * @return
+     */
+    List<GcVideo> getVideosBySubjectIds0(
+            List<Integer> subjectIds,
+            Integer userId,
+            Integer masterId,
+            HttpServletRequest request,
+            Integer envFlag);
 
-	List<GcVideo> selectVideoByVideoAndSub0NameIndex(String videoName, String subName, Integer masterId);
+    List<GcVideo> getVideoIdListBySubId0(
+            List<Integer> subIds,
+            Integer userId,
+            Integer masterId,
+            HttpServletRequest request,
+            Integer envFlag);
 
-	List<GcVideo> selectVideoInfoBySubId(List<Integer> subId);
+    List<GcVideo> getVideoIdListByAccessId0(
+            List<Integer> accessPermissionId,
+            List<Integer> userId,
+            Integer masterId,
+            HttpServletRequest request);
 
-	List<GcVideo> buildVideoInfo(Integer userId, SysSystem sys, List<GcVideo> gcVideos,Integer masterId,HttpServletRequest request,Integer envFlag);
+    List<GcVideo> getVideoListByUserIdAndSubject(
+            List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 
+    /**
+     * 分页查询视频
+     * @param params
+     * @param request
+     * @return
+     */
+    PageInfo<GcVideo> page(Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
-	@Async
-	void asyncMethodSaveVideo(GcVideo video,HttpServletRequest request);
+    List<GcVideo> selectVideoByVideoAndSub0NameIndex(
+            String videoName, String subName, Integer masterId);
 
-	@Async
-	void asyncMethodUpdateVideo(GcVideo video,HttpServletRequest request,SysSystem system);
+    List<GcVideo> selectVideoInfoBySubId(List<Integer> subId);
 
-	List<StudentInfoVO> getStudentSubTimeNum(List<Map<String,Object>> mapList,Integer masterId);
+    List<GcVideo> buildVideoInfo(
+            Integer userId,
+            SysSystem sys,
+            List<GcVideo> gcVideos,
+            Integer masterId,
+            HttpServletRequest request,
+            Integer envFlag);
 
-	List<Integer> getVideoIdListBySubId(List<Integer> subIds);
+    @Async
+    void asyncMethodSaveVideo(GcVideo video, HttpServletRequest request);
 
-	List<GcVideo> getVideoListBySubId(List<Integer> subIds);
+    @Async
+    void asyncMethodUpdateVideo(GcVideo video, HttpServletRequest request, SysSystem system);
 
-	List<GcVideo> getVideoLongListByVideoId(List<Integer> subIds);
+    List<StudentInfoVO> getStudentSubTimeNum(List<Map<String, Object>> mapList, Integer masterId);
 
-	List<GcVideo> buildVideoInfoByList(List<Integer> userIdList,List<GcVideo> gcVideos,Integer masterId,Boolean isAccessId,List<Integer> permissionList,HttpServletRequest request);
+    List<Integer> getVideoIdListBySubId(List<Integer> subIds);
 
-	List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList,List<Integer> videoList);
+    List<GcVideo> getVideoListBySubId(List<Integer> subIds);
 
-	List<GcVideo> selectVideoPlayListBySubId(Integer subId,Integer userId);
+    List<GcVideo> getVideoLongListByVideoId(List<Integer> subIds);
 
-	GcVideo selectVideoPlayByVideo(Integer video,Integer userId);
+    List<GcVideo> buildVideoInfoByList(
+            List<Integer> userIdList,
+            List<GcVideo> gcVideos,
+            Integer masterId,
+            Boolean isAccessId,
+            List<Integer> permissionList,
+            HttpServletRequest request);
 
-	boolean saveVideoInfo(SysSystem sys,GcVideo video,Integer masterId, HttpServletRequest request);
+    List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList);
 
-	List<Integer> getIdsBySubIds(List<Integer> subIds);
+    List<GcVideo> selectVideoPlayListBySubId(Integer subId, Integer userId);
 
-	Map<Integer,videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
+    GcVideo selectVideoPlayByVideo(Integer video, Integer userId);
+
+    boolean saveVideoInfo(SysSystem sys, GcVideo video, Integer masterId, HttpServletRequest request);
+
+    List<Integer> getIdsBySubIds(List<Integer> subIds);
+
+    Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
 }

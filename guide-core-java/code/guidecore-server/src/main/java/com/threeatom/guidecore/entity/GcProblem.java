@@ -1,9 +1,8 @@
 package com.threeatom.guidecore.entity;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 常见问题
@@ -13,7 +12,6 @@ import java.util.Date;
  */
 @Data
 public class GcProblem implements Serializable {
-
 
     private static final long serialVersionUID = 1L;
 
@@ -46,5 +44,4 @@ public class GcProblem implements Serializable {
      * 0为关闭
      */
     private Integer status;
-
 }

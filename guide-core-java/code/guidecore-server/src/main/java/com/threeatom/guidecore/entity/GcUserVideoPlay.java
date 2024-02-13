@@ -3,14 +3,12 @@ package com.threeatom.guidecore.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-
-import java.util.Date;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.io.Serializable;
-import java.util.List;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 
 /**
@@ -21,11 +19,11 @@ import lombok.Data;
  * @author qiaoxide
  * @since 2019-11-27
  */
-@ApiModel(value="GcUserVideoPlay对象", description="用户对视频的播放记录")
+@ApiModel(value = "GcUserVideoPlay对象", description = "用户对视频的播放记录")
 @Data
 public class GcUserVideoPlay implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -69,10 +67,9 @@ public class GcUserVideoPlay implements Serializable {
     @TableField(exist = false)
     @ApiModelProperty(value = "观看时间")
     private Integer PlayTime;
-    
+
     @TableField(exist = false)
-    private Integer subjectId;//课程id
+    private Integer subjectId; // 课程id
 
     private Integer fileId;
-
 }

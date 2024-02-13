@@ -16,11 +16,12 @@ import org.springframework.core.io.support.DefaultPropertySourceFactory;
 import org.springframework.core.io.support.EncodedResource;
 
 public class YamlPropertySourceFactory extends DefaultPropertySourceFactory {
-    public YamlPropertySourceFactory() {
-    }
+    public YamlPropertySourceFactory() {}
 
-    public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
-        String sourceName = (String)Optional.ofNullable(name).orElse(resource.getResource().getFilename());
+    public PropertySource<?> createPropertySource(String name, EncodedResource resource)
+            throws IOException {
+        String sourceName =
+                (String) Optional.ofNullable(name).orElse(resource.getResource().getFilename());
         if (!resource.getResource().exists()) {
             return new PropertiesPropertySource(sourceName, new Properties());
         } else if (!sourceName.endsWith(".yml") && !sourceName.endsWith(".yaml")) {
@@ -33,7 +34,7 @@ public class YamlPropertySourceFactory extends DefaultPropertySourceFactory {
 
     private Properties loadYaml(EncodedResource resource) throws IOException {
         YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
-        factory.setResources(new Resource[]{resource.getResource()});
+        factory.setResources(new Resource[] {resource.getResource()});
         factory.afterPropertiesSet();
         return factory.getObject();
     }

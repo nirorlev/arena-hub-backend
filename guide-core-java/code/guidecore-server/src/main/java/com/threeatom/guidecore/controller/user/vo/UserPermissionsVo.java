@@ -15,5 +15,4 @@ public class UserPermissionsVo {
     private PermissionsVo permissions;
 
     private Profile profile;
-
 }

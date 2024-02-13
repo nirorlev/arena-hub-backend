@@ -11,27 +11,24 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 
-@ApiModel(
-    value = "SysSystemConfig对象",
-    description = ""
-)
+@ApiModel(value = "SysSystemConfig对象", description = "")
 public class SysSystemConfig implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("实例id")
     private Integer sysId;
+
     @ApiModelProperty("自定义appid")
     private String sysAppid;
+
     @ApiModelProperty("小程序客户端凭证")
     private String weappSecret;
 
-    public SysSystemConfig() {
-    }
+    public SysSystemConfig() {}
 
     public Integer getId() {
         return this.id;
@@ -66,6 +63,12 @@ public class SysSystemConfig implements Serializable {
     }
 
     public String toString() {
-        return "SysSystemConfig{id=" + this.id + ", sysId=" + this.sysId + ", weappSecret=" + this.weappSecret + "}";
+        return "SysSystemConfig{id="
+                + this.id
+                + ", sysId="
+                + this.sysId
+                + ", weappSecret="
+                + this.weappSecret
+                + "}";
     }
 }

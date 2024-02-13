@@ -1,17 +1,12 @@
 package com.threeatom.system.entity;
 
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-import com.threeatom.guidecore.entity.GcVideoComment;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
-import org.joda.time.DateTime;
-
 import java.io.Serializable;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * @author Administrator
@@ -22,37 +17,47 @@ import java.util.List;
  */
 public class SysFileCaption implements Serializable {
     @ApiModelProperty("主键")
-    @TableId(
-            value = "id",
-            type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("云猫任务ID")
     private String ymTaskId;
+
     @ApiModelProperty("云猫code")
     private Integer ymCode;
+
     @ApiModelProperty("srt数据")
     private String ymSrtData;
+
     @ApiModelProperty("云猫消息")
     private String ymMessage;
+
     @ApiModelProperty("视频文件ID")
     private Integer videoId;
+
     @ApiModelProperty("字幕文件ID")
     private Integer captionFileId;
+
     @ApiModelProperty("创建时间")
     private DateTime create_time;
+
     @ApiModelProperty("更新时间")
     private DateTime update_time;
+
     @ApiModelProperty("原语言")
     private String lang;
+
     @ApiModelProperty("状态 0关1开")
     private Integer state;
+
     @TableField(exist = false)
     @ApiModelProperty("字幕文件url")
     private String captionUrl;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "字幕文件列表")
     private SysFile sysFileList;
+
     @TableField(exist = false)
     private String name;
 
@@ -160,7 +165,6 @@ public class SysFileCaption implements Serializable {
         this.lang = lang;
     }
 
-
     public String getCaptionUrl() {
         return captionUrl;
     }
@@ -181,22 +185,38 @@ public class SysFileCaption implements Serializable {
         this.update_time = update_time;
     }
 
-
     @Override
     public String toString() {
-        return "SysFileCaption{" +
-                "id=" + id +
-                ", ymTaskId='" + ymTaskId + '\'' +
-                ", ymCode=" + ymCode +
-                ", ymSrtData='" + ymSrtData + '\'' +
-                ", ymMessage='" + ymMessage + '\'' +
-                ", videoId=" + videoId +
-                ", captionFileId=" + captionFileId +
-                ", create_time=" + create_time +
-                ", update_time=" + update_time +
-                ", lang='" + lang + '\'' +
-                ", captionUrl='" + captionUrl + '\'' +
-                ", sysFileList=" + sysFileList +
-                '}';
+        return "SysFileCaption{"
+                + "id="
+                + id
+                + ", ymTaskId='"
+                + ymTaskId
+                + '\''
+                + ", ymCode="
+                + ymCode
+                + ", ymSrtData='"
+                + ymSrtData
+                + '\''
+                + ", ymMessage='"
+                + ymMessage
+                + '\''
+                + ", videoId="
+                + videoId
+                + ", captionFileId="
+                + captionFileId
+                + ", create_time="
+                + create_time
+                + ", update_time="
+                + update_time
+                + ", lang='"
+                + lang
+                + '\''
+                + ", captionUrl='"
+                + captionUrl
+                + '\''
+                + ", sysFileList="
+                + sysFileList
+                + '}';
     }
 }

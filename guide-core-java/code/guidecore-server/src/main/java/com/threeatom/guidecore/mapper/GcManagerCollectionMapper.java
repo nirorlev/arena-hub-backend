@@ -11,6 +11,4 @@ import com.threeatom.guidecore.entity.GcManagerCollection;
  * @author qiaoxide
  * @since 2019-11-11
  */
-public interface GcManagerCollectionMapper extends BaseMapper<GcManagerCollection> {
-
-}
+public interface GcManagerCollectionMapper extends BaseMapper<GcManagerCollection> {}

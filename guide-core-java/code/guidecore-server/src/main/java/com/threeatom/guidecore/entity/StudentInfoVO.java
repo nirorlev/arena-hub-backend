@@ -23,10 +23,9 @@ public class StudentInfoVO {
 
     private Integer userAccessId;
 
-    public StudentInfoVO(){
+    public StudentInfoVO() {}
 
-    }
-    public StudentInfoVO(Integer userAccessId,Integer userId){
+    public StudentInfoVO(Integer userAccessId, Integer userId) {
         this.userAccessId = userAccessId;
         this.userId = userId;
     }

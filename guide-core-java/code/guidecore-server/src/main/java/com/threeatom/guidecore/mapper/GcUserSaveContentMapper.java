@@ -2,9 +2,8 @@ package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -21,14 +20,14 @@ public interface GcUserSaveContentMapper extends BaseMapper<GcUserSaveContent> {
      * @param userSaveContent
      * @return
      */
-    List<Integer> getTwoSubIdList(@Param("entity")GcUserSaveContent userSaveContent);
+    List<Integer> getTwoSubIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
     /**
      * 获取一级课程id
      * @param userSaveContent
      * @return
      */
-    List<Integer> getOneSubIdList(@Param("entity")GcUserSaveContent userSaveContent);
+    List<Integer> getOneSubIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
     /**
      * 获取视频id
@@ -37,12 +36,15 @@ public interface GcUserSaveContentMapper extends BaseMapper<GcUserSaveContent> {
      */
     List<Integer> getVideoIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
-    List<Integer> deleteList(@Param("videoId") Integer videoId,@Param("foderIds")List<Integer> folderIds);
+    List<Integer> deleteList(
+            @Param("videoId") Integer videoId, @Param("foderIds") List<Integer> folderIds);
 
-    List<Integer> deleteFileList(@Param("fileId") Integer fileId,@Param("foderIds")List<Integer> folderIds);
+    List<Integer> deleteFileList(
+            @Param("fileId") Integer fileId, @Param("foderIds") List<Integer> folderIds);
 
-    List<Integer> selectFolderIdByVideoId(@Param("videoId") Integer videoId,@Param("masterId")Integer masterId);
+    List<Integer> selectFolderIdByVideoId(
+            @Param("videoId") Integer videoId, @Param("masterId") Integer masterId);
 
-    List<Integer> selectFolderIdByFileId(@Param("fileId") Integer fileId,@Param("masterId") Integer masterId);
-
+    List<Integer> selectFolderIdByFileId(
+            @Param("fileId") Integer fileId, @Param("masterId") Integer masterId);
 }

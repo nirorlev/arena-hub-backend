@@ -5,9 +5,8 @@ import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.entity.SysRoleMenu;
 import com.threeatom.guidecore.mapper.SysRoleMenuMapper;
 import com.threeatom.guidecore.service.SysRoleMenuService;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Administrator
@@ -17,7 +16,8 @@ import java.util.List;
  * @date 2023/3/10/01016:35
  */
 @Service
-public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRoleMenu> implements SysRoleMenuService {
+public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRoleMenu>
+        implements SysRoleMenuService {
 
     @Override
     public List<SysMenu> getMenuByRoles(List<String> roles) {

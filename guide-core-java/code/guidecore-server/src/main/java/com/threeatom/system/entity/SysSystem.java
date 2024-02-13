@@ -13,34 +13,31 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-@ApiModel(
-    value = "SysSystem对象",
-    description = "系统实例"
-)
+@ApiModel(value = "SysSystem对象", description = "系统实例")
 public class SysSystem implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("实例名称")
     private String name;
+
     @ApiModelProperty("业务id")
     private Integer businessId;
+
     @ApiModelProperty("业务实例")
-    @TableField(
-        exist = false
-    )
+    @TableField(exist = false)
     private SysBusiness business;
+
     @ApiModelProperty("创建时间")
     private Date createTime;
+
     @ApiModelProperty("更新时间")
     private Date updateTime;
 
-    public SysSystem() {
-    }
+    public SysSystem() {}
 
     public Integer getId() {
         return this.id;
@@ -91,6 +88,16 @@ public class SysSystem implements Serializable {
     }
 
     public String toString() {
-        return "SysSystem{id=" + this.id + "businessId=" + this.businessId + ", name=" + this.name + ", createTime=" + this.createTime + ", updateTime=" + this.updateTime + "}";
+        return "SysSystem{id="
+                + this.id
+                + "businessId="
+                + this.businessId
+                + ", name="
+                + this.name
+                + ", createTime="
+                + this.createTime
+                + ", updateTime="
+                + this.updateTime
+                + "}";
     }
 }

@@ -1,8 +1,7 @@
 package com.threeatom.guidecore.mapper;
 
-import com.threeatom.guidecore.entity.GcManager;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.data.repository.query.Param;
+import com.threeatom.guidecore.entity.GcManager;
 
 /**
  * <p>
@@ -12,6 +11,4 @@ import org.springframework.data.repository.query.Param;
  * @author qiaoxide
  * @since 2019-11-11
  */
-public interface GcManagerMapper extends BaseMapper<GcManager> {
-
-}
+public interface GcManagerMapper extends BaseMapper<GcManager> {}

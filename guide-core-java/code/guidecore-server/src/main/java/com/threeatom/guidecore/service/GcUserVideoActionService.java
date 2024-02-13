@@ -1,12 +1,9 @@
 package com.threeatom.guidecore.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
 import java.util.List;
 import java.util.Map;
-
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.GcUserVideoAction;
-import com.threeatom.guidecore.entity.GcVideo;
 
 /**
  * <p>
@@ -18,49 +15,47 @@ import com.threeatom.guidecore.entity.GcVideo;
  */
 public interface GcUserVideoActionService extends IService<GcUserVideoAction> {
 
-    boolean saveVideoAction(Integer vid, Integer userId,Integer type);
+    boolean saveVideoAction(Integer vid, Integer userId, Integer type);
 
     List<Integer> getVideoLikeNumsByVideoIds(List<Integer> videoIds);
-    GcUserVideoAction getOldVideoAction(Integer vid,Integer userId,Integer type);
 
-	GcUserVideoAction getOldChannelVideoAction(Integer vid,Integer userId,Integer type);
+    GcUserVideoAction getOldVideoAction(Integer vid, Integer userId, Integer type);
 
-    boolean deleteOldVideoAction(Integer vid,Integer userId,Integer type);
+    GcUserVideoAction getOldChannelVideoAction(Integer vid, Integer userId, Integer type);
 
-	boolean deleteChannelOldVideoAction(Integer vid,Integer userId,Integer type);
+    boolean deleteOldVideoAction(Integer vid, Integer userId, Integer type);
 
-	List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId);
+    boolean deleteChannelOldVideoAction(Integer vid, Integer userId, Integer type);
 
-	GcUserVideoAction getFileActionListByFileIdAndUserId(Integer fileId,Integer userId);
+    List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId);
 
-	List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> fileId,Integer userId);
+    GcUserVideoAction getFileActionListByFileIdAndUserId(Integer fileId, Integer userId);
 
-	List<GcUserVideoAction> getVideoActionListByUserId(Integer userId);
-	
-	List<Map<String ,Object>> countTypeRateForVideo(Integer videoId, Integer type);
-	
-	
-	/**
-	 * 根据课程id查询评论、点赞、星级评价
-	 * @param subjectIds
-	 * @return
-	 */
-	Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params);
+    List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> fileId, Integer userId);
 
-	/**
-	 * 根据课程id，类型查询星级评价平均值和评论人数
-	 * @param videoParams
-	 * @return
-	 */
-	Map<Integer ,GcUserVideoAction> getSubjectUserStar(Map<String, Object> videoParams);
+    List<GcUserVideoAction> getVideoActionListByUserId(Integer userId);
 
-	Map<Integer ,GcUserVideoAction> gvggetSubjectUserStar(Map<String, Object> videoParams);
+    List<Map<String, Object>> countTypeRateForVideo(Integer videoId, Integer type);
 
-	Integer countLikeForVideo(Integer videoId);
+    /**
+     * 根据课程id查询评论、点赞、星级评价
+     * @param subjectIds
+     * @return
+     */
+    Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params);
 
-	Integer countLikeForFile(Integer fileId);
+    /**
+     * 根据课程id，类型查询星级评价平均值和评论人数
+     * @param videoParams
+     * @return
+     */
+    Map<Integer, GcUserVideoAction> getSubjectUserStar(Map<String, Object> videoParams);
 
-	List<GcUserVideoAction> countLikeForFiles(List<Integer> fileId);
+    Map<Integer, GcUserVideoAction> gvggetSubjectUserStar(Map<String, Object> videoParams);
 
-	
+    Integer countLikeForVideo(Integer videoId);
+
+    Integer countLikeForFile(Integer fileId);
+
+    List<GcUserVideoAction> countLikeForFiles(List<Integer> fileId);
 }

@@ -7,12 +7,11 @@ package com.threeatom.common.exception;
  * @description: TODO
  * @date 2023/8/2919:44
  */
-public class PermitException extends RuntimeException  {
+public class PermitException extends RuntimeException {
 
     private int code = 510;
 
     private Exception exception = null;
-
 
     public PermitException(String message) {
         this.code = 510;

@@ -6,19 +6,17 @@
 package com.threeatom.utils;
 
 import com.threeatom.guidecore.constant.TableConstant;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class FileUtil {
-    public FileUtil() {
-    }
+    public FileUtil() {}
 
     public static String getExtensionName(String filename) {
         if (filename != null && filename.length() > 0) {
@@ -30,6 +28,7 @@ public class FileUtil {
 
         return filename;
     }
+
     public static byte[] read(String filePath) throws IOException {
 
         InputStream in = new FileInputStream(filePath);
@@ -82,7 +81,7 @@ public class FileUtil {
         }
     }
 
-    public static MultipartFile createFileItem(String url) throws Exception{
+    public static MultipartFile createFileItem(String url) throws Exception {
         FileItem item = null;
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setReadTimeout(30000);
@@ -95,7 +94,7 @@ public class FileUtil {
 
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
             InputStream is = conn.getInputStream();
-            //获取文件名称
+            // 获取文件名称
             String newUrl = conn.getURL().getFile();
             if (newUrl != null || newUrl.length() <= 0) {
                 newUrl = java.net.URLDecoder.decode(newUrl, "UTF-8");
@@ -106,17 +105,22 @@ public class FileUtil {
                 pos = newUrl.lastIndexOf('/');
                 fileName = newUrl.substring(pos + 1);
             }
-            //此处获取两次，是因为如果只获取一次的话，获取type类型时，文件大小会损坏变小，所以重新获取一次
+            // 此处获取两次，是因为如果只获取一次的话，获取type类型时，文件大小会损坏变小，所以重新获取一次
             BufferedInputStream bis = null;
             HttpURLConnection conn1 = (HttpURLConnection) new URL(url).openConnection();
             bis = new BufferedInputStream(conn1.getInputStream());
             String type = HttpURLConnection.guessContentTypeFromStream(bis);
             FileItemFactory factory = new DiskFileItemFactory(16, null);
-            String textFieldName = "downloadFile";  //此处任务取值
-            if(!fileName.contains(".") && type != null){
+            String textFieldName = "downloadFile"; // 此处任务取值
+            if (!fileName.contains(".") && type != null) {
                 fileName = fileName + ".vtt";
             }
-            item = factory.createItem(textFieldName, TableConstant.sysFile_folder_guidecoreVedioCaption, false, fileName.replace(".srt",".vtt"));
+            item =
+                    factory.createItem(
+                            textFieldName,
+                            TableConstant.sysFile_folder_guidecoreVedioCaption,
+                            false,
+                            fileName.replace(".srt", ".vtt"));
             OutputStream os = item.getOutputStream();
 
             int bytesRead;

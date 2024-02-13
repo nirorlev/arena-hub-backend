@@ -12,35 +12,36 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-@ApiModel(
-    value = "SysRole对象",
-    description = ""
-)
+@ApiModel(value = "SysRole对象", description = "")
 public class SysRole implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @ApiModelProperty("主键")
-    @TableId(
-        value = "id",
-        type = IdType.AUTO
-    )
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
     @ApiModelProperty("权限范围")
     private Integer sysId;
+
     @ApiModelProperty("角色名")
     private String roleName;
+
     @ApiModelProperty("角色权限字符串")
     private String roleKey;
+
     @ApiModelProperty("是否超级管理员")
     private Integer superAdmin;
+
     @ApiModelProperty("说明")
     private String remark;
+
     @ApiModelProperty("创建时间")
     private Date createTime;
+
     @ApiModelProperty("更新时间")
     private Date updateTime;
 
-    public SysRole() {
-    }
+    public SysRole() {}
 
     public Integer getId() {
         return this.id;
@@ -107,6 +108,20 @@ public class SysRole implements Serializable {
     }
 
     public String toString() {
-        return "SysRole{id=" + this.id + ", sysId=" + this.sysId + ", roleName=" + this.roleName + ", roleKey=" + this.roleKey + ", remark=" + this.remark + ", createTime=" + this.createTime + ", updateTime=" + this.updateTime + "}";
+        return "SysRole{id="
+                + this.id
+                + ", sysId="
+                + this.sysId
+                + ", roleName="
+                + this.roleName
+                + ", roleKey="
+                + this.roleKey
+                + ", remark="
+                + this.remark
+                + ", createTime="
+                + this.createTime
+                + ", updateTime="
+                + this.updateTime
+                + "}";
     }
 }

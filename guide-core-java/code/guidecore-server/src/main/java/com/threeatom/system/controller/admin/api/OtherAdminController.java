@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OtherAdminController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(OtherAdminController.class);
 
-    public OtherAdminController() {
-    }
+    public OtherAdminController() {}
 
     @ApiOperation("运行健康检查")
     @GetMapping({"/loginCheck"})

@@ -6,5 +6,4 @@ import java.io.IOException;
 public interface PdfService {
 
     ByteArrayOutputStream getPdfBytes(PdfModel model) throws IOException;
-
 }

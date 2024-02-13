@@ -10,8 +10,7 @@ public class AuthCodeSessionResult {
     private String sessionKey;
     private String unionId;
 
-    public AuthCodeSessionResult() {
-    }
+    public AuthCodeSessionResult() {}
 
     public String getOpenId() {
         return this.openId;

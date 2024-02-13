@@ -10,8 +10,7 @@ import java.security.SecureRandom;
 import org.apache.commons.codec.binary.Base64;
 
 public class PasswordSecretUtil {
-    public PasswordSecretUtil() {
-    }
+    public PasswordSecretUtil() {}
 
     public static String createSalt() {
         byte[] salt = new byte[16];

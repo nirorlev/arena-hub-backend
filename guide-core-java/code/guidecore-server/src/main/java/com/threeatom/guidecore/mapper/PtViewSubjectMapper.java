@@ -10,5 +10,4 @@ import com.threeatom.guidecore.entity.PtViewSubject;
  * @description: TODO
  * @date 2023/5/2514:48
  */
-public interface PtViewSubjectMapper extends BaseMapper<PtViewSubject> {
-}
+public interface PtViewSubjectMapper extends BaseMapper<PtViewSubject> {}

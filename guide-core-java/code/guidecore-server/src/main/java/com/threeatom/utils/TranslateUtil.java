@@ -4,13 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.threeatom.utils.data.TransData;
 import com.threeatom.utils.data.TransResult;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
-
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Administrator
@@ -24,7 +22,6 @@ public class TranslateUtil {
      * 百度翻译接口地址
      */
 
-
     /**
      * 获得翻译结果
      * @param query
@@ -33,23 +30,25 @@ public class TranslateUtil {
      * @return
      * @throws IOException
      */
-    public static List<TransData> getTransResult(String query, String from, String to, String TRANS_API_HOST, String appid, String securityKey) throws IOException {
+    public static List<TransData> getTransResult(
+            String query, String from, String to, String TRANS_API_HOST, String appid, String securityKey)
+            throws IOException {
 
-        Map<String, String> params = buildParams(query, from, to,appid,securityKey);
+        Map<String, String> params = buildParams(query, from, to, appid, securityKey);
         JSONObject jsonObject;
-        //当请求翻译内容过长 用post
+        // 当请求翻译内容过长 用post
         if (query.length() >= 2000) {
-            //post 请求方式
+            // post 请求方式
             jsonObject = HttpUtil.doPostStr(TRANS_API_HOST, params);
         } else {
             //  get请求方式
             String url = getUrlWithQueryString(TRANS_API_HOST, params);
             jsonObject = HttpUtil.doGetStr(url);
         }
-        if (jsonObject.get("error_code")!=null) {
-            System.out.println("失败原因"+jsonObject);
+        if (jsonObject.get("error_code") != null) {
+            System.out.println("失败原因" + jsonObject);
             return new ArrayList<TransData>();
-        }else{
+        } else {
             TransResult transResult = JSON.parseObject(jsonObject.toString(), TransResult.class);
             return transResult.getTrans_result();
         }
@@ -64,7 +63,9 @@ public class TranslateUtil {
      * @return
      * @throws UnsupportedEncodingException
      */
-    private static Map<String, String> buildParams(String query, String from, String to,String appid,String securityKey) throws UnsupportedEncodingException {
+    private static Map<String, String> buildParams(
+            String query, String from, String to, String appid, String securityKey)
+            throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("q", query);
         params.put("from", from);
@@ -82,7 +83,6 @@ public class TranslateUtil {
 
         return params;
     }
-
 
     /**
      * 拼接url get方式拼接参数  返回url
@@ -124,7 +124,6 @@ public class TranslateUtil {
         return builder.toString();
     }
 
-
     /**
      * 对输入的字符串进行URL编码, 即转换为%20这种形式
      *
@@ -148,7 +147,7 @@ public class TranslateUtil {
     public static Map<String, String> getParamsFromRequest(HttpServletRequest request) {
         Map<String, String> params = new HashMap<String, String>();
         Map<String, String[]> requestParams = request.getParameterMap();
-        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext();) {
+        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
             String name = (String) iter.next();
             String[] values = (String[]) requestParams.get(name);
             String valueStr = "";
@@ -160,5 +159,4 @@ public class TranslateUtil {
         }
         return params;
     }
-
 }

@@ -16,8 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 public class DateUtil {
-    public DateUtil() {
-    }
+    public DateUtil() {}
 
     public static boolean isCurrentMonth(String date, String month) {
         String formatMonth = "yyyy-MM";
@@ -57,14 +56,16 @@ public class DateUtil {
             return false;
         }
     }
-    public static List<String> getDayOfWeekWithinDateIntervalByWeekDayList(String dataBegin, String dataEnd, List<Integer> weekDayList) {
-    	List<String> allList = new ArrayList<>();
-    	for(int i=0;i<weekDayList.size();i++) {
-    		allList.addAll(getDayOfWeekWithinDateInterval(dataBegin, dataEnd, weekDayList.get(i)));
-    	}
-    	return allList;
+
+    public static List<String> getDayOfWeekWithinDateIntervalByWeekDayList(
+            String dataBegin, String dataEnd, List<Integer> weekDayList) {
+        List<String> allList = new ArrayList<>();
+        for (int i = 0; i < weekDayList.size(); i++) {
+            allList.addAll(getDayOfWeekWithinDateInterval(dataBegin, dataEnd, weekDayList.get(i)));
+        }
+        return allList;
     }
-    
+
     /**
      * 获取某段时间内的周一（二等等）的日期
      * @param dataBegin 开始日期
@@ -72,7 +73,8 @@ public class DateUtil {
      * @param weekDays 获取周几，1－6代表周一到周六。0代表周日
      * @return 返回日期List
      */
-    public static List<String> getDayOfWeekWithinDateInterval(String dataBegin, String dataEnd, int weekDays) {
+    public static List<String> getDayOfWeekWithinDateInterval(
+            String dataBegin, String dataEnd, int weekDays) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<String> dateResult = new ArrayList<>();
         Calendar cal = Calendar.getInstance();
@@ -94,16 +96,16 @@ public class DateUtil {
         }
         return dateResult;
     }
-    
-    public static String beforeMonth(String month){
-    	DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM");
-    	YearMonth yearMonth = YearMonth.parse(month);
-    	return yearMonth.minus(1, ChronoUnit.MONTHS).toString();
+
+    public static String beforeMonth(String month) {
+        DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM");
+        YearMonth yearMonth = YearMonth.parse(month);
+        return yearMonth.minus(1, ChronoUnit.MONTHS).toString();
     }
-    
-    public static String nextMonth(String month){
-    	DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM");
-    	YearMonth yearMonth = YearMonth.parse(month);
-    	return yearMonth.plus(1, ChronoUnit.MONTHS).toString();
+
+    public static String nextMonth(String month) {
+        DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM");
+        YearMonth yearMonth = YearMonth.parse(month);
+        return yearMonth.plus(1, ChronoUnit.MONTHS).toString();
     }
 }

@@ -10,11 +10,9 @@ import com.threeatom.system.service.SysFileService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DefaultSysFileHandler implements ISysFileHandler<SysFileService> {
-    @Autowired
-    private SysFileService sysFileService;
+    @Autowired private SysFileService sysFileService;
 
-    public DefaultSysFileHandler() {
-    }
+    public DefaultSysFileHandler() {}
 
     public String getUserFolder() {
         return this.getContextName() + "/user";

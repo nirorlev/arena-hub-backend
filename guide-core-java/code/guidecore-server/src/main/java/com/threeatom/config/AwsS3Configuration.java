@@ -14,7 +14,7 @@ import org.springframework.context.annotation.PropertySource;
  * @date 2022/4/28/02816:39
  */
 @Configuration
-@PropertySource(value="classpath:system.yml",factory= YamlPropertySourceFactory.class)
+@PropertySource(value = "classpath:system.yml", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "aws")
 public class AwsS3Configuration {
 

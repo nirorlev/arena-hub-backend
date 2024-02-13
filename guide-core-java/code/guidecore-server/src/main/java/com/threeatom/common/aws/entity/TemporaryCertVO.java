@@ -1,9 +1,8 @@
 package com.threeatom.common.aws.entity;
 
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 @Data
 public class TemporaryCertVO implements Serializable {
@@ -19,5 +18,4 @@ public class TemporaryCertVO implements Serializable {
     private String sessionToken;
 
     private Date expiration;
-
 }

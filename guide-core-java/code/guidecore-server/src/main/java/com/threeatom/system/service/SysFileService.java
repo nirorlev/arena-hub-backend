@@ -21,45 +21,77 @@ public interface SysFileService extends IService<SysFile> {
 
     SysFile saveSysImg(SysUser user, MultipartFile file);
 
-    SysFile saveSysImg(Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
+    SysFile saveSysImg(
+            Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
 
     String getResFullUrl(SysFile sysFile, HttpServletRequest request);
 
-    SysFile saveVedio(Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
+    SysFile saveVedio(
+            Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
 
-    SysFile saveWxImgUrl(Integer upInteger, SysSystem sys, String folder, Integer saveType, String url);
+    SysFile saveWxImgUrl(
+            Integer upInteger, SysSystem sys, String folder, Integer saveType, String url);
 
-    SysFile saveRes(Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
+    SysFile saveRes(
+            Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
 
-    SysFile saveRes(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String oriFileName, MultipartFile file);
+    SysFile saveRes(
+            Integer uploaderId,
+            SysSystem sys,
+            String folder,
+            Integer saveType,
+            String oriFileName,
+            MultipartFile file);
 
-    JSONObject saveFilePolicy(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String originFileName, Map<String, Object> extParams);
+    JSONObject saveFilePolicy(
+            Integer uploaderId,
+            SysSystem sys,
+            String folder,
+            Integer saveType,
+            String originFileName,
+            Map<String, Object> extParams);
 
-    JSONObject saveFilePolicyMD5(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String originFileName, String md5, Map<String, Object> extParams);
+    JSONObject saveFilePolicyMD5(
+            Integer uploaderId,
+            SysSystem sys,
+            String folder,
+            Integer saveType,
+            String originFileName,
+            String md5,
+            Map<String, Object> extParams);
 
     String getVideoSnapshotUrl(SysFile sysFile);
 
     String getVideoSnapshotUrlByThumbNail(SysFile sysFile);
 
-    List<SysFile> getFiles(String folder,Integer masterId,  List<Integer> typeIndexIds, String tag, Integer pageNum, Integer pageSize,String searchString,Integer fileId,Integer uploadUid);
+    List<SysFile> getFiles(
+            String folder,
+            Integer masterId,
+            List<Integer> typeIndexIds,
+            String tag,
+            Integer pageNum,
+            Integer pageSize,
+            String searchString,
+            Integer fileId,
+            Integer uploadUid);
 
     List<String> getAllTag(Integer masterId, SysSystem sys, List<String> folders);
 
-	String getResFullUrlSaveType2(SysFile introVideoFile);
+    String getResFullUrlSaveType2(SysFile introVideoFile);
 
-	SysFile selectByLogoId(Integer id);
+    SysFile selectByLogoId(Integer id);
 
-//    List<SysFile> selectBySubId(Integer id);
+    //    List<SysFile> selectBySubId(Integer id);
 
     Integer selectFileTypeIndexByVideoId(Integer videoId);
-	
-	SysFile getInfoById(Integer id);
 
-    List<SysFile> getHistoryUpload(Integer masterId,Integer userId,String folder);
+    SysFile getInfoById(Integer id);
+
+    List<SysFile> getHistoryUpload(Integer masterId, Integer userId, String folder);
 
     List<SysFile> selectBatch(List<Integer> fileIds);
 
-    void deleteFile(SysSystem sys,SysFile file);
+    void deleteFile(SysSystem sys, SysFile file);
 
-    Map<Integer,SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
+    Map<Integer, SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
 }

@@ -4,20 +4,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-
-import java.util.Date;
-
-
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-
-import java.io.Serializable;
-import java.util.List;
-
 import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -27,17 +22,17 @@ import io.swagger.annotations.ApiModelProperty;
  * @author qiaoxide
  * @since 2019-11-11
  */
-@ApiModel(value="GcAccess对象", description="")
+@ApiModel(value = "GcAccess对象", description = "")
 @TableName(autoResultMap = true)
 public class GcAccess implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     private Integer masterId;
 
     @ApiModelProperty(value = "角色类型")
@@ -45,22 +40,23 @@ public class GcAccess implements Serializable {
 
     @ApiModelProperty(value = "code")
     private String code;
+
     @ApiModelProperty(value = "对应的adminId")
     private Integer adminId;
 
     @ApiModelProperty(value = "注册码的类型，空为用户注册码、1为门户注册码、2为免费code")
     private Integer codeType;
 
-    @TableField(value="subject_json",typeHandler = FastJsonArrayTypeHandler.class)
+    @TableField(value = "subject_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray subjectJson;
 
     @TableField(exist = false)
-    private Integer userNum=0;
+    private Integer userNum = 0;
 
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     private Date updateTime;
 
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     private Date createTime;
 
     @ApiModelProperty(value = "是否免费")
@@ -70,10 +66,7 @@ public class GcAccess implements Serializable {
     private String packageName;
 
     @ApiModelProperty("价格以及价格period")
-    @TableField(
-            value = "package_price_period",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "package_price_period", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray packagePricePeriod = new JSONArray();
 
     @ApiModelProperty(value = "套餐描述")
@@ -148,7 +141,7 @@ public class GcAccess implements Serializable {
 
     @ApiModelProperty(value = "user对应当前package的过期时间")
     @TableField(exist = false)
-    private Date packageExpiredTime ;
+    private Date packageExpiredTime;
 
     @ApiModelProperty(value = "order排序")
     @TableField(value = "`order`")
@@ -174,10 +167,7 @@ public class GcAccess implements Serializable {
         this.mustSubjectJson = mustSubjectJson;
     }
 
-    @TableField(
-            value = "channel_json",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "channel_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray channelJson;
 
     public JSONArray getRoleJson() {
@@ -188,27 +178,20 @@ public class GcAccess implements Serializable {
         this.roleJson = roleJson;
     }
 
-    @TableField(
-            value = "role_json",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "role_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray roleJson;
 
-    @TableField(
-            value = "subscribe_json",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "subscribe_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray subscribeJson;
 
     @ApiModelProperty(value = "门户编辑code，0-覆盖所有使用该code的权限，1-不覆盖，在用户当前权限上修改，2-不修改用户权限")
     @TableField(exist = false)
-    private Integer saveType ;
+    private Integer saveType;
 
-
-    @TableField(value = "must_subject_json",typeHandler = FastJsonArrayTypeHandler.class)
+    @TableField(value = "must_subject_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray mustSubjectJson;
 
-    @TableField(value = "may_subject_json",typeHandler = FastJsonArrayTypeHandler.class)
+    @TableField(value = "may_subject_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray maySubjectJson;
 
     @TableField(exist = false)
@@ -265,8 +248,10 @@ public class GcAccess implements Serializable {
 
     @TableField(exist = false)
     private Integer subjectNum;
+
     @TableField(exist = false)
     private Integer channelNum;
+
     @TableField(exist = false)
     private GcUser user;
 
@@ -277,8 +262,6 @@ public class GcAccess implements Serializable {
     public void setGroupName(String groupName) {
         this.groupName = groupName;
     }
-
-
 
     public String getTryForFreeLink() {
         return tryForFreeLink;
@@ -480,7 +463,6 @@ public class GcAccess implements Serializable {
         this.adminId = adminId;
     }
 
-
     public JSONArray getPackagePricePeriod() {
         return packagePricePeriod;
     }
@@ -619,45 +601,92 @@ public class GcAccess implements Serializable {
 
     @Override
     public String toString() {
-        return "GcAccess{" +
-                "id=" + id +
-                ", masterId=" + masterId +
-                ", roleType=" + roleType +
-                ", code='" + code + '\'' +
-                ", adminId=" + adminId +
-                ", codeType=" + codeType +
-                ", subjectJson=" + subjectJson +
-                ", userNum=" + userNum +
-                ", updateTime=" + updateTime +
-                ", createTime=" + createTime +
-                ", freeFlag=" + freeFlag +
-                ", packageName='" + packageName + '\'' +
-                ", packagePricePeriod=" + packagePricePeriod +
-                ", packageDescription='" + packageDescription + '\'' +
-                ", packageAdditionalCourseInformation='" + packageAdditionalCourseInformation + '\'' +
-                ", packageImgId=" + packageImgId +
-                ", packageShowFlag=" + packageShowFlag +
-                ", ownedFlag=" + ownedFlag +
-                ", packageImgFile=" + packageImgFile +
-                ", packageImgFullUrl='" + packageImgFullUrl + '\'' +
-                ", packageCourseTotalTime=" + packageCourseTotalTime +
-                ", packageCourseAvgStars=" + packageCourseAvgStars +
-                ", times=" + times +
-                ", packageCourseStarUsers=" + packageCourseStarUsers +
-                ", subjects=" + subjects +
-                ", defaultCodeFlag=" + defaultCodeFlag +
-                ", packageLearningHours=" + packageLearningHours +
-                ", fileType='" + fileType + '\'' +
-                ", packageVideoFileId='" + packageVideoFileId + '\'' +
-                ", packageVideoFile=" + packageVideoFile +
-                ", packageSnapShotUrl='" + packageSnapShotUrl + '\'' +
-                ", packageVideoFullUrl='" + packageVideoFullUrl + '\'' +
-                ", packageExpiredTime=" + packageExpiredTime +
-                ", order=" + order +
-                ", saveType=" + saveType +
-                ", packageBadgeFlag=" + packageBadgeFlag +
-                ", packageBadgeContent='" + packageBadgeContent + '\'' +
-                '}';
+        return "GcAccess{"
+                + "id="
+                + id
+                + ", masterId="
+                + masterId
+                + ", roleType="
+                + roleType
+                + ", code='"
+                + code
+                + '\''
+                + ", adminId="
+                + adminId
+                + ", codeType="
+                + codeType
+                + ", subjectJson="
+                + subjectJson
+                + ", userNum="
+                + userNum
+                + ", updateTime="
+                + updateTime
+                + ", createTime="
+                + createTime
+                + ", freeFlag="
+                + freeFlag
+                + ", packageName='"
+                + packageName
+                + '\''
+                + ", packagePricePeriod="
+                + packagePricePeriod
+                + ", packageDescription='"
+                + packageDescription
+                + '\''
+                + ", packageAdditionalCourseInformation='"
+                + packageAdditionalCourseInformation
+                + '\''
+                + ", packageImgId="
+                + packageImgId
+                + ", packageShowFlag="
+                + packageShowFlag
+                + ", ownedFlag="
+                + ownedFlag
+                + ", packageImgFile="
+                + packageImgFile
+                + ", packageImgFullUrl='"
+                + packageImgFullUrl
+                + '\''
+                + ", packageCourseTotalTime="
+                + packageCourseTotalTime
+                + ", packageCourseAvgStars="
+                + packageCourseAvgStars
+                + ", times="
+                + times
+                + ", packageCourseStarUsers="
+                + packageCourseStarUsers
+                + ", subjects="
+                + subjects
+                + ", defaultCodeFlag="
+                + defaultCodeFlag
+                + ", packageLearningHours="
+                + packageLearningHours
+                + ", fileType='"
+                + fileType
+                + '\''
+                + ", packageVideoFileId='"
+                + packageVideoFileId
+                + '\''
+                + ", packageVideoFile="
+                + packageVideoFile
+                + ", packageSnapShotUrl='"
+                + packageSnapShotUrl
+                + '\''
+                + ", packageVideoFullUrl='"
+                + packageVideoFullUrl
+                + '\''
+                + ", packageExpiredTime="
+                + packageExpiredTime
+                + ", order="
+                + order
+                + ", saveType="
+                + saveType
+                + ", packageBadgeFlag="
+                + packageBadgeFlag
+                + ", packageBadgeContent='"
+                + packageBadgeContent
+                + '\''
+                + '}';
     }
 
     public List<GcUser> getUsers() {

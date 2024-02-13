@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
  * @description: TODO
  * @date 2022/6/30/03014:43
  */
-
 @Configuration
 @ConfigurationProperties(prefix = "sitemap")
 @Data

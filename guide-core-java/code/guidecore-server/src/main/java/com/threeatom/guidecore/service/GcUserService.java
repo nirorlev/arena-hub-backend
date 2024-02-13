@@ -1,14 +1,11 @@
 package com.threeatom.guidecore.service;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.system.entity.SysSystem;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -37,7 +34,8 @@ public interface GcUserService extends IService<GcUser> {
      */
     GcUser checkGcUser(String username, String password);
 
-    GcUser createGcUser(Integer sysId, String username, String password, String firstName, String lastName);
+    GcUser createGcUser(
+            Integer sysId, String username, String password, String firstName, String lastName);
 
     List<Integer> getTalkerIds(Integer userId, Integer masterId);
 
@@ -46,16 +44,15 @@ public interface GcUserService extends IService<GcUser> {
     List<GcUser> getUserByUserAccessIds(List<Integer> userAccessIds);
 
     @Deprecated
-    Integer getAllUserNums(Integer masterId,Integer type);
+    Integer getAllUserNums(Integer masterId, Integer type);
 
-    //获取app端用户token
+    // 获取app端用户token
     String getUserNativeToken(GcUser user);
 
-    //根据用户名查询用户
+    // 根据用户名查询用户
     GcUser getUserByUserName(String userName);
 
-
-    Map<Integer, GcUser> getWatchedUserNum(List<Integer> subjectIds,Integer masterId);
+    Map<Integer, GcUser> getWatchedUserNum(List<Integer> subjectIds, Integer masterId);
 
     int deleteById(Integer id);
 

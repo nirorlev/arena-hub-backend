@@ -3,14 +3,12 @@ package com.threeatom.guidecore.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import lombok.Data;
 
 /**
  * <p>
@@ -20,11 +18,11 @@ import java.util.List;
  * @author qiaoxide
  * @since 2019-11-18
  */
-@ApiModel(value="GcCategory", description="category")
+@ApiModel(value = "GcCategory", description = "category")
 @Data
 public class GcCategory implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
@@ -35,7 +33,6 @@ public class GcCategory implements Serializable {
 
     @ApiModelProperty(value = "问题内容")
     private String categoryName;
-
 
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
@@ -52,13 +49,7 @@ public class GcCategory implements Serializable {
     @ApiModelProperty(value = "父级Id")
     private String fileName;
 
-
-
-
-
     @ApiModelProperty(value = "二级category")
     @TableField(exist = false)
     private List<GcCategory> gcCategory;
-
-
 }

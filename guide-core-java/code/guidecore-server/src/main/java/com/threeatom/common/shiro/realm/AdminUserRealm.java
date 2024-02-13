@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -34,18 +33,11 @@ import org.springframework.context.annotation.Lazy;
 
 public class AdminUserRealm extends AuthorizingRealm {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminUserRealm.class);
-    @Autowired
-    @Lazy
-    private SysUserService userService;
-    @Autowired
-    @Lazy
-    private SysRoleService roleService;
-    @Autowired
-    @Lazy
-    private SysPermissionService permService;
+    @Autowired @Lazy private SysUserService userService;
+    @Autowired @Lazy private SysRoleService roleService;
+    @Autowired @Lazy private SysPermissionService permService;
 
-    public AdminUserRealm() {
-    }
+    public AdminUserRealm() {}
 
     public boolean supports(AuthenticationToken token) {
         return token instanceof JwtToken;
@@ -54,26 +46,32 @@ public class AdminUserRealm extends AuthorizingRealm {
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
         LOGGER.info("admin授权");
-        Integer userId = (Integer)principals.getPrimaryPrincipal();
+        Integer userId = (Integer) principals.getPrimaryPrincipal();
         SysUser user = this.userService.getSysUserByIdCache(userId);
         List<SysRole> roles = this.roleService.getUserRoles(user.getId());
         Iterator var6 = roles.iterator();
 
-        while(var6.hasNext()) {
-            SysRole role = (SysRole)var6.next();
+        while (var6.hasNext()) {
+            SysRole role = (SysRole) var6.next();
             if (role.getSuperAdmin().equals(1)) {
                 info.addStringPermission("*");
             }
         }
 
         List<SysPermission> permissions = this.permService.getPermissionByUid(user.getId());
-        info.setRoles((Set)roles.parallelStream().map(SysRole::getRoleKey).collect(Collectors.toSet()));
-        info.addStringPermissions((Collection)permissions.parallelStream().map(SysPermission::getPermCode).collect(Collectors.toSet()));
+        info.setRoles(
+                (Set) roles.parallelStream().map(SysRole::getRoleKey).collect(Collectors.toSet()));
+        info.addStringPermissions(
+                (Collection)
+                        permissions.parallelStream()
+                                .map(SysPermission::getPermCode)
+                                .collect(Collectors.toSet()));
         return info;
     }
 
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        String tokenStr = (String)token.getCredentials();
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token)
+            throws AuthenticationException {
+        String tokenStr = (String) token.getCredentials();
         LOGGER.info("admin登录认证");
         LOGGER.info(tokenStr);
 

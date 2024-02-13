@@ -20,54 +20,50 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SysSystemServiceImpl extends ServiceImpl<SysSystemMapper, SysSystem> implements SysSystemService {
+public class SysSystemServiceImpl extends ServiceImpl<SysSystemMapper, SysSystem>
+        implements SysSystemService {
     private static final String CACHE_TAG = "SysSystem";
     private static final String KEY_TAG_ENTITY = "'entity:'+";
     private static final String KEY_TAG_LIST_BUSINESSKEY = "'list:key-'+";
-    
-	@Autowired
-    private Environment env;
-	
-    @Autowired
-    private SysSystemConfigMapper systemConfigMapper;
 
-    public SysSystemServiceImpl() {
-    }
+    @Autowired private Environment env;
+
+    @Autowired private SysSystemConfigMapper systemConfigMapper;
+
+    public SysSystemServiceImpl() {}
 
     @Cacheable(
-        value = {"SysSystem"},
-        key = "'list:key-'+#p0"
-    )
+            value = {"SysSystem"},
+            key = "'list:key-'+#p0")
     public List<SysSystem> getSystemListByBusinessKeyCache(String key) {
-        return ((SysSystemMapper)this.baseMapper).selectSysSystemListByBusinessKey(key);
+        return ((SysSystemMapper) this.baseMapper).selectSysSystemListByBusinessKey(key);
     }
 
     @Cacheable(
-        value = {"SysSystem"},
-        key = "'entity:'+#p0"
-    )
+            value = {"SysSystem"},
+            key = "'entity:'+#p0")
     public SysSystem getSystemById(Integer id) {
-        return ((SysSystemMapper)this.baseMapper).selectSystemById(id);
+        return ((SysSystemMapper) this.baseMapper).selectSystemById(id);
     }
 
     public SysSystemConfig getSystemConfig(Integer sysId) {
         QueryWrapper<SysSystemConfig> queryWrapper = new QueryWrapper();
         queryWrapper.eq("sys_id", sysId);
-        return (SysSystemConfig)this.systemConfigMapper.selectOne(queryWrapper);
+        return (SysSystemConfig) this.systemConfigMapper.selectOne(queryWrapper);
     }
-    
+
     @Override
     public SysSystem getSystem() {
-    	String sysIds = env.getProperty("systemId");
-    	int sysId = Integer.parseInt(sysIds);
-//    	SysSystem sys = systemService.getSystemById(sysId);
-    	
-    	SysSystem sys =  new SysSystem();
-    	sys.setId(sysId);
-    	sys.setName("xxx");
-    	SysBusiness sb = new SysBusiness();
-    	sb.setKey("xxx");
-    	sys.setBusiness(sb);
+        String sysIds = env.getProperty("systemId");
+        int sysId = Integer.parseInt(sysIds);
+        //    	SysSystem sys = systemService.getSystemById(sysId);
+
+        SysSystem sys = new SysSystem();
+        sys.setId(sysId);
+        sys.setName("xxx");
+        SysBusiness sb = new SysBusiness();
+        sb.setKey("xxx");
+        sys.setBusiness(sb);
         return sys;
     }
 }

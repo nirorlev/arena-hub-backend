@@ -1,10 +1,10 @@
 package com.threeatom.common.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 /**
  * 类型验证器
@@ -13,20 +13,20 @@ import java.util.stream.Collectors;
  */
 public class IntTypeValidator implements ConstraintValidator<IntTypeConstraint, Integer> {
 
-	private IntTypeConstraint annotation;
+    private IntTypeConstraint annotation;
 
-	@Override
-	public boolean isValid(Integer value, ConstraintValidatorContext context) {
-		if(value == null){
-			return false;
-		}
-		int[] values = annotation.values();
-		List<Integer> list = Arrays.stream(values).boxed().collect(Collectors.toList());
-		return list.contains(value);
-	}
+    @Override
+    public boolean isValid(Integer value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return false;
+        }
+        int[] values = annotation.values();
+        List<Integer> list = Arrays.stream(values).boxed().collect(Collectors.toList());
+        return list.contains(value);
+    }
 
-	@Override
-	public void initialize(IntTypeConstraint intTypeConstraintAnnotation) {
-		this.annotation = intTypeConstraintAnnotation;
-	}
+    @Override
+    public void initialize(IntTypeConstraint intTypeConstraintAnnotation) {
+        this.annotation = intTypeConstraintAnnotation;
+    }
 }

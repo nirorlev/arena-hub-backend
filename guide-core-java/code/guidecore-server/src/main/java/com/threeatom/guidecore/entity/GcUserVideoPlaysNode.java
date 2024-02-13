@@ -6,21 +6,20 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * <p>
  * 视频的播放记录节点
  * </p>
  */
-@ApiModel(value="GcUserVideoPlaysNode对象", description="视频的播放记录节点")
+@ApiModel(value = "GcUserVideoPlaysNode对象", description = "视频的播放记录节点")
 @Data
 public class GcUserVideoPlaysNode implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -55,8 +54,7 @@ public class GcUserVideoPlaysNode implements Serializable {
     @ApiModelProperty(value = "用户id")
     private Integer userId;
 
-    public GcUserVideoPlaysNode() {
-    }
+    public GcUserVideoPlaysNode() {}
 
     public GcUserVideoPlaysNode(Integer startTime, Integer endTime) {
         this.startTime = startTime;

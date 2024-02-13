@@ -12,12 +12,12 @@ import org.springframework.context.annotation.Configuration;
  * @description: TODO
  * @date 2022/6/30/03014:43
  */
-
 @Configuration
 @ConfigurationProperties(prefix = "monday")
 @Data
 public class MondayConfiguration {
-    @Value("${monday.apiKey:eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjYyNjg0OTY3LCJ1aWQiOjc5NTgyMzQsImlhZCI6IjIwMjAtMDctMjRUMTY6MTY6MDAuMDAwWiIsInBlciI6Im1lOndyaXRlIiwiYWN0aWQiOjM2MzcwNDksInJnbiI6InVzZTEifQ.Lx2plgIe1JJwFztepPBzWZPott_2sXv0tUmvLXYPCHg}")
+    @Value(
+            "${monday.apiKey:eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjYyNjg0OTY3LCJ1aWQiOjc5NTgyMzQsImlhZCI6IjIwMjAtMDctMjRUMTY6MTY6MDAuMDAwWiIsInBlciI6Im1lOndyaXRlIiwiYWN0aWQiOjM2MzcwNDksInJnbiI6InVzZTEifQ.Lx2plgIe1JJwFztepPBzWZPott_2sXv0tUmvLXYPCHg}")
     private String mondayApiKey;
 
     @Value("${monday.boardId:3226335945}")

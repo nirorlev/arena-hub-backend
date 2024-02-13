@@ -16,6 +16,7 @@ import com.aliyun.oss.model.PutObjectResult;
 import com.threeatom.common.config.OssConfigData;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.oss.AliyunOssService;
+import com.threeatom.guidecore.util.I18NUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -25,8 +26,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.threeatom.guidecore.util.I18NUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,12 @@ public class AliyunOssServiceImpl implements AliyunOssService {
             return this.ossClient;
         } else {
             if (this.isEnable()) {
-                this.ossClient = (new OSSClientBuilder()).build(this.ossConfig.getEndpoint(), this.ossConfig.getAccessKeyId(), this.ossConfig.getAccessKeySecret());
+                this.ossClient =
+                        (new OSSClientBuilder())
+                                .build(
+                                        this.ossConfig.getEndpoint(),
+                                        this.ossConfig.getAccessKeyId(),
+                                        this.ossConfig.getAccessKeySecret());
             }
 
             return this.ossClient;
@@ -103,7 +107,7 @@ public class AliyunOssServiceImpl implements AliyunOssService {
 
     public String getObjectUrl(String bucketName, String objectName, Integer sec) {
         OSS oss = this.getOssClient();
-        Date expiration = new Date((new Date()).getTime() + (long)(sec * 1000));
+        Date expiration = new Date((new Date()).getTime() + (long) (sec * 1000));
         URL url = oss.generatePresignedUrl(bucketName, objectName, expiration);
         String urlStr = url.toString();
         if (urlStr.startsWith("http://")) {
@@ -113,7 +117,8 @@ public class AliyunOssServiceImpl implements AliyunOssService {
         return urlStr;
     }
 
-    public JSONObject uploadObjectPolicy(String bucketName, String objectName, Map<String, Object> extMap) {
+    public JSONObject uploadObjectPolicy(
+            String bucketName, String objectName, Map<String, Object> extMap) {
         OSS oss = this.getOssClient();
         String host = "https://" + bucketName + "." + this.ossConfig.getEndpoint();
         String callbackUrl = this.callbackUrl();
@@ -123,11 +128,11 @@ public class AliyunOssServiceImpl implements AliyunOssService {
             long expireEndTime = System.currentTimeMillis() + expireTime * 1000L;
             Date expiration = new Date(expireEndTime);
             PolicyConditions policyConditions = new PolicyConditions();
-            
+
             long maxSize = 734003200L;
             policyConditions.addConditionItem("content-length-range", 0L, maxSize);
-            LOGGER.info("最大文件限制: "+ maxSize+"mb: " +maxSize/1024/1024);
-            
+            LOGGER.info("最大文件限制: " + maxSize + "mb: " + maxSize / 1024 / 1024);
+
             String postPolicy = oss.generatePostPolicy(expiration, policyConditions);
             byte[] binaryData = postPolicy.getBytes("utf-8");
             String encodedPolicy = BinaryUtil.toBase64String(binaryData);
@@ -141,41 +146,49 @@ public class AliyunOssServiceImpl implements AliyunOssService {
             respMap.put("key", objectName);
             JSONObject jsonCallback = new JSONObject();
             StringBuffer callbackBodyBuffer = new StringBuffer();
-//            JSONObject callbackBodyJson = new JSONObject();
-            
-            callbackBodyBuffer.append("{").append("\"mimeType\":${mimeType},\"size\":${size},\"object\":${object},\"etag\":${etag}");
+            //            JSONObject callbackBodyJson = new JSONObject();
+
+            callbackBodyBuffer
+                    .append("{")
+                    .append(
+                            "\"mimeType\":${mimeType},\"size\":${size},\"object\":${object},\"etag\":${etag}");
             Iterator var20 = extMap.entrySet().iterator();
-            
-            
-            while(var20.hasNext()) {
-                Entry<String, Object> entry = (Entry)var20.next();
-                callbackBodyBuffer.append(",").append("\"").append((String)entry.getKey()).append("\"").append(":").append("\"").append(entry.getValue()).append("\"");
-//                callbackBodyJson.put((String)entry.getKey(), entry.getValue());
-                
+
+            while (var20.hasNext()) {
+                Entry<String, Object> entry = (Entry) var20.next();
+                callbackBodyBuffer
+                        .append(",")
+                        .append("\"")
+                        .append((String) entry.getKey())
+                        .append("\"")
+                        .append(":")
+                        .append("\"")
+                        .append(entry.getValue())
+                        .append("\"");
+                //                callbackBodyJson.put((String)entry.getKey(), entry.getValue());
+
             }
 
             callbackBodyBuffer.append("}");
-            //仅限小程序，因为小程序不支持分片
-            if(extMap.get("ifFragment")!=null && extMap.get("ifFragment").equals("no")) {
-            	jsonCallback.put("callbackUrl", callbackUrl);
+            // 仅限小程序，因为小程序不支持分片
+            if (extMap.get("ifFragment") != null && extMap.get("ifFragment").equals("no")) {
+                jsonCallback.put("callbackUrl", callbackUrl);
                 jsonCallback.put("callbackBody", callbackBodyBuffer.toString());
                 jsonCallback.put("callbackBodyType", "application/json");
                 String base64CallbackBody = BinaryUtil.toBase64String(jsonCallback.toString().getBytes());
                 respMap.put("callback", base64CallbackBody);
-//                return JSONObject.toJSONString(respMap);      
-                return new JSONObject(respMap);    
+                //                return JSONObject.toJSONString(respMap);
+                return new JSONObject(respMap);
             }
-            
 
-            
             jsonCallback.put("url", callbackUrl);
-          jsonCallback.put("body", callbackBodyBuffer);
-          jsonCallback.put("contentType", "application/json");
-            
+            jsonCallback.put("body", callbackBodyBuffer);
+            jsonCallback.put("contentType", "application/json");
+
             respMap.put("callback", jsonCallback);
-            
+
             JSONObject json = new JSONObject(respMap);
-            
+
             return json;
         } catch (Exception var22) {
             throw new SystemException(I18NUtil.get("signature.error"), var22);
@@ -190,7 +203,8 @@ public class AliyunOssServiceImpl implements AliyunOssService {
         OSS oss = this.getOssClient();
         String style = "video/snapshot,t_" + frame + ",f_jpg,w_0,h_0,m_fast";
         Date expiration = new Date((new Date()).getTime() + 600000L);
-        GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
+        GeneratePresignedUrlRequest req =
+                new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         req.setExpiration(expiration);
         req.setProcess(style);
         URL signedUrl = oss.generatePresignedUrl(req);
@@ -221,10 +235,10 @@ public class AliyunOssServiceImpl implements AliyunOssService {
             return objectName;
         }
     }
-    //删除单个文件：https://help.aliyun.com/document_detail/84842.htm?spm=a2c4g.11186623.2.7.4b787ff0z2Te8F#concept-84842-zh
+
+    // 删除单个文件：https://help.aliyun.com/document_detail/84842.htm?spm=a2c4g.11186623.2.7.4b787ff0z2Te8F#concept-84842-zh
     public void deleteObject(String bucketName, String objectName) {
-    	OSS oss = this.getOssClient();
-    	oss.deleteObject(bucketName, objectName);
+        OSS oss = this.getOssClient();
+        oss.deleteObject(bucketName, objectName);
     }
-    
 }

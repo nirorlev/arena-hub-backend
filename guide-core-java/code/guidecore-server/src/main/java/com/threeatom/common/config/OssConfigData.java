@@ -15,8 +15,7 @@ public class OssConfigData {
     private String callbackUrl;
     private Long maxSize;
 
-    public OssConfigData() {
-    }
+    public OssConfigData() {}
 
     public String getEndpoint() {
         return this.endpoint;

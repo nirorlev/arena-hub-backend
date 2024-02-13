@@ -1,10 +1,5 @@
 package com.threeatom.guidecore.entity;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -12,9 +7,11 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
 import com.threeatom.system.entity.SysFile;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 
 /**
@@ -26,17 +23,17 @@ import lombok.Data;
  * @since 2019-11-11
  */
 @Data
-@ApiModel(value="GcMaster对象", description="主站点实例")
+@ApiModel(value = "GcMaster对象", description = "主站点实例")
 @TableName(autoResultMap = true)
 public class GcMaster implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     @ApiModelProperty(value = "管理员Id")
     private Integer managerId;
 
@@ -48,42 +45,40 @@ public class GcMaster implements Serializable {
 
     @ApiModelProperty(value = "站点context")
     private String context;
-    
-    @JSONField(deserialize=false)
+
+    @JSONField(deserialize = false)
     @ApiModelProperty(value = "站点状态")
     private Integer state;
 
     @ApiModelProperty(value = "logo文件")
-    @TableField(exist=false)
+    @TableField(exist = false)
     private SysFile logoFile;
 
-
     @ApiModelProperty(value = "门户价格")
-    @TableField(exist=false)
+    @TableField(exist = false)
     @TableId(value = "activate_size")
     private SysFile activateSize;
 
-
     @ApiModelProperty(value = "logo图片id")
     private Integer logoId;
-    
+
     @ApiModelProperty(value = "logo完整链接")
-    @TableField(exist=false)
+    @TableField(exist = false)
     private String logoFullUrl;
-    
+
     @ApiModelProperty(value = "介绍视频文件id")
     private Integer introVideoId;
-    
+
     @ApiModelProperty(value = "null或1:本地，2:youku，3:screenRock")
     private Integer sourceType;
-    
+
     @ApiModelProperty(value = "源地址  当第三方视频引用的时候")
     private String sourceUrl;
-    
+
     @ApiModelProperty(value = "介绍视频文件")
-    @TableField(exist=false)
+    @TableField(exist = false)
     private SysFile introVideoFile;
-    
+
     @ApiModelProperty(value = "外部日历链接")
     private String calendarLink;
 
@@ -98,31 +93,32 @@ public class GcMaster implements Serializable {
 
     @ApiModelProperty(value = "brand logo的类型 profile logo/lead photo")
     private String logoType;
-    
+
     @TableField(exist = false)
-    @ApiModelProperty(value = "视频的快照字段，当introVideoFile不为空时可获取")//ISysFileService.getVideoSnapshotUrl(SysFile, SysSystem)
+    @ApiModelProperty(
+            value = "视频的快照字段，当introVideoFile不为空时可获取") // ISysFileService.getVideoSnapshotUrl(SysFile,
+    // SysSystem)
     private String snapshotUrl;
-    
+
     @ApiModelProperty(value = "模板id")
     private Integer templateId;
-    
-    @TableField(value="ext_var",typeHandler = FastJsonObjectTypeHandler.class)
+
+    @TableField(value = "ext_var", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject extVar;
-    
-    @TableField(value="intro_done_step",typeHandler = FastJsonObjectTypeHandler.class)
+
+    @TableField(value = "intro_done_step", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject introDoneStep;
- 
-    @JSONField(deserialize=false)
+
+    @JSONField(deserialize = false)
     private Date updateTime;
 
-    @JSONField(deserialize=false)
+    @JSONField(deserialize = false)
     private Date createTime;
-
 
     @TableField(exist = false)
     private List<GcSubject> gcSubjectList;
-    
-    //临时判断该门户下有没有学生子账号
+
+    // 临时判断该门户下有没有学生子账号
     @TableField(exist = false)
     private Integer studentFlag;
 
@@ -145,10 +141,7 @@ public class GcMaster implements Serializable {
     private List<GcAccess> accessList;
 
     @ApiModelProperty("邮件抄送人")
-    @TableField(
-            value = "email_cc",
-            typeHandler = FastJsonArrayTypeHandler.class
-    )
+    @TableField(value = "email_cc", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray emailCc = new JSONArray();
 
     @TableField(exist = false)

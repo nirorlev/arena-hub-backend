@@ -19,8 +19,7 @@ import org.slf4j.LoggerFactory;
 public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FastJsonObjectTypeHandler.class);
 
-    public FastJsonObjectTypeHandler() {
-    }
+    public FastJsonObjectTypeHandler() {}
 
     public JSONObject getResult(ResultSet rs, String columnName) throws SQLException {
         String jsonString = rs.getString(columnName);
@@ -52,12 +51,13 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
         }
     }
 
-    public void setParameter(PreparedStatement ps, int columnIndex, JSONObject jsonObject, JdbcType jdbcType) throws SQLException {
+    public void setParameter(
+            PreparedStatement ps, int columnIndex, JSONObject jsonObject, JdbcType jdbcType)
+            throws SQLException {
         if (jsonObject == null) {
             ps.setString(columnIndex, "{}");
         } else {
             ps.setString(columnIndex, jsonObject.toJSONString());
         }
-
     }
 }

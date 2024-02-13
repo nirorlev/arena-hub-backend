@@ -10,5 +10,4 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
  * @description: TODO
  * @date 2022/12/9/00914:22
  */
-public interface PtLoginConfigMapper extends BaseMapper<PtLoginConfig> {
-}
+public interface PtLoginConfigMapper extends BaseMapper<PtLoginConfig> {}

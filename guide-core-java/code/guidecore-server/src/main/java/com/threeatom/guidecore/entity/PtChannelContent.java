@@ -10,25 +10,24 @@ import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author qiaoxide
  * @since 2019-11-11
  */
 @Data
-@ApiModel(value="PtChannelContent", description="")
+@ApiModel(value = "PtChannelContent", description = "")
 @TableName(autoResultMap = true)
 public class PtChannelContent implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
@@ -40,11 +39,9 @@ public class PtChannelContent implements Serializable {
 
     private Date createTime;
 
-
     private Integer fileId;
 
     private Integer playlistId;
-
 
     private Integer sectionId;
 
@@ -58,11 +55,6 @@ public class PtChannelContent implements Serializable {
     private SysFile videoFile;
 
     @ApiModelProperty("课程tag标签")
-    @TableField(
-            value = "course_tags",
-            typeHandler = FastJsonArrayTypeHandler.class,
-            exist = false
-    )
+    @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray courseTags = new JSONArray();
-
 }

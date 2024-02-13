@@ -2,9 +2,6 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcSubjectComplete;
-import org.springframework.scheduling.annotation.Async;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -16,9 +13,9 @@ import java.util.List;
  */
 public interface GcSubjectCompleteService extends IService<GcSubjectComplete> {
 
-    GcSubjectComplete getSubjectCompleteInfo(Integer masterId,Integer userId,Integer subjectId);
+    GcSubjectComplete getSubjectCompleteInfo(Integer masterId, Integer userId, Integer subjectId);
 
-    void updateStateByVideoId(Integer masterId,Integer videoId);
+    void updateStateByVideoId(Integer masterId, Integer videoId);
 
-    List<GcSubjectComplete> selectBySubjectId(Integer masterId,Integer subjectId);
+    List<GcSubjectComplete> selectBySubjectId(Integer masterId, Integer subjectId);
 }

@@ -7,15 +7,13 @@ package com.threeatom.common;
 
 import com.alibaba.fastjson.JSONArray;
 import com.threeatom.common.exception.SystemException;
-import java.util.List;
-
 import com.threeatom.guidecore.util.I18NUtil;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 public class ApiAssert extends Assert {
-    public ApiAssert() {
-    }
+    public ApiAssert() {}
 
     public static void notNull(Object object, String message) {
         if (object == null) {
@@ -49,7 +47,7 @@ public class ApiAssert extends Assert {
 
     public static void jsonValueIntegerIn(Integer value, String json, String message) {
         if (value == null) {
-            throw new SystemException(I18NUtil.get("The validation value cannot be empty") +message);
+            throw new SystemException(I18NUtil.get("The validation value cannot be empty") + message);
         } else {
             JSONArray valueArr = JSONArray.parseArray(json);
             if (!valueArr.contains(value)) {
@@ -57,33 +55,33 @@ public class ApiAssert extends Assert {
             }
         }
     }
-    
+
     public static void ifStringInList(String value, List<String> list, String message) {
-    	 if (value == null) {
-             throw new SystemException(I18NUtil.get("The validation value cannot be empty")+message);
-         } else {
-             if (!list.contains(value)) {
-                 throw new SystemException(message);
-             }
-         }
+        if (value == null) {
+            throw new SystemException(I18NUtil.get("The validation value cannot be empty") + message);
+        } else {
+            if (!list.contains(value)) {
+                throw new SystemException(message);
+            }
+        }
     }
-    
+
     public static void ifStringNotInList(String value, List<String> list, String message) {
-   	 if (value == null) {
-            throw new SystemException(I18NUtil.get("The validation value cannot be empty")+message);
+        if (value == null) {
+            throw new SystemException(I18NUtil.get("The validation value cannot be empty") + message);
         } else {
             if (list.contains(value)) {
                 throw new SystemException(message);
             }
         }
-   }
+    }
 
     public static void assertIntegerUniqueList(List<Integer> ids) {
         if (ids == null) {
             throw new SystemException(I18NUtil.get("list.error"));
         } else {
             long count = ids.stream().distinct().count();
-            if (count < (long)ids.size()) {
+            if (count < (long) ids.size()) {
                 throw new SystemException(I18NUtil.get("id.error"));
             }
         }

@@ -10,5 +10,4 @@ import com.threeatom.guidecore.entity.PtConfig;
  * @description: TODO
  * @date 2023/4/10/01012:07
  */
-public interface PtConfigMapper extends BaseMapper<PtConfig> {
-}
+public interface PtConfigMapper extends BaseMapper<PtConfig> {}

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.PropertySource;
  * @date 2022/7/14/01415:09
  */
 @Configuration
-@PropertySource(value="classpath:system.yml",factory= YamlPropertySourceFactory.class)
+@PropertySource(value = "classpath:system.yml", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "uploadsignurl")
 @Data
 public class AwsUploadSignUrlConfiguration {

@@ -14,6 +14,5 @@ import org.springframework.stereotype.Service;
  * @date 2023/4/10/01012:03
  */
 @Service
-public class PtConfigServiceImpl extends ServiceImpl<PtConfigMapper, PtConfig> implements PtConfigService {
-
-}
+public class PtConfigServiceImpl extends ServiceImpl<PtConfigMapper, PtConfig>
+        implements PtConfigService {}

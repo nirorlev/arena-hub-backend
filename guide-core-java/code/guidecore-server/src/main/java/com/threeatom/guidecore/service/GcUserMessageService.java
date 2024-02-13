@@ -1,11 +1,10 @@
 package com.threeatom.guidecore.service;
 
-import com.threeatom.guidecore.entity.GcUserMessage;
 import com.baomidou.mybatisplus.extension.service.IService;
-
-import javax.servlet.http.HttpServletRequest;
+import com.threeatom.guidecore.entity.GcUserMessage;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -23,13 +22,20 @@ public interface GcUserMessageService extends IService<GcUserMessage> {
 
     List<GcUserMessage> getMessageListByUserIds(List<Integer> userIds, Integer masterId);
 
-    List<GcUserMessage> getMessageListByTargetUserIdAndUserId(Integer targetUserId, Integer userId, Integer offset, Integer page,Integer masterId,HttpServletRequest request);
+    List<GcUserMessage> getMessageListByTargetUserIdAndUserId(
+            Integer targetUserId,
+            Integer userId,
+            Integer offset,
+            Integer page,
+            Integer masterId,
+            HttpServletRequest request);
 
     Boolean setIsReadByTargetUserId(Integer targetUserId, Integer userId);
 
-    GcUserMessage getNewMessage(Integer targetUserId, Integer userId,Integer masterId);
-    
-    List<Map<String,Object>> getMessageNumByTeacherIdAndUserIds(Integer teacherId,List<Integer> userIds,String order);
+    GcUserMessage getNewMessage(Integer targetUserId, Integer userId, Integer masterId);
+
+    List<Map<String, Object>> getMessageNumByTeacherIdAndUserIds(
+            Integer teacherId, List<Integer> userIds, String order);
 
     int update(GcUserMessage userMessage);
 }

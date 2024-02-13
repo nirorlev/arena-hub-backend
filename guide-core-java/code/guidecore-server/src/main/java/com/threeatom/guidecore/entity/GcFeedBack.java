@@ -6,10 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 系统反馈
@@ -47,7 +46,7 @@ public class GcFeedBack implements Serializable {
     /**
      * 反馈文件Json
      */
-    @TableField(value="file_json",typeHandler = FastJsonArrayTypeHandler.class)
+    @TableField(value = "file_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray fileJson;
 
     /**

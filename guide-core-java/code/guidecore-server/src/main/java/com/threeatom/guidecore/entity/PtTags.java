@@ -5,9 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * @author Administrator
@@ -16,7 +15,7 @@ import java.util.Date;
  * @description: TODO
  * @date 2023/1/9/00910:25
  */
-@ApiModel(value="ptTags", description="")
+@ApiModel(value = "ptTags", description = "")
 @TableName(autoResultMap = true)
 @Data
 public class PtTags {

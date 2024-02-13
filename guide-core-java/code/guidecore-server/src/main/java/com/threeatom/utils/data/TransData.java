@@ -15,6 +15,7 @@ public class TransData {
      * 原文
      */
     private String src;
+
     /**
      * 译文
      */

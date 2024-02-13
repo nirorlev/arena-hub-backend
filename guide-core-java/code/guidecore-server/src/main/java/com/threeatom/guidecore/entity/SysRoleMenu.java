@@ -1,9 +1,8 @@
 package com.threeatom.guidecore.entity;
 
 import com.alibaba.fastjson.JSONArray;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * @author Administrator

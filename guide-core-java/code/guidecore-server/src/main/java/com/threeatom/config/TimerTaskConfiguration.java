@@ -1,12 +1,7 @@
 package com.threeatom.config;
 
-import com.threeatom.common.yml.YamlPropertySourceFactory;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -17,16 +12,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @description: TODO
  * @date 2021/11/18/01815:12
  */
-
 @Configuration
 public class TimerTaskConfiguration {
     @Bean
-    public TaskScheduler taskScheduler(){
-        ThreadPoolTaskScheduler taskScheduler =new ThreadPoolTaskScheduler();
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.setPoolSize(10);
         taskScheduler.initialize();
         return taskScheduler;
     }
-
-
 }

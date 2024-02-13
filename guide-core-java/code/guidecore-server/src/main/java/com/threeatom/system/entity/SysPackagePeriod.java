@@ -5,12 +5,6 @@
 
 package com.threeatom.system.entity;
 
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -27,7 +21,6 @@ public class SysPackagePeriod implements Serializable {
     public static long getSerialVersionUID() {
         return serialVersionUID;
     }
-
 
     public Integer getQTY() {
         return QTY;
@@ -71,12 +64,18 @@ public class SysPackagePeriod implements Serializable {
 
     @Override
     public String toString() {
-        return "SysPackagePeriod{" +
-                "id=" + id +
-                ", QTY=" + QTY +
-                ", type='" + type + '\'' +
-                ", price=" + price +
-                ", expired=" + expired +
-                '}';
+        return "SysPackagePeriod{"
+                + "id="
+                + id
+                + ", QTY="
+                + QTY
+                + ", type='"
+                + type
+                + '\''
+                + ", price="
+                + price
+                + ", expired="
+                + expired
+                + '}';
     }
 }

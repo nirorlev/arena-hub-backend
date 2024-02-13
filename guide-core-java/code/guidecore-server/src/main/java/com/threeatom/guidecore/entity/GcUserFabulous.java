@@ -2,9 +2,8 @@ package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * @author huangpei
@@ -57,15 +56,12 @@ public class GcUserFabulous {
      */
     private Integer commentId;
 
-    public GcUserFabulous(Integer userId,Integer targetUserId,Integer videoId,Integer eventId) {
+    public GcUserFabulous(Integer userId, Integer targetUserId, Integer videoId, Integer eventId) {
         this.userId = userId;
         this.targetUserId = targetUserId;
         this.videoId = videoId;
         this.eventId = eventId;
     }
 
-    public GcUserFabulous(){
-
-    }
-
+    public GcUserFabulous() {}
 }

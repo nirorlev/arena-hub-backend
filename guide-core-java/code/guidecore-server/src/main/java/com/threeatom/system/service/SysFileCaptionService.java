@@ -3,10 +3,9 @@ package com.threeatom.system.service;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.system.entity.*;
+import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * @author Administrator
@@ -33,7 +32,7 @@ public interface SysFileCaptionService extends IService<SysFileCaption> {
 
     SysFileCaption getCaptionInfo(SysFileCaption sysFileCaption);
 
-    void updateCaptionState(JSONArray targetLang,Integer videoId);
+    void updateCaptionState(JSONArray targetLang, Integer videoId);
 
     void deleteCaption(Integer videoId);
 

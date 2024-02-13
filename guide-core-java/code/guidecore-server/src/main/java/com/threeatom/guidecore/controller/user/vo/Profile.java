@@ -21,5 +21,4 @@ public class Profile {
     private String thumbUrl;
 
     private String email;
-
 }

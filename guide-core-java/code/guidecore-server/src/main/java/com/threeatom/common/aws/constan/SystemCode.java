@@ -1,7 +1,6 @@
 package com.threeatom.common.aws.constan;
 
 public enum SystemCode {
-
     SUCCESS("200", "成功"),
     FAILED("100000", "系统异常"),
 
@@ -10,8 +9,6 @@ public enum SystemCode {
     PARAMETER_ILLEGAL("300200", "请求参数非法"),
     INVALID_TOKEN_EXCEPTION("300400", "token无效"),
     CALL_API_EXCEPTION("400000", "远程接口调用异常");
-
-
 
     private String code;
     private String message;

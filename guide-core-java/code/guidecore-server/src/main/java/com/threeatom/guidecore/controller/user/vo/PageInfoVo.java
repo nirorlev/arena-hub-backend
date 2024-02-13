@@ -1,59 +1,54 @@
 package com.threeatom.guidecore.controller.user.vo;
 
 public class PageInfoVo {
-	
-	private long total;
-	
-	private boolean isFirstPage;
-	
-	private boolean isLastPage;
-	
-	private boolean hasNextPage;
-	
-	private boolean hasPreviousPage;
 
-	public long getTotal() {
-		return total;
-	}
+    private long total;
 
-	public void setTotal(long total) {
-		this.total = total;
-	}
+    private boolean isFirstPage;
 
-	public boolean isFirstPage() {
-		return isFirstPage;
-	}
+    private boolean isLastPage;
 
-	public void setFirstPage(boolean isFirstPage) {
-		this.isFirstPage = isFirstPage;
-	}
+    private boolean hasNextPage;
 
-	public boolean isLastPage() {
-		return isLastPage;
-	}
+    private boolean hasPreviousPage;
 
-	public void setLastPage(boolean isLastPage) {
-		this.isLastPage = isLastPage;
-	}
+    public long getTotal() {
+        return total;
+    }
 
-	public boolean isHasNextPage() {
-		return hasNextPage;
-	}
+    public void setTotal(long total) {
+        this.total = total;
+    }
 
-	public void setHasNextPage(boolean hasNextPage) {
-		this.hasNextPage = hasNextPage;
-	}
+    public boolean isFirstPage() {
+        return isFirstPage;
+    }
 
-	public boolean isHasPreviousPage() {
-		return hasPreviousPage;
-	}
+    public void setFirstPage(boolean isFirstPage) {
+        this.isFirstPage = isFirstPage;
+    }
 
-	public void setHasPreviousPage(boolean hasPreviousPage) {
-		this.hasPreviousPage = hasPreviousPage;
-	}
-	
-	
-	
-	
+    public boolean isLastPage() {
+        return isLastPage;
+    }
 
+    public void setLastPage(boolean isLastPage) {
+        this.isLastPage = isLastPage;
+    }
+
+    public boolean isHasNextPage() {
+        return hasNextPage;
+    }
+
+    public void setHasNextPage(boolean hasNextPage) {
+        this.hasNextPage = hasNextPage;
+    }
+
+    public boolean isHasPreviousPage() {
+        return hasPreviousPage;
+    }
+
+    public void setHasPreviousPage(boolean hasPreviousPage) {
+        this.hasPreviousPage = hasPreviousPage;
+    }
 }

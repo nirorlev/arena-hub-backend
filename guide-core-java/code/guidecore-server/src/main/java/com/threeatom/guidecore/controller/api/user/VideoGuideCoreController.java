@@ -1,23 +1,33 @@
 package com.threeatom.guidecore.controller.api.user;
 
+import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.threeatom.common.ApiAssert;
+import com.threeatom.common.controller.Message;
+import com.threeatom.common.exception.SystemException;
+import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.controller.GuideCoreController;
+import com.threeatom.guidecore.controller.user.vo.MessageFIlterVo;
+import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.TeacherMesNumVo;
+import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.mapper.GcEventMapper;
+import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.system.entity.SysFile;
+import com.threeatom.system.entity.SysSystem;
+import com.threeatom.system.service.SysFileCaptionService;
+import com.threeatom.system.service.SysFileService;
+import com.threeatom.system.service.SysSystemService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
-import com.github.pagehelper.PageHelper;
-import com.threeatom.guidecore.constant.*;
-import com.threeatom.guidecore.controller.api.manager.PowtoonController;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.service.*;
-import com.threeatom.system.entity.SysFileCaption;
-import com.threeatom.system.service.SysFileCaptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,137 +38,80 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.github.pagehelper.PageInfo;
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
-import com.threeatom.common.ApiAssert;
-import com.threeatom.common.controller.Message;
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.controller.user.vo.MessageFIlterVo;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.TeacherMesNumVo;
-import com.threeatom.guidecore.mapper.GcEventMapper;
-import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.entity.SysFile;
-import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-
-//import static com.threeatom.guidecore.controller.api.manager.PowtoonController.permit;
+// import static com.threeatom.guidecore.controller.api.manager.PowtoonController.permit;
 
 @RestController
-@RequestMapping("/api/v1/guidecore/user")//与UserGuideCoreController的一致，注意命名
+@RequestMapping("/api/v1/guidecore/user") // 与UserGuideCoreController的一致，注意命名
 @Api(tags = "用户端视频管理")
 @Validated
 public class VideoGuideCoreController extends GuideCoreController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VideoGuideCoreController.class);
 
+    @Autowired private GcUserVideoActionService videoActionService;
+    @Autowired private NewUiGcSubjectService service;
+    @Autowired private GcVideoCommentService videoCommentService;
+    @Autowired private GcSubjectService subjectService;
+    @Autowired private GcVideoService videoService;
+    @Autowired private GcUserVideoPlayService userVideoPlayService;
 
-    @Autowired
-    private GcUserVideoActionService videoActionService;
-    @Autowired
-    private NewUiGcSubjectService service;
-    @Autowired
-    private GcVideoCommentService videoCommentService;
-    @Autowired
-    private GcSubjectService subjectService;
-    @Autowired
-    private GcVideoService videoService;
-    @Autowired
-    private GcUserVideoPlayService userVideoPlayService;
+    @Autowired private GcUserVideoPlaysNodeService videoPlaysNodeService;
 
-    @Autowired
-    private GcUserVideoPlaysNodeService videoPlaysNodeService;
+    @Autowired private GcEventService eventService;
+    @Autowired private GcResourceService resourceService;
 
-    @Autowired
-    private GcEventService eventService;
-    @Autowired
-    private GcResourceService resourceService;
+    @Autowired private SysFileService sysFileService;
+    @Autowired private GcUserEventResourceService userEventResourceService;
+    @Autowired private GcUserNoteService userNoteService;
+    @Autowired private GcMasterMessageService masterMessageService;
 
-    @Autowired
-    private SysFileService sysFileService;
-    @Autowired
-    private GcUserEventResourceService userEventResourceService;
-    @Autowired
-    private GcUserNoteService userNoteService;
-    @Autowired
-    private GcMasterMessageService masterMessageService;
+    @Autowired private SysSystemService systemService;
 
-    @Autowired
-    private SysSystemService systemService;
+    @Autowired private GcEventMapper gcEventMapper;
 
-    @Autowired
-    private GcEventMapper gcEventMapper;
+    @Autowired private Environment env;
 
-    @Autowired
-    private Environment env;
+    @Autowired private GcUserAccessService userAccessService;
 
-    @Autowired
-    private GcUserAccessService userAccessService;
+    @Autowired private GcUserVideoPlaysNodeService userVideoPlaysNodeService;
 
-    @Autowired
-    private GcUserVideoPlaysNodeService userVideoPlaysNodeService;
+    @Autowired private GcGroupService gcGroupService;
 
-    @Autowired
-    private GcGroupService gcGroupService;
+    @Autowired private GcTeacherDataService teacherDataService;
 
-    @Autowired
-    private GcTeacherDataService teacherDataService;
+    @Autowired private GcUserAccessExtService userAccessExtService;
+    @Autowired private SysFileCaptionService sysFileCaptionService;
+    @Autowired private GcUserVideoPlayService gcUserVideoPlayService;
+    @Autowired private GcUserVideoPlaysNodeService gcUserVideoPlaysNodeService;
 
-    @Autowired
-    private GcUserAccessExtService userAccessExtService;
-    @Autowired
-    private SysFileCaptionService sysFileCaptionService;
-    @Autowired
-    private GcUserVideoPlayService gcUserVideoPlayService;
-    @Autowired
-    private GcUserVideoPlaysNodeService gcUserVideoPlaysNodeService;
+    @Autowired private GcVideoService gcVideoService;
 
-    @Autowired
-    private GcVideoService gcVideoService;
+    @Autowired private GvgMasterService gvgMasterService;
 
-    @Autowired
-    private GvgMasterService gvgMasterService;
-
-    @Autowired
-    private NewUiGcSubjectService newUiGcSubjectService;
-
-
-
-
-
-
+    @Autowired private NewUiGcSubjectService newUiGcSubjectService;
 
     @ApiOperation(value = "用户视频点赞的视频列表", httpMethod = "GET", notes = "type操作类型1点赞2收藏")
     @GetMapping("/getLikeVideoByUserId")
     public Message getLikeVideoByUserId(HttpServletRequest request) {
-    	
-    	GcUser user = this.getGcUser();
-    	SysSystem sys = this.getSystem();
-    	Integer masterId = getHeaderMasterId(request);
-    	
-//		String sysIds = env.getProperty("systemId");
-//    	int sysId = Integer.parseInt(sysIds);
-//    	SysSystem sys = systemService.getSystemById(sysId);
-    	List<GcVideo> list=videoService.selectLikeVideoByUserId(user.getId(), masterId);
-    	
-    	for (GcVideo video : list) {
-			SysFile file = video.getVideoFile();
-	        if (file != null) video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
-		}
-    	return new Message().ok("操作成功！").addData("likeVideoList", list);
+
+        GcUser user = this.getGcUser();
+        SysSystem sys = this.getSystem();
+        Integer masterId = getHeaderMasterId(request);
+
+        //		String sysIds = env.getProperty("systemId");
+        //    	int sysId = Integer.parseInt(sysIds);
+        //    	SysSystem sys = systemService.getSystemById(sysId);
+        List<GcVideo> list = videoService.selectLikeVideoByUserId(user.getId(), masterId);
+
+        for (GcVideo video : list) {
+            SysFile file = video.getVideoFile();
+            if (file != null) video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
+        }
+        return new Message().ok("操作成功！").addData("likeVideoList", list);
     }
-    
+
     @ApiOperation(value = "用户视频（点赞，评价）", httpMethod = "POST", notes = "type操作类型1点赞2评价")
     @PostMapping("/videoActionOld")
     public Message videoActionOld(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
@@ -172,132 +125,146 @@ public class VideoGuideCoreController extends GuideCoreController {
         GcUser user = this.getGcUser();
         if (videoActionService.saveVideoAction(vid, user.getId(), type))
             return new Message().ok("操作成功！");
-        else
-            return new Message().error("操作失败！");
+        else return new Message().error("操作失败！");
     }
 
     @ApiOperation(value = "用户视频（点赞，评价）", httpMethod = "POST", notes = "type操作类型1点赞2评价")
     @PostMapping("/videoAction")
-    public Message videoAction(@RequestBody @Valid GcUserVideoAction gcUserVideoAction, HttpServletRequest request) {
-    	if(gcUserVideoAction.getVid()!=null)gcUserVideoAction.setVideoId(gcUserVideoAction.getVid());
-    	
-    	
-//        this.assertResourceLimit(request, gcUserVideoAction.getVideoId(), SysResourceType.VIDEO);
+    public Message videoAction(
+            @RequestBody @Valid GcUserVideoAction gcUserVideoAction, HttpServletRequest request) {
+        if (gcUserVideoAction.getVid() != null)
+            gcUserVideoAction.setVideoId(gcUserVideoAction.getVid());
 
-    	int userId = this.getGcUser().getId();
+        //        this.assertResourceLimit(request, gcUserVideoAction.getVideoId(),
+        // SysResourceType.VIDEO);
+
+        int userId = this.getGcUser().getId();
         gcUserVideoAction.setUserId(userId);
         GcUserVideoAction oldVideoAction = null;
 
-        if (null!=gcUserVideoAction.getVideoId()){
-            oldVideoAction = videoActionService.getOldVideoAction(gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
-        }else if (null!=gcUserVideoAction.getFileId()){
-            oldVideoAction = videoActionService.getFileActionListByFileIdAndUserId(gcUserVideoAction.getFileId(), userId);
-
+        if (null != gcUserVideoAction.getVideoId()) {
+            oldVideoAction =
+                    videoActionService.getOldVideoAction(
+                            gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
+        } else if (null != gcUserVideoAction.getFileId()) {
+            oldVideoAction =
+                    videoActionService.getFileActionListByFileIdAndUserId(
+                            gcUserVideoAction.getFileId(), userId);
         }
 
-        //点赞
-        if(gcUserVideoAction.getType().intValue()==TableConstant.gcUserVideoAction_type_like1) {
-        	if (oldVideoAction != null) {
+        // 点赞
+        if (gcUserVideoAction.getType().intValue() == TableConstant.gcUserVideoAction_type_like1) {
+            if (oldVideoAction != null) {
                 boolean a = false;
-                if (null!=gcUserVideoAction.getVideoId()){
-                    a = videoActionService.deleteOldVideoAction(gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
-                }else {
-                    a = videoActionService.deleteChannelOldVideoAction(gcUserVideoAction.getFileId(), userId, gcUserVideoAction.getType());
+                if (null != gcUserVideoAction.getVideoId()) {
+                    a =
+                            videoActionService.deleteOldVideoAction(
+                                    gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
+                } else {
+                    a =
+                            videoActionService.deleteChannelOldVideoAction(
+                                    gcUserVideoAction.getFileId(), userId, gcUserVideoAction.getType());
                 }
-        		if(a)return new Message().ok("操作成功！");
-        	}
+                if (a) return new Message().ok("操作成功！");
+            }
 
-            if (null!=gcUserVideoAction.getVideoId()){
+            if (null != gcUserVideoAction.getVideoId()) {
                 GcVideo video = videoService.getVideoById(gcUserVideoAction.getVideoId());
-                if (null!=video){
+                if (null != video) {
                     gcUserVideoAction.setFileId(video.getFileId());
                 }
             }
-        	boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
-        	if(a)return new Message().ok("操作成功！");
+            boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
+            if (a) return new Message().ok("操作成功！");
         }
 
-        if(gcUserVideoAction.getType().intValue()==TableConstant.gcUserVideoAction_type_rate2) {
-        	if (oldVideoAction != null) gcUserVideoAction.setId(oldVideoAction.getId());
-        	boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
-    		if(a)return new Message().ok("操作成功！");
+        if (gcUserVideoAction.getType().intValue() == TableConstant.gcUserVideoAction_type_rate2) {
+            if (oldVideoAction != null) gcUserVideoAction.setId(oldVideoAction.getId());
+            boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
+            if (a) return new Message().ok("操作成功！");
         }
         return new Message().error("操作失败！");
     }
 
-
     @ApiOperation(value = "用户视频评论", httpMethod = "POST")
-
     @PostMapping("/videoComment")
-    public Message videoComment(@RequestBody JSONObject jsonRequest,HttpServletRequest request) throws IOException {
+    public Message videoComment(@RequestBody JSONObject jsonRequest, HttpServletRequest request)
+            throws IOException {
         Integer vid = jsonRequest.getInteger("vid");
         Integer masterId = getHeaderMasterId(request);
         String comment = jsonRequest.getString("comment");
         Integer fileId = jsonRequest.getInteger("fileId");
         ApiAssert.notNull(vid, "参数vid缺失");
-//        ApiAssert.notNull(comment, "参数comment缺失");
+        //        ApiAssert.notNull(comment, "参数comment缺失");
         GcUser user = this.getGcUser();
-//        boolean isFlag = this.permitCheck(user.getUsername(),ActionsType.comment,masterId,ResourceType.videoItem,null);
+        //        boolean isFlag =
+        // this.permitCheck(user.getUsername(),ActionsType.comment,masterId,ResourceType.videoItem,null);
         GcVideoComment videoComment = new GcVideoComment();
         videoComment.setMasterId(masterId);
         videoComment.setUserId(user.getId());
         videoComment.setComment(comment);
         videoComment.setVideoId(vid);
-        if (null!=fileId){
+        if (null != fileId) {
             videoComment.setFileId(fileId);
             SysFile file = sysFileService.getById(fileId);
             file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
             videoComment.setCommentFile(file);
         }
         if (videoCommentService.saveVideoComment(videoComment)) {
-//            GcVideoComment reComment = videoCommentService.getSelfNewComment(user.getId(), vid);
-//            return new Message().ok("评论成功！").addData("reComment", reComment);
-        	return new Message().ok("评论成功！").addData("comment",videoComment);
+            //            GcVideoComment reComment = videoCommentService.getSelfNewComment(user.getId(),
+            // vid);
+            //            return new Message().ok("评论成功！").addData("reComment", reComment);
+            return new Message().ok("评论成功！").addData("comment", videoComment);
         } else {
             return new Message().error("评论失败！");
         }
     }
 
     @PostMapping("/DelVideoResourceFile")
-    public Message DelVideoResourceFile(@RequestBody JSONObject paramsObject,HttpServletRequest request) {
+    public Message DelVideoResourceFile(
+            @RequestBody JSONObject paramsObject, HttpServletRequest request) {
         Message message = new Message();
         Integer masterId = request.getIntHeader("masterId");
         GcUser user = this.getGcUser();
         Integer commentResourceFileId = paramsObject.getInteger("commentResourceFileId");
         if (commentResourceFileId == null) throw new SystemException(I18NUtil.get("resource.file.id"));
         GcUserEventResource resource = userEventResourceService.getById(commentResourceFileId);
-        List<GcUserEventResource> userEventResourceList = userEventResourceService.selectGetEventResourceByEventIdAndTargetUserId(resource.getEventId(),user.getId(),commentResourceFileId);
-        if (userEventResourceList.size()!=0){
+        List<GcUserEventResource> userEventResourceList =
+                userEventResourceService.selectGetEventResourceByEventIdAndTargetUserId(
+                        resource.getEventId(), user.getId(), commentResourceFileId);
+        if (userEventResourceList.size() != 0) {
             throw new SystemException("A teacher has replied to this feedback and cannot be deleted");
         }
-        Integer deleteResult = userEventResourceService.deleteResourceFIle(commentResourceFileId,user.getId(),masterId);
-        if(deleteResult!=TableConstant.COMMON_ZERO){
+        Integer deleteResult =
+                userEventResourceService.deleteResourceFIle(commentResourceFileId, user.getId(), masterId);
+        if (deleteResult != TableConstant.COMMON_ZERO) {
             return message.ok("Delete Successfully");
-        }else {
+        } else {
             return message.ok("Insufficient permissions");
         }
     }
 
     @PostMapping("/DelVideoComment")
-    public Message DelVideoComment(@RequestBody JSONObject paramsObject,HttpServletRequest request) {
+    public Message DelVideoComment(@RequestBody JSONObject paramsObject, HttpServletRequest request) {
         Message message = new Message();
         Integer masterId = request.getIntHeader("masterId");
         GcUser user = this.getGcUser();
         Integer commentId = paramsObject.getInteger("commentId");
         if (commentId == null) throw new SystemException(I18NUtil.get("comment.id.empty"));
-        Integer deleteResult = videoCommentService.deleteVideoComment(commentId,user.getId(),masterId);
-        if(deleteResult!=TableConstant.COMMON_ZERO){
+        Integer deleteResult =
+                videoCommentService.deleteVideoComment(commentId, user.getId(), masterId);
+        if (deleteResult != TableConstant.COMMON_ZERO) {
             return message.ok("Delete Successfully");
-        }else {
+        } else {
             return message.ok("Insufficient permissions");
         }
     }
 
-
     @ApiOperation(value = "根据科目id获取评论流", httpMethod = "GET")
     @GetMapping("/videoCommentList/{subId}")
-    public Message videoCommentList(@PathVariable("subId") Integer subId, HttpServletRequest request) {
-//        ApiAssert.notNull(subId, "参数subId缺失");
+    public Message videoCommentList(
+            @PathVariable("subId") Integer subId, HttpServletRequest request) {
+        //        ApiAssert.notNull(subId, "参数subId缺失");
         GcSubject sub = subjectService.getSubNameBysubId(subId);
         if (sub == null) {
             throw new SystemException(I18NUtil.get(I18NUtil.get("guidecore.master.canFindSubject")));
@@ -307,31 +274,31 @@ public class VideoGuideCoreController extends GuideCoreController {
         return videoCommentService.getCommentStream(subId, user, sub, sys, request);
     }
 
-
     @ApiOperation(value = "获取评论详情列表", httpMethod = "GET")
     @GetMapping("/videoAllComment/{vid}")
     public Message videoComment(@PathVariable("vid") Integer vid, HttpServletRequest request) {
         GcUser user = new GcUser();
         Integer masterId = getHeaderMasterId(request);
         String token = request.getHeader("Authorization");
-        //List<GcVideoComment> videoAllComment = videoCommentService.getAllCommentByVideoId(vid,null);
-        if (null != token && !"".equals(token) && !"undefined".equals(token)){
+        // List<GcVideoComment> videoAllComment = videoCommentService.getAllCommentByVideoId(vid,null);
+        if (null != token && !"".equals(token) && !"undefined".equals(token)) {
             user = this.getGcUser();
         }
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
-        Integer pageSize=pageParam.getPageSize();
+        Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcVideoComment> videoAllComment = videoCommentService.getAllCommentByVideoIdAndUserId(vid,user.getId(),masterId);
+        List<GcVideoComment> videoAllComment =
+                videoCommentService.getAllCommentByVideoIdAndUserId(vid, user.getId(), masterId);
         SysSystem sys = this.getSystem();
         for (GcVideoComment comment : videoAllComment) {
             SysFile avatarFile = comment.getUserAvatarFile();
-            if (avatarFile != null) 
-            	comment.setUserAvatarUrl(sysFileService.getResFullUrl(avatarFile, request));
-            
-            SysFile commentFile=comment.getCommentFile();
+            if (avatarFile != null)
+                comment.setUserAvatarUrl(sysFileService.getResFullUrl(avatarFile, request));
+
+            SysFile commentFile = comment.getCommentFile();
             if (commentFile != null) {
                 sysFileService.getResFullUrl(commentFile, request);
                 commentFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(commentFile));
@@ -339,30 +306,32 @@ public class VideoGuideCoreController extends GuideCoreController {
         }
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return new Message().ok()
+        return new Message()
+                .ok()
                 .addData("commentList", videoCommentPageInfo)
-                .addData("systemTime",df.format(new Date()));
+                .addData("systemTime", df.format(new Date()));
     }
 
     @ApiOperation(value = "回复评论", httpMethod = "POST")
     @PostMapping("/saveComment")
-    public Message saveComment(@RequestBody GcVideoComment gcVideoComment,HttpServletRequest request){
+    public Message saveComment(
+            @RequestBody GcVideoComment gcVideoComment, HttpServletRequest request) {
         GcUser user = this.getGcUser();
         gcVideoComment.setUserId(user.getId());
         GcVideoComment comment = videoCommentService.getById(gcVideoComment.getReplyCommentId());
         Integer masterId = getHeaderMasterId(request);
-        if (comment.getReplyCommentId() == null && comment.getMainCommentId() == null){
+        if (comment.getReplyCommentId() == null && comment.getMainCommentId() == null) {
             gcVideoComment.setReplyCommentId(comment.getId());
             gcVideoComment.setMainCommentId(comment.getId());
-        }else{
+        } else {
             gcVideoComment.setReplyCommentId(comment.getId());
             gcVideoComment.setMainCommentId(comment.getMainCommentId());
         }
-        if(videoCommentService.insertComment(gcVideoComment)){
-            //发送事件通知
+        if (videoCommentService.insertComment(gcVideoComment)) {
+            // 发送事件通知
             GcMasterMessage masterMessage = new GcMasterMessage();
             masterMessage.setEventType(EventResType.TEXT_0);
-            if (gcVideoComment.getFileId()!=null){
+            if (gcVideoComment.getFileId() != null) {
                 SysFile sysFile = sysFileService.getById(gcVideoComment.getFileId());
                 masterMessage.setEventType(sysFile.getFileTypeIndex());
                 sysFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
@@ -373,29 +342,35 @@ public class VideoGuideCoreController extends GuideCoreController {
             masterMessage.setTargetUserId(gcVideoComment.getTargetUserId());
             masterMessage.setVideoCommentId(gcVideoComment.getId());
             masterMessageService.saveMasterMessage(masterMessage);
-            return new Message().ok().addData("list",gcVideoComment);
+            return new Message().ok().addData("list", gcVideoComment);
         }
         return new Message().error();
     }
 
-
-    @ApiOperation(value = "查询回答问题消息",httpMethod = "POST")
+    @ApiOperation(value = "查询回答问题消息", httpMethod = "POST")
     @PostMapping("/userNoteCommentMessageList")
-    public Message userNoteCommentMessageList(@RequestBody(required=false) MessageFIlterVo messageFIlterVo, HttpServletRequest request){
-        messageFIlterVo = messageCommon(messageFIlterVo,request);
-        List<Map<String, Object>> list = masterMessageService.getNoteCommentMessageList(messageFIlterVo,request);
-        PageInfo<Map<String, Object>> page=new PageInfo<Map<String, Object>>(list);
+    public Message userNoteCommentMessageList(
+            @RequestBody(required = false) MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
+        messageFIlterVo = messageCommon(messageFIlterVo, request);
+        List<Map<String, Object>> list =
+                masterMessageService.getNoteCommentMessageList(messageFIlterVo, request);
+        PageInfo<Map<String, Object>> page = new PageInfo<Map<String, Object>>(list);
 
-        Message m=new Message().ok("获取成功");
-        if(request.getHeader(PageParam.pageSizeStr)!=null && request.getHeader(PageParam.pageNumStr)!=null) {
+        Message m = new Message().ok("获取成功");
+        if (request.getHeader(PageParam.pageSizeStr) != null
+                && request.getHeader(PageParam.pageNumStr) != null) {
             m.addData("eventList", page);
-        }else {
+        } else {
             m.addData("eventList", list);
         }
-        if(messageFIlterVo.getGroupId()!=null) {
+        if (messageFIlterVo.getGroupId() != null) {
             messageFIlterVo.setReadState(TableConstant.gcMasterMessage_readState_0Unread);
-            Integer evidenceNum= userEventResourceService.countALLResourceListByGcMasterMessageTargetUserId(messageFIlterVo);
-            Integer answerNum= userEventResourceService.countAnswerMessageListByGcMasterMessageTargetUserId(messageFIlterVo);
+            Integer evidenceNum =
+                    userEventResourceService.countALLResourceListByGcMasterMessageTargetUserId(
+                            messageFIlterVo);
+            Integer answerNum =
+                    userEventResourceService.countAnswerMessageListByGcMasterMessageTargetUserId(
+                            messageFIlterVo);
 
             TeacherMesNumVo tmnVo = new TeacherMesNumVo();
             tmnVo.setEvidenceNum(evidenceNum);
@@ -405,111 +380,115 @@ public class VideoGuideCoreController extends GuideCoreController {
         return m;
     }
 
-    @ApiOperation(value = "查询评论",httpMethod = "GET")
+    @ApiOperation(value = "查询评论", httpMethod = "GET")
     @GetMapping("/selectComment")
-    public Message selectComment(Integer commentId,HttpServletRequest request){
+    public Message selectComment(Integer commentId, HttpServletRequest request) {
         List<GcVideoComment> list = videoCommentService.selectCommentByMainCommentId(commentId);
         for (GcVideoComment comment : list) {
             SysFile avatarFile = comment.getUserAvatarFile();
             if (avatarFile != null)
                 comment.setUserAvatarUrl(sysFileService.getResFullUrl(avatarFile, request));
 
-            SysFile commentFile=comment.getCommentFile();
+            SysFile commentFile = comment.getCommentFile();
             if (commentFile != null) {
                 sysFileService.getResFullUrl(commentFile, request);
                 sysFileService.getVideoSnapshotUrl(commentFile);
             }
         }
-        return new Message().ok().addData("commentList",list);
+        return new Message().ok().addData("commentList", list);
     }
-
 
     @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
     @PostMapping("/createVideoPlayRecordAndNode")
-    public Message createVideoPlayRecordAndNode(@RequestBody GcUserVideoPlay userVideoPlay, HttpServletRequest request) {
+    public Message createVideoPlayRecordAndNode(
+            @RequestBody GcUserVideoPlay userVideoPlay, HttpServletRequest request) {
         Integer masterId = request.getIntHeader("masterId");
         GcUser user = this.getGcUser();
-        return gvgMasterService.createVideoPlayRecordAndNode(userVideoPlay,request,EnvType.PT.getCode(), user,masterId,this.getSystem());
+        return gvgMasterService.createVideoPlayRecordAndNode(
+                userVideoPlay, request, EnvType.PT.getCode(), user, masterId, this.getSystem());
     }
-
-
-
 
     @ApiOperation(value = "记录视频播放的时间", httpMethod = "POST")
     @PostMapping("/recordVideoPlayTime")
-    public Message recordVideoPlayTime(@RequestBody GcUserVideoPlaysNode videoPlaysNode, HttpServletRequest request) {
+    public Message recordVideoPlayTime(
+            @RequestBody GcUserVideoPlaysNode videoPlaysNode, HttpServletRequest request) {
 
         Integer endTime = videoPlaysNode.getEndTime();
-        GcUserVideoPlaysNode oldVideoPlayNode= videoPlaysNodeService.getVideoPlayNodeByNodeId(videoPlaysNode.getId());
+        GcUserVideoPlaysNode oldVideoPlayNode =
+                videoPlaysNodeService.getVideoPlayNodeByNodeId(videoPlaysNode.getId());
         oldVideoPlayNode.setEndTime(endTime);
-        if (videoPlaysNodeService.saveOrUpdate(oldVideoPlayNode))
-            return new Message().ok("记录成功");
-        else
-            return new Message().ok("记录失败");
-
+        if (videoPlaysNodeService.saveOrUpdate(oldVideoPlayNode)) return new Message().ok("记录成功");
+        else return new Message().ok("记录失败");
     }
 
-    
     @ApiOperation(value = "回答问题通知-老师", httpMethod = "POST")
     @PostMapping("/getAnswerMessageList")
-    public Message getAnswerMessageList(@RequestBody(required=false) MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
-    	//@RequestBody(required=false) MessageFIlterVo messageFIlterVo,
-//    	MessageFIlterVo messageFIlterVo = null;
-        Message m=new Message().ok("获取成功");
-    	messageFIlterVo = messageCommon(messageFIlterVo,request);
+    public Message getAnswerMessageList(
+            @RequestBody(required = false) MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
+        // @RequestBody(required=false) MessageFIlterVo messageFIlterVo,
+        //    	MessageFIlterVo messageFIlterVo = null;
+        Message m = new Message().ok("获取成功");
+        messageFIlterVo = messageCommon(messageFIlterVo, request);
 
-    	if(null!=messageFIlterVo.getEventId()) {
+        if (null != messageFIlterVo.getEventId()) {
             GcEvent gcEvent = eventService.getById(messageFIlterVo.getEventId());
             GcVideo gcVideo = videoService.getById(gcEvent.getVideoId());
             GcSubject gcSubject = subjectService.getById(gcVideo.getSubId());
             GcSubject gcSubject0 = subjectService.getById(gcSubject.getFid());
             gcEvent.setSub0Name(gcSubject0.getName());
-            m.addData("event",gcEvent);
+            m.addData("event", gcEvent);
         }
-         
-         List<Map<String, Object>> list = userEventResourceService.getAnswerMessageListByGcMasterMessageTargetUserId(messageFIlterVo,this.getSystem(),request);
-//         List<Map<String, Object>> orderList = list.stream().sorted(Comparator.comparing(ma))
-         PageInfo<Map<String, Object>> page=new PageInfo<Map<String, Object>>(list);
-         for(Map<String,Object> map : list){
-             SysFile sysFile = new SysFile();
-             if(null!=map.get("subjectAvatarFileUrl") && null!=map.get("subjectAvatarSaveType")) {
-                 sysFile.setFileUrl(map.get("subjectAvatarFileUrl").toString());
-                 sysFile.setSaveType(Integer.parseInt(map.get("subjectAvatarSaveType").toString()));
-                 String fileFullUrl = sysFileService.getResFullUrl(sysFile,request);
-                 map.put("avatarFullFileUrl",fileFullUrl);
-             }
-         }
 
-         if(request.getHeader(PageParam.pageSizeStr)!=null && request.getHeader(PageParam.pageNumStr)!=null) {
-        	 m.addData("answerMessageList", page);
-         }else {
-        	 m.addData("answerMessageList", list);
-         }
-         
-         if(messageFIlterVo.getGroupId()!=null) {
-        	 messageFIlterVo.setReadState(TableConstant.gcMasterMessage_readState_0Unread);
-        	Integer evidenceNum= userEventResourceService.countALLResourceListByGcMasterMessageTargetUserId(messageFIlterVo);
-        	Integer answerNum= userEventResourceService.countAnswerMessageListByGcMasterMessageTargetUserId(messageFIlterVo);
-        	 
-        	TeacherMesNumVo tmnVo = new TeacherMesNumVo();
-        	tmnVo.setEvidenceNum(evidenceNum);
-     		tmnVo.setAnswerNum(answerNum);
-     		m.addData("messageNum", tmnVo);
-         }
-         
-        return m;	 
+        List<Map<String, Object>> list =
+                userEventResourceService.getAnswerMessageListByGcMasterMessageTargetUserId(
+                        messageFIlterVo, this.getSystem(), request);
+        //         List<Map<String, Object>> orderList = list.stream().sorted(Comparator.comparing(ma))
+        PageInfo<Map<String, Object>> page = new PageInfo<Map<String, Object>>(list);
+        for (Map<String, Object> map : list) {
+            SysFile sysFile = new SysFile();
+            if (null != map.get("subjectAvatarFileUrl") && null != map.get("subjectAvatarSaveType")) {
+                sysFile.setFileUrl(map.get("subjectAvatarFileUrl").toString());
+                sysFile.setSaveType(Integer.parseInt(map.get("subjectAvatarSaveType").toString()));
+                String fileFullUrl = sysFileService.getResFullUrl(sysFile, request);
+                map.put("avatarFullFileUrl", fileFullUrl);
+            }
+        }
+
+        if (request.getHeader(PageParam.pageSizeStr) != null
+                && request.getHeader(PageParam.pageNumStr) != null) {
+            m.addData("answerMessageList", page);
+        } else {
+            m.addData("answerMessageList", list);
+        }
+
+        if (messageFIlterVo.getGroupId() != null) {
+            messageFIlterVo.setReadState(TableConstant.gcMasterMessage_readState_0Unread);
+            Integer evidenceNum =
+                    userEventResourceService.countALLResourceListByGcMasterMessageTargetUserId(
+                            messageFIlterVo);
+            Integer answerNum =
+                    userEventResourceService.countAnswerMessageListByGcMasterMessageTargetUserId(
+                            messageFIlterVo);
+
+            TeacherMesNumVo tmnVo = new TeacherMesNumVo();
+            tmnVo.setEvidenceNum(evidenceNum);
+            tmnVo.setAnswerNum(answerNum);
+            m.addData("messageNum", tmnVo);
+        }
+
+        return m;
     }
-    
-    private MessageFIlterVo messageCommon(MessageFIlterVo messageFIlterVo,HttpServletRequest request) {
-    	Integer masterId = getHeaderMasterId(request);
-   	 GcUser user = this.getGcUser();
+
+    private MessageFIlterVo messageCommon(
+            MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
+        Integer masterId = getHeaderMasterId(request);
+        GcUser user = this.getGcUser();
         Integer userId = user.getId();
-        if(messageFIlterVo==null)messageFIlterVo= new MessageFIlterVo();
+        if (messageFIlterVo == null) messageFIlterVo = new MessageFIlterVo();
         messageFIlterVo.setThisUserId(userId);
         messageFIlterVo.setMasterId(masterId);
         return messageFIlterVo;
     }
-
 
     @ApiOperation(value = "添加、更新视频note", httpMethod = "POST")
     @PostMapping("/videoNote")
@@ -518,14 +497,15 @@ public class VideoGuideCoreController extends GuideCoreController {
         Integer masterId = request.getIntHeader("masterId");
         Integer noteId = jsonRequest.getInteger("noteId");
         Integer fileId = jsonRequest.getInteger("fileId");
-        
+
         Integer vid = jsonRequest.getInteger("vid");
         ApiAssert.notNull(note, "参数note缺失");
         ApiAssert.notNull(vid, "参数vid缺失");
 
         GcUser user = this.getGcUser();
-        if (null!=user&&null!=masterId) {
-            List<GcUserAccess> accessList = userAccessService.getAccessListByUserAndMasterId(user.getId(), masterId);
+        if (null != user && null != masterId) {
+            List<GcUserAccess> accessList =
+                    userAccessService.getAccessListByUserAndMasterId(user.getId(), masterId);
             if (null != accessList && accessList.size() != 0) {
                 if (accessList.size() != TableConstant.COMMON_ONE) {
                 } else {
@@ -541,7 +521,7 @@ public class VideoGuideCoreController extends GuideCoreController {
         videoNote.setNoteContent(note);
         videoNote.setUserId(user.getId());
         videoNote.setMasterId(masterId);
-        if (null!=fileId){
+        if (null != fileId) {
             videoNote.setFileId(fileId);
             SysFile file = sysFileService.getById(fileId);
             file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
@@ -550,9 +530,6 @@ public class VideoGuideCoreController extends GuideCoreController {
 
         if (userNoteService.saveOrUpdate(videoNote))
             return new Message().ok("添加成功").addData("videoNote", videoNote);
-        else
-            return new Message().error("添加失败");
+        else return new Message().error("添加失败");
     }
-
-
 }
