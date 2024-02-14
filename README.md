@@ -1,6 +1,5 @@
 # arena-hub-backend
 Visual Native / Powtoon Backend Java
-#### Description
 
 #### Software Architecture
 Software architecture description
@@ -82,7 +81,8 @@ Software architecture description
     ```
 5. The java image tag is hard-coded in docker-compose and it's 2.1 
     In case of the image rebuild, the latest image will be taken even if you didn't retag it. So before the image rebuild stop the finch-compose, rebuild the image and start compose.
-6. In case a new database should be uploaded, shutdown the compose, download the new one from the bucket (see 2) and replace the old `dump.sql`. Run compose up, it should initialize and load a new dump.
+6. In case a new database should be uploaded, shutdown the compose, download the new dump file from the bucket (see step 2) and replace the old `dump.sql` in the project  root directory. Run compose up, it should initialize and load a new database.
+
 {**add a new section in case we decide to run backend locally not using docker image**}
       
 #### Contribution
