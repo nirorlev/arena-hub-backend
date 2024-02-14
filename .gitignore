@@ -2,3 +2,4 @@
 /.idea
 *.patch
 *.iml
+dump.sql
