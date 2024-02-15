@@ -1090,7 +1090,7 @@ public class PowtoonController extends GuideCoreController {
 		}*/
 		ptLoginConfig = getPtConfig(ptLoginConfig);
 		return new Message().ok().addData("clientId",ptLoginConfig.getClientId())
-				.addData("ptRootURL",ptLoginConfig.getPtRootUrl()).addData("clientSecret",ptLoginConfig.getClientSecret())
+				.addData("ptRootURL",ptLoginConfig.getPtRootUrl())
 				.addData("test1027","updated2022-10-27")
 				.addData("ptLoginConfig",ptLoginConfig)
 				.addData("测试",new Date());
@@ -2467,7 +2467,6 @@ public class PowtoonController extends GuideCoreController {
 			body.put("client_id",ptLoginConfig.getClientId());
 			body.put("grant_type","refresh_token");
 			body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:"+user.getUsername()));
-			body.put("client_secret",ptLoginConfig.getClientSecret());
 			String JsonRequest = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken(),body);
 			JSONObject requestJson = JSONObject.parseObject(JsonRequest);
 			accessToken = requestJson.getString("access_token");
