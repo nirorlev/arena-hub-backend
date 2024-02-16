@@ -15,7 +15,6 @@ services:
       MYSQL_PASSWORD: userpass240109
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql        
     command: ["mysqld", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
     ports:
       - 3306:3306

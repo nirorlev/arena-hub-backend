@@ -27,16 +27,8 @@ Software architecture description
 
 #### Instructions
 1. Clone this repository
-2. Get `dump.sql` zipped file from s3 bucket
-    ```bash
-    wget https://powtoon-dev-develop-static.s3.amazonaws.com/arena-hub-be-db-dump/dump.sql.tar.gz
-    unzip dump.sql.tar.gz
-    ```
-3. Copy `dump.sql` to the project root directory: `arena-hub-backend`:
-    ```bash
-    cd arena-hub-backend/
-    cp your_location/dump.sql .
-    ```
+2. Run mysql `docker-compose up mysql-db -d`
+3. Ask the team for a fresh snapshot of the database and load it into mysql using docker exec.
 4. Run maven:
     ```bash
     cd guide-core-java/code/guidecore-server
@@ -81,7 +73,6 @@ Software architecture description
     ```
 5. The java image tag is hard-coded in docker-compose and it's 2.1 
     In case of the image rebuild, the latest image will be taken even if you didn't retag it. So before the image rebuild stop the finch-compose, rebuild the image and start compose.
-6. In case a new database should be uploaded, shutdown the compose, download the new dump file from the bucket (see step 2) and replace the old `dump.sql` in the project  root directory. Run compose up, it should initialize and load a new database.
 
 {**add a new section in case we decide to run backend locally not using docker image**}
       
