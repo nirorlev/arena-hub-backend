@@ -6,13 +6,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: PtLoginConfig
- * @projectName jeeplus
- * @description: TODO
- * @date 2022/12/9/00912:32
- */
 @Data
 public class PtLoginConfig implements Serializable {
 
