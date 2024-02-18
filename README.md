@@ -11,7 +11,7 @@ Software architecture description
     * maven
     * openjdk 15.0
     * redis 6.2
-    * mysql 5.7
+    * mysql 5.7/mariadb 10.2
     * pdp-v2
   
 2. For running on docker containers, install the followings:
@@ -25,28 +25,33 @@ Software architecture description
     ```
     {**in case of issues with finch use docker-compose instead**}
 
-#### Instructions
-1. Clone this repository
-2. Run mysql `docker-compose up mysql-db -d`
-3. Ask the team for a fresh snapshot of the database and load it into mysql using docker exec.
-4. Run maven:
+#### Instruction to run the project locally
+1. Go to development dir
     ```bash
-    cd guide-core-java/code/guidecore-server
-    mvn -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+    cd development
     ```
-    As a result `target` folder should be created
-5. Build docker image in `guide-core-java/code/guidecore-server` directory:
+2. Pull the latest sql dump
     ```bash
-    finch build --platform linux/amd64 --tag arena-be-java:2.1 .
-    # or use docker command: docker build --platform linux/amd64 -t arena-be-java:2.1 .
-    ```
-6. Go to the project root directory: `arena-hub-backend` and run:
-    ```bash
-    finch compose up # in case of issues run docker-compose up
-    ```
-7.  Test the application: localhost:9999/arena-hub/api/v1/guidecore/ 
+    make pull_sql_dump
 
-    The expected response:
+    ```
+3. Run mysql/redis/pdp containers with docker-compose/finch
+    ```bash
+    finch compose up
+    ```
+    This will use `docker-compose.yaml` to run mysql/redis/pdp
+4. Build the project:
+    ```bash
+    make build
+    ```
+    As a result guide-core-java/code/guidecore-server/target folder should be created
+
+5. Run the project:
+    ```bash
+    make run
+    ```
+6. Test the application -> `http://localhost:9999/arena-hub/api/v1/guidecore/`
+   The expected response:
     ```json
     {"meta":{"msg":"没有TOKEN","code":401,"success":false,"systemTime":"2024-02-05 07:31:36","timestamp":1707118296666}}
     ```
@@ -71,9 +76,10 @@ Software architecture description
     # inside container
     mysql -h $MYSQL_HOST -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD
     ```
-5. The java image tag is hard-coded in docker-compose and it's 2.1 
-    In case of the image rebuild, the latest image will be taken even if you didn't retag it. So before the image rebuild stop the finch-compose, rebuild the image and start compose.
-
+    Remove all docker containers with all data(including mysql DB):
+    ```bash
+    finch compose down -v --remove-orphans
+    ```
 {**add a new section in case we decide to run backend locally not using docker image**}
       
 #### Contribution
