@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  mysql-db:
+    image: mariadb:10.2
+    platform: linux/amd64
+    container_name: mysql-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_HOST: "%" # allow root login from any host
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_HOST: mysql-db
+      MYSQL_DATABASE: arena_hub
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass240109
+    volumes: 
+      - ./dump/:/docker-entrypoint-initdb.d/
+      - db_data:/var/lib/mysql
+    command: ["mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 3306:3306
+    networks:
+      - arena_dev
+
+  redis:
+    image: redis:6.2
+    container_name: redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASS: kyle2020TBfIU584
+    volumes:
+      - ./redis.conf:/etc/redis/redis.conf 
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    ports:
+      - 6379:6379
+    networks:
+      - arena_dev
+
+  pdp:
+    image: permitio/pdp-v2:latest
+    container_name: pdp
+    restart: unless-stopped
+    ports:
+      - 7000:7766
+    environment:
+      PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW 
+    networks:
+      - arena_dev
+
+networks:
+  arena_dev:
+    name: arena_dev
+volumes:
+  db_data:
