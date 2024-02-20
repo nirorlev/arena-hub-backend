@@ -241,4 +241,14 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         }
         return new ArrayList<>();
     }
+
+    @Override
+    public GcUserVideoAction getActionByAction(GcUserVideoAction userVideoAction) {
+        QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userVideoAction.getUserId());
+        queryWrapper.eq("type", userVideoAction.getType());
+        queryWrapper.eq("video_id", userVideoAction.getVideoId());
+        return getOne(queryWrapper);
+    }
+
 }
