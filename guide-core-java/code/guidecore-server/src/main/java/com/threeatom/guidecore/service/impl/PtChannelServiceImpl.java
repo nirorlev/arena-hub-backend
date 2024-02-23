@@ -377,11 +377,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         channelsFiles = channels.stream().filter(e->null!=e.getChannelAvatarFileId()).map(PtChannel::getChannelAvatarFileId).collect(Collectors.toList());
         List<Integer> imageFiles = channels.stream().filter(e->null!=e.getChannelImgFileId()).map(PtChannel::getChannelImgFileId).collect(Collectors.toList());
         channelsFiles.addAll(imageFiles);
-        List<SysFile> fileList = sysFileService.listByIds(channelsFiles);
-        fileList.forEach(i->{
-            i.setFullFileUrl(sysFileService.getResFullUrl(i,request));
-        });
-        Map<Integer,SysFile> sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+        Map<Integer,SysFile> sysFileMap = new HashMap<>();
+        if (TableConstant.COMMON_ZERO!=channelsFiles.size()){
+            List<SysFile> fileList = sysFileService.listByIds(channelsFiles);
+            fileList.forEach(i->{
+                i.setFullFileUrl(sysFileService.getResFullUrl(i,request));
+            });
+            sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+        }
 
         for(PtChannel channel : channels){
             if (null!=tagMap.get(channel.getId())){
