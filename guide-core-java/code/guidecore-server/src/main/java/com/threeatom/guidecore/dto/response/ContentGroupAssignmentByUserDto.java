@@ -1,4 +1,4 @@
-package com.threeatom.guidecore.dto;
+package com.threeatom.guidecore.dto.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

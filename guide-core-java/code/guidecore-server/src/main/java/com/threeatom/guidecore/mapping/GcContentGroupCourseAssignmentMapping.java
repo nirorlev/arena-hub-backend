@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.ContentGroupCourseAssignmentDto;
+import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,4 +18,6 @@ public interface GcContentGroupCourseAssignmentMapping {
     @Mapping(target = "source.user.lastName", source = "user.info.lastName")
     @Mapping(target = "source.user.profilePhotoUrl", source = "user.info.avatarFile.fileUrl")
     ContentGroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
+
+    GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto);
 }

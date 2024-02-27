@@ -5,6 +5,9 @@
 	<resultMap id="baseResultMap" type="GcContentGroupCourseAssignment">
 		<id property="id" column="id"/>
 
+		<result property="contentGroupId" column="access_id"/>
+		<result property="courseId" column="course_id"/>
+		<result property="userId" column="user_id"/>
 		<result property="mandatory" column="is_mandatory"/>
 		<result property="createdDate" column="created_date"/>
 		<result property="modifiedDate" column="modified_date"/>
