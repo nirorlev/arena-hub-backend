@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -48,6 +49,9 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -190,18 +194,19 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 //	@Value("${channel.id:0}")
 //	private List<Integer> channelIdList;
 
-	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system,GcUser user){
+	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system,GcUser user) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Message message  = new Message();
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
 		if (null!=user){
+		ExecutorService executor = Executors.newFixedThreadPool(3);//做3个线程
+		executor.submit(() -> {
 			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),user.getId(),new PageParam(request));
 			PageParam pageParam = new PageParam(request);
 			if (subjectList.size()>=pageParam.getPageSize()){
 				subjectList =subjectList.subList(TableConstant.COMMON_ZERO,pageParam.getPageSize());
 			}
-			//Discover courses-课程
 			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),user.getId(),new PageParam(request));
 
 			//两个课程都要进度等详细信息,放一起查询,避免两次查
@@ -284,10 +289,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						identifyingList.add(TableConstant.COMMON_TWO);
 					}
 					//未开始
-					/*if (null==li.getPercents()||li.getPercents().equals(0)){
+					if (null==li.getPercents()||li.getPercents().equals(0)){
 						li.setIdentifying(TableConstant.COMMON_ZERO);
 						identifyingList.add(TableConstant.COMMON_ZERO);
-					}*/
+					}
 					//证书
 					if (null!=li.getCertificatesFlag()&&li.getCertificatesFlag().equals(TableConstant.COMMON_ONE)){
 						identifyingList.add(TableConstant.COMMON_FOUR);
@@ -295,6 +300,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					li.setIdentifyings(identifyingList);
 				}
 			}
+			String json = JSON.toJSONString(myMaySubject,SerializerFeature.DisableCircularReferenceDetect);
+			myMaySubject =JSONArray.parseArray(json,GcSubject.class);
 
 			//subjectList的循环
 			if(subjectList != null && subjectList.size() > 0){
@@ -359,11 +366,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					li.setIdentifyings(identifyingList);
 				}
 			}
-
+			//String json1 = JSON.toJSONString(subjectList,SerializerFeature.DisableCircularReferenceDetect);
+			//subjectList =JSONArray.parseArray(json1,GcSubject.class);
 			PageInfo<GcSubject> subjectPageInfo = new PageInfo<>(subjectList);
-
 			message.ok().addData("subjectList", subjectPageInfo);
-
 			//Discover courses-课程
 			PageInfo<GcSubject> myMaySubjectPage = new PageInfo<>(myMaySubject);
 			message.addData("discoverCourses",myMaySubjectPage);
@@ -375,46 +381,59 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			channelPageInfo = new PageInfo<>(channelPage);
 			message.addData("channelVideoPage",channelPageInfo);
 
-			//playlist
-			List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
-			List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-			List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtNewHomePlayList(user.getId(), gcMaster.getId(),recommenFolderIds,request);
-			for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
-				//缩略图
-				if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-					SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-					String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
-					if (null!=gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)){
-						gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).setVideoFile(sysFile);
-						gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile().setSnapshotUrl(fullfileurl);
-					}
-					gcUserSaveFolder.setSnapshotUrl(fullfileurl);
-				}
-			}
-			PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-			message.addData("playList",recommenFolderListPageInfo);
+		});
 
+			executor.submit(() -> {
+				//My subscriptions-channel 我已订阅的(不含我创建的)；订阅时间排序
+				List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(user.getId(),request,gcMaster.getId());
+				PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
+				message.addData("subscriptionsChannel",pageInfo);
+				//playlist
+				List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
+				List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
+				List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtNewHomePlayList(user.getId(), gcMaster.getId(),recommenFolderIds,request);
+
+				List<Integer> firstVideos = recommenFolderList.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
+				List<SysFile> fileList = sysFileService.listByIds(firstVideos);
+				fileList.forEach(i->{
+					i.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(i));
+				});
+				Map<Integer,SysFile> firstVideoMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+
+				for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
+					//缩略图
+					if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())&&null!=firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
+						//SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
+						//String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
+						SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
+						if (null!=gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)){
+							gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).setVideoFile(sysFile);
+							gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile().setSnapshotUrl(sysFile.getSnapshotUrl());
+						}
+						gcUserSaveFolder.setSnapshotUrl(sysFile.getSnapshotUrl());
+					}
+				}
+
+				String playlistJson = JSON.toJSONString(recommenFolderList,SerializerFeature.DisableCircularReferenceDetect);
+				recommenFolderList =JSONArray.parseArray(playlistJson,GcUserSaveFolder.class);
+				PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
+				message.addData("playList",recommenFolderListPageInfo);
+			});
+
+		executor.submit(()->{
 			//Trending Now-channel视频： 最多赞+最多观看的channel视频 （含自己的）
 			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(user.getId(),request,gcMaster.getId());
-			/*nowChannel.forEach(i->{
-				try {
-					i.getVideoFile().setUpdateTime(df.parse(i.getUpdateTime().toString()));
-				} catch (ParseException e) {
-					throw new RuntimeException(e);
-				}
-			});*/
 			PageInfo<PtChannel> nowChannelPage = new PageInfo<>(nowChannel);
 			message.addData("nowChannel",nowChannelPage);
+		});
 
-			//My subscriptions-channel 我已订阅的(不含我创建的)；订阅时间排序
-			List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(user.getId(),request,gcMaster.getId());
-			PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
-			message.addData("subscriptionsChannel",pageInfo);
-
+			executor.shutdown();
+			try {
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);//设置等待时间最大（即为不设置）
+			}catch (Exception exception){
+				exception.printStackTrace();
+			}
 		}
-		//LocalDateTime localDateTime = LocalDateTime.now();
-		//DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		//ZonedDateTime zdt01 = ZonedDateTime.now(); // 默认时区
 		message.addData("systemTime",df.format(new Date()));
 		return message;
 	}
