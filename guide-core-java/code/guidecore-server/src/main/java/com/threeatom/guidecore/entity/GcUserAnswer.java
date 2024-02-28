@@ -83,4 +83,7 @@ public class GcUserAnswer implements Serializable {
     @TableField(exist = false)
     private Integer ifAnswerRight;
 
+    @TableField(exist = false)
+    private GcUser user;
+
 }

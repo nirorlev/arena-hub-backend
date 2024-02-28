@@ -5,11 +5,37 @@
     <select id="getSysMenuList" resultType="com.threeatom.guidecore.entity.SysMenu">
         select * from sys_menu
         where `level` = 2
+        <if test="masterId != null ">
+            and master_id=#{masterId}
+        </if>
+        <if test="masterId == null ">
+            and master_id is null
+        </if>
         order by `order`
     </select>
     <select id="getLevel3List" resultType="com.threeatom.guidecore.entity.SysMenu">
         select * from sys_menu
         where `level` = 3
+        <if test="masterId != null ">
+           and master_id=#{masterId}
+        </if>
+        <if test="masterId == null ">
+            and master_id is null
+        </if>
         order by `order`
+    </select>
+    <select id="getParentIdList" resultType="java.lang.Integer">
+        SELECT * from sys_menu WHERE
+            (`key`="Admin" or `key`="Mentoring" or `key`="More from Arena")
+        and master_id =#{masterId}
+        ORDER BY update_time desc LIMIT 3
+    </select>
+    <select id="getChildLevelList" resultType="com.threeatom.guidecore.entity.SysMenu">
+        SELECT
+            *
+        FROM
+            sys_menu
+        WHERE
+            master_id=#{masterId} and parent_id is not NULL
     </select>
 </mapper>

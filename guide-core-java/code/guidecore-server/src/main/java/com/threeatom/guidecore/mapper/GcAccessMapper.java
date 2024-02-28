@@ -35,6 +35,10 @@ public interface GcAccessMapper extends BaseMapper<GcAccess> {
 
     List<GcAccess> getTeamAccessList(@Param("name")String name,@Param("masterId") Integer masterId,@Param("userId")Integer userId);
 
+    List<GcAccess> getTeamAccessSubjectNumAdminList(@Param("name")String name,@Param("masterId") Integer masterId,@Param("userId")Integer userId);
+
+    List<GcAccess> getTeamAccessSubjectNumList(@Param("name")String name,@Param("masterId") Integer masterId,@Param("userId")Integer userId);
+
     List<GcAccess> listAllAccess(@Param("query")Map<String, Object> params);
 
     List<GcAccess> getAccessBySubjectId(@Param("masterId") Integer masterId,@Param("id") Integer id);

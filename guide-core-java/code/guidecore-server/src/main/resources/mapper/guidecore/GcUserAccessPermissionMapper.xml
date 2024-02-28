@@ -164,6 +164,26 @@
         WHERE temp.id=uap.id;
         select row_count();
     </update>
+    <update id="updatePermissionData">
+        update
+        gc_user_access_permission p
+        left join gc_user_access uac on uac.id = p.user_access_id
+        left join gc_access ac on ac.id = uac.access_id
+
+        set p.sub_permission = ac.subject_json,
+            p.channel_permission = ac.channel_json,
+            p.must_subject_json = ac.must_subject_json,
+            p.may_subject_json = ac.may_subject_json,
+            p.subscribe_permission = ac.subscribe_json
+
+        where 1=1
+        <if test="null!=masterId">
+            and ac.master_id = #{masterId}
+        </if>
+        <if test="null!=userId">
+            and uac.user_id = #{userId}
+        </if>
+    </update>
 
     <select id="getPermissionByUserAccessId" resultMap="baseResultMap">
         SELECT *

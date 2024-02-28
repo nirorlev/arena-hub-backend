@@ -70,6 +70,11 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
         }
     }
 
+    @Override
+    public void updatePermissionData(Integer masterId,Integer userId) {
+        this.baseMapper.updatePermissionData(masterId,userId);
+    }
+
 /*    @Override
     public List<GcUserAccessPermission> getGcUserAccessPermissions(List<Integer> ids) {
         QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<>();

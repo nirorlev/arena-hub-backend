@@ -1,8 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
@@ -87,12 +86,22 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             PageHelper.startPage(pageNum, pageSize);
         }
         List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.getPtNewHomePlayList(userId, masterId,folderIdList,null);
+        List<Integer> fileIds = new ArrayList<>();
+        for (GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders) {
+            if (null!=gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
+                fileIds.add(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
+            }
+        }
+
+        List<SysFile> fileList = sysFileService.listByIds(fileIds);
+        for (SysFile file : fileList) {
+            file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
+        }
+        Map<Integer,SysFile> sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId,SysFile -> SysFile, (key1, key2) -> key2, LinkedHashMap::new));
+
         gcUserSaveFolders.forEach(i->{
-            if (null!=i.getUser().getInfo().getAvatarFileId()){
-                SysFile imgFile = sysFileService.getById(i.getUser().getInfo().getAvatarFileId());
-                String url = sysFileService.getResFullUrl(imgFile, request);
-                imgFile.setFullFileUrl(url);
-                i.getUser().getInfo().setAvatarFile(imgFile);
+            if (null!=i.getUser().getInfo().getAvatarFileId()&&null!=sysFileMap.get(i.getUser().getInfo().getAvatarFileId())){
+                i.getUser().getInfo().setAvatarFile(sysFileMap.get(i.getUser().getInfo().getAvatarFileId()));
             }
         });
         return gcUserSaveFolders;
@@ -166,6 +175,12 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                     gcUserSaveContent.getVideoFile().setSnapshotUrl(snapshotUrl);
                 }
             }
+            if (null!=gcUserSaveFolder&&null!=gcUserSaveFolder.getUser()&&null!=gcUserSaveFolder.getUser().getInfo()&&null!=gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
+                SysFile sysFile =sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
+                sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
+                gcUserSaveFolder.getUser().getInfo().setAvatarFile(sysFile);
+            }
+
         }
         return gcUserSaveFolders;
     }

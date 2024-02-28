@@ -38,6 +38,10 @@ public interface GcAccessService extends IService<GcAccess> {
 
     List<GcAccess> getTeamAccessList(String name, Integer masterId,Integer userId, HttpServletRequest request);
 
+    List<GcAccess> getTeamAccessSubjectNumList(String name, Integer masterId,Integer userId, List<Integer> subIds,HttpServletRequest request);
+
+    List<GcAccess> getTeamAccessSubjectNumAdminList(String name, Integer masterId, Integer userId,List<Integer> availableTypeFour,List<Integer> availableTypeOneAndThree,List<Integer> subIds);
+
     List<GcAccess> listAllAccess(Map<String, Object> params, HttpServletRequest request);
 
     Integer deleteAccess(Integer id);

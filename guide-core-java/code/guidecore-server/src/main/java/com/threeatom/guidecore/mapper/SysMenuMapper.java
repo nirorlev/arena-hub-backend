@@ -2,6 +2,7 @@ package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.entity.SysMenu;
+import io.swagger.models.auth.In;
 
 import java.util.List;
 
@@ -14,7 +15,11 @@ import java.util.List;
  */
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
-    List<SysMenu> getSysMenuList();
+    List<SysMenu> getSysMenuList(Integer masterId);
 
-    List<SysMenu> getLevel3List();
+    List<SysMenu> getLevel3List(Integer masterId);
+
+    List<Integer> getParentIdList(Integer masterId);
+
+    List<SysMenu> getChildLevelList(Integer masterId);
 }

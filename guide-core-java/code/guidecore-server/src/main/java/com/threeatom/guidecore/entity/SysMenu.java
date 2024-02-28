@@ -60,4 +60,7 @@ public class SysMenu {
      * 修改开关,1是 0否
      */
     private Integer updateSwitch;
+
+
+    private  Integer masterId;
 }

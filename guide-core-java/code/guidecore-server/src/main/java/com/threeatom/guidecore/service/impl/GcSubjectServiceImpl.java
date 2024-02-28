@@ -295,11 +295,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             List<Integer> idLists = this.baseMapper.selectSubjectByCreateUser(masterId,userId);
             Integer pageNum = pageParam.getPageNum();
             Integer pageSize=pageParam.getPageSize();
-
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
             }
             subjects = this.baseMapper.selectSubjectByNewIndexHome(userId,masterId,idLists);
+            for (GcSubject subject : subjects) {
+                subject.setIsToDo(TableConstant.COMMON_ZERO);
+            }
             //may
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
@@ -348,6 +350,29 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public Integer getNewMyAssignmentNew(Integer masterId,Integer userId){
         return this.baseMapper.getNewMyAssignmentNew(masterId,userId);
+    }
+
+    @Override
+    public void initJit(){
+        for (int i = 0; i < 30000; i++) {
+            // 加入一些无关紧要的操作
+            int result = 1 + 1;
+        }
+    }
+
+    @Override
+    public List<Integer> getUserCreateSubject(Integer masterId, Integer userId) {
+        return this.baseMapper.getUserCreateSubject(masterId,userId);
+    }
+
+    @Override
+    public List<Integer> getUserCreateSubjectAdmin(Integer masterId, Integer userId) {
+        return this.baseMapper.getUserCreateSubjectAdmin(masterId,userId);
+    }
+
+    @Override
+    public List<Integer> getUserPublicSubject(Integer masterId, Integer userId){
+        return this.baseMapper.getUserPublicSubject(masterId,userId);
     }
 
     @Override
@@ -1738,6 +1763,27 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             sysFileService.getResFullUrl(sysFile,request);
             sub.setSubDetailImgUrl(sysFile.getFullFileUrl());
         }
+        if (null!=sub.getCourseTags()){
+            QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("subject_id", sub.getId());
+            queryWrapper.in("master_id",masterId);
+            queryWrapper.in("type",TableConstant.COMMON_ONE);
+            ptTagsService.remove(queryWrapper);
+            List<String> tagList = sub.getCourseTags().toJavaList(String.class);
+            List<PtTags> ptTagsList = new ArrayList<>();
+            Integer finalMasterId = masterId;
+            tagList.forEach(i->{
+                PtTags newTags = new PtTags();
+                newTags.setMasterId(finalMasterId);
+                newTags.setTagText(i);
+                newTags.setSubjectId(sub.getId());
+                newTags.setType(TableConstant.COMMON_ONE);
+                newTags.setOrder(TableConstant.COMMON_ZERO);
+                ptTagsList.add(newTags);
+            });
+            ptTagsService.saveOrUpdateBatch(ptTagsList);
+        }
+
         return sub;
     }
 
