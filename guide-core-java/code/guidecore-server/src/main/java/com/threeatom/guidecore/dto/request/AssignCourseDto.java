@@ -2,6 +2,7 @@ package com.threeatom.guidecore.dto.request;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,4 +18,6 @@ public class AssignCourseDto {
     private Integer userId;
     @ApiModelProperty(notes = "Specifies whether the course is mandatory or not. Default is false")
     private Boolean mandatory = false;
+    @ApiModelProperty(notes = "The date when the course assignment is due", example = "2023-12-31")
+    private LocalDateTime deadline;
 }

@@ -9,6 +9,7 @@
 		<result property="courseId" column="course_id"/>
 		<result property="userId" column="user_id"/>
 		<result property="mandatory" column="is_mandatory"/>
+		<result property="deadline" column="deadline"/>
 		<result property="createdDate" column="created_date"/>
 		<result property="modifiedDate" column="modified_date"/>
 
@@ -143,6 +144,7 @@
 		SELECT
             cgca.id AS id,
             cgca.is_mandatory AS is_mandatory,
+            cgca.deadline AS deadline,
             cgca.created_date AS created_date,
             cgca.modified_date AS modified_date,
             <include refid="userColumns"/>,

@@ -20,15 +20,14 @@
             <column name="course_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="user_id" type="int">
-                <constraints nullable="false"/>
-            </column>
+            <column name="user_id" type="int" />
             <column name="access_id" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="is_mandatory" type="tinyint" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="deadline" type="timestamp" />
             <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>

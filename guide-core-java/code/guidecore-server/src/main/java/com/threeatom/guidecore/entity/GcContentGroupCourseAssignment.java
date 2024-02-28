@@ -31,6 +31,7 @@ public class GcContentGroupCourseAssignment implements Serializable {
 
     @TableField(value = "is_mandatory")
     private Boolean mandatory = false;
+    private LocalDateTime deadline;
 
     private LocalDateTime createdDate = LocalDateTime.now();
     private LocalDateTime modifiedDate = LocalDateTime.now();

@@ -31,4 +31,7 @@ public class ContentGroupCourseAssignmentDto {
 
     @ApiModelProperty(notes = "The date and time when the content group course assignment was last modified")
     private LocalDateTime modifiedDate = LocalDateTime.now();
+
+    @ApiModelProperty(notes = "The date when course assignment is due", example = "2023-12-31 00:00:00")
+    private LocalDateTime deadline = LocalDateTime.now();
 }
