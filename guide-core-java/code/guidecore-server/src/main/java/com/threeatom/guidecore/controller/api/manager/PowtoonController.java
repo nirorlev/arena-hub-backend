@@ -3637,7 +3637,7 @@ public class PowtoonController extends GuideCoreController {
 			ptChannelId = ptChannelService.getOne(queryWrapper).getId();
 		}
 		GcUser user = this.getGcUser();
-		boolean isFlag = true;//this.permitCheck(user, ActionsType.view, masterId, ResourceType.channel, ptChannelId,null,null);
+		boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.channel, ptChannelId,null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
