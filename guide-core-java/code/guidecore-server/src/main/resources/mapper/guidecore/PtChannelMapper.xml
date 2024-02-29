@@ -836,7 +836,14 @@
 
     <select id="indexPtChannels" resultMap="baseResultMap">
         select * from (
-        select channels.*,count(channels.userAccessId) as subscribeNum
+
+        select channels.*,
+        <if test="type != 0">
+            count(channels.userAccessId) as subscribeNum
+        </if>
+        <if test="type==0 and userId!=null">
+            count( if(channels.userAccessId!=#{userId},1,null) ) AS subscribeNum
+        </if>
         from (
         SELECT
         channel.*,
