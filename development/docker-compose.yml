@@ -36,6 +36,66 @@ services:
     networks:
       - arena_dev
 
+  akita:
+    container_name: akita
+    image: akitasoftware/cli:latest
+    depends_on:
+      - java-app
+    environment:
+      - AKITA_API_KEY_ID=apk_2nppsPiCcrqZ47ItyROX4r
+      - AKITA_API_KEY_SECRET=26c65159aa921d2a278b6fe2cd7491014f23a2f0f82f243550b1621735b9bbc3
+    network_mode: "service:java-app"
+    entrypoint: /akita apidump --service local-hub
+
+  java-app:
+    image: arena-be-java:2.1
+    platform: linux/amd64
+    # build:
+    #   context: .
+    #   dockerfile: ./guide-core-java/code/guidecore-server/Dockerfile
+    #   platform: linux/amd64
+    container_name: arena-java-app
+    # restart: unless-stopped
+    ports:
+      - 9999:9999
+    depends_on:
+      - mysql-db
+      - redis
+      - pdp
+    networks:
+      - arena_dev
+    environment:
+      START_ENVIRONMENT: user
+      FRONTENDPATH: arena-hub
+      REDIS_HOST: redis
+      REDIS_PASS: kyle2020TBfIU584
+      REDIS_PORT: '6379'
+      REDIS_SSL: 'false'
+      MYSQL_HOST: mysql-db
+      MYSQL_USER: user
+      MYSQL_PASS: userpass240109
+      MYSQL_DB_NAME: arena_hub
+      MYSQL_PORT: '3306'
+      MYSQL_SSL: 'false'
+      PERMIT_LICENSE_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
+  #     AWS_STS_REGIONAL_ENDPOINTS: regional
+  #     AWS_DEFAULT_REGION: us-east-1
+  #     AWS_REGION: us-east-1
+  #     AWS_ROLE_ARN: arn:aws:iam::861419891964:role/Powtoon-dev-arena-role
+  #     AWS_WEB_IDENTITY_TOKEN_FILE:
+  #     AWS_CLOUDFRONT_IDS:
+  #     AWS_ROLE_SESSION_NAME: S3Upload
+  #     AWS_S3_BUCKET: dev-arena-storage
+  #     AWS_S3_REGION: us-east-1
+  #     AWS_S3_SITE_BUCKET: dev-arena-site
+  #     CHANNEL_SUBJECT_ID_CSV: 1805,1806,1809,1832
+  #     GUIDE_API_PORT: '8080'
+  #     GUIDE_USER_STORE_CIDR: 0.0.0.0/0
+  #     GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
+  #     PDP_ADDRESS: http://localhost:7000
+  #     POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/
+  #     SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com
+
   pdp:
     image: permitio/pdp-v2:latest
     container_name: pdp

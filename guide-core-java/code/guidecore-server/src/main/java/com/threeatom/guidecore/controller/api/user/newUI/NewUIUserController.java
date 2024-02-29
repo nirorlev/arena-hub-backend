@@ -52,6 +52,7 @@ public class NewUIUserController extends GuideCoreController {
     @Autowired private GcVideoService gcVideoService;
     @Autowired private GcUserAccessService gcUserAccessService;
     @Autowired private GvgMasterService gvgMasterService;
+    @Autowired private GcUserVideoActionService gcUserVideoActionService;
 
     @ApiOperation(value = "获取课程页数据", httpMethod = "GET")
     @GetMapping("/getHomeData")
@@ -415,9 +416,26 @@ public class NewUIUserController extends GuideCoreController {
                 .addData("返回说明", "id：视频id，fileNum：文件数量，videoName：视频名称");
     }
 
+    @ApiOperation(value = "视频打星", httpMethod = "POST")
+    @PostMapping("/putStarValue")
+    public Message putStarValue(
+            @RequestBody GcUserVideoAction userVideoAction, HttpServletRequest request) {
+        ApiAssert.notNull(userVideoAction.getVideoId(), "视频id不可空");
+        ApiAssert.notNull(userVideoAction.getStarValue(), "视频id不可空");
+        userVideoAction.setUserId(this.getGcUser().getId());
+        userVideoAction.setType(TableConstant.gcUserVideoAction_type_star3);
+
+        GcUserVideoAction action =
+                gcUserVideoActionService.getActionByAction(userVideoAction); // 查看是否打过星
+        if (action != null) userVideoAction.setId(action.getId());
+
+        if (gcUserVideoActionService.saveOrUpdate(userVideoAction)) return new Message().ok("保存成功");
+        else return new Message().error("保存是吧");
+    }
+
     @ApiOperation(value = "修改个人信息", httpMethod = "POST")
     @PostMapping("/changeUserInfo")
-    public Message putStarValue(@RequestBody GcUserInfo info, HttpServletRequest request) {
+    public Message changeUserInfo(@RequestBody GcUserInfo info, HttpServletRequest request) {
         String username = info.getUsername();
         if (username != null) {
             GcUser existEmailUser = gcUserService.getUserByUserName(username);
