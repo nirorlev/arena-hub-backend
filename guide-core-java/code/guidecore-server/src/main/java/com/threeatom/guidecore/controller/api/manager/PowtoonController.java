@@ -255,6 +255,8 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private GcUserAccessExtService gcUserAccessExtService;
 
+	@Autowired
+	private  GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
 	@PostMapping("search")
@@ -2830,6 +2832,9 @@ public class PowtoonController extends GuideCoreController {
 			sub.setState(TableConstant.COMMON_ZERO);
 			gcAccessService.deleteSubIdAccess(masterId,sub.getId());
 			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
+		}
+		if (sub.getState() == TableConstant.COMMON_ONE) {
+			contentGroupCourseAssignmentService.save(user, sub);
 		}
 		gcSubjectService.saveSubInfo(sub,null,master,user,request);
 

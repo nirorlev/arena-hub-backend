@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUser;
 import java.util.List;
 
 public interface GcContentGroupCourseAssignmentService
@@ -11,4 +13,6 @@ public interface GcContentGroupCourseAssignmentService
     List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
 
     void assignCourse(AssignCourseDto assignCourseDto);
+
+    void save(GcUser user, GcSubject course);
 }
