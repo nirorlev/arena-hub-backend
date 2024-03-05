@@ -12,11 +12,11 @@ public interface GcContentGroupCourseAssignmentMapping {
     @Mapping(target = "courseTitle", source = "course.name")
     @Mapping(target = "courseId", source = "course.id")
     @Mapping(target = "courseImageUrl", source = "course.subImgFile.fileUrl")
-    @Mapping(target = "source.contentGroup.id", source = "access.id")
-    @Mapping(target = "source.contentGroup.name", source = "access.groupName")
-    @Mapping(target = "source.user.firstName", source = "user.info.firstName")
-    @Mapping(target = "source.user.lastName", source = "user.info.lastName")
-    @Mapping(target = "source.user.profilePhotoUrl", source = "user.info.avatarFile.fileUrl")
+    @Mapping(target = "source.contentGroup.id", source = "contentGroup.id")
+    @Mapping(target = "source.contentGroup.name", source = "contentGroup.groupName")
+    @Mapping(target = "source.user.firstName", source = "createdBy.info.firstName")
+    @Mapping(target = "source.user.lastName", source = "createdBy.info.lastName")
+    @Mapping(target = "source.user.profilePhotoUrl", source = "createdBy.info.avatarFile.fileUrl")
     ContentGroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
 
     GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto);

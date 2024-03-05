@@ -15,7 +15,7 @@ public class AssignCourseDto {
     @ApiModelProperty(notes = "The unique ID of the content group from which the course is to be assigned")
     private Integer contentGroupId;
     @ApiModelProperty(notes = "The unique ID of the user who assigns the course")
-    private Integer userId;
+    private Integer createdByUserId;
     @ApiModelProperty(notes = "Specifies whether the course is mandatory or not. Default is false")
     private Boolean mandatory = false;
     @ApiModelProperty(notes = "The date when the course assignment is due", example = "2023-12-31")

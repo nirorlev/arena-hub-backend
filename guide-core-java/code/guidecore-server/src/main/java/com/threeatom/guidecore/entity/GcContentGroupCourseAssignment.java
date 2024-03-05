@@ -17,17 +17,16 @@ public class GcContentGroupCourseAssignment implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    @TableField("access_id")
     private Integer contentGroupId;
     private Integer courseId;
-    private Integer userId;
+    private Integer createdByUserId;
 
     @TableField(exist = false)
     private GcSubject course;
     @TableField(exist = false)
-    private GcUser user;
+    private GcUser createdBy;
     @TableField(exist = false)
-    private GcAccess access;
+    private GcAccess contentGroup;
 
     @TableField(value = "is_mandatory")
     private Boolean mandatory = false;

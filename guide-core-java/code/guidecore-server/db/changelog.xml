@@ -20,8 +20,8 @@
             <column name="course_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="user_id" type="int" />
-            <column name="access_id" type="int">
+            <column name="created_by_user_id" type="int" />
+            <column name="content_group_id" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="is_mandatory" type="tinyint" defaultValue="0">
@@ -36,8 +36,8 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_access_id_fk"
-                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="access_id"
+        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_content_group_id_fk"
+                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="content_group_id"
                                  referencedTableName="gc_access" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
 
@@ -46,8 +46,8 @@
                                  referencedTableName="gc_subject" referencedColumnNames="id"
                                  onUpdate="CASCADE" onDelete="CASCADE"/>
 
-        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_user_id_fk"
-                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="user_id"
+        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_created_by_user_id_fk"
+                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="created_by_user_id"
                                  referencedTableName="gc_user" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
     </changeSet>
