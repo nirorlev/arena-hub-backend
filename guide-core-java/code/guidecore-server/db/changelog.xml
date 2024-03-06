@@ -51,5 +51,10 @@
                                  referencedTableName="gc_user" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
     </changeSet>
+    <changeSet id="migrate-subjects-from-json-to-content_group_course_assignment" author="vprokh">
+        <sqlFile path="sql/create_subject_migration_procedure.sql" relativeToChangelogFile="true" endDelimiter="//" stripComments="true" />
+        <sqlFile path="sql/migrate_subjects.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="sql/clean_up_subjects_migration_procedure.sql" relativeToChangelogFile="true"/>
+    </changeSet>
 
 </databaseChangeLog>
