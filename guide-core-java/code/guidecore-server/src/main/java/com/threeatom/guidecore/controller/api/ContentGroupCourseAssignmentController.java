@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,4 +45,12 @@ public class ContentGroupCourseAssignmentController {
         gcContentGroupCourseAssignmentService.assignCourses(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+
+    @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateCourseAssignment(
+        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto) {
+        gcContentGroupCourseAssignmentService.updateCourseAssignment(courseAssignmentId, assignCourseDto);
+        return ResponseEntity.ok().build();
+    }
+
 }

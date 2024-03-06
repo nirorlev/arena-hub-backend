@@ -52,6 +52,14 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public void updateCourseAssignment(Integer courseAssignmentId, AssignCourseDto assignCourseDto) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
+
+        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto);
+        updateById(contentGroupCourseAssignment);
+    }
+
+    @Override
     public void save(GcUser user, GcSubject course) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
 

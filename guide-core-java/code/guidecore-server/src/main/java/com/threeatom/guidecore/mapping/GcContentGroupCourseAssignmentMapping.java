@@ -5,6 +5,7 @@ import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper
 public interface GcContentGroupCourseAssignmentMapping {
@@ -20,4 +21,7 @@ public interface GcContentGroupCourseAssignmentMapping {
     ContentGroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
 
     GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto, Integer createdByUserId);
+
+    @Mapping(target = "modifiedDate", expression = "java(java.time.LocalDateTime.now())")
+    void update(@MappingTarget GcContentGroupCourseAssignment contentGroupCourseAssignment, AssignCourseDto assignCourseDto);
 }
