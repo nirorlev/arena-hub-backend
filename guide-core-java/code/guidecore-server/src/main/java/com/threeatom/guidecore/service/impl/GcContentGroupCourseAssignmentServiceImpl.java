@@ -1,12 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -44,8 +44,11 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourse(AssignCourseDto assignCourseDto) {
-        save(gcContentGroupCourseAssignmentMapping.map(assignCourseDto));
+    public void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment =
+            gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId());
+
+        save(contentGroupCourseAssignment);
     }
 
     @Override
@@ -68,9 +71,9 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourses(List<AssignCourseDto> assignCourseDto) {
-        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = assignCourseDto.stream()
-            .map(gcContentGroupCourseAssignmentMapping::map)
+    public void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDtos) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = assignCourseDtos.stream()
+            .map(assignCourseDto -> gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId()))
             .collect(Collectors.toList());
 
         saveBatch(contentGroupCourseAssignments);

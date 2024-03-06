@@ -13,11 +13,11 @@ public interface GcContentGroupCourseAssignmentService
         extends IService<GcContentGroupCourseAssignment> {
     List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
 
-    void assignCourse(AssignCourseDto assignCourseDto);
+    void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto);
 
     void save(GcUser user, GcSubject course);
 
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
 
-    void assignCourses(List<AssignCourseDto> assignCourseDto);
+    void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDto);
 }

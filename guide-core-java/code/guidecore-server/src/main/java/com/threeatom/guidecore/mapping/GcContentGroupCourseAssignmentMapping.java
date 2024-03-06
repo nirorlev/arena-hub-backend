@@ -19,5 +19,5 @@ public interface GcContentGroupCourseAssignmentMapping {
     @Mapping(target = "source.user.profilePhotoUrl", source = "createdBy.info.avatarFile.fileUrl")
     ContentGroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
 
-    GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto);
+    GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto, Integer createdByUserId);
 }
