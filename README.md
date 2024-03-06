@@ -11,7 +11,7 @@ Software architecture description
     * maven
     * openjdk 15.0
     * redis 6.2
-    * mysql 5.7/mariadb 10.2
+    * mysql 5.7
     * pdp-v2
   
 2. For running on docker containers, install the followings:
