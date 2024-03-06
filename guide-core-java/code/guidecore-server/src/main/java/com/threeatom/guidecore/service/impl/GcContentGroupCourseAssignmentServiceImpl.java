@@ -52,10 +52,10 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void updateCourseAssignment(Integer courseAssignmentId, AssignCourseDto assignCourseDto) {
+    public void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser, AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
 
-        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto);
+        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto, currentUser.getId());
         updateById(contentGroupCourseAssignment);
     }
 

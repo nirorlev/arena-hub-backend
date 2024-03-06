@@ -49,8 +49,9 @@ public class ContentGroupCourseAssignmentController {
 
     @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateCourseAssignment(
-        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto) {
-        gcContentGroupCourseAssignmentService.updateCourseAssignment(courseAssignmentId, assignCourseDto);
+        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
+        gcContentGroupCourseAssignmentService.updateCourseAssignment(
+            courseAssignmentId, gcUserService.getCurrentUser(request), assignCourseDto);
         return ResponseEntity.ok().build();
     }
 
