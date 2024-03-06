@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.CourseType;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
@@ -20,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class GcContentGroupCourseAssignmentServiceImpl
     extends ServiceImpl<GcContentGroupCourseAssignmentMapper, GcContentGroupCourseAssignment>
     implements GcContentGroupCourseAssignmentService {
@@ -42,7 +44,6 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    @Transactional
     public void assignCourse(AssignCourseDto assignCourseDto) {
         save(gcContentGroupCourseAssignmentMapping.map(assignCourseDto));
     }
@@ -51,40 +52,41 @@ public class GcContentGroupCourseAssignmentServiceImpl
     public void save(GcUser user, GcSubject course) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
 
-        contentGroupCourseAssignments.addAll(createMustTakeCourses(user, course));
-        contentGroupCourseAssignments.addAll(createsMayTakeCourses(user, course));
+        contentGroupCourseAssignments.addAll(createCoursesAssignment(user, course, CourseType.MANDATORY));
+        contentGroupCourseAssignments.addAll(createCoursesAssignment(user, course, CourseType.OPTIONAL));
 
         saveBatch(contentGroupCourseAssignments);
     }
 
-    private List<GcContentGroupCourseAssignment> createMustTakeCourses(GcUser user, GcSubject course) {
-        return createCourses(user, course, true);
+    @Override
+    public void save(GcUser user, List<Integer> courseIds, Integer contentGroupId, CourseType type) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = courseIds.stream()
+            .map(courseId -> createContentGroupCourseAssignment(user, courseId, contentGroupId, type))
+            .collect(Collectors.toList());
+
+        saveBatch(contentGroupCourseAssignments);
     }
 
-    private List<GcContentGroupCourseAssignment> createsMayTakeCourses(GcUser user, GcSubject course) {
-        return createCourses(user, course, false);
-    }
-
-    private List<GcContentGroupCourseAssignment> createCourses(GcUser user, GcSubject course, boolean isMandatory) {
-        List<Integer> courseIds = isMandatory ? course.getMustAccessIds() : course.getAccessIds();
+    private List<GcContentGroupCourseAssignment> createCoursesAssignment(GcUser user, GcSubject course, CourseType type) {
+        List<Integer> courseIds = type.isMandatory() ? course.getMustAccessIds() : course.getAccessIds();
 
         if (CollectionUtils.isEmpty(courseIds)) {
             return Collections.emptyList();
         }
 
         return courseIds.stream()
-            .map(courseId -> createContentGroupCourseAssignment(user, course, courseId, isMandatory))
+            .map(contentGroupId -> createContentGroupCourseAssignment(user, course.getId(), contentGroupId, type))
             .collect(Collectors.toList());
     }
 
     private GcContentGroupCourseAssignment createContentGroupCourseAssignment(
-        GcUser user, GcSubject course, Integer contentGroupId, boolean isMandatory) {
+        GcUser user, int courseId, Integer contentGroupId, CourseType courseType) {
         GcContentGroupCourseAssignment gcContentGroupCourseAssignment = new GcContentGroupCourseAssignment();
 
         gcContentGroupCourseAssignment.setCreatedByUserId(user.getId());
         gcContentGroupCourseAssignment.setContentGroupId(contentGroupId);
-        gcContentGroupCourseAssignment.setCourseId(course.getId());
-        gcContentGroupCourseAssignment.setMandatory(isMandatory);
+        gcContentGroupCourseAssignment.setCourseId(courseId);
+        gcContentGroupCourseAssignment.setMandatory(courseType.isMandatory());
 
         return gcContentGroupCourseAssignment;
     }
