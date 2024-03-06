@@ -17,7 +17,7 @@ import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
-import com.threeatom.guidecore.CourseType;
+import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.ActionsType;
 import com.threeatom.guidecore.constant.EnvType;
