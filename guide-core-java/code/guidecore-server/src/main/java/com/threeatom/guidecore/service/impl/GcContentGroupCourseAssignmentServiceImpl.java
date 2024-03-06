@@ -67,6 +67,15 @@ public class GcContentGroupCourseAssignmentServiceImpl
         saveBatch(contentGroupCourseAssignments);
     }
 
+    @Override
+    public void assignCourses(List<AssignCourseDto> assignCourseDto) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = assignCourseDto.stream()
+            .map(gcContentGroupCourseAssignmentMapping::map)
+            .collect(Collectors.toList());
+
+        saveBatch(contentGroupCourseAssignments);
+    }
+
     private List<GcContentGroupCourseAssignment> createCoursesAssignment(GcUser user, GcSubject course, CourseType type) {
         List<Integer> courseIds = type.isMandatory() ? course.getMustAccessIds() : course.getAccessIds();
 

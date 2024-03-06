@@ -36,4 +36,10 @@ public class ContentGroupCourseAssignmentController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PostMapping("/courses/assign")
+    public ResponseEntity<Void> assignCourses(@RequestBody List<AssignCourseDto> assignCourseDto) {
+        gcContentGroupCourseAssignmentService.assignCourses(assignCourseDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
 }
