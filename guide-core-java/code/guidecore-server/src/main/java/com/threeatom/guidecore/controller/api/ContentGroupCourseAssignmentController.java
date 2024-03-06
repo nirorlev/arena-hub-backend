@@ -33,16 +33,15 @@ public class ContentGroupCourseAssignmentController {
         return ResponseEntity.ok().body(gcContentGroupCourseAssignmentService.findByContentGroupId(contentGroupId));
     }
 
-    @PostMapping("/course/assign")
+    @PostMapping(value = "/course/assign", consumes = MediaType.APPLICATION_JSON_VALUE )
     public ResponseEntity<Void> assignCourse(@RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourse(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping("/courses/assign")
+    @PostMapping(value = "/courses/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> assignCourses(@RequestBody List<AssignCourseDto> assignCourseDto, HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourses(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
-
 }
