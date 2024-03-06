@@ -8,10 +8,13 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import java.util.List;
+import org.apache.commons.collections4.IterableGet;
 
 public interface GcContentGroupCourseAssignmentService
         extends IService<GcContentGroupCourseAssignment> {
     List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
+
+    List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 
     void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto);
 

@@ -131,6 +131,8 @@ public class HomeInfoController extends GuideCoreController {
 	private PtChannelContentService ptChannelContentService;
 	@Autowired
 	private PtChannelService ptChannelService;
+	@Autowired
+	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 
 	@ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
@@ -306,10 +308,6 @@ public class HomeInfoController extends GuideCoreController {
 	@GetMapping("/packageList")
 	public Message packageList(@RequestParam(required = false) Integer yearlyFlag, HttpServletRequest request) throws StripeException {
 		Message message = new Message();
-//		List<Integer> subscriptionIdList = new ArrayList<>();
-//		subscriptionIdList.add(subscriptionId1);
-//		subscriptionIdList.add(subscriptionId2);
-//		subscriptionIdList.add(subscriptionId3);
         Integer masterId = request.getIntHeader("masterId");
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
@@ -320,25 +318,17 @@ public class HomeInfoController extends GuideCoreController {
 		}
 		List<GcAccess> packageList = new ArrayList<>();
 		List<GcAccess> subcriptionPackageList = new ArrayList<>();
-		if(myPortalConfiguration.getFreeBookSummaryPortalId()==masterId){
+		List<Integer> assignedCourseIds = new ArrayList<>();
+
+		if(myPortalConfiguration.getFreeBookSummaryPortalId() == masterId){
 			packageList = gcAccessService.getAllPackage(masterId,new PageParam(request),null,subscriptionIdList);
 			List<Integer> newIdList = packageList.stream().map(GcAccess::getId).collect(Collectors.toList());
 			List<Integer> idList = new ArrayList<>();
-			List<Integer> subscriptionPackageId = new ArrayList<>();
 			for(Integer id : subscriptionIdList){
 				if(!newIdList.contains(id)){
 					idList.add(id);
 				}
 			}
-//			if(!newIdList.contains(subscriptionId1)){
-//				idList.add(subscriptionId1);
-//			}
-//			if(!newIdList.contains(subscriptionId2)){
-//				idList.add(subscriptionId2);
-//			}
-//			if(!newIdList.contains(subscriptionId3)){
-//				idList.add(subscriptionId3);
-//			}
 			subcriptionPackageList = gcAccessService.getAllPackage(masterId,new PageParam(request),idList,null);
 			packageList.addAll(subcriptionPackageList);
 		}else {
@@ -366,16 +356,18 @@ public class HomeInfoController extends GuideCoreController {
                 String fullUrl = sysFileService.getVideoSnapshotUrl(videoFile);
                 packages.setPackageSnapShotUrl(fullUrl);
 			}
-			allSubId.addAll(packages.getSubjectJson());
+			List<Integer> courseIdsByContentGroupId =
+				contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(packages.getId());
+			allSubId.addAll(courseIdsByContentGroupId);
 		}
-        List<Integer> subIds = allSubId.toJavaList(Integer.class);
-		if(subIds.size()!=TableConstant.COMMON_ZERO) {
+
+		if(assignedCourseIds.size()!=TableConstant.COMMON_ZERO) {
 			//计算package下所有课程的总时长,赋值到packagelist中
-			Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(subIds);
+			Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(assignedCourseIds);
 			for (Integer key : subjectsDurationMap.keySet()) {
 				for (GcAccess packages : packageList) {
 					Integer packageCourseTotalTime = Integer.parseInt(packages.getPackageCourseTotalTime().toString());
-					if (packages.getSubjectJson().contains(key)) {
+					if (contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(packages.getId()).contains(key)) {
 						Integer courseTimes = Integer.parseInt(subjectsDurationMap.get(key).getSubjectVideoDuration().toString());
 						packageCourseTotalTime += courseTimes;
 						packages.setPackageCourseTotalTime(packageCourseTotalTime.longValue());
@@ -387,7 +379,7 @@ public class HomeInfoController extends GuideCoreController {
 			Map<String, Object> videoParams = new HashMap<>(2);
 			Integer ids = TableConstant.COMMON_ZERO;
 			videoParams.put("ids", ids);
-			videoParams.put("subjectIds", subIds);
+			videoParams.put("subjectIds", assignedCourseIds);
 			videoParams.put("type", TableConstant.gcUserVideoAction_type_star3);
 			List<Integer> starKeys = new ArrayList<>();
 			Map<Integer, GcUserVideoAction> subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
@@ -402,7 +394,10 @@ public class HomeInfoController extends GuideCoreController {
 				for (GcAccess packages : packageList) {
 					Long PackageTotalStarUsers = packages.getPackageCourseStarUsers();
 					Double PackageAvgStars = packages.getPackageCourseAvgStars();
-					if (packages.getSubjectJson().contains(key)) {
+					List<Integer> courseIdsByContentGroupId =
+						contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(packages.getId());
+
+					if (courseIdsByContentGroupId.contains(key)) {
 						Long starUsers = subjectUserStar.get(key).getSubjectStarUsers();
 						Double avgStars = subjectUserStar.get(key).getSubjectStarAvg();
 						Integer times = TableConstant.COMMON_ZERO;
@@ -411,7 +406,7 @@ public class HomeInfoController extends GuideCoreController {
 						packages.setPackageCourseStarUsers(PackageTotalStarUsers);
 						packages.setPackageCourseAvgStars(PackageAvgStars);
 						for (Integer avgTimes : starKeys) {
-							if (packages.getSubjectJson().contains(avgTimes) & subjectUserStar.get(avgTimes).getSubjectStarAvg() != TableConstant.DOUBLE_ZERO) {
+							if (courseIdsByContentGroupId.contains(avgTimes) & subjectUserStar.get(avgTimes).getSubjectStarAvg() != TableConstant.DOUBLE_ZERO) {
 								times++;
 							}
 						}
@@ -476,9 +471,9 @@ public class HomeInfoController extends GuideCoreController {
 		Message message = new Message();
 		Integer masterId = request.getIntHeader("masterId");
 		GcMaster gcMaster = masterService.getMasterById(masterId);
-//		GcUser user = this.getGcUser();
-		SysSystem sys = this.getSystem();
         GcAccess gcAccess = gcAccessService.getAccessById(accessId);
+		List<Integer> contentGroupIds = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(gcAccess.getId());
+
         gcAccess.setOwnedFlag(TableConstant.COMMON_ZERO);
         if(null != gcAccess.getPackageImgId()) {
 			SysFile imgFile = sysFileService.getById(gcAccess.getPackageImgId());
@@ -493,25 +488,21 @@ public class HomeInfoController extends GuideCoreController {
         	videoFile.setSnapshotUrl(snapShotUrl);
 			gcAccess.setPackageVideoFile(videoFile);
 		}
-        List<Integer> subIds = new ArrayList<>();
-		for(int i=0;i<gcAccess.getSubjectJson().size();i++){
-			subIds.add(Integer.parseInt(gcAccess.getSubjectJson().get(i).toString()));
-		}
 		//时长
-		Map<Integer, GcSubject> subjectsDurationMap=newUiGcSubjectService.sumSubjectDuration(subIds);
+		Map<Integer, GcSubject> subjectsDurationMap=newUiGcSubjectService.sumSubjectDuration(contentGroupIds);
 		Long learningHours = TableConstant.LONG_ZERO;
 		for(Integer key : subjectsDurationMap.keySet()){
             learningHours += subjectsDurationMap.get(key).getSubjectVideoDuration();
 		}
 
 		//视频数量
-		List<GcVideo> videoList = gcVideoService.getVideosBySubjectIds0(subIds,TableConstant.COMMON_ZERO,masterId,request, EnvType.GC.getCode());
+		List<GcVideo> videoList = gcVideoService.getVideosBySubjectIds0(contentGroupIds,TableConstant.COMMON_ZERO,masterId,request, EnvType.GC.getCode());
 		Map<Integer,List<GcVideo>> videoMap = videoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 		//星级
 		Map<String, Object> videoParams = new HashMap<>(2);
 		Integer ids = TableConstant.COMMON_ZERO;
 		videoParams.put("ids",ids);
-		videoParams.put("subjectIds", subIds);
+		videoParams.put("subjectIds", contentGroupIds);
 		videoParams.put("type", TableConstant.gcUserVideoAction_type_star3);
 		Map<Integer, GcUserVideoAction> subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
 		Double totalStars = TableConstant.DOUBLE_ZERO;
@@ -535,10 +526,10 @@ public class HomeInfoController extends GuideCoreController {
 		Map<String, Object> subjectParams = new HashMap<>();
         subjectParams.put("userId",TableConstant.COMMON_ZERO);
 		subjectParams.put("masterId",masterId);
-		subjectParams.put("subjectIds",subIds);
+		subjectParams.put("subjectIds",contentGroupIds);
 
-		List<GcSubject> subjects = subjectService.getSubListByIds(subIds,request);
-		List<GcSubject> level1Subjects = subjectService.selectAllLevel1SubList(subIds,null,masterId);
+		List<GcSubject> subjects = subjectService.getSubListByIds(contentGroupIds,request);
+		List<GcSubject> level1Subjects = subjectService.selectAllLevel1SubList(contentGroupIds,null,masterId);
 		for(GcSubject level1Subject : level1Subjects){
 			if(videoMap.get(level1Subject.getId())!=null){
 				level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
@@ -573,7 +564,7 @@ public class HomeInfoController extends GuideCoreController {
 		}
 
 		String token = request.getHeader("Authorization");
-		if(null!=token && !"".equals(token) && !("undefined").equals(token)){
+		if(null!=token && !token.isEmpty() && !("undefined").equals(token)){
 			GcUser user = this.getGcUser();
 			if (user != null) {
 				}else {
@@ -586,11 +577,6 @@ public class HomeInfoController extends GuideCoreController {
 				}
 		}
 
-
-
-//		gcAccess.setSubjects(subjects);
-
-
 		return message.ok().addData("package",gcAccess)
 				.addData("Modules",level1Subjects.size())
 				.addData("learningHours",learningHours)
@@ -600,11 +586,6 @@ public class HomeInfoController extends GuideCoreController {
 				.addData("master",gcMaster)
 				.addData("subjectsLevel0",subjects);
 	}
-
-	/*@PostMapping("/portalBatchSendEmail")
-	public Message portalBatchSendEmail(@RequestBody GcSubject gcSubject, HttpServletRequest request) throws Exception {
-		return new Message().ok().addData("test",emailService.batchSendEmail(gcSubject.getId(),request.getIntHeader("masterId")));
-	}*/
 
 	@GetMapping("/sitemap")
 	public void allSubIdVidInMaster(HttpServletRequest request, HttpServletResponse httpServletResponse) throws IOException, ParseException {

@@ -44,6 +44,20 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            this.baseMapper.findByContentGroupId(contentGroupId);
+
+        if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
+            return Collections.emptyList();
+        }
+
+        return contentGroupCourseAssignments.stream()
+            .map(GcContentGroupCourseAssignment::getCourseId)
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
             gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId());
