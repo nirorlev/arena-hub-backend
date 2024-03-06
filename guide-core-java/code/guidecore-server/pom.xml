@@ -33,6 +33,7 @@
         <spotless.google.format.version>1.17.0</spotless.google.format.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
+        <liquibase.version>4.25.1</liquibase.version>
     </properties>
 
     <dependencies>
@@ -441,6 +442,12 @@
             <version>${mapstruct.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+
     </dependencies>
 
 
@@ -483,7 +490,7 @@
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.25.1</version>
+                <version>${liquibase.version}</version>
                 <configuration>
                     <propertyFile>liquibase.properties</propertyFile>
                 </configuration>

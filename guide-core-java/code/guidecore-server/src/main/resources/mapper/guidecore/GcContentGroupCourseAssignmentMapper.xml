@@ -100,8 +100,8 @@
 		FROM gc_content_group_course_assignment cgca
 			JOIN gc_subject s ON cgca.course_id = s.id
 			JOIN gc_access a ON cgca.content_group_id = a.id
-			JOIN gc_user u ON cgca.created_by_user_id = u.id
-			JOIN gc_user_info ui ON u.info_id = ui.id
+			LEFT JOIN gc_user u ON cgca.created_by_user_id = u.id
+			LEFT JOIN gc_user_info ui ON u.info_id = ui.id
 			LEFT JOIN sys_file sfs ON sfs.ID = s.sub_img_id
 			LEFT JOIN sys_file sfui ON sfui.ID = ui.avatar_file_id
 		WHERE cgca.content_group_id = #{contentGroupId}
