@@ -23,5 +23,6 @@ public interface GcContentGroupCourseAssignmentMapping {
     GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto, Integer createdByUserId);
 
     @Mapping(target = "modifiedDate", expression = "java(java.time.LocalDateTime.now())")
-    void update(@MappingTarget GcContentGroupCourseAssignment contentGroupCourseAssignment, AssignCourseDto assignCourseDto);
+    void update(@MappingTarget GcContentGroupCourseAssignment contentGroupCourseAssignment,
+                AssignCourseDto assignCourseDto);
 }

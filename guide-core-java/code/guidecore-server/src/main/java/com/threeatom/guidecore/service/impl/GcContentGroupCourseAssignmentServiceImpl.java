@@ -60,6 +60,11 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public void removeCourseAssignment(Integer courseAssignmentId) {
+        removeById(courseAssignmentId);
+    }
+
+    @Override
     public void save(GcUser user, GcSubject course) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
 
