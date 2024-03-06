@@ -60,6 +60,17 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment =
+            this.baseMapper.findByCourseIdAndContentGroupId(courseId, contentGroupId);
+
+        if (contentGroupCourseAssignment != null) {
+            contentGroupCourseAssignment.setMandatory(!contentGroupCourseAssignment.getMandatory());
+            updateById(contentGroupCourseAssignment);
+        }
+    }
+
+    @Override
     public void removeCourseAssignment(Integer courseAssignmentId) {
         removeById(courseAssignmentId);
     }

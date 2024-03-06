@@ -10,4 +10,7 @@ public interface GcContentGroupCourseAssignmentMapper
 
     List<GcContentGroupCourseAssignment> findByContentGroupId(
             @Param("contentGroupId") Integer contentGroupId);
+
+    GcContentGroupCourseAssignment findByCourseIdAndContentGroupId(
+        @Param("contentGroupId") Integer contentGroupId, @Param("courseId") Integer courseId);
 }

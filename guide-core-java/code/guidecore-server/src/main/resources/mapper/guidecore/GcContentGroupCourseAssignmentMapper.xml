@@ -13,6 +13,11 @@
 
 	</resultMap>
 
+	<resultMap id="contentGroupCourseAssignmentResultMap" type="GcContentGroupCourseAssignment" autoMapping="true">
+		<id property="id" column="id"/>
+		<result property="mandatory" column="is_mandatory"/>
+	</resultMap>
+
 	<resultMap id="createdByUserResultMap" type="GcUser" autoMapping="true">
 		<result property="infoId" column="info_id"/>
 		<association columnPrefix="info_" property="info" column="info_id" javaType="GcUserInfo" autoMapping="true">
@@ -100,6 +105,20 @@
 			LEFT JOIN sys_file sfs ON sfs.ID = s.sub_img_id
 			LEFT JOIN sys_file sfui ON sfui.ID = ui.avatar_file_id
 		WHERE cgca.content_group_id = #{contentGroupId}
+	</select>
+
+	<select id="findByCourseIdAndContentGroupId" resultMap="contentGroupCourseAssignmentResultMap">
+		SELECT
+            id AS id,
+            course_id AS course_id,
+            content_group_id AS content_group_id,
+            created_by_user_id AS created_by_user_id,
+            is_mandatory AS is_mandatory,
+            deadline AS deadline,
+            created_date AS created_date,
+            modified_date AS modified_date
+		FROM gc_content_group_course_assignment
+		WHERE content_group_id = #{contentGroupId} AND course_id = #{courseId}
 	</select>
 
 </mapper>
