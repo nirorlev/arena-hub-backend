@@ -87,6 +87,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcUserAccessPermissionService gcUserAccessPermissionService;
     @Autowired
     private SysSystemService systemService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -1086,6 +1088,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     	if(gcAccessList==null || gcAccessList.size()==0) {
     		return true;
     	}
+
+        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
     	boolean a = gcAccessService.updateBatchById(gcAccessList);
     	return a;
     }

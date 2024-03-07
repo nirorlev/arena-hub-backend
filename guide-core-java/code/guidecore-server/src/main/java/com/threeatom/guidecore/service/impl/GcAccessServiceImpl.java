@@ -49,6 +49,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Autowired private GcUserInfoService gcUserInfoService;
     @Autowired private MondayConfiguration mondayConfiguration;
     @Autowired @Lazy private GcUserService gcUserService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Override
     public List<GcAccess> getAccessByMasterIdAndCode(GcAccess access) {
@@ -122,6 +124,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             }
         }
         if (null != accessList && accessList.size() != TableConstant.COMMON_ZERO) {
+            contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
             this.insertOrUpdateList(accessList);
         }
     }
