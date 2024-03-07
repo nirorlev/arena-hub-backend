@@ -51,5 +51,8 @@
                                  referencedTableName="gc_user" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
     </changeSet>
+    <changeSet id="migrate-subjects-from-json-to-content_group_course_assignment" author="vprokh">
+        <customChange class="com.threeatom.db.migration.ContentGroupAssignmentChange" />
+    </changeSet>
 
 </databaseChangeLog>
