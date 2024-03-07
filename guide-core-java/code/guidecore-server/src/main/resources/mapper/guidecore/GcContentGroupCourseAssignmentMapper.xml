@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper">
+
+	<resultMap id="baseResultMap" type="GcContentGroupCourseAssignment" autoMapping="true">
+		<id property="id" column="id"/>
+
+		<result property="mandatory" column="is_mandatory"/>
+
+		<association property="createdBy" resultMap="createdByUserResultMap" columnPrefix="created_by_user_" />
+		<association property="course" resultMap="courseResultMap" columnPrefix="course_" />
+		<association property="contentGroup" resultMap="contentGroupResultMap" columnPrefix="content_group_" />
+
+	</resultMap>
+
+	<resultMap id="createdByUserResultMap" type="GcUser" autoMapping="true">
+		<result property="infoId" column="info_id"/>
+		<association columnPrefix="info_" property="info" column="info_id" javaType="GcUserInfo" autoMapping="true">
+			<id property="id" column="join_id"/>
+			<association columnPrefix="avatarFile_" property="avatarFile" column="avatar_file_id" javaType="SysFile" autoMapping="true" />
+		</association>
+	</resultMap>
+
+	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true">
+		<association columnPrefix="subImgFile_" property="subImgFile" column="sub_img_id" javaType="SysFile" autoMapping="true"/>
+	</resultMap>
+
+	<resultMap id="contentGroupResultMap" type="GcAccess"  autoMapping="true"/>
+
+    <sql id="createdByUserColumns">
+        u.id AS created_by_user_id,
+        u.username AS created_by_user_username,
+        u.state AS created_by_user_state,
+        u.update_time AS created_by_user_update_time,
+        u.create_time AS created_by_user_create_time,
+        u.info_id AS created_by_user_info_id,
+		ui.id AS created_by_user_info_join_id,
+		ui.first_name AS created_by_user_info_first_name,
+		ui.last_name AS created_by_user_info_last_name,
+		ui.gender AS created_by_user_info_gender,
+		ui.phone AS created_by_user_info_phone,
+		ui.avatar_file_id AS created_by_user_info_avatar_file_id,
+        sfui.id AS created_by_user_info_avatarFile_id,
+        sfui.name AS created_by_user_info_avatarFile_name,
+		sfui.file_url AS created_by_user_info_avatarFile_file_url,
+		sfui.save_type AS created_by_user_info_avatarFile_save_type
+	</sql>
+
+	<sql id="courseColumns">
+		s.id AS course_id,
+		s.master_id AS course_master_id,
+		s.name AS course_name,
+		s.name_index AS course_name_index,
+		s.description AS course_description,
+		s.sub_id AS course_sub_id,
+ 		s.sub_img_id AS course_sub_img_id,
+		s.type AS course_type,
+		s.level AS course_level,
+		s.fid AS course_fid,
+		s.order AS course_order,
+		s.state AS course_state,
+		s.token AS course_token,
+		s.is_public AS course_is_public,
+		s.language AS course_language,
+		s.update_time AS course_update_time,
+		s.create_time AS course_create_time,
+		s.certificates_flag AS course_certificates_flag,
+		s.create_user AS course_create_user,
+		s.published_time AS course_published_time,
+		sfs.id AS course_subImgFile_id,
+		sfs.name AS course_subImgFile_name,
+		sfs.file_url AS course_subImgFile_file_url,
+		sfs.save_type AS course_subImgFile_save_type
+	</sql>
+
+	<sql id="contentGroupColumns">
+        a.id AS content_group_id,
+        a.master_id AS content_group_master_id,
+        a.role_type AS content_group_role_type,
+        a.admin_id AS content_group_admin_id,
+        a.code AS content_group_code,
+        a.group_name AS content_group_group_name
+	</sql>
+
+	<select id="findByContentGroupId" resultMap="baseResultMap">
+		SELECT
+            cgca.id AS id,
+            cgca.is_mandatory AS is_mandatory,
+            cgca.deadline AS deadline,
+            cgca.created_date AS created_date,
+            cgca.modified_date AS modified_date,
+            <include refid="createdByUserColumns"/>,
+            <include refid="courseColumns"/>,
+            <include refid="contentGroupColumns"/>
+		FROM gc_content_group_course_assignment cgca
+			JOIN gc_subject s ON cgca.course_id = s.id
+			JOIN gc_access a ON cgca.content_group_id = a.id
+			JOIN gc_user u ON cgca.created_by_user_id = u.id
+			JOIN gc_user_info ui ON u.info_id = ui.id
+			LEFT JOIN sys_file sfs ON sfs.ID = s.sub_img_id
+			LEFT JOIN sys_file sfui ON sfui.ID = ui.avatar_file_id
+		WHERE cgca.content_group_id = #{contentGroupId}
+	</select>
+
+</mapper>

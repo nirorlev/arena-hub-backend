@@ -15,6 +15,7 @@ import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -208,5 +209,15 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     @Override
     public List<GcUser> getTeamUser(Map<String, Object> params, HttpServletRequest request) {
         return this.baseMapper.getTeamUser(params);
+    }
+
+    // TODO: take a look at the security auth globally and rework the storing of current user logged in
+    @Override
+    public GcUser getCurrentUser(HttpServletRequest request) {
+        if (AuthorizationUtil.isUser(request)) {
+            return getUserByIdCache(AuthorizationUtil.getUserUid(request));
+        }
+
+        return null;
     }
 }

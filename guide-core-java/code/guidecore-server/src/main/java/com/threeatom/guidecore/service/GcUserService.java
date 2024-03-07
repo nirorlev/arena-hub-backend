@@ -57,4 +57,6 @@ public interface GcUserService extends IService<GcUser> {
     int deleteById(Integer id);
 
     List<GcUser> getTeamUser(Map<String, Object> params, HttpServletRequest request);
+
+    GcUser getCurrentUser(HttpServletRequest request);
 }
