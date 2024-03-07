@@ -403,11 +403,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
 
         //查询顶级组may课程Ids
-        List<GcSubject> orgMayIds = this.baseMapper.selectOrgMayJsonArrayList(userId,masterId);
-        List<Integer> orgMaySubjectIds = new ArrayList<>();
-        for (GcSubject orgMustId : orgMayIds) {
-            orgMaySubjectIds.addAll(orgMustId.getMayJsonArray().toJavaList(Integer.class));
-        }
+        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -455,11 +451,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> selectCompanyResourcesSubject(Integer userId,Integer masterId,String name,HttpServletRequest request){
 
         //查询顶级组may课程Ids
-        List<GcSubject> orgMayIds = this.baseMapper.selectOrgMayJsonArrayList(userId,masterId);
-        List<Integer> orgMaySubjectIds = new ArrayList<>();
-        for (GcSubject orgMustId : orgMayIds) {
-            orgMaySubjectIds.addAll(orgMustId.getMayJsonArray().toJavaList(Integer.class));
-        }
+        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();

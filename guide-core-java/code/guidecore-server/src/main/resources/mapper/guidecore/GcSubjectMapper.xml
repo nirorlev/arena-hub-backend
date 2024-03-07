@@ -1655,7 +1655,8 @@
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
 		FROM gc_subject s
-		left join gc_access ac ON JSON_CONTAINS(ac.may_subject_json, CONVERT(S.ID, CHAR))=1
+		left join gc_content_group_course_assignment cgc on cgc.course_id = s.id
+		left join gc_access ac ON cgc.content_group_id = ac.id
 		left join gc_user_access ua on ac.id = ua.access_id and ac.master_id = ua.master_id
 		left join sys_file f on s.sub_img_id=f.id
 		where 1=1
@@ -2318,13 +2319,6 @@
 		<if test="orderType == 4">
 			order by count(ac.id) desc
 		</if>
-	</select>
-	<select id="selectOrgMayJsonArrayList" resultMap="JsonArray">
-		select ac.may_subject_json from gc_user_access ua
-		left join gc_access ac on ac.id = ua.access_id
-		where ua.master_id = #{masterId} and ua.user_id = #{userId}
-		  and ua.parent_code is null
-		  and ac.may_subject_json is not null
 	</select>
 	<select id="getNewAssignments" resultType="java.lang.Integer">
 		select s.id from gc_subject s

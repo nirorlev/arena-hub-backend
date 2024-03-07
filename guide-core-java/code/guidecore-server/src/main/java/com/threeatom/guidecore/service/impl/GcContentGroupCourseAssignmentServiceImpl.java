@@ -140,6 +140,14 @@ public class GcContentGroupCourseAssignmentServiceImpl
         return filterCourseIdsByPredicate(contentGroupCourseAssignments, GcContentGroupCourseAssignment::getMandatory);
     }
 
+    @Override
+    public List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer userId, Integer masterId) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            this.baseMapper.getCoursesContentGroupAssignmentIds(userId, masterId);
+
+        return filterCourseIdsByPredicate(contentGroupCourseAssignments, assignment -> !assignment.getMandatory());
+    }
+
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(
         Integer contentGroupId, Predicate<GcContentGroupCourseAssignment> assignmentPredicate) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
