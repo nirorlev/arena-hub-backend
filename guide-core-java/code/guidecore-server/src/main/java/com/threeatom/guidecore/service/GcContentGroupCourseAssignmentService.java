@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
@@ -8,7 +9,6 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import java.util.List;
-import org.apache.commons.collections4.IterableGet;
 
 public interface GcContentGroupCourseAssignmentService
         extends IService<GcContentGroupCourseAssignment> {
@@ -33,4 +33,6 @@ public interface GcContentGroupCourseAssignmentService
     List<Integer> getMustCoursesContentGroupAssignmentIds(Integer contentGroupId);
 
     List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer contentGroupId);
+
+    void removeCourseAssignmentsByCourseId(GcAccess contentGroup, List<Integer> courseIds);
 }

@@ -1699,11 +1699,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		gcUserAccessPermissionService.updateGcUserAccessPermissions(userAccessPermissions);
+		contentGroupCourseAssignmentService.removeCourseAssignmentsByCourseId(access, idList);
 		return new Message().ok();
 	}
-
-
-
 
 	@ApiOperation(value = "getPublicCodeChannel", httpMethod = "GET")
 	@GetMapping("/getPublicCodeChannel")

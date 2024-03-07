@@ -121,4 +121,11 @@
 		WHERE content_group_id = #{contentGroupId} AND course_id = #{courseId}
 	</select>
 
+	<delete id="removeByContentGroupIdAndCourseIds">
+		DELETE FROM gc_content_group_course_assignment
+		WHERE content_group_id = #{contentGroupId} AND course_id IN
+		<foreach collection="courseIds" item="courseId" open="(" close=")" separator=",">
+			#{courseId}
+		</foreach>
+	</delete>
 </mapper>
