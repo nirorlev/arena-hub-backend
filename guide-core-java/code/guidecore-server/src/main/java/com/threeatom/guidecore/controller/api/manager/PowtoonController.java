@@ -2879,6 +2879,7 @@ public class PowtoonController extends GuideCoreController {
 			sub.setState(TableConstant.COMMON_ZERO);
 			gcAccessService.deleteSubIdAccess(masterId,sub.getId());
 			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
+			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, sub.getId());
 		}
 		if (sub.getState() == TableConstant.COMMON_ONE) {
 			contentGroupCourseAssignmentService.save(user, sub);

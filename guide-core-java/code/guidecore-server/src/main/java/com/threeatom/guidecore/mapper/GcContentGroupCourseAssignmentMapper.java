@@ -16,4 +16,6 @@ public interface GcContentGroupCourseAssignmentMapper
 
     void removeByContentGroupIdAndCourseIds(
         @Param("contentGroupId") Integer contentGroupId, @Param("courseIds") List<Integer> courseIds);
+
+    void removeByMasterAndCourseId(@Param("masterId") Integer masterId, @Param("courseId") Integer courseId);
 }

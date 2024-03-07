@@ -35,4 +35,6 @@ public interface GcContentGroupCourseAssignmentService
     List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer contentGroupId);
 
     void removeCourseAssignmentsByCourseId(GcAccess contentGroup, List<Integer> courseIds);
+
+    void removeByMasterAndCourseId(Integer masterId, Integer courseId);
 }
