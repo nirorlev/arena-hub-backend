@@ -10,11 +10,13 @@ import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -63,6 +65,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Lazy @Autowired private GcSubjectService gcSubjectService;
 
     @Autowired private SysFileService sysFileService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     //    @Cacheable(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#userId+'-masterId-'+#masterId")
     @Override
@@ -206,12 +210,18 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
             userAccessExtMapper.insert(userAccessExt);
 
             GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-            userAccessPermission.setSubPermission(userAccess.getAccess().getSubjectJson());
+            userAccessPermission.setSubPermission(getContentGroupCourseAssignments(userAccess));
             userAccessPermission.setUserAccessId(userAccess.getId());
             userAccessPermissionMapper.insert(userAccessPermission);
         }
 
         return false;
+    }
+
+    private JSONArray getContentGroupCourseAssignments(GcUserAccess userAccess) {
+        List<Integer> contentGroupCourseAssignments =
+            contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccess().getId());
+        return JSONArray.parseArray(JSON.toJSONString(contentGroupCourseAssignments));
     }
 
     @Override
