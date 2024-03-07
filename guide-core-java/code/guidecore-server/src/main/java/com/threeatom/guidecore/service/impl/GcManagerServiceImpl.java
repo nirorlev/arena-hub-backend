@@ -10,6 +10,7 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.GcManagerMapper;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -46,6 +47,8 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Autowired GcUserAccessService userAccessService;
     @Autowired GcAccessMapper accessMapper;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Override
     @Cacheable(value = CACHE_TAG, key = "'entity:'+#p0")
@@ -98,7 +101,7 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                 userAccessService.save(userAccess);
                 // 复制课程权限
                 GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-                userAccessPermission.setSubPermission(userAccess.getAccess().getSubjectJson());
+                userAccessPermission.setSubPermission(contentGroupCourseAssignmentService.findByContentGroupId(accessCode.getId());
                 userAccessPermission.setUserAccessId(userAccess.getId());
                 userAccessService.saveUserAccessPermission(userAccessPermission);
                 // 分配课程管理员角色
