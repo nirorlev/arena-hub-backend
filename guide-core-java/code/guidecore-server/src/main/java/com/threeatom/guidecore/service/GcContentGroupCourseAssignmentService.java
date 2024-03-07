@@ -29,4 +29,8 @@ public interface GcContentGroupCourseAssignmentService
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
 
     void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDto);
+
+    List<Integer> getMustCoursesContentGroupAssignmentIds(Integer contentGroupId);
+
+    List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer contentGroupId);
 }

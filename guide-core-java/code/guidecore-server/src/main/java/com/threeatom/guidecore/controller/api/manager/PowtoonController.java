@@ -1324,28 +1324,28 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcAccess access = accessService.getById(id);
 		List<Integer> idList = new ArrayList<>();
-		List<Integer> mustIdList = new ArrayList<>();
 		PageInfo<GcSubject> pageInfo = new PageInfo<>();
 		GcUser user = this.getGcUser();
 		boolean isFlag = this.permitCheck(user,ActionsType.manageContent,masterId,ResourceType.contentGroup,access.getId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
-		if (null!=access.getMustSubjectJson()){
-			mustIdList.addAll(access.getMustSubjectJson().toJavaList(Integer.class));
-		}
+
+		List<Integer> courseAssignmentIds = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
+		List<Integer> mustAssignmentIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+		List<Integer> optionalAssignmentIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
 		if (type==TableConstant.COMMON_ZERO){
-			if (null!=access.getSubjectJson()){
-				idList.addAll(access.getSubjectJson().toJavaList(Integer.class));
+			if (!courseAssignmentIds.isEmpty()){
+				idList.addAll(courseAssignmentIds);
 			}
 		}else if (type==TableConstant.COMMON_ONE){
-			if (null!=access.getMustSubjectJson()){
-				idList.addAll(access.getMustSubjectJson().toJavaList(Integer.class));
+			if (!mustAssignmentIds.isEmpty()){
+				idList.addAll(mustAssignmentIds);
 			}
 		}else {
-			if (null!=access.getMaySubjectJson()){
-				idList.addAll(access.getMaySubjectJson().toJavaList(Integer.class));
-				//mayList.addAll(access.getMaySubjectJson().toJavaList(Integer.class));
+			if (!optionalAssignmentIds.isEmpty()){
+				idList.addAll(optionalAssignmentIds);
 			}
 		}
 		PageParam pageParam = new PageParam(request);
@@ -1354,13 +1354,13 @@ public class PowtoonController extends GuideCoreController {
 		}
 		List<GcSubject> subjects = new ArrayList<>();
 		Map<Integer,List<PtTags>> tagsMap = new HashMap<>();
-		if (idList.size()!=TableConstant.COMMON_ZERO){
+		if (!idList.isEmpty()){
 			subjects = gcSubjectService.listSubByIdsAndName(idList,name);
 		}else {
 			subjects = gcSubjectService.listSubByIdsAndName(null,null);
 		}
 		List<Integer> subjectIdList = subjects.stream().map(GcSubject::getId).collect(Collectors.toList());
-		if (subjectIdList.size()!=0){
+		if (!subjectIdList.isEmpty()){
 			QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 			queryWrapper2.eq("master_id",masterId);
 			queryWrapper2.eq("type",TableConstant.COMMON_ONE);
@@ -1370,7 +1370,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		Map<Integer, List<PtTags>> finalTagsMap = tagsMap;
 		subjects.forEach(i->{
-			if (mustIdList.contains(i.getId())){
+			if (mustAssignmentIds.contains(i.getId())){
 				i.setIsMustSubject(TableConstant.COMMON_ZERO);
 			}else {
 				i.setIsMustSubject(TableConstant.COMMON_ONE);
@@ -1460,12 +1460,10 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getAvailableCourses")
 	public Message getAvailableCourses(String name,Integer accessId,String orderType,HttpServletRequest request){
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-		GcAccess access = accessService.getById(accessId);
+		List<Integer> idList = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessId);
 		GcUser user = this.getGcUser();
 		List<GcSubject> subjects = new ArrayList<>();
 		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
-		JSONArray jsonArray = access.getSubjectJson();
-		List<Integer> idList = jsonArray.toJavaList(Integer.class);
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
