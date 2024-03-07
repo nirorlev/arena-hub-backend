@@ -10,9 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,4 +46,20 @@ public class ContentGroupCourseAssignmentController {
         gcContentGroupCourseAssignmentService.assignCourses(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+
+    @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateCourseAssignment(
+        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
+        gcContentGroupCourseAssignmentService.updateCourseAssignment(
+            courseAssignmentId, gcUserService.getCurrentUser(request), assignCourseDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/course-assignments/remove/{assignment-id}")
+    public ResponseEntity<Void> removeCourseFromContentGroup(
+        @PathVariable("assignment-id") Integer courseAssignmentId) {
+        gcContentGroupCourseAssignmentService.removeCourseAssignment(courseAssignmentId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

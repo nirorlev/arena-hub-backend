@@ -52,6 +52,30 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser, AssignCourseDto assignCourseDto) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
+
+        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto, currentUser.getId());
+        updateById(contentGroupCourseAssignment);
+    }
+
+    @Override
+    public void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment =
+            this.baseMapper.findByCourseIdAndContentGroupId(courseId, contentGroupId);
+
+        if (contentGroupCourseAssignment != null) {
+            contentGroupCourseAssignment.setMandatory(!contentGroupCourseAssignment.getMandatory());
+            updateById(contentGroupCourseAssignment);
+        }
+    }
+
+    @Override
+    public void removeCourseAssignment(Integer courseAssignmentId) {
+        removeById(courseAssignmentId);
+    }
+
+    @Override
     public void save(GcUser user, GcSubject course) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
 

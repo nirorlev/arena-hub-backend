@@ -2104,6 +2104,7 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 		}
+		contentGroupCourseAssignmentService.updateCourseAssignmentMandatoryOpposite(subId, accessId);
 		accessService.saveOrUpdate(access);
 		gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissions);
 		return new Message().ok();

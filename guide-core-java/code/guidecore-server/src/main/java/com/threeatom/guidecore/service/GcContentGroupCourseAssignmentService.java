@@ -15,6 +15,12 @@ public interface GcContentGroupCourseAssignmentService
 
     void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto);
 
+    void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser, AssignCourseDto assignCourseDto);
+
+    void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId);
+
+    void removeCourseAssignment(Integer courseAssignmentId);
+
     void save(GcUser user, GcSubject course);
 
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
