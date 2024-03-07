@@ -208,23 +208,27 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             List<Integer> availableTypeOneAndThree,
             List<Integer> subIds) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name, masterId, userId);
+
         for (GcAccess access : list) {
-            access.setSubjectNum(access.getSubjectNum() + availableTypeOneAndThree.size());
+            int coursesNum = access.getSubjectNum();
+            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
+            coursesNum += availableTypeOneAndThree.size();
+
             for (Integer integer : availableTypeFour) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(integer))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(integer))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
+                if (mustAssignedCourses.contains(integer) || optionalAssignedCourses.contains(integer)) {
+                    coursesNum--;
                 }
             }
 
             for (Integer integer : availableTypeOneAndThree) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(integer))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(integer))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
+                if (mustAssignedCourses.contains(integer) || optionalAssignedCourses.contains(integer)) {
+                    coursesNum--;
                 }
             }
+
+            access.setSubjectNum(coursesNum);
         }
         return list;
     }
@@ -238,13 +242,17 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             HttpServletRequest request) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumList(name, masterId, userId);
         for (GcAccess access : list) {
+            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+            int coursesNum = access.getSubjectNum();
+
             for (Integer subId : subIds) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(subId))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(subId))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
+                if (mustAssignedCourses.contains(subId) || optionalAssignedCourses.contains(subId)) {
+                    coursesNum--;
                 }
             }
+
+            access.setSubjectNum(coursesNum);
         }
         return list;
     }
