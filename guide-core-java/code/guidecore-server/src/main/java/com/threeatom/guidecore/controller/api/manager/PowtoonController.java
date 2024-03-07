@@ -2470,12 +2470,17 @@ public class PowtoonController extends GuideCoreController {
 			List<GcUserAccess> userAccesses = gcUserAccessService.getUserAccessListByMasterIdAndUserId(userAccessList.stream().map(GcUserAccess::getUserId).collect(Collectors.toList()),masterId);
 			for (GcUserAccess gcUserAccess : userAccesses) {
 				GcUserAccessPermission permission = new GcUserAccessPermission();
+				GcAccess access = gcUserAccess.getAccess();
+				List<Integer> assignedCourses = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
+				List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+				List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
 				permission.setUserAccessId(gcUserAccess.getId());
-				permission.setSubPermission(gcUserAccess.getAccess().getSubjectJson());
-				permission.setChannelPermission(gcUserAccess.getAccess().getChannelJson());
-				permission.setSubscribePermission(gcUserAccess.getAccess().getSubscribeJson());
-				permission.setMaySubjectJson(gcUserAccess.getAccess().getMaySubjectJson());
-				permission.setMustSubjectJson(gcUserAccess.getAccess().getMustSubjectJson());
+				permission.setSubPermission(JSONArray.parseArray(JSON.toJSONString(assignedCourses)));
+				permission.setChannelPermission(access.getChannelJson());
+				permission.setSubscribePermission(access.getSubscribeJson());
+				permission.setMaySubjectJson(JSONArray.parseArray(JSON.toJSONString(optionalAssignedCourses)));
+				permission.setMustSubjectJson(JSONArray.parseArray(JSON.toJSONString(mustAssignedCourses)));
 				userAccessPermissions.add(permission);
 			}
 			if(TableConstant.COMMON_ZERO!=userAccessPermissions.size()) {
