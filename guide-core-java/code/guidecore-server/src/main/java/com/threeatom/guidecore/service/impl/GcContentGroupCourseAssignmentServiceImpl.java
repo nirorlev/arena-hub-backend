@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
@@ -133,16 +132,30 @@ public class GcContentGroupCourseAssignmentServiceImpl
         this.baseMapper.removeByMasterAndCourseId(masterId, courseId);
     }
 
+    @Override
+    public List<Integer> getMustCoursesContentGroupAssignmentIds(Integer userId, Integer masterId) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            this.baseMapper.getCoursesContentGroupAssignmentIds(userId, masterId);
+
+        return filterCourseIdsByPredicate(contentGroupCourseAssignments, GcContentGroupCourseAssignment::getMandatory);
+    }
+
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(
         Integer contentGroupId, Predicate<GcContentGroupCourseAssignment> assignmentPredicate) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.findByContentGroupId(contentGroupId);
 
-        if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
+        return filterCourseIdsByPredicate(contentGroupCourseAssignments, assignmentPredicate);
+    }
+
+    private List<Integer> filterCourseIdsByPredicate(
+        List<GcContentGroupCourseAssignment> assignments,
+        Predicate<GcContentGroupCourseAssignment> assignmentPredicate) {
+        if (CollectionUtils.isEmpty(assignments)) {
             return Collections.emptyList();
         }
 
-        return contentGroupCourseAssignments.stream()
+        return assignments.stream()
             .filter(assignmentPredicate)
             .map(GcContentGroupCourseAssignment::getCourseId)
             .collect(Collectors.toList());

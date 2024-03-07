@@ -380,15 +380,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
-        List<GcSubject> orgMustIds = this.baseMapper.selectOrgMustJsonArrayList(userId,masterId);
-        List<Integer> orgMustSubjectIds = new ArrayList<>();
-        if (null!=orgMustIds){
-            for (GcSubject orgMustId : orgMustIds) {
-                if (null!=orgMustId.getMustJsonArray()){
-                    orgMustSubjectIds.addAll(orgMustId.getMustJsonArray().toJavaList(Integer.class));
-                }
-            }
-        }
+        List<Integer> orgMustSubjectIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();

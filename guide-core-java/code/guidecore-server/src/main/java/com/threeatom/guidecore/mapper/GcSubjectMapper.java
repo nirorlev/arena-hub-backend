@@ -240,9 +240,6 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
     List<Integer> getUserPublicSubject(
             @Param("masterId") Integer masterId, @Param("userId") Integer userId);
 
-    List<GcSubject> selectOrgMustJsonArrayList(
-            @Param("userId") Integer userId, @Param("masterId") Integer masterId);
-
     List<GcSubject> selectOrgMayJsonArrayList(
             @Param("userId") Integer userId, @Param("masterId") Integer masterId);
 

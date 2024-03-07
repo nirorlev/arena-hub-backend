@@ -2319,13 +2319,6 @@
 			order by count(ac.id) desc
 		</if>
 	</select>
-	<select id="selectOrgMustJsonArrayList" resultMap="JsonArray">
-		select ac.must_subject_json from gc_user_access ua
-		left join gc_access ac on ac.id = ua.access_id
-		where ua.master_id = #{masterId} and ua.user_id = #{userId}
-		and ua.parent_code is null
-		and ac.must_subject_json is not null
-	</select>
 	<select id="selectOrgMayJsonArrayList" resultMap="JsonArray">
 		select ac.may_subject_json from gc_user_access ua
 		left join gc_access ac on ac.id = ua.access_id
