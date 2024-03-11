@@ -10,6 +10,9 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing the user who made the course assignment")
 public class ContentGroupAssignmentByUserDto {
 
+    @ApiModelProperty(notes = "The unique ID of the user who made the course assignment")
+    private Integer id;
+
     @ApiModelProperty(notes = "The first name of the user who made the course assignment")
     private String firstName;
 
