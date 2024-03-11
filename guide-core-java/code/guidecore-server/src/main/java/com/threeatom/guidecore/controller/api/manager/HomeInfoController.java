@@ -339,8 +339,7 @@ public class HomeInfoController extends GuideCoreController {
 			packageList = gcAccessService.getAllPackage(masterId,new PageParam(request),subscriptionIdList,null);
 		}
         //初始化套餐下的平均星级，评星人数，课程总时长,课程id
-		JSONArray allSubId = new JSONArray();
-        for(GcAccess packages :packageList){
+		for(GcAccess packages :packageList){
         	packages.setOwnedFlag(TableConstant.COMMON_ZERO);
         	packages.setPackageCourseStarUsers(TableConstant.LONG_ZERO);
         	packages.setPackageCourseAvgStars(TableConstant.DOUBLE_ZERO);
@@ -358,10 +357,10 @@ public class HomeInfoController extends GuideCoreController {
 			}
 			List<Integer> courseIdsByContentGroupId =
 				contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(packages.getId());
-			allSubId.addAll(courseIdsByContentGroupId);
+			assignedCourseIds.addAll(courseIdsByContentGroupId);
 		}
 
-		if(assignedCourseIds.size()!=TableConstant.COMMON_ZERO) {
+		if(!assignedCourseIds.isEmpty()) {
 			//计算package下所有课程的总时长,赋值到packagelist中
 			Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(assignedCourseIds);
 			for (Integer key : subjectsDurationMap.keySet()) {
@@ -388,7 +387,6 @@ public class HomeInfoController extends GuideCoreController {
 				Map.Entry entry = (Map.Entry) starAvgTimes.next();
 				starKeys.add(Integer.parseInt(entry.getKey().toString()));
 			}
-			Long PackageTotalStarUsersNum = TableConstant.LONG_ZERO;
 			//赋值给package
 			for (Integer key : subjectUserStar.keySet()) {
 				for (GcAccess packages : packageList) {
@@ -417,7 +415,7 @@ public class HomeInfoController extends GuideCoreController {
 
 			PageInfo<GcAccess> pageInfo = new PageInfo<>(packageList);
 			//计算平均星级
-			List<GcAccess> newPackageList = (List<GcAccess>) packageList.stream().map(singlePackage -> {
+			List<GcAccess> newPackageList = packageList.stream().map(singlePackage -> {
 				BigDecimal times = new BigDecimal(singlePackage.getTimes()==null ? 0 : singlePackage.getTimes());
 				BigDecimal totalStars = new BigDecimal(singlePackage.getPackageCourseAvgStars());
 				BigDecimal avgStars = times.compareTo(BigDecimal.ZERO)==0? new BigDecimal("0"): totalStars.divide(times,BigDecimal.ROUND_DOWN);
@@ -438,11 +436,6 @@ public class HomeInfoController extends GuideCoreController {
 						iterator.remove();
 					}
 				}
-				String token = request.getHeader("Authorization");
-//				subscriptionList.add(newPackageList.get(newPackageList.size()-1));
-//				subscriptionList.add(newPackageList.get(newPackageList.size()-2));
-//				subscriptionList.add(newPackageList.get(newPackageList.size()-3));
-//				newPackageList = newPackageList.subList(0,newPackageList.size()-3);
 				PageInfo<GcAccess> subscriptionPageInfo = new PageInfo<>(subscriptionList);
 				message.ok().addData("subscriptionList",JSON.parse(JSON.toJSONString(subscriptionPageInfo)));
  			}
@@ -564,7 +557,7 @@ public class HomeInfoController extends GuideCoreController {
 		}
 
 		String token = request.getHeader("Authorization");
-		if(null!=token && !token.isEmpty() && !("undefined").equals(token)){
+		if(token != null && !token.isEmpty() && !("undefined").equals(token)){
 			GcUser user = this.getGcUser();
 			if (user != null) {
 				}else {

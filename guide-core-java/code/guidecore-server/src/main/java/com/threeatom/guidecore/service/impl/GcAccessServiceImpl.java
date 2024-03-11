@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -210,25 +211,15 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name, masterId, userId);
 
         for (GcAccess access : list) {
-            int coursesNum = access.getSubjectNum();
             List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
             List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
 
-            coursesNum += availableTypeOneAndThree.size();
+            int coursesNum = access.getSubjectNum() + availableTypeOneAndThree.size();
+            long coursesCountToExclude = Stream.concat(availableTypeFour.stream(), availableTypeOneAndThree.stream())
+                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .count();
 
-            for (Integer integer : availableTypeFour) {
-                if (mustAssignedCourses.contains(integer) || optionalAssignedCourses.contains(integer)) {
-                    coursesNum--;
-                }
-            }
-
-            for (Integer integer : availableTypeOneAndThree) {
-                if (mustAssignedCourses.contains(integer) || optionalAssignedCourses.contains(integer)) {
-                    coursesNum--;
-                }
-            }
-
-            access.setSubjectNum(coursesNum);
+            access.setSubjectNum((int) (coursesNum - coursesCountToExclude));
         }
         return list;
     }
@@ -244,15 +235,11 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         for (GcAccess access : list) {
             List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
             List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
-            int coursesNum = access.getSubjectNum();
+            long coursesCountToExclude = subIds.stream()
+                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .count();
 
-            for (Integer subId : subIds) {
-                if (mustAssignedCourses.contains(subId) || optionalAssignedCourses.contains(subId)) {
-                    coursesNum--;
-                }
-            }
-
-            access.setSubjectNum(coursesNum);
+            access.setSubjectNum((int) (access.getSubjectNum() - coursesCountToExclude));
         }
         return list;
     }

@@ -15,6 +15,7 @@ public interface GcContentGroupCourseAssignmentMapping {
     @Mapping(target = "courseImageUrl", source = "course.subImgFile.fileUrl")
     @Mapping(target = "source.contentGroup.id", source = "contentGroup.id")
     @Mapping(target = "source.contentGroup.name", source = "contentGroup.groupName")
+    @Mapping(target = "source.user.id", source = "createdBy.id")
     @Mapping(target = "source.user.firstName", source = "createdBy.info.firstName")
     @Mapping(target = "source.user.lastName", source = "createdBy.info.lastName")
     @Mapping(target = "source.user.profilePhotoUrl", source = "createdBy.info.avatarFile.fileUrl")

@@ -85,11 +85,9 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void save(GcUser user, GcSubject course) {
-        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
-
-        contentGroupCourseAssignments.addAll(createCoursesAssignment(user, course, CourseType.MANDATORY));
-        contentGroupCourseAssignments.addAll(createCoursesAssignment(user, course, CourseType.OPTIONAL));
+    public void save(GcUser user, GcSubject course, CourseType type) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            new ArrayList<>(createCoursesAssignment(user, course, type));
 
         saveBatch(contentGroupCourseAssignments);
     }
@@ -169,8 +167,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
             .collect(Collectors.toList());
     }
 
-    private List<GcContentGroupCourseAssignment> createCoursesAssignment(GcUser user, GcSubject course,
-                                                                         CourseType type) {
+    private List<GcContentGroupCourseAssignment> createCoursesAssignment(
+        GcUser user, GcSubject course, CourseType type) {
         List<Integer> courseIds = type.isMandatory() ? course.getMustAccessIds() : course.getAccessIds();
 
         if (CollectionUtils.isEmpty(courseIds)) {

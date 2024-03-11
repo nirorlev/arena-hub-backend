@@ -24,7 +24,7 @@ public interface GcContentGroupCourseAssignmentService
 
     void removeCourseAssignment(Integer courseAssignmentId);
 
-    void save(GcUser user, GcSubject course);
+    void save(GcUser user, GcSubject course, CourseType type);
 
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
 

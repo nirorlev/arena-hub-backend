@@ -154,12 +154,17 @@ public class GuideCoreController extends BaseController{
 
 		if(assignmentCourseIds.isEmpty()) throw new SystemException(I18NUtil.get("resource.permission.error"));
 
-		if(type==SysResourceType.EVENT) {
-			if(!assignmentCourseIds.contains(eventService.getEventSubIdByEventId(id))) throw new SystemException(I18NUtil.get("resource.permission.error"));
-		}else {
-			if(!assignmentCourseIds.contains(videoService.getSubIdByVid(id))) throw new SystemException(I18NUtil.get("resource.permission.error"));
+		Integer subId;
+
+		if (type == SysResourceType.EVENT) {
+			subId = eventService.getEventSubIdByEventId(id);
+		} else {
+			subId = videoService.getSubIdByVid(id);
 		}
 
+		if (!assignmentCourseIds.contains(subId)) {
+			throw new SystemException(I18NUtil.get("resource.permission.error"));
+		}
 	}
 
 
