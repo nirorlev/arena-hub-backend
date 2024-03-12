@@ -87,6 +87,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcUserAccessPermissionService gcUserAccessPermissionService;
     @Autowired
     private SysSystemService systemService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -378,15 +380,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
-        List<GcSubject> orgMustIds = this.baseMapper.selectOrgMustJsonArrayList(userId,masterId);
-        List<Integer> orgMustSubjectIds = new ArrayList<>();
-        if (null!=orgMustIds){
-            for (GcSubject orgMustId : orgMustIds) {
-                if (null!=orgMustId.getMustJsonArray()){
-                    orgMustSubjectIds.addAll(orgMustId.getMustJsonArray().toJavaList(Integer.class));
-                }
-            }
-        }
+        List<Integer> orgMustSubjectIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -409,11 +403,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
 
         //查询顶级组may课程Ids
-        List<GcSubject> orgMayIds = this.baseMapper.selectOrgMayJsonArrayList(userId,masterId);
-        List<Integer> orgMaySubjectIds = new ArrayList<>();
-        for (GcSubject orgMustId : orgMayIds) {
-            orgMaySubjectIds.addAll(orgMustId.getMayJsonArray().toJavaList(Integer.class));
-        }
+        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -461,11 +451,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> selectCompanyResourcesSubject(Integer userId,Integer masterId,String name,HttpServletRequest request){
 
         //查询顶级组may课程Ids
-        List<GcSubject> orgMayIds = this.baseMapper.selectOrgMayJsonArrayList(userId,masterId);
-        List<Integer> orgMaySubjectIds = new ArrayList<>();
-        for (GcSubject orgMustId : orgMayIds) {
-            orgMaySubjectIds.addAll(orgMustId.getMayJsonArray().toJavaList(Integer.class));
-        }
+        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -1086,6 +1072,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     	if(gcAccessList==null || gcAccessList.size()==0) {
     		return true;
     	}
+
+        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
     	boolean a = gcAccessService.updateBatchById(gcAccessList);
     	return a;
     }

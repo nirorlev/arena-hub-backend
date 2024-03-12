@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Autowired private GcUserInfoService gcUserInfoService;
     @Autowired private MondayConfiguration mondayConfiguration;
     @Autowired @Lazy private GcUserService gcUserService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Override
     public List<GcAccess> getAccessByMasterIdAndCode(GcAccess access) {
@@ -122,6 +125,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             }
         }
         if (null != accessList && accessList.size() != TableConstant.COMMON_ZERO) {
+            contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
             this.insertOrUpdateList(accessList);
         }
     }
@@ -205,23 +209,17 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             List<Integer> availableTypeOneAndThree,
             List<Integer> subIds) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name, masterId, userId);
-        for (GcAccess access : list) {
-            access.setSubjectNum(access.getSubjectNum() + availableTypeOneAndThree.size());
-            for (Integer integer : availableTypeFour) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(integer))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(integer))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
-                }
-            }
 
-            for (Integer integer : availableTypeOneAndThree) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(integer))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(integer))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
-                }
-            }
+        for (GcAccess access : list) {
+            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
+            int coursesNum = access.getSubjectNum() + availableTypeOneAndThree.size();
+            long coursesCountToExclude = Stream.concat(availableTypeFour.stream(), availableTypeOneAndThree.stream())
+                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .count();
+
+            access.setSubjectNum((int) (coursesNum - coursesCountToExclude));
         }
         return list;
     }
@@ -235,13 +233,13 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             HttpServletRequest request) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumList(name, masterId, userId);
         for (GcAccess access : list) {
-            for (Integer subId : subIds) {
-                if ((null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(subId))
-                        || (null != access.getMustSubjectJson()
-                                && access.getMustSubjectJson().contains(subId))) {
-                    access.setSubjectNum(access.getSubjectNum() - 1);
-                }
-            }
+            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+            long coursesCountToExclude = subIds.stream()
+                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .count();
+
+            access.setSubjectNum((int) (access.getSubjectNum() - coursesCountToExclude));
         }
         return list;
     }
