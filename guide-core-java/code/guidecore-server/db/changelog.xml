@@ -54,5 +54,25 @@
     <changeSet id="migrate-subjects-from-json-to-content_group_course_assignment" author="vprokh">
         <customChange class="com.threeatom.db.migration.ContentGroupAssignmentChange" />
     </changeSet>
+    <changeSet id="create-feature-toggle" author="vprokh">
+        <createTable tableName="feature_toggle" remarks="Table to handle feature toggle configuration for application">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
 </databaseChangeLog>
