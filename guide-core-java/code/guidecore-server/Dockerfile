@@ -5,8 +5,7 @@ WORKDIR /
 
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add ca-certificates mysql-client redis aws-cli && \ 
-    rm -rf /var/cache/apk/* \
+    apk --no-cache add ca-certificates mysql-client redis aws-cli
 
 COPY target/guidecore.jar .
 COPY target/config/ application-user.yml config/.
