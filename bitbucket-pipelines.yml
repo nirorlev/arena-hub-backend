@@ -1,0 +1,104 @@
+# https://bitbucket-pipelines.atlassian.io/validator
+
+# Bitbucket Pipelines configuration for building Java app with Docker
+
+definitions:
+  steps:
+    - step: &compile
+        name: Compile
+        image: maven:3.8.3
+        caches:
+          - maven
+        script:
+          - cd ./guide-core-java/code/guidecore-server
+          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+
+    - step: &build_and_push
+        name: Build an image, push to ECR
+        image: maven:3.8.3
+        caches:
+          - maven
+        #   - docker
+        script: 
+          - export IMAGE_TAG=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
+          - cd ./guide-core-java/code/guidecore-server
+          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+          - |- 
+            echo '{ "backend": "'${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7}'" }' > target/version.json
+          - docker build -t arena/api:$IMAGE_TAG .
+          # Use the pipe to push the image to AWS ECR
+          # https://bitbucket.org/atlassian/aws-ecr-push-image/src/master/
+          - pipe: atlassian/aws-ecr-push-image:2.3.0
+            variables:
+                AWS_ACCESS_KEY_ID: $DEPLOYMENT_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $DEPLOYMENT_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                IMAGE_NAME: arena/api
+                TAGS: $(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
+        services:
+          - docker
+
+pipelines:
+  branches:
+    # For develop branch: automatically compile, build container image, push it to ECR,
+    # deploy an image to develop environment
+    develop:
+    - step: *build_and_push
+    - step:
+        name: Deploy to develop
+        image: atlassian/default-image:4
+        deployment: develop
+        script:
+          - .ci/deploy.sh --env develop
+
+    # For feature/** branches: automatically compile. Optionally build container image, push it to ECR,
+    # deploy an image to one of develop, staging-ec environments
+    feature/**:
+    # - step: *compile
+    - step:
+        # We need this step because in Bitbucket first step must be automatic
+        name: Activate build buttons
+        script: 
+        - exit 0
+    - step: 
+        <<: *build_and_push
+        trigger: manual  
+    - parallel:
+        steps:
+        - step:
+            # We need this step because in Bitbucket first step must be automatic
+            name: Activate deploy buttons
+            script: 
+            - exit 0
+        - step:
+            name: Deploy to develop
+            image: atlassian/default-image:4
+            deployment: develop
+            trigger: manual
+            script:
+              - .ci/deploy.sh --env develop
+        - step:
+            name: Deploy to staging-ec
+            image: atlassian/default-image:4
+            deployment: staging-ec
+            trigger: manual
+            script:
+              - .ci/deploy.sh --env staging-ec
+
+    # For release/**,hotfix/** branches: automatically compile, build container image, push it to ECR,
+    # deploy an image to staging-ec environment. Optionally deploy an image to prod-ec environment
+    '{release/**,hotfix/**}':
+    - step: *build_and_push
+    - step:
+        name: Deploy to staging-ec
+        image: atlassian/default-image:4
+        deployment: staging-ec
+        script:
+          - .ci/deploy.sh --env staging-ec
+    - step:
+        name: Deploy to prod-ec
+        image: atlassian/default-image:4
+        deployment: prod-ec
+        trigger: manual
+        script:
+          - .ci/deploy.sh --env prod-ec
