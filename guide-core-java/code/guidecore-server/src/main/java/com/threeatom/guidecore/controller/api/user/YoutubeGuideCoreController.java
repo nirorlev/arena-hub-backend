@@ -58,7 +58,7 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	@Value("${youtubeApiKey:AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao}")
 	private String youtubeApiKey;
 
-	@Value("${videoUrl:/api/v2/powtoons/{id}/player-page}")
+	@Value("${videoUrl}")
 	private String getVideoDetails;
 
 	@Autowired
@@ -582,17 +582,5 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 			return message.error(extractedInfo);
 		}
 		return  message.ok();
-	}
-
-	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
-		if (null==ptLoginConfig){
-			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-		}else {
-			if (null==ptLoginConfig.getPtRootUrl()||ptLoginConfig.getPtRootUrl().equals("")){
-				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-			}
-		}
-		return ptLoginConfig;
 	}
 }

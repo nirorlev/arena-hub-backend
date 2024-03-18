@@ -1,6 +1,5 @@
 # Environment variables
 export START_ENVIRONMENT=environmentVars
-export FRONTENDPATH=arena-hub
 export REDIS_HOST=127.0.0.1
 export REDIS_PASS=kyle2020TBfIU584
 export REDIS_PORT=6379
@@ -11,9 +10,7 @@ export MYSQL_PASS=userpass240109
 export MYSQL_DB_NAME=arena_hub
 export MYSQL_PORT=3306
 export MYSQL_SSL=false
-export CHANNEL_SUBJECT_ID_CSV=1805,1806,1809,1832
 export GUIDE_API_PORT=9999
-export GUIDE_USER_STORE_CIDR=0.0.0.0/0
 export PDP_ADDRESS=http://localhost:7000
 # export AWS_STS_REGIONAL_ENDPOINTS=regional
 # export AWS_DEFAULT_REGION=us-east-1

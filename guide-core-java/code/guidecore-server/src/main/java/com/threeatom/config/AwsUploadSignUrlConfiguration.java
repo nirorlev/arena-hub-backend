@@ -29,6 +29,6 @@ public class AwsUploadSignUrlConfiguration {
     @Value("${uploadsignurl.keyPairId:K1JQYEVI2UZJ98}")
     private String keyPairId;
 
-    @Value("${uploadsignurl.limitToIpAddressCIDR:0.0.0.0/0}")
+    @Value("${uploadsignurl.limitToIpAddressCIDR}")
     private String limitToIpAddressCIDR;
 }

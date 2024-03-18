@@ -80,7 +80,7 @@ services:
       - arena_dev
     environment:
       START_ENVIRONMENT: user
-      FRONTENDPATH: arena-hub
+      GUIDE_API_PORT: '9999'
       REDIS_HOST: redis
       REDIS_PASS: kyle2020TBfIU584
       REDIS_PORT: '6379'
@@ -102,9 +102,6 @@ services:
   #     AWS_S3_BUCKET: dev-arena-storage
   #     AWS_S3_REGION: us-east-1
   #     AWS_S3_SITE_BUCKET: dev-arena-site
-  #     CHANNEL_SUBJECT_ID_CSV: 1805,1806,1809,1832
-  #     GUIDE_API_PORT: '8080'
-  #     GUIDE_USER_STORE_CIDR: 0.0.0.0/0
   #     GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
   #     PDP_ADDRESS: http://localhost:7000
   #     POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/

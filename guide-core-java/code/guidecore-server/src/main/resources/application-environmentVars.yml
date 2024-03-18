@@ -1,8 +1,8 @@
 server:
    port: ${GUIDE_API_PORT:80}
    servlet:
-      context-path: ${CONTEXT_PATH:/arena-hub}
-frontendPath: ${FRONTENDPATH:/arena-hub}
+      context-path: /arena-hub
+frontendPath: /arena-hub
 spring:
    time-zone: GMT
    resources:
@@ -67,8 +67,8 @@ aws:
 
 #powtoon config
 #redirectUri: ${SSO_REDIRECT_URL_LIST:comma separated values of allowed URLs}
-clientId: ${SSO_CLIENT_ID:default client ID for sso}
-ptRootURL: https://${SSO_TOKEN_HOST:hostname of sso service}
+clientId: ${SSO_CLIENT_ID}
+ptRootURL: https://${SSO_TOKEN_HOST}
 oauthToken: /api/v1.0/oauth/token
 userUrl: /api/v1.0/users/me/profile
 logOut: /api/v1.0/oauth/revoke_token
@@ -77,26 +77,23 @@ groups: /api/v2/org/groups
 #暂无用
 clientSecret: ${SSO_CLIENT_SECRET:0qg1wUKUvxbjDP24d17byqCgSvgrjR99C4DELKBtKF3VlceU3O0TpYP6Jm2quGPbhqSuHEROcRmxXDpBcAu0VTF8279YpJcxfhoLUffgyUmShX0S2vGS4aPyvTyFz2FJ}
 logoutUrl: /account/logout?next_page=/arena-hub/
-#powtoon的首页写死的频道ids
-channel:
-  id: ${CHANNEL_SUBJECT_ID_CSV:1805,1806,1809}
 #S3 cloudfront signed url
 uploadsignurl:
   distributionDomain: ${GUIDE_USER_STORE_DOMAIN:stage.store.demoguide.xyz}
   privateKeyFilePath: ${GUIDE_USER_STORE_PRIVATE_KEY:dev-stage_signed_links_private_key.der}
   keyPairId: ${GUIDE_USER_STORE_KEY_PAIR_ID:K1JQYEVI2UZJ98}
-  limitToIpAddressCIDR: ${GUIDE_USER_STORE_CIDR:0.0.0.0/0}
+  limitToIpAddressCIDR: 0.0.0.0/0
 
 sitemap:
-  defaultId: ${DEFAULT_ID:228}
-  siteUrl: ${SITE_URL:guide.i10s.onearena.io}
+  defaultId: 228
+  siteUrl: guide.i10s.onearena.io
   
 permit:
   apiKey: ${PDP_API_KEY:permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW}
   pdpAddress: ${PDP_ADDRESS:http://localhost:7766}
-  # 0 = 开；1=关，不调用permit
-  permitSwitch: ${PDP_SWITCH:0}
-registercode: ${REGISTER_CODE:someExampleCode}
+  # 0 = on; 1 = off, do not call permit
+  permitSwitch: 0
+registercode: ${REGISTER_CODE}
 
 metaurl:
   course: "course"

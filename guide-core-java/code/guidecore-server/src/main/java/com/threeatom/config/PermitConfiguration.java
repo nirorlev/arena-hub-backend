@@ -27,6 +27,6 @@ public class PermitConfiguration {
     @Value("${permit.pdpAddress:http://47.111.191.189:7766}")
     private String pdpAddress;
 
-    @Value("${permit.permitSwitch:0}")
+    @Value("${permit.permitSwitch}")
     private Integer permitSwitch;
 }
