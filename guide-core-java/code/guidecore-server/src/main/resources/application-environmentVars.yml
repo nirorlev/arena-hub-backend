@@ -6,7 +6,7 @@ frontendPath: /arena-hub
 spring:
    time-zone: GMT
    resources:
-       #配置静态资源路径
+       #Configure static resource path
        static-locations: classpath:/static/,classpath:/public/,file:${web.profile-path:config/static}
    redis:
      password: ${REDIS_PASS}
@@ -20,8 +20,6 @@ spring:
          max-idle: 30
          min-idle: 5
      timeout: 50000
-     #cluster:
-     # nodes: 127.0.0.1:6379
      database: 9
    datasource:
       type: com.alibaba.druid.pool.DruidDataSource
@@ -30,20 +28,15 @@ spring:
       username: ${MYSQL_USER}
       password: ${MYSQL_PASS}
       druid: 
-            # 初始连接数
             initial-size: 10
-            # 最大连接池数量
             max-active: 100
-            # 最小连接池数量
             min-idle: 10
-            # 配置获取连接等待超时的时间
             max-wait: 60000
-            # 打开PSCache，并且指定每个连接上PSCache的大小
             pool-prepared-statements: true
             max-pool-prepared-statement-per-connection-size: 20
-            # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+            # Configure the interval between detection and detection of idle connections that need to be closed. The unit is milliseconds.
             timeBetweenEvictionRunsMillis: 60000
-            # 配置一个连接在池中最小生存的时间，单位是毫秒
+            # Configure the minimum survival time of a connection in the pool, the unit is milliseconds
             min-evictable-idle-time-millis: 300000
             validation-query: SELECT 1 FROM DUAL
             test-while-idle: true
@@ -66,16 +59,11 @@ aws:
   bucketName: ${AWS_S3_BUCKET}
 
 #powtoon config
-#redirectUri: ${SSO_REDIRECT_URL_LIST:comma separated values of allowed URLs}
-clientId: ${SSO_CLIENT_ID}
-ptRootURL: https://${SSO_TOKEN_HOST}
 oauthToken: /api/v1.0/oauth/token
 userUrl: /api/v1.0/users/me/profile
 logOut: /api/v1.0/oauth/revoke_token
 videoUrl: /api/v2/powtoons/{id}/player-page
 groups: /api/v2/org/groups
-#暂无用
-clientSecret: ${SSO_CLIENT_SECRET}
 logoutUrl: /account/logout?next_page=/arena-hub/
 #S3 cloudfront signed url
 uploadsignurl:

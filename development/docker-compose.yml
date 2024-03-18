@@ -98,7 +98,6 @@ services:
       AWS_S3_REGION: eu-west-2
       AWS_IAM_ROLE: iam role
       GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
-      SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com
       GUIDE_USER_STORE_KEY_PAIR_ID: K1JQYEVI2UZJ98
       PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
 

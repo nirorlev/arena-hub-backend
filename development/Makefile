@@ -16,7 +16,6 @@ export AWS_ROLE_SESSION_NAME=S3Upload
 export AWS_S3_BUCKET=bucket name
 export AWS_S3_REGION=eu-west-2
 export GUIDE_USER_STORE_DOMAIN=stage.store.demoguide.xyz
-export SSO_TOKEN_HOST=arenaec.dev-public.k8s.powtoon.com
 export GUIDE_USER_STORE_PRIVATE_KEY=dev-stage_signed_links_private_key.der
 export GUIDE_USER_STORE_KEY_PAIR_ID=K1JQYEVI2UZJ98
 export PDP_API_KEY=permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
