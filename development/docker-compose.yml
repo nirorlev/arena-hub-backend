@@ -13,10 +13,10 @@ services:
       MYSQL_DATABASE: arena_hub
       MYSQL_USER: user
       MYSQL_PASSWORD: userpass240109
-    volumes: 
+    volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - db_data:/var/lib/mysql
-    command: ["mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    command: [ "mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" ]
     ports:
       - 3306:3306
     networks:
@@ -29,8 +29,8 @@ services:
     environment:
       REDIS_PASS: kyle2020TBfIU584
     volumes:
-      - ./redis.conf:/etc/redis/redis.conf 
-    command: ["redis-server", "/etc/redis/redis.conf"]
+      - ./redis.conf:/etc/redis/redis.conf
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
     ports:
       - 6379:6379
     networks:
@@ -92,20 +92,15 @@ services:
       MYSQL_PORT: '3306'
       MYSQL_SSL: 'false'
       PERMIT_LICENSE_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
-  #     AWS_STS_REGIONAL_ENDPOINTS: regional
-  #     AWS_DEFAULT_REGION: us-east-1
-  #     AWS_REGION: us-east-1
-  #     AWS_ROLE_ARN: arn:aws:iam::861419891964:role/Powtoon-dev-arena-role
-  #     AWS_WEB_IDENTITY_TOKEN_FILE:
-  #     AWS_CLOUDFRONT_IDS:
-  #     AWS_ROLE_SESSION_NAME: S3Upload
-  #     AWS_S3_BUCKET: dev-arena-storage
-  #     AWS_S3_REGION: us-east-1
-  #     AWS_S3_SITE_BUCKET: dev-arena-site
-  #     GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
-  #     PDP_ADDRESS: http://localhost:7000
-  #     POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/
-  #     SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com
+      GUIDE_USER_STORE_PRIVATE_KEY: dev-stage_signed_links_private_key.der
+      AWS_ROLE_SESSION_NAME: S3Upload
+      AWS_S3_BUCKET: bucket name
+      AWS_S3_REGION: eu-west-2
+      AWS_IAM_ROLE: iam role
+      GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
+      SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com
+      GUIDE_USER_STORE_KEY_PAIR_ID: K1JQYEVI2UZJ98
+      PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
 
   pdp:
     image: permitio/pdp-v2:latest
@@ -114,7 +109,7 @@ services:
     ports:
       - 7000:7766
     environment:
-      PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW 
+      PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
     networks:
       - arena_dev
 

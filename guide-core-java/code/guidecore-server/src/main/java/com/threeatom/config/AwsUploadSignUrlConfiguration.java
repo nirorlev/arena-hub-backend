@@ -20,13 +20,13 @@ import org.springframework.context.annotation.PropertySource;
 @Data
 public class AwsUploadSignUrlConfiguration {
 
-    @Value("${uploadsignurl.distributionDomain:stage.store.demoguide.xyz}")
+    @Value("${uploadsignurl.distributionDomain}")
     private String distributionDomain;
 
-    @Value("${uploadsignurl.privateKeyFilePath:dev-stage_signed_links_private_key.der}")
+    @Value("${uploadsignurl.privateKeyFilePath}")
     private String privateKeyFilePath;
 
-    @Value("${uploadsignurl.keyPairId:K1JQYEVI2UZJ98}")
+    @Value("${uploadsignurl.keyPairId}")
     private String keyPairId;
 
     @Value("${uploadsignurl.limitToIpAddressCIDR}")
