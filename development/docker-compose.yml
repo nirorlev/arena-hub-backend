@@ -100,6 +100,7 @@ services:
       GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
       GUIDE_USER_STORE_KEY_PAIR_ID: K1JQYEVI2UZJ98
       PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
+      YOUTUBE_API_KEY: AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao
 
   pdp:
     image: permitio/pdp-v2:latest

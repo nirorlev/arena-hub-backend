@@ -55,7 +55,7 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	public YoutubeGuideCoreController() throws IOException {
 	}
 
-	@Value("${youtubeApiKey:AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao}")
+	@Value("${youtubeApiKey}")
 	private String youtubeApiKey;
 
 	@Value("${videoUrl}")

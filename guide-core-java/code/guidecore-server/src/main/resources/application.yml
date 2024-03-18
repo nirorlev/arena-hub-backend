@@ -32,4 +32,4 @@ spring:
 
 
 systemId: 2
-youtubeApiKey: AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao
+youtubeApiKey: ${YOUTUBE_API_KEY}

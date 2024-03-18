@@ -20,6 +20,7 @@ export GUIDE_USER_STORE_PRIVATE_KEY=dev-stage_signed_links_private_key.der
 export GUIDE_USER_STORE_KEY_PAIR_ID=K1JQYEVI2UZJ98
 export PDP_API_KEY=permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
 export AWS_IAM_ROLE=iam role
+export YOUTUBE_API_KEY=AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao
 
 # Paths
 PROJECT_PATH := ../guide-core-java/code/guidecore-server
