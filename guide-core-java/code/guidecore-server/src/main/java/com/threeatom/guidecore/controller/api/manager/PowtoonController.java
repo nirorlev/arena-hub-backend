@@ -2524,7 +2524,7 @@ public class PowtoonController extends GuideCoreController {
 		}else if (null==userIsTeacher){
 			accessService.checkUserAccess(master.getId(), user.getId(), studentAccess.getCode(), null, null, null);
 		}*/
-		token = userService.getUserNativeToken(user);
+		token = userService.getUserNativeToken(user, master);
 		user.setFirstName(user.getInfo().getFirstName());
 		user.setLastName(user.getInfo().getLastName());
 		sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), response);

@@ -137,18 +137,19 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Override
     public String loginGetToken(String email, String password) {
-        // TODO Auto-generated method stub
-
         GcManager manager = this.getManagerByUsername(email);
-        if (manager == null)
+        if (manager == null) {
             throw new SystemException(I18NUtil.get("guidecore.master.login.usernameError"));
+        }
+
         String salt = manager.getSalt();
-        String pwdHash = new SimpleHash("MD5", password, salt + SysConstant.PASS_SALT).toHex();
-        if (pwdHash.equals(manager.getPassword())) {
-            Map<String, String> map = new HashMap<String, String>();
+        String passwordHash = new SimpleHash("MD5", password, salt + SysConstant.PASS_SALT).toHex();
+        if (passwordHash.equals(manager.getPassword())) {
+            Map<String, String> map = new HashMap<>();
             map.put("role", "manager");
             map.put("client", "web");
             map.put("sysId", manager.getSysId().toString());
+            map.put("masterId", String.valueOf(manager.getMasterId()));
             return JwtUtil.createTokenByUser(manager.getId().toString(), map, manager.getPassword());
         } else {
             throw new SystemException(I18NUtil.get("guidecore.master.login.passError"));
