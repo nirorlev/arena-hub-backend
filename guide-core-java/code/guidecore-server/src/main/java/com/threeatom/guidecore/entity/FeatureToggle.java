@@ -17,6 +17,7 @@ public class FeatureToggle {
     private Integer id;
     private String name;
     private String description;
+    private Integer masterId;
     private String value;
     private LocalDateTime createdDate = LocalDateTime.now();
     private LocalDateTime modifiedDate = LocalDateTime.now();
