@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -17,6 +12,7 @@ import com.threeatom.utils.PasswordSecretUtil;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.NoArgsConstructor;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +20,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
+@NoArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
-        implements SysUserService {
+    implements SysUserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SysUserServiceImpl.class);
-    private static final String CACHE_TAG = "SysUser";
-
-    public SysUserServiceImpl() {}
 
     public SysUser getSysUserBySysIdAndUsername(Integer sysId, String username) {
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper();
@@ -39,7 +33,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     }
 
     public SysUser createSysUserByPhoneAndName(
-            Integer sysId, String phone, String name, String password) {
+        Integer sysId, String phone, String name, String password) {
         SysUser user = new SysUser();
         user.setSysId(sysId);
         user.setPhone(phone);
@@ -57,8 +51,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     }
 
     @Cacheable(
-            value = {"SysUser"},
-            key = "'entity:'+#p0")
+        value = {"SysUser"},
+        key = "'entity:'+#p0")
     public SysUser getSysUserByIdCache(Integer id) {
         LOGGER.info("获取SysUser");
         return (SysUser) this.getById(id);
@@ -68,18 +62,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         SysUser user = this.getSysUserBySysIdAndUsername(sysId, username);
         if (user == null) {
             throw new SystemException(I18NUtil.get("user.password.username"));
-        } else {
-            String salt = user.getSalt();
-            String pwdHash = (new SimpleHash("MD5", password, salt + "threeatom123$#&")).toHex();
-            LOGGER.info(pwdHash);
-            LOGGER.info(salt);
-            if (user.getPassword().equals(pwdHash)) {
-                Map<String, String> map = new HashMap();
-                map.put("sys_id", sysId.toString());
-                return JwtUtil.createTokenByUser(user.getId().toString(), map, user.getPassword());
-            } else {
-                return "";
-            }
         }
+        String salt = user.getSalt();
+        String pwdHash = (new SimpleHash("MD5", password, salt + "threeatom123$#&")).toHex();
+
+        LOGGER.info(pwdHash);
+        LOGGER.info(salt);
+
+        if (user.getPassword().equals(pwdHash)) {
+            Map<String, String> map = new HashMap<>();
+            map.put("sys_id", sysId.toString());
+            return JwtUtil.createTokenByUser(user.getId().toString(), map, user.getPassword());
+        }
+
+        return "";
     }
 }

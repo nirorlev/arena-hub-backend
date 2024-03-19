@@ -1,23 +1,15 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.jwt;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authc.AuthenticationToken;
 
+@Getter
+@RequiredArgsConstructor
 public class JwtToken implements AuthenticationToken {
     private static final long serialVersionUID = 1L;
-    public static final String ADMIN = "admin";
-    public static final String WEAPP = "weapp";
-    private String token;
-    private String type;
-
-    public JwtToken(String token, String type) {
-        this.token = token;
-        this.type = type;
-    }
+    private final String token;
+    private final String type;
 
     public Object getPrincipal() {
         return this.token;
@@ -25,13 +17,5 @@ public class JwtToken implements AuthenticationToken {
 
     public Object getCredentials() {
         return this.token;
-    }
-
-    public String getToken() {
-        return this.token;
-    }
-
-    public String getType() {
-        return this.type;
     }
 }
