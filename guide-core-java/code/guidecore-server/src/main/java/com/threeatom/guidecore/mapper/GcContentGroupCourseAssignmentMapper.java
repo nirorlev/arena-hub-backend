@@ -6,10 +6,10 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface GcContentGroupCourseAssignmentMapper
-        extends BaseMapper<GcContentGroupCourseAssignment> {
+    extends BaseMapper<GcContentGroupCourseAssignment> {
 
     List<GcContentGroupCourseAssignment> findByContentGroupId(
-            @Param("contentGroupId") Integer contentGroupId);
+        @Param("contentGroupId") Integer contentGroupId);
 
     GcContentGroupCourseAssignment findByCourseIdAndContentGroupId(
         @Param("contentGroupId") Integer contentGroupId, @Param("courseId") Integer courseId);
@@ -19,5 +19,6 @@ public interface GcContentGroupCourseAssignmentMapper
 
     void removeByMasterAndCourseId(@Param("masterId") Integer masterId, @Param("courseId") Integer courseId);
 
-    List<GcContentGroupCourseAssignment> getCoursesContentGroupAssignmentIds(@Param("userId") Integer userId, @Param("masterId") Integer masterId);
+    List<GcContentGroupCourseAssignment> getCoursesContentGroupAssignmentByUserAndMasterId(
+        @Param("userId") Integer userId, @Param("masterId") Integer masterId);
 }

@@ -123,14 +123,14 @@
 
 	<select id="getCoursesContentGroupAssignmentByUserAndMasterId" resultMap="contentGroupCourseAssignmentResultMap">
 		SELECT
-			id,
-			course_id,
-			content_group_id,
-			created_by_user_id,
-			is_mandatory,
-			deadline,
-			created_date,
-			modified_date
+			gcgca.id,
+			gcgca.course_id,
+			gcgca.content_group_id,
+			gcgca.created_by_user_id,
+			gcgca.is_mandatory,
+			gcgca.deadline,
+			gcgca.created_date,
+			gcgca.modified_date
 		FROM gc_user_access ua
 		    LEFT JOIN gc_content_group_course_assignment gcgca on gcgca.content_group_id = ua.access_id
 		WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId} AND ua.parent_code IS NULL

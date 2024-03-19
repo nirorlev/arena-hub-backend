@@ -37,7 +37,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
             this.baseMapper.findByContentGroupId(contentGroupId);
 
         if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         return contentGroupCourseAssignments.stream()
@@ -133,7 +133,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     @Override
     public List<Integer> getMustCoursesContentGroupAssignmentIds(Integer userId, Integer masterId) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
-            this.baseMapper.getCoursesContentGroupAssignmentIds(userId, masterId);
+            this.baseMapper.getCoursesContentGroupAssignmentByUserAndMasterId(userId, masterId);
 
         return filterCourseIdsByPredicate(contentGroupCourseAssignments, GcContentGroupCourseAssignment::getMandatory);
     }
@@ -141,7 +141,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     @Override
     public List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer userId, Integer masterId) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
-            this.baseMapper.getCoursesContentGroupAssignmentIds(userId, masterId);
+            this.baseMapper.getCoursesContentGroupAssignmentByUserAndMasterId(userId, masterId);
 
         return filterCourseIdsByPredicate(contentGroupCourseAssignments, assignment -> !assignment.getMandatory());
     }
@@ -158,7 +158,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
         List<GcContentGroupCourseAssignment> assignments,
         Predicate<GcContentGroupCourseAssignment> assignmentPredicate) {
         if (CollectionUtils.isEmpty(assignments)) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         return assignments.stream()
@@ -172,7 +172,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
         List<Integer> courseIds = type.isMandatory() ? course.getMustAccessIds() : course.getAccessIds();
 
         if (CollectionUtils.isEmpty(courseIds)) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         return courseIds.stream()
