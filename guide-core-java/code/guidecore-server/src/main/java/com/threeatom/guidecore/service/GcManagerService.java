@@ -2,7 +2,6 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcManager;
-import javax.servlet.http.HttpServletRequest;
 
 public interface GcManagerService extends IService<GcManager> {
 
@@ -16,6 +15,4 @@ public interface GcManagerService extends IService<GcManager> {
     GcManager getManagerByUsername(String username);
 
     boolean saveOrUpdateManager(GcManager manager);
-
-    GcManager getCurrentManager(HttpServletRequest request);
 }

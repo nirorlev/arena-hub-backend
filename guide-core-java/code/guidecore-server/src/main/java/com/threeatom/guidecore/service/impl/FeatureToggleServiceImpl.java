@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.response.FeatureToggleDto;
 import com.threeatom.guidecore.entity.FeatureToggle;
-import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.mapper.FeatureToggleMapper;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import java.util.List;
@@ -26,7 +25,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     @Transactional(readOnly = true)
-    public FeatureToggleDto getAllFeatures() {
+    public FeatureToggleDto getAllDefaultFeatures() {
         QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<>();
         queryWrapper.isNull(MASTER_ID_COLUMN);
 
@@ -35,8 +34,8 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     @Transactional(readOnly = true)
-    public FeatureToggleDto getAllFeatures(GcManager currentManager) {
-        return createFeatureToggleDto(getFeatureTogglesForMasterId(currentManager.getMasterId()));
+    public FeatureToggleDto getAllFeatures(Integer masterId) {
+        return createFeatureToggleDto(getFeatureTogglesForMasterId(masterId));
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {

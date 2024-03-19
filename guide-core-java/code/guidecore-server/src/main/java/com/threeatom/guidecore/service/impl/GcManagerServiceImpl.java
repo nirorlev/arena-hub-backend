@@ -15,12 +15,10 @@ import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
-import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.utils.PasswordSecretUtil;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.mortbay.util.ajax.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,16 +133,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
     public boolean saveOrUpdateManager(GcManager manager) {
 
         return this.saveOrUpdate(manager);
-    }
-
-    @Override
-    @Cacheable(value = CACHE_TAG, key = "'entity:'+#p0")
-    public GcManager getCurrentManager(HttpServletRequest request) {
-        if (AuthorizationUtil.isManager(request)) {
-            return getById(AuthorizationUtil.getUserUid(request));
-        }
-
-        return null;
     }
 
     @Override
