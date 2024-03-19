@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.util;
 
+import static com.threeatom.guidecore.util.RequestUtil.getRequestAuthHeader;
+
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.guidecore.enums.UserRole;
 import java.util.Optional;
@@ -12,7 +14,6 @@ public class AuthorizationUtil {
 
     private static final String ROLE = "role";
     private static final String UID = "uid";
-    private static final String AUTHORIZATION = "Authorization";
 
     public String getRole(HttpServletRequest request) {
         String token = getRequestAuthHeader(request);
@@ -34,10 +35,6 @@ public class AuthorizationUtil {
     public Integer getUserUid(HttpServletRequest request) {
         String token = getRequestAuthHeader(request);
         return Integer.valueOf(JwtUtil.getValueByToken(token, UID));
-    }
-
-    public static String getRequestAuthHeader(HttpServletRequest request) {
-        return request.getHeader(AUTHORIZATION);
     }
 
     public boolean isManager(HttpServletRequest request) {

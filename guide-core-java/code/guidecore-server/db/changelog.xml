@@ -74,5 +74,21 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="feature-toggle-add-master-id" author="vprokh">
+        <addColumn tableName="feature_toggle">
+            <column name="master_id" type="int"/>
+        </addColumn>
+        <dropUniqueConstraint tableName="feature_toggle" uniqueColumns="name" constraintName="name"/>
+        <addUniqueConstraint constraintName="feature_toggle_name_master_id_uindex"
+                             tableName="feature_toggle"
+                             columnNames="name, master_id"/>
+        <addForeignKeyConstraint constraintName="feature_toggle_gc_master_id_fk"
+                                 baseTableName="feature_toggle"
+                                 baseColumnNames="master_id"
+                                 referencedTableName="gc_master"
+                                 referencedColumnNames="id"
+                                 onUpdate="CASCADE"
+                                 onDelete="CASCADE"/>
+    </changeSet>
 
 </databaseChangeLog>

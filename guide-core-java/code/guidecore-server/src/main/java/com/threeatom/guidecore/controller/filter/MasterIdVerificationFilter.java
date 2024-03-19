@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.controller.filter;
 
+import static com.threeatom.guidecore.util.RequestUtil.getRequestAuthHeader;
+
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import java.io.IOException;
 import java.util.Optional;
@@ -32,7 +34,7 @@ public class MasterIdVerificationFilter implements Filter {
                 return;
             }
 
-            String token = AuthorizationUtil.getRequestAuthHeader(httpServletRequest);
+            String token = getRequestAuthHeader(httpServletRequest);
             Optional<String> masterIdJwtOptional = AuthorizationUtil.getPayloadValueByName(token, MASTER_ID);
 
             if (masterIdJwtOptional.isEmpty()) {
