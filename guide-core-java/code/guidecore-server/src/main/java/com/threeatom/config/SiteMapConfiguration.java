@@ -16,9 +16,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "sitemap")
 @Data
 public class SiteMapConfiguration {
-    @Value("${sitemap.defaultId:207}")
+    @Value("${sitemap.defaultId}")
     private Integer defaultId;
 
-    @Value("${sitemap.siteUrl:stage.demoguide.xyz}")
+    @Value("${sitemap.siteUrl}")
     private String siteUrl;
 }

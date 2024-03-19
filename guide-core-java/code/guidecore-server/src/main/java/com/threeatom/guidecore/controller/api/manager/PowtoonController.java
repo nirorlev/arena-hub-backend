@@ -1107,8 +1107,6 @@ public class PowtoonController extends GuideCoreController {
 
 			/*if (null==ptLoginConfig){
 				ptLoginConfig = new PtLoginConfig();
-				ptLoginConfig.setClientId(env.getProperty("clientId"));
-				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
 				ptLoginConfig.setLogOut(env.getProperty("logOut"));
 			}*/
 			ptLoginConfig = getPtConfig(ptLoginConfig);
@@ -1132,12 +1130,6 @@ public class PowtoonController extends GuideCoreController {
 		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
 		loginConfigQueryWrapper.eq("master_id",masterId);
 		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-		/*if (null==ptLoginConfig){
-			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setClientId(env.getProperty("clientId"));
-			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-			ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
-		}*/
 		ptLoginConfig = getPtConfig(ptLoginConfig);
 		return new Message().ok().addData("clientId",ptLoginConfig.getClientId())
 				.addData("ptRootURL",ptLoginConfig.getPtRootUrl())
@@ -1149,21 +1141,12 @@ public class PowtoonController extends GuideCoreController {
 	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
 		if (null==ptLoginConfig){
 			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setClientId(env.getProperty("clientId"));
-			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
 			ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
 			ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
 			ptLoginConfig.setLogOut(env.getProperty("logOut"));
 			ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
 			ptLoginConfig.setGroups(env.getProperty("groups"));
 		}else {
-			if (null==ptLoginConfig.getClientId()||ptLoginConfig.getClientId().equals("")){
-				ptLoginConfig.setClientId(env.getProperty("clientId"));
-			}
-			if (null==ptLoginConfig.getPtRootUrl()||ptLoginConfig.getPtRootUrl().equals("")){
-				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-			}
 			if (null==ptLoginConfig.getOauthToken()||ptLoginConfig.getOauthToken().equals("")){
 				ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
 			}
@@ -1175,9 +1158,6 @@ public class PowtoonController extends GuideCoreController {
 			}
 			if (null==ptLoginConfig.getLogOutUrl()||ptLoginConfig.getLogOutUrl().equals("")){
 				ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			}
-			if (null==ptLoginConfig.getClientSecret()||ptLoginConfig.getClientSecret().equals("")){
-				ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
 			}
 			if (null==ptLoginConfig.getGroups()||ptLoginConfig.getGroups().equals("")){
 				ptLoginConfig.setGroups(env.getProperty("groups"));

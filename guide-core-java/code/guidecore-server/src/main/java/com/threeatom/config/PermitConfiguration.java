@@ -20,13 +20,12 @@ import org.springframework.context.annotation.PropertySource;
 @Data
 public class PermitConfiguration {
 
-    @Value(
-            "${permit.apiKey:permit_key_ZW0KTH0icmdLZbJvG1fDN4JUMNS4OMMnRZBC3gyj7qSmkisJZR4K2ngtQs1932Mam5qIOpF5ySxy5tegMZXR8y}")
+    @Value("${permit.apiKey}")
     private String apiKey;
 
-    @Value("${permit.pdpAddress:http://47.111.191.189:7766}")
+    @Value("${permit.pdpAddress}")
     private String pdpAddress;
 
-    @Value("${permit.permitSwitch:0}")
+    @Value("${permit.permitSwitch}")
     private Integer permitSwitch;
 }

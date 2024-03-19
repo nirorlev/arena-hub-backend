@@ -1,6 +1,5 @@
 # Environment variables
 export START_ENVIRONMENT=environmentVars
-export FRONTENDPATH=arena-hub
 export REDIS_HOST=127.0.0.1
 export REDIS_PASS=kyle2020TBfIU584
 export REDIS_PORT=6379
@@ -11,21 +10,17 @@ export MYSQL_PASS=userpass240109
 export MYSQL_DB_NAME=arena_hub
 export MYSQL_PORT=3306
 export MYSQL_SSL=false
-export CHANNEL_SUBJECT_ID_CSV=1805,1806,1809,1832
 export GUIDE_API_PORT=9999
-export GUIDE_USER_STORE_CIDR=0.0.0.0/0
 export PDP_ADDRESS=http://localhost:7000
-# export AWS_STS_REGIONAL_ENDPOINTS=regional
-# export AWS_DEFAULT_REGION=us-east-1
-# export AWS_REGION=us-east-1
-# export AWS_ROLE_ARN=arn:aws:iam::861419891964:role/Powtoon-dev-arena-role
-# export AWS_ROLE_SESSION_NAME=S3Upload
-# export AWS_S3_BUCKET=dev-arena-storage
-# export AWS_S3_REGION=us-east-1
-# export AWS_S3_SITE_BUCKET=dev-arena-site
-# export GUIDE_USER_STORE_DOMAIN=storage.staging-arena.powtoon.com
-# export POWTOON_BASE_HOST=https://arenaec.dev-public.k8s.powtoon.com/
-# export SSO_TOKEN_HOST=arenaec.dev-public.k8s.powtoon.com
+export AWS_ROLE_SESSION_NAME=S3Upload
+export AWS_S3_BUCKET=bucket name
+export AWS_S3_REGION=eu-west-2
+export GUIDE_USER_STORE_DOMAIN=stage.store.demoguide.xyz
+export GUIDE_USER_STORE_PRIVATE_KEY=dev-stage_signed_links_private_key.der
+export GUIDE_USER_STORE_KEY_PAIR_ID=K1JQYEVI2UZJ98
+export PDP_API_KEY=permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
+export AWS_IAM_ROLE=iam role
+export YOUTUBE_API_KEY=AIzaSyAls5ynrz0bDYI3l3UifbLwtSclnv7g2ao
 
 # Paths
 PROJECT_PATH := ../guide-core-java/code/guidecore-server
