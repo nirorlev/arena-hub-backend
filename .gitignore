@@ -3,3 +3,4 @@
 *.patch
 *.iml
 development/dump/dump.sql
+.local.env
