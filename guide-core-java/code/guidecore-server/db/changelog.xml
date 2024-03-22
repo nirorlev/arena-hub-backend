@@ -97,5 +97,11 @@
             <column name="value" value="true"/>
         </insert>
     </changeSet>
-
+    <changeSet id="create-analytics-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="analyticsEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding analytics"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
