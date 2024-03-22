@@ -90,5 +90,12 @@
                                  onUpdate="CASCADE"
                                  onDelete="CASCADE"/>
     </changeSet>
+    <changeSet id="create-courses-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="coursesEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding courses"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
 
 </databaseChangeLog>
