@@ -36,4 +36,4 @@ build:
 
 run:
 	@cd $(PROJECT_PATH)/target && \
-	java -Xms256m -Xmx512m -jar -Dloader.path=.,config,lib guidecore.jar --spring.profiles.active=$(START_ENVIRONMENT)
+	java -Xms256m -Xmx512m -jar "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" -Dloader.path=.,config,lib guidecore.jar --spring.profiles.active=$(START_ENVIRONMENT)
