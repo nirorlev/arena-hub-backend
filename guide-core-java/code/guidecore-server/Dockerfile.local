@@ -1,0 +1,17 @@
+FROM openjdk:15-jdk-alpine
+ENV START_ENVIRONMENT ${START_ENVIRONMENT}
+EXPOSE 9999
+WORKDIR /
+
+RUN apk update && \
+    apk upgrade && \
+    apk --no-cache add ca-certificates maven mysql-client redis aws-cli maven && \
+    rm -rf /var/cache/apk/*
+
+COPY . .
+
+RUN mvn -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+
+RUN mkdir log
+
+CMD ["java", "-Xms256m", "-Xmx512m", "-jar", "-Dloader.path=.,target/config,target/lib", "target/guidecore.jar", "--spring.profiles.active=${START_ENVIRONMENT}"]

@@ -67,7 +67,7 @@ services:
     platform: linux/amd64
     build:
       context: ../guide-core-java/code/guidecore-server
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.local
     container_name: arena-java-app
     # restart: unless-stopped
     ports:
@@ -79,7 +79,7 @@ services:
     networks:
       - arena_dev
     environment:
-      START_ENVIRONMENT: environmentVars
+      START_ENVIRONMENT: environmentVars,swagger
       GUIDE_API_PORT: '9999'
       REDIS_HOST: redis
       REDIS_PASS: ${REDIS_PASS}

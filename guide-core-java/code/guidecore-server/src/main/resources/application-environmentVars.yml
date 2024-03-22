@@ -24,7 +24,7 @@ spring:
    datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=${MYSQL_SSL:false}&serverTimezone=GMT&allowMultiQueries=true
+      url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=${MYSQL_SSL:false}&serverTimezone=GMT&allowMultiQueries=true&allowPublicKeyRetrieval=true
       username: ${MYSQL_USER}
       password: ${MYSQL_PASS}
       druid: 
