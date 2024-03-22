@@ -14,6 +14,7 @@ public class AuthorizationUtil {
 
     private static final String ROLE = "role";
     private static final String UID = "uid";
+    private static final String UNDEFINED_TOKEN = "undefined";
 
     public String getRole(HttpServletRequest request) {
         String token = getRequestAuthHeader(request);
@@ -25,7 +26,7 @@ public class AuthorizationUtil {
     }
 
     public static Optional<String> getPayloadValueByName(String token, String name) {
-        if (StringUtils.isEmpty(token) || StringUtils.isEmpty(name)) {
+        if (StringUtils.isEmpty(token) || StringUtils.isEmpty(name) || UNDEFINED_TOKEN.equals(token)) {
             return Optional.empty();
         }
 
