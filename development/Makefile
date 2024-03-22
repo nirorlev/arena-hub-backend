@@ -1,5 +1,6 @@
 # Environment variables
 include .local.env
+export $(shell sed 's/=.*//' .local.env)
 
 export START_ENVIRONMENT=environmentVars
 export REDIS_HOST=127.0.0.1
