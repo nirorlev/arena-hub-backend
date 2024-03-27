@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# A script to make SQL migrations for new releases of Arena project and to perform permitio policies copy
+set -e
 
 make_migrations() {
     echo -e "\n########## Applying SQL migrations for the release:\n" 
@@ -11,11 +11,6 @@ username: $MYSQL_USER
 password: $MYSQL_PASS
 EOF
     mvn liquibase:update -Dliquibase.verbose=true
-    if [ $? -eq 0 ]; then
-        echo "Liquibase update successful"
-    else
-        echo "Liquibase update failed"
-    fi
 }
 
 copy_permitio_policies() {
@@ -45,7 +40,7 @@ copy_permitio_policies() {
 do_release() {
     echo -e "\n########## Doing entire release:\n"
     make_migrations
-    copy_permitio_policies
+    copy_permitio_policies 
 }
 
 # Run certain functions on demand
