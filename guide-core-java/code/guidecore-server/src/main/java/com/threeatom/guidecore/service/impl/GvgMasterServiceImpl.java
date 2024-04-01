@@ -566,7 +566,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
 			}
 
-			List<SysMenu> menuList = sysMenuService.getLevel3List(null);
+			List<SysMenu> menuList = sysMenuService.getLevel3List(null,  user);
 			message.ok().addData("allTags",subWithTagList);
 			message.ok().addData("homeInfo",infoList);
 			message.ok().addData("homeInfoIndex",menuList);

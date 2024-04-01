@@ -104,7 +104,6 @@ import io.permit.sdk.api.PermitContextError;
 import io.permit.sdk.api.models.CreateOrUpdateResult;
 import io.permit.sdk.enforcement.User;
 import io.permit.sdk.openapi.models.RoleAssignmentRead;
-import io.permit.sdk.openapi.models.RoleRead;
 import io.permit.sdk.openapi.models.TenantCreate;
 import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
@@ -1944,16 +1943,17 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "systemSettings", httpMethod = "GET")
 	@GetMapping("/systemSettings")
 	public Message systemSettings(HttpServletRequest request){
+		GcUser currentUser = this.getGcUser();
 		QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("level",TableConstant.COMMON_TWO);
 
 		Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-		List<SysMenu> sysMenuList = sysMenuService.getSysMenuList(masterId);
-		List<SysMenu> homePageSections = sysMenuService.getLevel3List(masterId);
+		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(masterId, currentUser);
+		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(masterId, currentUser);
 
 		if (sysMenuList.isEmpty() || homePageSections.isEmpty()){
-			sysMenuList=sysMenuService.getSysMenuList(null);
-			homePageSections=sysMenuService.getLevel3List(null);
+			sysMenuList=sysMenuService.getSysMenuList(masterId, currentUser);
+			homePageSections=sysMenuService.getLevel3List(masterId, currentUser);
 		}
 
 		// Preheat the interface and optimize the first startup
