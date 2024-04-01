@@ -45,6 +45,11 @@ public class AnalyticsController {
         for (int i = 0; i < 50; i++) {
             LocalDateTime time = start.plusMinutes(i * step);
             currentValue += random.nextDouble() * 10 - 5;
+
+            if (currentValue < 0) {
+                currentValue = 0;
+            }
+
             values.add(getMetricValuePairDto(time, currentValue));
         }
 
