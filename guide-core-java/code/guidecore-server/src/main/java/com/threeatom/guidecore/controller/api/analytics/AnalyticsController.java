@@ -78,23 +78,4 @@ public class AnalyticsController {
 
         return metricValuePairDto;
     }
-
-    enum DataEnum {
-        VIDEO_VIEW,
-        // Add other enum values as needed
-    }
-
-    class Result {
-        private Metric metric;
-        private List<List<String>> values;
-
-        // getters and setters
-    }
-
-    class Metric {
-        private String name;
-        private Integer videoId;
-
-        // getters and setters
-    }
 }
