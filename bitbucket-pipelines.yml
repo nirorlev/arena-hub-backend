@@ -58,7 +58,7 @@ pipelines:
 
     # For feature/** branches: automatically compile. Optionally build container image, push it to ECR,
     # deploy an image to one of develop, staging-ec environments
-    feature/**:
+    '{feature/**,bugfix/**}':
     # - step: *compile
     - step:
         # We need this step because in Bitbucket first step must be automatic
