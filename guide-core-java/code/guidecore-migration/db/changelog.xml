@@ -2,12 +2,8 @@
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
-        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
-        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
-        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <changeSet id="translate-some-comments" author="adel">
         <setTableRemarks tableName="gc_user_access" remarks="Mapping between content groups and assigned courses"/>
     </changeSet>
@@ -52,7 +48,7 @@
                                  onUpdate="CASCADE"/>
     </changeSet>
     <changeSet id="migrate-subjects-from-json-to-content_group_course_assignment" author="vprokh">
-        <customChange class="com.threeatom.db.migration.ContentGroupAssignmentChange" />
+        <customChange class="com.arena.hub.migration.ContentGroupAssignmentChange" />
     </changeSet>
     <changeSet id="create-feature-toggle" author="vprokh">
         <createTable tableName="feature_toggle" remarks="Table to handle feature toggle configuration for application">

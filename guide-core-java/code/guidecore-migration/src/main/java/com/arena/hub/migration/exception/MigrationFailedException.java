@@ -1,4 +1,4 @@
-package com.threeatom.db.migration.exception;
+package com.arena.hub.migration.exception;
 
 public class MigrationFailedException extends RuntimeException {
     public MigrationFailedException(String message, Throwable cause) {
