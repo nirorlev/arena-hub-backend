@@ -101,9 +101,6 @@
         </insert>
     </changeSet>
     <changeSet id="enable-show-insights-menu" author="vprokh">
-        <preConditions>
-            <sqlCheck expectedResult="1">SELECT COUNT(*) FROM sys_menu WHERE name = 'Show Insights' AND `key` = 'Insights'</sqlCheck>
-        </preConditions>
         <update tableName="sys_menu">
             <column name="state" value="0" />
             <where>name = 'Show Insights' AND `key` = 'Insights'</where>
