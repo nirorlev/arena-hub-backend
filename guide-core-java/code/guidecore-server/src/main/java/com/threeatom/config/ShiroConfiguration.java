@@ -70,7 +70,7 @@ public class ShiroConfiguration {
         filterMap.put("adminjwt", new AdminJwtFilter());
         filterMap.put("guidecorejwt", new GuideCoreJwtFilter());
         shiroFilterFactoryBean.setFilters(filterMap);
-        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<String, String>();
+        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/*/weapp/runCheck", "anon");
         filterChainDefinitionMap.put("/api/*/weapp/user/login", "anon");
         filterChainDefinitionMap.put("/api/*/weapp/practice/bindlogin", "anon");
@@ -139,38 +139,11 @@ public class ShiroConfiguration {
         filterChainDefinitionMap.put("/api/v1/guidecore/screenrock/register", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/screenrock/videoDetail", "anon");
         filterChainDefinitionMap.put("/api/v1/powtoon/home/updateData", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/manager/getSubjectImportToken", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/manager/getSubjectImportTokenTest", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/getStudentListByClass", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/getClassList", "anon");
 
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/test", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/manager/*/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/manager/*", "anon");
-        //
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/file/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/workbook/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/*/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/*/*/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/sysFile/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/getStudentHomeDataForTeacher/*",
-        // "anon");
-
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/getLikeVideoByUserId", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getWelcomeVideosUserSide/*",
-        // "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getWelcomeVideos", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/sysFile/saveLink", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/workBooktest", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/videoDetailtest", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/fuzzySearchVideo/*", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/saveHomeVideo", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/getSocialMedia", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/user/workBookMessageList", "anon");
+        filterChainDefinitionMap.put("/api/v2/app-config", "anon");
 
         filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
+        filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/*/weapp/**", "weappjwt");
         filterChainDefinitionMap.put("/api/*/admin/**", "adminjwt");
         filterChainDefinitionMap.put("/api/v1/powtoon/home/videoDetailPt", "anon");
