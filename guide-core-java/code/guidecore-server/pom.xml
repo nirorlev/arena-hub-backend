@@ -33,7 +33,6 @@
         <spotless.google.format.version>1.17.0</spotless.google.format.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
-        <liquibase.version>4.25.1</liquibase.version>
     </properties>
 
     <dependencies>
@@ -452,12 +451,6 @@
             <version>${mapstruct.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>${liquibase.version}</version>
-        </dependency>
-
     </dependencies>
 
 
@@ -496,23 +489,6 @@
         </resources>
 
         <plugins>
-
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>${liquibase.version}</version>
-                <configuration>
-                    <propertyFile>liquibase.properties</propertyFile>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>mysql</groupId>
-                        <artifactId>mysql-connector-java</artifactId>
-                        <version>8.0.30</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>

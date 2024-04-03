@@ -1,9 +1,9 @@
-package com.threeatom.db.migration;
+package com.arena.hub.migration;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.threeatom.db.migration.exception.MigrationFailedException;
-import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
+import com.arena.hub.migration.exception.MigrationFailedException;
+import com.arena.hub.migration.model.ContentGroupCourseAssignment;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,19 +30,20 @@ public class ContentGroupAssignmentChange implements CustomTaskChange {
     @Override
     public void execute(Database database) {
         JdbcConnection connection = (JdbcConnection) database.getConnection();
+        Gson gson = new Gson();
 
         try (
             PreparedStatement preparedStatement = connection.prepareStatement(GET_COURSES);
             ResultSet resultSet = preparedStatement.executeQuery()) {
             connection.setAutoCommit(false);
-            List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
+            List<ContentGroupCourseAssignment> contentGroupCourseAssignments = new ArrayList<>();
 
             while (resultSet.next()) {
                 String subjectJson = resultSet.getString("subject_json");
                 if (subjectJson == null) {
                     continue;
                 }
-                List<Integer> courseIds = JSON.parseObject(subjectJson, new TypeReference<List<Integer>>() {
+                List<Integer> courseIds = gson.fromJson(subjectJson, new TypeToken<>() {
                 });
 
                 for (Integer courseId : courseIds) {
@@ -63,9 +64,9 @@ public class ContentGroupAssignmentChange implements CustomTaskChange {
         }
     }
 
-    private GcContentGroupCourseAssignment createContentGroupAssignments(ResultSet resultSet, Integer courseId)
+    private ContentGroupCourseAssignment createContentGroupAssignments(ResultSet resultSet, Integer courseId)
         throws SQLException {
-        GcContentGroupCourseAssignment contentGroupCourseAssignment = new GcContentGroupCourseAssignment();
+        ContentGroupCourseAssignment contentGroupCourseAssignment = new ContentGroupCourseAssignment();
 
         contentGroupCourseAssignment.setContentGroupId(resultSet.getInt("id"));
         contentGroupCourseAssignment.setCourseId(courseId);
@@ -89,11 +90,11 @@ public class ContentGroupAssignmentChange implements CustomTaskChange {
     }
 
     private void saveCourseAssignments(
-        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments, JdbcConnection connection)
+        List<ContentGroupCourseAssignment> contentGroupCourseAssignments, JdbcConnection connection)
         throws SQLException, DatabaseException {
         PreparedStatement preparedStatement = connection.prepareStatement(INSERT_COURSE_ASSIGNMENTS);
 
-        for (GcContentGroupCourseAssignment contentGroupCourseAssignment : contentGroupCourseAssignments) {
+        for (ContentGroupCourseAssignment contentGroupCourseAssignment : contentGroupCourseAssignments) {
             preparedStatement.setInt(1, contentGroupCourseAssignment.getContentGroupId());
             preparedStatement.setInt(2, contentGroupCourseAssignment.getCourseId());
             preparedStatement.setBoolean(3, contentGroupCourseAssignment.getMandatory());

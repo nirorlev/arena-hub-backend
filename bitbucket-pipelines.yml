@@ -12,6 +12,8 @@ definitions:
         script:
           - cd ./guide-core-java/code/guidecore-server
           - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+          - cd ./../guidecore-migration
+          - mvn package
 
     - step: &build_and_push
         name: Build an image, push to ECR
@@ -19,12 +21,15 @@ definitions:
         caches:
           - maven
         #   - docker
-        script: 
+        script:
           - export IMAGE_TAG=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
-          - cd ./guide-core-java/code/guidecore-server
+          - cd ./guide-core-java/code/guidecore-migration
+          - mvn package
+          - cd ./../guidecore-server
           - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+          - cd ../
           - |- 
-            echo '{ "backend": "'${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7}'" }' > target/version.json
+            echo '{ "backend": "'${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7}'" }' > guidecore-server/target/version.json
           - docker build -t arena/api:$IMAGE_TAG .
           # Use the pipe to push the image to AWS ECR
           # https://bitbucket.org/atlassian/aws-ecr-push-image/src/master/
@@ -53,22 +58,22 @@ pipelines:
 
     # For feature/** branches: automatically compile. Optionally build container image, push it to ECR,
     # deploy an image to one of develop, staging-ec environments
-    feature/**:
+    '{feature/**,bugfix/**}':
     # - step: *compile
     - step:
         # We need this step because in Bitbucket first step must be automatic
         name: Activate build buttons
-        script: 
+        script:
         - exit 0
-    - step: 
+    - step:
         <<: *build_and_push
-        trigger: manual  
+        trigger: manual
     - parallel:
         steps:
         - step:
             # We need this step because in Bitbucket first step must be automatic
             name: Activate deploy buttons
-            script: 
+            script:
             - exit 0
         - step:
             name: Deploy to develop
