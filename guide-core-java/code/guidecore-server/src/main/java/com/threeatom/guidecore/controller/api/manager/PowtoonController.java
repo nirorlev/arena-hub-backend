@@ -2806,7 +2806,7 @@ public class PowtoonController extends GuideCoreController {
 			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
 			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, sub.getId());
 		}
-		if (sub.getState() == TableConstant.COMMON_ONE) {
+		if (sub.getState() != null && sub.getState() == TableConstant.COMMON_ONE) {
 			contentGroupCourseAssignmentService.save(user, sub, CourseType.MANDATORY);
 			contentGroupCourseAssignmentService.save(user, sub, CourseType.OPTIONAL);
 		}
