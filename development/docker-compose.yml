@@ -14,11 +14,25 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: ${MYSQL_PASS}
     volumes:
-      - ./dump/:/docker-entrypoint-initdb.d/
       - db_data:/var/lib/mysql
-    command: [ "mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" ]
+    command: [ "mysqld", "--default-authentication-plugin=mysql_native_password", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" ]
     ports:
       - 3306:3306
+    networks:
+      - arena_dev
+
+  postgres-db:
+    image: postgres:16
+    platform: linux/amd64
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: YEE!CFFCa!rTbym2ZW
+    volumes:
+      - ./dump/:/docker-entrypoint-initdb.d/
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
     networks:
       - arena_dev
 
@@ -119,3 +133,4 @@ networks:
     name: arena_dev
 volumes:
   db_data:
+  pg_data:
