@@ -106,4 +106,10 @@
             <where>name = 'Show Insights' AND `key` = 'Insights'</where>
         </update>
     </changeSet>
+    <changeSet id="set-analytics-feature-toggle-false" author="vprokh">
+        <update tableName="feature_toggle">
+            <column name="value" value="false"/>
+            <where>name = 'analyticsEnabled'</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
