@@ -26,12 +26,12 @@ copy_permitio_policies() {
     if [ "${K8S_NAMESPACE}" == "staging-ec" ]; then
         echo -e "\n########## Copying Permitio policies from dev to staging:\n"
         install_deps
-        node hub/utils/copy-env.js dev staging
+        node hub/utils/copy-env.js dev-stable staging
     elif [ "${K8S_NAMESPACE}" == "prod-ec" ]
     then
         echo -e "\n########## Copying Permitio policies from dev to production:\n"
         install_deps
-        node hub/utils/copy-env.js dev production
+        node hub/utils/copy-env.js staging production
     else
         echo "${K8S_NAMESPACE} is no in the list"
     fi
