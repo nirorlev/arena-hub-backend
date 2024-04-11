@@ -126,20 +126,20 @@
 		F.NAME AS F_NAME,
 		F.FILE_URL AS F_FILE_URL,
 		F.SAVE_TYPE AS F_SAVE_TYPE,
-		if( s.master_id = #{masterId}, s.order, sa.order ) as orders,
-		iFNULL(sum(sys.video_long),0) as sumVideoLong,
+		CASE WHEN s.master_id = #{masterId} THEN s.order ELSE sa.order END as orders,
+		COALESCE(sum(sys.video_long),0) as sumVideoLong,
 		sa.order as subjectAssociation_order,
-		concat( '[', GROUP_CONCAT(distinct '"', tags.tag_text, '"' SEPARATOR ',' ), ']' ) AS course_tags,
+		concat( '[', string_agg(distinct '"' || tags.tag_text || '"', ',' ), ']' ) AS course_tags,
 		s.cpd_hours
 		FROM
 		GC_SUBJECT S
 		<if test="userId != null and userId !='' and gvgFlag == null">
-			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(JSON_MERGE(ifnull(UAP.must_subject_json,'[]'),ifnull(uap.may_subject_json,'[]')), CONVERT(S.ID, CHAR))=1
+			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
 			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
-			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(JSON_MERGE(ifnull(UAP.must_subject_json,'[]'),ifnull(uap.may_subject_json,'[]')), CONVERT(S.ID, CHAR))=1
+			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		</if>
@@ -152,14 +152,14 @@
 		left join gc_subject_tags tags on tags.subject_id = s.id and(
 		(sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)
 		or(tags.master_id = #{masterId}))
-		and tags.`status` = 0
+		and tags."status" = 0
 		<where>
 			1=1
-			and UA.role_json like concat('%','groupMember','%')
+			and UA.role_json::text like concat('%','groupMember','%')
 			<include refid="where_gcSubject_state_not_hidden" />
 			<!--<if test="params.state != null and params.state !=''">
-				AND s.state =#{params.state}
-			</if>-->
+                AND s.state =#{params.state}
+            </if>-->
 			<if test="fid != null">
 				and s.fid =#{fid}<!--一级视频课程id 查询二级课程-->
 			</if>
@@ -178,31 +178,24 @@
 				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
 				</foreach>
-			    or s.available_type = 3)
+				or s.available_type = 3)
 			</if>
 			<if test="subjectName != null and subjectName != ''">
 				AND (S.name LIKE CONCAT( CONCAT( '%', #{subjectName}), '%' )
-			<if test="videoInCourseName != null and videoInCourseName != ''">
-			    or ( V.VIDEO_NAME LIKE CONCAT( CONCAT( '%', #{videoInCourseName}), '%' ))
-			</if>
-			    )
+				<if test="videoInCourseName != null and videoInCourseName != ''">
+					or ( V.VIDEO_NAME LIKE CONCAT( CONCAT( '%', #{videoInCourseName}), '%' ))
+				</if>
+				)
 
 			</if>
 			<if test="videoName != null and videoName != ''">
 				AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')
 			</if>
-			<!--            <if test="tag != null and tag != ''">
-                            AND json_contains(s.course_tags,CONCAT('"',#{tag},'"'))
-                            AND S.id in
-                            <foreach collection="subIds" item="subId" separator="," open="(" close=")">
-                                #{subId}
-                            </foreach>
-                        </if>-->
 			<if test=" null !=channelIdList and channelIdList.size()>0">
-					AND s.id not in
-					<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
-						#{channelId}
-					</foreach>
+				AND s.id not in
+				<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
+					#{channelId}
+				</foreach>
 			</if>
 			<if test="tag != null and tag != ''">
 				and tags.tag_text = #{tag}
@@ -245,7 +238,6 @@
 					or (sumVideoLong &gt;#{durationMin1})
 				</if>
 				)
-
 			</if>
 		</where>
 		ORDER BY
@@ -278,20 +270,20 @@
 		F.NAME AS F_NAME,
 		F.FILE_URL AS F_FILE_URL,
 		F.SAVE_TYPE AS F_SAVE_TYPE,
-		if( s.master_id = #{masterId}, s.order, sa.order ) as orders,
-		iFNULL(sum(sys.video_long),0) as sumVideoLong,
+		CASE WHEN s.master_id = #{masterId} THEN s.order ELSE sa.order END as orders,
+		COALESCE(sum(sys.video_long),0) as sumVideoLong,
 		sa.order as subjectAssociation_order,
-		concat( '[', GROUP_CONCAT(distinct '"', tags.tag_text, '"' SEPARATOR ',' ), ']' ) AS course_tags,
+		concat( '[', string_agg(distinct '"' || tags.tag_text || '"', ',' ), ']' ) AS course_tags,
 		s.cpd_hours
 		FROM
 		GC_SUBJECT S
 		<if test="userId != null and userId !='' and gvgFlag == null">
-			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
 			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
-			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		</if>
@@ -304,13 +296,10 @@
 		left join gc_subject_tags tags on tags.subject_id = s.id and(
 		(sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)
 		or(tags.master_id = #{masterId}))
-		and tags.`status` = 0
+		and tags."status" = 0
 		<where>
 			1=1
 			<include refid="where_gcSubject_state_not_hidden" />
-			<!--<if test="params.state != null and params.state !=''">
-				AND s.state =#{params.state}
-			</if>-->
 			<if test="fid != null">
 				and s.fid =#{fid}<!--一级视频课程id 查询二级课程-->
 			</if>
@@ -336,13 +325,6 @@
 			<if test="videoName != null and videoName != ''">
 				AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')
 			</if>
-			<!--            <if test="tag != null and tag != ''">
-                            AND json_contains(s.course_tags,CONCAT('"',#{tag},'"'))
-                            AND S.id in
-                            <foreach collection="subIds" item="subId" separator="," open="(" close=")">
-                                #{subId}
-                            </foreach>
-                        </if>-->
 			<if test=" null !=channelIdList and channelIdList.size()>0">
 				AND s.id not in
 				<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
@@ -387,92 +369,32 @@
 					or (sumVideoLong &gt;#{durationMin1})
 				</if>
 				)
-
 			</if>
 		</where>
 		ORDER BY
 		orders,s.id
 	</select>
 
-<!--	<select id="findSubjects_COUNT" resultType="Long">-->
-<!--		select count(1) from (-->
-<!--		select s.* ,-->
-<!--		concat( '[', GROUP_CONCAT( DISTINCT '"', tags.tag_text, '"' SEPARATOR ',' ), ']' ) AS tagg-->
-<!--		FROM gc_subject S-->
-<!--		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid =-->
-<!--		sa.subject_id ) AND sa.master_id = #{masterId}-->
-<!--		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1-->
-<!--		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID-->
-<!--		<if test="userId != null and userId !='' and gvgFlag == null">-->
-<!--			and ua.master_id = #{masterId}-->
-<!--		</if>-->
-<!--		LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID-->
-
-<!--		<if test=" null !=channelIdList and channelIdList.size()>0">-->
-<!--			AND s.id not in-->
-<!--			<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">-->
-<!--				#{channelId}-->
-<!--			</foreach>-->
-<!--		</if>-->
-<!--		left join gc_subject_tags tags on tags.subject_id = s.id and(-->
-<!--		(-->
-<!--		sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)-->
-<!--		or(tags.master_id = #{masterId}))-->
-<!--		where S.level=0 and S.state=1-->
-<!--		<if test="tag != null and tag != ''">-->
-<!--			and tags.tag_text = #{tag}-->
-<!--			<if test="subIds != null and subIds.size()!=0">-->
-<!--				AND s.id in-->
-<!--				<foreach collection="subIds" item="subId" separator="," open="(" close=")">-->
-<!--					#{subId}-->
-<!--				</foreach>-->
-<!--			</if>-->
-<!--		</if>-->
-<!--		<if test="userId != null and userId !=''">-->
-<!--			AND user.id =#{userId}-->
-<!--		</if>-->
-<!--		<if test="subjectName != null and subjectName != ''">-->
-<!--			AND S.NAME LIKE CONCAT(CONCAT('%', #{subjectName}),'%')-->
-<!--		</if>-->
-<!--		<if test="videoName != null and videoName != ''">-->
-<!--			AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')-->
-<!--		</if>-->
-<!--		<if test="tagList != null and tagList.size()!=0">-->
-<!--			and tags.tag_text in-->
-<!--			<foreach collection="tagList" item="tagList" separator="," open="(" close=")">-->
-<!--				#{tagList}-->
-<!--			</foreach>-->
-<!--			<if test="subIds != null and subIds.size()!=0">-->
-<!--				AND s.id in-->
-<!--				<foreach collection="subIds" item="subId" separator="," open="(" close=")">-->
-<!--					#{subId}-->
-<!--				</foreach>-->
-<!--			</if>-->
-<!--		</if>-->
-<!--		group by s.id-->
-<!--		)a-->
-<!--	</select>-->
-
 	<select id="getTagNameAndIds" resultType="com.threeatom.guidecore.entity.GcSubject">
 		SELECT
-			tags.tag_text as tag_text,s.id as id,
-		       tags.id as tagId
+		tags.tag_text as tag_text,s.id as id,
+		tags.id as tagId
 		FROM
-			gc_subject_tags tags
-				LEFT JOIN gc_subject s ON s.id = tags.subject_id
-				left join gc_subject_tag_association assotag on assotag.tag_id = tags.id and assotag.master_id  = #{masterId}
-				left join gc_subject_association asso on asso.subject_id = tags.subject_id
-		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION,CONVERT ( S.ID, CHAR ))= 1
+		gc_subject_tags tags
+		LEFT JOIN gc_subject s ON s.id = tags.subject_id
+		left join gc_subject_tag_association assotag on assotag.tag_id = tags.id and assotag.master_id  = #{masterId}
+		left join gc_subject_association asso on asso.subject_id = tags.subject_id
+		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 		where 1=1
 		<if test="userId!=null">
 			and ua.user_id = #{userId}
 		</if>
-		  and asso.master_id = #{masterId}
-		  AND tags.`status` = 0
-		  AND (tags.subject_id = asso.subject_id and tags.type =1 and s.master_id = tags.master_id)
-		  and assotag.id is not null
-		  and (assotag.`status` = 0 )
+		and asso.master_id = #{masterId}
+		AND tags."status" = 0
+		AND (tags.subject_id = asso.subject_id and tags.type =1 and s.master_id = tags.master_id)
+		and assotag.id is not null
+		and (assotag."status" = 0 )
 		<if test="tagText != null">
 			and tags.tag_text = #{tagText}
 		</if>
@@ -491,11 +413,11 @@
 		a.*,
 		case
 		when count(1) = (#{query.pageSize} * #{query.pageNum})
-		then concat( '[', substring_index( substring_index( GROUP_CONCAT( a.sid ), ',',#{query.pageSize} * #{query.pageNum}), ',', #{query.pageSize}), ']' )
+		then concat( '[', substring_index( substring_index( array_agg( a.sid::text ), ',',#{query.pageSize} * #{query.pageNum}), ',', #{query.pageSize}), ']' )
 		when count(1) > (#{query.pageSize} * #{query.pageNum})
-		then concat( '[', substring_index( substring_index( GROUP_CONCAT( a.sid ), ',',#{query.pageSize} * #{query.pageNum}), ',', -#{query.pageSize}), ']' )
+		then concat( '[', substring_index( substring_index( array_agg( a.sid::text ), ',',#{query.pageSize} * #{query.pageNum}), ',', -#{query.pageSize}), ']' )
 		else
-		concat( '[',substring_index( substring_index( GROUP_CONCAT( a.sid ), ',', #{query.pageSize} * #{query.pageNum}), ',', - count(1) % #{query.pageSize}),']')
+		concat( '[',substring_index( substring_index( array_agg( a.sid::text ), ',', #{query.pageSize} * #{query.pageNum}), ',', - count(1) % #{query.pageSize}),']')
 		end as subject_id,
 		count(1) as total
 		from(
@@ -503,7 +425,7 @@
 		tagass.order as tagss_order,
 		tags.order as tags_order,
 		tags.tag_text,
-		tags.`status`,
+		tags."status",
 		case tagass.master_id
 		when #{query.masterId}
 		then tagass.subject_order
@@ -513,7 +435,7 @@
 		s.id as sid
 		FROM
 		GC_SUBJECT S
-		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION,CONVERT ( S.ID, CHAR ))= 1
+		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 		LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
@@ -525,34 +447,28 @@
 		WHERE
 		1=1
 		and (sa.master_id = #{query.masterId} or sa.master_id is null)
-		<!-- ua.master_id = #{query.masterId} -->
-		and JSON_CONTAINS(ifnull(tags.close_subject,'[]'),CONVERT(s.id,char))!=1
-		and JSON_CONTAINS(ifnull(tagass.close_subject,'[]'),CONVERT(s.id,char))!=1
+		and (tags.close_subject::jsonb @> to_jsonb(s.id::integer)) is not true
+		and (tagass.close_subject::jsonb @> to_jsonb(s.id::integer)) is not true
 		AND s.state != 0
 		<if test="query.userId!=null">
-		AND USER.id = #{query.userId}
+			AND USER.id = #{query.userId}
 		</if>
-		and tags.`status` = 0
-		and (tagass.`status` = 0 or tagass.`status` is null)
+		and tags."status" = 0
+		and (tagass."status" = 0 or tagass."status" is null)
 		<if test="query.tagList.size()!=0">
-			and tags.tag_text in
-			<foreach collection="query.tagList" item="tag" separator="," open="(" close=")">
-				#{tag.tagText}
-			</foreach>
+			and tags.tag_text = ANY(#{query.tagList})
 		</if>
 		GROUP BY
 		tags.tag_text,s.id
 		) as a
 		GROUP BY a.tag_text
 		) as subject_ids
-		left join gc_subject s on JSON_CONTAINS(subject_ids.subject_id,CONVERT(S.ID, CHAR)) =1
+		left join gc_subject s on subject_ids.subject_id::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN SYS_FILE F ON F.ID = s.SUB_IMG_ID
 		LEFT JOIN gc_video v ON v.sub_id = s.id
-		order by ifnull(subject_ids.tagss_order,subject_ids.tags_order) asc
+		order by coalesce(subject_ids.tagss_order,subject_ids.tags_order) asc
 	</select>
-	<!--
-		分页查询课程和课程的文件信息
-	-->
+
 	<select id="listByFid" resultMap="baseResultMap">
 		SELECT
 		DISTINCT
@@ -651,7 +567,7 @@
 		(SELECT count( 1 ) FROM gc_video WHERE sub_id = s.id) AS videos_total_num
 		FROM
 		GC_SUBJECT S
-		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.id, CHAR))=1
+		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 		LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
 		LEFT JOIN gc_video v ON v.sub_id= s.id
@@ -665,11 +581,11 @@
 				</foreach>
 			</if>
 		</where>
-        group by s.id
+		group by s.id
 	</select>
 
 	<select id="countSubjects" resultType="java.lang.Integer">
-		select sub.id from gc_subject sub left join gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission, CONVERT(sub.id, char))=1
+		select sub.id from gc_subject sub left join gc_user_access_permission uap ON uap.sub_permission::jsonb @> to_jsonb(sub.id::integer)
 		where uap.id=#{id}
 	</select>
 	<select id="getTwoLevelSubByIds" resultType="java.lang.Integer">
@@ -682,6 +598,7 @@
 			</foreach>
 		</if>
 	</select>
+
 	<select id="getVideoNumByIds" resultMap="baseResultMap">
 		select  g.fid,g.id,count(1)as videos_total_num
 		from  gc_subject g
@@ -707,6 +624,7 @@
 			</if>
 		</where>
 	</select>
+
 	<select id="select" resultType="com.threeatom.guidecore.entity.GcSubject">
 		select * from  gc_subject
 		<where>
@@ -717,21 +635,8 @@
 				</foreach>
 			</if>
 		</where>
-		order by `order`
+		order by "order"
 	</select>
-
-	<!--	<select id="selectSubjectsByTags" resultMap="baseResultMap">-->
-	<!--		SELECT s.*,F.ID AS F_ID,-->
-	<!--		F.NAME AS F_NAME,-->
-	<!--		F.FILE_URL AS F_FILE_URL,-->
-	<!--		F.SAVE_TYPE AS F_SAVE_TYPE FROM gc_subject s-->
-	<!--        left join sys_file f on f.id=s.sub_img_id-->
-	<!--		where json_contains(s.course_tags,CONCAT('"',#{tag},'"'))-->
-	<!--        and s.id in-->
-	<!--		<foreach collection="subIds" item="subId" separator="," open="(" close=")">-->
-	<!--			#{subId}-->
-	<!--		</foreach>-->
-	<!--	</select>-->
 
 	<select id="selectSubjectsByVids" resultMap="baseResultMap">
 		SELECT * from gc_subject s
@@ -766,10 +671,10 @@
 		left join gc_subject_association asso on asso.subject_id = tags.subject_id
 		where 1=1
 		and asso.master_id = #{masterId}
-		AND tags.`status` = 0
+		AND tags."status" = 0
 		AND (tags.subject_id = asso.subject_id and tags.type =1 and s.master_id = tags.master_id)
 		and assotag.id is not null
-		and (assotag.`status` = 0 )
+		and (assotag."status" = 0 )
 		UNION(
 		select tag_text as course_tags,subject_id from gc_subject_tags
 		where master_id = #{masterId} and status = 0)) as a
@@ -779,9 +684,9 @@
 		</if>
 		where 1=1
 		and a.course_tags not in
-		(select tag_text from gc_subject_tags where id in (select tag_id from gc_subject_tag_association where master_id = #{masterId} and `status` = 1))
+		(select tag_text from gc_subject_tags where id in (select tag_id from gc_subject_tag_association where master_id = #{masterId} and "status" = 1))
 		<if test="userId != null">
-			and	JSON_CONTAINS(per.sub_permission, CONCAT('',a.subject_id,''))
+			and	per.sub_permission::jsonb @> to_jsonb(a.subject_id::integer)
 		</if>
 		GROUP BY a.course_tags
 	</select>
@@ -809,23 +714,24 @@
 		</if>
 		where 1=1
 		<if test="userId != null">
-		and JSON_CONTAINS(per.SUB_PERMISSION, CONVERT(a.subject_id, CHAR))=1
+			and per.SUB_PERMISSION::jsonb @> to_jsonb(a.subject_id::integer)
 		</if>
 		GROUP BY a.course_tags
 	</select>
+
 	<select id="selectSubjectByAccessIds" resultType="com.threeatom.guidecore.entity.GcSubject">
 		select s2.*,auc.user_id as userId,
 		p.id as subjectAssociationId
 		from gc_subject s
-		left join gc_user_access_permission p on JSON_CONTAINS(p.sub_permission,convert(s.id,char)) =1
+		left join gc_user_access_permission p on p.sub_permission::jsonb @> to_jsonb(s.id::integer)
 		left join gc_user_access auc on auc.id = p.user_access_id
 		left join gc_subject s2 on s2.sub_id = s.id
 		where p.id in
 		<foreach collection="accessPermissionId" item="accessId" index="index" open="(" close=")" separator=",">
 			#{accessId}
 		</foreach>
-
 	</select>
+
 	<select id="getSubjectNum" resultType="java.lang.Integer">
 		select count(1) from  gc_subject
 		<where>
@@ -837,6 +743,4 @@
 			</if>
 		</where>
 	</select>
-
-
 </mapper>

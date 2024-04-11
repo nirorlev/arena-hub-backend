@@ -99,26 +99,26 @@
     <sql id="where_gcSubject_state_not_hidden_s0">
     	and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
     </sql>
-    
+
     <select id="getEventResListForWorkBook" resultMap="baseResultMap">
         select
         <include refid="baseColumn"/>
         <include refid="workBookEventJoinColumn"/>,
         resFile.thumb_nail_url as thumb_nail_url
-        from gc_user_event_resource r 
-		left join gc_master_message mm on mm.res_id = r.id  and (mm.target_user_id = r.target_user_id or r.target_user_id is null)  and mm.target_user_id =#{userId}
-		left join sys_file resFile on r.file_id = resFile.id
+        from gc_user_event_resource r
+        left join gc_master_message mm on mm.res_id = r.id  and (mm.target_user_id = r.target_user_id or r.target_user_id is null)  and mm.target_user_id =#{userId}
+        left join sys_file resFile on r.file_id = resFile.id
 
-		left join gc_user thisUser on thisUser.id= r.user_id
-		left join gc_user_info thisUserInfo on thisUserInfo.id=thisUser.info_id
-		left join sys_file thisUserFile on thisUserInfo.avatar_file_id = thisUserFile.id
-		
-		left join gc_user targetUser on targetUser.id = r.target_user_id
-		left join gc_user_info targetUserInfo on targetUserInfo.id=targetUser.info_id
-		left join sys_file targetUserFile on targetUserInfo.avatar_file_id = targetUserFile.id
-		where event_id = #{eventId} and r.master_id=#{masterId} and (r.user_id = #{userId} or mm.target_user_id = #{userId})
+        left join gc_user thisUser on thisUser.id= r.user_id
+        left join gc_user_info thisUserInfo on thisUserInfo.id=thisUser.info_id
+        left join sys_file thisUserFile on thisUserInfo.avatar_file_id = thisUserFile.id
+
+        left join gc_user targetUser on targetUser.id = r.target_user_id
+        left join gc_user_info targetUserInfo on targetUserInfo.id=targetUser.info_id
+        left join sys_file targetUserFile on targetUserInfo.avatar_file_id = targetUserFile.id
+        where event_id = #{eventId} and r.master_id=#{masterId} and (r.user_id = #{userId} or mm.target_user_id = #{userId})
         <if test="envType != null and envType == 1">
-        and r.user_id = #{userId}
+            and r.user_id = #{userId}
         </if>
         <if test="envType != null and envType == 2">
             and mm.target_user_id = #{userId}
@@ -126,10 +126,10 @@
         <if test="envType == null">
             and (r.user_id = #{userId} or mm.target_user_id = #{userId})
         </if>
-		
-		order by r.update_time desc
+
+        order by r.update_time desc
     </select>
-    
+
     <select id="selectGetFilesByUserId" resultMap="baseResultMap">
         select
         <include refid="baseColumn"/>
@@ -170,12 +170,12 @@
 
     <select id="selectUsersUploadResNumByUserIdsAndSubIds" resultType="map">
         select u.id as user_id,ui.id as info_id,ui.first_name,ui.last_name,
-        COUNT(IF(s.sub_id in
+        COUNT(CASE WHEN s.sub_id in
         <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
             #{subId}
         </foreach>
         and ur.type!=${@com.threeatom.guidecore.constant.EventResType@TEXT_0}
-        ,TRUE,NULL)) as uploadResNum
+        THEN TRUE END) as uploadResNum
         from gc_user u
         LEFT JOIN gc_user_event_resource ur ON u.id=ur.user_id
         LEFT JOIN gc_event e on ur.event_id=e.id
@@ -210,18 +210,18 @@
         (vr.target_user_id = 0 or vr.target_user_id is null)
         AND ((vr.type = ${@com.threeatom.guidecore.constant.EventResType@VIDEO_2} and vr.time_node=-1) or vr.time_node!=-1)
         <if test="userIds != null and userIds.size()>0">
-	        AND vr.user_id IN
-	        <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
-	            #{uId}
-	        </foreach>
+            AND vr.user_id IN
+            <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
+                #{uId}
+            </foreach>
         </if>
         OR
         vr.user_id = #{userId}
         <if test="userIds != null and userIds.size()>0">
-	        AND vr.target_user_id IN
-	        <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
-	            #{uId}
-	        </foreach>
+            AND vr.target_user_id IN
+            <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
+                #{uId}
+            </foreach>
         </if>
         <include refid="where_gcSubject_state_not_hidden" />
         ORDER BY vr.update_time DESC
@@ -261,6 +261,7 @@
         AND ((vr.type = ${@com.threeatom.guidecore.constant.EventResType@VIDEO_2} and vr.time_node=-1) or vr.time_node!=-1)
         order by vr.update_time desc
     </select>
+
     <select id="selectTimeNodeEventResource" resultMap="baseResultMap">
         SELECT
         <include refid="baseColumn"/>
@@ -311,15 +312,6 @@
 	            #{eventId}
 	        </foreach>
 	    </if>
-	    
-	    <!-- 旧 -->
-       <!--  <if test="teacherId != null">
-            AND (
-            (m.target_user_id = #{teacherId} AND m.user_id = #{studentId})  
-            OR 
-            (m.target_user_id = #{studentId} AND m.user_id = #{teacherId}) )
-		</if> -->
-	    
         <if test="teacherId != null"><!-- 这里后加的 or vr.user_id = #{studentId}) 主要因为如果老师注册前学生回答的资源老师看不到 20210402-->
             AND (
             (
@@ -331,10 +323,6 @@
             )
         </if>
         
-         <!-- 旧 -->
-        <!-- <if test="teacherId == null">
-            AND (m.user_id = #{studentId} OR m.target_user_id = #{studentId})
-        </if> -->
         <if test="teacherId == null"> <!-- 这里后加的 vr.user_id = #{studentId} OR  主要因为如果无老师，学生上传的资源学生自己看不到 20210402-->
             AND (m.user_id = #{studentId} OR m.target_user_id = #{studentId} OR vr.user_id = #{studentId})
         </if>
@@ -364,11 +352,11 @@
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         LEFT JOIN sys_file AS f on ui.avatar_file_id=f.id
         LEFT join sys_file AS sys on sys.id=s0.sub_img_id
-        left join gc_user_access_permission uap ON JSON_CONTAINS(uap.sub_permission, CONVERT(s0.id, char))=1
+        left join gc_user_access_permission uap ON uap.sub_permission::jsonb @> to_jsonb(s0.id::integer)
         left join gc_user_access ua on uap.user_access_id =  ua.id
     </sql>
-    
-    
+
+
     <sql id="ALLResourceListByGcMasterMessageTargetUserId_common">
         FROM gc_user_event_resource AS vr
         LEFT JOIN gc_event AS e ON e.id = vr.event_id
@@ -377,35 +365,34 @@
         LEFT JOIN gc_master_message AS m ON m.res_id = vr.id
         <include refid="messageCommonJoin"/>
         <if test="groupId != null">
-           left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
-		   left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+            left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+            left join gc_group g ON g.group_access_ids::jsonb @> to_jsonb(ua2.id::integer) and g.master_id = m.master_id
         </if>
-        WHERE 
-         m.master_id=#{masterId} 
+        WHERE
+        m.master_id=#{masterId}
         and m.target_user_id = #{thisUserId}
         and ua.user_id=#{thisUserId}
-         and vr.user_id!=#{thisUserId}
+        and vr.user_id!=#{thisUserId}
         and ua.master_id=#{masterId}
-		
-		<if test="readState != null">
-			and m.read_state = #{readState}
-		</if>
-		<if test="lastDaysScope != null">
-			and    vr.update_time  >    date_sub(now(), interval #{lastDaysScope} day)
-		</if>
-		<if test="sendUserId != null">
-			and vr.user_id = #{sendUserId} 
-		</if>
-		<if test="groupId != null">
-		 and g.id=#{groupId}
-		</if>
-       
+
+        <if test="readState != null">
+            and m.read_state = #{readState}
+        </if>
+        <if test="lastDaysScope != null">
+            and vr.update_time  > now() - '#{lastDaysScope} days'::interval
+        </if>
+        <if test="sendUserId != null">
+            and vr.user_id = #{sendUserId}
+        </if>
+        <if test="groupId != null">
+            and g.id=#{groupId}
+        </if>
     </sql>
-    
-    
+
+
     <select id="getALLResourceListByGcMasterMessageTargetUserId" resultType="Map">
-		SELECT
-		<include refid="messageCommonColumn"/>
+        SELECT
+        <include refid="messageCommonColumn"/>
         ,vr.id,
         vr.user_id,
         vr.content,
@@ -415,13 +402,13 @@
         vr.target_user_id,
         vr.target_id,
         vr.event_id,
-       f2.save_type     AS res_save_type,
-       f2.name          AS res_file_name,
-       f2.file_url as res_file_url,
-       f2.file_type_index as res_file_type_index,
+        f2.save_type     AS res_save_type,
+        f2.name          AS res_file_name,
+        f2.file_url as res_file_url,
+        f2.file_type_index as res_file_type_index,
         f2.thumb_nail_url as thumb_nail_url,
-		s0.name as sub0Name,
-	    s.name as sub1Name
+        s0.name as sub0Name,
+        s.name as sub1Name
         FROM gc_user_event_resource AS vr
         LEFT JOIN gc_event AS e ON e.id = vr.event_id
         LEFT JOIN gc_user AS u ON u.id = vr.user_id
@@ -430,7 +417,7 @@
         <include refid="messageCommonJoin"/>
         <if test="message.groupId != null">
             left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
-            left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+            left join gc_group g ON g.group_access_ids::jsonb @> to_jsonb(ua2.id::integer) and g.master_id = m.master_id
         </if>
         WHERE
         m.master_id=#{message.masterId}
@@ -443,7 +430,7 @@
             and m.read_state = #{message.readState}
         </if>
         <if test="message.lastDaysScope != null">
-            and    vr.update_time  >    date_sub(now(), interval #{message.lastDaysScope} day)
+            and vr.update_time  >  now() - '#{message.lastDaysScope} days'::interval
         </if>
         <if test="message.sendUserId != null">
             and vr.user_id = #{message.sendUserId}
@@ -478,7 +465,7 @@
             </otherwise>
         </choose>
     </select>
-    
+
     <select id="countALLResourceListByGcMasterMessageTargetUserId" parameterType="Integer" resultType="java.lang.Integer">    
     	select count(1) 
     	 <include refid="ALLResourceListByGcMasterMessageTargetUserId_common"/>
@@ -489,50 +476,50 @@
     	<include refid="ALLResourceListByGcMasterMessageTargetUserId_common"/>
     	   group by vr.user_id
     </select>
-    
+
     <sql id="AnswerMessageListByGcMasterMessageTargetUserId_common">
-   		 FROM   gc_user_answer AS answer 
-		LEFT JOIN gc_master_message AS m ON m.user_answer_id = answer.id            
-       LEFT JOIN gc_event AS e ON e.id = answer.event_id
-       LEFT JOIN gc_user AS u ON u.id = answer.user_id
-              
-        <include refid="messageCommonJoin"/> 
+        FROM   gc_user_answer AS answer
+        LEFT JOIN gc_master_message AS m ON m.user_answer_id = answer.id
+        LEFT JOIN gc_event AS e ON e.id = answer.event_id
+        LEFT JOIN gc_user AS u ON u.id = answer.user_id
+
+        <include refid="messageCommonJoin"/>
         <if test="groupId != null">
-           left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
-		   left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+            left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
+            left join gc_group g ON g.group_access_ids::jsonb @> to_jsonb(ua2.id::integer) and g.master_id = m.master_id
         </if>
-             
-        WHERE 
-		m.master_id=#{masterId} and m.target_user_id = #{thisUserId}
+
+        WHERE
+        m.master_id=#{masterId} and m.target_user_id = #{thisUserId}
         and ua.user_id=#{thisUserId} and ua.master_id=#{masterId}
-        
+
         <if test="readState != null">
-			and m.read_state = #{readState}
-		</if>
-		<if test="lastDaysScope != null">
-			and answer.update_time  >    date_sub(now(), interval #{lastDaysScope} day)
-		</if>
-		<if test="sendUserId != null">
-			and answer.user_id = #{sendUserId}
-		</if>
+            and m.read_state = #{readState}
+        </if>
+        <if test="lastDaysScope != null">
+            and answer.update_time  > now() - '#{lastDaysScope} days'::interval
+        </if>
+        <if test="sendUserId != null">
+            and answer.user_id = #{sendUserId}
+        </if>
         <if test="groupId != null">
-		 	and g.id=#{groupId}
-		</if>
-        
+            and g.id=#{groupId}
+        </if>
+
     </sql>
-     
+
     <select id="getAnswerMessageListByGcMasterMessageTargetUserId" resultType="Map">
-		SELECT 
-		<include refid="messageCommonColumn"/>
-       ,answer.id as answer_id,
-       answer.user_id,
-       m.update_time,
-       answer.event_id,
-       answer.answer_json,
-		s.name as topicName,
-		s0.name as subjectName,
+        SELECT
+        <include refid="messageCommonColumn"/>
+        ,answer.id as answer_id,
+        answer.user_id,
+        m.update_time,
+        answer.event_id,
+        answer.answer_json,
+        s.name as topicName,
+        s0.name as subjectName,
         sys.file_url as subjectAvatarFileUrl,
-		sys.save_type as subjectAvatarSaveType
+        sys.save_type as subjectAvatarSaveType
         FROM   gc_user_answer AS answer
         LEFT JOIN gc_master_message AS m ON m.user_answer_id = answer.id
         LEFT JOIN gc_event AS e ON e.id = answer.event_id
@@ -541,7 +528,7 @@
         <include refid="messageCommonJoin"/>
         <if test="message.groupId != null">
             left join gc_user_access ua2 on ua2.user_id = u.id and m.master_id = ua.master_id
-            left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(ua2.id, char))=1  and g.master_id = m.master_id
+            left join gc_group g ON g.group_access_ids::jsonb @> to_jsonb(ua2.id::integer) and g.master_id = m.master_id
         </if>
 
         WHERE
@@ -552,7 +539,7 @@
             and m.read_state = #{message.readState}
         </if>
         <if test="message.lastDaysScope != null">
-            and answer.update_time  >    date_sub(now(), interval #{message.lastDaysScope} day)
+            and answer.update_time  >  now() - '#{message.lastDaysScope} days'::interval
         </if>
         <if test="message.sendUserId != null">
             and answer.user_id = #{message.sendUserId}
@@ -578,7 +565,7 @@
             </otherwise>
         </choose>
     </select>
-    
+
     <select id="countAnswerMessageListByGcMasterMessageTargetUserId" parameterType="Integer" resultType="java.lang.Integer">    
     	select count(1) 
     	<include refid="AnswerMessageListByGcMasterMessageTargetUserId_common"/>

@@ -18,7 +18,7 @@ public class PtLoginConfig implements Serializable {
     private String clientId;
     private String oauthToken;
     private String userUrl;
-    @TableField("`groups`")
+    @TableField("\"groups\"")
     private String groups;
     private String logOut;
     private String clientSecret;

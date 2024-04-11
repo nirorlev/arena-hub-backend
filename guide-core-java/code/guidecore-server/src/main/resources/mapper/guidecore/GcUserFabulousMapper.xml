@@ -41,6 +41,7 @@
         and event_id = #{eventId}
         and comment_id = #{commentId}
     </select>
+
     <select id="getVideoFabulousNum" resultType="java.lang.Integer">
         select count(1)
         from gc_user_fabulous
@@ -48,6 +49,7 @@
         and video_id = #{eventId}
         and comment_id = #{commentId}
     </select>
+
     <select id="getEventFabulousNumList" resultMap="baseResultMap">
         select target_user_id AS "targetUserId",user_id,event_id as eventId,video_id,target_user_id,user_id,id
         from gc_user_fabulous

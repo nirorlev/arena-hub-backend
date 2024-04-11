@@ -45,7 +45,7 @@
     <select id="selectProblemList" resultMap="baseResultMap">
         select id,title,context from gc_problem
         <where>
-            `status` !=0
+            "status" !=0
         </where>
         order by update_time desc
     </select>

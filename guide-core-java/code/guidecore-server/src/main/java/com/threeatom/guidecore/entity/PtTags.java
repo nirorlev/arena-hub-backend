@@ -41,13 +41,13 @@ public class PtTags {
     /**
      * 1=课程tag 2=视频tag
      */
-    @TableField(value = "`type`")
+    @TableField(value = "\type\"")
     private Integer type;
 
     /**
      * 排序
      */
-    @TableField(value = "`order`")
+    @TableField(value = "\"order\"")
     private Integer order;
 
     /**

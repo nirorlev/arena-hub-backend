@@ -212,11 +212,12 @@
 
     <select id="selectGetEventListAndSelfAnswerByVidFull" resultMap="gcUserResultMap">
         SELECT
-           <include refid="baseColumn"/>
-           <include refid="userBaseColumn"/>
-           ,ua.id as ua_id, ua.answer_json as ua_answerJson, ua.update_time as ua_updateTime,if(ua.answer_json is null,0,1) as myAnswerFlag
+        <include refid="baseColumn"/>
+        <include refid="userBaseColumn"/>
+        ,ua.id as ua_id, ua.answer_json as ua_answerJson, ua.update_time as ua_updateTime,
+        CASE WHEN ua.answer_json is null THEN 0 ELSE 1 END as myAnswerFlag
         FROM
-            gc_event AS e
+        gc_event AS e
         LEFT JOIN gc_user u on e.upload_user=u.id
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         LEFT JOIN gc_user_answer AS ua ON ua.event_id = e.id and ua.master_id=#{masterId}
@@ -229,7 +230,7 @@
         or (e.video_id=#{vid} and e.upload_type != 2  )
         order by e.event_time
     </select>
-            
+
      <select id="findEventAnswerByVideoIdsUser" resultType="com.threeatom.guidecore.entity.GcEvent">
         SELECT
         DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,v.sub_id as subjectId,
@@ -335,9 +336,9 @@
 
     <select id="getEventListByVideoIds" resultMap="gcUserResultMap">
         select
-        <include refid="baseColumn"/>      
+        <include refid="baseColumn"/>
         <include refid="userBaseColumn"/>
-        ,if(an.answer_json is null,0,1) as myAnswerFlag,an.id as ua_id,an.answer_json as ua_answerJson, an.update_time as ua_updateTime
+        ,CASE WHEN an.answer_json is null THEN 0 ELSE 1 END as myAnswerFlag,an.id as ua_id,an.answer_json as ua_answerJson, an.update_time as ua_updateTime
         from
         gc_event AS e
         LEFT JOIN gc_user_event AS ue ON ue.event_id = e.id
@@ -346,10 +347,10 @@
         left join gc_user_answer an on an.event_id=e.id and an.user_id = #{uid}
         where e.event_type !=4
         <if test="vids != null and vids.size()!=0">
-        and video_id in
-        <foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
-            #{vid}
-        </foreach>
+            and video_id in
+            <foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
+                #{vid}
+            </foreach>
         </if>
         AND (ue.user_id = #{uid} OR e.upload_type != 2) ORDER BY e.event_time asc
     </select>
@@ -381,16 +382,11 @@
     </select>
 
 
-
-    
     <sql id="where_gcSubject_state_not_hidden">
     	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
     </sql>
 
-
-
     <select id="selectEventSubIdsByEventId" resultType="Integer">
-
         select s.sub_id from gc_event e
         LEFT JOIN gc_video v on e.video_id=v.id
         LEFT JOIN gc_subject s on s.id=v.sub_id
@@ -402,8 +398,6 @@
         GROUP BY s.sub_id
     </select>
 
-
-
     <select id="selectSubIdByEventId" resultType="Integer">
         select s.sub_id from gc_event e
         LEFT JOIN gc_video v on e.video_id=v.id
@@ -411,8 +405,8 @@
         WHERE e.id=#{eid}
         <include refid="where_gcSubject_state_not_hidden" />
         GROUP BY s.sub_id
-        
     </select>
+
     <select id="selectGetEventIdsByVideoId" resultType="Integer">
         select
             e.id
@@ -422,6 +416,7 @@
         where video_id = #{vid}
         AND (ue.user_id = #{uid} OR e.upload_type != 2)
     </select>
+
     <select id="selectGetEventsByVideoId" resultMap="gcUserResultMap">
         select
         <include refid="baseColumn"/>
@@ -445,7 +440,7 @@
         where s.master_id=#{masterId}
         <include refid="where_gcSubject_state_not_hidden" />
     </select>
-    
+
     <select id="videoEventsAnswerNumMap" resultType="map">
 	    SELECT e.id as eventId,
 		count(ua.event_id) as answerNum
@@ -460,6 +455,7 @@
 	         group by ua.event_id 
 	         order by e.event_time
     </select>
+
     <select id="countEventByVideoIds" resultType="java.lang.Integer">
         select count(1) from gc_event
         <if test="list.size()!=0">
@@ -470,15 +466,16 @@
             </foreach>
         </if>
     </select>
+
     <select id="getTaskNumByVideoIds" resultType="com.threeatom.guidecore.entity.StudentInfoVO">
-        select count(et.id) as taskNum,uap.user_access_id as userAccessId,ac.user_id as userId FROM
-        gc_event et
+        select count(et.id) as taskNum,uap.user_access_id as userAccessId,ac.user_id as userId
+        FROM gc_event et
         left join gc_user_event ue on ue.event_id = et.id
         left join gc_user_access_permission uap on uap.user_access_id in
         <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
             #{list.userAccessId}
         </foreach>
-        left join gc_subject g1 on JSON_CONTAINS(uap.sub_permission,CONVERT ( g1.id, CHAR ))= 1
+        left join gc_subject g1 on uap.sub_permission::jsonb @> to_jsonb(g1.id::integer)
         left join gc_subject g2 on g2.fid=g1.id
         left join gc_video v on v.sub_id = g2.id
         left join gc_user_access ac on ac.id = uap.user_access_id
@@ -529,6 +526,7 @@
             </otherwise>
         </choose>
     </select>
+
     <select id="findEventAnswerByVideoIdsUserList" resultType="com.threeatom.guidecore.entity.GcEvent">
         select E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id,
         v.sub_id as subjectId,
@@ -612,13 +610,13 @@
     <select id="selectEventByPermissionList" resultType="com.threeatom.guidecore.entity.GcEvent">
         select E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id
         from GC_SUBJECT s
-         left join gc_user_access_permission p on json_contains(p.sub_permission,convert(s.id,char))=1
-         left join gc_user_access ac on ac.id = p.user_access_id
-         left join gc_subject s2 on s2.fid = s.id
-         left join gc_video v on v.sub_id = s2.id
-         left join gc_event e on e.video_id = v.id
-         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
-         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID and ua.user_id in
+        left join gc_user_access_permission p on p.sub_permission::jsonb @> to_jsonb(s.id::integer)
+        left join gc_user_access ac on ac.id = p.user_access_id
+        left join gc_subject s2 on s2.fid = s.id
+        left join gc_video v on v.sub_id = s2.id
+        left join gc_event e on e.video_id = v.id
+        LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
+        LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID and ua.user_id in
         <foreach collection="userList" item="user" open="(" separator="," close=")">
             #{user}
         </foreach>
@@ -627,8 +625,9 @@
         <foreach collection="list" item="list" open="(" separator="," close=")">
             #{list}
         </foreach>
-          and e.id is not null
+        and e.id is not null
     </select>
+
     <select id="selectEventByUserIdAndSubjectId" resultType="com.threeatom.guidecore.entity.GcEvent">
         select an.answer_json as answerJson,e.id as id,e.event_type,e.ext,e.video_id as videoId from
         gc_subject s

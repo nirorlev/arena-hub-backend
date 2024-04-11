@@ -1,63 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.GcUserSaveContentMapper">
-
-<!--     <resultMap id="baseResultMap" type="GcUserNote">
-        <result property="id" column="id"/>
-        <result property="videoId" column="video_id"/>
-        <result property="userId" column="user_id"/>
-        <result property="noteContent" column="note_content"/>
-        <result property="fileId" column="file_id"/>
-        <result property="updateTime" column="update_time"/>
-        <result property="createTime" column="create_time"/>
-
-		<result property="fileNum" column="fileNum"/>
-		<result property="videoName" column="videoName"/>
-        
-         <association property="file" column="file_id" javaType="SysFile">
-            <id property="id" column="f_id"/>
-            <result property="name" column="f_name"/>
-            <result property="fileUrl" column="f_file_url"/>
-            <result property="saveType" column="f_save_type"/>
-            <result property="fileTypeIndex" column="f_file_type_index"/>
-            <result property="videoLong" column="f_video_long"/>
-        </association>
-    </resultMap>
-    
-    <sql id="baseColumn">
-	    n.id, n.video_id, n.user_id,  n.note_content ,  n.file_id ,  n.update_time ,  n.create_time
-    </sql>
-    
-    <sql id="fileColumn">
-        ,f.id as f_id, f.name as f_name, f.file_url as f_file_url, f.save_type as f_save_type, f.file_type_index as f_file_type_index
-        ,f.video_long as f_video_long
-    </sql>
-    
-    <select id="selectNoteByUserId" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
-        <include refid="fileColumn" />
-        FROM
-        gc_user_note AS n
-        LEFT JOIN sys_file f on n.file_id=f.id
-        WHERE n.user_id=#{userId} and n.video_id =#{videoId}
-        order by create_time asc
-    </select>
-            	
-	<select id="countNoteForVideo" resultType="Integer">
-		select count(1) from gc_user_note where  video_id = #{videoId}
-	</select>
-
-    <select id="selectNoteListByUserMaster" resultMap="baseResultMap">
-		select n.video_id, n.user_id, max(n.update_time) as update_time, count(n.file_id) as fileNum,
-		v.id,v.video_name as videoName,s.master_id
-		from gc_user_note n 
-		left join gc_video v on v.id=n.video_id
-		left join gc_subject s on s.id=v.sub_id
-		where n.user_id =#{userId} and s.master_id = #{masterId}
-		group by n.video_id, n.user_id
-    </select>
- -->
     <select id="getTwoSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u

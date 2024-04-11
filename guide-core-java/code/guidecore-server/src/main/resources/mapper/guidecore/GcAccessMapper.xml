@@ -138,17 +138,18 @@
 		  #{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  now())
 		</foreach>
-		ON DUPLICATE KEY UPDATE
-		master_id = values(master_id),
-		role_type = values(role_type),
-		admin_id = values(admin_id),
-		code = values(code),
-		subject_json = values(subject_json),
-		group_name = values(group_name),
-		must_subject_json = values(must_subject_json),
-		may_subject_json = values(may_subject_json),
+		ON CONFLICT (id) DO UPDATE SET
+		master_id = excluded.master_id,
+		role_type = excluded.role_type,
+		admin_id = excluded.admin_id,
+		code = excluded.code,
+		subject_json = excluded.subject_json,
+		group_name = excluded.group_name,
+		must_subject_json = excluded.must_subject_json,
+		may_subject_json = excluded.may_subject_json,
 		create_time = now()
 	</insert>
+
 	<insert id="insertOrUpdateChannel">
 		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,channel_json,subscribe_json,subject_json,update_time)
 		VALUES
@@ -157,40 +158,39 @@
 			#{item.groupName},
 			#{item.channelJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 			#{item.subscribeJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-			 #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+			#{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 			now())
 		</foreach>
-		ON DUPLICATE KEY UPDATE
-		master_id = values(master_id),
-		role_type = values(role_type),
-		admin_id = values(admin_id),
-		code = values(code),
-		subject_json = values(subject_json),
-		group_name = values(group_name),
-		channel_json = values(channel_json),
-		subscribe_json = values(subscribe_json),
+		ON CONFLICT (id) DO UPDATE SET
+		master_id = excluded.master_id,
+		role_type = excluded.role_type,
+		admin_id = excluded.admin_id,
+		code = excluded.code,
+		subject_json = excluded.subject_json,
+		group_name = excluded.group_name,
+		channel_json = excluded.channel_json,
+		subscribe_json = excluded.subscribe_json,
 		create_time = now()
 	</insert>
 
-    <select id="getALlAccessCodeNumsByMasterId" resultType="Map">
-        select
-        COUNT(if(role_type=0,TRUE,NULL)) as adminNum,
-        COUNT(if(role_type=1,TRUE,NULL)) as userNum,
-        COUNT(if(code_type=1,TRUE,NULL)) as subjectAdminNum
-        FROM gc_access
-        WHERE master_id=#{masterId}
-    </select>
-
+	<select id="getALlAccessCodeNumsByMasterId" resultType="Map">
+		select
+			COUNT(case when role_type=0 then 1 end) as adminNum,
+			COUNT(case when role_type=1 then 1 end) as userNum,
+			COUNT(case when code_type=1 then 1 end) as subjectAdminNum
+		FROM gc_access
+		WHERE master_id=#{masterId}
+	</select>
 
     <sql id="baseColumn">
 	   a.id, a.master_id, a.role_type, a.admin_id, a.code, a.subject_json, a.update_time, a.create_time
 	</sql>
 
-    <select id="listContainsSub" resultMap="baseResultMap" >
-	   SELECT
-	   <include refid="baseColumn" />
-	   FROM gc_access a
-	   where master_id=#{masterId} and json_contains(subject_json,CONCAT('',#{subjectId},''))
+	<select id="listContainsSub" resultMap="baseResultMap" >
+		SELECT
+		<include refid="baseColumn" />
+		FROM gc_access a
+		WHERE master_id=#{masterId} AND subject_json::jsonb @> to_jsonb(#{subjectId}::integer)
 	</select>
 
 	<select id="getAllPackage" resultMap="baseResultMap" >
@@ -211,14 +211,16 @@
 				#{subscriptionId}
 			</foreach>
 		</if>
-		order by a.`order`
+		order by a."order"
 	</select>
-	<select id="selectAllPackage"  resultMap="baseResultMap">
+
+	<select id="selectAllPackage" resultMap="baseResultMap">
 		SELECT a.*,s.id as img_id, s.name as img_name, s.file_url as  img_file_url,
-			   s.save_type as img_save_type, s.file_type_index as img_file_type_index,s.file_type as fileType FROM gc_access a
-				left join sys_file s on s.id = a.package_img_id
+			   s.save_type as img_save_type, s.file_type_index as img_file_type_index,s.file_type as fileType
+		FROM gc_access a
+				 left join sys_file s on s.id = a.package_img_id
 		where a.package_name is not null and a.master_id=#{masterId}
-		order by a.order
+		order by a."order"
 	</select>
 
 	<select id="getTeamAccessList"  resultMap="baseResultMap">
@@ -235,14 +237,15 @@
 		where ua.master_id = #{masterId}
 		and ac.group_name is not null
 		and ua.user_id = #{userId}
-		and (ua.role_json like concat('%','groupAdmin','%')
+		and (ua.role_json::text like concat('%','groupAdmin','%')
 		    or
-		    ua.role_json like concat('%','orgAdmin','%')
+		    ua.role_json::text like concat('%','orgAdmin','%')
 		)
 		<if test="name!=null">
 			and ac.group_name like concat('%',#{name},'%')
 		</if>
 	</select>
+
 	<select id="selectAccessByCodeAndMasterId" resultMap="baseResultMap">
 		select * from gc_access
 		where master_id = #{masterId}
@@ -252,11 +255,11 @@
 				#{code}
 			</foreach>
 		</if>
-
 	</select>
-    <select id="listAllAccess" resultMap="baseResultVoMap">
+
+	<select id="listAllAccess" resultMap="baseResultVoMap">
 		select * from (
-		select count(gcca.id) as subjectNum,ifnull(JSON_LENGTH(subscribe_json),0) as channelNum,ac.*
+		select count(gcca.id) as subjectNum,coalesce(json_array_length(subscribe_json),0) as channelNum,ac.*
 		,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
 		ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId,
 		u.username as username
@@ -267,11 +270,11 @@
 		left join gc_user_info ui on u.info_id = ui.id
 		left join sys_file f on ui.avatar_file_id=f.id
 		where ac.master_id = #{query.masterId}
-	  <if test="query.userId != null and query.userId != ''">
-		and u.id = #{query.userId}
-	  </if>
-		and (ua.role_json like concat('%','Admin','%')
-		or ua.role_json like concat('%','superadmin','%')
+		<if test="query.userId != null and query.userId != ''">
+			and u.id = #{query.userId}
+		</if>
+		and (ua.role_json::text like concat('%','Admin','%')
+		or ua.role_json::text like concat('%','superadmin','%')
 		)
 		<if test="query.name != null and query.name != ''">
 			and group_name like concat('%',#{query.name},'%')
@@ -290,28 +293,28 @@
 			</if>
 		</if>
 	</select>
-    <select id="getAccessBySubjectId" resultType="com.threeatom.guidecore.entity.GcAccess">
+
+	<select id="getAccessBySubjectId" resultType="com.threeatom.guidecore.entity.GcAccess">
 		select ga.*
 		from gc_access ga
-		    JOIN gc_content_group_course_assignment gcca ON ga.id = gcca.content_group_id
+				 JOIN gc_content_group_course_assignment gcca ON ga.id = gcca.content_group_id
 		where 1=1
-		and ga.master_id = #{masterId}
-		and gcca.course_id = #{id}
+		  and ga.master_id = #{masterId}
+		  and gcca.course_id = #{id}
 	</select>
+
 	<select id="getAccessByChannelId" resultType="com.threeatom.guidecore.entity.GcAccess">
 		select * from gc_access
-		where 1=1
+		where master_id = #{masterId}
+		  and (channel_json::jsonb @> to_jsonb(#{id}::integer) or subscribe_json::jsonb @> to_jsonb(#{id}::integer))
+	</select>
+
+	<select id="getContainsAccessList" resultType="com.threeatom.guidecore.entity.GcAccess">
+		select * from gc_access
+		where (channel_json::jsonb @> to_jsonb(#{ptId}::integer) or subscribe_json::jsonb @> to_jsonb(#{ptId}::integer))
 		  and master_id = #{masterId}
-		  and (JSON_CONTAINS(channel_json, CONVERT(#{id}, CHAR)) = 1
-		      or
-			   JSON_CONTAINS(subscribe_json, CONVERT(#{id}, CHAR)) = 1
-		      )
 	</select>
-    <select id="getContainsAccessList" resultMap="baseResultMap">
-			select * from gc_access
-			where (JSON_CONTAINS(channel_json, #{ptId}) or JSON_CONTAINS(subscribe_json,#{ptId}))
-			and master_id = #{masterId}
-	</select>
+
 	<select id="selectAccessByIds" resultMap="baseResultMap">
 		select * from gc_access
 		where id in
@@ -319,18 +322,20 @@
 			#{id}
 		</foreach>
 	</select>
+
 	<select id="selectAccessBySubId" resultMap="baseResultMap">
 		select ga.*
 		from gc_access ga
 				 join gc_content_group_course_assignment gcca on ga.id = gcca.content_group_id
-		where 1=1
-		and ga.master_id = #{masterId}
+		WHERE ga.master_id = #{masterId}
 		and gcca.course_id = #{subId}
 	</select>
+
 	<select id="getAllAccessByMasterId" resultMap="baseResultMap">
 		select * from gc_access
 		where master_id = #{masterId}
 	</select>
+
 	<select id="selectAccessLevel0" resultMap="baseResultMap">
 		select ac.*,ua.parent_code from gc_access ac
 			left join gc_user_access ua on ua.access_id = ac.id
@@ -338,57 +343,20 @@
 			ua.master_id= #{masterId}
 		  and ua.user_id = #{userId}
 		  and ac.group_name is not null
-		  and (ua.role_json like concat('%','groupAdmin','%')
+		  and (ua.role_json::text like concat('%','groupAdmin','%')
 			or
-			   ua.role_json like concat('%','orgAdmin','%')
+			   ua.role_json::text like concat('%','orgAdmin','%')
 			)
 	</select>
-	<select id="getTeamAccessSubjectNumList" resultMap="baseResultMap">
-		SELECT
-				count(gcca_may.id) + count(gcca_must.id) as subjectNum,
-				ac.id,
-				ac.master_id ,
-				ac.role_type,
-				ac.admin_id,
-				ac.`code`,
-				ac.package_learning_hours,
-				ac.subject_json,
-				ac.update_time,
-				ac.create_time,
-				ac.code_type,
-				ac.free_flag,
-				ac.package_name,
-				ac.channel_json,
-				ac.group_name,
-				ac.subscribe_json,
-				ac.role_json,
-		uap.may_subject_json as may_subject_json,
-		uap.must_subject_json as must_subject_json
-		FROM
-			gc_access ac
-				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-				left join gc_user_access_permission uap on uap.user_access_id = ua.id
-				left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
-				left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
-		WHERE
-			ac.master_id = #{masterId}
-		  AND ac.group_name IS NOT NULL
-		  AND ua.user_id = #{userId}
-		  and (JSON_CONTAINS(ua.role_json,'"groupMember"') = 1 or JSON_CONTAINS(ua.role_json,'"groupAdmin"') = 1)
-		<if test="name != null">
-			and concat('%',#{name},'%')
-		</if>
-		order by ac.group_name asc
-	</select>
 
-	<select id="getTeamAccessSubjectNumAdminList" resultMap="baseResultMap">
+	<select id="getTeamAccessSubjectNumList" resultMap="baseResultMap">
 		SELECT
 		count(gcca_may.id) + count(gcca_must.id) as subjectNum,
 		ac.id,
-		ac.master_id ,
+		ac.master_id,
 		ac.role_type,
 		ac.admin_id,
-		ac.`code`,
+		ac.code,
 		ac.package_learning_hours,
 		ac.subject_json,
 		ac.update_time,
@@ -403,20 +371,56 @@
 		uap.may_subject_json as may_subject_json,
 		uap.must_subject_json as must_subject_json
 		FROM
-			gc_access ac
-				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-				left join gc_user_access_permission uap on uap.user_access_id = ua.id
-				left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
-				left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
+		gc_access ac
+		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
+		left join gc_user_access_permission uap on uap.user_access_id = ua.id
+		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
+		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE
-			ac.master_id = #{masterId}
-		  AND ac.group_name IS NOT NULL
-		  AND ua.user_id = #{userId}
+		ac.master_id = #{masterId}
+		AND ac.group_name IS NOT NULL
+		AND ua.user_id = #{userId}
+		and (ua.role_json::jsonb @> '"groupMember"'::text or ua.role_json::jsonb @> '"groupAdmin"'::text)
+		<if test="name != null">
+			and concat('%',#{name},'%')
+		</if>
+		order by ac.group_name asc
+	</select>
+
+	<select id="getTeamAccessSubjectNumAdminList" resultMap="baseResultMap">
+		SELECT
+		count(gcca_may.id) + count(gcca_must.id) as subjectNum,
+		ac.id,
+		ac.master_id,
+		ac.role_type,
+		ac.admin_id,
+		ac.code,
+		ac.package_learning_hours,
+		ac.subject_json,
+		ac.update_time,
+		ac.create_time,
+		ac.code_type,
+		ac.free_flag,
+		ac.package_name,
+		ac.channel_json,
+		ac.group_name,
+		ac.subscribe_json,
+		ac.role_json,
+		uap.may_subject_json as may_subject_json,
+		uap.must_subject_json as must_subject_json
+		FROM
+		gc_access ac
+		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
+		left join gc_user_access_permission uap on uap.user_access_id = ua.id
+		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
+		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
+		WHERE
+		ac.master_id = #{masterId}
+		AND ac.group_name IS NOT NULL
+		AND ua.user_id = #{userId}
 		<if test="name != null">
 			and ac.group_name like concat('%',#{name},'%')
 		</if>
 		order by ac.group_name asc
 	</select>
-
-
 </mapper>

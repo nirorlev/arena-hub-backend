@@ -15,7 +15,7 @@
             and tag_text like concat('%',#{ptTags.tagText},'%')
         </if>
         <if test="ptTags.type != null">
-            and `type` = #{ptTags.type}
+            and "type" = #{ptTags.type}
         </if>
         <if test="ptTags.videoId != null">
             and video_id = #{ptTags.videoId}

@@ -19,17 +19,17 @@
     </resultMap>
     
     <sql id="baseColumn">
-        s.id,s.business_id,s.`name`,s.update_time,s.create_time
+        s.id,s.business_id,s."name",s.update_time,s.create_time
     </sql>
     
 
     <select id="selectSysSystemListByBusinessKey" resultMap="baseResultMap" parameterType="String">
         SELECT 
         <include refid="baseColumn" />
-        ,b.id as b_id,b.`name` as b_name,b.key as b_key 
+        ,b.id as b_id,b."name" as b_name,b.key as b_key
         from sys_system s 
         LEFT JOIN sys_business b ON s.business_id=b.id
-        where b.`key`=#{businessKey}
+        where b."key"=#{businessKey}
     </select>
     
     <select id="selectSystemById" resultMap="baseResultMap">

@@ -20,18 +20,18 @@ public class SysMenu {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    @TableField("`name`")
+    @TableField("\"name\"")
     private String name;
 
-    @TableField("`key`")
+    @TableField("\"key\"")
     private String key;
 
     private Integer parentId;
 
-    @TableField("`level`")
+    @TableField("\"level\"")
     private Integer level;
 
-    @TableField("`state`")
+    @TableField("\"state\"")
     private Integer state;
 
     private Integer sort;
@@ -50,7 +50,7 @@ public class SysMenu {
     /**
      * 排序字段
      */
-    @TableField("`order`")
+    @TableField("\"order\"")
     private Integer order;
 
     /**
