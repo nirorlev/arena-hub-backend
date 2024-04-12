@@ -2,9 +2,11 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.dto.FeatureToggleValueDto;
 import com.threeatom.guidecore.dto.response.FeatureToggleDto;
 import com.threeatom.guidecore.entity.FeatureToggle;
 import com.threeatom.guidecore.mapper.FeatureToggleMapper;
+import com.threeatom.guidecore.mapping.FeatureToggleMapping;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import java.util.List;
 import java.util.Map;
@@ -16,12 +18,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, FeatureToggle>
     implements FeatureToggleService {
 
+    private static final String FEATURE_NAME_COLUMN = "name";
     private static final String MASTER_ID_COLUMN = "master_id";
+
+    private final FeatureToggleMapping featureToggleMapping;
 
     @Override
     @Transactional(readOnly = true)
@@ -36,6 +41,22 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     @Transactional(readOnly = true)
     public FeatureToggleDto getAllFeatures(Integer masterId) {
         return createFeatureToggleDto(getFeatureTogglesForMasterId(masterId));
+    }
+
+    @Override
+    public FeatureToggleValueDto getFeatureToggle(String featureName) {
+        QueryWrapper<FeatureToggle> query = new QueryWrapper<FeatureToggle>()
+            .eq(FEATURE_NAME_COLUMN, featureName);
+        return featureToggleMapping.map(getOne(query));
+    }
+
+    @Override
+    public FeatureToggleValueDto getFeatureToggle(String featureName, Integer masterId) {
+        QueryWrapper<FeatureToggle> query = new QueryWrapper<FeatureToggle>()
+            .eq(FEATURE_NAME_COLUMN, featureName)
+            .eq(MASTER_ID_COLUMN, masterId);
+
+        return featureToggleMapping.map(getOne(query));
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
@@ -53,7 +74,8 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
         return featureNames.stream()
             .map(featureName -> {
                 Optional<FeatureToggle> defaultFeaturedToggle = getDefaultFeatureToggle(featureToggles, featureName);
-                Optional<FeatureToggle> masterFeaturedToggle = getMasterFeatureToggle(featureToggles, masterId, featureName);
+                Optional<FeatureToggle> masterFeaturedToggle =
+                    getMasterFeatureToggle(featureToggles, masterId, featureName);
 
                 return defaultFeaturedToggle.map(masterFeaturedToggle::orElse).orElse(null);
             })

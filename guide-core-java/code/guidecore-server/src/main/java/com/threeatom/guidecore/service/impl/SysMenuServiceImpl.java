@@ -8,6 +8,7 @@ import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.mapper.SysMenuMapper;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.SysMenuService;
 import java.util.List;
 import java.util.Map;
@@ -24,19 +25,22 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         Map.of("Insights", PermitResource.PORTAL);
     private static final Map<String, PermitAction> PERMIT_CHECK_MENU_ACTION_MAPPING =
         Map.of("Insights", PermitAction.ACCESS_ANALYTICS);
+    private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
+        Map.of("Insights", "analyticsEnabled");
 
     private final PermitService permitService;
+    private final FeatureToggleService featureToggleService;
 
     @Override
     public List<SysMenu> getSysMenuList(Integer masterId, GcUser user) {
         List<SysMenu> sysMenus = this.baseMapper.getSysMenuList();
-        return updatePermitMenu(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, user, masterId);
     }
 
     @Override
     public List<SysMenu> getLevel3List(Integer masterId, GcUser user) {
         List<SysMenu> sysMenus = this.baseMapper.getLevel3List();
-        return updatePermitMenu(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, user, masterId);
     }
 
     @Override
@@ -59,28 +63,45 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     @Override
     public List<SysMenu> getSysMenuListByMasterId(Integer masterId, GcUser user) {
         List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(masterId);
-        return updatePermitMenu(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, user, masterId);
     }
 
     @Override
     public List<SysMenu> getLevel3ListByMasterId(Integer masterId, GcUser user) {
         List<SysMenu> sysMenus = this.baseMapper.getLevel3ListByMasterId(masterId);
-        return updatePermitMenu(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, user, masterId);
     }
 
-    private List<SysMenu> updatePermitMenu(List<SysMenu> sysMenus, GcUser user, Integer masterId) {
+    private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, GcUser user, Integer masterId) {
         if (CollectionUtils.isEmpty(sysMenus)) {
             return sysMenus;
         }
 
-        sysMenus.removeIf(sysMenu -> {
-            if (PERMIT_CHECK_MENU_RESOURCE_MAPPING.containsKey(sysMenu.getKey())) {
-                return !permitService.checkPermit(PERMIT_CHECK_MENU_RESOURCE_MAPPING.get(sysMenu.getKey()),
-                    PERMIT_CHECK_MENU_ACTION_MAPPING.get(sysMenu.getKey()), user, masterId);
-            }
-            return false;
-        });
+        sysMenus.removeIf(sysMenu -> isFeatureToggleDisabled(masterId, sysMenu)
+            || isDisabledOnPermit(user, masterId, sysMenu));
 
         return sysMenus;
+    }
+
+    private boolean isFeatureToggleDisabled(Integer masterId, SysMenu sysMenu) {
+        if (!MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING.containsKey(sysMenu.getKey())) {
+            return false;
+        }
+
+        String featureName = MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING.get(sysMenu.getKey());
+        if (masterId != null) {
+            return Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName, masterId).getValue());
+        }
+
+        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName).getValue());
+    }
+
+    private boolean isDisabledOnPermit(GcUser user, Integer masterId, SysMenu sysMenu) {
+        if (PERMIT_CHECK_MENU_RESOURCE_MAPPING.containsKey(sysMenu.getKey())) {
+            return !permitService.checkPermit(PERMIT_CHECK_MENU_RESOURCE_MAPPING.get(sysMenu.getKey()),
+                PERMIT_CHECK_MENU_ACTION_MAPPING.get(sysMenu.getKey()), user, masterId);
+        }
+
+        return false;
     }
 }
