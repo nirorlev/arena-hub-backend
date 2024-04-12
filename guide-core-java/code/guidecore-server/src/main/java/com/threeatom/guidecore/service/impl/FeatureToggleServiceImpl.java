@@ -52,6 +52,10 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     public FeatureToggleValueDto getFeatureToggle(String featureName, Integer masterId) {
+        if (masterId == null) {
+            return getFeatureToggle(featureName);
+        }
+
         QueryWrapper<FeatureToggle> query = new QueryWrapper<FeatureToggle>()
             .eq(FEATURE_NAME_COLUMN, featureName)
             .eq(MASTER_ID_COLUMN, masterId);

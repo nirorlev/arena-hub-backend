@@ -26,7 +26,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     private static final Map<String, PermitAction> PERMIT_CHECK_MENU_ACTION_MAPPING =
         Map.of("Insights", PermitAction.ACCESS_ANALYTICS);
     private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
-        Map.of("Insights", "analyticsEnabled");
+        Map.of(
+            "Insights", "analyticsEnabled",
+            "admin-course", "coursesEnabled"
+        );
 
     private final PermitService permitService;
     private final FeatureToggleService featureToggleService;
@@ -89,11 +92,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         }
 
         String featureName = MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING.get(sysMenu.getKey());
-        if (masterId != null) {
-            return Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName, masterId).getValue());
-        }
-
-        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName).getValue());
+        return !Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName, masterId).getValue());
     }
 
     private boolean isDisabledOnPermit(GcUser user, Integer masterId, SysMenu sysMenu) {
