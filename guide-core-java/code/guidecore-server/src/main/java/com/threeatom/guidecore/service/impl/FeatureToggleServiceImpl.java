@@ -60,7 +60,12 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
             .eq(FEATURE_NAME_COLUMN, featureName)
             .eq(MASTER_ID_COLUMN, masterId);
 
-        return featureToggleMapping.map(getOne(query));
+        FeatureToggle featureToggle = getOne(query);
+        if (featureToggle == null) {
+            return getFeatureToggle(featureName);
+        }
+
+        return featureToggleMapping.map(featureToggle);
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
