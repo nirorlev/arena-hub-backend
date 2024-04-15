@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: arena_user
       POSTGRES_DB: arena_hub
-      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_PASSWORD: 'YEE!CFFCa!rTbym2ZW'
     volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - pg_data:/var/lib/postgresql/data
