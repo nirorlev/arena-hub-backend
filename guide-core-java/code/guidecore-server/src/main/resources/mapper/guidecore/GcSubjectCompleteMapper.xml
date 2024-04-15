@@ -12,15 +12,20 @@
         <result property="updateTime" column="update_time"/>
         <result property="inProgress" column="in_progress"/>
     </resultMap>
+
     <update id="updateStateByVideoId">
-        update gc_subject_complete com
-            left join gc_subject s on s.id = com.subject_id
-            left join gc_subject s2 on s2.fid = s.id
-            left join gc_video v on v.sub_id = s2.id
-            set com.subject_state = 2
-        where
-            v.id = #{videoId}
-          and com.master_id = #{masterId}
+        WITH joined_tables AS (
+            SELECT com.id
+            FROM gc_subject_complete com
+                     LEFT JOIN gc_subject s ON s.id = com.subject_id
+                     LEFT JOIN gc_subject s2 ON s2.fid = s.id
+                     LEFT JOIN gc_video v ON v.sub_id = s2.id
+            WHERE v.id = #{videoId} AND com.master_id = #{masterId}
+        )
+        UPDATE gc_subject_complete
+        SET subject_state = 2
+            FROM joined_tables
+        WHERE gc_subject_complete.id = joined_tables.id
     </update>
 
     <select id="getSubjectCompleteInfo" resultMap="baseResultMap">
@@ -30,11 +35,10 @@
         and subject_id = #{subjectId}
         limit 1
     </select>
+
     <select id="selectBySubjectId" resultMap="baseResultMap">
         select * from gc_subject_complete
         where master_id = #{masterId}
         and subject_id = #{subjectId}
     </select>
-
-
 </mapper>

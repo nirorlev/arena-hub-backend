@@ -4,6 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <include file="./db/base.mysql.sql"/>
+    <include file="./db/base.postgres.sql"/>
     <include file="./db/changelog.xml"/>
 </databaseChangeLog>

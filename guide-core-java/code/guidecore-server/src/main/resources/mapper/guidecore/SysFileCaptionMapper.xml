@@ -35,7 +35,7 @@
     <update id="updateCaptionState">
         update
         sys_file_caption
-        set `state` = 0
+        set "state" = 0
         where video_id = #{videoId}
         and lang not in
         <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
@@ -46,7 +46,7 @@
     <update id="updateInCaptionState">
         update
         sys_file_caption
-        set `state` = 1
+        set "state" = 1
         where video_id = #{videoId}
         and lang in
         <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
@@ -70,7 +70,7 @@
         INNER JOIN gc_video g on a.video_id=g.id
         left join sys_file f on f.id = a.caption_file_id
         where video_id=#{id}
-        and a.`state` = 1
+        and a."state" = 1
     </select>
 
     <insert id="saveYmTaskId">

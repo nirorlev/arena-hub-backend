@@ -21,26 +21,20 @@
 		select * from gc_subject_association where
 		master_id=#{masterId}
 	</select>
+
     <select id="selectPackageStatus" resultType="java.lang.Integer">
-        select ifnull(status,0) from gc_subject_tag_association
+        select COALESCE(status, 0)
+        from gc_subject_tag_association
         where master_id = #{masterId}
         and tag_id is null
-        and `order` is null
+        and "order" is null
         and  package_status = 0
     </select>
-    <!--
-    UPDATE gc_subject_association SET
-        `order` = CASE
-        when master_id = 235 and subject_id = 1038 THEN 3
-        when master_id = 235 and subject_id = 1192 THEN 4
-        END
-    WHERE master_id in (235) and subject_id in (1038,1192)
 
-     -->
 	<update id="bulkUpdatOrderByMasterIdAndSubjetId" parameterType="list">
         update gc_subject_association
         <trim prefix="set" suffixOverrides=",">
-            <trim prefix="`order` =case" suffix="end,">
+            <trim prefix="'order' =case" suffix="end,">
                 <foreach collection="list" item="gcSubjectAssociation" index="index">
                     <if test="gcSubjectAssociation.order!=null">
                         when master_id=#{gcSubjectAssociation.masterId} and subject_id=#{gcSubjectAssociation.subjectId}

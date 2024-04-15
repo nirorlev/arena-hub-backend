@@ -31,7 +31,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     private Integer channelImgFileId;
 
-    @TableField(value = "`desc`")
+    @TableField(value = "\"desc\"")
     private String desc;
 
     private Integer createUserId;
@@ -40,7 +40,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     private Integer categoryId;
 
-    @TableField(value = "`level`")
+    @TableField(value = "\"level\"")
     private Integer level;
 
     private Integer fid;

@@ -25,8 +25,8 @@ public class SysBusinessServiceImpl extends ServiceImpl<SysBusinessMapper, SysBu
             value = {"SysBusiness"},
             key = "'entity:key-'+#p0")
     public SysBusiness getSysBusinessByKeyCache(String key) {
-        QueryWrapper<SysBusiness> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("`key`", key);
-        return (SysBusiness) this.getOne(queryWrapper);
+        QueryWrapper<SysBusiness> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("\"key\"", key);
+        return this.getOne(queryWrapper);
     }
 }

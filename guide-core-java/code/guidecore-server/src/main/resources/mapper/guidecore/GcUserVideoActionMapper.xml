@@ -74,7 +74,7 @@
 	<select id="getSubjectUserStar" parameterType="java.util.Map"
 		resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
 		SELECT
-		S.ID AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		S.ID AS "subjectId",COUNT(uva."user_id") as "subjectStarUsers",
 		ROUND(AVG(UVA.STAR_VALUE),1) as "subjectStarAvg"
 		FROM
 		GC_SUBJECT S
@@ -105,7 +105,7 @@
 	<select id="gvggetSubjectUserStar" parameterType="java.util.Map"
 			resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
 		SELECT
-		UVA.sub_id AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		UVA.sub_id AS "subjectId",COUNT(uva."user_id") as "subjectStarUsers",
 		ROUND(AVG(UVA.STAR_VALUE),1) as "subjectStarAvg"
 		FROM
 	    GC_USER_VIDEO_ACTION UVA
@@ -121,7 +121,7 @@
 	<select id="getSubjectUserStars" parameterType="java.util.Map"
 			resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
 		SELECT
-		S.ID AS "subjectId",COUNT(uva.`user_id`) as "subjectStarUsers",
+		S.ID AS "subjectId",COUNT(uva."user_id") as "subjectStarUsers",
 		AVG(UVA.STAR_VALUE) as "subjectStarAvg"
 		FROM
 		GC_SUBJECT S

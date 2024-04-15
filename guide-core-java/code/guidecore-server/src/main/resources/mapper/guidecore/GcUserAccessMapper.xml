@@ -191,8 +191,6 @@
         WHERE m.context=#{context} AND ua.user_id=#{userId}
     </select>
 
-
-
     <select id="selectUserAccessByUser" resultMap="fullResultMap">
         select
         <include refid="baseColumn" />
@@ -231,14 +229,6 @@
         AND master_id =#{masterId}
     </select>
 
-    <!--     <select id="selectTeacherListWithSameCode" resultMap="gcUserResultMap">
-         select
-            <include refid="baseColumn" />
-            <include refid="gcUserColumn" />
-            FROM
-            gc_user_access ua
-        </select> -->
-
     <select id="selectUserAccessListByAccessIds" resultMap="gcUserResultMap">
         select
         <include refid="baseColumn" />
@@ -260,6 +250,7 @@
             </if>
         </if>
     </select>
+
     <select id="selectUserAccessExtListByMasterIdAndUserIds" resultType="map">
         SELECT ua.user_id,ui.id as info_id,ui.first_name,ui.last_name,
         uae.log_in_time as lastLogInDate
@@ -281,52 +272,67 @@
         <if test="order == 'desc'">
             ORDER BY lastLogInDate desc
         </if>
+    </select>
 
-    </select>
     <select id="selectUsersNum" resultType="map">
-        select
-            COUNT(if(a.role_type=0,TRUE,NULL)) as teacherNum,
-            COUNT(if(a.role_type=1,TRUE,NULL)) as studentNum
-        FROM gc_user_access ua
-                 LEFT JOIN gc_access a ON ua.access_id=a.id
-        WHERE ua.master_id=#{masterId}
+        SELECT
+            COUNT(CASE WHEN a.role_type = 0 THEN 1 END) as teacherNum,
+            COUNT(CASE WHEN a.role_type = 1 THEN 1 END) as studentNum
+        FROM
+            gc_user_access ua
+                LEFT JOIN gc_access a ON ua.access_id = a.id
+        WHERE
+            ua.master_id = #{masterId}
     </select>
+
     <select id="selectUserAccessesByMasterId" resultType="Integer">
         select count(id) from gc_user_access where master_id=#{masterId}
         and user_id=#{userId}
-        and role_json like concat('%',#{role},'%')
+        and role_json::text like concat('%',#{role},'%')
     </select>
+
     <select id="getAllUserInThisMaster" resultType="map">
         SELECT
-        ua.user_id,a.code,u.update_time
-        ,f.id as f_id,f.name as f_name,
-        ui.id as info_id,ui.first_name,ui.last_name,u.create_time as dateSignedUp ,per.sub_permission as sub_permission,ua.id as userAccessId,
-        u.username as email,ui.avatar_file_id as f_file_url,f.save_type as f_save_type,count(pay.id) as joinType,count(DISTINCT a.master_id) as portalNums,
-        GROUP_CONCAT(DISTINCT a.master_id,':',ma.portal_name)AS userPortals,ua.access_id as accessId
+        ua.user_id,
+        a.code,
+        u.update_time,
+        f.id as f_id,
+        f.name as f_name,
+        ui.id as info_id,
+        ui.first_name,
+        ui.last_name,
+        u.create_time as dateSignedUp,
+        per.sub_permission as sub_permission,
+        ua.id as userAccessId,
+        u.username as email,
+        ui.avatar_file_id as f_file_url,
+        f.save_type as f_save_type,
+        COUNT(pay.id) as joinType,
+        COUNT(DISTINCT a.master_id) as portalNums,
+        STRING_AGG(DISTINCT concat(a.master_id, ':', ma.portal_name), ',') AS userPortals,
+        ua.access_id as accessId
         FROM gc_user_access ua
-        LEFT JOIN gc_access a ON ua.access_id=a.id
-        left join gc_user_access_permission per on per.user_access_id = ua.id
-        left join gc_master ma on ma.id = a.master_id
-        /*LEFT JOIN gc_user u ON ua.user_id = u.id*/
-        /*gc_user_access表改为有两种类型的注册码，左查询会匹配出与用户ID不符的数据*/
+        LEFT JOIN gc_access a ON ua.access_id = a.id
+        LEFT JOIN gc_user_access_permission per ON per.user_access_id = ua.id
+        LEFT JOIN gc_master ma ON ma.id = a.master_id
         JOIN gc_user u ON ua.user_id = u.id
-        left join gc_user_info ui on ui.id=u.info_id
-        left join sys_file f on ui.avatar_file_id=f.id
-        left join sys_weixin_pay pay on pay.access_id = a.id and a.master_id = pay.master_id and order_status = 1
-        WHERE 1=1
-        <if test="masterIds != null and masterIds.size>0">
-            and ua.master_id in
+        LEFT JOIN gc_user_info ui ON ui.id = u.info_id
+        LEFT JOIN sys_file f ON ui.avatar_file_id = f.id
+        LEFT JOIN sys_weixin_pay pay ON pay.access_id = a.id AND a.master_id = pay.master_id AND order_status = 1
+        WHERE 1 = 1
+        <if test="masterIds != null and masterIds.size > 0">
+            AND ua.master_id IN
             <foreach collection="masterIds" item="masterId" index="index" open="(" close=")" separator="," >
                 #{masterId}
             </foreach>
         </if>
         <if test="accessId != null">
-            and a.id = #{accessId}
+            AND a.id = #{accessId}
         </if>
         <if test="searchFilter != null">
-            and REPLACE(concat_ws( ',', concat( ui.first_name,ui.last_name  ), u.username, a.CODE ), ' ', '' ) LIKE concat( '%', #{searchFilter}, '%' )
+            AND REPLACE(CONCAT_WS(',', CONCAT(ui.first_name, ui.last_name), u.username, a.CODE), ' ', '') LIKE concat('%', #{searchFilter}, '%')
         </if>
-        group by ua.user_id
+        GROUP BY ua.user_id
         ORDER BY u.update_time DESC
     </select>
 
@@ -348,7 +354,7 @@
     <select id="selectLastUsersNum" resultType="map">
         select
         <foreach collection="lastDays" index="index" item="lastday" separator=",">
-            COUNT(IF(DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ >= ]]> date(ua.create_time),TRUE,NULL)) as day_#{lastday}
+            COUNT(CASE WHEN CURRENT_DATE - '#{lastday} day'::interval &gt;= ua.create_time THEN TRUE END) as day_#{lastday}
         </foreach>
         from gc_user_access ua
         LEFT JOIN gc_access a ON ua.access_id=a.id
@@ -357,40 +363,32 @@
     </select>
 
     <select id="selectActiveUsersNum" resultType="map">
-
         select
         <foreach collection="lastDays" index="index" item="lastday" separator=",">
-
             COUNT(
-            IF(
-            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
-            and
-            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+30) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
-            ,TRUE,NULL
-            )) as day_#{lastday}_30day,
+            CASE
+            WHEN CURRENT_DATE - '#{lastday} day'::interval &gt; uae.log_in_time
+            AND CURRENT_DATE - '#{lastday + 30} day'::interval &lt; uae.log_in_time
+            THEN TRUE END
+            ) as day_#{lastday}_30day,
             COUNT(
-            IF(
-            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
-            and
-            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+7) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
-            ,TRUE,NULL
-            )) as day_#{lastday}_7day,
+            CASE
+            WHEN CURRENT_DATE - '#{lastday} day'::interval &gt; uae.log_in_time
+            AND CURRENT_DATE - '#{lastday + 7} day'::interval &lt; uae.log_in_time
+            THEN TRUE END
+            ) as day_#{lastday}_7day,
             COUNT(
-            IF(
-            DATE_SUB(CURDATE(), INTERVAL #{lastday} DAY) <![CDATA[ > ]]>  date(uae.log_in_time)
-            and
-            DATE_SUB(CURDATE(), INTERVAL (#{lastday}+1) DAY) <![CDATA[ < ]]> date(uae.log_in_time)
-            ,TRUE,NULL
-            )) as day_#{lastday}_1day
+            CASE
+            WHEN CURRENT_DATE - '#{lastday} day'::interval &gt; uae.log_in_time
+            AND CURRENT_DATE - '#{lastday + 1} day'::interval &lt; uae.log_in_time
+            THEN TRUE END
+            ) as day_#{lastday}_1day
         </foreach>
-
         from gc_user_access_ext uae
         LEFT JOIN gc_user_access ua ON ua.id=uae.user_access_id
         LEFT JOIN gc_access a ON ua.access_id=a.id
         WHERE
         a.admin_id=#{teacherAccessId}
-
-
     </select>
 
     <insert id="insertGcUserAccessExt" parameterType="GcUserAccessExt" useGeneratedKeys="true" keyProperty="id">
@@ -414,24 +412,23 @@
         </trim>
 
     </insert>
+
     <insert id="insertUserAccessList">
         insert into gc_user_access (user_id,master_id,access_id,role_json,parent_code)
-        values
-        <foreach collection="list" index="index" item="item" separator=",">
-         (#{item.userId},#{item.masterId},#{item.accessId},
-          #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-          #{item.parentCode})
+        <foreach collection="list" index="index" item="item" separator=" UNION ALL ">
+            SELECT #{item.userId},#{item.masterId},#{item.accessId},
+            #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+            #{item.parentCode}
         </foreach>
-        ON DUPLICATE KEY UPDATE
-        user_id = values(user_id),
-        master_id = values(master_id),
-        access_id = values(access_id),
-        role_json = values(role_json),
-        parent_code = values(parent_code)
+        ON CONFLICT (id) DO UPDATE SET
+        user_id = EXCLUDED.user_id,
+        master_id = EXCLUDED.master_id,
+        access_id = EXCLUDED.access_id,
+        role_json = EXCLUDED.role_json,
+        parent_code = EXCLUDED.parent_code
     </insert>
 
     <update id="updateGcUserAccessExtById" parameterType="GcUserAccessExt">
-
         update gc_user_access_ext
         <set>
             <if test="userAccessId != null">
@@ -472,6 +469,7 @@
         left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
+
     <select id="getUserAccessListByMasterIdAndUserId" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
@@ -531,13 +529,14 @@
         select count(1) from gc_user_access
         where user_id = #{userId}
         and master_id = #{masterId}
-        and role_json like concat('%','groupAdmin','%')
+        and role_json::text like concat('%','groupAdmin','%')
     </select>
+
     <select id="getAccessListBySuperAdmin" resultType="java.lang.Integer">
         select access_id from gc_user_access
         where 1=1
         and user_id = #{userId}
         and master_id = #{masterId}
-        and role_json like concat('%','superadmin','%')
+        and role_json::text like concat('%','superadmin','%')
     </select>
 </mapper>

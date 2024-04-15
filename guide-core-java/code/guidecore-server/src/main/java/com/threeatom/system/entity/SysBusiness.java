@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -22,11 +17,11 @@ public class SysBusiness implements Serializable {
     private Integer id;
 
     @ApiModelProperty("业务名称")
-    @TableField("`name`")
+    @TableField("\"name\"")
     private String name;
 
     @ApiModelProperty("业务代码")
-    @TableField("`key`")
+    @TableField("\"key\"")
     private String key;
 
     @ApiModelProperty("留言")

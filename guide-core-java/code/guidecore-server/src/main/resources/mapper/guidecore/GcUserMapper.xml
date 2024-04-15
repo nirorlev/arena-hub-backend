@@ -14,15 +14,8 @@
         <result property="pid" column="pid"/>
         <result property="groupName" column="group_name"/>
         <result property="logInTime" column="log_in_time"/>
-        <!-- <result property="avatarFileId" column="avatarFileId"/> -->
         <result property="lastName" column="lastName"/>
         <result property="firstName" column="firstName"/>
-        <!-- <association property="avatarFile" column="avatarFile" javaType="SysFile">
-            <id property="id" column="f_id"/>
-            <result property="name" column="f_name"/>
-            <result property="fileUrl" column="f_file_url"/>
-            <result property="saveType" column="f_save_type"/>
-        </association> -->
 
         <association property="info" column="id" javaType="GcUserInfo">
             <id property="id" column="info_id"/>
@@ -99,7 +92,7 @@
                 left join gc_access accessStu on accessStu.admin_id=access.id
                 left join gc_user_access uaTar on uaTar.access_id = accessStu.id
                 <if test="groupId != null">
-                    left join gc_group g ON JSON_CONTAINS(g.group_access_ids, CONVERT(uaTar.id, char))=1  and g.master_id = uaTar.master_id
+                    left join gc_group g ON g.group_access_ids::jsonb @> to_jsonb(uaTar.id::integer) and g.master_id = uaTar.master_id
                 </if>
             </otherwise>
         </choose>
@@ -127,7 +120,6 @@
         group by m.user_id, u.id
         order by newMesCount desc, m_create_time desc
     </select>
-
 
     <select id="getGcUserByUserId" resultMap="baseResultMap">
         select
@@ -212,7 +204,7 @@
             teacher_ua.access_id=#{userCommonInfo.accessId} and teacher_ua.master_id= #{userCommonInfo.masterId}
             and student_ua.user_id IS NOT NULL and student_a.role_type=1
             <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
-                and json_contains(g.group_access_ids, json_array(student_ua.id))=1
+                and g.group_access_ids::jsonb @> to_jsonb(student_ua.id::integer)
             </if>
             <if test="userCommonInfo.userIds != null">
 
@@ -230,7 +222,7 @@
                 and REPLACE(concat( student_ui.first_name, student_ui.last_name, student_u.username ),' ','') like concat('%',#{userCommonInfo.name},'%')
             </if>
             <if test="pageParam.lastDaysScope != null">
-                and    mess.update_time  >    date_sub(now(), interval #{pageParam.lastDaysScope} day)
+                and    mess.update_time  >  now() - '#{pageParam.lastDaysScope} days'::interval
             </if>
         </where>
         group by student_uae.user_access_id
@@ -294,27 +286,27 @@
         where teacher_ua.access_id=#{userCommonInfo.accessId} and teacher_ua.master_id= #{userCommonInfo.masterId} and
         student_a.role_type=1
         <if test="userCommonInfo.groupId != null and userCommonInfo.groupId != ''">
-            and json_contains(g.group_access_ids, json_array(student_ua.id))=1
+            and g.group_access_ids::jsonb @> to_jsonb(student_ua.id::integer)
         </if>
         <if test="null!=userCommonInfo.userIds">
             <if test="userCommonInfo.userIds.size()!=0">and student_ua.user_id in
                 <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
-                #{userIds}
-            </foreach>
-          </if>
+                    #{userIds}
+                </foreach>
+            </if>
             <if test="userCommonInfo.userIds.size()==0">
                 and 1=2
             </if>
         </if>
         <if test="pageParam.lastDaysScope != null">
-            and    mess.update_time  >    date_sub(now(), interval #{pageParam.lastDaysScope} day)
+            and  mess.update_time  >  now() - '#{pageParam.lastDaysScope} days'::interval
         </if>
         <if test="userCommonInfo.name != null and userCommonInfo.name !=''">
             and REPLACE(concat( student_ui.first_name, student_ui.last_name, student_u.username ),' ','') like concat('%',#{userCommonInfo.name},'%')
         </if>
         and student_ua.user_id IS NOT NULL
         GROUP BY student_ua.user_id
-)a
+        )a
     </select>
 
     <select id="getStudentBehaviorExcelData" resultMap="StudentBehaviorDataExcel">
@@ -344,7 +336,7 @@
         FROM GC_USER USER
         LEFT JOIN GC_USER_ACCESS UA ON USER.ID = UA.USER_ID
         LEFT JOIN GC_USER_ACCESS_PERMISSION UAP ON UA.ID = UAP.USER_ACCESS_ID
-        LEFT JOIN GC_SUBJECT S ON JSON_CONTAINS(UAP.SUB_PERMISSION, CONVERT(S.ID, CHAR))=1
+        LEFT JOIN GC_SUBJECT S ON UAP.SUB_PERMISSION::jsonb @> to_jsonb(S.ID::integer)
         WHERE UA.master_id=#{masterId} and S.ID IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id}
@@ -402,7 +394,7 @@
         ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
         <include refid="infoBaseColumn"/>
         ,max(ext.log_in_time) log_in_time,ac.group_name
-        from  `gc_user` u
+        from  "gc_user" u
         left join gc_user_info ui on  u.info_id = ui.id
         left join gc_user_access uac on uac.user_id = u.id
         left join sys_file f on f.id = ui.avatar_file_id

@@ -144,7 +144,7 @@ public class GcAccess implements Serializable {
     private Date packageExpiredTime;
 
     @ApiModelProperty(value = "order排序")
-    @TableField(value = "`order`")
+    @TableField(value = "\"order\"")
     private Integer order;
 
     public List<GcAccess> getAccessList() {

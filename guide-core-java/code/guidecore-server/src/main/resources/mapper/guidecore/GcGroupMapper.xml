@@ -47,34 +47,33 @@
       LEFT JOIN gc_user_access AS ua ON ua.id = g.user_access_id
       WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId}
         <if test="name != null and name !=''">
-            and g.`name` like concat('%',#{name},'%')
+            and g."name" like concat('%',#{name},'%')
         </if>
     </select>
-    
+
     <select id="selectGetGroupListByUserId" resultType="Map">
-        SELECT g.id,g.name,g.update_time,g.code,g.schedule_date,g.group_access_ids,GROUP_CONCAT( u.user_id SEPARATOR ',' ) AS userIds
+        SELECT g.id,g.name,g.update_time,g.code,g.schedule_date,g.group_access_ids, STRING_AGG(u.user_id::text, ',') AS userIds
         FROM gc_group AS g
-        LEFT JOIN gc_user_access AS ua ON ua.id = g.user_access_id
-        LEFT JOIN gc_user_access AS u on JSON_CONTAINS(g.group_access_ids, CONVERT(u.id,CHAR))=1
+                 LEFT JOIN gc_user_access AS ua ON ua.id = g.user_access_id
+                 LEFT JOIN gc_user_access AS u on g.group_access_ids::jsonb @> to_jsonb(u.id::integer)
         WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId}
         GROUP BY g.id
         ORDER BY g.update_time DESC
     </select>
-    
+
     <select id="selectGcGroupByUserAccessIds" resultMap="baseResultMap">
         SELECT id,name,sub_ids,group_access_ids,update_time,create_time
         from gc_group 
         WHERE 1=1
-        
         <if test="whereSql != null">
            and ${whereSql}
         </if>
-        
     </select>
+
     <select id="getUserIdByGroupIds" resultType="com.threeatom.guidecore.entity.GcGroup">
         select g.id as id ,a.user_id as userId
         from gc_group g
-        LEFT join gc_user_access a ON JSON_CONTAINS(g.group_access_ids,CONVERT ( a.id, CHAR ))= 1 AND g.master_id = a.master_id
+        LEFT join gc_user_access a ON (g.group_access_ids::jsonb @> to_jsonb(a.id::integer)) AND g.master_id = a.master_id
         where g.id in
         <foreach collection="groupIds" item="ids" index="index" open="(" close=")" separator=",">
             #{ids}

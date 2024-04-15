@@ -12,15 +12,14 @@
     (  #{item.id}  , #{item.userId}  , #{item.eventId},#{item.masterId})
   	</foreach>
   </insert>
-    <select id="selectUserEvents" resultType="java.util.Map">
-      select event_id as eventId ,GROUP_CONCAT(user_id SEPARATOR ',') as userList from gc_user_event
-        where
-      event_id in
-      <foreach collection="list" item="list" index="index" separator="," open="(" close=")" >
-        #{list}
-      </foreach>
-      GROUP BY event_id
-    </select>
 
-
+  <select id="selectUserEvents" resultType="java.util.Map">
+    SELECT event_id as eventId, STRING_AGG(user_id::text, ',') as userList
+    FROM gc_user_event
+    WHERE event_id in
+    <foreach collection="list" item="list" index="index" open="(" close=")" separator="," >
+      #{list}
+    </foreach>
+    GROUP BY event_id
+  </select>
 </mapper>
