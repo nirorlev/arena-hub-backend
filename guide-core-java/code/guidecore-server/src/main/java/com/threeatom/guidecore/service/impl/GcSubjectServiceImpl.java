@@ -906,7 +906,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
          queryWrapper.eq("master_id", masterId);
          queryWrapper.eq("level", 0);
          queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-         queryWrapper.orderByAsc("`order`");
+         queryWrapper.orderByAsc("\"order\"");
          List<GcSubject> list = this.list(queryWrapper);
          return list;
     }
@@ -917,7 +917,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 
@@ -965,7 +965,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             queryWrapper.eq("type",subType);
         }
 //        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 
@@ -981,7 +981,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             queryWrapper.eq("type",subType);
         }
 //        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 
@@ -1003,7 +1003,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level",0);
 //        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 
@@ -1150,7 +1150,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("fid", subId);
         queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         List<Integer> list = this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
         return list;
     }
@@ -1161,7 +1161,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
         queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         List list = this.list(queryWrapper);
         return list;
     }
@@ -1226,7 +1226,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
         queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        queryWrapper.orderByAsc("`order`");
+        queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 

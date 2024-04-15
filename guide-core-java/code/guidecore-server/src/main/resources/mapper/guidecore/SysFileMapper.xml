@@ -112,7 +112,6 @@
     </sql>
     
     <select id="selectFilesByTypeIndexAndTagSearch" resultMap="baseResultMap">
-    
         select 
         <include refid="baseColumn" />,
         thumb_nail_id
@@ -141,23 +140,20 @@
             AND upload_uid=#{uploadUid}
         </if>
 		ORDER BY id desc
-		<!-- , file_remark desc -->
-    
     </select>
-    
+
     <select id="selectFileTagJSONStrByFolder" resultMap="tagResult">
-        select JSON_ARRAYAGG(file_remark) as tagJSONArray from sys_file 
-		WHERE 1=1
-		AND sys_id=#{sysId}
-		<!-- AND folder=#{folder} -->
-		AND folder in 
-		<foreach item="folder" index="index" collection="folders"  open="(" separator="," close=")">
-       		#{folder}
-       </foreach>
-		AND master_id=#{masterId}
-		AND JSON_LENGTH(file_remark)!=0
+        select json_agg(file_remark) as tagJSONArray from sys_file
+        WHERE 1=1
+        AND sys_id=#{sysId}
+        AND folder in
+        <foreach item="folder" index="index" collection="folders"  open="(" separator="," close=")">
+            #{folder}
+        </foreach>
+        AND master_id=#{masterId}
+        AND json_array_length(file_remark)!=0
     </select>
-    
+
     <select id="selectCountNotBelongMaster" parameterType="Integer" resultType="java.lang.Integer">
 	    SELECT count(1) FROM sys_file WHERE id IN 
 		<foreach item="id" index="index" collection="ids"  open="(" separator="," close=")">
@@ -169,10 +165,6 @@
     <select id="selectByLogoId"  resultType="com.threeatom.system.entity.SysFile">
         SELECT * FROM  sys_file where id=#{masterId}
     </select>
-
-<!--    <select id="selectBySubId"  resultType="com.threeatom.system.entity.SysFile">-->
-<!--        SELECT * FROM  sys_file where sub_id=#{subId}-->
-<!--    </select>-->
 
     <select id="selectFileTypeIndexByVideoId"  resultType="java.lang.Integer">
         SELECT file_type_index  FROM sys_file s

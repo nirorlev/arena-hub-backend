@@ -200,8 +200,8 @@
         ,(select count(1) from gc_video_comment where main_comment_id = vc.id) as comment_num
         ,(select count(1) from gc_user_fabulous where video_id = vc.video_id and target_user_id = vc.user_id and comment_id = vc.id) as fabulous_num
         <if test="userId != null">
-        ,ifnull((select count(1) from gc_user_fabulous where user_id = #{userId} and video_id = vc.video_id and target_user_id = vc.user_id and comment_id = vc.id),0)
-        as is_fabulous
+            ,COALESCE((select count(1) from gc_user_fabulous where user_id = #{userId} and video_id = vc.video_id and target_user_id = vc.user_id and comment_id = vc.id),0)
+            as is_fabulous
         </if>
         FROM
         gc_video_comment AS vc

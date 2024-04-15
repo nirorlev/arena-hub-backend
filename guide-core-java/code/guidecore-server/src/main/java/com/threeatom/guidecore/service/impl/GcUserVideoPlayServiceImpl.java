@@ -99,12 +99,6 @@ public class GcUserVideoPlayServiceImpl extends ServiceImpl<GcUserVideoPlayMappe
             return null;
         }
         List<Integer> parentSubIds = parentList.stream().map(GcSubject::getId).collect(Collectors.toList());
-//    	//查找子集
-//        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
-//        queryWrapper.in("sub_id", parentSubIds);
-//        queryWrapper.orderByAsc("`order`");
-//        List<GcSubject> subList = subjectService.list(queryWrapper);
-
         List<Integer> subIdList = parentList.stream().map(GcSubject::getId).collect(Collectors.toList());
 
         //获取到主题下的所有视频ID

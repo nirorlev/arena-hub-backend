@@ -52,13 +52,13 @@
 
     <select id="selectVideosInChannel" resultType="com.threeatom.system.entity.SysFile">
         select video.*,content.id as ptChannelContentId ,
-               ifNull((select count(1) from gc_user_video_action where file_id=video.id and type=1),0) as likeNum from sys_file video
+        coalesce((select count(1) from gc_user_video_action where file_id=video.id and type=1),0) as likeNum from sys_file video
         left join pt_channel_content content on content.file_id = video.id
         where content.channel_id =#{channelId}
         group by video.id
         <choose>
             <when test="order!=null">
-                order by convert(video.name using gbk) ${order}
+                order by convert_to(video.name, 'UTF8') ${order}
             </when>
             <otherwise>
                 order by content.content_order asc

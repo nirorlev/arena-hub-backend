@@ -100,6 +100,7 @@
 		left join gc_manager man on man.master_id=m.id
 		where m.manager_id=#{uid} or man.id =#{uid}
 	</select>
+
 	<select id="selectMasterPublicSubject" resultMap="baseResultMap">
 		select
 		m.id , m.org_name, m.logo_id,m.portal_name
@@ -110,7 +111,6 @@
 		and gcSubject.is_public = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_isPublic_1}
 		and gcSubject.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
 	</select>
-
 
 	<update id="updateIntroVideoIdNull">
 		UPDATE gc_master
@@ -123,6 +123,7 @@
 		SET source_type = NULL, source_url=NULL
 		WHERE id = #{id}
 	</update>
+
 	<update id="updateEmailById">
 		update gc_master
 		set email_cc = #{email,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
@@ -170,11 +171,11 @@
 	<select id="selectMasterPublicSubjectByTag" resultMap="baseResultMap">
 		select
 		m.id , m.org_name, m.logo_id,m.portal_name,
-		concat('[',GROUP_CONCAT('"',tags.tag_text,'"' SEPARATOR ','),']') as course_tags
+		concat('[', STRING_AGG(tags.tag_text, '","') ,']') as course_tags
 		<include refid="gcSubjectColumns" />
 		from gc_master m
 		<include refid="leftJoinGcSubject" />
-		left join gc_subject_tags tags on tags.subject_id = gcSubject.id and tags.master_id = m.id and tags.`status` = 0 and tags.type = 1
+		left join gc_subject_tags tags on tags.subject_id = gcSubject.id and tags.master_id = m.id and tags."status" = 0 and tags.type = 1
 		where gcSubject.type = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_type_subject0}
 		and gcSubject.is_public = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_isPublic_1}
 		and gcSubject.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
@@ -198,9 +199,7 @@
 		gc_master m
 		LEFT JOIN gc_manager ma ON ma.id = m.manager_id
 		LEFT JOIN (select access.master_id as masterId, MAX(ext.log_in_time) as maxLoginTime from  gc_user_access_ext ext LEFT JOIN gc_user_access access on access.id = ext.user_access_id GROUP BY access.master_id )a on a.masterId=m.id
-		WHERE
-		1 = 1
-		AND m.context IS NOT NULL
+		WHERE m.context IS NOT NULL
 		<if test="null!=searchFilter and ''!=searchFilter">
 			and concat(m.context,',',m.org_name) like concat('%',#{searchFilter},'%')
 		</if>

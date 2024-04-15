@@ -69,7 +69,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @Deprecated
     private Integer subId;
 
-    @TableField(value = "`order`")
+    @TableField(value = "\"order\"")
     private Integer order;
 
     @ApiModelProperty(value = "subject科目图片id")

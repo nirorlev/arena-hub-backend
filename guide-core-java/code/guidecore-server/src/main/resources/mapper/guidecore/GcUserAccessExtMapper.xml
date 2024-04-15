@@ -1,48 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.GcUserAccessExtMapper">
-    <select id="getUserLoginNum" resultType="map">
-       	SELECT
-		COUNT( uae.id )AS loginNum  ,
-		DATE_FORMAT(uae.log_in_time,'%Y-%m-%d') AS loginTime,
-       	ua.master_id as masterId
-	FROM
+	<select id="getUserLoginNum" resultType="map">
+		SELECT
+		COUNT(uae.id) AS loginNum,
+		TO_CHAR(uae.log_in_time, 'YYYY-MM-DD') AS loginTime,
+		ua.master_id AS masterId
+		FROM
 		gc_user_access_ext uae
 		LEFT JOIN gc_user_access AS ua ON uae.user_access_id = ua.id
 		LEFT JOIN gc_user AS u ON u.id = ua.user_id
-	WHERE
-		ua.user_id in
-        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
-            #{userId}
-        </foreach>
-		AND DATE_FORMAT( uae.log_in_time, '%Y-%m-%d' ) &gt;= #{startDate}
-		AND DATE_FORMAT( uae.log_in_time, '%Y-%m-%d' ) &lt;= #{endDate}
-		GROUP BY DATE_FORMAT(uae.log_in_time,'%Y-%m-%d')
-    </select>
+		WHERE
+		ua.user_id = ANY(#{userIds})
+		AND TO_CHAR(uae.log_in_time, 'YYYY-MM-DD') &gt;= #{startDate}
+		AND TO_CHAR(uae.log_in_time, 'YYYY-MM-DD') &lt;= #{endDate}
+		GROUP BY TO_CHAR(uae.log_in_time, 'YYYY-MM-DD')
+	</select>
+
 	<select id="getOneByUserAccessId" resultType="com.threeatom.guidecore.entity.GcUserAccessExt">
 		select * from gc_user_access_ext
 		where user_access_id = #{userAccessId}
 		ORDER BY log_in_time desc
 		limit 1
 	</select>
+
 	<select id="getByManagerId" resultType="map">
-		select id,manager_id as managerId,COUNT(id) as adminLoginNum,DATE_FORMAT(log_in_time,'%Y-%m-%d') AS loginTime from gc_user_access_ext
-		where manager_id = #{managerId}
-		  AND DATE_FORMAT( log_in_time, '%Y-%m-%d' ) &gt;= #{startDate}
-		  AND DATE_FORMAT( log_in_time, '%Y-%m-%d' ) &lt;= #{endDate}
-		GROUP BY DATE_FORMAT(log_in_time,'%Y-%m-%d')
+		SELECT
+		id,
+		manager_id as managerId,
+		COUNT(id) as adminLoginNum,
+		TO_CHAR(log_in_time, 'YYYY-MM-DD') AS loginTime
+		FROM
+		gc_user_access_ext
+		WHERE
+		manager_id = #{managerId}
+		AND TO_CHAR(log_in_time, 'YYYY-MM-DD') &gt;= #{startDate}
+		AND TO_CHAR(log_in_time, 'YYYY-MM-DD') &lt;= #{endDate}
+		GROUP BY TO_CHAR(log_in_time, 'YYYY-MM-DD')
 	</select>
 
 	<select id="getAllUserLastLogin" resultType="map">
-		select a.* from (
-		select access.user_id,max(ext.id) as extid ,us.username,max(ext.log_in_time) as log_in_time,info.first_name ,info.last_name,TIMESTAMPDIFF(WEEK,max(log_in_time),NOW()) as weekNum,max(last_batchemail_time) as emailTime from gc_user_access_ext ext
-		LEFT JOIN gc_user_access access on access.id = ext.user_access_id
-		LEFT JOIN gc_user us on us.id = access.user_id
-		LEFT JOIN gc_user_info info on info.id = us.info_id
-		where ext.user_access_id is not null and ext.manager_id is null
-		GROUP BY access.user_id ORDER BY user_id asc)a where a.log_in_time &lt; date_sub(now(), interval #{lastDaysScope} day) and( a.emailTime &lt; date_sub(now(), interval 14 day) or a.emailTime is null )
+		SELECT a.* FROM (
+							SELECT
+								access.user_id,
+								max(ext.id) AS extid,
+								us.username,
+								max(ext.log_in_time) AS log_in_time,
+								info.first_name,
+								info.last_name,
+								EXTRACT(WEEK FROM age(NOW(), max(log_in_time))) AS weekNum,
+								max(last_batchemail_time) AS emailTime
+							FROM
+								gc_user_access_ext ext
+									LEFT JOIN gc_user_access access ON access.id = ext.user_access_id
+									LEFT JOIN gc_user us ON us.id = access.user_id
+									LEFT JOIN gc_user_info info ON info.id = us.info_id
+							WHERE
+								ext.user_access_id IS NOT NULL
+							  AND ext.manager_id IS NULL
+							GROUP BY access.user_id
+							ORDER BY user_id ASC
+						) a WHERE
+				a.log_in_time &lt; NOW() - '#{lastDaysScope} days'::interval
+				AND (a.emailTime &lt; NOW() - INTERVAL '14 days' OR a.emailTime IS NULL)
 	</select>
-
-
 
 </mapper>

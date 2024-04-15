@@ -69,7 +69,7 @@ public class GcVideo implements Serializable {
     //    @TableField(exist = false)
     //    private Integer commentNums;//视频评论数
 
-    @TableField(value = "`order`")
+    @TableField(value = "\"order\"")
     private Integer order;
 
     @ApiModelProperty(value = "视频完整链接")

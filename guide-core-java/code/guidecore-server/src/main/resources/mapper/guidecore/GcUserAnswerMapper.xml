@@ -37,11 +37,8 @@
     <select id="getAllAnswerListByEventIds" resultMap="baseResultMap">
         SELECT
         <include refid="baseColumn"/>
---         ,ui.first_name,ui.last_name,sf.file_url AS avatar_url,sf.save_type
         FROM
         gc_user_answer AS ua
---         LEFT JOIN gc_user AS u ON u.id=ua.user_id
---         LEFT JOIN sys_file AS sf ON sf.id = u.avatar_file_id
         WHERE 1=1
         <if test="eventIds != null and eventIds.size() > 0">
 	        AND ua.event_id IN
@@ -54,21 +51,19 @@
     </select>
 
     <select id="getUserAnswerNum" resultType="map">
-
         SELECT
-            COUNT( id ) AS answerNum  ,DATE_FORMAT(update_time,'%Y-%m-%d') AS update_time
+        COUNT(id) AS answerNum, TO_CHAR(update_time, 'YYYY-MM-DD') AS update_time
         FROM
-            gc_user_answer ua
+        gc_user_answer ua
         WHERE
-            user_id in
-            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
-                #{userId}
-            </foreach>
-        AND DATE_FORMAT( update_time, '%Y-%m-%d' ) &gt;= #{startDate}
-        AND DATE_FORMAT( update_time, '%Y-%m-%d' ) &lt;= #{endDate}
+        user_id in
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
+            #{userId}
+        </foreach>
+        AND TO_CHAR(update_time, 'YYYY-MM-DD') &gt;= #{startDate}
+        AND TO_CHAR(update_time, 'YYYY-MM-DD') &lt;= #{endDate}
         GROUP BY
-            DATE_FORMAT(update_time,'%Y-%m-%d')
-
+        TO_CHAR(update_time, 'YYYY-MM-DD')
     </select>
 
     <select id="getAnswerListByEvent" resultMap="baseResultMap">
@@ -84,7 +79,6 @@
     </select>
 
     <select id="getMyAnswerListByEvent" resultMap="baseResultMap">
-
         SELECT * from gc_user_answer answer
         left join gc_event e on e.id=answer.event_id
         where event_id in
@@ -96,7 +90,6 @@
     </select>
 
     <select id="getAnswerLearningRecords" resultMap="baseResultMap">
-
         select * from gc_user_answer answer
         LEFT JOIN gc_event event on event.id = answer.event_id
         LEFT JOIN gc_video video on video.id = event.video_id

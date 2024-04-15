@@ -32,39 +32,6 @@
         <result property="createTime" column="create_time" />
     </resultMap>
 
-    <!--
-    <resultMap id="GcUserVideoPlayAndNodesMap" type="GcUserVideoPlay">
-        <id property="id" column="id"/>
-        <result property="videoId" column="video_id"  />
-        <result property="masterId" column="master_id"/>
-        <result property="userId" column="user_id" />
-        <result property="playState" column="play_state" />
-        <result property="updateTime" column="update_time" />
-        <result property="createTime" column="create_time" />
-        <collection  property="videoPlaysNodes" column="id" javaType="ArrayList" ofType="GcUserVideoPlaysNode" select="selectUserVideoPlayNodesById"/>
-
-    </resultMap>
-
-    <select id="selectUserVideoPlayNodesById" parameterType="int" resultType="GcUserVideoPlaysNode">
-        SELECT
-            *
-        FROM gc_user_video_plays_node uvpn
-        WHERE uvpn.videoplay_id = #{id}
-    </select>
-
-
--->
-    <!--    <select id="getVideoPlayByVideoId" resultMap="GcUserVideoPlayMap">
-            SELECT
-                uvpn.start_time, uvpn.id as node_Id , uvpn.end_time ,uvpn.videoplay_id, uvp.video_id , uvp.master_id ,uvp.user_id,uvp.user_id,uvp.play_state,uvp.update_time,uvp.create_time
-            FROM
-                gc_user_video_play uvp
-                    LEFT JOIN gc_user_video_plays_node uvpn  on uvp.id = uvpn. videoplay_id
-                    LEFT JOIN gc_video v on uvp.video_id = v.id
-            WHERE
-                uvp.video_id = #{vid}
-            ORDER BY uvpn.start_time
-        </select>-->
 
     <select id="getVideoPlayByVideoId" resultMap="GcUserVideoPlayMap">
         SELECT
@@ -102,18 +69,6 @@
     <select id="selectVideoWatchedDataByUserIdsAndSubIds" resultType="Map">
 
         SELECT u.id as user_id,ui.id as info_id,ui.first_name,
-        <!--        <choose>
-                <when test="subIds != null and subIds.size() > 0">
-                    COUNT(IF(s.sub_id IN
-                    <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
-                        #{subId}
-                    </foreach>
-                    ,TRUE,null)) as videoNum
-                </when>
-                <otherwise>
-                    IFNULL(sum(vp.total_time),0) as videoNum
-                </otherwise>
-                </choose>-->
         FROM gc_user u
         LEFT JOIN gc_user_video_play vp ON u.id=vp.user_id
         LEFT JOIN gc_video v ON vp.video_id=v.id
@@ -128,29 +83,11 @@
         </if>
         <include refid="where_gcSubject_state_not_hidden" />
         GROUP BY u.id
-        <!--        <if test="order == 'asc'">
-                     ORDER BY videoNum asc
-                </if>
-                <if test="order == 'desc'">
-                     ORDER BY videoNum desc
-                </if>-->
     </select>
 
     <select id="selectVideosPlayTimeByUserIdsAndSubIds" resultType="Map">
 
         SELECT u.id as user_id, ui.id as info_id,ui.first_name,
-        <!--        <choose>
-                <when test="subIds != null and subIds.size() > 0">
-                    IFNULL(sum(IF (s.sub_id IN
-                    <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
-                        #{subId}
-                    </foreach>
-                    , vp.total_time, 0)),0) as videoPlayTime
-                </when>
-                <otherwise>
-                    IFNULL(sum(vp.total_time),0) as videoPlayTime
-                </otherwise>
-                </choose>-->
         FROM gc_user u
         LEFT JOIN gc_user_video_play vp ON u.id=vp.user_id
         LEFT JOIN gc_video v ON vp.video_id=v.id
@@ -165,13 +102,6 @@
         </if>
         <include refid="where_gcSubject_state_not_hidden" />
         GROUP BY u.id
-        <!--        <if test="order == 'asc'">
-                     ORDER BY videoPlayTime asc
-                </if>
-                <if test="order == 'desc'">
-                     ORDER BY videoPlayTime desc
-                </if>-->
-
     </select>
 
     <select id="selectVideosPlayHistoryBySubIds" resultMap="GcVideoPlayStatisticsMap">
@@ -214,7 +144,7 @@
     <select id="showAllSubjectVideoPlayHistoryNum" resultType="Map">
         SELECT
         COUNT( v.sub_id ) AS watchNum,
-        DATE_FORMAT(uvp.create_time,'%Y-%m-%d') AS create_time
+        TO_CHAR(uvp.create_time, 'YYYY-MM-DD') AS create_time
         FROM
         gc_user_video_play uvp
         LEFT JOIN gc_video v ON uvp.video_id = v.id
@@ -231,10 +161,10 @@
         </foreach>
         AND uvp.master_id = #{masterId}
 
-        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &gt;= #{startTime}
-        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &lt;= #{endTime}
+        AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &gt;= #{startTime}
+        AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &lt;= #{endTime}
         GROUP BY
-        DATE_FORMAT(uvp.create_time,'%Y-%m-%d')
+        TO_CHAR(uvp.create_time, 'YYYY-MM-DD')
     </select>
 
     <select id="showVideoPlayHistoryNumByStudentIdsAndSubject" resultType="Map">
@@ -244,7 +174,7 @@
             topSub.id,
         </if>
         COUNT( v.sub_id ) AS watchNum,
-        DATE_FORMAT(uvp.create_time,'%Y-%m-%d') AS create_time
+        TO_CHAR(uvp.create_time, 'YYYY-MM-DD') AS create_time
         FROM
         gc_user_video_play uvp
         LEFT JOIN gc_video v ON uvp.video_id = v.id
@@ -261,16 +191,14 @@
             #{userId}
         </foreach>
         AND uvp.master_id = #{masterId}
-        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &gt;= #{startTime}
-        AND DATE_FORMAT( uvp.create_time, '%Y-%m-%d' ) &lt;= #{endTime}
+        AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &gt;= #{startTime}
+        AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &lt;= #{endTime}
         GROUP BY
         <if test="subIds != null and subIds.size() > 0">
             topSub.id,
         </if>
-        DATE_FORMAT(uvp.create_time,'%Y-%m-%d')
+        TO_CHAR(uvp.create_time, 'YYYY-MM-DD')
     </select>
-
-
 
     <select id="getWatchCompletedStudentBySubject" resultType="GCUser">
         SELECT

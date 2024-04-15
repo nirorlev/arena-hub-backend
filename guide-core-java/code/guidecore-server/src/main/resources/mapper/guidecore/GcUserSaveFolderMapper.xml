@@ -61,14 +61,6 @@
 		            <result property="fileId" column="v_file_id"/>
 		            <result property="videoDesc" column="v_video_desc"/>
 					<result property="videoSource" column="v_video_source"/>
-					<!--<association property="videoFile" column="file_id" javaType="SysFile">
-			            <id property="id" column="f_id"/>
-			            <result property="name" column="f_name"/>
-			            <result property="fileUrl" column="f_file_url"/>
-			            <result property="saveType" column="f_save_type"/>
-			            <result property="videoLong" column="f_video_long"/>
-			            <result property="fileTypeIndex" column="f_file_type_index"/>
-			        </association>-->
 		        </association>
 				<association property="videoFile" column="file_id" javaType="SysFile">
 					<id property="id" column="f_id"/>
@@ -99,21 +91,21 @@
         ,fs.id as fs_id, fs.name as fs_name, fs.file_url as fs_file_url, fs.save_type as fs_save_type, fs.file_type_index as fs_file_type_index
     </sql>
 
-    <select id="selectFolderForUserMaster" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
+	<select id="selectFolderForUserMaster" resultMap="baseResultMap">
+		SELECT
+		<include refid="baseColumn" />
 		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
-        v2.video_source as video_source,
+		v2.video_source as video_source,
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
-        <include refid="userColumn"/>
-        <include refid="videoFileColumn" />
-        <include refid="subjectFileColumn" /> ,
-		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
-        (select f.id from gc_user_save_content sc
-         left join sys_file f on f.id = sc.file_id
+		<include refid="userColumn"/>
+		<include refid="videoFileColumn" />
+		<include refid="subjectFileColumn" /> ,
+		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		(select f.id from gc_user_save_content sc
+		left join sys_file f on f.id = sc.file_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
-         order by sc.create_time asc limit 1) as firstVideoFileId
+		order by sc.create_time asc limit 1) as firstVideoFileId
 		from gc_user_save_folder sf
 		left join gc_user_save_content sc on sc.folder_id = sf.id
 		<if test="userId!=null and playListName==null">
@@ -153,14 +145,11 @@
 				#{myFolderId}
 			</foreach>
 		</if>
-        group by sf.id
-        order by
-            sf.create_time DESC,
-            sc.create_time DESC
-    </select>
-
-
-
+		group by sf.id
+		order by
+		sf.create_time DESC,
+		sc.create_time DESC
+	</select>
 
 	<select id="getPtNewHomePlayList" resultMap="baseResultMap">
 		SELECT
@@ -172,7 +161,7 @@
 		<include refid="userColumn"/>
 		<include refid="videoFileColumn" />
 		<include refid="subjectFileColumn" /> ,
-		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
 		(select f.id from gc_user_save_content sc
 		left join sys_file f on f.id = sc.file_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
@@ -223,7 +212,7 @@
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
 		<include refid="videoFileColumn" />
 		<include refid="subjectFileColumn" /> ,
-		IFNULL((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
 		(select f.id from gc_user_save_content sc
 		left join sys_file f on f.id = sc.file_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
@@ -274,18 +263,19 @@
 		</if>
 		and user_id = #{userId}
 	</select>
+
 	<select id="getPlayListMetaConfig" resultMap="baseResultMap">
 		SELECT
 		sf.name,c.file_id as sc_file_id,GREATEST(sf.update_time, c.update_time) AS update_time,	c.video_id as sc_video_id
-		    from gc_user_save_folder sf
+		from gc_user_save_folder sf
 		LEFT JOIN  gc_user_save_content c on sf.id=c.folder_id
 		WHERE sf.id=#{folderId}
 		<if test="fileId != null">
 			and c.file_id=#{fileId}
 		</if>
 		ORDER BY
-		ABS(TIMESTAMPDIFF( SECOND, sf.update_time, c.update_time ))  desc
-		 LIMIT 1
+		ABS(EXTRACT(EPOCH FROM (sf.update_time - c.update_time)))  desc
+		LIMIT 1
 	</select>
 
 

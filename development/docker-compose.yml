@@ -1,38 +1,20 @@
 version: '3'
 
 services:
-  mysql-db:
-    image: mysql:8.0
-    platform: linux/amd64
-    container_name: mysql-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_HOST: "%" # allow root login from any host
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_HOST: mysql-db
-      MYSQL_DATABASE: arena_hub
-      MYSQL_USER: user
-      MYSQL_PASSWORD: ${MYSQL_PASS}
-    volumes:
-      - db_data:/var/lib/mysql
-    command: [ "mysqld", "--default-authentication-plugin=mysql_native_password", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" ]
-    ports:
-      - 3306:3306
-    networks:
-      - arena_dev
-
   postgres-db:
     image: postgres:16
     platform: linux/amd64
     container_name: postgres-db
     restart: unless-stopped
     environment:
+      POSTGRES_USER: arena_user
+      POSTGRES_DB: arena_hub
       POSTGRES_PASSWORD: ${POSTGRES_PASS}
     volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - pg_data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
     networks:
       - arena_dev
 
@@ -67,11 +49,11 @@ services:
     command:
       - "sh"
       - "-c"
-      - "mvn compile && mvn liquibase:update -Dliquibase.url=jdbc:mysql://mysql-db:3306/arena_hub"
+      - "mvn compile && mvn liquibase:update -Dliquibase.url=jdbc:postgresql://postgres-db:5432/arena_hub"
     networks:
       - arena_dev
     depends_on:
-      - mysql-db
+      - postgres-db
     volumes:
       - ../guide-core-java/code/guidecore-server/:/usr/src/mymaven
     working_dir: /usr/src/mymaven
@@ -87,7 +69,7 @@ services:
     ports:
       - 9999:9999
     depends_on:
-      - mysql-db
+      - postgres-db
       - redis
       - pdp
     networks:
@@ -99,12 +81,11 @@ services:
       REDIS_PASS: ${REDIS_PASS}
       REDIS_PORT: '6379'
       REDIS_SSL: 'false'
-      MYSQL_HOST: mysql-db
-      MYSQL_USER: user
-      MYSQL_PASS: ${MYSQL_PASS}
-      MYSQL_DB_NAME: arena_hub
-      MYSQL_PORT: '3306'
-      MYSQL_SSL: 'false'
+      POSTGRESQL_HOST: postgres-db
+      POSTGRESQL_USER: arena_user
+      POSTGRESQL_DB_NAME: arena_hub
+      POSTGRESQL_PORT: '5432'
+      POSTGRESQL_SSL: 'false'
       PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
       GUIDE_USER_STORE_PRIVATE_KEY: ${GUIDE_USER_STORE_PRIVATE_KEY}
       AWS_ROLE_SESSION_NAME: S3Upload
@@ -132,5 +113,4 @@ networks:
   arena_dev:
     name: arena_dev
 volumes:
-  db_data:
   pg_data:

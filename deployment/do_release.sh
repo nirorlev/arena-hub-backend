@@ -6,9 +6,9 @@ make_migrations() {
     echo -e "\n########## Applying SQL migrations for the release:\n" 
     cat >> liquibase.properties << EOF
 changeLogFile: db/changelog-root.xml    
-url: jdbc:mysql://$MYSQL_HOST:$MYSQL_PORT/$MYSQL_DB_NAME
-username: $MYSQL_USER
-password: $MYSQL_PASS
+url: jdbc:postgresql://$POSTGRES_HOST:5432/$POSTGRES_DB_NAME
+username: $POSTGRES_USER
+password: $POSTGRES_PASS
 EOF
     mvn liquibase:update -Dliquibase.verbose=true
 }

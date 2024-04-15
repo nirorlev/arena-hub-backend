@@ -23,10 +23,10 @@ spring:
      database: 9
    datasource:
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=${MYSQL_SSL:false}&serverTimezone=GMT&allowMultiQueries=true&allowPublicKeyRetrieval=true
-      username: ${MYSQL_USER}
-      password: ${MYSQL_PASS}
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://${POSTGRESQL_HOST}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_DB_NAME}?charSet=utf8&ssl=${POSTGRESQL_SSL:false}&ApplicationName=ArenaHub
+      username: ${POSTGRESQL_USER}
+      password: ${POSTGRESQL_PASSWORD}
       druid: 
             initial-size: 10
             max-active: 100
