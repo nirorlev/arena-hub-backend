@@ -81,11 +81,11 @@ services:
       REDIS_PASS: ${REDIS_PASS}
       REDIS_PORT: '6379'
       REDIS_SSL: 'false'
-      POSTGRESQL_HOST: postgres-db
-      POSTGRESQL_USER: arena_user
-      POSTGRESQL_DB_NAME: arena_hub
-      POSTGRESQL_PORT: '5432'
-      POSTGRESQL_SSL: 'false'
+      POSTGRES_HOST: postgres-db
+      POSTGRES_USER: arena_user
+      POSTGRES_DB_NAME: arena_hub
+      POSTGRES_PORT: '5432'
+      POSTGRES_SSL: 'false'
       PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
       GUIDE_USER_STORE_PRIVATE_KEY: ${GUIDE_USER_STORE_PRIVATE_KEY}
       AWS_ROLE_SESSION_NAME: S3Upload
