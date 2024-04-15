@@ -27,7 +27,7 @@ services:
     container_name: postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: YEE!CFFCa!rTbym2ZW
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
     volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - pg_data:/var/lib/postgresql/data
