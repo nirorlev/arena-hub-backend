@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.Data;
 
 @Data
@@ -30,8 +30,8 @@ public class GcContentGroupCourseAssignment implements Serializable {
 
     @TableField(value = "is_mandatory")
     private Boolean mandatory = false;
-    private LocalDateTime deadline;
+    private OffsetDateTime deadline;
 
-    private LocalDateTime createdDate = LocalDateTime.now();
-    private LocalDateTime modifiedDate = LocalDateTime.now();
+    private OffsetDateTime createdDate = OffsetDateTime.now();
+    private OffsetDateTime modifiedDate = OffsetDateTime.now();
 }
