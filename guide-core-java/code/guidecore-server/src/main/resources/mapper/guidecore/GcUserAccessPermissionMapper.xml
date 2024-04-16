@@ -95,6 +95,7 @@
 
     <insert id="insertUserPermission">
         insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
+        values
         <foreach collection="list" index="index" item="item" separator=",">
             (#{item.userAccessId},#{item.subPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
             ,#{item.channelPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
@@ -108,6 +109,7 @@
 
     <insert id="removeUserPermission">
         insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
+        values
         <foreach collection="list" index="index" item="item" separator=",">
             (#{item.userAccessId},#{item.subPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
             ,#{item.channelPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}

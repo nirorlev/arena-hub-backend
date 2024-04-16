@@ -420,7 +420,7 @@
             #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
             #{item.parentCode}
         </foreach>
-        ON CONFLICT (id) DO UPDATE SET
+        ON CONFLICT (user_id, master_id, access_id) DO UPDATE SET
         user_id = EXCLUDED.user_id,
         master_id = EXCLUDED.master_id,
         access_id = EXCLUDED.access_id,
