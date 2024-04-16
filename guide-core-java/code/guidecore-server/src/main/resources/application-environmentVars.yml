@@ -26,7 +26,7 @@ spring:
       driverClassName: org.postgresql.Driver
       url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB_NAME}?charSet=utf8&ssl=${POSTGRES_SSL:false}&ApplicationName=ArenaHub
       username: ${POSTGRES_USER}
-      password: ${POSTGRES_PASSWORD}
+      password: ${POSTGRES_PASS}
       druid: 
             initial-size: 10
             max-active: 100
