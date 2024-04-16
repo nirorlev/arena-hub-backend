@@ -131,7 +131,14 @@
 		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,subject_json,must_subject_json,may_subject_json,update_time)
 		VALUES
 		<foreach collection="list" index="index" item="item" separator=",">
-		 (#{item.id},#{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
+		 (
+		  <if test="item.id != null">
+		  	#{item.id},
+		  </if>
+		  <if test="item.id == null">
+		  	nextval('gc_access_id_seq'),
+		  </if>
+		  #{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
 		  #{item.groupName},
 		  #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  #{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
@@ -380,7 +387,7 @@
 		ac.master_id = #{masterId}
 		AND ac.group_name IS NOT NULL
 		AND ua.user_id = #{userId}
-		and (ua.role_json::jsonb @> '"groupMember"'::text or ua.role_json::jsonb @> '"groupAdmin"'::text)
+		and (ua.role_json::text like '%groupMember%' or ua.role_json::text like '%groupAdmin%')
 		<if test="name != null">
 			and concat('%',#{name},'%')
 		</if>
