@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.mybatis.typehandler;
 
 import com.alibaba.fastjson.JSONObject;
@@ -13,6 +8,7 @@ import java.sql.SQLException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
+import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +50,18 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
     public void setParameter(
             PreparedStatement ps, int columnIndex, JSONObject jsonObject, JdbcType jdbcType)
             throws SQLException {
-        if (jsonObject == null) {
-            ps.setString(columnIndex, "{}");
-        } else {
-            ps.setString(columnIndex, jsonObject.toJSONString());
-        }
+        ps.setObject(columnIndex, wrapInPgobject(jsonObject));
+    }
+
+    private PGobject wrapInPgobject(JSONObject jsonObject) throws SQLException {
+        PGobject pgJsonObject = new PGobject();
+        pgJsonObject.setType("json");
+
+        String value = jsonObject == null
+            ? "{}"
+            : jsonObject.toJSONString();
+
+        pgJsonObject.setValue(value);
+        return pgJsonObject;
     }
 }
