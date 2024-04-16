@@ -2,7 +2,7 @@ package com.threeatom.guidecore.dto.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,8 +30,8 @@ public class ContentGroupCourseAssignmentDto {
     private ContentGroupCourseAssignmentSourceDto source;
 
     @ApiModelProperty(notes = "The date and time when the content group course assignment was last modified")
-    private LocalDateTime modifiedDate = LocalDateTime.now();
+    private OffsetDateTime modifiedDate = OffsetDateTime.now();
 
     @ApiModelProperty(notes = "The date when course assignment is due", example = "2023-12-31 00:00:00")
-    private LocalDateTime deadline = LocalDateTime.now();
+    private OffsetDateTime deadline = OffsetDateTime.now();
 }

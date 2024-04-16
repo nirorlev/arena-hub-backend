@@ -3,7 +3,7 @@ package com.threeatom.guidecore.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +19,6 @@ public class FeatureToggle {
     private String description;
     private Integer masterId;
     private String value;
-    private LocalDateTime createdDate = LocalDateTime.now();
-    private LocalDateTime modifiedDate = LocalDateTime.now();
+    private OffsetDateTime createdDate = OffsetDateTime.now();
+    private OffsetDateTime modifiedDate = OffsetDateTime.now();
 }
