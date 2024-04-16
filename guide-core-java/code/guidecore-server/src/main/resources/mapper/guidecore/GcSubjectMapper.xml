@@ -2016,7 +2016,7 @@
 			AND co.subject_state = 1
 		</if>
 		AND (co.subject_state != 1 OR co.subject_state IS NULL)
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY
 		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size()!=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMustSubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
@@ -2055,7 +2055,7 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY co.update_time DESC
 	</select>
 
@@ -2090,7 +2090,7 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY
 		uap.may_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
 		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
@@ -2115,7 +2115,7 @@
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY s.update_time DESC
 	</select>
 
@@ -2134,7 +2134,7 @@
 		<if test="name!=null and name !=''">
 			and s.name like concat('%',#{name},'%')
 		</if>
-		group by s.id
+		group by s.id, co.in_progress
 		order by s.published_time desc
 	</select>
 
@@ -2158,7 +2158,7 @@
 			and s.name like concat('%',#{name},'%')
 		</if>
 		AND (co.subject_state != 1 OR co.id IS NULL)
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY s.published_time DESC
 	</select>
 
@@ -2184,7 +2184,7 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 	</select>
 
 	<select id="selectAllCourseSubject" resultMap="baseResultMap">
@@ -2207,7 +2207,7 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		<if test="orderType==null or orderType == 0">
 			ORDER BY s.published_time DESC
 		</if>
@@ -2272,7 +2272,7 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		<if test="orderType==null or orderType == 0">
 			ORDER BY s.published_time DESC
 		</if>
@@ -2315,7 +2315,7 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, co.in_progress
 		ORDER BY s.published_time DESC
 	</select>
 
