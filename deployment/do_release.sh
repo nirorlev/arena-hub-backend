@@ -9,6 +9,7 @@ changeLogFile: db/changelog-root.xml
 url: jdbc:postgresql://$POSTGRES_HOST:5432/$POSTGRES_DB_NAME
 username: $POSTGRES_USER
 password: $POSTGRES_PASS
+liquibaseSchemaName: arena_hub
 EOF
     mvn liquibase:update -Dliquibase.verbose=true
 }
