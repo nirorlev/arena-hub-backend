@@ -185,7 +185,7 @@
 		<if test="null!=tag and ''!=tag">
 			and tags.tag_text = #{tag}
 		</if>
-		GROUP BY gcSubject.id
+		GROUP BY gcSubject.id, m.id
 	</select>
 
 	<select id="selectMasterAndManager" resultType="com.threeatom.guidecore.entity.GcMaster">
@@ -203,21 +203,33 @@
 		<if test="null!=searchFilter and ''!=searchFilter">
 			and concat(m.context,',',m.org_name) like concat('%',#{searchFilter},'%')
 		</if>
-		GROUP BY m.id
+		GROUP BY m.id, ma.username, a.maxLoginTime, a.masterId, a.maxLoginTime
 	</select>
 
 	<select id="subjectAdmins" resultType="map">
-		select a.code,a.id as accessId,m.id as managerId,m.last_name,m.first_name,m.level,m.master_id,m.create_time as dateSignedUp,m.username as email,a.lastLoginTime as lastLoginTime from gc_master ma
+		select acc.code,
+		acc.id          as accessId,
+		m.id            as managerId,
+		m.last_name,
+		m.first_name,
+		m.level,
+		m.master_id,
+		m.create_time   as dateSignedUp,
+		m.username      as email,
+		a.lastLoginTime as lastLoginTime
+		from gc_master ma
 		LEFT JOIN gc_manager m on m.master_id = ma.id
-		LEFT JOIN gc_user_access ac on ac.master_id = m.master_id and ac.manager_id=m.id
-		LEFT JOIN gc_access a on a.id = ac.access_id
-		left join (select max(log_in_time) as lastLoginTime,manager_id,user_access_id from gc_user_access_ext group by manager_id)a on m.id = a.manager_id
+		LEFT JOIN gc_user_access gua on gua.master_id = m.master_id and gua.manager_id = m.id
+		LEFT JOIN gc_access acc on acc.id = gua.access_id
+		left join (select max(log_in_time) as lastLoginTime, manager_id, user_access_id
+		from gc_user_access_ext
+		group by manager_id, user_access_id) a on m.id = a.manager_id
 		where m.level=1
 		<if test="null!=masterId and ''!=masterId">
 			and m.master_id = #{masterId}
 		</if>
 		<if test="searchFilter != null">
-			and concat_ws(',',m.last_name,m.first_name,m.username,a.code) like concat('%',#{searchFilter},'%')
+			and concat_ws(',',m.last_name,m.first_name,m.username,acc.code) like concat('%',#{searchFilter},'%')
 		</if>
 	</select>
 

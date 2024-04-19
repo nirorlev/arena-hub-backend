@@ -348,7 +348,7 @@
 		left join sys_file vFile on vFile.id=gcVideo.file_id
 		left join sys_file_caption cation on cation.video_id = gcVideo.id
 		where s.fid=#{subId}
-		group by s.id,gcVideo.id
+		group by s.id, gcVideo.id, vFile.id, cation.id
 		order by s.order,gcVideo.order asc
 	</select>
 
@@ -391,7 +391,7 @@
 
 		where s.fid=#{subId}
 		and (gcEvent.upload_user is null || userEvent.user_id=#{studentId})
-		group by s.id,gcVideo.id,gcEvent.id,resource.event_id,fab.event_id
+		group by s.id,gcVideo.id,gcEvent.id,resource.event_id,fab.event_id, futurePreEvent.id, student.id, userInfo.id, answer.id, futurePreEventAnswer.id, vFile.id, vFile2.id
 		order by s.order asc
 	</select>
 
@@ -437,9 +437,9 @@
 						 LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
 						 LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
 
-				where sub.id = #{subId}  and (eventRes.target_user_id=#{userId} or eventRes.user_id=#{userId}) group by eventRes.id
+				where sub.id = #{subId}  and (eventRes.target_user_id=#{userId} or eventRes.user_id=#{userId}) group by eventRes.id, mm.read_state
 
-			) a group by  COALESCE(a.state,1),  a.target_user_id, a.event_id;
+			) a group by COALESCE(a.state, 1), a.target_user_id, a.event_id, a.state;
 	</select>
 
 	<select id="selectEventResNumMapForWorkbookTeacher" resultType="map">
@@ -461,8 +461,8 @@
 						(eventRes.user_id=#{teacherId} and eventRes.target_user_id=#{studentId}) or
 						(eventRes.user_id=#{studentId})
 					)
-				group by eventRes.id
-			) a group by  COALESCE(a.state,1),  a.target_user_id, a.event_id;
+				group by eventRes.id, gcEvent.event_title, mm.read_state
+			) a group by COALESCE(a.state, 1), a.target_user_id, a.event_id, a.state;
 	</select>
 
 	<select id="getAnswerMessageMapForTeacherWorkbook" resultType="map">
@@ -489,12 +489,12 @@
 		<if test="level!=null">
 			AND s.state = #{state}
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, f.id
 		ORDER BY s.order ASC,s.create_time desc,s.id
 	</select>
 
 	<select id="selectSubjectPt" resultMap="baseResultMap">
-		select  s2.num as subjectsSize, vnum.videoNum as videosTotalNum, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
+		select DISTINCT ON (s.id, s.create_time) s2.num as subjectsSize, vnum.videoNum as videosTotalNum, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
 		s.type, s.level, s.fid, s.order, s.sub_img_id, s.template_id, s.intro_on_off, s.update_time, s.create_time
 		,s.state, s.token, s.is_public, s.cate_id ,s.language, s.certificates_flag, s.course_tagline,
 		s.cpd_hours, s.badge_id, s.subdetail_img_id, s.badge_content, s.create_user, s.available_type
@@ -503,7 +503,38 @@
 		select count(case when b.play_state=1 then 1 end) as nums, b.* from(
 		SELECT
 		max(p.play_state) as play_state,
-		a.*
+		a.id,
+		a.user_id,
+		a.info_id,
+		a.master_id,
+		a.name,
+		a.name_index,
+		a.description,
+		a.type,
+		a.sub_id,
+		a.level,
+		a.fid,
+		a.alias_sub_id,
+		a."order",
+		a.sub_img_id,
+		a.state,
+		a.token,
+		a.is_public,
+		a.master_type_id::jsonb,
+		a.template_id,
+		a.intro_on_off,
+		a.update_time,
+		a.create_time,
+		a.cate_id,
+		a.language,
+		a.certificates_flag,
+		a.course_tagline,
+		a.cpd_hours,
+		a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content,
+		a.create_user,
+		a.available_type
 		FROM
 		(SELECT
 		u.id AS user_id,
@@ -576,15 +607,23 @@
 		s.id
 		) AS a
 		LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id AND p.user_id = a.user_id AND p.play_state = 1  AND p.play_state IS NOT NULL
-		GROUP BY
-		a.id,
+		GROUP BY a.id,
 		a.user_id,
-		p.video_id) as b
+		p.video_id,
+		a.info_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id, a.level, a.fid,
+		a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
+		a.master_type_id::jsonb, a.template_id, a.intro_on_off, a.update_time, a.create_time, a.cate_id,
+		a.language, a.certificates_flag, a.course_tagline, a.cpd_hours, a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content, a.create_user, a.available_type) as b
 		<if test="null!=subjectName">
 			where b.name like CONCAT('%',#{subjectName},'%')
 		</if>
-		GROUP BY b.id,b.user_id
-		) as s
+		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		b.sub_id, b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
+		b.master_type_id::jsonb, b.template_id, b.intro_on_off, b.update_time, b.create_time, b.cate_id,
+		b.language, b.certificates_flag, b.course_tagline, b.cpd_hours, b.badge_id, b.subdetail_img_id::jsonb,
+		b.badge_content, b.create_user, b.available_type) as s
 		left join sys_file f on s.sub_img_id=f.id
 		left join gc_subject sub1 on sub1.fid = s.id
 		left join gc_video v on v.sub_id = sub1.id
@@ -605,7 +644,7 @@
 		FROM
 		(
 		SELECT
-		an.answer_json,
+		an.answer_json::jsonb,
 		u.id AS user_id,
 		e.id AS event_id,
 		s.id AS subject_id
@@ -629,10 +668,7 @@
 		OR ( e.upload_type IS NULL AND e.id IS NULL )
 		)
 		) event_nums
-		GROUP BY
-		event_nums.user_id,
-		subject_id
-		) comEvents
+		GROUP BY event_nums.user_id, event_nums.answer_json::jsonb, event_nums.event_id, subject_id) comEvents
 		<if test="type == 2">
 			WHERE annums = eventNums
 		</if>
@@ -684,7 +720,7 @@
 			and s.create_user = #{createUser}
 			and s.master_id = #{masterId}
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, f.id
 		ORDER BY s.create_time desc
 	</select>
 
@@ -805,7 +841,7 @@
 		<if test="ifLevel0">
 			and s.level=0
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, subjectAssociation.id, f.id
 	</select>
 
 	<select id="selectByid" resultMap="baseResultMap" >
@@ -967,7 +1003,7 @@
 
 	<select id="selectAllLevel1SubList" resultMap="baseResultMap">
 		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
-		coalesce(max(answer.update_time),0)as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
+		coalesce(max(answer.update_time)) as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
 		from gc_subject s
 		left join gc_subject s0 on s0.id = s.fid
 		left join gc_video v on v.sub_id=s.id
@@ -981,7 +1017,7 @@
 		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
 			#{subId}
 		</foreach>
-		group by s.id
+		group by s.id, v.id, f.id, s0.Id
 		<choose>
 			<when test="order!=null">
 				order by max(answer.update_time) ${order}
@@ -999,7 +1035,7 @@
 
 	<select id="gvgSelectAllLevel1SubList" resultMap="baseResultMap">
 		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
-		coalesce(max(answer.update_time),0)as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
+		coalesce(max(answer.update_time))as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
 		from gc_subject s
 		left join gc_subject s0 on s0.id = s.fid
 		left join gc_video v on v.sub_id=s.id
@@ -1013,7 +1049,7 @@
 		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
 			#{subId}
 		</foreach>
-		group by s.id,v.id
+		group by s.id, v.id, f.video_long, f.file_type, s0.name, s0.Id
 		<choose>
 			<when test="order!=null">
 				order by max(answer.update_time) ${order}
@@ -1359,7 +1395,7 @@
 		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.SUB_PERMISSION::jsonb @> to_jsonb(s.id::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
 		LEFT JOIN GC_USER u ON u.ID = UA.USER_ID
-		left join (select max(play_state) as play_state,id,video_id,master_id,user_id from gc_user_video_play  uvp GROUP BY user_id,video_id,master_id ) p on (u.id = p.user_id and p.video_id = v.id )
+		left join (select max(play_state) as play_state,id,video_id,master_id,user_id from gc_user_video_play  uvp GROUP BY id, user_id,video_id,master_id ) p on (u.id = p.user_id and p.video_id = v.id )
 		LEFT JOIN gc_user_info info ON info.id = u.info_id
 		left join sys_file f2 on f2.id = info.avatar_file_id
 
@@ -1368,7 +1404,7 @@
 		sum(case when event_nums.event_id is null then 0 else 1 end) as eventNums
 		,event_nums.* from
 		(select
-		an.answer_json,
+		an.answer_json::jsonb,
 		u.id as user_id,e.id as event_id,s.id as subject_id,s2.id as subject_id2 from gc_subject s
 		left join gc_subject s2 on s.id = s2.fid
 		left join gc_video v on v.sub_id = s2.id
@@ -1385,7 +1421,8 @@
 		</foreach>
 		and (((e.upload_type = 2 and ue.id is not null ) or(e.upload_type = 1 )) or (e.upload_type is null and e.id is null) )
 		) event_nums
-		GROUP BY event_nums.user_id,subject_id2
+		GROUP BY event_nums.user_id, event_nums.answer_json::jsonb, event_nums.event_id,
+		event_nums.subject_id, event_nums.subject_id2
 		) comEvents ) eu on eu.user_id = u.id and eu.subject_id2 = s2.id
 
 		where
@@ -1593,7 +1630,7 @@
 	</select>
 
 	<select id="newGetAvailableCourses" resultMap="baseResultMap">
-		SELECT
+		SELECT DISTINCT ON (s.id, s.create_time)
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
 		FROM gc_subject s

@@ -452,7 +452,7 @@
             and  ue.user_id = #{userId}
         </if>
 	   or ( e.video_id = #{vid} and e.upload_type != 2 )
-	         group by ua.event_id 
+	         group by ua.event_id, e.id
 	         order by e.event_time
     </select>
 
@@ -481,7 +481,7 @@
         left join gc_user_access ac on ac.id = uap.user_access_id
         where ((et.upload_type = 1) or (et.upload_type = 2 AND ue.user_id = ac.user_id))
         and v.id = et.video_id
-        GROUP BY uap.id
+        GROUP BY uap.id, ac.user_id
     </select>
 
     <select id="selectEventUploadByPortal" resultType="com.threeatom.guidecore.entity.GcEvent">
@@ -489,7 +489,7 @@
     </select>
 
     <select id="selectAllEventByTeacherId" resultType="com.threeatom.guidecore.entity.GcEvent">
-        select distinct e.id,e.upload_user,e.video_id,e.event_time,e.event_title,e.time_limit,e.event_type,e.ext,e.upload_type
+        select distinct e.id,e.upload_user,e.video_id,e.event_time,e.event_title,e.time_limit,e.event_type,e.ext::jsonb,e.upload_type
         ,e.link_file_id,e.link_video_id,video.video_name as videoName,sub1.name as sub1Name,sub0.name as sub0Name,count(message.id) as unreadMessages
         ,max(answer.update_time) as lastAnswerTime
         from  gc_event e
@@ -516,7 +516,7 @@
                 #{videoId}
             </foreach>
         </if>
-        group by e.id
+        group by e.id, e.upload_user, e.video_id, e.event_time, e.event_title, e.time_limit, e.event_type, e.ext::jsonb, e.upload_type, e.link_file_id, e.link_video_id, video.video_name, sub1.name, sub0.name
         <choose>
             <when test="order!=null">
                 order by max(answer.update_time) ${order}
@@ -528,7 +528,7 @@
     </select>
 
     <select id="findEventAnswerByVideoIdsUserList" resultType="com.threeatom.guidecore.entity.GcEvent">
-        select E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id,
+        select DISTINCT ON (ua.user_id, e.id) E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id,
         v.sub_id as subjectId,
         s.sub_id as subId
         FROM GC_EVENT E
@@ -558,7 +558,6 @@
         </foreach>
         </if>)
         and UA.ANSWER_JSON is not null
-        GROUP BY ua.user_id,e.id
     </select>
 
     <select id="getEventNumByVideos" resultType="com.threeatom.guidecore.entity.GcEvent">
