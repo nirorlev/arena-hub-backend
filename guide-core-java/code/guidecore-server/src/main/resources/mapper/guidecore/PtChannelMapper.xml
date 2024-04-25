@@ -470,12 +470,16 @@
         <if test="masterId !=null">
             and channel.master_id = #{masterId}
         </if>
-        group by channel.id ,sec.id,sub.id,subscribe_us.id,subscribe_info.id,access.id,subscribeAccess.id
+        group by channel.id, sec.id, sub.id, subscribe_us.id, subscribe_info.id, access.id, subscribeAccess.id, us.username,
+        us.id, info.last_name, info.first_name, subscribe_us.username, subscribe_info.last_name,
+        subscribe_info.first_name, subscribe_info.avatar_file_id, access.code, subscribeAccess.code, access.group_name,
+        subscribeAccess.group_name
         order by sec.create_time ${order}
     </select>
 
     <select id="selectVideosInSection" resultMap="baseResultSysFileMap">
         SELECT
+        DISTINCT ON (file.id, file.create_time)
         file.*,
         u.username as channel_create_user_username,
         u.id as channel_create_uid,
@@ -503,7 +507,6 @@
         <if test="searchName!=null">
             AND file.NAME LIKE concat('%',#{searchName},'%')
         </if>
-        group by file.id
         <choose>
             <when test="order!=null">
                 order by file.create_time ${order}
@@ -727,7 +730,7 @@
     </select>
 
     <select id="searchChannelsBySysFile" resultMap="baseResultSearchMap">
-        select channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
+        select DISTINCT ON (file.id) channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
         channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
         channel.update_time,channel.channel_avatar_file_id,
         coalesce(ch2.id,channel.id) as id,
@@ -759,12 +762,11 @@
         <if test=" searchName!= null and searchName != ''">
             and file."name" like concat('%',#{searchName},'%')
         </if>
-        GROUP BY file.id
         order by file.update_time desc
     </select>
 
     <select id="selectPtchannelVideo" resultMap="baseResultSearchVideoMap">
-        select file.file_url channel_video_file_url,
+        select DISTINCT ON (file.id) file.file_url channel_video_file_url,
                file.save_type as channel_video_save_type,
                file.file_type_index as channel_video_type_index,
                file.thumb_nail_id as channel_thumb_nail_id,
@@ -785,7 +787,6 @@
           and ac.user_id = #{userId}
           and ac.master_id = #{masterId}
           and file.id is not null
-        group by file.id
         order by file.update_time desc
     </select>
 
@@ -808,8 +809,8 @@
         tags.type AS tag_type,
         tags.tag_text AS tag_text,
         ssubscribeNumUserAccess.user_id as userAccessId,
-        subscribeNumPermission.subscribe_permission,
-        subscribeNumPermission.channel_permission
+        subscribeNumPermission.subscribe_permission::jsonb AS subscribe_permission,
+        subscribeNumPermission.channel_permission::jsonb AS channel_permission
         <if test="userId!=null">
             ,CASE WHEN
             coalesce((
@@ -847,15 +848,19 @@
         <if test="type==1 and userId!=null">
             or (channel.visible_flag = 3 and channel.master_id = #{masterId} and channel.create_user_id = #{userId})
         </if>
-        GROUP BY channel.id,ssubscribeNumUserAccess.user_id
+        GROUP BY channel.id, ssubscribeNumUserAccess.user_id, info.last_name, info.first_name, tags.id, tags.channel_id, tags.type, tags.tag_text,
+        subscribeNumPermission.subscribe_permission::jsonb, subscribeNumPermission.channel_permission::jsonb
         <if test="userId!=null">
-            order by ssubscribeNumUserAccess.user_id = #{userId} desc
+            order by ssubscribeNumUserAccess.user_id = #{userId} desc, channel.create_time desc
         </if>
         <if test="userId==null">
             order by channel.create_time desc
         </if>
         ) as channels
-        group by channels.id
+        GROUP BY channels.id, channels.create_time, channels.channel_name, channels.create_user_id,
+        channels.createUserLastName, channels.createUserFirstName, channels.tag_id, channels.tag_channel_id, channels.tag_type, channels.tag_text,
+        channels.userAccessId, channels.subscribe_permission, channels.channel_permission, channels.followFlag, channels.channel_img_file_id, channels.desc,
+        channels.visible_flag, channels.master_id, channels.category_id, channels.level, channels.fid, channels."order", channels.channel_slug, channels.update_time, channels.channel_avatar_file_id
         order by channels.create_time desc
         ) as chan
         where 1=1
@@ -885,7 +890,7 @@
     <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
         select f.*,count( vac.id ) AS likeNum ,
                case when vac.user_id=#{userId} then 1 else 0 end as likedFlag
-        from (select
+        from (select DISTINCT ON (file.id)
                   channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
@@ -916,7 +921,6 @@
                 and pcc.id is not null
                  or((channel.create_user_id = #{userId} or ch2.create_user_id = #{userId}) and channel.master_id = #{masterId})
                 and channel.master_id = #{masterId}
-              GROUP BY file.id
               order by file.update_time desc
              ) as f
                  left join gc_user_video_action vac on f.fileId = vac.file_id and vac."type" = 1
