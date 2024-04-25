@@ -36,7 +36,7 @@
 		manager_id = #{managerId}
 		AND TO_CHAR(log_in_time, 'YYYY-MM-DD') &gt;= #{startDate}
 		AND TO_CHAR(log_in_time, 'YYYY-MM-DD') &lt;= #{endDate}
-		GROUP BY TO_CHAR(log_in_time, 'YYYY-MM-DD')
+		GROUP BY TO_CHAR(log_in_time, 'YYYY-MM-DD'), id, manager_id
 	</select>
 
 	<select id="getAllUserLastLogin" resultType="map">

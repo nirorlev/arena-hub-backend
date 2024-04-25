@@ -200,7 +200,7 @@
             #{subId}
         </foreach>
         and v.id is not null
-        GROUP BY v.id
+        GROUP BY v.id, f.id, S."fid", s.id
         order by v.order asc,v.create_time asc,v.id
     </select>
 
@@ -244,13 +244,13 @@
         select
         <include refid="baseColumn" />
         <include refid="fileBaseColumn" />
-        ,round(avg(star_value),2) as starvalue,
+        ,round(avg(star_value)::numeric,2) as starvalue,
         v.order
         from gc_video v 
          <include refid="leftJoinSysFile" />
         left join  gc_user_video_action ac on ac.video_id = v.id
         where v.sub_id=#{subId}
-        group by v.id
+        group by v.id, f.id
         order by v."order" asc,v.create_time asc,v.id
     </select>
 
@@ -469,7 +469,7 @@
 
 
     <select id="pageVideo" parameterType="java.util.Map" resultMap="baseResultMap">
-        select
+        select DISTINCT ON (v.id, v.create_time)
         <include refid="baseColumn" />
         <include refid="fileBaseColumn" />
         ,s1.name as subjectName
@@ -498,7 +498,6 @@
                 and ua.master_id = #{masterId}
             </if>
         </where>
-        GROUP by v.id
         <if test="null != videoNum">
             order by v.create_time desc
         </if>

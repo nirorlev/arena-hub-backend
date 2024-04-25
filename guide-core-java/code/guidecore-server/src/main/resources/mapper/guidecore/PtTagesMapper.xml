@@ -29,7 +29,7 @@
         <if test="ptTags.fileId != null">
             and file_id = #{ptTags.fileId}
         </if>
-        group by tag_text
+        group by tag_text, create_time
         order by create_time desc
     </select>
 </mapper>
