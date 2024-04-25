@@ -1686,7 +1686,7 @@
 	</select>
 
 	<select id="getCompletedTwoCourse" resultMap="baseResultVoMap" >
-		select * from (
+		select DISTINCT ON (k.id,k.userId) * from (
 		select s.id,u.id as userId,s.name as sub0Name,
 		coalesce( eu.anNums, 0 ) AS answeredNums,
 		coalesce( eu.eventNums, 0 ) AS answeredSumNums ,
@@ -1699,7 +1699,7 @@
 		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
 			#{ids}
 		</foreach>
-		left join (select count(if(b.play_state=1,1,null)) as playNum,b.user_id,b.video_id,b.sub_id from (
+		left join (SELECT COUNT(CASE WHEN b.play_state = 1 THEN 1 END) as playNum,b.user_id,b.video_id,b.sub_id from (
 		SELECT max( uvp.play_state )AS play_state, uvp.id, uvp.video_id, uvp.master_id, uvp.user_id,v.sub_id FROM gc_user_video_play uvp
 		left join gc_video v on v.id = uvp.video_id
 		where uvp.user_id in
@@ -1707,15 +1707,15 @@
 			#{ids}
 		</foreach>
 		and uvp.master_id = #{param.masterId}
-		GROUP BY uvp.user_id, uvp.video_id, uvp.master_id
+		GROUP BY uvp.user_id, uvp.video_id, uvp.master_id, uvp.id, v.sub_id
 		) as b
-		GROUP BY b.user_id,b.sub_id) plays on plays.sub_id = s2.id and plays.user_id = u.id
+		GROUP BY b.user_id,b.sub_id, b.video_id) plays on plays.sub_id = s2.id and plays.user_id = u.id
 		LEFT JOIN gc_user_info info ON info.id = u.info_id
 		LEFT JOIN sys_file f ON  f.id = info.avatar_file_id
 		LEFT JOIN (SELECT * FROM
 		(SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums,
 		sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
-		event_nums.*
+		event_nums.answer_json::jsonb AS answer_json, event_nums.user_id, event_nums.subject_id2
 		FROM
 		( SELECT an.answer_json,u.id AS user_id,e.id AS event_id,s.id AS subject_id,s2.id AS subject_id2 FROM gc_subject s
 		LEFT JOIN gc_subject s2 ON s.id = s2.fid
@@ -1739,10 +1739,7 @@
 		OR ( e.upload_type IS NULL AND e.id IS NULL )
 		)
 		) event_nums
-		GROUP BY
-		event_nums.user_id,
-		subject_id2
-		) comEvents
+		GROUP BY event_nums.user_id, subject_id2, event_nums.answer_json::jsonb) comEvents
 		) eu ON eu.user_id = u.id
 		AND eu.subject_id2 = s.id
 		where 1=1
@@ -1754,14 +1751,12 @@
 		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
 			#{ids}
 		</foreach>
-		group by s2.id,u.id
-		) as k
+		group by s2.id,u.id,s.id,eu.anNums,eu.eventNums,plays.playNum) as k
 		where (k.answeredNums !=0
 		or k.playNum !=0)
 		and
 		(k.subVideoNum != 0
 		and k.answeredSumNums !=0)
-		group by k.id,k.userId
 	</select>
 
 	<select id="selectSubjectByCreateUser" resultType="java.lang.Integer">
@@ -1815,9 +1810,40 @@
 		f.NAME AS f_name,
 		f.file_url AS f_file_url,
 		f.save_type AS f_save_type
-		FROM
-		(SELECT count(IF( b.play_state = 1, 1, NULL )) AS nums,b.*
-		FROM(SELECT max( p.play_state ) AS play_state,a.*
+		FROM (SELECT count(CASE WHEN b.play_state = 1 THEN 1 END) AS nums, b.*
+		FROM(SELECT max(p.play_state) AS play_state,
+		a.id,
+		a.info_id,
+		a.user_id,
+		a.master_id,
+		a.name,
+		a.name_index,
+		a.description,
+		a.type,
+		a.sub_id,
+		a.level,
+		a.fid,
+		a.alias_sub_id,
+		a."order",
+		a.sub_img_id,
+		a.state,
+		a.token,
+		a.is_public,
+		a.master_type_id::jsonb,
+		a.cate_id,
+		a.LANGUAGE,
+		a.certificates_flag,
+		a.course_tagline,
+		a.cpd_hours,
+		a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content,
+		a.create_user,
+		a.available_type,
+		a.template_id,
+		a.intro_on_off,
+		a.update_time,
+		a.create_time
 		FROM(SELECT
 		u.id AS user_id,
 		u.info_id AS info_id,
@@ -1846,15 +1872,40 @@
 		AND p.user_id = a.user_id
 		AND p.play_state = 1
 		AND p.play_state IS NOT NULL
-		GROUP BY
-		a.id,
-		a.user_id,
-		p.video_id
-		) AS b
-		GROUP BY
-		b.id,
-		b.user_id
-		) AS s
+		GROUP BY a.id, a.info_id, a.user_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id,
+		a.level, a.fid, a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
+		a.master_type_id::jsonb, a.cate_id,
+		a.LANGUAGE,
+		a.certificates_flag,
+		a.course_tagline,
+		a.cpd_hours,
+		a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content,
+		a.create_user,
+		a.available_type,
+		a.template_id,
+		a.intro_on_off,
+		a.update_time,
+		a.create_time,
+		p.video_id) AS b
+		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		b.sub_id,
+		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
+		b.master_type_id::jsonb, b.cate_id,
+		b.LANGUAGE,
+		b.certificates_flag,
+		b.course_tagline,
+		b.cpd_hours,
+		b.badge_id,
+		b.subdetail_img_id::jsonb,
+		b.badge_content,
+		b.create_user,
+		b.available_type,
+		b.template_id,
+		b.intro_on_off,
+		b.update_time,
+		b.create_time) AS s
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = sub1.id
@@ -1866,7 +1917,9 @@
 		) vNum ON s.id = vNum.id
 		LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
 		LEFT JOIN ( SELECT * FROM ( SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums, sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
-		event_nums.*
+		event_nums.user_id,
+		event_nums.answer_json::jsonb,
+		subject_id
 		FROM
 		(SELECT an.answer_json, u.id AS user_id, e.id AS event_id, s.id AS subject_id
 		FROM gc_subject s
@@ -1882,7 +1935,7 @@
 		AND an.master_id = #{masterId}
 		AND (( e.upload_type = 2 AND ue.id IS NOT NULL ) OR ( e.upload_type = 1 ) OR ( e.upload_type IS NULL AND e.id IS NULL ))
 		) event_nums
-		GROUP BY event_nums.user_id, subject_id
+		GROUP BY event_nums.user_id, event_nums.answer_json::jsonb, subject_id
 		) comEvents
 		) eu ON eu.user_id = s.user_id
 		AND s.id = eu.subject_id
@@ -1896,7 +1949,36 @@
 			</foreach>
 		</if>
 		AND (( vNum.videoNum != s.nums OR eu.anNums != eu.eventNums ) OR ( s.nums = 0 ) )
-		GROUP BY s.id
+		GROUP BY s.id, s2.num, vnum.videoNum, s.master_id,
+		s.NAME,
+		s.name_index,
+		s.description,
+		s.sub_id,
+		s.type,
+		s.LEVEL,
+		s.fid,
+		s.ORDER,
+		s.sub_img_id,
+		s.template_id,
+		s.intro_on_off,
+		s.update_time,
+		s.create_time,
+		s.state,
+		s.token,
+		s.is_public,
+		s.cate_id,
+		s.LANGUAGE,
+		s.certificates_flag,
+		s.course_tagline,
+		s.cpd_hours,
+		s.badge_id,
+		s.subdetail_img_id,
+		s.badge_content,
+		s.create_user,
+		s.available_type,
+		f.id,
+		eu.anNums,
+		s.nums
 		ORDER BY ( eu.anNums = 0 AND s.nums = 0 ) desc , s.update_time desc
 	</select>
 
@@ -1937,8 +2019,40 @@
 		f.file_url AS f_file_url,
 		f.save_type AS f_save_type
 		FROM
-		(SELECT count(CASE WHEN b.play_state = 1 THEN 1 END) AS nums,b.*
-		FROM(SELECT max( p.play_state ) AS play_state,a.*
+		(SELECT count(CASE WHEN b.play_state = 1 THEN 1 END) AS nums, b.*
+		FROM(SELECT max( p.play_state ) AS play_state,
+		a.id,
+		a.info_id,
+		a.user_id,
+		a.master_id,
+		a.name,
+		a.name_index,
+		a.description,
+		a.type,
+		a.sub_id,
+		a.level,
+		a.fid,
+		a.alias_sub_id,
+		a."order",
+		a.sub_img_id,
+		a.state,
+		a.token,
+		a.is_public,
+		a.master_type_id::jsonb,
+		a.cate_id,
+		a.LANGUAGE,
+		a.certificates_flag,
+		a.course_tagline,
+		a.cpd_hours,
+		a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content,
+		a.create_user,
+		a.available_type,
+		a.template_id,
+		a.intro_on_off,
+		a.update_time,
+		a.create_time
 		FROM(SELECT
 		u.id AS user_id,
 		u.info_id AS info_id,
@@ -1962,15 +2076,40 @@
 		AND p.user_id = a.user_id
 		AND p.play_state = 1
 		AND p.play_state IS NOT NULL
-		GROUP BY
-		a.id,
-		a.user_id,
-		p.video_id
-		) AS b
-		GROUP BY
-		b.id,
-		b.user_id
-		) AS s
+		GROUP BY a.id, a.info_id, a.user_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id,
+		a.level, a.fid, a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
+		a.master_type_id::jsonb, a.cate_id,
+		a.LANGUAGE,
+		a.certificates_flag,
+		a.course_tagline,
+		a.cpd_hours,
+		a.badge_id,
+		a.subdetail_img_id::jsonb,
+		a.badge_content,
+		a.create_user,
+		a.available_type,
+		a.template_id,
+		a.intro_on_off,
+		a.update_time,
+		a.create_time,
+		p.video_id) AS b
+		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		b.sub_id,
+		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
+		b.master_type_id::jsonb, b.cate_id,
+		b.LANGUAGE,
+		b.certificates_flag,
+		b.course_tagline,
+		b.cpd_hours,
+		b.badge_id,
+		b.subdetail_img_id::jsonb,
+		b.badge_content,
+		b.create_user,
+		b.available_type,
+		b.template_id,
+		b.intro_on_off,
+		b.update_time,
+		b.create_time) AS s
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = sub1.id
@@ -1982,7 +2121,10 @@
 		) vNum ON s.id = vNum.id
 		LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
 		LEFT JOIN ( SELECT * FROM ( SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums, sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
-		event_nums.*
+		event_nums.answer_json::jsonb,
+		event_nums.user_id,
+		event_nums.event_id,
+		subject_id
 		FROM
 		(SELECT an.answer_json, u.id AS user_id, e.id AS event_id, s.id AS subject_id
 		FROM gc_subject s
@@ -1998,8 +2140,8 @@
 		AND an.master_id = #{masterId}
 		AND (( e.upload_type = 2 AND ue.id IS NOT NULL ) OR ( e.upload_type = 1 ) OR ( e.upload_type IS NULL AND e.id IS NULL ))
 		) event_nums
-		GROUP BY event_nums.user_id, subject_id
-		) comEvents
+		GROUP BY event_nums.user_id, event_nums.answer_json::jsonb, event_nums.event_id,
+		subject_id) comEvents
 		) eu ON eu.user_id = s.user_id
 		AND s.id = eu.subject_id
 		WHERE
@@ -2013,7 +2155,36 @@
 			and (eu.anNums !=0 or s.nums !=0)
 			and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
 		</if>
-		GROUP BY s.id
+		GROUP BY s.id, s2.num, vnum.videoNum, s.master_id,
+		s.NAME,
+		s.name_index,
+		s.description,
+		s.sub_id,
+		s.type,
+		s.LEVEL,
+		s.fid,
+		s.ORDER,
+		s.sub_img_id,
+		s.template_id,
+		s.intro_on_off,
+		s.update_time,
+		s.create_time,
+		s.state,
+		s.token,
+		s.is_public,
+		s.cate_id,
+		s.LANGUAGE,
+		s.certificates_flag,
+		s.course_tagline,
+		s.cpd_hours,
+		s.badge_id,
+		s.subdetail_img_id,
+		s.badge_content,
+		s.create_user,
+		s.available_type,
+		f.id,
+		eu.anNums,
+		s.nums
 		ORDER BY s.create_time DESC
 	</select>
 
@@ -2053,7 +2224,7 @@
 			AND co.subject_state = 1
 		</if>
 		AND (co.subject_state != 1 OR co.subject_state IS NULL)
-		GROUP BY s.id, co.in_progress
+		GROUP BY s.id, co.subject_state, co.in_progress, uap.must_subject_json::jsonb, uap2.may_subject_json::jsonb
 		ORDER BY
 		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size()!=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMustSubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
@@ -2064,8 +2235,7 @@
 	</select>
 
 	<select id="selectCompletedSubject" resultMap="baseResultMap">
-		SELECT
-		s.*,
+		SELECT DISTINCT ON (s.id, co.update_time) s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2092,7 +2262,6 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		GROUP BY s.id, co.in_progress
 		ORDER BY co.update_time DESC
 	</select>
 
@@ -2127,7 +2296,7 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		GROUP BY s.id, co.in_progress
+		GROUP BY s.id, co.subject_state, co.in_progress, uap.may_subject_json::jsonb
 		ORDER BY
 		uap.may_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
 		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
@@ -2176,7 +2345,7 @@
 	</select>
 
 	<select id="selectFromMyTeamSubject" resultMap="baseResultMap">
-		SELECT
+		SELECT DISTINCT ON (s.id, s.published_time)
 		s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
@@ -2195,7 +2364,6 @@
 			and s.name like concat('%',#{name},'%')
 		</if>
 		AND (co.subject_state != 1 OR co.id IS NULL)
-		GROUP BY s.id, co.in_progress
 		ORDER BY s.published_time DESC
 	</select>
 
@@ -2277,7 +2445,7 @@
 	</select>
 
 	<select id="selectCreatedByTeamsSubject" resultMap="baseResultMap">
-		SELECT
+		DISTINCT ON (s.id, s.published_time)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2309,7 +2477,6 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id, co.in_progress
 		<if test="orderType==null or orderType == 0">
 			ORDER BY s.published_time DESC
 		</if>
@@ -2319,7 +2486,7 @@
 	</select>
 
 	<select id="selectCreateByTeamsOrgAdmin" resultMap="baseResultMap">
-		SELECT
+		SELECT DISTINCT ON (s.id, s.published_time)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2352,7 +2519,6 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		GROUP BY s.id, co.in_progress
 		ORDER BY s.published_time DESC
 	</select>
 

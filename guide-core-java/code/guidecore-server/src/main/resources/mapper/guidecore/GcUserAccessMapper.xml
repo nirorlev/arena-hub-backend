@@ -332,7 +332,8 @@
         <if test="searchFilter != null">
             AND REPLACE(CONCAT_WS(',', CONCAT(ui.first_name, ui.last_name), u.username, a.CODE), ' ', '') LIKE concat('%', #{searchFilter}, '%')
         </if>
-        GROUP BY ua.user_id
+        GROUP BY ua.user_id, a.code, ua.user_id, u.update_time, f.id, f.name, ui.id, ui.first_name, ui.last_name, u.create_time,
+        per.sub_permission::jsonb, ua.id, u.username, ui.avatar_file_id, f.save_type, ua.access_id
         ORDER BY u.update_time DESC
     </select>
 

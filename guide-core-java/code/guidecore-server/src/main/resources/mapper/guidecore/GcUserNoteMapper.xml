@@ -55,7 +55,7 @@
 		left join gc_video v on v.id=n.video_id
 		left join gc_subject s on s.id=v.sub_id
 		where n.user_id =#{userId}
-		group by n.video_id, n.user_id
+        group by n.video_id, n.user_id, v.id, s.master_id
     </select>
 
 </mapper>

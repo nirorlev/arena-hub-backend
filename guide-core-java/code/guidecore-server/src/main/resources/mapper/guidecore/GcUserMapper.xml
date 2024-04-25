@@ -405,6 +405,6 @@
         <if test="params.name != null ">
         and concat(ui.last_name,first_name) like concat('%',#{params.name},'%')
         </if>
-        GROUP BY uac.id
+        GROUP BY uac.id, u.id, ui.id, f.id, ac.id
     </select>
 </mapper>

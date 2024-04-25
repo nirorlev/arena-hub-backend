@@ -54,7 +54,7 @@
     </sql>
 
     <select id="selectUserNoteComment" resultMap="nodeCommentResultMap">
-        SELECT
+        SELECT DISTINCT ON (unc.id, unc.create_time)
             unc.id,
             ui.first_name,
             ui.last_name,
@@ -87,7 +87,6 @@
                 and unc.target_user_id = #{targetUserId}
             </if>
         </where>
-        group by unc.id
         order by unc.create_time
     </select>
 

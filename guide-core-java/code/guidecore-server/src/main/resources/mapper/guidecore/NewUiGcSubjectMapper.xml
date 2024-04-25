@@ -136,12 +136,12 @@
 		<if test="userId != null and userId !='' and gvgFlag == null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
-			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		</if>
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
 		left join gc_subject sub1 on sub1.fid = s.id
@@ -164,7 +164,7 @@
 				and s.fid =#{fid}<!--一级视频课程id 查询二级课程-->
 			</if>
 			<if test="userId != null and userId !=''">
-				AND user.id =#{userId}
+				AND "user".id =#{userId}
 			</if>
 
 			<if test="videoIds != null and videoIds !=''">
@@ -221,7 +221,7 @@
 					</foreach>
 				</if>
 			</if>
-			GROUP BY s.id
+			GROUP BY s.id, F.ID, sa.order
 			<if test="durationMax1 != null or durationMax2 !=null or durationMax3 !=null or durationMin4 !=null">
 				HAVING 1=2 or(
 				1=2
@@ -280,12 +280,12 @@
 		<if test="userId != null and userId !='' and gvgFlag == null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
-			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-			LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		</if>
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
 		left join gc_subject sub1 on sub1.fid = s.id
@@ -304,7 +304,7 @@
 				and s.fid =#{fid}<!--一级视频课程id 查询二级课程-->
 			</if>
 			<if test="userId != null and userId !=''">
-				AND user.id =#{userId}
+				AND "user".id =#{userId}
 			</if>
 
 			<if test="videoIds != null and videoIds !=''">
@@ -437,7 +437,7 @@
 		GC_SUBJECT S
 		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+		LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
 		LEFT JOIN gc_subject_tags tags ON tags.subject_id = s.id
 		AND (
@@ -451,7 +451,7 @@
 		and (tagass.close_subject::jsonb @> to_jsonb(s.id::integer)) is not true
 		AND s.state != 0
 		<if test="query.userId!=null">
-			AND USER.id = #{query.userId}
+			AND "USER".id = #{query.userId}
 		</if>
 		and tags."status" = 0
 		and (tagass."status" = 0 or tagass."status" is null)
@@ -540,7 +540,7 @@
 
 	<select id="listByIds" resultMap="baseResultMap">
 		SELECT
-		DISTINCT
+		DISTINCT ON (s.id)
 		S.ID,
 		S.MASTER_ID,
 		S.NAME,
@@ -569,7 +569,7 @@
 		GC_SUBJECT S
 		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_USER USER ON USER.ID = UA.USER_ID
+		LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
 		LEFT JOIN gc_video v ON v.sub_id= s.id
 		left join sys_file f on v.file_id = f.id
 		<where>
@@ -581,7 +581,6 @@
 				</foreach>
 			</if>
 		</where>
-		group by s.id
 	</select>
 
 	<select id="countSubjects" resultType="java.lang.Integer">

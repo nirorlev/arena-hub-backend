@@ -195,7 +195,7 @@
         AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &lt;= #{endTime}
         GROUP BY
         <if test="subIds != null and subIds.size() > 0">
-            topSub.id,
+            topSub.id, topSub.name,
         </if>
         TO_CHAR(uvp.create_time, 'YYYY-MM-DD')
     </select>
@@ -508,7 +508,7 @@
         </foreach>
         and vp.master_id = #{masterId}
         order by vp.update_time desc) as b
-        GROUP BY b.sub_id
+        GROUP BY b.sub_id, b.video_id
     </select>
     <select id="getWatchedSubjectById" resultType="com.threeatom.guidecore.entity.GcSubject">
         SELECT
