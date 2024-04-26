@@ -840,7 +840,7 @@ public class PowtoonController extends GuideCoreController {
 		String token = request.getHeader("Authorization");
 		if (null != token && !"".equals(token) && !"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
-			GcMaster master = masterService.getById(request.getHeader("masterId"));
+			GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 			boolean isFlag = this.permitCheck(user,ActionsType.view,master.getId(),ResourceType.videoItem,videoId,null,null);
 			if (!isFlag){
 				throw new PermitException("No permission for this!");
@@ -2635,7 +2635,7 @@ public class PowtoonController extends GuideCoreController {
 
 	@GetMapping("/getSubjectNameIndex")
 	public Message getSubjectNameIndex(@Param("name")String name,HttpServletRequest request){
-		GcMaster master = masterService.getById(request.getHeader("masterId"));
+		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		//name = URLDecoder.decode(name);
 		Integer count = subService.getSubjectNameIndex(master.getId(),name);
 		if (TableConstant.COMMON_ZERO!=count){
@@ -2649,7 +2649,7 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getCoursesInfo")
 	public Message getCoursesInfo(HttpServletRequest request){
 		GcUser user = this.getGcUser();
-		GcMaster master = masterService.getById(request.getHeader("masterId"));
+		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		//2023-04-24需修改
 		List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.getGroupMemberPermissionByUidList(user.getId(),master.getId(),GroupsType.groupMember);
 		JSONArray jsonArray = new JSONArray();
@@ -2895,7 +2895,7 @@ public class PowtoonController extends GuideCoreController {
 		gcUserSaveFolder.setUserId(this.getGcUser().getId());
 		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
 		GcUser user = this.getGcUser();
-		GcMaster master = masterService.getById(request.getHeader("masterId"));
+		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get();
 		boolean isFlag = this.permitCheck(user, ActionsType.createPlayList,master.getId(), ResourceType.portal,null,null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
@@ -3440,7 +3440,7 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelId"));
 		}
 		GcUser user = this.getGcUser();
-		GcMaster master = masterService.getById(request.getHeader("masterId"));
+		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		boolean isFlag = this.permitCheck(user, ActionsType.delete, master.getId(), ResourceType.channel, ptChannel.getId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
