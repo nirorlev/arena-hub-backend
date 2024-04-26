@@ -560,7 +560,7 @@
         where 1=1
         and ua.user_id = #{userId}
         and ua.master_id = #{userId}
-        <if test="idList!= null and idList.size()!=0">
+        <if test="idList!= null and idList.size !=0">
             and ch.id not in
             <foreach collection="idList" item="channelId" open="(" separator="," close=")">
                 #{channelId}
@@ -587,7 +587,7 @@
         left join sys_file file  on file.id = info.avatar_file_id
         left join pt_tags tags on tags.channel_id = ch.id
         where 1=1
-        <if test="idList!= null and idList.size()!=0">
+        <if test="idList!= null and idList.size !=0">
             and ch.id not in
             <foreach collection="idList" item="channelId" open="(" separator="," close=")">
                 #{channelId}

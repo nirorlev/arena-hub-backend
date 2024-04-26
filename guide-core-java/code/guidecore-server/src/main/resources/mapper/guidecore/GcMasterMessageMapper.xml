@@ -150,10 +150,10 @@
         <!-- notQuestion= (0,1,2,3,4) -->
         LEFT JOIN gc_user_event_resource uer ON ( mm.event_type in ( ${@com.threeatom.guidecore.constant.MessageEventType@notQuestion} ) AND mm.res_id = uer.id )
         WHERE mm.id IN
-        <if test="messageIds == null or  messageIds.size() == 0 ">
+        <if test="messageIds == null or  messageIds.size == 0 ">
             (0)
         </if>
-        <if test="messageIds != null and messageIds.size()>0">
+        <if test="messageIds != null and messageIds.size >0">
             <foreach collection="messageIds" item="messageId" index="index" open="(" close=")" separator=",">
                 #{messageId}
             </foreach>
@@ -297,7 +297,7 @@
         <if test="message.groupId != null">
             and g.id=#{message.groupId}
         </if>
-        <if test="message.subIdList!=null and message.subIdList.size() != 0 ">
+        <if test="message.subIdList!=null and message.subIdList.size != 0 ">
             and su.sub_id in
             <foreach collection="message.subIdList" item="item" index="index" open="(" close=")" separator=",">
                 #{item}

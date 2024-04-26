@@ -133,13 +133,13 @@
 		and (sf.if_private != 1 or sf.user_id=#{userId}) <!-- 1为私有 -->
 		and
 		sf.master_id=#{masterId}
-		<if test="folderIdList!=null and folderIdList.size()!=0">
+		<if test="folderIdList!=null and folderIdList.size !=0">
 			AND sf.id in
 			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
 				#{folderId}
 			</foreach>
 		</if>
-		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+		<if test="myFolderIdList!=null and myFolderIdList.size !=0">
 			AND sf.id not in
 			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
 				#{myFolderId}
@@ -183,13 +183,13 @@
 		and (sf.if_private != 1) <!-- 1为私有 -->
 		and
 		sf.master_id=#{masterId}
-		<if test="folderIdList!=null and folderIdList.size()!=0">
+		<if test="folderIdList!=null and folderIdList.size !=0">
 			AND sf.id in
 			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
 				#{folderId}
 			</foreach>
 		</if>
-		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+		<if test="myFolderIdList!=null and myFolderIdList.size !=0">
 			AND sf.id not in
 			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
 				#{myFolderId}
@@ -234,13 +234,13 @@
 
 		and
 		sf.master_id=#{masterId}
-		<if test="folderIdList!=null and folderIdList.size()!=0">
+		<if test="folderIdList!=null and folderIdList.size !=0">
 			AND sf.id in
 			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
 				#{folderId}
 			</foreach>
 		</if>
-		<if test="myFolderIdList!=null and myFolderIdList.size()!=0">
+		<if test="myFolderIdList!=null and myFolderIdList.size !=0">
 			AND sf.id not in
 			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
 				#{myFolderId}
@@ -252,7 +252,7 @@
     <select id="selectFolderByIdsAndUser" resultType="java.lang.Integer">
 		select count(1) from gc_user_save_folder
 		where 1=1
-		<if test="folderIds != null and folderIds.size()!=0">
+		<if test="folderIds != null and folderIds.size !=0">
 		and id in
 		<foreach item="folderId" index="index" collection="folderIds"  open="(" separator="," close=")">
 			#{folderId}

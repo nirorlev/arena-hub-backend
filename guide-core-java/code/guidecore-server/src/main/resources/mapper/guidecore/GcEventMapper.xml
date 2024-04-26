@@ -247,14 +247,14 @@
         </if>
         WHERE
         UE.master_id=#{masterId} AND UA.USER_ID = #{userId}
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
             AND E.VIDEO_ID IN
             <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
                 #{videoId}
             </foreach>
         </if>
          or (E.UPLOAD_TYPE != 2 and  UA.USER_ID = #{userId}
-         <if test="videoIds != null and videoIds.size()!=0">
+         <if test="videoIds != null and videoIds.size !=0">
              and E.VIDEO_ID IN
          <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
              #{videoId}
@@ -283,7 +283,7 @@
         <if test="null != userId ">
             AND UA.USER_ID = #{userId}
         </if>
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
             AND E.VIDEO_ID IN
             <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
                 #{videoId}
@@ -293,7 +293,7 @@
         <if test="null != userId ">
             and  UA.USER_ID = #{userId}
         </if>
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
         and E.VIDEO_ID IN
         <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
             #{videoId}
@@ -317,14 +317,14 @@
         WHERE
         UE.master_id=#{masterId}
             AND UA.USER_ID = #{userId}
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
             AND E.VIDEO_ID IN
             <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
                 #{videoId}
             </foreach>
         </if>
         or (E.UPLOAD_TYPE != 2 and  UA.USER_ID = #{userId}
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
             and E.VIDEO_ID IN
         <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
             #{videoId}
@@ -346,7 +346,7 @@
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         left join gc_user_answer an on an.event_id=e.id and an.user_id = #{uid}
         where e.event_type !=4
-        <if test="vids != null and vids.size()!=0">
+        <if test="vids != null and vids.size !=0">
             and video_id in
             <foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
                 #{vid}
@@ -371,7 +371,7 @@
                 LEFT JOIN gc_user_event ue ON ue.event_id = e.id
                 LEFT JOIN gc_user u ON e.upload_user = u.id
         where 1=1
-        <if test="vids != null and vids.size()!=0">
+        <if test="vids != null and vids.size !=0">
             and  video_id in
         <foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
             #{vid}
@@ -458,7 +458,7 @@
 
     <select id="countEventByVideoIds" resultType="java.lang.Integer">
         select count(1) from gc_event
-        <if test="list.size()!=0">
+        <if test="list.size !=0">
             where
             video_id in
             <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
@@ -502,14 +502,14 @@
         <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
             #{subId}
         </foreach>
-        <if test="null!=sub1Ids and sub1Ids.size()!=0">
+        <if test="null!=sub1Ids and sub1Ids.size !=0">
             AND
             sub1.id in
             <foreach collection="sub1Ids" item="sub1Id" index="index" open="(" close=")" separator=",">
                 #{sub1Id}
             </foreach>
         </if>
-        <if test="null!=videoIds and videoIds.size()!=0">
+        <if test="null!=videoIds and videoIds.size !=0">
             AND
             video.id in
             <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator=",">
@@ -536,7 +536,7 @@
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID
         left join gc_video v on v.id = e.video_id
         left join gc_subject s on s.id = v.sub_id
-        <if test="userIdList != null and userIdList.size()!=0">
+        <if test="userIdList != null and userIdList.size !=0">
             AND UA.USER_ID in
             <foreach collection="userIdList" item="userId" open="(" separator="," close=")">
                 #{userId}
@@ -573,14 +573,14 @@
             LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID = E.ID
             left join gc_video vo on vo.id = e.video_id
             where ue.master_id = #{masterId}
-            <if test="videoIds != null and videoIds.size()!=0">
+            <if test="videoIds != null and videoIds.size !=0">
                 AND E.VIDEO_ID IN
                 <foreach collection="videoIds" item="videoId"  open="(" separator="," close=")">
                     #{videoId}
                 </foreach>
             </if>
             or (E.UPLOAD_TYPE != 2
-        <if test="videoIds != null and videoIds.size()!=0">
+        <if test="videoIds != null and videoIds.size !=0">
                 and E.VIDEO_ID IN
             <foreach collection="videoIds" item="videoId"  open="(" separator="," close=")">
                 #{videoId}

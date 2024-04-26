@@ -56,7 +56,7 @@
 
     <select id="deleteList" resultType="java.lang.Integer">
         select id from gc_user_save_content where video_id = #{videoId}
-        <if test="foderIds!=null and foderIds.size()!=0">
+        <if test="foderIds!=null and foderIds.size !=0">
         and folder_id in
         <foreach item="folderId" index="index" collection="foderIds"  open="(" separator="," close=")">
             #{folderId}
@@ -73,7 +73,7 @@
 
     <select id="deleteFileList" resultType="java.lang.Integer">
         select id from gc_user_save_content where file_id = #{fileId}
-        <if test="foderIds!=null and foderIds.size()!=0">
+        <if test="foderIds!=null and foderIds.size !=0">
             and folder_id in
             <foreach item="folderId" index="index" collection="foderIds"  open="(" separator="," close=")">
                 #{folderId}

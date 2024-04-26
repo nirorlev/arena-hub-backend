@@ -148,7 +148,7 @@
         gc_user_access ua
         LEFT JOIN gc_access a on ua.access_id=a.id
         WHERE 1=1
-        <if test="ids != null and ids.size() > 0">
+        <if test="ids != null and ids.size > 0">
             and ua.id in
             <foreach collection="ids" item="id" index="index" open="(" close=")" separator="," >
                 #{id}
@@ -259,7 +259,7 @@
         LEFT JOIN gc_user u on u.id=ua.user_id
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         WHERE 1=1
-        <if test="userIds != null and userIds.size() > 0">
+        <if test="userIds != null and userIds.size > 0">
             AND ua.user_id in
             <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
                 #{userId}
@@ -451,7 +451,7 @@
         LEFT JOIN gc_user_access ua on ua.access_id = a.id
         WHERE
         a.admin_id = #{adminId}
-        <if test="userIds != null and userIds.size() > 0">
+        <if test="userIds != null and userIds.size > 0">
             AND ua.user_id in
             <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
                 #{userId}

@@ -40,7 +40,7 @@
         FROM
         gc_user_answer AS ua
         WHERE 1=1
-        <if test="eventIds != null and eventIds.size() > 0">
+        <if test="eventIds != null and eventIds.size > 0">
 	        AND ua.event_id IN
 	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
 	            #{eventId}
