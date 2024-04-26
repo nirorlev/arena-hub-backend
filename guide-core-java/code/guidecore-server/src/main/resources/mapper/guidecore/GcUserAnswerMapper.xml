@@ -9,7 +9,7 @@
         <result property="firstName" column="first_name"/>
         <result property="avatarUrl" column="avatar_url"/>
         <result property="saveType" column="save_type"/>
-        <result property="answerJson" column="answer_json"/>
+        <result property="answerJson" column="answer_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
         <result property="updateTime" column="update_time"/>
         <result property="createTime" column="create_time"/>
     </resultMap>

@@ -37,7 +37,7 @@
         
         <association property="myAnswer" column="id" javaType="GcUserAnswer">
 			<id property="id" column="ua_id" />
-			<result property="answerJson" column="ua_answerJson" />
+			<result property="answerJson" column="ua_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler" />
 			<result property="updateTime" column="ua_updateTime" />
         </association>
         
@@ -57,7 +57,7 @@
 				<id property="id" column="answer_id" />
 				<result property="userId" column="answer_userId" />
 				<result property="eventId" column="answer_eventId" />
-				<result property="answerJson" column="answer_answerJson" />
+				<result property="answerJson" column="answer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
 				<result property="updateTime" column="answer_updateTime" />
                 <result property="createTime" column="answer_createTime"/>
 			</collection>
@@ -92,7 +92,7 @@
             <id property="id" column="answer_id" />
             <result property="userId" column="answer_userId" />
             <result property="eventId" column="answer_eventId" />
-            <result property="answerJson" column="answer_answerJson" />
+            <result property="answerJson" column="answer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
             <result property="updateTime" column="answer_updateTime" />
             <result property="createTime" column="answer_createTime"/>
         </collection>
@@ -233,7 +233,7 @@
 
      <select id="findEventAnswerByVideoIdsUser" resultType="com.threeatom.guidecore.entity.GcEvent">
         SELECT
-        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,v.sub_id as subjectId,
+        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON::jsonb,v.sub_id as subjectId,
         s.sub_id as subId,UA.create_time as answerCreateTime,
         ua.update_time as updateTime,
         UA.id as myAnswerId
@@ -265,7 +265,7 @@
 
     <select id="findEventUserByVideoIdsUser" resultType="com.threeatom.guidecore.entity.GcEvent">
         SELECT
-        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,v.sub_id as subjectId,
+        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON::jsonb,v.sub_id as subjectId,
         s.sub_id as subId,ue.user_id as userId
         FROM GC_EVENT E
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
@@ -304,7 +304,7 @@
 
     <select id="findEventAnswerByVideoIds" resultType="com.threeatom.guidecore.entity.GcEvent">
         SELECT
-        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,v.sub_id as subjectId,
+        DISTINCT E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON::jsonb,v.sub_id as subjectId,
         s.sub_id as subId
         FROM GC_EVENT E
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID AND UE.user_id=#{userId}
