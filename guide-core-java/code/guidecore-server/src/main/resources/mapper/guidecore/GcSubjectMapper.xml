@@ -104,7 +104,7 @@
 						<id property="id" column="futurePreEventAnswer_id" />
 						<result property="userId" column="futurePreEventAnswer_userId" />
 						<result property="eventId" column="futurePreEventAnswer_eventId" />
-						<result property="answerJson" column="futurePreEventAnswer_answerJson" />
+						<result property="answerJson" column="futurePreEventAnswer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler" />
 						<result property="updateTime" column="futurePreEventAnswer_updateTime" />
 						<result property="createTime" column="futurePreEventAnswer_createTime"/>
 					</collection>
@@ -130,7 +130,7 @@
 					<id property="id" column="answer_id" />
 					<result property="userId" column="answer_userId" />
 					<result property="eventId" column="answer_eventId" />
-					<result property="answerJson" column="answer_answerJson" />
+					<result property="answerJson" column="answer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
 					<result property="updateTime" column="answer_updateTime" />
 					<association property="masterMessage" column="id" javaType="GcMasterMessage">
 						<id property="id" column="mm_id"/>
@@ -720,7 +720,6 @@
 			and s.create_user = #{createUser}
 			and s.master_id = #{masterId}
 		</if>
-		GROUP BY s.id, f.id
 		ORDER BY s.create_time desc
 	</select>
 
@@ -2445,7 +2444,7 @@
 	</select>
 
 	<select id="selectCreatedByTeamsSubject" resultMap="baseResultMap">
-		DISTINCT ON (s.id, s.published_time)
+		SELECT DISTINCT ON (s.id, s.published_time)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2463,7 +2462,7 @@
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		WHERE u.id = #{userId}
 		AND ua.master_id = #{masterId}
-		AND (ua.role_json::jsonb ? 'groupMember' OR ua.role_json::jsonb ? 'groupAdmin')
+		AND (ua.role_json::text like '%groupMember%' OR ua.role_json::text like '%groupAdmin%')
 		AND (s.published_user_id != #{userId} OR s.published_user_id IS NULL)
 		AND s.master_id = #{masterId}
 		AND s.state = 1

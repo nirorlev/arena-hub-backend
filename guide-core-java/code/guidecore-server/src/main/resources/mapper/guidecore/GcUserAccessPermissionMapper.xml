@@ -54,9 +54,9 @@
         </foreach>;
 
         UPDATE gc_user_access_permission uap
-        SET sub_permission = temp.sub_per,
-        must_subject_json = temp.must_subject_json,
-        may_subject_json = temp.may_subject_json
+        SET sub_permission = temp.sub_per::json,
+        must_subject_json = temp.must_subject_json::json,
+        may_subject_json = temp.may_subject_json::json
         FROM temp_update_permission temp
         WHERE temp.id = uap.id;
 
@@ -154,8 +154,8 @@
         </foreach>;
 
         UPDATE gc_user_access_permission uap
-        SET channel_permission = temp.channel_permission,
-        subscribe_permission = temp.subscribe_permission
+        SET channel_permission = temp.channel_permission::json,
+        subscribe_permission = temp.subscribe_permission::json
         FROM temp_update_permission temp
         WHERE temp.id = uap.id;
 

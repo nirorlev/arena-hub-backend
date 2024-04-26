@@ -151,7 +151,7 @@
 	</select>
 
 	<select id="getPtNewHomePlayList" resultMap="baseResultMap">
-		DISTINCT ON (sf.id, sf.create_time, sc.create_time)
+		SELECT DISTINCT ON (sf.id, sf.create_time, sc.create_time)
 		<include refid="baseColumn" />
 		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,

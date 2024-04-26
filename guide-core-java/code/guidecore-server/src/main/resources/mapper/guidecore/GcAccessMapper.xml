@@ -391,6 +391,7 @@
 		<if test="name != null">
 			and concat('%',#{name},'%')
 		</if>
+		GROUP BY ac.id, uap.id
 		order by ac.group_name asc
 	</select>
 
@@ -428,6 +429,7 @@
 		<if test="name != null">
 			and ac.group_name like concat('%',#{name},'%')
 		</if>
+		GROUP BY ac.id, uap.id
 		order by ac.group_name asc
 	</select>
 </mapper>
