@@ -2806,7 +2806,7 @@ public class PowtoonController extends GuideCoreController {
 			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
 			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, sub.getId());
 		}
-		if (sub.getState() == TableConstant.COMMON_ONE) {
+		if (sub.getState() != null && sub.getState() == TableConstant.COMMON_ONE) {
 			contentGroupCourseAssignmentService.save(user, sub, CourseType.MANDATORY);
 			contentGroupCourseAssignmentService.save(user, sub, CourseType.OPTIONAL);
 		}
@@ -2895,7 +2895,7 @@ public class PowtoonController extends GuideCoreController {
 		gcUserSaveFolder.setUserId(this.getGcUser().getId());
 		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
 		GcUser user = this.getGcUser();
-		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get();
+		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		boolean isFlag = this.permitCheck(user, ActionsType.createPlayList,master.getId(), ResourceType.portal,null,null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
