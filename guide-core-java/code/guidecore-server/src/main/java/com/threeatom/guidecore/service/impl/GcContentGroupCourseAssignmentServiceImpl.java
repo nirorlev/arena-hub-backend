@@ -12,7 +12,6 @@ import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -27,6 +26,9 @@ import org.springframework.util.CollectionUtils;
 public class GcContentGroupCourseAssignmentServiceImpl
     extends ServiceImpl<GcContentGroupCourseAssignmentMapper, GcContentGroupCourseAssignment>
     implements GcContentGroupCourseAssignmentService {
+
+    private static final int OPTIONAL_COURSE_VALUE = 0;
+    private static final int MANDATORY_COURSE_VALUE = 1;
 
     private final GcContentGroupCourseAssignmentMapping gcContentGroupCourseAssignmentMapping;
 
@@ -74,7 +76,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
             this.baseMapper.findByCourseIdAndContentGroupId(courseId, contentGroupId);
 
         if (contentGroupCourseAssignment != null) {
-            contentGroupCourseAssignment.setMandatory(!contentGroupCourseAssignment.getMandatory());
+            contentGroupCourseAssignment.setMandatory(getMandatoryOppositeValue(contentGroupCourseAssignment.getMandatory()));
             updateById(contentGroupCourseAssignment);
         }
     }
@@ -112,12 +114,14 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
     @Override
     public List<Integer> getMustCoursesContentGroupAssignmentIds(Integer contentGroupId) {
-        return getCourseIdsByContentGroupIdAndPredicate(contentGroupId, GcContentGroupCourseAssignment::getMandatory);
+        return getCourseIdsByContentGroupIdAndPredicate(contentGroupId, assignment -> assignment.getMandatory() ==
+            MANDATORY_COURSE_VALUE);
     }
 
     @Override
     public List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer contentGroupId) {
-        return getCourseIdsByContentGroupIdAndPredicate(contentGroupId, assignment -> !assignment.getMandatory());
+        return getCourseIdsByContentGroupIdAndPredicate(contentGroupId, assignment -> assignment.getMandatory() ==
+            OPTIONAL_COURSE_VALUE);
     }
 
     @Override
@@ -135,7 +139,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.getCoursesContentGroupAssignmentByUserAndMasterId(userId, masterId);
 
-        return filterCourseIdsByPredicate(contentGroupCourseAssignments, GcContentGroupCourseAssignment::getMandatory);
+        return filterCourseIdsByPredicate(contentGroupCourseAssignments, assignment -> assignment.getMandatory() ==
+            MANDATORY_COURSE_VALUE);
     }
 
     @Override
@@ -143,7 +148,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.getCoursesContentGroupAssignmentByUserAndMasterId(userId, masterId);
 
-        return filterCourseIdsByPredicate(contentGroupCourseAssignments, assignment -> !assignment.getMandatory());
+        return filterCourseIdsByPredicate(contentGroupCourseAssignments,
+            assignment -> assignment.getMandatory() == OPTIONAL_COURSE_VALUE);
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(
@@ -187,9 +193,17 @@ public class GcContentGroupCourseAssignmentServiceImpl
         gcContentGroupCourseAssignment.setCreatedByUserId(user.getId());
         gcContentGroupCourseAssignment.setContentGroupId(contentGroupId);
         gcContentGroupCourseAssignment.setCourseId(courseId);
-        gcContentGroupCourseAssignment.setMandatory(courseType.isMandatory());
+        gcContentGroupCourseAssignment.setMandatory(getMandatoryOppositeValue(courseType.getValue()));
 
         return gcContentGroupCourseAssignment;
+    }
+
+    private int getMandatoryOppositeValue(int contentGroupCourseAssignment) {
+        if (contentGroupCourseAssignment == MANDATORY_COURSE_VALUE) {
+            return OPTIONAL_COURSE_VALUE;
+        }
+
+        return MANDATORY_COURSE_VALUE;
     }
 
 }
