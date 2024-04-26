@@ -343,7 +343,7 @@ public class HomeInfoController extends GuideCoreController {
 				packages.setPackageImgFile(imgFile);
 			}
 			if(null!=packages.getPackageVideoFileId()){
-                SysFile videoFile = sysFileService.getById(packages.getPackageVideoFileId());
+                SysFile videoFile = sysFileService.getById(Integer.parseInt(packages.getPackageVideoFileId()));
                 String fullUrl = sysFileService.getVideoSnapshotUrl(videoFile);
                 packages.setPackageSnapShotUrl(fullUrl);
 			}
@@ -467,7 +467,7 @@ public class HomeInfoController extends GuideCoreController {
 			gcAccess.setFileType(imgFile.getFileType());
 		}
         if(null != gcAccess.getPackageVideoFileId()){
-        	SysFile videoFile = sysFileService.getById(gcAccess.getPackageVideoFileId());
+        	SysFile videoFile = sysFileService.getById(Integer.parseInt(gcAccess.getPackageVideoFileId()));
         	String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
         	sysFileService.getResFullUrl(videoFile, request);
         	videoFile.setSnapshotUrl(snapShotUrl);

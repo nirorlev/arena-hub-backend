@@ -359,7 +359,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
         for (GcAccess access : list) {
             if(null!=access.getPackageVideoFileId()){
-                SysFile videoFile = sysFileService.getById(access.getPackageVideoFileId());
+                SysFile videoFile = sysFileService.getById(Integer.parseInt(access.getPackageVideoFileId()));
                 sysFileService.getResFullUrl(videoFile,request);
                 access.setPackageVideoFile(videoFile);
             }
