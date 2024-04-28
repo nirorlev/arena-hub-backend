@@ -75,7 +75,7 @@
         LEFT JOIN gc_subject s ON v.sub_id=s.id
         left join gc_user_info ui on ui.id=u.info_id
         WHERE 1=1
-        <if test="userIds != null and userIds.size() > 0">
+        <if test="userIds != null and userIds.size > 0">
             AND u.id in
             <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
                 #{userId}
@@ -94,7 +94,7 @@
         LEFT JOIN gc_subject s ON v.sub_id=s.id
         left join gc_user_info ui on ui.id=u.info_id
         WHERE 1=1
-        <if test="userIds != null and userIds.size() > 0">
+        <if test="userIds != null and userIds.size > 0">
             AND u.id in
             <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
                 #{userId}
@@ -169,7 +169,7 @@
 
     <select id="showVideoPlayHistoryNumByStudentIdsAndSubject" resultType="Map">
         SELECT
-        <if test="subIds != null and subIds.size() > 0">
+        <if test="subIds != null and subIds.size > 0">
             topSub.name,
             topSub.id,
         </if>
@@ -179,7 +179,7 @@
         gc_user_video_play uvp
         LEFT JOIN gc_video v ON uvp.video_id = v.id
         LEFT JOIN gc_subject s ON v.sub_id = s.id
-        <if test="subIds != null and subIds.size() > 0">
+        <if test="subIds != null and subIds.size > 0">
             JOIN ( SELECT id, NAME FROM gc_subject WHERE id IN
             <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
                 #{subId}
@@ -194,7 +194,7 @@
         AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &gt;= #{startTime}
         AND TO_CHAR(uvp.create_time, 'YYYY-MM-DD') &lt;= #{endTime}
         GROUP BY
-        <if test="subIds != null and subIds.size() > 0">
+        <if test="subIds != null and subIds.size > 0">
             topSub.id, topSub.name,
         </if>
         TO_CHAR(uvp.create_time, 'YYYY-MM-DD')
@@ -337,7 +337,7 @@
         <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
             #{userId}
         </foreach>
-        <if test="subIds.size()!=0">
+        <if test="subIds.size !=0">
         AND
         s.sub_id IN
         <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
@@ -466,7 +466,7 @@
             and P.USER_ID=#{userId}
         </if>
         and P.master_id=#{masterId}
-        <if test="videoIds!=null and videoIds.size()!=0">
+        <if test="videoIds!=null and videoIds.size !=0">
         AND P.VIDEO_ID IN
         <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
             #{videoId}
@@ -549,7 +549,7 @@
         GC_USER_VIDEO_PLAY P
         WHERE
         1=1
-        <if test="userIdList!=null and userIdList.size()!=0">
+        <if test="userIdList!=null and userIdList.size !=0">
             and P.USER_ID in
             <foreach item="userIdList" collection="userIdList" open="(" separator="," close=")">
                 #{userIdList}
@@ -595,7 +595,7 @@
         left join gc_subject s on v.sub_id = s.id
         where 1=1
         and p.master_id=#{masterId}
-        <if test="list!=null and list.size()!=0">
+        <if test="list!=null and list.size !=0">
         AND P.VIDEO_ID IN
         <foreach item="videoId" collection="list" open="(" separator="," close=")">
             #{videoId}

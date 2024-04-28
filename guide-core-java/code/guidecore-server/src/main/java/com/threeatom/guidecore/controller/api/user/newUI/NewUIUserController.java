@@ -244,7 +244,7 @@ public class NewUIUserController extends GuideCoreController {
                         event1.setThisUserAnsweredOrNot(TableConstant.COMMON_ONE);
                         if (event1.getEventType().equals(TableConstant.COMMON_ONE)) {
                             GcUserAnswer gcUserAnswer = myOptionAnswer.get();
-                            JSONArray jsonArray = JSONArray.parseArray(gcUserAnswer.getAnswerJson());
+                            JSONObject jsonArray = gcUserAnswer.getAnswerJson();
                             List<String> rightAnswer = new ArrayList<>();
                             String ext = event1.getExt();
                             JSONArray jsonArray1 = JSONArray.parseArray(ext);

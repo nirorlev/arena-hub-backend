@@ -173,7 +173,7 @@
 					#{videoId}
 				</foreach>
 			</if>
-			<if test="subjectIds != null and subjectIds.size() != 0">
+			<if test="subjectIds != null and subjectIds.size != 0">
 				AND( s.id in
 				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
@@ -191,7 +191,7 @@
 			<if test="videoName != null and videoName != ''">
 				AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')
 			</if>
-			<if test=" null !=channelIdList and channelIdList.size()>0">
+			<if test=" null !=channelIdList and channelIdList.size >0">
 				AND s.id not in
 				<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
 					#{channelId}
@@ -199,22 +199,22 @@
 			</if>
 			<if test="tag != null and tag != ''">
 				and tags.tag_text = #{tag}
-				<if test="subIds != null and subIds.size()!=0">
+				<if test="subIds != null and subIds.size !=0">
 					AND s.id in
 					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
 						#{subId}
 					</foreach>
 				</if>
-				<if test="subIds == null or subIds.size()==0">
+				<if test="subIds == null or subIds.size ==0">
 					and s.id is null
 				</if>
 			</if>
-			<if test="tagList != null and tagList.size()!=0">
+			<if test="tagList != null and tagList.size !=0">
 				and tags.tag_text in
 				<foreach collection="tagList" item="tagList" separator="," open="(" close=")">
 					#{tagList}
 				</foreach>
-				<if test="subIds != null and subIds.size()!=0">
+				<if test="subIds != null and subIds.size !=0">
 					AND s.id in
 					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
 						#{subId}
@@ -313,7 +313,7 @@
 					#{videoId}
 				</foreach>
 			</if>
-			<if test="subjectIds != null and subjectIds.size() != 0">
+			<if test="subjectIds != null and subjectIds.size != 0">
 				AND s.id in
 				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
@@ -325,7 +325,7 @@
 			<if test="videoName != null and videoName != ''">
 				AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')
 			</if>
-			<if test=" null !=channelIdList and channelIdList.size()>0">
+			<if test=" null !=channelIdList and channelIdList.size >0">
 				AND s.id not in
 				<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
 					#{channelId}
@@ -333,19 +333,19 @@
 			</if>
 			<if test="tag != null and tag != ''">
 				and tags.tag_text = #{tag}
-				<if test="subIds != null and subIds.size()!=0">
+				<if test="subIds != null and subIds.size !=0">
 					AND s.id in
 					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
 						#{subId}
 					</foreach>
 				</if>
 			</if>
-			<if test="tagList != null and tagList.size()!=0">
+			<if test="tagList != null and tagList.size !=0">
 				and tags.tag_text in
 				<foreach collection="tagList" item="tagList" separator="," open="(" close=")">
 					#{tagList}
 				</foreach>
-				<if test="subIds != null and subIds.size()!=0">
+				<if test="subIds != null and subIds.size !=0">
 					AND s.id in
 					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
 						#{subId}
@@ -455,7 +455,7 @@
 		</if>
 		and tags."status" = 0
 		and (tagass."status" = 0 or tagass."status" is null)
-		<if test="query.tagList.size()!=0">
+		<if test="query.tagList.size !=0">
 			and tags.tag_text = ANY(#{query.tagList})
 		</if>
 		GROUP BY
@@ -574,7 +574,7 @@
 		left join sys_file f on v.file_id = f.id
 		<where>
 			s.state !=0
-			<if test="ids != null and ids.size() != 0">
+			<if test="ids != null and ids.size != 0">
 				AND s.id in
 				<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
@@ -590,7 +590,7 @@
 	<select id="getTwoLevelSubByIds" resultType="java.lang.Integer">
 		select id from gc_subject
 		where 1=1
-		<if test="ids != null and ids.size() != 0">
+		<if test="ids != null and ids.size != 0">
 			AND fid in
 			<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
 				#{subjectId}
@@ -603,7 +603,7 @@
 		from  gc_subject g
 		LEFT JOIN gc_video v on v.sub_id = g.id
 		where 1=1
-		<if test="ids != null and ids.size() != 0">
+		<if test="ids != null and ids.size != 0">
 			AND g.id in
 			<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
 				#{subjectId}
@@ -615,7 +615,7 @@
 	<select id="countSessions" resultType="java.lang.Integer">
 		select s.id from  gc_subject s
 		<where>
-			<if test="ids != null and ids.size() != 0">
+			<if test="ids != null and !ids.isEmpty">
 				AND s.sub_id in
 				<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
@@ -627,7 +627,7 @@
 	<select id="select" resultType="com.threeatom.guidecore.entity.GcSubject">
 		select * from  gc_subject
 		<where>
-			<if test="subIds != null and subIds.size() != 0">
+			<if test="subIds != null and subIds.size != 0">
 				AND sub_id in
 				<foreach collection="subIds" item="subId" separator="," open="(" close=")">
 					#{subId}
@@ -734,7 +734,7 @@
 	<select id="getSubjectNum" resultType="java.lang.Integer">
 		select count(1) from  gc_subject
 		<where>
-			<if test="ids != null and ids.size() != 0">
+			<if test="ids != null and ids.size != 0">
 				AND id in
 				<foreach collection="ids" item="subId" separator="," open="(" close=")">
 					#{subId}

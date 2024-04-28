@@ -208,13 +208,13 @@
             </if>
             <if test="userCommonInfo.userIds != null">
 
-                <if test="userCommonInfo.userIds.size()!=0">
+                <if test="userCommonInfo.userIds.size !=0">
                     and student_ua.user_id in
                     <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
                         #{userIds}
                     </foreach>
                 </if>
-                <if test="userCommonInfo.userIds.size()==0">
+                <if test="userCommonInfo.userIds.size ==0">
                     and 1=2
                 </if>
             </if>
@@ -253,13 +253,13 @@
             teacher_ua.user_id=#{userCommonInfo.userId} and teacher_ua.master_id= #{userCommonInfo.masterId}
             and student_ua.user_id IS NOT NULL
             <if test="userCommonInfo.userIds != null">
-                <if test="userCommonInfo.userIds.size()!=0">
+                <if test="userCommonInfo.userIds.size !=0">
                     and student_ua.user_id in
                     <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
                         #{userIds}
                     </foreach>
                 </if>
-                <if test="userCommonInfo.userIds.size()==0">
+                <if test="userCommonInfo.userIds.size ==0">
                     and 1=2
                 </if>
             </if>
@@ -289,12 +289,12 @@
             and g.group_access_ids::jsonb @> to_jsonb(student_ua.id::integer)
         </if>
         <if test="null!=userCommonInfo.userIds">
-            <if test="userCommonInfo.userIds.size()!=0">and student_ua.user_id in
+            <if test="userCommonInfo.userIds.size !=0">and student_ua.user_id in
                 <foreach collection="userCommonInfo.userIds" item="userIds" index="index" open="(" close=")" separator=",">
                     #{userIds}
                 </foreach>
             </if>
-            <if test="userCommonInfo.userIds.size()==0">
+            <if test="userCommonInfo.userIds.size ==0">
                 and 1=2
             </if>
         </if>
@@ -354,7 +354,7 @@
         LEFT JOIN gc_subject s1 on s1.id = v.sub_id
         LEFT JOIN gc_subject s0 on s0.id = s1.fid
         where 1=1
-        <if test="null!=subjectIds and subjectIds.size()!=0">
+        <if test="null!=subjectIds and subjectIds.size !=0">
         and s0.id in
         <foreach item="subjectId" collection="subjectIds" open="(" separator="," close=")">
             #{subjectId}
@@ -371,7 +371,7 @@
         left join gc_subject g2 on g2.fid=g1.id
         left join gc_video v on v.sub_id = g2.id
         left join gc_user_access u on u.id = uap.user_access_id
-        <if test="list.size()!=0">
+        <if test="list.size !=0">
             where uap.id in
             <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
                 #{list}

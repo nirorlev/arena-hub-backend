@@ -184,7 +184,7 @@
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         WHERE 1=1
         <include refid="where_gcSubject_state_not_hidden" />
-        <if test="userIds != null and userIds.size() > 0">
+        <if test="userIds != null and userIds.size > 0">
             AND u.id in
             <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
                 #{userId}
@@ -209,7 +209,7 @@
         s.master_id = #{masterId} AND
         (vr.target_user_id = 0 or vr.target_user_id is null)
         AND ((vr.type = ${@com.threeatom.guidecore.constant.EventResType@VIDEO_2} and vr.time_node=-1) or vr.time_node!=-1)
-        <if test="userIds != null and userIds.size()>0">
+        <if test="userIds != null and userIds.size >0">
             AND vr.user_id IN
             <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
                 #{uId}
@@ -217,7 +217,7 @@
         </if>
         OR
         vr.user_id = #{userId}
-        <if test="userIds != null and userIds.size()>0">
+        <if test="userIds != null and userIds.size >0">
             AND vr.target_user_id IN
             <foreach collection="userIds" item="uId" index="index" open="(" close=")" separator=",">
                 #{uId}
@@ -251,7 +251,7 @@
         LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
         LEFT JOIN gc_video AS v ON v.id = e.video_id
         WHERE 1=1
-        <if test="eventIds != null and eventIds.size() > 0">
+        <if test="eventIds != null and eventIds.size > 0">
             AND vr.event_id IN
 	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
 	            #{eventId}
@@ -306,7 +306,7 @@
         LEFT JOIN sys_file AS f2 ON f2.id = vr.file_id
         LEFT JOIN gc_master_message AS m ON m.res_id = vr.id
         WHERE 1=1
-        <if test="eventIds != null and eventIds.size() > 0">
+        <if test="eventIds != null and eventIds.size > 0">
 	        AND vr.event_id IN
 	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
 	            #{eventId}
@@ -438,19 +438,19 @@
         <if test="message.groupId != null">
             and g.id=#{message.groupId}
         </if>
-        <if test="message.subIdList!=null and message.subIdList.size() != 0 ">
+        <if test="message.subIdList!=null and message.subIdList.size != 0 ">
             and s.sub_id in
             <foreach collection="message.subIdList" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
-        <if test="videoIds!=null and videoIds.size() != 0 ">
+        <if test="videoIds!=null and videoIds.size != 0 ">
             and gv.id in
             <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator=",">
                 #{videoId}
             </foreach>
         </if>
-        <if test="message.sub0IdList!=null and message.sub0IdList.size() != 0 ">
+        <if test="message.sub0IdList!=null and message.sub0IdList.size != 0 ">
             and s0.sub_id in
             <foreach collection="message.sub0IdList" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
@@ -550,7 +550,7 @@
         <if test="message.eventId != null">
             and e.id=#{message.eventId}
         </if>
-        <if test="message.subIdList!=null and message.subIdList.size() != 0 ">
+        <if test="message.subIdList!=null and message.subIdList.size != 0 ">
             and s.sub_id in
             <foreach collection="message.subIdList" item="item" index="index" open="(" close=")" separator=",">
                 #{item}

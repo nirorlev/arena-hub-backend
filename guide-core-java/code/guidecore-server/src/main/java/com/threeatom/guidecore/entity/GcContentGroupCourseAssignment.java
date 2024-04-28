@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import lombok.Data;
+import org.apache.ibatis.type.JdbcType;
 
 @Data
 @TableName(value = "gc_content_group_course_assignment", autoResultMap = true)
@@ -28,8 +29,9 @@ public class GcContentGroupCourseAssignment implements Serializable {
     @TableField(exist = false)
     private GcAccess contentGroup;
 
-    @TableField(value = "is_mandatory")
-    private Boolean mandatory = false;
+    @TableField(value = "is_mandatory", jdbcType = JdbcType.SMALLINT)
+    private Integer mandatory = 0;
+
     private OffsetDateTime deadline;
 
     private OffsetDateTime createdDate = OffsetDateTime.now();

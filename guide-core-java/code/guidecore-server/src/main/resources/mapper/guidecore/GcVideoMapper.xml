@@ -265,7 +265,7 @@
         LEFT JOIN gc_subject s ON s.id=v.sub_id
         LEFT JOIN sys_file file on file.id = v.file_id
         WHERE 1=1
-        <if test="subIds != null and subIds.size() > 0">
+        <if test="subIds != null and subIds.size > 0">
         	AND s.id in
 	        <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
 	          #{subId}
@@ -287,7 +287,7 @@
         LEFT JOIN sys_file file on file.id = v.file_id
         left join gc_event event on event.video_id = v.id
         WHERE 1=1
-        <if test="subIds != null and subIds.size() > 0">
+        <if test="subIds != null and subIds.size > 0">
             AND s.sub_id in
             <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
                 #{subId}
@@ -356,7 +356,7 @@
                 LEFT JOIN gc_subject AS s ON s.id = v.sub_id
         WHERE
             uvp.user_id = #{uid}
-          <if test="subIds.size()!=0">
+          <if test="subIds.size !=0">
           AND s.sub_id IN
                 <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
                     #{subId}
@@ -510,7 +510,7 @@
         from gc_video v
         left join gc_user_save_content sc on sc.master_id = #{masterId} and sc.video_id = v.id
         <include refid="leftJoinSysFile" />
-        <if test="list.size()!=0">
+        <if test="list.size !=0">
         where v.id in
         <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -523,7 +523,7 @@
     <select id="countVideosBySubId" resultType="java.lang.Integer">
         select count(g.id) from gc_video g
         <where>
-            <if test="ids != null and ids.size() != 0">
+            <if test="ids != null and ids.size != 0">
                 AND g.sub_id in
                 <foreach collection="ids" item="subjectId" separator="," open="(" close=")">
                     #{subjectId}
@@ -539,7 +539,7 @@
         from gc_video v
         <include refid="leftJoinSysFile" />
         where 1=1
-        <if test="list != null and list.size() != 0">
+        <if test="list != null and list.size != 0">
             AND v.sub_id in
             <foreach collection="list" item="subjectId" separator="," open="(" close=")">
                 #{subjectId}
@@ -603,7 +603,7 @@
         SELECT f.video_long,v.*,s.sub_id as subjectSubId FROM gc_video v
         LEFT JOIN sys_file f on f.id=v.file_id
         LEFT JOIN gc_subject s on v.sub_id=s.id
-        <if test="videoIds.size()!=0">
+        <if test="videoIds.size !=0">
         where v.id in
         <foreach collection="videoIds" item="videoId" separator="," open="(" close=")">
             #{videoId}
@@ -659,15 +659,15 @@
         from gc_video v
         right join sys_file f on v.file_id=f.id
         where 1=2
-        <if test="videoList.size()!=0 or fileList.size() != 0">
-            <if test="videoList != null and videoList.size() != 0">
+        <if test="videoList.size !=0 or fileList.size != 0">
+            <if test="videoList != null and videoList.size != 0">
                 or (
                 v.id in
                 <foreach collection="videoList" item="videoList" separator="," open="(" close=")">
                     #{videoList}
                 </foreach>)
             </if>
-            <if test="fileList != null and fileList.size() != 0">
+            <if test="fileList != null and fileList.size != 0">
                 or(
                 f.id in
                 <foreach collection="fileList" item="fileList" separator="," open="(" close=")">

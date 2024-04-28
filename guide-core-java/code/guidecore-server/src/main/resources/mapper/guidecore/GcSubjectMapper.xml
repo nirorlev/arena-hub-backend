@@ -104,7 +104,7 @@
 						<id property="id" column="futurePreEventAnswer_id" />
 						<result property="userId" column="futurePreEventAnswer_userId" />
 						<result property="eventId" column="futurePreEventAnswer_eventId" />
-						<result property="answerJson" column="futurePreEventAnswer_answerJson" />
+						<result property="answerJson" column="futurePreEventAnswer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler" />
 						<result property="updateTime" column="futurePreEventAnswer_updateTime" />
 						<result property="createTime" column="futurePreEventAnswer_createTime"/>
 					</collection>
@@ -130,7 +130,7 @@
 					<id property="id" column="answer_id" />
 					<result property="userId" column="answer_userId" />
 					<result property="eventId" column="answer_eventId" />
-					<result property="answerJson" column="answer_answerJson" />
+					<result property="answerJson" column="answer_answerJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
 					<result property="updateTime" column="answer_updateTime" />
 					<association property="masterMessage" column="id" javaType="GcMasterMessage">
 						<id property="id" column="mm_id"/>
@@ -552,17 +552,17 @@
 		</if>
 		<if test="type==4 or (type == null and createUser != null)">
 			LEFT JOIN gc_user_access_permission uap ON coalesce(uap.may_subject_json, '[]')::jsonb @> to_jsonb(s.id::integer)
-			<if test="subIdList != null and subIdList.size()!=0">
+			<if test="subIdList != null and subIdList.size !=0">
 				and s.id not in
 				<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
 					${subIdList}
 				</foreach>
 			</if>
 		</if>
-		<if test="(type==0 or type ==2 )  and (null == subIdList or subIdList.size()==0)">
+		<if test="(type==0 or type ==2 )  and (null == subIdList or subIdList.size ==0)">
 			LEFT JOIN gc_user_access_permission uap ON coalesce(uap.sub_permission, '[]')::jsonb @> to_jsonb(s.id::integer)
 		</if>
-		<if test="(type==0 or type ==2 )and null!= subIdList and subIdList.size()!=0">
+		<if test="(type==0 or type ==2 )and null!= subIdList and subIdList.size !=0">
 			LEFT JOIN gc_user_access_permission uap ON (coalesce(uap.sub_permission, '[]')::jsonb ||
 			<foreach item="subIdList" index="index" collection="subIdList"  open="'[" separator="," close="]'">
 				${subIdList}
@@ -591,7 +591,7 @@
 		</if>
 		<if test="type == 4 ">
 			or ((s.available_type = 3 or s.available_type = 1 )
-			<if test="subIdList != null and subIdList.size()!=0">
+			<if test="subIdList != null and subIdList.size !=0">
 				and
 				s.id not in
 				<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
@@ -678,7 +678,7 @@
 		1=1
 		and s.level = 0
 		<if test="type == null and createUser == null">
-			<if test="subIdList != null and subIdList.size()!=0">
+			<if test="subIdList != null and subIdList.size !=0">
 				and s.id not in
 				<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
 					${subIdList}
@@ -704,7 +704,7 @@
 			and
 			(vNum.videoNum != 0 or eu.anNums != 0)
 		</if>
-		<if test="channelIds!=null and channelIds.size()!=0">
+		<if test="channelIds!=null and channelIds.size !=0">
 			AND s.id not in
 			<foreach item="channelId" index="index" collection="channelIds"  open="(" separator="," close=")">
 				#{channelId}
@@ -720,7 +720,6 @@
 			and s.create_user = #{createUser}
 			and s.master_id = #{masterId}
 		</if>
-		GROUP BY s.id, f.id
 		ORDER BY s.create_time desc
 	</select>
 
@@ -734,7 +733,7 @@
 		left join gc_subject sub1 on sub1.fid = s.id
 		left join gc_video v on v.sub_id = sub1.id
 		WHERE s.level = #{level} and s.state = #{state}
-		<if test="channelIds!=null and channelIds.size()!=0">
+		<if test="channelIds!=null and channelIds.size !=0">
 			AND s.id not in
 			<foreach item="channelId" index="index" collection="channelIds"  open="(" separator="," close=")">
 				#{channelId}
@@ -755,7 +754,7 @@
 		from gc_subject s
 		left join sys_file f on s.sub_img_id=f.id
 		WHERE 1=1
-		<if test="list.size()!=0">
+		<if test="list.size !=0">
 			and s.id in
 			<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
 				#{ids}
@@ -832,7 +831,7 @@
 		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
 		where subjectAssociation.master_id=#{masterId}
 		<include refid="where_gcSubject_state_not_hidden" />
-		<if test="subIds!=null and subIds.size()>0">
+		<if test="subIds!=null and subIds.size >0">
 			and subjectAssociation.subject_id in
 			<foreach item="subId" index="index" collection="subIds"  open="(" separator="," close=")">
 				#{subId}
@@ -1161,7 +1160,7 @@
 		<if test="cateParams.subjectName != null and cateParams.subjectName != ''">
 			and s.name LIKE CONCAT(CONCAT('%', #{cateParams.subjectName}),'%')
 		</if>
-		<if test="cateParams.subIds != null and cateParams.subIds.size()!=0">
+		<if test="cateParams.subIds != null and cateParams.subIds.size !=0">
 			and S.id in
 			<foreach collection="cateParams.subIds" item="subId" index="index" open="(" close=")" separator=",">
 				#{subId}
@@ -1426,7 +1425,7 @@
 		) comEvents ) eu on eu.user_id = u.id and eu.subject_id2 = s2.id
 
 		where
-		<if test="userIdList.size()!=0 and userIdList.size()!=0">
+		<if test="userIdList.size !=0 and userIdList.size !=0">
 			u.id in
 			<foreach collection="userIdList" item="userIdList" index="index" open="(" close=")" separator=",">
 				#{userIdList}
@@ -1437,7 +1436,7 @@
 				#{subList}
 			</foreach>
 		</if>
-		<if test="userIdList.size()==0 or userIdList.size()==0">
+		<if test="userIdList.size ==0 or userIdList.size ==0">
 			1=2
 		</if>
 	</select>
@@ -1456,13 +1455,13 @@
 			#{accessIds}
 		</foreach>
 		and u.id is not null
-		<if test="param.sub0Ids != null and param.sub0Ids.size()!=0">
+		<if test="param.sub0Ids != null and param.sub0Ids.size !=0">
 			and s.id in
 			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
 			</foreach>
 		</if>
-		<if test="param.subIds != null and param.subIds.size()!=0">
+		<if test="param.subIds != null and param.subIds.size !=0">
 			and s2.id in
 			<foreach collection="param.subIds" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -1558,7 +1557,7 @@
 
 		where vNum.videoNum is not null
 		and eu.anNums is not null
-		<if test="param.sub0Ids!=null and param.sub0Ids.size()!=0">
+		<if test="param.sub0Ids!=null and param.sub0Ids.size !=0">
 			and b.id in
 			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -1643,7 +1642,7 @@
 		and s.master_id = #{masterId}
 		and ua.master_id = #{masterId}
 		<include refid="where_gcSubject_state_not_hidden" />
-		<if test="subIds!=null and subIds.size()!=0">
+		<if test="subIds!=null and subIds.size !=0">
 			and s.id not in
 			<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -1667,7 +1666,7 @@
 		left join sys_file f on s.sub_img_id=f.id
 		WHERE s."level" = 0
 		<include refid="where_gcSubject_state_not_hidden" />
-		<if test="subIds!=null and subIds.size()!=0">
+		<if test="subIds!=null and subIds.size !=0">
 			and s.id not in
 			<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -1942,7 +1941,7 @@
 		WHERE
 		1 = 1
 		AND s.LEVEL = 0
-		<if test="subIdList!=null and subIdList.size()!=0">
+		<if test="subIdList!=null and subIdList.size !=0">
 			AND s.id NOT IN
 			<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
 				${subIdList}
@@ -2226,7 +2225,7 @@
 		AND (co.subject_state != 1 OR co.subject_state IS NULL)
 		GROUP BY s.id, co.subject_state, co.in_progress, uap.must_subject_json::jsonb, uap2.may_subject_json::jsonb
 		ORDER BY
-		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size()!=0">
+		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMustSubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
 		uap.must_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
@@ -2299,7 +2298,7 @@
 		GROUP BY s.id, co.subject_state, co.in_progress, uap.may_subject_json::jsonb
 		ORDER BY
 		uap.may_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
-		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
+		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMaySubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
 		((s.available_type = 1 OR s.available_type = 3) AND s.master_id = #{masterId}) DESC,
@@ -2380,7 +2379,7 @@
 		AND s.state = 1
 		AND (co.subject_state != 1 OR co.id IS NULL)
 		AND s.level = 0
-		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size()!=0">
+		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size !=0">
 			AND s.id IN
 			<foreach collection="orgMaySubjectIds" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -2445,7 +2444,7 @@
 	</select>
 
 	<select id="selectCreatedByTeamsSubject" resultMap="baseResultMap">
-		DISTINCT ON (s.id, s.published_time)
+		SELECT DISTINCT ON (s.id, s.published_time)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2463,12 +2462,12 @@
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
 		WHERE u.id = #{userId}
 		AND ua.master_id = #{masterId}
-		AND (ua.role_json::jsonb ? 'groupMember' OR ua.role_json::jsonb ? 'groupAdmin')
+		AND (ua.role_json::text like '%groupMember%' OR ua.role_json::text like '%groupAdmin%')
 		AND (s.published_user_id != #{userId} OR s.published_user_id IS NULL)
 		AND s.master_id = #{masterId}
 		AND s.state = 1
 		AND s.level = 0
-		<if test="groupCodeList!=null and groupCodeList.size()!=0">
+		<if test="groupCodeList!=null and groupCodeList.size !=0">
 			AND ac.code IN
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
@@ -2507,7 +2506,7 @@
 		AND (u.id = #{userId}
 		AND ua.master_id = #{masterId}
 		AND s.available_type != 4
-		<if test="groupCodeList!=null and groupCodeList.size()!=0">
+		<if test="groupCodeList!=null and groupCodeList.size !=0">
 			AND ac.code IN
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}

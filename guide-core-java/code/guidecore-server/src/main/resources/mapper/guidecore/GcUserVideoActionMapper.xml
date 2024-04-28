@@ -84,7 +84,7 @@
 		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
 		V.ID
 		WHERE UVA.type=3
-		<if test="subjectIds != null and subjectIds.size()!=0">
+		<if test="subjectIds != null and subjectIds.size !=0">
 			AND S.ID IN
 			<foreach item="id" collection="subjectIds" open="("
 				separator="," close=")">

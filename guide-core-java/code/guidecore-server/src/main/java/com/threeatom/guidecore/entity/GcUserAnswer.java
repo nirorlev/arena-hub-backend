@@ -1,10 +1,12 @@
 package com.threeatom.guidecore.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
@@ -36,8 +38,8 @@ public class GcUserAnswer implements Serializable {
     @JSONField(deserialize = false)
     private Integer userId;
 
-    //    @TableField(typeHandler = FastJsonArrayTypeHandler.class)
-    private String answerJson;
+    @TableField(value = "answer_json", typeHandler = FastJsonObjectTypeHandler.class)
+    private JSONObject answerJson;
 
     private Integer masterId;
 

@@ -9,7 +9,7 @@
         <result property="firstName" column="first_name"/>
         <result property="avatarUrl" column="avatar_url"/>
         <result property="saveType" column="save_type"/>
-        <result property="answerJson" column="answer_json"/>
+        <result property="answerJson" column="answer_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
         <result property="updateTime" column="update_time"/>
         <result property="createTime" column="create_time"/>
     </resultMap>
@@ -40,7 +40,7 @@
         FROM
         gc_user_answer AS ua
         WHERE 1=1
-        <if test="eventIds != null and eventIds.size() > 0">
+        <if test="eventIds != null and eventIds.size > 0">
 	        AND ua.event_id IN
 	        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
 	            #{eventId}

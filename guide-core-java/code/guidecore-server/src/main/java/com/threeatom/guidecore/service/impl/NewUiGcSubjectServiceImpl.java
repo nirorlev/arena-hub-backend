@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.guidecore.util.RequestUtil;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -130,7 +131,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 
-		String masterId = request.getHeader("masterId");
+		Integer masterId = RequestUtil.getMasterId(request).get();
  //		ApiAssert.notEmpty(masterId, "没有找到masterId");
 		params.put("masterId", masterId);
 		Page<GcSubject> page = PageHelper.startPage(pageNum, pageSize, true);
@@ -486,6 +487,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			if (idObj == null) {
 				return new PageInfo<>();//没有返回null
 			}
+			params.put("fid", Integer.parseInt(idObj.toString()));
 			//查询课程信息
 			page = listByFid(params, request);
 			//加载视频信息 视频列表单独加载

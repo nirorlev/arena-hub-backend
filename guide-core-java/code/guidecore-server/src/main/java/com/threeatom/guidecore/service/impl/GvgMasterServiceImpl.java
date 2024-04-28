@@ -1164,7 +1164,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		if(params.get("fid")==null) {
 			throw new SystemException(I18NUtil.get("一级课程id fid不可空"));
 		}
-		GcSubject subject=subjectService.getById(params.get("fid").toString());
+		GcSubject subject=subjectService.getById(Integer.parseInt(params.get("fid").toString()));
 		SysFile imgFile = sysFileService.getById(subject.getSubImgId());
 		sysFileService.getResFullUrl(imgFile,request);
 		subject.setSubImgFile(imgFile);
@@ -2090,10 +2090,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		answer.setMasterId(masterId);
 		answer.setEventId(eventId);
 		answer.setUserId(user.getId());
-		answer.setAnswerJson(answerJsonString);
+		answer.setAnswerJson(JSONObject.parseObject(answerJsonString));
 
 
-		answer.setAnswerJson(answerJsonString);
 		if (!userAnswerService.saveUserAnswer(answer)) {
 			throw new SystemException("没有成功！");
 		}
