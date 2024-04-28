@@ -1,5 +1,6 @@
 package com.threeatom.common.validation;
 
+import com.threeatom.common.validation.annotation.IntTypeConstraint;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

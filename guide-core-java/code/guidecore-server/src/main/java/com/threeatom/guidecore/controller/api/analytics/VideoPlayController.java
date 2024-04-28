@@ -5,10 +5,9 @@ import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
-import com.threeatom.guidecore.service.VideoPlaySessionService;
 import com.threeatom.guidecore.util.RequestUtil;
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +30,7 @@ public class VideoPlayController {
     @PostMapping(value = "/{videoId}/play-segments", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalyticsResponseDto> createVideoPlay(
         @PathVariable("videoId") Integer videoId,
-        @NotNull @RequestBody VideoPlayDto videoPlayDto,
+        @Valid @RequestBody VideoPlayDto videoPlayDto,
         HttpServletRequest request) {
 
         GcUser currentUser = userService.getCurrentUser(request);

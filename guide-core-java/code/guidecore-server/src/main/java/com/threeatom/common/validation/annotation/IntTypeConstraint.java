@@ -1,5 +1,6 @@
-package com.threeatom.common.validation;
+package com.threeatom.common.validation.annotation;
 
+import com.threeatom.common.validation.IntTypeValidator;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

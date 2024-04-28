@@ -1,11 +1,15 @@
 package com.threeatom.common.exception;
 
 import com.threeatom.common.controller.Message;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,7 +19,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class DefaultExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
-    public DefaultExceptionHandler() {}
+    public DefaultExceptionHandler() {
+    }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -46,8 +51,8 @@ public class DefaultExceptionHandler {
     public Message handlerAuthorizationException(AuthorizationException e) {
         LOGGER.error("身份错误异常：", e);
         return e instanceof UnauthorizedException
-                ? (new Message()).error(HttpStatus.UNAUTHORIZED.value(), "您没有权限访问该内容")
-                : (new Message()).error(607, "需要实名认证");
+            ? (new Message()).error(HttpStatus.UNAUTHORIZED.value(), "您没有权限访问该内容")
+            : (new Message()).error(607, "需要实名认证");
     }
 
     @ResponseBody
@@ -55,5 +60,24 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(VideoPlaySegmentNotFoundException.class)
     public Message handlerVideoPlaySegmentNotFoundException(VideoPlaySegmentNotFoundException e) {
         return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Message handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            if (error instanceof FieldError) {
+                String fieldName = ((FieldError) error).getField();
+                String errorMessage = error.getDefaultMessage();
+                errors.put(fieldName, errorMessage);
+            } else {
+                String objectName = error.getObjectName();
+                String errorMessage = error.getDefaultMessage();
+                errors.put(objectName, errorMessage);
+            }
+        });
+
+        return new Message().validationError("Validation error", errors);
     }
 }
