@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.Data;
 
@@ -28,6 +28,6 @@ public class VideoPlaySession implements Serializable {
     @TableField(exist = false)
     private GcMaster master;
 
-    private LocalDateTime createTime = LocalDateTime.now();
-    private LocalDateTime updateTime = LocalDateTime.now();
+    private OffsetDateTime createTime = OffsetDateTime.now();
+    private OffsetDateTime updateTime = OffsetDateTime.now();
 }

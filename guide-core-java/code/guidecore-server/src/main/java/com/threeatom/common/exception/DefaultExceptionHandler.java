@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.exception;
 
 import com.threeatom.common.controller.Message;
@@ -18,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class DefaultExceptionHandler {
-    private static Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
     public DefaultExceptionHandler() {}
 
@@ -26,14 +21,14 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({RuntimeException.class})
     public Message handlerException(Exception e) {
-        return (new Message()).commonError(505, "Sorry, something is wrong!", e);
+        return (new Message()).commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
     }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler({PermitException.class})
     public Message permitException(Exception e) {
-        return (new Message()).commonError(510, "No permission for this!", e);
+        return (new Message()).commonError(HttpStatus.NOT_EXTENDED.value(), "No permission for this!", e);
     }
 
     @ResponseBody
@@ -51,7 +46,14 @@ public class DefaultExceptionHandler {
     public Message handlerAuthorizationException(AuthorizationException e) {
         LOGGER.error("身份错误异常：", e);
         return e instanceof UnauthorizedException
-                ? (new Message()).error(401, "您没有权限访问该内容")
+                ? (new Message()).error(HttpStatus.UNAUTHORIZED.value(), "您没有权限访问该内容")
                 : (new Message()).error(607, "需要实名认证");
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(VideoPlaySegmentNotFoundException.class)
+    public Message handlerVideoPlaySegmentNotFoundException(VideoPlaySegmentNotFoundException e) {
+        return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
     }
 }

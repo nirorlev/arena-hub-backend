@@ -6,6 +6,8 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySessionMapper;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,5 +27,10 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         save(videoPlaySession);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<VideoPlaySession> getVideoPlaySession(UUID sessionId) {
+        return Optional.ofNullable(getById(sessionId));
+    }
 
 }

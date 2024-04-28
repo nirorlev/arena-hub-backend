@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.VideoPlaySegmentMapper">
+
+    <resultMap id="baseResultMap" type="VideoPlaySegment">
+        <id property="id.segmentId" column="segment_id"/>
+        <id property="id.sessionId" column="session_id" javaType="java.util.UUID" />
+        <result property="startWatchTimeInSeconds" column="startWatchTime"/>
+        <result property="endWatchTimeInSeconds" column="endWatchTime"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getSegment" resultMap="baseResultMap" parameterType="VideoPlaySegmentId">
+        SELECT segment_id, session_id, lower(segment) as startWatchTime, upper(segment) as endWatchTime, create_time, update_time
+        FROM video_play_segment
+        WHERE session_id = #{sessionId} AND segment_id = #{segmentId};
+    </select>
+
+    <insert id="saveSegment" parameterType="VideoPlaySegment">
+        INSERT INTO video_play_segment (segment_id, session_id, segment, create_time, update_time)
+        VALUES (#{id.segmentId}, #{id.sessionId}, int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds}), #{createTime}, #{updateTime});
+    </insert>
+
+    <update id="updateSegment" parameterType="VideoPlaySegment">
+        UPDATE video_play_segment
+        SET segment = int4range(lower(segment), #{endWatchTimeInSeconds}), update_time = #{updateTime}
+        WHERE session_id = #{id.sessionId} AND segment_id = #{id.segmentId} AND NOT segment @> int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds});
+    </update>
+</mapper>

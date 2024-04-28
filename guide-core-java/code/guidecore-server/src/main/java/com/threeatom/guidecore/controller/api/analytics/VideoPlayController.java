@@ -21,15 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping(value = "/api/v2/video", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v2/videos", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class VideoPlayController {
 
     private final GcUserService userService;
-    private final VideoPlaySessionService videoPlaySessionService;
     private final VideoPlaySegmentService videoPlaySegmentService;
 
-    @PostMapping(value = "/{videoId}/play-segment", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/{videoId}/play-segments", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalyticsResponseDto> createVideoPlay(
         @PathVariable("videoId") Integer videoId,
         @NotNull @RequestBody VideoPlayDto videoPlayDto,
@@ -38,8 +37,7 @@ public class VideoPlayController {
         GcUser currentUser = userService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 
-        videoPlaySessionService.saveVideoPlaySession(videoPlayDto, currentUser, videoId, masterId);
-        videoPlaySegmentService.saveVideoPlaySegment(videoPlayDto);
+        videoPlaySegmentService.saveVideoPlaySegment(videoPlayDto, currentUser, videoId, masterId);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
