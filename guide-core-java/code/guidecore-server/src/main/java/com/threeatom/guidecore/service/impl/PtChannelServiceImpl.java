@@ -12,6 +12,7 @@ import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -651,5 +652,30 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         QueryWrapper<PtChannel> wrapper = new QueryWrapper<>();
         wrapper.eq("channel_slug", ChannelSlug);
         return this.baseMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public List<PtChannel> getChannels(OffsetDateTime tillTime, Integer masterId) {
+        if (tillTime == null) {
+            tillTime = OffsetDateTime.now();
+        }
+
+        QueryWrapper<PtChannel> wrapper = new QueryWrapper<>();
+        wrapper.lt("create_time", tillTime);
+        wrapper.eq("master_id", masterId);
+        return baseMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<PtChannel> getChannels(List<Integer> ids, OffsetDateTime tillDate) {
+        if (tillDate == null) {
+            tillDate = OffsetDateTime.now();
+        }
+
+        QueryWrapper<PtChannel> wrapper = new QueryWrapper<>();
+        wrapper.in("id", ids);
+        wrapper.lt("create_time", tillDate);
+
+        return baseMapper.selectList(wrapper);
     }
 }

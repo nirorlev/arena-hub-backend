@@ -1,15 +1,22 @@
 package com.threeatom.guidecore.controller.api.analytics;
 
+import com.threeatom.guidecore.dto.response.analytic.AnalyticsCountDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
+import com.threeatom.guidecore.facade.AnalyticsFacade;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.util.RequestUtil;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,18 +26,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/v2/analytics", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AnalyticsController {
 
-    @GetMapping
-    public ResponseEntity<AnalyticsResponseDto> getAnalytics(
-        @NotNull @RequestParam("data") String data,
-        @NotNull @RequestParam(value = "start") String start,
-        @RequestParam(value = "end", required = false) String end) {
+    private final GcUserService userService;
+    private final AnalyticsFacade analyticsFacade;
 
-        return ResponseEntity.ok().body(
-            getAnalyticsResponseDto(
-                data, LocalDateTime.parse(start), end == null ? LocalDateTime.now() : LocalDateTime.parse(end)));
+    @GetMapping("/channel-count")
+    public ResponseEntity<AnalyticsCountDto> channelCount(
+        @RequestParam(value = "start") @NotNull OffsetDateTime start,
+        @RequestParam(value = "end", required = false) OffsetDateTime end,
+        @RequestParam(value = "contentGroups", required = false) List<Integer> contentGroupIds,
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        return ResponseEntity.ok(
+            analyticsFacade.channelsCount(contentGroupIds, start, end, masterId, userService.getCurrentUser(request)));
     }
 
     private AnalyticsResponseDto getAnalyticsResponseDto(String data, LocalDateTime start, LocalDateTime end) {

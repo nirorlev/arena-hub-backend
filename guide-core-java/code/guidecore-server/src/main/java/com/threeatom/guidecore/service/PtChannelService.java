@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
+import java.time.OffsetDateTime;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
@@ -50,4 +51,7 @@ public interface PtChannelService extends IService<PtChannel> {
             Integer userId, HttpServletRequest request, Integer masterId);
 
     PtChannel getbyChannelSlug(String channelName);
+
+    List<PtChannel> getChannels(OffsetDateTime tillTime, Integer masterId);
+    List<PtChannel> getChannels(List<Integer> contentGroupIds, OffsetDateTime tillDate);
 }
