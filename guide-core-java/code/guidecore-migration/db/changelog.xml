@@ -4,4 +4,51 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="add-video-play-session" author="vprokh">
+        <createTable tableName="video_play_session">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="video_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="master_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_user_id_fk" baseTableName="video_play_session" baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_master_id_fk" baseTableName="video_play_session" baseColumnNames="master_id" referencedTableName="gc_master" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_video_id_fk" baseTableName="video_play_session" baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id" onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="add-video-play-segment" author="vprokh">
+        <createTable tableName="video_play_segment">
+            <column name="segment_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="segment" type="int4range">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey constraintName="video_play_segment_pk" columnNames="segment_id, session_id" tableName="video_play_segment"/>
+        <addForeignKeyConstraint constraintName="video_play_segment_video_play_session_id_fk" baseTableName="video_play_segment" baseColumnNames="session_id" referencedTableName="video_play_session" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>
