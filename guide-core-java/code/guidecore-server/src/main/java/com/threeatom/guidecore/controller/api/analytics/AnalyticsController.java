@@ -68,6 +68,17 @@ public class AnalyticsController {
             analyticsFacade.playlistCount(start, end, masterId, userService.getCurrentUser(request)));
     }
 
+    @GetMapping("/video-view-count")
+    public ResponseEntity<AnalyticsCountDto> videoViewCount(
+        @RequestParam(value = "start") @NotNull OffsetDateTime start,
+        @RequestParam(value = "end", required = false) OffsetDateTime end,
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        return ResponseEntity.ok(
+            analyticsFacade.videoViewCount(start, end, masterId, userService.getCurrentUser(request)));
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(String data, LocalDateTime start, LocalDateTime end) {
         Duration duration = Duration.between(start, end);
         long minutes = duration.toMinutes();

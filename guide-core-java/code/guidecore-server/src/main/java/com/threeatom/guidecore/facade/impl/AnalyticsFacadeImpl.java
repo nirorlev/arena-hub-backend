@@ -8,6 +8,7 @@ import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelService;
+import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     private final GcVideoService videoService;
     private final GcAccessService accessService;
     private final GcUserSaveFolderService userSaveFolderService;
+    private final VideoPlaySessionService videoPlaySessionService;
 
     @Override
     public AnalyticsCountDto channelsCount(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end,
@@ -50,6 +52,15 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
                                            GcUser currentUser) {
         int startTimeVideoCount = userSaveFolderService.countPlaylists(start, masterId);
         int endTimeVideoCount = userSaveFolderService.countPlaylists(end, masterId);
+
+        return getAnalyticsCountDto(endTimeVideoCount, startTimeVideoCount);
+    }
+
+    @Override
+    public AnalyticsCountDto videoViewCount(OffsetDateTime start, OffsetDateTime end, Integer masterId,
+                                            GcUser currentUser) {
+        int startTimeVideoCount = videoPlaySessionService.countVideoPlaySessions(start, masterId);
+        int endTimeVideoCount = videoPlaySessionService.countVideoPlaySessions(end, masterId);
 
         return getAnalyticsCountDto(endTimeVideoCount, startTimeVideoCount);
     }

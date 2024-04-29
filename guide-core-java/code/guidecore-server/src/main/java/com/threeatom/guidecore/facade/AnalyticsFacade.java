@@ -14,4 +14,6 @@ public interface AnalyticsFacade {
     AnalyticsCountDto videoCount(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
 
     AnalyticsCountDto playlistCount(OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
+
+    AnalyticsCountDto videoViewCount(OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
 }
