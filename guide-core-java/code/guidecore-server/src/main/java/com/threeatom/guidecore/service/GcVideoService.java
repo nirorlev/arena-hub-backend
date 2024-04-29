@@ -10,6 +10,7 @@ import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +18,7 @@ import org.springframework.scheduling.annotation.Async;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author qiaoxide
@@ -61,15 +62,17 @@ public interface GcVideoService extends GcVideoServiceBll {
     Long sumVideoLongByIdUser(List<Integer> videoIds, Integer userId);
 
     /**
-     * 	根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
+     * 根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
+     *
      * @param subjectIds
      * @return
      */
     Message getVideosBySubIds(
-            Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
+        Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
     /**
      * 根据视频id和用户id查询播放的时长
+     *
      * @param videoIds
      * @param userId
      * @return
@@ -86,35 +89,37 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     /**
      * 根据一级课id集合查询视频并返回二级课程id
+     *
      * @param subjectIds
      * @param userId
      * @return
      */
     List<GcVideo> getVideosBySubjectIds0(
-            List<Integer> subjectIds,
-            Integer userId,
-            Integer masterId,
-            HttpServletRequest request,
-            Integer envFlag);
+        List<Integer> subjectIds,
+        Integer userId,
+        Integer masterId,
+        HttpServletRequest request,
+        Integer envFlag);
 
     List<GcVideo> getVideoIdListBySubId0(
-            List<Integer> subIds,
-            Integer userId,
-            Integer masterId,
-            HttpServletRequest request,
-            Integer envFlag);
+        List<Integer> subIds,
+        Integer userId,
+        Integer masterId,
+        HttpServletRequest request,
+        Integer envFlag);
 
     List<GcVideo> getVideoIdListByAccessId0(
-            List<Integer> accessPermissionId,
-            List<Integer> userId,
-            Integer masterId,
-            HttpServletRequest request);
+        List<Integer> accessPermissionId,
+        List<Integer> userId,
+        Integer masterId,
+        HttpServletRequest request);
 
     List<GcVideo> getVideoListByUserIdAndSubject(
-            List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
+        List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 
     /**
      * 分页查询视频
+     *
      * @param params
      * @param request
      * @return
@@ -122,17 +127,17 @@ public interface GcVideoService extends GcVideoServiceBll {
     PageInfo<GcVideo> page(Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
-            String videoName, String subName, Integer masterId);
+        String videoName, String subName, Integer masterId);
 
     List<GcVideo> selectVideoInfoBySubId(List<Integer> subId);
 
     List<GcVideo> buildVideoInfo(
-            Integer userId,
-            SysSystem sys,
-            List<GcVideo> gcVideos,
-            Integer masterId,
-            HttpServletRequest request,
-            Integer envFlag);
+        Integer userId,
+        SysSystem sys,
+        List<GcVideo> gcVideos,
+        Integer masterId,
+        HttpServletRequest request,
+        Integer envFlag);
 
     @Async
     void asyncMethodSaveVideo(GcVideo video, HttpServletRequest request);
@@ -149,12 +154,16 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> getVideoLongListByVideoId(List<Integer> subIds);
 
     List<GcVideo> buildVideoInfoByList(
-            List<Integer> userIdList,
-            List<GcVideo> gcVideos,
-            Integer masterId,
-            Boolean isAccessId,
-            List<Integer> permissionList,
-            HttpServletRequest request);
+        List<Integer> userIdList,
+        List<GcVideo> gcVideos,
+        Integer masterId,
+        Boolean isAccessId,
+        List<Integer> permissionList,
+        HttpServletRequest request);
+
+    int countVideosTillTime(OffsetDateTime start, Integer masterId);
+
+    int countVideosByContentGroupIds(List<Integer> contentGroupIds, OffsetDateTime tillTime);
 
     List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList);
 

@@ -10,4 +10,6 @@ public interface AnalyticsFacade {
 
     AnalyticsCountDto channelsCount(List<Integer> contentGroupIds, @NotNull OffsetDateTime start, OffsetDateTime end,
                                     Integer masterId, GcUser currentUser);
+
+    AnalyticsCountDto videoCount(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
 }

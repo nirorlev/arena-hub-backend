@@ -741,4 +741,25 @@
     and s1.id = #{subjectId}
     </select>
 
+    <select id="countVideosByMasterIdAndTime" resultType="Integer">
+        SELECT count(v.id) + count(vt.id) as video_count
+        FROM gc_content_group_course_assignment cgca
+        JOIN gc_access a ON cgca.content_group_id = a.id
+        JOIN gc_subject st ON cgca.course_id = st.sub_id
+        LEFT JOIN gc_video v ON v.sub_id = cgca.course_id
+        LEFT JOIN gc_video vt ON vt.sub_id = st.id
+        WHERE a.master_id = #{masterId} AND (v.create_time &lt;= #{tillTime} OR vt.create_time &lt;= #{tillTime})
+    </select>
+
+    <select id="countVideosByContentGroupIds" resultType="Integer">
+        SELECT  count(v.id) + count(vt.id) as video_count
+        FROM gc_content_group_course_assignment cgca
+        JOIN gc_subject st ON cgca.course_id = st.sub_id
+        LEFT JOIN gc_video v ON v.sub_id = cgca.course_id
+        LEFT JOIN gc_video vt ON vt.sub_id = st.id
+        WHERE (v.create_time &lt;= #{tillTime} OR vt.create_time &lt;= #{tillTime}) AND cgca.content_group_id IN
+        <foreach collection="contentGroupIds" item="contentGroupId" open="(" close=")" separator=",">
+            #{contentGroupId}
+        </foreach>
+    </select>
 </mapper>

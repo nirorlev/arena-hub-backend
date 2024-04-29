@@ -1,14 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.awt.*;
-import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.alibaba.fastjson.JSONArray;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
@@ -18,7 +16,6 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysCaptionRequest;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -687,6 +684,24 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			map = videoLongVos.stream().collect(Collectors.toMap(videoLongVo::getSubId,videoLongVo -> videoLongVo, (key1, key2) -> key2, LinkedHashMap::new));
 		}
 		return map;
+	}
+
+	@Override
+	public int countVideosTillTime(OffsetDateTime tillTime, Integer masterId) {
+		if (tillTime == null){
+			tillTime = OffsetDateTime.now();
+		}
+
+		return this.baseMapper.countVideosByMasterIdAndTime(tillTime, masterId);
+	}
+
+	@Override
+	public int countVideosByContentGroupIds(List<Integer> contentGroupIds, OffsetDateTime tillTime) {
+		if (tillTime == null){
+			tillTime = OffsetDateTime.now();
+		}
+
+		return this.baseMapper.countVideosByContentGroupIds(contentGroupIds, tillTime);
 	}
 
 	@Override

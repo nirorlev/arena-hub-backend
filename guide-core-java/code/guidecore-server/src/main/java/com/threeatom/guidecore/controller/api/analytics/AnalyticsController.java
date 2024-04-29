@@ -45,6 +45,18 @@ public class AnalyticsController {
             analyticsFacade.channelsCount(contentGroupIds, start, end, masterId, userService.getCurrentUser(request)));
     }
 
+    @GetMapping("/video-count")
+    public ResponseEntity<AnalyticsCountDto> videoCount(
+        @RequestParam(value = "start") @NotNull OffsetDateTime start,
+        @RequestParam(value = "end", required = false) OffsetDateTime end,
+        @RequestParam(value = "contentGroups", required = false) List<Integer> contentGroupIds,
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        return ResponseEntity.ok(
+            analyticsFacade.videoCount(contentGroupIds, start, end, masterId, userService.getCurrentUser(request)));
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(String data, LocalDateTime start, LocalDateTime end) {
         Duration duration = Duration.between(start, end);
         long minutes = duration.toMinutes();

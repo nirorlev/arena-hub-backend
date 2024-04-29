@@ -5,6 +5,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelService;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
     private final PtChannelService channelService;
+    private final GcVideoService videoService;
     private final GcAccessService accessService;
 
     @Override
@@ -31,9 +33,34 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return channelsCountForContentGroups(contentGroupIds, start, end, masterId);
     }
 
+    @Override
+    public AnalyticsCountDto videoCount(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end,
+                                        Integer masterId, GcUser currentUser) {
+        if (CollectionUtils.isEmpty(contentGroupIds)) {
+            return videoCountForAllContentGroups(start, end, masterId);
+        }
+
+        return videoCountForContentGroups(contentGroupIds, start, end);
+    }
+
+    private AnalyticsCountDto videoCountForContentGroups(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end) {
+        int startTimeVideoCount = videoService.countVideosByContentGroupIds(contentGroupIds, start);
+        int endTimeVideoCount = videoService.countVideosByContentGroupIds(contentGroupIds, end);
+
+        return getAnalyticsCountDto(endTimeVideoCount, startTimeVideoCount);
+    }
+
+    private AnalyticsCountDto videoCountForAllContentGroups(OffsetDateTime start, OffsetDateTime end,
+                                                            Integer masterId) {
+        int startTimeVideoCount = videoService.countVideosTillTime(start, masterId);
+        int endTimeVideoCount = videoService.countVideosTillTime(end, masterId);
+
+        return getAnalyticsCountDto(endTimeVideoCount, startTimeVideoCount);
+    }
+
     private AnalyticsCountDto channelsCountForContentGroups(List<Integer> contentGroupIds, OffsetDateTime start,
                                                             OffsetDateTime end, Integer masterId) {
-        List< GcAccess> contentGroups = accessService.selectMasterIdAndIds(masterId, contentGroupIds);
+        List<GcAccess> contentGroups = accessService.selectMasterIdAndIds(masterId, contentGroupIds);
         if (CollectionUtils.isEmpty(contentGroups)) {
             return getAnalyticsCountDto(0, 0);
         }
