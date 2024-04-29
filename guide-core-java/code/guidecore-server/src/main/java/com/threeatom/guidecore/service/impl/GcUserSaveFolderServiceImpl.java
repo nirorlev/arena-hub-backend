@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -212,5 +213,18 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Override
     public GcUserSaveFolder getPlayListMetaConfig(Integer folderId,Integer fileId) {
         return this.baseMapper.getPlayListMetaConfig(folderId,fileId);
+    }
+
+    @Override
+    public int countPlaylists(OffsetDateTime tillTime, Integer masterId) {
+        if (null == tillTime) {
+            tillTime = OffsetDateTime.now();
+        }
+
+        QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("master_id", masterId);
+        queryWrapper.le("create_time", tillTime);
+
+        return this.count(queryWrapper);
     }
 }
