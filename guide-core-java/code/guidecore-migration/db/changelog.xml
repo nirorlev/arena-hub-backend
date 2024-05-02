@@ -65,5 +65,10 @@
             <column name="value" value="false"/>
         </insert>
     </changeSet>
+    <changeSet id="test-migration-schema" author="vprokh">
+        <createTable tableName="test_migration">
+            <column name="id" type="uuid" />
+        </createTable>
+    </changeSet>
 
 </databaseChangeLog>
