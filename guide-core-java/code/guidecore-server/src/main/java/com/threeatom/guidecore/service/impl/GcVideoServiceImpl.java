@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.time.OffsetDateTime;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -687,21 +689,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public int countVideosTillTime(OffsetDateTime tillTime, Integer masterId) {
-		if (tillTime == null){
-			tillTime = OffsetDateTime.now();
-		}
-
-		return this.baseMapper.countVideosByMasterIdAndTime(tillTime, masterId);
-	}
-
-	@Override
-	public int countVideosByContentGroupIds(List<Integer> contentGroupIds, OffsetDateTime tillTime) {
-		if (tillTime == null){
-			tillTime = OffsetDateTime.now();
-		}
-
-		return this.baseMapper.countVideosByContentGroupIds(contentGroupIds, tillTime);
+	public List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+		String intervalStep = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
+		return this.baseMapper.getVideoCountAnalytics(filter, intervalStep, masterId);
 	}
 
 	@Override

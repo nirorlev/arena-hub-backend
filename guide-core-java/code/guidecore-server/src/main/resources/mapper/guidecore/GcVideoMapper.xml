@@ -741,25 +741,29 @@
     and s1.id = #{subjectId}
     </select>
 
-    <select id="countVideosByMasterIdAndTime" resultType="Integer">
-        SELECT count(v.id) + count(vt.id) as video_count
-        FROM gc_content_group_course_assignment cgca
-        JOIN gc_access a ON cgca.content_group_id = a.id
-        JOIN gc_subject st ON cgca.course_id = st.sub_id
-        LEFT JOIN gc_video v ON v.sub_id = cgca.course_id
-        LEFT JOIN gc_video vt ON vt.sub_id = st.id
-        WHERE a.master_id = #{masterId} AND (v.create_time &lt;= #{tillTime} OR vt.create_time &lt;= #{tillTime})
-    </select>
-
-    <select id="countVideosByContentGroupIds" resultType="Integer">
-        SELECT  count(v.id) + count(vt.id) as video_count
-        FROM gc_content_group_course_assignment cgca
-        JOIN gc_subject st ON cgca.course_id = st.sub_id
-        LEFT JOIN gc_video v ON v.sub_id = cgca.course_id
-        LEFT JOIN gc_video vt ON vt.sub_id = st.id
-        WHERE (v.create_time &lt;= #{tillTime} OR vt.create_time &lt;= #{tillTime}) AND cgca.content_group_id IN
-        <foreach collection="contentGroupIds" item="contentGroupId" open="(" close=")" separator=",">
-            #{contentGroupId}
-        </foreach>
-    </select>
+    <select id="getVideoCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT DISTINCT time_bucket, COUNT(v.id) OVER (ORDER BY time_bucket) AS value
+        <if test="filter.trendOnly">
+            FROM (
+            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+            UNION
+            SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+        </if>
+        <if test="!filter.trendOnly">
+            FROM generate_series(#{filter.start}, #{filter.end}, #{interval}::interval) AS time_bucket
+        </if>
+        LEFT JOIN gc_video v ON
+        <if test="!filter.trendOnly">
+            v.create_time >= time_bucket AND v.create_time  &lt;  time_bucket + #{interval}::interval
+        </if>
+        <if test="filter.trendOnly">
+            v.create_time &lt;= time_bucket
+        </if>
+        LEFT JOIN gc_subject s ON v.sub_id = s.id
+        LEFT JOIN gc_content_group_course_assignment cgca ON s.sub_id = cgca.course_id
+        LEFT JOIN gc_access a ON cgca.content_group_id = a.id AND a.master_id = #{masterId}
+        GROUP BY time_bucket, v.id
+        ORDER BY time_bucket;
+</select>
 </mapper>

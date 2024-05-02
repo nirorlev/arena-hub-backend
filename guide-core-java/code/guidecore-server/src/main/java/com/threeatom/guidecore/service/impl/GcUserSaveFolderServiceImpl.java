@@ -1,31 +1,35 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
+import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import com.threeatom.utils.AnalyticsStepUtil;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
-import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
-import com.threeatom.guidecore.service.GcUserSaveFolderService;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -216,15 +220,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public int countPlaylists(OffsetDateTime tillTime, Integer masterId) {
-        if (null == tillTime) {
-            tillTime = OffsetDateTime.now();
-        }
-
-        QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("master_id", masterId);
-        queryWrapper.le("create_time", tillTime);
-
-        return this.count(queryWrapper);
+    public List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        String stepInterval = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
+        return baseMapper.getPlaylistCountAnalytics(filter, stepInterval, masterId);
     }
 }

@@ -4,13 +4,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -161,9 +162,7 @@ public interface GcVideoService extends GcVideoServiceBll {
         List<Integer> permissionList,
         HttpServletRequest request);
 
-    int countVideosTillTime(OffsetDateTime start, Integer masterId);
-
-    int countVideosByContentGroupIds(List<Integer> contentGroupIds, OffsetDateTime tillTime);
+    List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList);
 

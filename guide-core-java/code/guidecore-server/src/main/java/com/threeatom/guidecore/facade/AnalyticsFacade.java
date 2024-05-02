@@ -1,19 +1,16 @@
 package com.threeatom.guidecore.facade;
 
-import com.threeatom.guidecore.dto.response.analytic.AnalyticsCountDto;
-import com.threeatom.guidecore.entity.GcUser;
-import java.time.OffsetDateTime;
-import java.util.List;
-import javax.validation.constraints.NotNull;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 
 public interface AnalyticsFacade {
+    AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsCountDto channelsCount(List<Integer> contentGroupIds, @NotNull OffsetDateTime start, OffsetDateTime end,
-                                    Integer masterId, GcUser currentUser);
+    AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsCountDto videoCount(List<Integer> contentGroupIds, OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
+    AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsCountDto playlistCount(OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
+    AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsCountDto videoViewCount(OffsetDateTime start, OffsetDateTime end, Integer masterId, GcUser currentUser);
+    AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

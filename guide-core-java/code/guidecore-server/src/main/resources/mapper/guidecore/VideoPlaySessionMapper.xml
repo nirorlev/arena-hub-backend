@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.VideoPlaySessionMapper">
+
+    <select id="getVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, COUNT(video_play_session.*) OVER (ORDER BY time_bucket) AS value
+        <if test="filter.trendOnly">
+            FROM (
+            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+            UNION
+            SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+        </if>
+        <if test="!filter.trendOnly">
+            FROM generate_series(#{filter.start}, #{filter.end}, #{interval}::interval) AS time_bucket
+        </if>
+        LEFT JOIN video_play_session ON
+        <if test="!filter.trendOnly">
+            create_time >= time_bucket AND create_time &lt; time_bucket + #{interval}::interval
+        </if>
+        <if test="filter.trendOnly">
+            create_time &lt;= time_bucket
+        </if>
+            AND master_id = #{masterId}
+        GROUP BY time_bucket, video_play_session
+        ORDER BY time_bucket;
+    </select>
+
+</mapper>

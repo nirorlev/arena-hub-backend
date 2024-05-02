@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
@@ -33,4 +35,9 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
 
     GcUserSaveFolder getPlayListMetaConfig(
             @Param("folderId") Integer folderId, @Param("fileId") Integer fileId);
+
+    List<DbAnalyticsResultDto> getPlaylistCountAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("interval") String interval,
+        @Param("masterId") Integer masterId);
 }

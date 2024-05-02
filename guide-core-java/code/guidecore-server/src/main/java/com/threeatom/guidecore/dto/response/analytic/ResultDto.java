@@ -2,7 +2,7 @@ package com.threeatom.guidecore.dto.response.analytic;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
@@ -15,5 +15,5 @@ public class ResultDto {
     private MetricDto metric;
 
     @ApiModelProperty(value = "List of values")
-    private List<MetricValuePairDto<LocalDateTime, String>> values;
+    private List<MetricValuePairDto<OffsetDateTime, String>> values;
 }

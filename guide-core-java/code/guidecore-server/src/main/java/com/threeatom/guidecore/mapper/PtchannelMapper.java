@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import java.util.HashMap;
@@ -96,4 +98,9 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
             @Param("channelIds") List<Integer> channelIds,
             @Param("masterId") Integer masterId,
             @Param("userId") Integer userId);
+
+    List<DbAnalyticsResultDto> getChannelCountAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("interval") String interval,
+        @Param("masterId") Integer masterId);
 }

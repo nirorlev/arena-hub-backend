@@ -1,8 +1,9 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
-import java.time.OffsetDateTime;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.ibatis.annotations.Param;
@@ -38,5 +39,5 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId);
 
-    int countPlaylists(OffsetDateTime tillTime, Integer masterId);
+    List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

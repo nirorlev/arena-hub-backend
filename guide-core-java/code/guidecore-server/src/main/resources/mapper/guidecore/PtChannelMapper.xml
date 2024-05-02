@@ -989,4 +989,28 @@
         order by likeNum desc ,count(play.id) desc,file_update_time desc
     </select>
 
+    <select id="getChannelCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT DISTINCT time_bucket, COUNT(pt_channel.*) OVER (ORDER BY time_bucket) AS count
+        <if test="filter.trendOnly">
+            FROM (
+            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+            UNION
+            SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+        </if>
+        <if test="!filter.trendOnly">
+            FROM generate_series(#{filter.start}, #{filter.end}, #{interval}::interval) AS time_bucket
+        </if>
+            LEFT JOIN pt_channel ON
+        <if test="!filter.trendOnly">
+                create_time >= time_bucket AND create_time &lt; time_bucket + #{interval}::interval
+        </if>
+        <if test="filter.trendOnly">
+                create_time &lt;= time_bucket
+        </if>
+        AND master_id = #{masterId}
+        GROUP BY time_bucket, pt_channel
+        ORDER BY time_bucket;
+    </select>
+
 </mapper>
