@@ -154,21 +154,17 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             if (userAccessIds.size() > 0)
                 userAccessService.updateUserAccessPermission(userAccessIds, access);
         }
-        // 验证
-        // 如果是超级老师，让他拥有该门户下所有学生的权限
 
         return true;
     }
 
     @Override
     public List<GcAccess> findAccessListByMasterId(Integer masterId) {
-        // TODO Auto-generated method stub
-        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
-        queryWrapper.orderByDesc("subject_json");
+        queryWrapper.orderByDesc("subject_json::jsonb");
         queryWrapper.isNotNull("group_name");
         return this.list(queryWrapper);
-        //		return this.baseMapper.getAccessAndUserNums(masterId);
     }
 
     @Override
