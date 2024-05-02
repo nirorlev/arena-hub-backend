@@ -51,4 +51,12 @@
         <addPrimaryKey constraintName="video_play_segment_pk" columnNames="segment_id, session_id" tableName="video_play_segment"/>
         <addForeignKeyConstraint constraintName="video_play_segment_video_play_session_id_fk" baseTableName="video_play_segment" baseColumnNames="session_id" referencedTableName="video_play_session" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+    <changeSet id="create-comments-playlist-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="commentsPlaylistEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding comments for playlist"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
