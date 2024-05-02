@@ -58,5 +58,12 @@
             <column name="value" value="false"/>
         </insert>
     </changeSet>
+    <changeSet id="create-comments-channel-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="commentsChannelEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding comments for channel"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
 
 </databaseChangeLog>
