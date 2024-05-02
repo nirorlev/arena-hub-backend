@@ -33,7 +33,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler({PermitException.class})
     public Message permitException(Exception e) {
-        return (new Message()).commonError(HttpStatus.NOT_EXTENDED.value(), "No permission for this!", e);
+        return (new Message()).commonError(HttpStatus.FORBIDDEN.value(), "No permission for this!", e);
     }
 
     @ResponseBody
