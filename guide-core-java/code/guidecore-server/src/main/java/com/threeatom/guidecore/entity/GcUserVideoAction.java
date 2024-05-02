@@ -3,7 +3,7 @@ package com.threeatom.guidecore.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.threeatom.common.validation.IntTypeConstraint;
+import com.threeatom.common.validation.annotation.IntTypeConstraint;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;

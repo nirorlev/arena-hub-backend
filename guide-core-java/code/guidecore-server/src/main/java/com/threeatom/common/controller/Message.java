@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 public class Message {
     private Map<String, Object> meta = new HashMap();
@@ -208,6 +209,17 @@ public class Message {
         this.addMeta("msg", statusMsg);
         this.addMeta("timestamp", new Timestamp(System.currentTimeMillis()));
         this.addData("e", e);
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        this.addMeta("systemTime", df.format(new Date()));
+        return this;
+    }
+
+    public Message validationError(String statusMsg, Map<String, String> constraints) {
+        this.addMeta("success", Boolean.FALSE);
+        this.addMeta("code", HttpStatus.BAD_REQUEST.value());
+        this.addMeta("msg", statusMsg);
+        this.addMeta("timestamp", new Timestamp(System.currentTimeMillis()));
+        this.addData("constraints", constraints);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.addMeta("systemTime", df.format(new Date()));
         return this;
