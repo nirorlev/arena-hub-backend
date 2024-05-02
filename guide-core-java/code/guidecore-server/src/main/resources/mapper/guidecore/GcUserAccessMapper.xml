@@ -416,7 +416,7 @@
 
     <insert id="insertUserAccessList">
         insert into gc_user_access (user_id,master_id,access_id,role_json,parent_code)
-        <foreach collection="list" index="index" item="item" separator=" UNION ALL ">
+        <foreach collection="list" index="index" item="item" separator=",">
             SELECT #{item.userId},#{item.masterId},#{item.accessId},
             #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
             #{item.parentCode}

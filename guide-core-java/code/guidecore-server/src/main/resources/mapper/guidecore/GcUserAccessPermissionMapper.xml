@@ -47,7 +47,7 @@
         may_subject_json text
         );
 
-        <foreach collection="preList" item="item" index="index" separator=" UNION ALL ">
+        <foreach collection="preList" item="item" index="index" separator=",">
             INSERT INTO temp_update_permission(id,sub_per,must_subject_json,may_subject_json)
             SELECT #{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},#{item.mustSubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
             #{item.maySubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
