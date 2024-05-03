@@ -27,7 +27,6 @@ public class CustomJwtFilter extends BasicHttpAuthenticationFilter {
 
     protected boolean isAccessAllowed(
             ServletRequest request, ServletResponse response, Object mappedValue) {
-        LOGGER.info("isAccessAllowed");
         String auth = this.getAuthzHeader(request);
         if (auth != null && !auth.equals("")) {
             try {
@@ -48,7 +47,6 @@ public class CustomJwtFilter extends BasicHttpAuthenticationFilter {
 
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
             throws Exception {
-        LOGGER.info("onAccessDenied");
         return false;
     }
 }

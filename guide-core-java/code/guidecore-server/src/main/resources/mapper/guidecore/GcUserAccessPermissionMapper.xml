@@ -47,10 +47,11 @@
         may_subject_json text
         );
 
+        INSERT INTO temp_update_permission(id,sub_per,must_subject_json,may_subject_json)
+        VALUES
         <foreach collection="preList" item="item" index="index" separator=",">
-            INSERT INTO temp_update_permission(id,sub_per,must_subject_json,may_subject_json)
-            SELECT #{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},#{item.mustSubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-            #{item.maySubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+            (#{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},#{item.mustSubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+            #{item.maySubjectJson,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler})
         </foreach>;
 
         UPDATE gc_user_access_permission uap
@@ -145,9 +146,9 @@
         subscribe_permission text
         );
 
+        INSERT INTO temp_update_permission(id,sub_per,channel_permission,subscribe_permission)
+        VALUES
         <foreach collection="preList" item="item" index="index" separator=",">
-            INSERT INTO temp_update_permission(id,sub_per,channel_permission,subscribe_permission)
-            VALUES
             (#{item.id},#{item.subPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
             #{item.channelPermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
             #{item.subscribePermission,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler})
