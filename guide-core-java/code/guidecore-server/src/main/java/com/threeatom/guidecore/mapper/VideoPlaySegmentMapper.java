@@ -10,5 +10,5 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
 
     Optional<VideoPlaySegment> getSegment(VideoPlaySegmentId videoPlaySegment);
 
-    void updateSegment(VideoPlaySegment videoPlaySegment);
+    Integer updateSegment(VideoPlaySegment videoPlaySegment);
 }
