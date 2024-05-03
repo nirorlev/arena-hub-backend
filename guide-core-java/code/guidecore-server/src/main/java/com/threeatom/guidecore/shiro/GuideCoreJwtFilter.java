@@ -38,8 +38,6 @@ public class GuideCoreJwtFilter extends BasicHttpAuthenticationFilter {
             ServletRequest request, ServletResponse response, Object mappedValue) {
         // TODO Auto-generated method stub
 
-        LOGGER.info("isAccessAllowed");
-
         String auth = getAuthzHeader(request);
         if (auth != null && !auth.equals("")) {
 
@@ -67,8 +65,6 @@ public class GuideCoreJwtFilter extends BasicHttpAuthenticationFilter {
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
             throws Exception {
-        // TODO Auto-generated method stub
-        LOGGER.info("onAccessDenied");
         return false;
     }
     //	/**
