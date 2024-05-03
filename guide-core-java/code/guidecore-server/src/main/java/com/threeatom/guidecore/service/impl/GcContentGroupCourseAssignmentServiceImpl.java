@@ -13,6 +13,7 @@ import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -168,6 +169,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
         }
 
         return assignments.stream()
+            .filter(Objects::nonNull)
             .filter(assignmentPredicate)
             .map(GcContentGroupCourseAssignment::getCourseId)
             .collect(Collectors.toList());
