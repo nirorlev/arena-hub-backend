@@ -469,7 +469,7 @@
 
 
     <select id="pageVideo" parameterType="java.util.Map" resultMap="baseResultMap">
-        select DISTINCT ON (v.id, v.create_time)
+        select DISTINCT ON (v.id)
         <include refid="baseColumn" />
         <include refid="fileBaseColumn" />
         ,s1.name as subjectName
@@ -499,7 +499,7 @@
             </if>
         </where>
         <if test="null != videoNum">
-            order by v.create_time desc
+            order by v.id desc, v.create_time desc
         </if>
     </select>
 

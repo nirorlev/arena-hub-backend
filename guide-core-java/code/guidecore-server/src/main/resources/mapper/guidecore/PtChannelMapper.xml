@@ -272,7 +272,7 @@
     </resultMap>
 
     <select id="selectNewIndexHomeChannels" resultMap="baseResultMap">
-        SELECT DISTINCT ON (chan.id, sub.create_time, chan.create_time) chan.*
+        SELECT DISTINCT ON (chan.id) chan.*
         from (
         select channels.*,count(channels.userAccessId) as subscribeNum
         from (
@@ -334,7 +334,7 @@
         <if test="userId != null">
             and chan.userAccessId = #{userId}
         </if>
-        order by sub.create_time desc,chan.create_time desc
+        order by chan.id desc, sub.create_time desc,chan.create_time desc
     </select>
 
     <select id="selectChannelList" resultMap="baseResultMap">
@@ -485,7 +485,7 @@
 
     <select id="selectVideosInSection" resultMap="baseResultSysFileMap">
         SELECT
-        DISTINCT ON (file.id, file.create_time, content.create_time)
+        DISTINCT ON (file.id)
         file.*,
         u.username as channel_create_user_username,
         u.id as channel_create_uid,
@@ -515,10 +515,10 @@
         </if>
         <choose>
             <when test="order!=null">
-                order by file.create_time ${order}
+                order by file.id, file.create_time ${order}
             </when>
             <otherwise>
-                order by content.create_time asc
+                order by file.id asc, content.create_time asc
             </otherwise>
         </choose>
     </select>
@@ -897,7 +897,7 @@
     <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
         select f.*,count( vac.id ) AS likeNum ,
                case when vac.user_id=#{userId} then 1 else 0 end as likedFlag
-        from (select DISTINCT ON (file.id, file.update_time)
+        from (select DISTINCT ON (file.id)
                   channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
@@ -928,7 +928,7 @@
                 and pcc.id is not null
                  or((channel.create_user_id = #{userId} or ch2.create_user_id = #{userId}) and channel.master_id = #{masterId})
                 and channel.master_id = #{masterId}
-              order by file.update_time desc
+              order by file.id desc, file.update_time desc
              ) as f
                  left join gc_user_video_action vac on f.fileId = vac.file_id and vac."type" = 1
         GROUP BY f.fileId, f.channel_img_file_id, f."desc", f.create_user_id, f.visible_flag, f.category_id, f.level, f.fid,

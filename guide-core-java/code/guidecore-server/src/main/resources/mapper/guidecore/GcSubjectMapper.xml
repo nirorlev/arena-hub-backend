@@ -494,7 +494,7 @@
 	</select>
 
 	<select id="selectSubjectPt" resultMap="baseResultMap">
-		select DISTINCT ON (s.id, s.create_time) s2.num as subjectsSize, vnum.videoNum as videosTotalNum, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
+		select DISTINCT ON (s.id) s2.num as subjectsSize, vnum.videoNum as videosTotalNum, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
 		s.type, s.level, s.fid, s.order, s.sub_img_id, s.template_id, s.intro_on_off, s.update_time, s.create_time
 		,s.state, s.token, s.is_public, s.cate_id ,s.language, s.certificates_flag, s.course_tagline,
 		s.cpd_hours, s.badge_id, s.subdetail_img_id, s.badge_content, s.create_user, s.available_type
@@ -720,7 +720,7 @@
 			and s.create_user = #{createUser}
 			and s.master_id = #{masterId}
 		</if>
-		ORDER BY s.create_time desc
+		ORDER BY s.id desc, s.create_time desc
 	</select>
 
 	<select id="getSubjectList" resultMap="baseResultMap" >
@@ -1629,7 +1629,7 @@
 	</select>
 
 	<select id="newGetAvailableCourses" resultMap="baseResultMap">
-		SELECT DISTINCT ON (s.id, s.create_time)
+		SELECT DISTINCT ON (s.id)
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
 		FROM gc_subject s
@@ -1653,7 +1653,7 @@
 		</if>
 		group by s.id
 		<if test="orderType !=null and orderType != ''">
-			order by s.create_time ${orderType}
+			order by s.id ${orderType}, s.create_time ${orderType}
 		</if>
 
 	</select>
@@ -2234,7 +2234,7 @@
 	</select>
 
 	<select id="selectCompletedSubject" resultMap="baseResultMap">
-		SELECT DISTINCT ON (s.id, co.update_time) s.*,
+		SELECT DISTINCT ON (s.id) s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2261,7 +2261,7 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		ORDER BY co.update_time DESC
+		ORDER BY s.id DESC, co.update_time DESC
 	</select>
 
 	<select id="selectDiscoverSubject" resultMap="baseResultMap">
@@ -2344,7 +2344,7 @@
 	</select>
 
 	<select id="selectFromMyTeamSubject" resultMap="baseResultMap">
-		SELECT DISTINCT ON (s.id, s.published_time)
+		SELECT DISTINCT ON (s.id)
 		s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
@@ -2363,7 +2363,7 @@
 			and s.name like concat('%',#{name},'%')
 		</if>
 		AND (co.subject_state != 1 OR co.id IS NULL)
-		ORDER BY s.published_time DESC
+		ORDER BY s.id DESC, s.published_time DESC
 	</select>
 
 	<select id="selectCompanyResourcesSubject" resultMap="baseResultMap">
@@ -2444,7 +2444,7 @@
 	</select>
 
 	<select id="selectCreatedByTeamsSubject" resultMap="baseResultMap">
-		SELECT DISTINCT ON (s.id, s.published_time)
+		SELECT DISTINCT ON (s.id)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2477,15 +2477,12 @@
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
 		<if test="orderType==null or orderType == 0">
-			ORDER BY s.published_time DESC
-		</if>
-		<if test="orderType == 1">
-			ORDER BY
+			ORDER BY s.id DESC, s.published_time DESC
 		</if>
 	</select>
 
 	<select id="selectCreateByTeamsOrgAdmin" resultMap="baseResultMap">
-		SELECT DISTINCT ON (s.id, s.published_time)
+		SELECT DISTINCT ON (s.id)
 		s.*,
 		f.id AS f_id,
 		f.NAME AS f_name,
@@ -2518,7 +2515,7 @@
 		<if test="name!=null and name !=''">
 			AND s.name LIKE concat('%',#{name},'%')
 		</if>
-		ORDER BY s.published_time DESC
+		ORDER BY s.id DESC, s.published_time DESC
 	</select>
 
 	<select id="getSubjectNameIndex" resultType="java.lang.Integer">
