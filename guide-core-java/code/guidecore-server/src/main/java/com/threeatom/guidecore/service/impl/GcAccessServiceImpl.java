@@ -101,7 +101,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> selectAccessBySubId(Integer subId, Integer masterId) {
-        return this.baseMapper.selectAccessBySubId(subId.toString(), masterId);
+        return this.baseMapper.selectAccessBySubId(subId, masterId);
     }
 
     @Override

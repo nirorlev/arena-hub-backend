@@ -68,7 +68,7 @@ public interface GcAccessMapper extends BaseMapper<GcAccess> {
     List<GcAccess> selectAccessByIds(@Param("list") List<Integer> idList);
 
     List<GcAccess> selectAccessBySubId(
-            @Param("subId") String subId, @Param("masterId") Integer masterId);
+            @Param("subId") Integer subId, @Param("masterId") Integer masterId);
 
     List<GcAccess> getAllAccessByMasterId(@Param("masterId") Integer masterId);
 
