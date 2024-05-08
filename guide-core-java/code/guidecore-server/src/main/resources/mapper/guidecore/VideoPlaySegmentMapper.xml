@@ -11,20 +11,11 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <select id="getSegment" resultMap="baseResultMap" parameterType="VideoPlaySegmentId">
-        SELECT segment_id, session_id, lower(segment) as startWatchTime, upper(segment) as endWatchTime, create_time, update_time
-        FROM video_play_segment
-        WHERE session_id = #{sessionId} AND segment_id = #{segmentId};
-    </select>
-
-    <insert id="saveSegment" parameterType="VideoPlaySegment">
+    <insert id="saveOrUpdateSegment" parameterType="VideoPlaySegment">
         INSERT INTO video_play_segment (segment_id, session_id, segment, create_time, update_time)
-        VALUES (#{id.segmentId}, #{id.sessionId}, int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds}), #{createTime}, #{updateTime});
+        VALUES (#{id.segmentId}, #{id.sessionId}, int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds}), #{createTime}, #{updateTime})
+        ON CONFLICT (session_id, segment_id)
+        DO UPDATE SET segment = int4range(lower(video_play_segment.segment), #{endWatchTimeInSeconds}), update_time = #{updateTime}
+            WHERE NOT video_play_segment.segment @> int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds});
     </insert>
-
-    <update id="updateSegment" parameterType="VideoPlaySegment">
-        UPDATE video_play_segment
-        SET segment = int4range(lower(segment), #{endWatchTimeInSeconds}), update_time = #{updateTime}
-        WHERE session_id = #{id.sessionId} AND segment_id = #{id.segmentId} AND NOT segment @> int4range(#{startWatchTimeInSeconds}, #{endWatchTimeInSeconds});
-    </update>
 </mapper>

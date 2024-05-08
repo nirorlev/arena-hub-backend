@@ -62,6 +62,13 @@ public class DefaultExceptionHandler {
         return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
     }
 
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(VideoPlaySegmentNotUpdatedException.class)
+    public Message handlerVideoPlaySegmentNotUpdatedException(VideoPlaySegmentNotUpdatedException e) {
+        return (new Message()).commonError(HttpStatus.CONFLICT.value(), e.getMessage(), e);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Message handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
