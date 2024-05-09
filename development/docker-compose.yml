@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: arena_user
       POSTGRES_DB: arena_hub
-      POSTGRES_PASSWORD: 'YEE!CFFCa!rTbym2ZW'
+      POSTGRES_PASSWORD: 'postgres'
     volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - pg_data:/var/lib/postgresql/data
@@ -55,7 +55,7 @@ services:
     depends_on:
       - postgres-db
     volumes:
-      - ../guide-core-java/code/guidecore-server/:/usr/src/mymaven
+      - ../guide-core-java/code/guidecore-migration/:/usr/src/mymaven
     working_dir: /usr/src/mymaven
 
   java-app:
@@ -83,6 +83,7 @@ services:
       REDIS_SSL: 'false'
       POSTGRES_HOST: postgres-db
       POSTGRES_USER: arena_user
+      POSTGRES_PASS: 'postgres'
       POSTGRES_DB_NAME: arena_hub
       POSTGRES_PORT: '5432'
       POSTGRES_SSL: 'false'
@@ -95,7 +96,7 @@ services:
       GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
       GUIDE_USER_STORE_KEY_PAIR_ID: ${GUIDE_USER_STORE_KEY_PAIR_ID}
       PDP_API_KEY: ${PDP_API_KEY}
-      PDP_ADDRESS: http://localhost:7000
+      PDP_ADDRESS: http://pdp:7000
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
 
   pdp:
