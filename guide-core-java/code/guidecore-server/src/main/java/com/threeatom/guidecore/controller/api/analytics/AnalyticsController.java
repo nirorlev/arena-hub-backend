@@ -51,6 +51,12 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsFacade.getVideoWatchingTimeAnalytics(filter, masterId));
     }
 
+    @GetMapping("/average-video-watching-time")
+    public ResponseEntity<AnalyticsResponseDto> averageVideoWatchingTime(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.getAverageVideoWatchingTimeAnalytics(filter, masterId));
+    }
+
     @GetMapping("/viewers-count")
     public ResponseEntity<AnalyticsResponseDto> viewersCount(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
