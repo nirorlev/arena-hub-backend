@@ -13,4 +13,6 @@ public interface AnalyticsFacade {
     AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

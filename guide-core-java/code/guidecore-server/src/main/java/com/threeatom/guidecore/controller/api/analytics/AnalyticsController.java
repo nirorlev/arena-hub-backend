@@ -50,4 +50,10 @@ public class AnalyticsController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getVideoWatchingTimeAnalytics(filter, masterId));
     }
+
+    @GetMapping("/viewers-count")
+    public ResponseEntity<AnalyticsResponseDto> viewersCount(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.getViewersCountAnalytics(filter, masterId));
+    }
 }

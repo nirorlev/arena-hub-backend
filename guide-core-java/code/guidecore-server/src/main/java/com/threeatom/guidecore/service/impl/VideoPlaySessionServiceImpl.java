@@ -41,4 +41,9 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         return baseMapper.getVideoViewCountAnalytics(filter, masterId);
     }
 
+    @Override
+    public List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getViewersCountAnalytics(filter, masterId);
+    }
+
 }
