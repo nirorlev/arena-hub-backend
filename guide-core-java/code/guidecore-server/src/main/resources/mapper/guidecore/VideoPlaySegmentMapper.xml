@@ -30,7 +30,12 @@
 
     <select id="getAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(DISTINCT video_play_session.user_id) AS value
-            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+            <if test="filter.trendOnly">
+                FROM generate_series(#{filter.start}, #{filter.end}, #{filter.end}::timestamp with time zone - #{filter.start}::timestamp with time zone) AS time_bucket
+            </if>
+            <if test="!filter.trendOnly">
+                FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+            </if>
             LEFT JOIN video_play_segment ON create_time >= time_bucket AND create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
             LEFT JOIN video_play_session ON video_play_session.id = video_play_segment.session_id AND master_id = #{masterId}
         GROUP BY time_bucket
