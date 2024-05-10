@@ -62,4 +62,10 @@ public class AnalyticsController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getViewersCountAnalytics(filter, masterId));
     }
+
+    @GetMapping("/drop-off-rate")
+    public ResponseEntity<AnalyticsResponseDto> dropOffRate(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.getDropOffRateAnalytics(filter, masterId));
+    }
 }

@@ -71,6 +71,12 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics, "Average Video Watching Time");
     }
 
+    @Override
+    public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultDto> dropOffRateAnalytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(dropOffRateAnalytics, "Drop Off Rate");
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
         AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
         ResultDto resultDto = createResultDto(analyticsCountResults, metricName);

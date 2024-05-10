@@ -54,6 +54,11 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
         return baseMapper.getAverageVideoWatchingTimeAnalytics(filter, masterId);
     }
 
+    @Override
+    public List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getDropOffRateAnalytics(filter, masterId);
+    }
+
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {
         if (this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession)) == 0) {
             log.error(
