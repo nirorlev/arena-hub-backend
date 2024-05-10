@@ -70,5 +70,12 @@
             <column name="id" type="uuid" />
         </createTable>
     </changeSet>
+    <changeSet id="create-homepage-menu-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="homepageMenuEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding homepage"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
 
 </databaseChangeLog>
