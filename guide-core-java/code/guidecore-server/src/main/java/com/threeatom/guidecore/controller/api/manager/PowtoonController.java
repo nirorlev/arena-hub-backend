@@ -4,23 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.exceptions.ClientException;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.google.api.client.json.Json;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Account;
-import com.stripe.model.AccountLink;
-import com.stripe.model.Price;
-import com.stripe.model.Product;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.AccountCreateParams;
-import com.stripe.param.AccountLinkCreateParams;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.PermitException;
@@ -30,18 +17,82 @@ import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.constant.AccessRoleType;
+import com.threeatom.guidecore.constant.ActionsType;
+import com.threeatom.guidecore.constant.EnvType;
+import com.threeatom.guidecore.constant.EventUnifyType;
+import com.threeatom.guidecore.constant.GroupsType;
+import com.threeatom.guidecore.constant.ResourceType;
+import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PermissionsVo;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
-import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
-import com.threeatom.guidecore.mapper.PtchannelMapper;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcCategory;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcMasterHomeInfo;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserAccessExt;
+import com.threeatom.guidecore.entity.GcUserAccessPermission;
+import com.threeatom.guidecore.entity.GcUserEventResource;
+import com.threeatom.guidecore.entity.GcUserInfo;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.GcUserSaveContentFollow;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.entity.GcUserVideoPlay;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.entity.PtChannelContent;
+import com.threeatom.guidecore.entity.PtChannelSubscribe;
+import com.threeatom.guidecore.entity.PtConfig;
+import com.threeatom.guidecore.entity.PtLoginConfig;
+import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.entity.PtViewSubject;
+import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.service.GcMasterHomeInfoService;
+import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcProblemService;
+import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.GcUserAccessExtService;
+import com.threeatom.guidecore.service.GcUserAccessPermissionService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcUserAnswerService;
+import com.threeatom.guidecore.service.GcUserEventResourceService;
+import com.threeatom.guidecore.service.GcUserFabulousService;
+import com.threeatom.guidecore.service.GcUserInfoService;
+import com.threeatom.guidecore.service.GcUserNoteCommentService;
+import com.threeatom.guidecore.service.GcUserSaveContentFollowService;
+import com.threeatom.guidecore.service.GcUserSaveContentService;
+import com.threeatom.guidecore.service.GcUserSaveFolderService;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcUserVideoActionService;
+import com.threeatom.guidecore.service.GcUserVideoPlaysNodeService;
+import com.threeatom.guidecore.service.GcVideoCommentService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.GvgMasterService;
+import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PtChannelContentService;
+import com.threeatom.guidecore.service.PtChannelService;
+import com.threeatom.guidecore.service.PtChannelSubscribeService;
+import com.threeatom.guidecore.service.PtConfigService;
+import com.threeatom.guidecore.service.PtLoginConfigService;
+import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.PtViewSubjectService;
+import com.threeatom.guidecore.service.SysMenuService;
+import com.threeatom.guidecore.service.SysRoleMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -51,56 +102,54 @@ import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
 import io.permit.sdk.api.models.CreateOrUpdateResult;
-import io.permit.sdk.enforcement.Resource;
 import io.permit.sdk.enforcement.User;
-import io.permit.sdk.openapi.models.*;
-import io.permit.sdk.util.Context;
-import io.swagger.annotations.*;
-import io.swagger.models.auth.In;
-import lombok.SneakyThrows;
-import okhttp3.MediaType;
-import okio.Buffer;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.apache.shiro.mgt.SecurityManager;
-import org.bouncycastle.jce.exception.ExtIOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
+import io.permit.sdk.openapi.models.RoleAssignmentRead;
+import io.permit.sdk.openapi.models.TenantCreate;
+import io.permit.sdk.openapi.models.TenantRead;
+import io.permit.sdk.openapi.models.UserRead;
+import io.permit.sdk.openapi.models.UserRole;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import org.apache.ibatis.annotations.Param;
+import org.apache.shiro.authc.AuthenticationException;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
@@ -255,6 +304,8 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private GcUserAccessExtService gcUserAccessExtService;
 
+	@Autowired
+	private  GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
 	@PostMapping("search")
@@ -680,12 +731,7 @@ public class PowtoonController extends GuideCoreController {
 				throw new PermitException("No permission for this!");
 			}
 
-			permit =  new Permit(
-					new PermitConfig.Builder(permitConfiguration.getApiKey())
-							.withPdpAddress(permitConfiguration.getPdpAddress())
-							.withDebugMode(true)
-							.build()
-			);
+			initPermit();
 
 			boolean isOrgAdmin = false;
 			UserRead userRoles = permit.api.users.get(user.getUsername());
@@ -1057,8 +1103,6 @@ public class PowtoonController extends GuideCoreController {
 
 			/*if (null==ptLoginConfig){
 				ptLoginConfig = new PtLoginConfig();
-				ptLoginConfig.setClientId(env.getProperty("clientId"));
-				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
 				ptLoginConfig.setLogOut(env.getProperty("logOut"));
 			}*/
 			ptLoginConfig = getPtConfig(ptLoginConfig);
@@ -1082,12 +1126,6 @@ public class PowtoonController extends GuideCoreController {
 		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
 		loginConfigQueryWrapper.eq("master_id",masterId);
 		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-		/*if (null==ptLoginConfig){
-			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setClientId(env.getProperty("clientId"));
-			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-			ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
-		}*/
 		ptLoginConfig = getPtConfig(ptLoginConfig);
 		return new Message().ok().addData("clientId",ptLoginConfig.getClientId())
 				.addData("ptRootURL",ptLoginConfig.getPtRootUrl())
@@ -1099,21 +1137,12 @@ public class PowtoonController extends GuideCoreController {
 	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
 		if (null==ptLoginConfig){
 			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setClientId(env.getProperty("clientId"));
-			ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
 			ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
 			ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
 			ptLoginConfig.setLogOut(env.getProperty("logOut"));
 			ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
 			ptLoginConfig.setGroups(env.getProperty("groups"));
 		}else {
-			if (null==ptLoginConfig.getClientId()||ptLoginConfig.getClientId().equals("")){
-				ptLoginConfig.setClientId(env.getProperty("clientId"));
-			}
-			if (null==ptLoginConfig.getPtRootUrl()||ptLoginConfig.getPtRootUrl().equals("")){
-				ptLoginConfig.setPtRootUrl(env.getProperty("ptRootURL"));
-			}
 			if (null==ptLoginConfig.getOauthToken()||ptLoginConfig.getOauthToken().equals("")){
 				ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
 			}
@@ -1125,9 +1154,6 @@ public class PowtoonController extends GuideCoreController {
 			}
 			if (null==ptLoginConfig.getLogOutUrl()||ptLoginConfig.getLogOutUrl().equals("")){
 				ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			}
-			if (null==ptLoginConfig.getClientSecret()||ptLoginConfig.getClientSecret().equals("")){
-				ptLoginConfig.setClientSecret(env.getProperty("clientSecret"));
 			}
 			if (null==ptLoginConfig.getGroups()||ptLoginConfig.getGroups().equals("")){
 				ptLoginConfig.setGroups(env.getProperty("groups"));
@@ -1194,12 +1220,7 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
 		PageInfo<GcAccess> accessList = null;
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 
 		boolean isOrgAdmin = false;
 		UserRead userRoles = permit.api.users.get(user.getUsername());
@@ -1243,12 +1264,7 @@ public class PowtoonController extends GuideCoreController {
 	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) throws PermitContextError, PermitApiError, IOException {
 		GcUser user = this.getGcUser();
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 		params.put("masterId",masterId);
 		List<GcAccess> gcAccessList = accessService.listAllAccess(params,request);
 		params.put("userId",user.getId());
@@ -1274,28 +1290,28 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcAccess access = accessService.getById(id);
 		List<Integer> idList = new ArrayList<>();
-		List<Integer> mustIdList = new ArrayList<>();
 		PageInfo<GcSubject> pageInfo = new PageInfo<>();
 		GcUser user = this.getGcUser();
 		boolean isFlag = this.permitCheck(user,ActionsType.manageContent,masterId,ResourceType.contentGroup,access.getId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
-		if (null!=access.getMustSubjectJson()){
-			mustIdList.addAll(access.getMustSubjectJson().toJavaList(Integer.class));
-		}
+
+		List<Integer> courseAssignmentIds = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
+		List<Integer> mustAssignmentIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+		List<Integer> optionalAssignmentIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
 		if (type==TableConstant.COMMON_ZERO){
-			if (null!=access.getSubjectJson()){
-				idList.addAll(access.getSubjectJson().toJavaList(Integer.class));
+			if (!courseAssignmentIds.isEmpty()){
+				idList.addAll(courseAssignmentIds);
 			}
 		}else if (type==TableConstant.COMMON_ONE){
-			if (null!=access.getMustSubjectJson()){
-				idList.addAll(access.getMustSubjectJson().toJavaList(Integer.class));
+			if (!mustAssignmentIds.isEmpty()){
+				idList.addAll(mustAssignmentIds);
 			}
 		}else {
-			if (null!=access.getMaySubjectJson()){
-				idList.addAll(access.getMaySubjectJson().toJavaList(Integer.class));
-				//mayList.addAll(access.getMaySubjectJson().toJavaList(Integer.class));
+			if (!optionalAssignmentIds.isEmpty()){
+				idList.addAll(optionalAssignmentIds);
 			}
 		}
 		PageParam pageParam = new PageParam(request);
@@ -1304,13 +1320,13 @@ public class PowtoonController extends GuideCoreController {
 		}
 		List<GcSubject> subjects = new ArrayList<>();
 		Map<Integer,List<PtTags>> tagsMap = new HashMap<>();
-		if (idList.size()!=TableConstant.COMMON_ZERO){
+		if (!idList.isEmpty()){
 			subjects = gcSubjectService.listSubByIdsAndName(idList,name);
 		}else {
 			subjects = gcSubjectService.listSubByIdsAndName(null,null);
 		}
 		List<Integer> subjectIdList = subjects.stream().map(GcSubject::getId).collect(Collectors.toList());
-		if (subjectIdList.size()!=0){
+		if (!subjectIdList.isEmpty()){
 			QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 			queryWrapper2.eq("master_id",masterId);
 			queryWrapper2.eq("type",TableConstant.COMMON_ONE);
@@ -1320,7 +1336,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		Map<Integer, List<PtTags>> finalTagsMap = tagsMap;
 		subjects.forEach(i->{
-			if (mustIdList.contains(i.getId())){
+			if (mustAssignmentIds.contains(i.getId())){
 				i.setIsMustSubject(TableConstant.COMMON_ZERO);
 			}else {
 				i.setIsMustSubject(TableConstant.COMMON_ONE);
@@ -1410,12 +1426,10 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getAvailableCourses")
 	public Message getAvailableCourses(String name,Integer accessId,String orderType,HttpServletRequest request){
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-		GcAccess access = accessService.getById(accessId);
+		List<Integer> idList = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessId);
 		GcUser user = this.getGcUser();
 		List<GcSubject> subjects = new ArrayList<>();
 		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
-		JSONArray jsonArray = access.getSubjectJson();
-		List<Integer> idList = jsonArray.toJavaList(Integer.class);
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
@@ -1493,7 +1507,7 @@ public class PowtoonController extends GuideCoreController {
 		PageInfo<GcSubject> pageInfo = new PageInfo<>(subjects);
 		return new Message().ok().addData("subjects",pageInfo);
 	}
-	@ApiOperation(value = "assignedSubject",httpMethod = "GET")
+	@ApiOperation(value = "assignedSubject",httpMethod = "POST")
 	@PostMapping("/assignedSubject")
 	public Message assignedSubject(@RequestBody Map<String, Object> params,HttpServletRequest request) throws IOException {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
@@ -1562,6 +1576,8 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 		}
+
+		contentGroupCourseAssignmentService.save(user, idList, accessId, CourseType.ofType(type));
 		gcUserAccessPermissionService.updateGcUserAccessPermissions(userAccessPermissions);
 		return new Message().ok();
 	}
@@ -1649,11 +1665,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		gcUserAccessPermissionService.updateGcUserAccessPermissions(userAccessPermissions);
+		contentGroupCourseAssignmentService.removeCourseAssignmentsByCourseId(access, idList);
 		return new Message().ok();
 	}
-
-
-
 
 	@ApiOperation(value = "getPublicCodeChannel", httpMethod = "GET")
 	@GetMapping("/getPublicCodeChannel")
@@ -1923,62 +1937,45 @@ public class PowtoonController extends GuideCoreController {
 			sysFileService.getResFullUrl(i.getInfo().getAvatarFile(), request);
 		});
 		PageInfo<GcUser> pageInfo = new PageInfo<>(gcUserList);
-		return new Message().ok().addData("userList",pageInfo);
+		return new Message().ok().addData("userList", pageInfo);
 	}
+
 	@ApiOperation(value = "systemSettings", httpMethod = "GET")
 	@GetMapping("/systemSettings")
 	public Message systemSettings(HttpServletRequest request){
+		GcUser currentUser = this.getGcUser();
 		QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("level",TableConstant.COMMON_TWO);
-		Integer masterid = Integer.parseInt(request.getHeader("Masterid"));
-		List<SysMenu> sysMenuList = sysMenuService.getSysMenuList(masterid);
-		//List<SysMenu> sysMenuList = sysMenuService.list();
-		List<SysMenu> homePageSections = sysMenuService.getLevel3List(masterid);
-		if (sysMenuList.size() == 0 || homePageSections.size()== TableConstant.COMMON_ZERO){
-			sysMenuList=sysMenuService.getSysMenuList(null);
-			homePageSections=sysMenuService.getLevel3List(null);
+
+		Integer masterId = RequestUtil.getMasterId(request).orElse(null);
+		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(masterId, currentUser);
+		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(masterId, currentUser);
+
+		if (sysMenuList.isEmpty() || homePageSections.isEmpty()){
+			sysMenuList=sysMenuService.getSysMenuList(masterId, currentUser);
+			homePageSections=sysMenuService.getLevel3List(masterId, currentUser);
 		}
-		//预热接口,优化第一次启动
+
+		// Preheat the interface and optimize the first startup
 		gcSubjectService.initJit();
-		return new Message().ok().addData("sysMenuList",sysMenuList).addData("homePageSections",homePageSections);
+		return new Message().ok()
+			.addData("sysMenuList",sysMenuList)
+			.addData("homePageSections",homePageSections);
 	}
 
 	@ApiOperation(value = "updateSettings", httpMethod = "POST")
 	@PostMapping("/updateSettings")
 	public Message updateSettings(@RequestBody List<SysMenu> sysMenu,HttpServletRequest request){
-		/*List<SysMenu> sysMenuList = sysMenuService.getSysMenuList();
-		List<Integer> sysMenuIds = sysMenu.stream().map(SysMenu::getId).collect(Collectors.toList());
-
-		Map<Integer,SysMenu> sysMenuMap = sysMenu.stream().collect(Collectors.toMap(SysMenu::getId, (p) -> p));
-		sysMenuList.forEach(i->{
-			if (sysMenuIds.contains(i.getId())){
-				i.setState(TableConstant.COMMON_ZERO);
-			}else {
-				i.setState(TableConstant.COMMON_ONE);
-			}
-			if (null!=sysMenuMap.get(i.getId())){
-				SysMenu sysMenu1 = sysMenuMap.get(i.getId());
-				if (null!=sysMenu1.getOrder()){
-					i.setOrder(sysMenu1.getOrder());
-				}
-				if (null!=sysMenu1.getUpdateName()){
-					i.setUpdateName(sysMenu1.getUpdateName());
-				}
-			}
-		});*/
 		String masterid = request.getHeader("Masterid");
 		List<SysMenu> masterList=sysMenuService.getByMaster(Integer.parseInt(masterid));
 		sysMenu.forEach(i->{
-			if(masterList.size()==TableConstant.COMMON_ZERO){
+			if(masterList.isEmpty()){
 				i.setId(null);
 			}
 			i.setMasterId(Integer.parseInt(masterid));
 		});
-//		if(masterList.size()!=TableConstant.COMMON_ZERO){
-//			sysMenu=masterList;
-//		}
 		sysMenuService.saveOrUpdateBatch(sysMenu);
-		if (masterList.size()==TableConstant.COMMON_ZERO){
+		if (masterList.isEmpty()){
 			List<Integer> parentIdList=sysMenuService.getParentIdList(Integer.parseInt(masterid));
 			List<SysMenu> ChildLevelList=sysMenuService.getChildLevelList(Integer.parseInt(masterid));
 			ChildLevelList.forEach(i->{
@@ -2052,6 +2049,7 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 		}
+		contentGroupCourseAssignmentService.updateCourseAssignmentMandatoryOpposite(subId, accessId);
 		accessService.saveOrUpdate(access);
 		gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissions);
 		return new Message().ok();
@@ -2061,31 +2059,27 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getToken")
 	public Message getToken(String code,HttpServletRequest response,HttpServletRequest request) throws IOException, ClientException, PermitApiError, PermitContextError {
 		Message message = new Message();
-		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-		GcMaster master = null;
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		Optional<Integer> masterIdOptional = RequestUtil.getMasterId(request);
+		initPermit();
 
-		if (null==masterId){
+		GcMaster master = null;
+		if (masterIdOptional.isEmpty()) {
 			master = gcMasterService.getMaster("Powtoon");
-		}else {
-			master = gcMasterService.getMasterById(masterId);
+		} else {
+			master = gcMasterService.getMasterById(masterIdOptional.get());
 		}
+		Integer masterId = master.getId();
 		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
-		loginConfigQueryWrapper.eq("master_id",master.getId());
+		loginConfigQueryWrapper.eq("master_id",masterId);
 		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
 		ptLoginConfig = getPtConfig(ptLoginConfig);
-		String tokens = response.getHeader("Authorization");
+		String tokens = RequestUtil.getRequestAuthHeader(response);
 		GcUser user = null;
 		String token = null;
 		String accessToken = null;
 		String refreshToken=null;
 		if (null==code){
-			if (null != tokens && !"".equals(tokens) && !"undefined".equals(tokens)){
+			if (null != tokens && !tokens.isEmpty() && !tokens.equals("undefined")){
 				Integer uid = Integer.parseInt(JwtUtil.getValueByToken(tokens, "uid"));
 				user = userService.getUserByIdCache(uid);
 				try {
@@ -2097,67 +2091,14 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		List<Integer> subjectIdList = gcSubjectService.getLevel0SubLis(master.getId()).stream().map(GcSubject::getId).collect(Collectors.toList());
+		GcAccess studentAccess = getGcAccess(master, subjectIdList);
 
-		GcUser gcUser = userService.getUserByUserName("test@user.com");
-		//创建或获取gcAccess
-		QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("code","teacherPT");
-		queryWrapper.eq("role_type",TableConstant.COMMON_ZERO);
-		queryWrapper.eq("master_id",master.getId());
-		GcAccess gcAccess = accessService.getOne(queryWrapper);
-
-		queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("code","studentPT");
-		queryWrapper.eq("role_type",1);
-		queryWrapper.eq("master_id",master.getId());
-		GcAccess studentAccess = accessService.getOne(queryWrapper);
-
-		if (null == gcAccess || null == studentAccess) {
-			if (null == gcAccess){
-				gcAccess = new GcAccess();
-				gcAccess.setMasterId(master.getId());
-				//gcAccess.setRoleType(TableConstant.COMMON_ONE);
-				gcAccess.setRoleType(TableConstant.COMMON_ZERO);
-				gcAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
-				gcAccess.setCodeType(TableConstant.COMMON_ZERO);
-				gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
-				gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
-				gcAccess.setCode("teacherPT");
-				accessService.addAccess(gcAccess);
-			}
-			if (null==studentAccess){
-				studentAccess = new GcAccess();
-				studentAccess.setMasterId(master.getId());
-				studentAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
-				studentAccess.setCode("studentPT");
-				studentAccess.setCodeType(TableConstant.COMMON_ZERO);
-				studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
-				studentAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
-				studentAccess.setRoleType(TableConstant.COMMON_ONE);
-				studentAccess.setAdminId(gcAccess.getId());
-				studentAccess.setId(null);
-				accessService.addAccess(studentAccess);
-			}else if(null==studentAccess.getAdminId()&&null!=gcAccess){
-				studentAccess.setAdminId(gcAccess.getId());
-				accessService.updateById(studentAccess);
-			}
-		}else {
-			gcAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
-			studentAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
-			accessService.updateById(gcAccess);
-			accessService.updateById(studentAccess);
-		}
-
-		//临时返回pt字段
+		// Temporarily return pt field
 		String thumbUrl = "null";
 		String ptEmail = "null";
 		String ptId = "null";
 
 		String redirectUri = response.getHeader("redirectUri");
-		//弃用
-		//String ptEnvironment = env.getProperty("redirectUri");
-		//List<String> prList = Arrays.asList(ptEnvironment.split(","));
-		//if (prList.contains(redirectUri)&&null!=code){
 		if (null!=code){
 			Map<String, String> body = new HashMap<>();
 			body.put("client_id",ptLoginConfig.getClientId());
@@ -2166,139 +2107,50 @@ public class PowtoonController extends GuideCoreController {
 			body.put("code",code);
 			log.info("getTokenUrl:"+ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken());
 			log.info("code::"+code);
-			JSONObject newJson = JSON.parseObject("{\n" +
-					"\t\"permissions\": {\n" +
-					"\t\t\"org\": {\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"3\"\n" +
-					"\t\t},\n" +
-					"\t\t\"groups\": [{\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"ezL1nhDxw2e\",\n" +
-					"\t\t\t\"title\": \"arenaec-org2\"\n" +
-					"\t\t}, {\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"bmySn36k6oQ\",\n" +
-					"\t\t\t\"title\": \"Default\"\n" +
-					"\t\t}, {\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"b0f10xAqOGD\",\n" +
-					"\t\t\t\"title\": \"Team A\"\n" +
-					"\t\t}, {\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"bTz0OJq7ACi\",\n" +
-					"\t\t\t\"title\": \"Team B\"\n" +
-					"\t\t}, {\n" +
-					"\t\t\t\"role_id\": \"orgAdmin\",\n" +
-					"\t\t\t\"id\": \"b34KFkoYWWf\",\n" +
-					"\t\t\t\"title\": \"Team C\"\n" +
-					"\t\t}]\n" +
-					"\t},\n" +
-					"\t\"profile\": {\n" +
-					"\t\t\"thumb_url\": \"https://xbqzz4sr7j.execute-api.us-east-1.amazonaws.com/ui-avatar-prod/a?format=svg&hash=3449098915\",\n" +
-					"\t\t\"last_name\": \"\",\n" +
-					"\t\t\"id\": 212571,\n" +
-					"\t\t\"first_name\": \"\",\n" +
-					"\t\t\"email\": \"test@user.com\"\n" +
-					"\t}\n" +
-					"}");
 
 			String JsonRequest = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken(),body);
 			if (null==JsonRequest){
 				throw new SystemException("Powtoon Token is null");
 			}
+
 			JSONObject requestJson = JSONObject.parseObject(JsonRequest);
 			if (null==requestJson){
 				throw new SystemException("Powtoon tokenReturn is null");
 			}
-			log.info("token返回:"+requestJson.toJSONString());
+
+			log.info("token return:"+requestJson.toJSONString());
 			if (null==requestJson.getString("access_token")){
 				throw new SystemException("Powtoon accessToken is null");
 			}
+
 			accessToken = requestJson.getString("access_token");
 			refreshToken = requestJson.getString("refresh_token");
-			//获取用户信息
+			// Get user information
 			JSONObject object = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getUserUrl(),"Bearer "+accessToken);
 			log.info("PT登录接口返回::"+object.toJSONString());
 			PermissionsVo permissions = object.toJavaObject(PermissionsVo.class);
-			List<String> stringList = new ArrayList<>();
 			if (null==permissions||null==permissions.getPermissions()){
 				throw new SystemException("Powtoon returns no permission data!");
 			}
-			//获取用户所在组
+
+			// Get the group the user belongs to
 			JSONObject groupObject = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getGroups(),"Bearer "+accessToken);
 			PtGroupsVo ptGroupsVo = groupObject.toJavaObject(PtGroupsVo.class);
-			log.info("PtGroups接口返回:"+groupObject);
+			log.info("PtGroups interface returns:"+groupObject);
 			Map<String,Groups> groupsMap = ptGroupsVo.getResults().stream().collect(Collectors.toMap(Groups::getId, (p) -> p));
 
-
-			//添加用户角色
-			permissions.getPermissions().getGroups().forEach(i->{
-				stringList.add(i.getRole_id());
-			});
-
 			user = userService.getUserByUserName(permissions.getProfile().getEmail());
-			//增加权限表数据
+			// Add permission table data
 			List<GcAccess> gcAccessesList = new ArrayList<>();
 			List<GcAccess> gcAccessLists = new ArrayList<>();
 			List<GcUserAccess> userAccessList = new ArrayList<>();
 			List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-			List<String> roleLists = new ArrayList<>();
-			//判断角色是member类型还是admin类型
-			if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRole_id())){
-				roleLists.add(GroupsType.member);
-			}else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRole_id())){
-				roleLists.add(GroupsType.admin);
-			}else if(GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRole_id())){
-				roleLists.add(GroupsType.superAdmin);
-			}
-			if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRole_id())){
-				roleLists.add(GroupsType.member);
-			}
+			List<String> roleLists = getRoleLists(permissions);
+
 			if (null==user){
-				user = userService.createGcUser(2, permissions.getProfile().getEmail(), get8UUID(),permissions.getProfile().getFirstName(), permissions.getProfile().getLastName());
-				user.setInfo(infoService.getById(user.getInfoId()));
-				accessService.checkUserAccess(master.getId(), user.getId(), studentAccess.getCode(), null, null, null);
-				//pt用户标识
-				user.setPtUser(TableConstant.COMMON_ONE);
-				user.setFirstName(permissions.getProfile().getFirstName());
-				user.setLastName(permissions.getProfile().getLastName());
-
-				SysFile file = new SysFile();
-				file.setSysId(TableConstant.COMMON_TWO);
-				file.setUploadUid(user.getId());
-				file.setName(permissions.getProfile().getThumbUrl());
-				file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
-				file.setFileType(TableConstant.sysFile_fileType_resLink);
-				file.setFileTypeIndex(TableConstant.COMMON_ONE);
-				file.setMasterId(masterId);
-				file.setSaveType(TableConstant.COMMON_THREE);
-				file.setFileRemark(new JSONArray());
-
-				sysFileService.saveOrUpdate(file);
-				user.getInfo().setAvatarFileId(file.getId());
-
-				gcUserInfoService.saveOrUpdate(user.getInfo());
-				userService.updateById(user);
-
-				try{
-					RoleRead[] roles = permit.api.roles.list();
-					List<String> roleList = new ArrayList<>();
-					for (RoleRead role : roles) {
-						roleList.add(role.key.trim());
-					}
-					//判断是否有全局角色（基于角色(门户全局)：SuperAdmin， Admin，Member）
-					if (!GroupsType.groupList.contains(permissions.getPermissions().getOrg().getRole_id())){
-						throw new Exception("xxx”!Please create the role xxx in Permit first.");
-					}
-
-				}catch (PermitContextError | PermitApiError | IOException permitContextError) {
-					permitContextError.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+                user = createGcUser(permissions, master, studentAccess, masterId);
 			}else {
-				//更新名字
+				// Update name
 				user.setPtUser(TableConstant.COMMON_ONE);
 				userService.updateById(user);
 				GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
@@ -2310,17 +2162,7 @@ public class PowtoonController extends GuideCoreController {
 					file.setFileUrl(permissions.getProfile().getThumbUrl());
 					sysFileService.saveOrUpdate(file);
 				}else {
-					SysFile file = new SysFile();
-					file.setSysId(TableConstant.COMMON_TWO);
-					file.setUploadUid(user.getId());
-					file.setName(permissions.getProfile().getThumbUrl());
-					file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
-					file.setFileType(TableConstant.sysFile_fileType_resLink);
-					file.setFileTypeIndex(TableConstant.COMMON_ONE);
-					file.setMasterId(masterId);
-					file.setSaveType(TableConstant.COMMON_THREE);
-					file.setFileRemark(new JSONArray());
-					file.setFileUrl(permissions.getProfile().getThumbUrl());
+					SysFile file = getSysFile(user, permissions, masterId);
 					sysFileService.saveOrUpdate(file);
 					gcUserInfo.setAvatarFileId(file.getId());
 				}
@@ -2330,23 +2172,18 @@ public class PowtoonController extends GuideCoreController {
 			}
 
 			List<String> idList = permissions.getPermissions().getGroups().stream().map(Groups::getId).collect(Collectors.toList());
-			//添加managed_groups
+			// Add managed_groups
 			List<String> managedList = permissions.getPermissions().getManaged_groups().stream().map(Groups::getId).collect(Collectors.toList());
 			idList.addAll(managedList);
-			//查询所有组
+			// Query all groups
 			List<GcAccess> accessLists = accessService.selectAccessByCodeAndMasterId(idList,masterId);
 			Map<String,GcAccess> gcAccessMap = accessLists.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity(), (key1, key2) -> key2));
 			for (Groups group : permissions.getPermissions().getGroups()) {
-				stringList.addAll(Arrays.asList(group.getRole_id().split(",")));
 				GcAccess access = new GcAccess();
-				if(null!=gcAccessMap.get(group.getId())){
+				if (null!=gcAccessMap.get(group.getId())){
 					access = gcAccessMap.get(group.getId());
 					access.setGroupName(group.getTitle());
-					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
-					if (null!=group.getRole_id()&&group.getRole_id().equals(GroupsType.orgAdmin)){
-						access.getRoleJson().add(GroupsType.orgAdmin);
-					}
-				}else {
+                } else {
 					access.setMasterId(masterId);
 					access.setCode(group.getId());
 					access.setGroupName(group.getTitle());
@@ -2354,12 +2191,12 @@ public class PowtoonController extends GuideCoreController {
 					access.setCodeType(TableConstant.COMMON_ZERO);
 					access.setSubjectJson(new JSONArray());
 					access.setSubscribeJson(new JSONArray());
-					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
-					if (null!=group.getRole_id()&&group.getRole_id().equals(GroupsType.orgAdmin)){
-						access.getRoleJson().add(GroupsType.orgAdmin);
-					}
-				}
-				gcAccessesList.add(access);
+                }
+                access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
+                if (null!=group.getRole_id()&&group.getRole_id().equals(GroupsType.orgAdmin)){
+                    access.getRoleJson().add(GroupsType.orgAdmin);
+                }
+                gcAccessesList.add(access);
 			}
 			List<String> gcAccessesListCodes = gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList());
 
@@ -2367,7 +2204,6 @@ public class PowtoonController extends GuideCoreController {
 				GcAccess access = gcAccessMap.get(group.getId());
 				if(null!=access){
 					access.setGroupName(group.getTitle());
-					//access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
 					if (null!=access.getRoleJson()){
 						access.getRoleJson().addAll(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
 					}else {
@@ -2389,19 +2225,19 @@ public class PowtoonController extends GuideCoreController {
 					gcAccessesList.add(access);
 				}
 			}
-			if(TableConstant.COMMON_ZERO!=gcAccessLists.size()){
+			if(!gcAccessLists.isEmpty()){
 				accessService.insertOrUpdateList(gcAccessLists);
 			}
 			List<GcAccess> accessList = accessService.selectAccessByCodeAndMasterId(gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList()),masterId);
 			Map<String,GcAccess> accessHashMap = gcAccessesList.stream().collect(Collectors.toMap(GcAccess::getCode, (p) -> p));
-			//superAdmin用户
+			// superAdmin user
 			List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(user.getId(),masterId);
 			for (GcAccess access : accessList) {
 				GcUserAccess userAccess = new GcUserAccess();
 				userAccess.setUserId(user.getId());
 				userAccess.setMasterId(masterId);
 				userAccess.setAccessId(access.getId());
-				if (null!=accessHashMap&&null!=accessHashMap.get(access.getCode())){
+				if (null != accessHashMap.get(access.getCode())){
 					userAccess.setRoleJson(accessHashMap.get(access.getCode()).getRoleJson());
 				}
 				if (gcUserAccessList.contains(access.getId())){
@@ -2415,23 +2251,14 @@ public class PowtoonController extends GuideCoreController {
 				userAccess.setAccess(access);
 				userAccessList.add(userAccess);
 			}
-			if(TableConstant.COMMON_ZERO!=userAccessList.size()) {
+			if(!userAccessList.isEmpty()) {
 				gcUserAccessService.insertUserAccessList(userAccessList);
 			}
-			List<GcUserAccess> userAccesses = gcUserAccessService.getUserAccessListByMasterIdAndUserId(userAccessList.stream().map(GcUserAccess::getUserId).collect(Collectors.toList()),masterId);
-			for (GcUserAccess gcUserAccess : userAccesses) {
-				GcUserAccessPermission permission = new GcUserAccessPermission();
-				permission.setUserAccessId(gcUserAccess.getId());
-				permission.setSubPermission(gcUserAccess.getAccess().getSubjectJson());
-				permission.setChannelPermission(gcUserAccess.getAccess().getChannelJson());
-				permission.setSubscribePermission(gcUserAccess.getAccess().getSubscribeJson());
-				permission.setMaySubjectJson(gcUserAccess.getAccess().getMaySubjectJson());
-				permission.setMustSubjectJson(gcUserAccess.getAccess().getMustSubjectJson());
-				userAccessPermissions.add(permission);
-			}
-			if(TableConstant.COMMON_ZERO!=userAccessPermissions.size()) {
-				gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
-			}
+			List<GcUserAccess> userAccesses = gcUserAccessService.getUserAccessListByMasterIdAndUserId(userAccessList.stream()
+				.map(GcUserAccess::getUserId)
+				.collect(Collectors.toList()),masterId);
+
+			updateUserPermissions(userAccesses, userAccessPermissions);
 			if (null!=permissions.getProfile().getThumbUrl()){
 				thumbUrl = permissions.getProfile().getThumbUrl();
 			}
@@ -2448,10 +2275,10 @@ public class PowtoonController extends GuideCoreController {
 					codeIdList.add(access.getId());
 				}
 			}
-			if(TableConstant.COMMON_ZERO!=codeIdList.size()){
+			if(!codeIdList.isEmpty()){
 				gcUserAccessService.deleteUserAccess(user.getId(),masterId,codeIdList);
 			}
-			//同步到permit
+			// Sync to permit
 			assignUser(user,roleLists,permissions,masterId);
 			redisOperator.set("PT:"+user.getUsername(),accessToken);
 			redisOperator.set("PT_refresh_token:"+user.getUsername(),refreshToken);
@@ -2459,10 +2286,11 @@ public class PowtoonController extends GuideCoreController {
 			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
 		}
 		if(code==null){
-			if(null==redisOperator.get("PT:"+user.getUsername())||
-					null==redisOperator.get("access_token_userid"+user.getId())){
+			if(null==redisOperator.get("PT:"+user.getUsername())
+				|| null==redisOperator.get("access_token_userid"+user.getId())){
 				return message.error(401, "Login has expired!");
 			}
+
 			Map<String, String> body = new HashMap<>();
 			body.put("client_id",ptLoginConfig.getClientId());
 			body.put("grant_type","refresh_token");
@@ -2473,24 +2301,7 @@ public class PowtoonController extends GuideCoreController {
 			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
 			redisOperator.set("PT_refresh_token:"+user.getUsername(),requestJson.getString("refresh_token"));
 		}
-		/*//判断原数据中是否已有账号数据
-		GcUserAccess userIsTeacher = gcUserAccessService.getAccessByUserIdMaster(user.getId(),master.getId());
-		if(null!=userIsTeacher&&userIsTeacher.getAccessId().equals(studentAccess.getId())){
-			userIsTeacher.setAccessId(studentAccess.getId());
-			gcUserAccessService.updateById(userIsTeacher);
-			GcUserAccessPermission permission = gcUserAccessPermissionService.getPermissionByUserAccessId(userIsTeacher.getId());
-			permission.setSubPermission(studentAccess.getSubjectJson());
-			gcUserAccessPermissionService.updateById(permission);
-		}else if(null!=userIsTeacher&&userIsTeacher.getAccessId().equals(gcAccess.getId())){
-			user = teacherDataService.getSubAccountByTeacher(studentAccess.getCode(), master.getId(), user.getId());
-			GcUserAccess teacher = gcUserAccessService.getAccessByUserIdMaster(user.getId(),master.getId());
-			GcUserAccessPermission permission = gcUserAccessPermissionService.getPermissionByUserAccessId(teacher.getId());
-			permission.setSubPermission(studentAccess.getSubjectJson());
-			gcUserAccessPermissionService.updateById(permission);
-		}else if (null==userIsTeacher){
-			accessService.checkUserAccess(master.getId(), user.getId(), studentAccess.getCode(), null, null, null);
-		}*/
-		token = userService.getUserNativeToken(user);
+		token = userService.getUserNativeToken(user, master);
 		user.setFirstName(user.getInfo().getFirstName());
 		user.setLastName(user.getInfo().getLastName());
 		sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), response);
@@ -2499,7 +2310,7 @@ public class PowtoonController extends GuideCoreController {
 		user.setPtEmail(ptEmail);
 		user.setPtId(ptId);
 
-		//gettoken返回logourl
+		//getToken returns logo url
 		if(Objects.nonNull(master.getLogoId())){
 			SysFile sysFile = sysFileService.getById(master.getLogoId());
 			String logoUrl = sysFileService.getResFullUrl(sysFile,response);
@@ -2508,7 +2319,6 @@ public class PowtoonController extends GuideCoreController {
 
 		UserRead userRoles = permit.api.users.get(user.getUsername());
 		List<UserRole> roleList = userRoles.roles;
-		List<String> getRoleList = new ArrayList<>();
 
 		boolean isOrgAdmin = false;
 		boolean isTeamAdmin = false;
@@ -2519,16 +2329,19 @@ public class PowtoonController extends GuideCoreController {
 			if (null!=userRoles.attributes.get("managedGroups")){
 				JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(userRoles.attributes.get("managedGroups")));
 				List<String> integers = jsonArray.toJavaList(String.class);
-				if (integers.size()>TableConstant.COMMON_ZERO){
+				if (!integers.isEmpty()){
 					isTeamAdmin = true;
 				}
 			}
 		}
+
+		List<String> getRoleList = new ArrayList<>();
+
 		for (UserRole userRole : roleList) {
 			getRoleList.add(userRole.role);
 		}
 		List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(user.getId(),masterId);
-		if (null!=gcUserAccessList&&TableConstant.COMMON_ZERO!=gcUserAccessList.size()){
+		if (null!=gcUserAccessList&& !gcUserAccessList.isEmpty()){
 			getRoleList.add(GroupsType.superAdmin);
 		}
 		if (isOrgAdmin){
@@ -2538,9 +2351,10 @@ public class PowtoonController extends GuideCoreController {
 			getRoleList.add(GroupsType.teamAdmin);
 		}
 		List<SysMenu> roleMenus = new ArrayList<>();
-		if (TableConstant.COMMON_ZERO!=getRoleList.size()){
+		if (!getRoleList.isEmpty()){
 			roleMenus = sysRoleMenuService.getMenuByRoles(getRoleList);
 		}
+
 		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(),masterId);
 		if (TableConstant.COMMON_ZERO!=isGroupAdmin||isOrgAdmin){
 			SysMenu sysMenu = new SysMenu();
@@ -2551,8 +2365,22 @@ public class PowtoonController extends GuideCoreController {
 			sysMenu.setRemarks("groupAdmin");
 			roleMenus.add(sysMenu);
 		}
-		//登录
-		List<GcUserAccess> userAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);
+
+		updateUserAccessLoginTime(user, masterId);
+
+		return message.ok()
+			.addData("user",user)
+			.addData("token",token)
+			.addData("accessToken",accessToken)
+			.addData("logoutUrl",ptLoginConfig.getPtRootUrl()+ptLoginConfig.getLogOutUrl())
+			.addData("roleMenus",roleMenus)
+			.addData("isGroupAdmin",isGroupAdmin)
+			.addData("isOrgAdmin",isOrgAdmin)
+			.addData("ptRootUrl",ptLoginConfig.getPtRootUrl());
+	}
+
+	private void updateUserAccessLoginTime(GcUser user, Integer masterId) {
+		List<GcUserAccess> userAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(), masterId);
 		List<Integer> idList = userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessExt> extList = new ArrayList<>();
 		for (Integer integer : idList) {
@@ -2562,11 +2390,162 @@ public class PowtoonController extends GuideCoreController {
 			extList.add(ext);
 		}
 		gcUserAccessExtService.saveBatch(extList);
-
-		return message.ok().addData("user",user).addData("token",token).addData("accessToken",accessToken)
-				.addData("logoutUrl",ptLoginConfig.getPtRootUrl()+ptLoginConfig.getLogOutUrl()).addData("roleMenus",roleMenus).addData("isGroupAdmin",isGroupAdmin).addData("isOrgAdmin",isOrgAdmin)
-				.addData("ptRootUrl",ptLoginConfig.getPtRootUrl());
 	}
+
+	private void updateUserPermissions(List<GcUserAccess> userAccesses, List<GcUserAccessPermission> userAccessPermissions) {
+		for (GcUserAccess gcUserAccess : userAccesses) {
+			GcUserAccessPermission permission = new GcUserAccessPermission();
+			GcAccess access = gcUserAccess.getAccess();
+			List<Integer> assignedCourses = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
+			List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+			List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+
+			permission.setUserAccessId(gcUserAccess.getId());
+			permission.setSubPermission(JSONArray.parseArray(JSON.toJSONString(assignedCourses)));
+			permission.setChannelPermission(access.getChannelJson());
+			permission.setSubscribePermission(access.getSubscribeJson());
+			permission.setMaySubjectJson(JSONArray.parseArray(JSON.toJSONString(optionalAssignedCourses)));
+			permission.setMustSubjectJson(JSONArray.parseArray(JSON.toJSONString(mustAssignedCourses)));
+			userAccessPermissions.add(permission);
+		}
+		if(!userAccessPermissions.isEmpty()) {
+			gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
+		}
+	}
+
+	private SysFile getSysFile(GcUser user, PermissionsVo permissions, Integer masterId) {
+		SysFile file = new SysFile();
+		file.setSysId(TableConstant.COMMON_TWO);
+		file.setUploadUid(user.getId());
+		file.setName(permissions.getProfile().getThumbUrl());
+		file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
+		file.setFileType(TableConstant.sysFile_fileType_resLink);
+		file.setFileTypeIndex(TableConstant.COMMON_ONE);
+		file.setMasterId(masterId);
+		file.setSaveType(TableConstant.COMMON_THREE);
+		file.setFileRemark(new JSONArray());
+		file.setFileUrl(permissions.getProfile().getThumbUrl());
+		return file;
+	}
+
+	@NotNull
+	private GcUser createGcUser(PermissionsVo permissions, GcMaster master, GcAccess studentAccess, Integer masterId)
+		throws ClientException, IOException {
+		GcUser user1 = userService.createGcUser(2, permissions.getProfile().getEmail(), get8UUID(),
+			permissions.getProfile().getFirstName(), permissions.getProfile().getLastName());
+		user1.setInfo(infoService.getById(user1.getInfoId()));
+		accessService.checkUserAccess(master.getId(), user1.getId(), studentAccess.getCode(), null, null, null);
+		user1.setPtUser(TableConstant.COMMON_ONE);
+		user1.setFirstName(permissions.getProfile().getFirstName());
+		user1.setLastName(permissions.getProfile().getLastName());
+
+		SysFile file = new SysFile();
+		file.setSysId(TableConstant.COMMON_TWO);
+		file.setUploadUid(user1.getId());
+		file.setName(permissions.getProfile().getThumbUrl());
+		file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
+		file.setFileType(TableConstant.sysFile_fileType_resLink);
+		file.setFileTypeIndex(TableConstant.COMMON_ONE);
+		file.setMasterId(masterId);
+		file.setSaveType(TableConstant.COMMON_THREE);
+		file.setFileRemark(new JSONArray());
+
+		sysFileService.saveOrUpdate(file);
+		user1.getInfo().setAvatarFileId(file.getId());
+
+		gcUserInfoService.saveOrUpdate(user1.getInfo());
+		userService.updateById(user1);
+
+		try {
+			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
+			if (!GroupsType.groupList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+				throw new Exception("xxx”!Please create the role xxx in Permit first.");
+			}
+
+		} catch (PermitContextError | IOException permitContextError) {
+			log.error("Permit error when creating user", permitContextError);
+		} catch (Exception e) {
+			log.error("Error when creating user", e);
+		}
+		return user1;
+	}
+
+	private List<String> getRoleLists(PermissionsVo permissions) {
+		List<String> roleLists = new ArrayList<>();
+
+		// Determine whether the role is member type or admin type
+		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+			roleLists.add(GroupsType.member);
+		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+			roleLists.add(GroupsType.admin);
+		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+			roleLists.add(GroupsType.superAdmin);
+		}
+		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRole_id())) {
+			roleLists.add(GroupsType.member);
+		}
+		return roleLists;
+	}
+
+	private GcAccess getGcAccess(GcMaster master, List<Integer> subjectIdList) {
+		QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("code","teacherPT");
+		queryWrapper.eq("role_type",TableConstant.COMMON_ZERO);
+		queryWrapper.eq("master_id", master.getId());
+		GcAccess gcAccess = accessService.getOne(queryWrapper);
+
+		queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("code","studentPT");
+		queryWrapper.eq("role_type",1);
+		queryWrapper.eq("master_id", master.getId());
+		GcAccess studentAccess = accessService.getOne(queryWrapper);
+
+		if (null == gcAccess || null == studentAccess) {
+			if (null == gcAccess){
+				gcAccess = new GcAccess();
+				gcAccess.setMasterId(master.getId());
+				gcAccess.setRoleType(TableConstant.COMMON_ZERO);
+				gcAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
+				gcAccess.setCodeType(TableConstant.COMMON_ZERO);
+				gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
+				gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
+				gcAccess.setCode("teacherPT");
+				accessService.addAccess(gcAccess);
+			}
+			if (null==studentAccess){
+				studentAccess = new GcAccess();
+				studentAccess.setMasterId(master.getId());
+				studentAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
+				studentAccess.setCode("studentPT");
+				studentAccess.setCodeType(TableConstant.COMMON_ZERO);
+				studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
+				studentAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
+				studentAccess.setRoleType(TableConstant.COMMON_ONE);
+				studentAccess.setAdminId(gcAccess.getId());
+				studentAccess.setId(null);
+				accessService.addAccess(studentAccess);
+			}else if(null == studentAccess.getAdminId()){
+				studentAccess.setAdminId(gcAccess.getId());
+				accessService.updateById(studentAccess);
+			}
+		}else {
+			gcAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
+			studentAccess.setSubjectJson(JSONArray.parseArray(JSON.toJSONString(subjectIdList)));
+			accessService.updateById(gcAccess);
+			accessService.updateById(studentAccess);
+		}
+		return studentAccess;
+	}
+
+	private void initPermit() {
+		permit =  new Permit(
+				new PermitConfig.Builder(permitConfiguration.getApiKey())
+						.withPdpAddress(permitConfiguration.getPdpAddress())
+						.withDebugMode(true)
+						.build()
+		);
+	}
+
 	public String get8UUID(){
 		UUID id=UUID.randomUUID();
 		String[] idd=id.toString().split("-");
@@ -2745,12 +2724,7 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
 		Boolean isOrgAdmin = false;
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 		UserRead userRoles = permit.api.users.get(user.getUsername());
 		if (null!=userRoles.attributes){
 			if (null!=userRoles.attributes.get("isOrgAdmin")){
@@ -2830,6 +2804,11 @@ public class PowtoonController extends GuideCoreController {
 			sub.setState(TableConstant.COMMON_ZERO);
 			gcAccessService.deleteSubIdAccess(masterId,sub.getId());
 			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
+			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, sub.getId());
+		}
+		if (sub.getState() != null && sub.getState() == TableConstant.COMMON_ONE) {
+			contentGroupCourseAssignmentService.save(user, sub, CourseType.MANDATORY);
+			contentGroupCourseAssignmentService.save(user, sub, CourseType.OPTIONAL);
 		}
 		gcSubjectService.saveSubInfo(sub,null,master,user,request);
 
@@ -3166,12 +3145,7 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
 		}
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 		Boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
 		boolean isFlag = false;
@@ -3891,12 +3865,7 @@ public class PowtoonController extends GuideCoreController {
 				channelFid = channelId;
 			}
 		}
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 		boolean isOrgAdmin = false;
 		UserRead userRoles = permit.api.users.get(user.getUsername());
 		if (null!=userRoles.attributes){
@@ -3963,12 +3932,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
+		initPermit();
 		boolean isOrgAdmin = false;
 		UserRead userRoles = permit.api.users.get(user.getUsername());
 		if (null!=userRoles.attributes){

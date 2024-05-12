@@ -8,19 +8,67 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.JsonParser;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.google.gson.JsonArray;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.config.ChannelConfiguration;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.constant.AccessRoleType;
+import com.threeatom.guidecore.constant.EnvType;
+import com.threeatom.guidecore.constant.MessageEventType;
+import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcMasterHomeInfo;
+import com.threeatom.guidecore.entity.GcMasterMessage;
+import com.threeatom.guidecore.entity.GcResource;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcSubjectComplete;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserAccessPermission;
+import com.threeatom.guidecore.entity.GcUserAnswer;
+import com.threeatom.guidecore.entity.GcUserEventResource;
+import com.threeatom.guidecore.entity.GcUserFabulous;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.entity.GcUserVideoPlay;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.entity.SubjectTotals;
+import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.service.GcMasterHomeInfoService;
+import com.threeatom.guidecore.service.GcMasterMessageService;
+import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcResourceService;
+import com.threeatom.guidecore.service.GcSubjectCompleteService;
+import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.GcUserAccessPermissionService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcUserAnswerService;
+import com.threeatom.guidecore.service.GcUserEventResourceService;
+import com.threeatom.guidecore.service.GcUserFabulousService;
+import com.threeatom.guidecore.service.GcUserNoteCommentService;
+import com.threeatom.guidecore.service.GcUserNoteService;
+import com.threeatom.guidecore.service.GcUserSaveFolderService;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcUserVideoActionService;
+import com.threeatom.guidecore.service.GcUserVideoPlayService;
+import com.threeatom.guidecore.service.GcVideoCommentService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.GvgMasterService;
+import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PtChannelService;
+import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysFileCaption;
@@ -28,31 +76,33 @@ import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileCaptionService;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.apache.catalina.connector.Request;
-import org.apache.commons.collections4.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.collections4.MapUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * <p>
@@ -190,6 +240,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private SysMenuService sysMenuService;
+	@Autowired
+	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 //	@Value("${channel.id:0}")
 //	private List<Integer> channelIdList;
@@ -514,7 +566,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
 			}
 
-			List<SysMenu> menuList = sysMenuService.getLevel3List(null);
+			List<SysMenu> menuList = sysMenuService.getLevel3List(null,  user);
 			message.ok().addData("allTags",subWithTagList);
 			message.ok().addData("homeInfo",infoList);
 			message.ok().addData("homeInfoIndex",menuList);
@@ -2353,7 +2405,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}
 				}
 			}
+
 			gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
+			contentGroupCourseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
 
 			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
 			return new Message().error(I18NUtil.get("guidecore.resource.deleteSucc"));
@@ -2389,6 +2443,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}
 				}
 				gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
+                contentGroupCourseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
+
 				return new Message().ok();
 		}
 		return new Message().error("删除失败");

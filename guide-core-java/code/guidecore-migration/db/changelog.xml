@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="translate-some-comments" author="adel">
+        <setTableRemarks tableName="gc_user_access" remarks="Mapping between content groups and assigned courses"/>
+    </changeSet>
+    <changeSet id="create-content_group_course_assignment" author="vprokh">
+        <createTable tableName="gc_content_group_course_assignment"
+                     remarks="Table is responsible for establishing relation between content group, course assigned to it and user who made the assignment">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="course_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="int" />
+            <column name="content_group_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_mandatory" type="tinyint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deadline" type="timestamp" />
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_content_group_id_fk"
+                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="content_group_id"
+                                 referencedTableName="gc_access" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_subject_id_fk"
+                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="course_id"
+                                 referencedTableName="gc_subject" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="gc_content_group_course_assignment_gc_created_by_user_id_fk"
+                                 baseTableName="gc_content_group_course_assignment" baseColumnNames="created_by_user_id"
+                                 referencedTableName="gc_user" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+    </changeSet>
+    <changeSet id="migrate-subjects-from-json-to-content_group_course_assignment" author="vprokh">
+        <customChange class="com.arena.hub.migration.ContentGroupAssignmentChange" />
+    </changeSet>
+    <changeSet id="create-feature-toggle" author="vprokh">
+        <createTable tableName="feature_toggle" remarks="Table to handle feature toggle configuration for application">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="feature-toggle-add-master-id" author="vprokh">
+        <addColumn tableName="feature_toggle">
+            <column name="master_id" type="int"/>
+        </addColumn>
+        <dropUniqueConstraint tableName="feature_toggle" uniqueColumns="name" constraintName="name"/>
+        <addUniqueConstraint constraintName="feature_toggle_name_master_id_uindex"
+                             tableName="feature_toggle"
+                             columnNames="name, master_id"/>
+        <addForeignKeyConstraint constraintName="feature_toggle_gc_master_id_fk"
+                                 baseTableName="feature_toggle"
+                                 baseColumnNames="master_id"
+                                 referencedTableName="gc_master"
+                                 referencedColumnNames="id"
+                                 onUpdate="CASCADE"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+    <changeSet id="create-courses-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="coursesEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding courses"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
+    <changeSet id="create-analytics-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="analyticsEnabled"/>
+            <column name="description" value="Feature toggle for showing or hiding analytics"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
+    <changeSet id="enable-show-insights-menu" author="vprokh">
+        <update tableName="sys_menu">
+            <column name="state" value="0" />
+            <where>name = 'Show Insights' AND `key` = 'Insights'</where>
+        </update>
+    </changeSet>
+    <changeSet id="set-analytics-feature-toggle-false" author="vprokh">
+        <update tableName="feature_toggle">
+            <column name="value" value="false"/>
+            <where>name = 'analyticsEnabled'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   mysql-db:
-    image: mariadb:10.2
+    image: mysql:8.0
     platform: linux/amd64
     container_name: mysql-db
     restart: unless-stopped
@@ -12,11 +12,11 @@ services:
       MYSQL_HOST: mysql-db
       MYSQL_DATABASE: arena_hub
       MYSQL_USER: user
-      MYSQL_PASSWORD: userpass240109
-    volumes: 
+      MYSQL_PASSWORD: ${MYSQL_PASS}
+    volumes:
       - ./dump/:/docker-entrypoint-initdb.d/
       - db_data:/var/lib/mysql
-    command: ["mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
+    command: [ "mysqld", "--wait-timeout=28800", "--lower_case_table_names=1", "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" ]
     ports:
       - 3306:3306
     networks:
@@ -27,10 +27,10 @@ services:
     container_name: redis
     restart: unless-stopped
     environment:
-      REDIS_PASS: kyle2020TBfIU584
+      REDIS_PASS: ${REDIS_PASS}
     volumes:
-      - ./redis.conf:/etc/redis/redis.conf 
-    command: ["redis-server", "/etc/redis/redis.conf"]
+      - ./redis.conf:/etc/redis/redis.conf
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
     ports:
       - 6379:6379
     networks:
@@ -42,18 +42,32 @@ services:
     depends_on:
       - java-app
     environment:
-      - AKITA_API_KEY_ID=apk_2nppsPiCcrqZ47ItyROX4r
-      - AKITA_API_KEY_SECRET=26c65159aa921d2a278b6fe2cd7491014f23a2f0f82f243550b1621735b9bbc3
+      - AKITA_API_KEY_ID=${AKITA_API_KEY_ID}
+      - AKITA_API_KEY_SECRET=${AKITA_API_KEY_SECRET}
     network_mode: "service:java-app"
     entrypoint: /akita apidump --service local-hub
+
+  mvn-migrations:
+    image: maven
+    platform: linux/amd64
+    command:
+      - "sh"
+      - "-c"
+      - "mvn compile && mvn liquibase:update -Dliquibase.url=jdbc:mysql://mysql-db:3306/arena_hub"
+    networks:
+      - arena_dev
+    depends_on:
+      - mysql-db
+    volumes:
+      - ../guide-core-java/code/guidecore-server/:/usr/src/mymaven
+    working_dir: /usr/src/mymaven
 
   java-app:
     image: arena-be-java:2.1
     platform: linux/amd64
-    # build:
-    #   context: .
-    #   dockerfile: ./guide-core-java/code/guidecore-server/Dockerfile
-    #   platform: linux/amd64
+    build:
+      context: ../guide-core-java/code/guidecore-server
+      dockerfile: ./Dockerfile.local
     container_name: arena-java-app
     # restart: unless-stopped
     ports:
@@ -65,36 +79,29 @@ services:
     networks:
       - arena_dev
     environment:
-      START_ENVIRONMENT: user
-      FRONTENDPATH: arena-hub
+      START_ENVIRONMENT: environmentVars,swagger
+      GUIDE_API_PORT: '9999'
       REDIS_HOST: redis
-      REDIS_PASS: kyle2020TBfIU584
+      REDIS_PASS: ${REDIS_PASS}
       REDIS_PORT: '6379'
       REDIS_SSL: 'false'
       MYSQL_HOST: mysql-db
       MYSQL_USER: user
-      MYSQL_PASS: userpass240109
+      MYSQL_PASS: ${MYSQL_PASS}
       MYSQL_DB_NAME: arena_hub
       MYSQL_PORT: '3306'
       MYSQL_SSL: 'false'
-      PERMIT_LICENSE_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW
-  #     AWS_STS_REGIONAL_ENDPOINTS: regional
-  #     AWS_DEFAULT_REGION: us-east-1
-  #     AWS_REGION: us-east-1
-  #     AWS_ROLE_ARN: arn:aws:iam::861419891964:role/Powtoon-dev-arena-role
-  #     AWS_WEB_IDENTITY_TOKEN_FILE:
-  #     AWS_CLOUDFRONT_IDS:
-  #     AWS_ROLE_SESSION_NAME: S3Upload
-  #     AWS_S3_BUCKET: dev-arena-storage
-  #     AWS_S3_REGION: us-east-1
-  #     AWS_S3_SITE_BUCKET: dev-arena-site
-  #     CHANNEL_SUBJECT_ID_CSV: 1805,1806,1809,1832
-  #     GUIDE_API_PORT: '8080'
-  #     GUIDE_USER_STORE_CIDR: 0.0.0.0/0
-  #     GUIDE_USER_STORE_DOMAIN: storage.staging-arena.powtoon.com
-  #     PDP_ADDRESS: http://localhost:7000
-  #     POWTOON_BASE_HOST: https://arenaec.dev-public.k8s.powtoon.com/
-  #     SSO_TOKEN_HOST: arenaec.dev-public.k8s.powtoon.com
+      PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
+      GUIDE_USER_STORE_PRIVATE_KEY: ${GUIDE_USER_STORE_PRIVATE_KEY}
+      AWS_ROLE_SESSION_NAME: S3Upload
+      AWS_S3_BUCKET: bucket name
+      AWS_S3_REGION: eu-west-2
+      AWS_IAM_ROLE: iam role
+      GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
+      GUIDE_USER_STORE_KEY_PAIR_ID: ${GUIDE_USER_STORE_KEY_PAIR_ID}
+      PDP_API_KEY: ${PDP_API_KEY}
+      PDP_ADDRESS: http://localhost:7000
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
 
   pdp:
     image: permitio/pdp-v2:latest
@@ -103,7 +110,7 @@ services:
     ports:
       - 7000:7766
     environment:
-      PDP_API_KEY: permit_key_f9miZvURiaE07363bRZl4FoEcSBttAcjx6v5HmSDtbJ7rEYWVxtDnDXI1AZnkNjONUkmQQKHPFn3CuE26KGBoW 
+      PDP_API_KEY: ${PDP_API_KEY}
     networks:
       - arena_dev
 

@@ -1,19 +1,14 @@
 package com.threeatom.guidecore.controller.api.manager;
 
-import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.aliyuncs.dm.model.v20151123.SingleSendMailResponse;
-import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.*;
@@ -23,16 +18,12 @@ import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.system.service.SysFileCaptionService;
-import com.threeatom.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,7 +45,6 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.ToolUtil;
-import com.threeatom.utils.data.TreeNode;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -427,7 +417,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @PostMapping("/superAdminGetUserToken")
     public Message superAdminGetUserToken(@RequestBody GcMaster filterMaster, HttpServletRequest request) {
         GcUser gcUser = userService.getById(filterMaster.getUserId());
-        String token = userService.getUserNativeToken(gcUser);
+        String token = userService.getUserNativeToken(gcUser, filterMaster);
         return new Message().ok().addData("token",token);
     }
 

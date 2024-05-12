@@ -255,8 +255,9 @@
 
 	</select>
     <select id="listAllAccess" resultMap="baseResultVoMap">
-		select * from (
-		select JSON_LENGTH(subject_json) as subjectNum,ifnull(JSON_LENGTH(subscribe_json),0) as channelNum,ac.*
+		SELECT content_group_info.*, IFNULL(course_assignment.assignment_count, 0) as subjectNum
+		FROM (
+		select ifnull(JSON_LENGTH(subscribe_json),0) as channelNum,ac.*
 		,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
 		ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId,
 		u.username as username
@@ -275,25 +276,32 @@
 		<if test="query.name != null and query.name != ''">
 			and group_name like concat('%',#{query.name},'%')
 		</if>
-		) as b
-		where 1=1
+		) as content_group_info
+		LEFT JOIN (
+		SELECT content_group_id, COUNT(id) as assignment_count
+		FROM gc_content_group_course_assignment
+		GROUP BY content_group_id
+		) as course_assignment ON content_group_info.id = course_assignment.content_group_id
 		<if test="query.orderType !=null and query.orderType != ''">
 			<if test="query.orderType == 'channel'">
-				order by b.channelNum ${query.order}
+				order by content_group_info.channelNum ${query.order}
 			</if>
 			<if test="query.orderType == 'subject'">
-				order by b.subjectNum ${query.order}
+				order by subjectNum ${query.order}
 			</if>
 			<if test="query.orderType == 'contentGroup'">
-				order by b.group_name ${query.order}
+				order by content_group_info.group_name ${query.order}
 			</if>
 		</if>
 	</select>
+
     <select id="getAccessBySubjectId" resultType="com.threeatom.guidecore.entity.GcAccess">
-		select * from gc_access
+		select ga.*
+		from gc_access ga
+		    JOIN gc_content_group_course_assignment gcca ON ga.id = gcca.content_group_id
 		where 1=1
-		and master_id = #{masterId}
-		and JSON_CONTAINS(subject_json, CONVERT(#{id}, CHAR)) = 1
+		and ga.master_id = #{masterId}
+		and gcca.course_id = #{id}
 	</select>
 	<select id="getAccessByChannelId" resultType="com.threeatom.guidecore.entity.GcAccess">
 		select * from gc_access
@@ -317,10 +325,12 @@
 		</foreach>
 	</select>
 	<select id="selectAccessBySubId" resultMap="baseResultMap">
-		select * from gc_access
+		select ga.*
+		from gc_access ga
+				 join gc_content_group_course_assignment gcca on ga.id = gcca.content_group_id
 		where 1=1
-		and master_id = #{masterId}
-		and (JSON_CONTAINS(subject_json, #{subId}) or JSON_CONTAINS(must_subject_json,#{subId}) or JSON_CONTAINS(may_subject_json,#{subId}))
+		and ga.master_id = #{masterId}
+		and gcca.course_id = #{subId}
 	</select>
 	<select id="getAllAccessByMasterId" resultMap="baseResultMap">
 		select * from gc_access
@@ -340,7 +350,7 @@
 	</select>
 	<select id="getTeamAccessSubjectNumList" resultMap="baseResultMap">
 		SELECT
-				ifnull(JSON_LENGTH(uap.may_subject_json),0)+ifnull(JSON_LENGTH(uap.must_subject_json),0) as subjectNum,
+				count(gcca_may.id) + count(gcca_must.id) as subjectNum,
 				ac.id,
 				ac.master_id ,
 				ac.role_type,
@@ -363,6 +373,8 @@
 			gc_access ac
 				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
 				left join gc_user_access_permission uap on uap.user_access_id = ua.id
+				left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
+				left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE
 			ac.master_id = #{masterId}
 		  AND ac.group_name IS NOT NULL
@@ -376,7 +388,7 @@
 
 	<select id="getTeamAccessSubjectNumAdminList" resultMap="baseResultMap">
 		SELECT
-				ifnull(JSON_LENGTH(uap.may_subject_json),0)+ifnull(JSON_LENGTH(uap.must_subject_json),0) as subjectNum,
+		count(gcca_may.id) + count(gcca_must.id) as subjectNum,
 		ac.id,
 		ac.master_id ,
 		ac.role_type,
@@ -399,6 +411,8 @@
 			gc_access ac
 				LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
 				left join gc_user_access_permission uap on uap.user_access_id = ua.id
+				left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
+				left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE
 			ac.master_id = #{masterId}
 		  AND ac.group_name IS NOT NULL

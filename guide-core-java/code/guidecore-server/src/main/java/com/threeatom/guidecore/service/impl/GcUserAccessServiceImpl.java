@@ -10,11 +10,13 @@ import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -63,6 +65,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Lazy @Autowired private GcSubjectService gcSubjectService;
 
     @Autowired private SysFileService sysFileService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     //    @Cacheable(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#userId+'-masterId-'+#masterId")
     @Override
@@ -206,12 +210,18 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
             userAccessExtMapper.insert(userAccessExt);
 
             GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-            userAccessPermission.setSubPermission(userAccess.getAccess().getSubjectJson());
+            userAccessPermission.setSubPermission(getContentGroupCourseAssignments(userAccess));
             userAccessPermission.setUserAccessId(userAccess.getId());
             userAccessPermissionMapper.insert(userAccessPermission);
         }
 
         return false;
+    }
+
+    private JSONArray getContentGroupCourseAssignments(GcUserAccess userAccess) {
+        List<Integer> contentGroupCourseAssignments =
+            contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccess().getId());
+        return JSONArray.parseArray(JSON.toJSONString(contentGroupCourseAssignments));
     }
 
     @Override
@@ -316,17 +326,17 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
                         // 原逻辑，直接覆盖
                         GcUserAccessPermission permission = new GcUserAccessPermission();
 
-                        Set<Integer> subs = new HashSet<Integer>();
-
                         Optional<GcUserAccess> optional =
                                 list.stream()
                                         .filter(a -> a.getId().equals(accessPermission.getUserAccessId()))
                                         .findFirst();
                         if (!optional.isPresent()) throw new SystemException(I18NUtil.get("user.not.found"));
-                        if (optional.get().getAccess() == null)
+                        GcAccess access = optional.get().getAccess();
+                        if (access == null)
                             throw new SystemException(I18NUtil.get("access.not.found"));
                         // 合并权限
-                        subs.addAll(optional.get().getAccess().getSubjectJson().toJavaList(Integer.class));
+                        Set<Integer> subs = new HashSet<>(
+                            contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId()));
                         List<GcGroup> subGroupList =
                                 groupList.stream()
                                         .filter(g -> g.getGroupAccessIds().contains(accessPermission.getUserAccessId()))
@@ -347,8 +357,9 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
                         // 新增
                         // 按照用户当前权限更新
                         // 筛选出新增的部分
+                        List<Integer> contentGroupCourseAssignments = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(gcAccess.getId());
                         List<Object> newAddSubjects =
-                                gcAccess.getSubjectJson().stream()
+                            contentGroupCourseAssignments.stream()
                                         .filter(e -> !accessPermission.getSubPermission().contains(e))
                                         .collect(Collectors.toList());
                         GcUserAccessPermission gcUserAccessPermission = new GcUserAccessPermission();
@@ -372,9 +383,10 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
                                 gcSubjectAssoList.stream().map(GcSubject::getId).collect(Collectors.toList());
                         subIdList.addAll(gcSubjectAssoIdList);
                         // 筛选出此次更新未选中的课程
+                        List<Integer> contentGroupCourseAssignments = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(gcAccess.getId());
                         List<Object> unSelectedSubjects =
                                 subIdList.stream()
-                                        .filter(e -> !gcAccess.getSubjectJson().contains(e))
+                                        .filter(e -> !contentGroupCourseAssignments.contains(e))
                                         .collect(Collectors.toList());
                         // 筛选出用户权限去除要删除课程后的课程
                         List<Object> saveSubjects =

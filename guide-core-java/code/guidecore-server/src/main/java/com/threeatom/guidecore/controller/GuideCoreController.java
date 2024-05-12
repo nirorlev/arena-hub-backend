@@ -56,6 +56,8 @@ public class GuideCoreController extends BaseController{
 	private GcAccessService accessService;
 	@Autowired
 	private GcUserSaveFolderService folderService;
+	@Autowired
+	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 
 	private static final Logger log = LoggerFactory.getLogger(GuideCoreController.class);
@@ -146,16 +148,23 @@ public class GuideCoreController extends BaseController{
 
 		GcUserAccess userAccess=this.getUserAccess(masterId);
 		if(userAccess==null) throw new SystemException(I18NUtil.get("resource.permission.error"));
+		GcAccess access = userAccess.getAccess();
+		List<Integer> assignmentCourseIds =
+			contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
 
-		List<Integer> eids=userAccess.getAccess().getSubjectJson().toJavaList(Integer.class);
-		if(eids.size()<1) throw new SystemException(I18NUtil.get("resource.permission.error"));
+		if(assignmentCourseIds.isEmpty()) throw new SystemException(I18NUtil.get("resource.permission.error"));
 
-		if(type==SysResourceType.EVENT) {
-			if(!eids.contains(eventService.getEventSubIdByEventId(id))) throw new SystemException(I18NUtil.get("resource.permission.error"));
-		}else {
-			if(!eids.contains(videoService.getSubIdByVid(id))) throw new SystemException(I18NUtil.get("resource.permission.error"));
+		Integer subId;
+
+		if (type == SysResourceType.EVENT) {
+			subId = eventService.getEventSubIdByEventId(id);
+		} else {
+			subId = videoService.getSubIdByVid(id);
 		}
 
+		if (!assignmentCourseIds.contains(subId)) {
+			throw new SystemException(I18NUtil.get("resource.permission.error"));
+		}
 	}
 
 

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
@@ -15,6 +16,7 @@ import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -172,13 +174,14 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     }
 
     @Override
-    public String getUserNativeToken(GcUser user) {
-        Map<String, String> params = new HashMap<String, String>();
+    public String getUserNativeToken(GcUser user, GcMaster master) {
+        Map<String, String> params = new HashMap<>();
         params.put("sysId", "2");
         params.put("role", "user");
         params.put("client", "native");
-        String token = createTokenByUser(user.getId().toString(), params, user.getPassword());
-        return token;
+        params.put("masterId", master.getId().toString());
+
+        return createTokenByUser(user.getId().toString(), params, user.getPassword());
     }
 
     @Override
@@ -208,5 +211,15 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     @Override
     public List<GcUser> getTeamUser(Map<String, Object> params, HttpServletRequest request) {
         return this.baseMapper.getTeamUser(params);
+    }
+
+    // TODO: take a look at the security auth globally and rework the storing of current user logged in
+    @Override
+    public GcUser getCurrentUser(HttpServletRequest request) {
+        if (AuthorizationUtil.isUser(request)) {
+            return getUserByIdCache(AuthorizationUtil.getUserUid(request));
+        }
+
+        return null;
     }
 }

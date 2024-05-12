@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.system.entity.SysSystem;
 import java.util.List;
@@ -47,7 +48,7 @@ public interface GcUserService extends IService<GcUser> {
     Integer getAllUserNums(Integer masterId, Integer type);
 
     // 获取app端用户token
-    String getUserNativeToken(GcUser user);
+    String getUserNativeToken(GcUser user, GcMaster master);
 
     // 根据用户名查询用户
     GcUser getUserByUserName(String userName);
@@ -57,4 +58,6 @@ public interface GcUserService extends IService<GcUser> {
     int deleteById(Integer id);
 
     List<GcUser> getTeamUser(Map<String, Object> params, HttpServletRequest request);
+
+    GcUser getCurrentUser(HttpServletRequest request);
 }

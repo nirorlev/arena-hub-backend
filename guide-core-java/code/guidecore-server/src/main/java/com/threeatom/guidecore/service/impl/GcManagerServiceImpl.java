@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.SystemException;
@@ -10,6 +11,7 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.GcManagerMapper;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -18,6 +20,7 @@ import com.threeatom.utils.PasswordSecretUtil;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shiro.crypto.hash.SimpleHash;
+import org.mortbay.util.ajax.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -46,6 +49,8 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Autowired GcUserAccessService userAccessService;
     @Autowired GcAccessMapper accessMapper;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Override
     @Cacheable(value = CACHE_TAG, key = "'entity:'+#p0")
@@ -98,7 +103,9 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                 userAccessService.save(userAccess);
                 // 复制课程权限
                 GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-                userAccessPermission.setSubPermission(userAccess.getAccess().getSubjectJson());
+                userAccessPermission.setSubPermission(
+                    JSONArray.parseArray(JSON.toString(contentGroupCourseAssignmentService.findByContentGroupId(accessCode.getId())))
+                );
                 userAccessPermission.setUserAccessId(userAccess.getId());
                 userAccessService.saveUserAccessPermission(userAccessPermission);
                 // 分配课程管理员角色
@@ -130,18 +137,19 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Override
     public String loginGetToken(String email, String password) {
-        // TODO Auto-generated method stub
-
         GcManager manager = this.getManagerByUsername(email);
-        if (manager == null)
+        if (manager == null) {
             throw new SystemException(I18NUtil.get("guidecore.master.login.usernameError"));
+        }
+
         String salt = manager.getSalt();
-        String pwdHash = new SimpleHash("MD5", password, salt + SysConstant.PASS_SALT).toHex();
-        if (pwdHash.equals(manager.getPassword())) {
-            Map<String, String> map = new HashMap<String, String>();
+        String passwordHash = new SimpleHash("MD5", password, salt + SysConstant.PASS_SALT).toHex();
+        if (passwordHash.equals(manager.getPassword())) {
+            Map<String, String> map = new HashMap<>();
             map.put("role", "manager");
             map.put("client", "web");
             map.put("sysId", manager.getSysId().toString());
+            map.put("masterId", String.valueOf(manager.getMasterId()));
             return JwtUtil.createTokenByUser(manager.getId().toString(), map, manager.getPassword());
         } else {
             throw new SystemException(I18NUtil.get("guidecore.master.login.passError"));

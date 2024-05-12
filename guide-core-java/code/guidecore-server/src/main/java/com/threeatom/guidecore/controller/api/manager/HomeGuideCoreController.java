@@ -258,8 +258,6 @@ public class HomeGuideCoreController extends GuideCoreController {
         ApiAssert.notEmpty(password, I18NUtil.get("guidecore.native.noPassword"));
 
         String token = managerService.loginGetToken(username, password);
-        GcManager gcManager = this.gcManagerService.getManagerByUsername(username);
-        // userAccessExtService.save(new GcUserAccessExt(null,new Date(),gcManager.getId()));//新增登录记录
         return new Message().ok().addData("token", token);
     }
 
