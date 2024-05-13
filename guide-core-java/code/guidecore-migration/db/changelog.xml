@@ -77,5 +77,4 @@
             <column name="value" value="false"/>
         </insert>
     </changeSet>
-
 </databaseChangeLog>

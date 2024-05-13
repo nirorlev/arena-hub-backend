@@ -269,7 +269,7 @@
 		(select sa.order from gc_subject_association sa where sa.master_id = #{masterId} and sa.subject_id=s.id)
 		end
 
-		as 'order', s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
+		as "order", s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
 	   ,s.state, s.token, s.is_public
 	</sql>
 
@@ -761,7 +761,7 @@
 			</foreach>
 		</if>
 		<include refid="where_gcSubject_state_not_hidden" />
-		order by 'order' asc
+		order by "order" asc
 	</select>
 
 
@@ -779,7 +779,7 @@
 		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
 			#{ids}
 		</foreach>
-		order by 'order' asc
+		order by "order" asc
 	</select>
 
 	<select id="listSubByIds" resultMap="baseResultMap" >
@@ -794,7 +794,7 @@
 			#{ids}
 		</foreach>
 		<include refid="where_gcSubject_state_not_hidden" />
-		order by 'order' asc
+		order by "order" asc
 	</select>
 
 	<select id="listSubByIdsAndName" resultMap="baseResultMap" >
@@ -816,7 +816,7 @@
 			and s.name like concat('%',#{name},'%')
 		</if>
 		<include refid="where_gcSubject_state_not_hidden" />
-		order by 'order' asc
+		order by "order" asc
 	</select>
 
 	<select id="selectSubjectAssociation" resultMap="baseResultMap" >
@@ -1651,7 +1651,6 @@
 		<if test="name!=null and name != ''">
 			and s."name" like concat('%',#{name},'%')
 		</if>
-		group by s.id
 		<if test="orderType !=null and orderType != ''">
 			order by s.id ${orderType}, s.create_time ${orderType}
 		</if>

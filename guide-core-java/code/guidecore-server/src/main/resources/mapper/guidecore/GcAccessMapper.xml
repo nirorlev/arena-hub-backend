@@ -263,15 +263,14 @@
 			</foreach>
 		</if>
 	</select>
-
-	<select id="listAllAccess" resultMap="baseResultVoMap">
-		select * from (
-		select count(gcca.id) as subjectNum,coalesce(json_array_length(subscribe_json),0) as channelNum,ac.*
+    <select id="listAllAccess" resultMap="baseResultVoMap">
+		SELECT content_group_info.*, coalesce(course_assignment.assignment_count, 0) as subjectNum
+		FROM (
+		select coalesce(json_array_length(subscribe_json),0) as channelNum,ac.*
 		,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
 		ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId,
 		u.username as username
 		from gc_access ac
-		left join gc_content_group_course_assignment gcca on ac.id = gcca.content_group_id
 		left join  gc_user_access ua on ua.access_id = ac.id
 		left join gc_user u on u.id = ua.user_id
 		left join gc_user_info ui on u.info_id = ui.id
@@ -286,17 +285,21 @@
 		<if test="query.name != null and query.name != ''">
 			and group_name like concat('%',#{query.name},'%')
 		</if>
-		) as b
-		where 1=1
+		) as content_group_info
+		LEFT JOIN (
+		SELECT content_group_id, COUNT(id) as assignment_count
+		FROM gc_content_group_course_assignment
+		GROUP BY content_group_id
+		) as course_assignment ON content_group_info.id = course_assignment.content_group_id
 		<if test="query.orderType !=null and query.orderType != ''">
 			<if test="query.orderType == 'channel'">
-				order by b.channelNum ${query.order}
+				order by content_group_info.channelNum ${query.order}
 			</if>
 			<if test="query.orderType == 'subject'">
-				order by b.subjectNum ${query.order}
+				order by subjectNum ${query.order}
 			</if>
 			<if test="query.orderType == 'contentGroup'">
-				order by b.group_name ${query.order}
+				order by content_group_info.group_name ${query.order}
 			</if>
 		</if>
 	</select>
