@@ -28,7 +28,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
         Map.of(
             "Insights", "analyticsEnabled",
-            "admin-course", "coursesEnabled"
+            "admin-course", "coursesEnabled",
+            "Home", "homepageMenuEnabled"
         );
 
     private final PermitService permitService;
@@ -76,8 +77,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getMenuByRoles(List<String> roles) {
-        return this.baseMapper.getMenuByRoles(roles);
+    public List<SysMenu> getMenuByRoles(List<String> roles, GcUser user, Integer masterId) {
+        List<SysMenu> menuByRoles = this.baseMapper.getMenuByRoles(roles);
+        return updateMenuItems(menuByRoles, user, masterId);
     }
 
     private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, GcUser user, Integer masterId) {

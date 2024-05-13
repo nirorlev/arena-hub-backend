@@ -2349,7 +2349,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		List<SysMenu> roleMenus = new ArrayList<>();
 		if (!getRoleList.isEmpty()){
-			roleMenus = sysMenuService.getMenuByRoles(getRoleList);
+			roleMenus = sysMenuService.getMenuByRoles(getRoleList, user, masterId);
 		}
 
 		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(),masterId);

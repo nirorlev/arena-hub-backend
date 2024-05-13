@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.entity.SysMenu;
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
@@ -18,5 +19,5 @@ public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
     List<SysMenu> getChildLevelList(Integer masterId);
 
-    List<SysMenu> getMenuByRoles(List<String> roles);
+    List<SysMenu> getMenuByRoles(@Param("roles") List<String> roles);
 }
