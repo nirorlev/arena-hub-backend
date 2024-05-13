@@ -10,6 +10,5 @@ import org.apache.ibatis.annotations.Param;
 public interface VideoPlaySessionMapper extends BaseMapper<VideoPlaySession> {
     List<DbAnalyticsResultDto> getVideoViewCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
-        @Param("interval") String interval,
         @Param("masterId") Integer masterId);
 }

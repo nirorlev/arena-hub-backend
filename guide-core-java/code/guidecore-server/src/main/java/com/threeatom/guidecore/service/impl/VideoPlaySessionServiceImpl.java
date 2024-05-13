@@ -8,7 +8,6 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySessionMapper;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
-import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,8 +38,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
 
     @Override
     public List<DbAnalyticsResultDto> getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        String stepInterval = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
-        return baseMapper.getVideoViewCountAnalytics(filter, stepInterval, masterId);
+        return baseMapper.getVideoViewCountAnalytics(filter, masterId);
     }
 
 }

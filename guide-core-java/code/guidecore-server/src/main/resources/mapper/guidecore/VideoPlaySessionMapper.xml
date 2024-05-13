@@ -12,11 +12,11 @@
             ) AS time_bucket
         </if>
         <if test="!filter.trendOnly">
-            FROM generate_series(#{filter.start}, #{filter.end}, #{interval}::interval) AS time_bucket
+            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
         </if>
         LEFT JOIN video_play_session ON
         <if test="!filter.trendOnly">
-            create_time >= time_bucket AND create_time &lt; time_bucket + #{interval}::interval
+            create_time >= time_bucket AND create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
         </if>
         <if test="filter.trendOnly">
             create_time &lt;= time_bucket

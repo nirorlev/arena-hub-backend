@@ -12,7 +12,6 @@ import com.threeatom.guidecore.mapper.VideoPlaySegmentMapper;
 import com.threeatom.guidecore.mapping.VideoPlaySegmentMapping;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
-import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +46,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     public List<DbAnalyticsResultDto> getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        String stepInterval = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
-        return baseMapper.getVideoWatchingTimeAnalytics(filter, stepInterval, masterId);
+        return baseMapper.getVideoWatchingTimeAnalytics(filter, masterId);
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {

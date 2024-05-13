@@ -101,6 +101,5 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
-        @Param("interval") String interval,
         @Param("masterId") Integer masterId);
 }

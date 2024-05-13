@@ -14,7 +14,6 @@ import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -658,8 +657,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     @Override
     public List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        String intervalStep = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
-
-        return baseMapper.getChannelCountAnalytics(filter, intervalStep, masterId);
+        return baseMapper.getChannelCountAnalytics(filter, masterId);
     }
 }

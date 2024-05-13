@@ -63,13 +63,6 @@ public class DefaultExceptionHandler {
         return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
     }
 
-    @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ValidationException.class)
-    public Message handleValidationException(ValidationException e) {
-        return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
-    }
-
     @ExceptionHandler(BindException.class)
     public Message handleBindException(BindException ex) {
         Map<String, String> errors = new HashMap<>();

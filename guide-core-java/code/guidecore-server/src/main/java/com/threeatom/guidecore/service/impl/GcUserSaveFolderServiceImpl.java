@@ -17,7 +17,6 @@ import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -221,7 +220,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        String stepInterval = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
-        return baseMapper.getPlaylistCountAnalytics(filter, stepInterval, masterId);
+        return baseMapper.getPlaylistCountAnalytics(filter, masterId);
     }
 }

@@ -2,7 +2,6 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
-import com.threeatom.utils.AnalyticsStepUtil;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -690,8 +689,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-		String intervalStep = AnalyticsStepUtil.parseAnalyticsStep(filter.getStep());
-		return this.baseMapper.getVideoCountAnalytics(filter, intervalStep, masterId);
+		return this.baseMapper.getVideoCountAnalytics(filter, masterId);
 	}
 
 	@Override
