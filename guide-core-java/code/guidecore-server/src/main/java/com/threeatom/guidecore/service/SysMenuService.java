@@ -20,4 +20,6 @@ public interface SysMenuService extends IService<SysMenu> {
     List<SysMenu> getSysMenuListByMasterId(Integer masterId, GcUser currentUser);
 
     List<SysMenu> getLevel3ListByMasterId(Integer masterId, GcUser currentUser);
+
+    List<SysMenu> getMenuByRoles(List<String> roles);
 }

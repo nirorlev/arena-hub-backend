@@ -75,6 +75,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         return updateMenuItems(sysMenus, user, masterId);
     }
 
+    @Override
+    public List<SysMenu> getMenuByRoles(List<String> roles) {
+        return this.baseMapper.getMenuByRoles(roles);
+    }
+
     private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, GcUser user, Integer masterId) {
         if (CollectionUtils.isEmpty(sysMenus)) {
             return sysMenus;

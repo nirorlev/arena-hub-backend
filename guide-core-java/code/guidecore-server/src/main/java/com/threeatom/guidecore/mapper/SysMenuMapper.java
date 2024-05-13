@@ -17,4 +17,6 @@ public interface SysMenuMapper extends BaseMapper<SysMenu> {
     List<Integer> getParentIdList(Integer masterId);
 
     List<SysMenu> getChildLevelList(Integer masterId);
+
+    List<SysMenu> getMenuByRoles(List<String> roles);
 }

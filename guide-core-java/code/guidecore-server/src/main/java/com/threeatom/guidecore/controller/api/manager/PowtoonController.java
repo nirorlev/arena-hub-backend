@@ -90,7 +90,6 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
-import com.threeatom.guidecore.service.SysRoleMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -288,8 +287,6 @@ public class PowtoonController extends GuideCoreController {
 	private GcAccessService gcAccessService;
 	@Autowired
 	private PermitConfiguration permitConfiguration;
-	@Autowired
-	private SysRoleMenuService sysRoleMenuService;
 	@Autowired
 	private SysMenuService sysMenuService;
 	@Autowired
@@ -2352,7 +2349,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		List<SysMenu> roleMenus = new ArrayList<>();
 		if (!getRoleList.isEmpty()){
-			roleMenus = sysRoleMenuService.getMenuByRoles(getRoleList);
+			roleMenus = sysMenuService.getMenuByRoles(getRoleList);
 		}
 
 		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(),masterId);
