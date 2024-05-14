@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -651,5 +653,10 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         QueryWrapper<PtChannel> wrapper = new QueryWrapper<>();
         wrapper.eq("channel_slug", ChannelSlug);
         return this.baseMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getChannelCountAnalytics(filter, masterId);
     }
 }

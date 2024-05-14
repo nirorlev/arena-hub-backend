@@ -8,6 +8,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,8 +59,21 @@ public class DefaultExceptionHandler {
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(VideoPlaySegmentNotFoundException.class)
-    public Message handlerVideoPlaySegmentNotFoundException(VideoPlaySegmentNotFoundException e) {
+    public Message handleVideoPlaySegmentNotFoundException(VideoPlaySegmentNotFoundException e) {
         return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public Message handleBindException(BindException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        return new Message().validationError("Validation error", errors);
     }
 
     @ResponseBody

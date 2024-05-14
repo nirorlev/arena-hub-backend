@@ -2,6 +2,8 @@ package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import java.util.List;
@@ -143,4 +145,8 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     GcVideo selectVideoPlayByVideo(@Param("video") Integer video, @Param("userId") Integer userId);
 
     List<videoLongVo> getVideoLongMapBySubjectId(@Param("subjectIds") List<Integer> subjectIds);
+
+    List<DbAnalyticsResultDto> getVideoCountAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
 }

@@ -1,14 +1,13 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.awt.*;
-import java.text.SimpleDateFormat;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.alibaba.fastjson.JSONArray;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
@@ -18,7 +17,6 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysCaptionRequest;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -687,6 +685,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			map = videoLongVos.stream().collect(Collectors.toMap(videoLongVo::getSubId,videoLongVo -> videoLongVo, (key1, key2) -> key2, LinkedHashMap::new));
 		}
 		return map;
+	}
+
+	@Override
+	public List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+		return this.baseMapper.getVideoCountAnalytics(filter, masterId);
 	}
 
 	@Override

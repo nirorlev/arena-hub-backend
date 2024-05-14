@@ -2,6 +2,8 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
@@ -10,6 +12,7 @@ import com.threeatom.guidecore.mapper.VideoPlaySegmentMapper;
 import com.threeatom.guidecore.mapping.VideoPlaySegmentMapping;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,11 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
         videoPlaySessionService.saveVideoPlaySession(videoPlayDto, user, videoId, masterId);
         VideoPlaySession videoPlaySession = videoPlaySessionService.getById(videoPlayDto.getSessionId());
         this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession));
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getVideoWatchingTimeAnalytics(filter, masterId);
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {

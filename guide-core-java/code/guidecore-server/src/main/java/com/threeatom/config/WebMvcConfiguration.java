@@ -5,6 +5,8 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import java.nio.charset.Charset;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,11 +16,14 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebMvcConfiguration {
+public class WebMvcConfiguration implements WebMvcConfigurer {
 
     @Value("${spring.i18n:'i18n/default/default'}")
     private String i18nPath;
@@ -51,6 +56,7 @@ public class WebMvcConfiguration {
 
     /**
      * 国际化资源配置
+     *
      * @return
      */
     @Bean
@@ -61,5 +67,15 @@ public class WebMvcConfiguration {
         source.setUseCodeAsDefaultMessage(true);
         source.setDefaultEncoding("utf-8");
         return source;
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new Converter<String, OffsetDateTime>() {
+            @Override
+            public OffsetDateTime convert(String source) {
+                return OffsetDateTime.parse(source, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            }
+        });
     }
 }

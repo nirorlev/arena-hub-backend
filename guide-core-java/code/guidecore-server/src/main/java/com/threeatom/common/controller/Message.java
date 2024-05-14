@@ -208,7 +208,7 @@ public class Message {
         this.addMeta("code", statusCode);
         this.addMeta("msg", statusMsg);
         this.addMeta("timestamp", new Timestamp(System.currentTimeMillis()));
-        this.addData("e", e);
+        this.addData("e", e.getMessage());
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.addMeta("systemTime", df.format(new Date()));
         return this;
