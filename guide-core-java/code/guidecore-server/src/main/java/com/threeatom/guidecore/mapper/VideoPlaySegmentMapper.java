@@ -21,5 +21,6 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
 
     List<DbAnalyticsResultDto> getDropOffRateAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
+        @Param("masterId") Integer masterId,
+        @Param("dropOffThreshold") double dropOffThreshold);
 }

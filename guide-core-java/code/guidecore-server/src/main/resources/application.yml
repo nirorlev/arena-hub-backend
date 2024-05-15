@@ -33,3 +33,7 @@ spring:
 
 systemId: 2
 youtubeApiKey: ${YOUTUBE_API_KEY}
+
+
+analytics:
+    dropOffThreshold: 0.95

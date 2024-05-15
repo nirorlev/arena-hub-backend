@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
+import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
@@ -27,6 +28,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     private final VideoPlaySegmentMapping videoPlaySegmentMapping;
     private final VideoPlaySessionService videoPlaySessionService;
+    private final AnalyticsConfiguration analyticsConfiguration;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -56,7 +58,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     public List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getDropOffRateAnalytics(filter, masterId);
+        return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {
