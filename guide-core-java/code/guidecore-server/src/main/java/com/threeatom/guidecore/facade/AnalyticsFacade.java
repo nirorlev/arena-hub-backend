@@ -17,4 +17,6 @@ public interface AnalyticsFacade {
     AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

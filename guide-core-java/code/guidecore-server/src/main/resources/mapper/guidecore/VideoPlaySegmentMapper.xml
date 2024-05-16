@@ -42,4 +42,40 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="getDropOffRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, AVG(ratio) AS value
+        FROM (
+            SELECT time_bucket,
+            CASE
+                WHEN COUNT(engagement_rate) OVER (PARTITION BY time_bucket) = 0 THEN 0
+                ELSE COUNT(engagement_rate) FILTER (WHERE engagement_rate &lt; #{dropOffThreshold} AND engagement_rate != 0.0) OVER (PARTITION BY time_bucket) / COUNT(engagement_rate) OVER (PARTITION BY time_bucket)::double precision
+            END AS ratio
+            FROM (
+                SELECT time_bucket, (SUM(upper(segment) - lower(segment)) / video_long::double precision) / COUNT(DISTINCT video_play_session.id) AS engagement_rate
+                    <if test="filter.trendOnly">
+                        FROM (
+                        SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                        UNION
+                        SELECT #{filter.end}::timestamp with time zone
+                        ) AS time_bucket
+                    </if>
+                    <if test="!filter.trendOnly">
+                        FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    </if>
+                        LEFT JOIN video_play_segment ON
+                        <if test="!filter.trendOnly">
+                            video_play_segment.update_time >= time_bucket AND video_play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                        </if>
+                        <if test="filter.trendOnly">
+                            video_play_segment.update_time &lt;= time_bucket
+                        </if>
+                        LEFT JOIN video_play_session ON video_play_session.id = video_play_segment.session_id AND master_id = #{masterId}
+                        LEFT JOIN gc_video ON video_play_session.video_id = gc_video.id
+                        LEFT JOIN sys_file ON gc_video.file_id = sys_file.id
+                    GROUP BY time_bucket, video_long, session_id) AS engagement
+            ) AS drop_off
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
 </mapper>
