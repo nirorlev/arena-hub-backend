@@ -78,4 +78,31 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="getEngagementRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket,
+        (SUM(upper(segment) - lower(segment)) / video_long::double precision) / COUNT(DISTINCT video_play_session.id) AS value
+        <if test="filter.trendOnly">
+            FROM (
+            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+            UNION
+            SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+        </if>
+        <if test="!filter.trendOnly">
+            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+        </if>
+            LEFT JOIN video_play_segment ON
+            <if test="!filter.trendOnly">
+                video_play_segment.update_time >= time_bucket AND video_play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+            </if>
+            <if test="filter.trendOnly">
+                video_play_segment.update_time &lt;= time_bucket
+            </if>
+            LEFT JOIN video_play_session ON video_play_session.id = video_play_segment.session_id AND master_id = #{masterId}
+            LEFT JOIN gc_video ON video_play_session.video_id = gc_video.id
+            LEFT JOIN sys_file ON gc_video.file_id = sys_file.id
+        GROUP BY time_bucket, video_long
+        ORDER BY time_bucket;
+    </select>
+
 </mapper>

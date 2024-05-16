@@ -68,4 +68,10 @@ public class AnalyticsController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getDropOffRateAnalytics(filter, masterId));
     }
+
+    @GetMapping("/engagement-rate")
+    public ResponseEntity<AnalyticsResponseDto> engagementRete(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.getEngagementReteAnalytics(filter, masterId));
+    }
 }
