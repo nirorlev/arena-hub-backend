@@ -2188,7 +2188,7 @@
 
 	<select id="selectActiveSubject" resultMap="baseResultMap">
 		SELECT
-		s.*,
+		DISTINCT ON (s.id) s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
@@ -2222,8 +2222,7 @@
 			AND co.subject_state = 1
 		</if>
 		AND (co.subject_state != 1 OR co.subject_state IS NULL)
-		GROUP BY s.id, co.subject_state, co.in_progress, uap.must_subject_json::jsonb, uap2.may_subject_json::jsonb
-		ORDER BY
+		ORDER BY s.id,
 		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMustSubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
