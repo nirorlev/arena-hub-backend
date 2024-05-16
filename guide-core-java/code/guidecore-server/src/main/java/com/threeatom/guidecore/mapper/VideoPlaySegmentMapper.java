@@ -14,4 +14,8 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
     List<DbAnalyticsResultDto> getVideoWatchingTimeAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
 }
