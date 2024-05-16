@@ -16,4 +16,6 @@ public interface VideoPlaySessionService extends IService<VideoPlaySession> {
     Optional<VideoPlaySession> getVideoPlaySession(UUID sessionId);
 
     List<DbAnalyticsResultDto> getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }
