@@ -278,7 +278,7 @@
 	</select>
 
 	<select id="getPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT time_bucket, COUNT(gc_user_save_folder.*) OVER (ORDER BY time_bucket) AS value
+		SELECT DISTINCT time_bucket, COUNT(gc_user_save_folder.id) OVER (ORDER BY time_bucket) AS value
 		<if test="filter.trendOnly">
 			FROM (
 			SELECT #{filter.start}::timestamp with time zone AS time_bucket
@@ -298,7 +298,7 @@
 			create_time &lt;= time_bucket
 		</if>
 			AND master_id = #{masterId}
-		GROUP BY time_bucket, gc_user_save_folder
+		GROUP BY time_bucket, gc_user_save_folder.id
 		ORDER BY time_bucket;
 	</select>
 
