@@ -27,10 +27,10 @@ public class VideoPlayDto {
     @NotNull(message = "startWatchTimeInSeconds cannot be null")
     @Min(value = 0, message = "Start Watch Time in Seconds should be positive or 0")
     @ApiModelProperty(value = "Start Watch Time in Seconds", required = true)
-    private Integer startWatchTimeInSeconds;
+    private Integer startTime;
 
     @NotNull(message = "End Watch Time in Seconds cannot be null")
     @Positive(message = "End Watch Time in Seconds should be positive number")
     @ApiModelProperty(value = "End Watch Time in Seconds", required = true)
-    private Integer endWatchTimeInSeconds;
+    private Integer endTime;
 }
