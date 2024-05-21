@@ -13,7 +13,7 @@ public interface VideoPlaySegmentMapping {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id.segmentId", source = "videoPlayDto.segmentId")
     @Mapping(target = "id.sessionId", source = "videoPlaySession.id")
-    @Mapping(target = "startWatchTimeInSeconds", source = "videoPlayDto.startWatchTimeInSeconds")
-    @Mapping(target = "endWatchTimeInSeconds", source = "videoPlayDto.endWatchTimeInSeconds")
+    @Mapping(target = "startWatchTimeInSeconds", source = "videoPlayDto.startTime")
+    @Mapping(target = "endWatchTimeInSeconds", source = "videoPlayDto.endTime")
     VideoPlaySegment map(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession);
 }

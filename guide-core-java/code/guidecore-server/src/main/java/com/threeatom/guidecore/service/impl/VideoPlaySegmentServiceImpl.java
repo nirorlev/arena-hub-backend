@@ -72,8 +72,8 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
                 "Video play segment id '{}', session '{}' and play segments start '{}' and  end - '{}' was not updated",
                 videoPlayDto.getSegmentId(),
                 videoPlayDto.getSessionId(),
-                videoPlayDto.getStartWatchTimeInSeconds(),
-                videoPlayDto.getEndWatchTimeInSeconds());
+                videoPlayDto.getStartTime(),
+                videoPlayDto.getEndTime());
 
             throw new VideoPlaySegmentNotUpdatedException(
                 String.format("Video play segment with id '%s' and session '%s' was not updated",
