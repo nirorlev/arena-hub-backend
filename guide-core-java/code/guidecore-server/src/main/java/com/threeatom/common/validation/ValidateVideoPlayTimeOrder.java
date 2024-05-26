@@ -9,11 +9,11 @@ public class ValidateVideoPlayTimeOrder implements ConstraintValidator<ValidateT
     @Override
     public boolean isValid(VideoPlayDto videoPlayDto, ConstraintValidatorContext context) {
         if (videoPlayDto == null
-            || videoPlayDto.getStartWatchTimeInSeconds() == null
-            || videoPlayDto.getEndWatchTimeInSeconds() == null) {
+            || videoPlayDto.getStartTime() == null
+            || videoPlayDto.getEndTime() == null) {
             return false;
         }
 
-        return videoPlayDto.getStartWatchTimeInSeconds() < videoPlayDto.getEndWatchTimeInSeconds();
+        return videoPlayDto.getStartTime() < videoPlayDto.getEndTime();
     }
 }

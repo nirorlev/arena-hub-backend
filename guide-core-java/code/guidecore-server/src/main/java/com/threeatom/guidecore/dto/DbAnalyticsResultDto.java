@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class DbAnalyticsResultDto {
     private OffsetDateTime timeBucket;
-    private int value;
+    private double value;
 }

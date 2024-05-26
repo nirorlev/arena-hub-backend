@@ -65,6 +65,24 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return getAnalyticsResponseDto(viewersCountAnalytics, "Viewers Count");
     }
 
+    @Override
+    public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultDto> averageVideoWatchingTimeAnalytics = videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics, "Average Video Watching Time");
+    }
+
+    @Override
+    public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultDto> dropOffRateAnalytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(dropOffRateAnalytics, "Drop Off Rate");
+    }
+
+    @Override
+    public AnalyticsResponseDto getEngagementReteAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultDto> engagementRateAnalytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(engagementRateAnalytics, "Engagement Rate");
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
         AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
         ResultDto resultDto = createResultDto(analyticsCountResults, metricName);

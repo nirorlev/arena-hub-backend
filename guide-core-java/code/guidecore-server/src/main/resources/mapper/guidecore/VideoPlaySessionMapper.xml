@@ -3,7 +3,7 @@
 <mapper namespace="com.threeatom.guidecore.mapper.VideoPlaySessionMapper">
 
     <select id="getVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(video_play_session.*) OVER (ORDER BY time_bucket) AS value
+        SELECT time_bucket, COUNT(video_play_session.*) AS value
         <if test="filter.trendOnly">
             FROM (
             SELECT #{filter.start}::timestamp with time zone AS time_bucket
@@ -22,12 +22,12 @@
             create_time &lt;= time_bucket
         </if>
             AND master_id = #{masterId}
-        GROUP BY time_bucket, video_play_session
+        GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
 
     <select id="getViewersCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT DISTINCT time_bucket, COUNT(video_play_session.user_id) OVER (ORDER BY time_bucket) AS value
+        SELECT time_bucket, COUNT(DISTINCT video_play_session.user_id) AS value
         <if test="filter.trendOnly">
             FROM (
             SELECT #{filter.start}::timestamp with time zone AS time_bucket
@@ -46,7 +46,7 @@
             create_time &lt;= time_bucket
         </if>
         AND master_id = #{masterId}
-        GROUP BY time_bucket, video_play_session.user_id
+        GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
 

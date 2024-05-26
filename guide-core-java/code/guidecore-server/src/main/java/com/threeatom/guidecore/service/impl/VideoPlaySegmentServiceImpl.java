@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
+import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
@@ -27,6 +28,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     private final VideoPlaySegmentMapping videoPlaySegmentMapping;
     private final VideoPlaySessionService videoPlaySessionService;
+    private final AnalyticsConfiguration analyticsConfiguration;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -49,14 +51,29 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
         return baseMapper.getVideoWatchingTimeAnalytics(filter, masterId);
     }
 
+    @Override
+    public List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getAverageVideoWatchingTimeAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getEngagementRateAnalytics(filter, masterId);
+    }
+
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {
         if (this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession)) == 0) {
             log.error(
                 "Video play segment id '{}', session '{}' and play segments start '{}' and  end - '{}' was not updated",
                 videoPlayDto.getSegmentId(),
                 videoPlayDto.getSessionId(),
-                videoPlayDto.getStartWatchTimeInSeconds(),
-                videoPlayDto.getEndWatchTimeInSeconds());
+                videoPlayDto.getStartTime(),
+                videoPlayDto.getEndTime());
 
             throw new VideoPlaySegmentNotUpdatedException(
                 String.format("Video play segment with id '%s' and session '%s' was not updated",
