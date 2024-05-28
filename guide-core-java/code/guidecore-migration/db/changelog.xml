@@ -25,9 +25,15 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint constraintName="video_play_session_gc_user_id_fk" baseTableName="video_play_session" baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint constraintName="video_play_session_gc_master_id_fk" baseTableName="video_play_session" baseColumnNames="master_id" referencedTableName="gc_master" referencedColumnNames="id" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint constraintName="video_play_session_gc_video_id_fk" baseTableName="video_play_session" baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_user_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_master_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="master_id" referencedTableName="gc_master" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="video_play_session_gc_video_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
     </changeSet>
 
     <changeSet id="add-video-play-segment" author="vprokh">
@@ -48,8 +54,12 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addPrimaryKey constraintName="video_play_segment_pk" columnNames="segment_id, session_id" tableName="video_play_segment"/>
-        <addForeignKeyConstraint constraintName="video_play_segment_video_play_session_id_fk" baseTableName="video_play_segment" baseColumnNames="session_id" referencedTableName="video_play_session" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addPrimaryKey constraintName="video_play_segment_pk" columnNames="segment_id, session_id"
+                       tableName="video_play_segment"/>
+        <addForeignKeyConstraint constraintName="video_play_segment_video_play_session_id_fk"
+                                 baseTableName="video_play_segment" baseColumnNames="session_id"
+                                 referencedTableName="video_play_session" referencedColumnNames="id" onUpdate="CASCADE"
+                                 onDelete="CASCADE"/>
     </changeSet>
     <changeSet id="create-comments-playlist-feature-toggle" author="vprokh">
         <insert tableName="feature_toggle">
@@ -67,7 +77,7 @@
     </changeSet>
     <changeSet id="test-migration-schema" author="vprokh">
         <createTable tableName="test_migration">
-            <column name="id" type="uuid" />
+            <column name="id" type="uuid"/>
         </createTable>
     </changeSet>
     <changeSet id="create-homepage-menu-feature-toggle" author="vprokh">
@@ -76,5 +86,81 @@
             <column name="description" value="Feature toggle for showing or hiding homepage"/>
             <column name="value" value="false"/>
         </insert>
+    </changeSet>
+
+    <changeSet id="create-course-content-table" author="vprokh">
+        <createTable tableName="course_content">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="course_id" type="integer"/>
+            <column name="content_id" type="integer"/>
+            <column name="order" type="integer" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="course_content_gc_subject_id_fk" baseTableName="course_content"
+                                 baseColumnNames="course_id" referencedTableName="gc_subject" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="course_content_gc_video_id_fk" baseTableName="course_content"
+                                 baseColumnNames="content_id" referencedTableName="gc_video" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="add-content-columns" author="vprokh">
+        <addColumn tableName="gc_video">
+            <column name="thumbnail_url" type="text"/>
+        </addColumn>
+        <addColumn tableName="pt_channel_content">
+            <column name="content_id" type="integer"/>
+        </addColumn>
+        <addColumn tableName="gc_user_save_content">
+            <column name="content_id" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="migrate-video-content" author="vprokh">
+        <preConditions>
+            <rowCount tableName="course_content" expectedRows="0"/>
+        </preConditions>
+        <sql>
+            UPDATE gc_video
+            SET thumbnail_url = sys_file.thumb_nail_url,
+                video_time    = sys_file.video_long FROM sys_file
+            WHERE gc_video.file_id = sys_file.id;
+
+            INSERT INTO course_content (course_id, content_id, "order")
+            SELECT sub_id, id, "order"
+            FROM gc_video;
+
+            INSERT INTO gc_video (video_name, video_desc, video_time, file_id, thumbnail_url)
+            SELECT sys_file.name,
+                   sys_file.description,
+                   coalesce(sys_file.video_long, 0) as video_long,
+                   sys_file.id,
+                   sys_file.thumb_nail_url
+            FROM sys_file
+                     JOIN pt_channel_content ON sys_file.id = pt_channel_content.file_id;
+
+            UPDATE pt_channel_content
+            SET content_id = gc_video.id FROM gc_video
+            WHERE gc_video.file_id = pt_channel_content.file_id;
+
+            UPDATE gc_user_save_content
+            SET content_id = video_id;
+
+            UPDATE gc_user_save_content
+            SET content_id = gc_video.id FROM gc_video
+            WHERE gc_video.file_id = gc_user_save_content.file_id;
+        </sql>
+
+        <addNotNullConstraint tableName="pt_channel_content" columnName="content_id"/>
+        <addForeignKeyConstraint baseTableName="pt_channel_content" baseColumnNames="content_id"
+                                 constraintName="pt_channel_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="gc_user_save_content" baseColumnNames="content_id"
+                                 constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
     </changeSet>
 </databaseChangeLog>
