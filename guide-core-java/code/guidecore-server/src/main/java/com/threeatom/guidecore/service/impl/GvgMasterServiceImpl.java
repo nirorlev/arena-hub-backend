@@ -310,7 +310,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					//
 					if(groupBySubId.get(li.getId())!=null){
 						List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 						li.setVideosTotalLong(totalSeconds);
 					}
 
@@ -377,7 +377,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					//
 					if(groupBySubId.get(li.getId())!=null){
 						List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 						li.setVideosTotalLong(totalSeconds);
 					}
 
@@ -447,16 +447,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 				List<Integer> firstVideos = recommenFolderList.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
 				List<SysFile> fileList = sysFileService.listByIds(firstVideos);
-				fileList.forEach(i->{
-					i.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(i));
-				});
+				fileList.forEach(i-> i.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(i)));
 				Map<Integer,SysFile> firstVideoMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
 
 				for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
 					//缩略图
 					if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())&&null!=firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
-						//SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-						//String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
 						SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
 						if (null!=gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)){
 							gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).setVideoFile(sysFile);
@@ -850,7 +846,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					for(GcSubject gcSubject : level0sublist){
 						if(groupBySubId.get(gcSubject.getId())!=null){
 							List<GcVideo> gcVideos = groupBySubId.get(gcSubject.getId());
-							Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+							Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 							gcSubject.setVideosTotalLong(totalSeconds);
 						}
 
@@ -1590,7 +1586,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			thisVideo.setPlayState(videoPlay.getPlayState());
 		}
 
-		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo.getVideoFile()));
+		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		GcSubject subject = subjectService.getById(video.getSubId());
 		GcUserAccessPermission gcUserAccessPermission = new GcUserAccessPermission();
 		List<Integer> permissionSubIds = new ArrayList<>();
@@ -1655,7 +1651,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		resourceServiceList = resourceService.getResByVid(videoId);
 		//如果没登录，不返回fullfileurl
-		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo.getVideoFile()));
+		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		if (Objects.nonNull(user.getId()) && permissionSubIds.contains(subject.getFid())) {
 			sysFileService.getResFullUrl(thisVideo.getVideoFile(), request);
 			//资源list
@@ -2254,7 +2250,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		String searchTag=jsonParams.getString("searchTag");
 		String searchString=jsonParams.getString("searchString");
 		Integer fileId=jsonParams.getInteger("fileId");
-		List<SysFile> list = new ArrayList<>();
+		List<SysFile> list;
 		if (null!=master){
 			list=sysFileService.getFiles(null,master.getId(), typeIndexIds, searchTag, pageNum, pageSize,searchString,fileId,uploadUid);
 		}else {

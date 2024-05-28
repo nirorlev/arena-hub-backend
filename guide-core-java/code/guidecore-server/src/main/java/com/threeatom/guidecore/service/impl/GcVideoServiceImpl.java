@@ -507,10 +507,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 					}
 					SysFile videoFile = gcVideo.getVideoFile();
 					if(videoFile != null){
-						gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));//设置视频的路径
-						gcVideo.setVideoFile(videoFile);
+						gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcVideo));//设置视频的路径
 						Integer videoLong = videoFile.getVideoLong();
-						gcVideo.setVideoTime(videoLong == null ? null : videoLong);//视频时长
+						gcVideo.setVideoTime(videoLong);//视频时长
 					}
 					gcVideo.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
 					List<GcEvent> eventList = eventNum.stream().filter(a->a.getVideoId().equals(gcVideo.getId())).collect(Collectors.toList());
@@ -568,8 +567,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				video.setVideoFullUrl(url);
 				String fullFileUrl = sysFileService.getResFullUrl(file,request);
 				file.setFullFileUrl(fullFileUrl);
-				SysFile newVideoFile = sysFileService.getById(video.getFileId());
-				String snapshoturl = sysFileService.getVideoSnapshotUrl(newVideoFile);
+				String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
 				file.setSnapshotUrl(snapshoturl);
 				video.setVideoFile(file);
 			}
@@ -643,7 +641,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		video.setFileTypeIndex(fileTypeIndex);
 
 		SysFile newVideoFile = sysFileService.getById(video.getFileId());
-		String snapshoturl = sysFileService.getVideoSnapshotUrl(newVideoFile);
+		String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
 		String fullFileUrl = sysFileService.getResFullUrl(newVideoFile,request);
 		newVideoFile.setSnapshotUrl(snapshoturl);
 		newVideoFile.setFullFileUrl(fullFileUrl);
@@ -768,11 +766,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				}
 				SysFile videoFile = video.getVideoFile();
 				if(videoFile != null){
-					video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));//设置视频的路径
-					video.setVideoFile(videoFile);
+					video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
 					video.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(videoFile,request));
-					Integer videoLong = videoFile.getVideoLong();
-					video.setVideoTime(videoLong == null ? null : videoLong);//视频时长
+					video.setVideoTime(videoFile.getVideoLong());
 				}
 //				sysFileService.getResFullUrl(videoFile, sys, request);
 				// 改成在外面查出来，在这里set
@@ -992,10 +988,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 					}
 					SysFile videoFile = gcVideo.getVideoFile();
 					if(videoFile != null){
-						gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));//设置视频的路径
-						gcVideo.setVideoFile(videoFile);
-						Integer videoLong = videoFile.getVideoLong();
-						gcVideo.setVideoTime(videoLong == null ? null : videoLong);//视频时长
+						gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcVideo));
+						gcVideo.setVideoTime(videoFile.getVideoLong());
 					}
 					gcVideo.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
 					List<GcEvent> eventList = eventNum.stream().filter(a->a.getVideoId().equals(gcVideo.getId())).collect(Collectors.toList());

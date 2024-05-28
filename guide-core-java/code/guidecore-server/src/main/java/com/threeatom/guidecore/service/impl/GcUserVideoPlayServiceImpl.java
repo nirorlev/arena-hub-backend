@@ -105,7 +105,7 @@ public class GcUserVideoPlayServiceImpl extends ServiceImpl<GcUserVideoPlayMappe
         List<GcVideo> videoList = videoService.getVideoListBySubIds(subIdList);
         if(videoList.size() > 0){
             for (GcVideo video: videoList) {
-                sysFileService.getVideoSnapshotUrl(video.getVideoFile());
+                sysFileService.getVideoSnapshotUrl(video);
             }
         }
 

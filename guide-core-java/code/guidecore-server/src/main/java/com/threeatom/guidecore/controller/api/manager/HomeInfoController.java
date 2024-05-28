@@ -189,19 +189,9 @@ public class HomeInfoController extends GuideCoreController {
     	if(gcMaster==null) {
     		return null;
     	}
-//    	SysConfig s=new SysConfig();
-//    	int sysId = s.getId();
-    	String sysIds = env.getProperty("systemId");
-    	int sysId = Integer.parseInt(sysIds);
-    	if(gcMaster.getIntroVideoFile()!=null) {
-        	SysFile sf = gcMaster.getIntroVideoFile();
-//        	sf.setFullFileUrl(sysFileService.getResFullUrl(gcMaster.getIntroVideoFile(), sys, request));
-        	//文件完成路径
+		if(gcMaster.getIntroVideoFile()!=null) {
         	sysFileService.getResFullUrlSaveType2(gcMaster.getIntroVideoFile());
-        	//视频截图
         	gcMaster.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcMaster.getIntroVideoFile()));
-//        	应该在文件对象里面设置截图url更合理：
-//        	gcMaster.getIntroVideoFile().setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcMaster.getIntroVideoFile(), sys));
         }
     	gcMaster.setLogoFullUrl(sysFileService.getResFullUrlSaveType2(gcMaster.getLogoFile()));
     	return gcMaster;
@@ -263,10 +253,12 @@ public class HomeInfoController extends GuideCoreController {
     	}
     	GcVideo video = null;
     	List<GcVideo> videoList = gcVideoService.selectVideoByVideoAndSub0NameIndex(videoNameIndex,level0subNameIndex,gcMaster.getId());
-    	if(videoList!=null && videoList.size()>0)video=videoList.get(0);
+    	if(videoList!=null && !videoList.isEmpty()) {
+			video=videoList.get(0);
+		}
     	
     	if(video!=null) {
-			video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video.getVideoFile()));
+			video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
 		}
     	
     	m.ok().addData("video", video);
@@ -969,7 +961,7 @@ private metarielConfig metarielConfig;
 				String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/")+1,fileUrl.length());
 				fullFileUrl = "https://vumbnail.com/"+vimeoId+"/_large.jpg";
 			}else {
-				fullFileUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+				fullFileUrl = sysFileService.getVideoSnapshotUrl(gcVideo);
 			}
 			if(Objects.isNull(fullFileUrl)){
 				fullFileUrl = "";

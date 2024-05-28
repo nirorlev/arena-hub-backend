@@ -7,6 +7,7 @@ package com.threeatom.system.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.entity.SysUser;
@@ -62,7 +63,7 @@ public interface SysFileService extends IService<SysFile> {
 
     String getVideoSnapshotUrl(SysFile sysFile);
 
-    String getVideoSnapshotUrlByThumbNail(SysFile sysFile);
+    String getVideoSnapshotUrl(GcVideo gcVideo);
 
     List<SysFile> getFiles(
             String folder,

@@ -110,6 +110,8 @@ public class ManagerGuideCoreController extends GuideCoreController {
     private PtTagsService ptTagsService;
     @Autowired
     private GvgMasterService gvgMasterService;
+    @Autowired
+    private CourseContentService courseContentService;
 
     @Autowired
     private GcSubjectCompleteService subjectCompleteService;
@@ -123,13 +125,12 @@ public class ManagerGuideCoreController extends GuideCoreController {
             master = masterService.getMasterById(masterId);
         }
         List<GcVideo> videoList = videoService.getFuzzyNameVideoInMaster(master.getId(), videoName);
-        if(videoList.size() > 0){
+        if(!videoList.isEmpty()){
             for (GcVideo video : videoList) {
                 sysFileService.getResFullUrl(video.getVideoFile(), request);
-                video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video.getVideoFile()));
-//                video.setVideoFile(null);//去掉多余数据
-                if (null!=video.getVideoFile().getThumbNailUrl()){
-                    video.setSnapshotUrl(video.getVideoFile().getThumbNailUrl());
+                video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
+                if (null!=video.getThumbnailUrl()){
+                    video.setSnapshotUrl(video.getThumbnailUrl());
                 }
             }
         }
@@ -684,17 +685,17 @@ public class ManagerGuideCoreController extends GuideCoreController {
     public Message saveVideo(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体") GcVideo video, HttpServletRequest request) {
         SysSystem sys = this.getSystem();
         GcMaster master = this.getMaster();
-        Integer masterId = null;
+        Integer masterId;
         if (null==master&&null!=request.getHeader("masterId")){
             masterId = Integer.parseInt(request.getHeader("masterId"));
         }else {
-            masterId = master.getId().intValue();
+            masterId = master.getId();
         }
 
-        if (null!=video.getId()){
+        if (null!=video.getId()) {
             Message message = new Message();
-            //GcVideo oldVideo = videoService.getVideoById(video.getId());
             videoService.saveOrUpdate(video);
+
             SysFile file = new SysFile();
             if(Objects.nonNull(video.getFileId())) {
                 file = sysFileService.getInfoById(video.getFileId());
@@ -702,10 +703,11 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 video.setVideoFullUrl(url);
                 String fullFileUrl = sysFileService.getResFullUrl(file,request);
                 file.setFullFileUrl(fullFileUrl);
-                SysFile newVideoFile = sysFileService.getById(video.getFileId());
-                String snapshoturl = sysFileService.getVideoSnapshotUrl(newVideoFile);
+                String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
                 file.setSnapshotUrl(snapshoturl);
                 video.setVideoFile(file);
+                video.setVideoTime(file.getVideoLong());
+                video.setThumbnailUrl(file.getThumbNailUrl());
             }
 
             List<GcEvent> eventList = eventService.getEventListByVid(video.getId(),masterId);
@@ -717,15 +719,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 message.addData("resourceNum",resources.size());
             }
 
-            /*if (oldVideo.getFileId()!=video.getFileId()){
-                sysFileCaptionService.deleteCaption(oldVideo.getId());
-                videoService.asyncMethodSaveVideo(video,request);
-            }else {
-                sysFileCaptionService.updateCaptionState(video.getTargetLang(),video.getId());
-                videoService.asyncMethodUpdateVideo(video,request,sys);
-            }*/
-            if (null!=video.getTargetLang()&&video.getTargetLang().size()!=0) {
-                //video.getTargetLang().add(video.getLang());
+            if (null!=video.getTargetLang()&& !video.getTargetLang().isEmpty()) {
                 file.setTargetLangJson(video.getTargetLang());
                 sysFileService.saveOrUpdate(file);
                 sysFileCaptionService.updateCaptionState(video.getTargetLang(), video.getId());
@@ -736,13 +730,14 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 queryWrapper.in("video_id", video.getId());
                 queryWrapper.in("master_id",masterId);
                 queryWrapper.in("type",TableConstant.COMMON_TWO);
+
                 ptTagsService.remove(queryWrapper);
                 List<String> tagList = video.getCourseTags().toJavaList(String.class);
                 List<PtTags> ptTagsList = new ArrayList<>();
-                Integer finalMasterId = masterId;
+
                 tagList.forEach(i->{
                     PtTags newTags = new PtTags();
-                    newTags.setMasterId(finalMasterId);
+                    newTags.setMasterId(masterId);
                     newTags.setTagText(i);
                     newTags.setVideoId(video.getId());
                     newTags.setType(TableConstant.COMMON_TWO);
@@ -751,35 +746,31 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 });
                 ptTagsService.saveOrUpdateBatch(ptTagsList);
             }
+            courseContentService.saveCourseContent(video);
             return message.ok("添加成功！").addData("sync", video);
         }
         ApiAssert.ifStringNotInList(video.getVideoName(), CommonConstant.defaultNoCourseOrVideName, "视频名称错误，不可用该值");
-        //通过视频id保存课程
         if(video.getFileId()!=null) {
-//    		if(VideoConstant.LOCAL!=video.getVideoSource()) return new Message().error("通过视频id保存课程的videoSource必须为1");
             ApiAssert.jsonValueIntegerIn(video.getVideoSource(), VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr, "VideoSource值错误，必须为: "+VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr);
             SysFile file = iSysFileService.getById(video.getFileId());
             if(file==null) return new Message().error("该视频id不存在");
-//    		video.setVideoFile(file);
             String url = sysFileService.getResFullUrl(file, request);
             video.setVideoFullUrl(url);
             video.setVideoFile(file);
+            video.setThumbnailUrl(file.getThumbNailUrl());
+            video.setVideoTime(file.getVideoLong());
         }else {
-            //通过视频链接保存课程
             ApiAssert.notNull(video.getVideoSource(), "视频源不能为null");
         }
         if(video.getVideoName()==null || video.getSubId() ==null)throw new SystemException("视频名称及课程id不可空");
-//    	if(video.getVideoName().contains("-"))throw new SystemException("名称不可含横杠字符-");
-//        int count = videoService.countVideoNameInSub0(video);
-//        if(count>0) {
-//            return new Message().error(10000, "'" + video.getVideoName() + "'- " + I18NUtil.get("guidecore.master.sameVideoNameNotice"));
-//        }
         List<GcVideo> videoList = videoService.getVideoListBySubId(video.getSubId());
         if (null!=videoList&&TableConstant.COMMON_ZERO!=videoList.size()&&null==video.getId()){
             Integer max = videoList.stream().mapToInt(GcVideo::getOrder).max().getAsInt();
             video.setOrder(max+1);
         }
+
         boolean flag = videoService.saveVideo(video);
+        courseContentService.saveCourseContent(video);
 
         subjectCompleteService.updateStateByVideoId(video.getId(),masterId);
         SysFile sysFile = new SysFile();
@@ -795,7 +786,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         video.setFileTypeIndex(fileTypeIndex);
 
         SysFile newVideoFile = sysFileService.getById(video.getFileId());
-        String snapshoturl = sysFileService.getVideoSnapshotUrl(newVideoFile);
+        String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
         String fullFileUrl = sysFileService.getResFullUrl(newVideoFile,request);
         newVideoFile.setSnapshotUrl(snapshoturl);
         newVideoFile.setFullFileUrl(fullFileUrl);
@@ -809,10 +800,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
             ptTagsService.remove(queryWrapper);
             List<String> tagList = video.getCourseTags().toJavaList(String.class);
             List<PtTags> ptTagsList = new ArrayList<>();
-            Integer finalMasterId = masterId;
             tagList.forEach(i->{
                 PtTags newTags = new PtTags();
-                newTags.setMasterId(finalMasterId);
+                newTags.setMasterId(masterId);
                 newTags.setTagText(i);
                 newTags.setVideoId(video.getId());
                 newTags.setType(TableConstant.COMMON_TWO);
@@ -833,7 +823,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @PostMapping("/saveVideoBatch")
     public Message saveVideoBatch(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体list") List<GcVideo> videoList, HttpServletRequest request) {
         Integer sub0Id = null;
-        if (TableConstant.COMMON_ZERO!=videoList.size()){
+        if (!videoList.isEmpty()){
             if (null!=subService.getById(videoList.get(TableConstant.COMMON_ZERO).getSubId()).getFid()){
                 sub0Id = subService.getById(videoList.get(TableConstant.COMMON_ZERO).getSubId()).getFid();
             }else {
@@ -850,13 +840,15 @@ public class ManagerGuideCoreController extends GuideCoreController {
             SysFile file = iSysFileService.getById(video.getFileId());
             if(file==null) return new Message().error("该视频id不存在");
 
-            //video.setVideoFile(file);
-            SysSystem sys = this.getSystem();
             String url = sysFileService.getResFullUrl(file, request);
             video.setVideoFullUrl(url);
             video.setSubId0(sub0Id);
+            video.setThumbnailUrl(file.getThumbNailUrl());
+            video.setVideoTime(file.getVideoLong());
         }
+
         if (videoService.saveOrUpdateBatch(videoList)) {
+            courseContentService.saveCourseContents(videoList);
 
             for (GcVideo video : videoList) {
                 if (null!=video.getCourseTags()){
@@ -875,14 +867,14 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 }
             }
 
-            if (null != videoList && TableConstant.COMMON_ZERO != videoList.size()) {
+            if (!videoList.isEmpty()) {
                 QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
                 queryWrapper.in("video_id", videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
                 queryWrapper.in("master_id", masterId);
                 queryWrapper.in("type", TableConstant.COMMON_TWO);
                 ptTagsService.remove(queryWrapper);
             }
-            if (null != allPtTagsList && TableConstant.COMMON_ZERO != allPtTagsList.size()) {
+            if (!allPtTagsList.isEmpty()) {
                 ptTagsService.saveOrUpdateBatch(allPtTagsList);
             }
             return new Message().ok("添加成功！").addData("sync", videoList);
@@ -917,16 +909,16 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "保存YouTube", httpMethod = "POST")
     @PostMapping("/saveYoutubeVideos")
-    public Message saveYoutubeVideos(@RequestBody List<SysFile> youtubeSysfileList, HttpServletRequest request) {
+    public Message saveYoutubeVideos(@RequestBody List<SysFile> youtubeSysfileList) {
         GcManager manager = this.getManager();
         SysSystem system = this.getSystem();
-        List<SysFile> youtubeSysfile = youtubeSysfileList;
+
         try {
-            if (youtubeSysfile.size() == TableConstant.COMMON_ONE) {
-                if (null != youtubeSysfile.get(TableConstant.COMMON_ZERO).getId()) {
-                    SysFile youtubeFile = youtubeSysfile.get(TableConstant.COMMON_ZERO);
+            if (youtubeSysfileList.size() == TableConstant.COMMON_ONE) {
+                if (null != youtubeSysfileList.get(TableConstant.COMMON_ZERO).getId()) {
+                    SysFile youtubeFile = youtubeSysfileList.get(TableConstant.COMMON_ZERO);
                     String fileUrl = youtubeFile.getFileUrl();
-                    String youtubeFileId = fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId, fileUrl.length());
+                    String youtubeFileId = fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId);
                     String fullFileUrl = "https://www.youtube.com/embed/" + youtubeFileId;
                     youtubeFile.setFileUrl(fullFileUrl);
                     if(Objects.nonNull(manager)) {
@@ -937,11 +929,11 @@ public class ManagerGuideCoreController extends GuideCoreController {
                     youtubeFile.setName(stringWidthConvertUtil.stringWidthConvert(youtubeFile.getName()));
                     youtubeFile.setSysId(system.getId());
                     sysFileService.saveOrUpdate(youtubeFile);
-                    youtubeSysfile.set(TableConstant.COMMON_ZERO, youtubeFile);
-                    return new Message().ok().addData("youtubeSysfile", youtubeSysfile);
+                    youtubeSysfileList.set(TableConstant.COMMON_ZERO, youtubeFile);
+                    return new Message().ok().addData("youtubeSysfile", youtubeSysfileList);
                 }
             }
-            for (SysFile sysFile : youtubeSysfile) {
+            for (SysFile sysFile : youtubeSysfileList) {
                 String fileUrl = sysFile.getFileUrl();
                 String youtubeFileId = fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId, fileUrl.length());
                 String fullFileUrl = "https://www.youtube.com/embed/" + youtubeFileId;
@@ -956,13 +948,12 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 sysFile.setName(stringWidthConvertUtil.stringWidthConvert(sysFile.getName()));
                 sysFile.setSysId(system.getId());
             }
-            sysFileService.saveBatch(youtubeSysfile);
+            sysFileService.saveBatch(youtubeSysfileList);
         }catch (Exception e){
             return new Message().error().addData("error",e.getMessage());
         }
-        return new Message().ok().addData("youtubeSysfile",youtubeSysfile);
+        return new Message().ok().addData("youtubeSysfile", youtubeSysfileList);
     }
-
 
     @ApiOperation(value = "视频", httpMethod = "GET")
     @GetMapping("/video/{id}")
