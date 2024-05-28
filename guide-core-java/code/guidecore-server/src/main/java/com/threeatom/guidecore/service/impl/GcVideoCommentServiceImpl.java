@@ -113,7 +113,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
     public Message getCommentStream(
             Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request) {
         List<Integer> subIds = new ArrayList<>();
-        List<GcVideo> videoList = new ArrayList<>();
+        List<GcVideo> videoList;
         if (sub.getSubId() != null) {
             subIds.add(subId);
             videoList = videoService.getVideoListBySubId(subId);
@@ -125,14 +125,10 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
 
         List<Integer> videoLikeNums = videoActionService.getVideoLikeNumsByVideoIds(videoIds);
         List<Integer> videoCommentNums = this.getCommentNumsByVideoIds(videoIds);
-        //        List<GcUserVideoAction> userVideoActions =
-        // videoActionService.getMyLikeVideoList(user.getId());
         List<GcUserVideoAction> userVideoActions =
                 videoActionService.getVideoActionListByUserId(user.getId());
 
         List<GcSubject> childSub = subjectService.getSubListByIds(subIds, request);
-        // 查询所有的问题列表
-        // List<GcEvent> allEvent = eventService.getEventListByVideoIds(videoIds);
         List<GcEvent> allEvent = null;
         if (videoIds != null && videoIds.size() > 0)
             allEvent = gcEventMapper.getEventListByVideoIds(videoIds, user.getId());
@@ -148,8 +144,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
             JSONArray jsonVideoArray = new JSONArray();
             for (GcVideo video : videoList) {
                 if (childSubject.getId().equals(video.getSubId())) {
-                    SysFile file = video.getVideoFile();
-                    if (file != null) video.setSnapshotUrl(fileService.getVideoSnapshotUrl(file));
+                    video.setSnapshotUrl(fileService.getVideoSnapshotUrl(video));
                     JSONObject jsonVideoObject = new JSONObject();
                     jsonVideoObject.put("id", video.getId());
                     jsonVideoObject.put("videoName", video.getVideoName());
@@ -215,8 +210,6 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
             videoListObject.put("videoList", jsonVideoArray);
             jsonSubArray.add(videoListObject);
         }
-        //        List<GcSubject> list = gcSubjectService.selectBySubId(sub.getId());
-        //        List<SysFile> otherFileList = sysFileService.selectBySubId(sub.getId());
         return new Message().ok().addData("subList", jsonSubArray);
     }
 

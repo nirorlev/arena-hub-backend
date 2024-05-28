@@ -68,7 +68,7 @@ public class NewUISaveContentController extends GuideCoreController {
         for (GcUserSaveFolder folder : list) {
             for (GcUserSaveContent content : folder.getSaveContentList()) {
                 if (content.getVideo() != null)
-                    sysFileService.getVideoSnapshotUrl(content.getVideo().getVideoFile());
+                    sysFileService.getVideoSnapshotUrl(content.getVideo());
                 if (content.getSubject() != null)
                     sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
             }
@@ -106,7 +106,7 @@ public class NewUISaveContentController extends GuideCoreController {
                 }
                 for (GcUserSaveContent content : folder.getSaveContentList()) {
                     if (content.getVideoFile() != null)
-                        sysFileService.getVideoSnapshotUrl(content.getVideoFile());
+                        sysFileService.getVideoSnapshotUrl(content.getVideo());
                     if (content.getSubject() != null)
                         sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
                 }

@@ -1,14 +1,9 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.service.impl;
 
+import com.threeatom.guidecore.entity.GcVideo;
 import java.io.*;
 import java.net.URL;
 import java.security.Security;
-import java.text.ParseException;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -22,8 +17,6 @@ import com.threeatom.guidecore.util.I18NUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jets3t.service.CloudFrontService;
-import org.jets3t.service.CloudFrontServiceException;
-import org.jets3t.service.security.EncryptionUtil;
 import org.jets3t.service.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +46,12 @@ import com.threeatom.utils.FileUtil;
 @Service
 public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> implements SysFileService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SysFileServiceImpl.class);
-    private static final String DIR = "/upload";
-    private static final String IMG_FOLDER = "images";
+    private static final int DISK_SAVE_TYPE = 2;
+    private static final int FILE_SAVE_TYPE = 1;
+
     @Value("${web.profile-path:config/static}")
     private String uploadPath;
+
     @Autowired
     private Map<String, AliyunOssService> ossServiceMap;
 
@@ -129,7 +124,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         fileEntity.setFileUrl(url);
         fileEntity.setUploadUid(user.getId());
         fileEntity.setName(file.getOriginalFilename());
-        fileEntity.setSaveType(1);
+        fileEntity.setSaveType(FILE_SAVE_TYPE);
         fileEntity.setFileType(file.getContentType());
         this.save(fileEntity);
         return fileEntity;
@@ -149,11 +144,11 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         String url = "";
         String md5 = "";
         switch(saveType) {
-        case 1:
+        case FILE_SAVE_TYPE:
             String fileFullFolder = "images" + File.separator + folder;
             url = this.saveSysFileToProfile(fileFullFolder, fileName, is);
             break;
-        case 2:
+        case DISK_SAVE_TYPE:
             String objectName = folder + File.separator + fileName;
             PutObjectResult result = this.saveOss(ossService, objectName, is);
             md5 = result.getETag();
@@ -184,11 +179,11 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                 return fullFileUrl;
             }
             switch(sysFile.getSaveType()) {
-            case 1://本地保存
+            case FILE_SAVE_TYPE://本地保存
                 String contextPath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
                 fullFileUrl = contextPath + sysFile.getFileUrl();
                 break;
-            case 2://oss保存
+            case DISK_SAVE_TYPE://oss保存
             	//原方法
 //            	IOssService ossService = this.getCurrentOssService(sys);
 //                String objectName = sysFile.getFileUrl();
@@ -260,7 +255,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         if(sysFile.getSaveType()==TableConstant.sysFile_saveType_link_3) {
         	return sysFile.getFileUrl();
         }
-        if(sysFile.getSaveType()!=2) {
+        if(sysFile.getSaveType()!= DISK_SAVE_TYPE) {
         	return "";
         }
         String fullFileUrl = sysFile.getFileUrl();
@@ -287,14 +282,14 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         String url = "";
         String md5 = "";
         switch(saveType) {
-        case 1:
-            url = this.saveSysFileToProfile(folder, fileName, is);
-            break;
-        case 2:
-            String objectName = folder + File.separator + fileName;
-            PutObjectResult result = this.saveOss(ossService, objectName, is);
-            md5 = result.getETag();
-            url = objectName;
+            case FILE_SAVE_TYPE:
+                url = this.saveSysFileToProfile(folder, fileName, is);
+                break;
+            case DISK_SAVE_TYPE:
+                String objectName = folder + File.separator + fileName;
+                PutObjectResult result = this.saveOss(ossService, objectName, is);
+                md5 = result.getETag();
+                url = objectName;
         }
 
         SysFile fileEntity = new SysFile();
@@ -328,10 +323,10 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         String url = "";
         String md5 = "";
         switch(saveType) {
-        case 1:
+        case FILE_SAVE_TYPE:
             url = this.saveSysFileToProfile(folder, fileName, is);
             break;
-        case 2:
+        case DISK_SAVE_TYPE:
             String objectName = folder + File.separator + fileName;
             PutObjectResult result = this.saveOss(ossService, objectName, is);
             md5 = result.getETag();
@@ -366,10 +361,10 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         String url = "";
         String md5 = "";
         switch(saveType) {
-        case 1:
+        case FILE_SAVE_TYPE:
             url = this.saveSysFileToProfile(folder, fileName, is);
             break;
-        case 2:
+        case DISK_SAVE_TYPE:
             String objectName = folder + File.separator + fileName;
             if (objectName.contains("\\")){
                 objectName = objectName.replace("\\","/");
@@ -407,7 +402,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     public JSONObject saveFilePolicy(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String originFileName, Map<String, Object> extParams) {
-        String fileName = UUID.randomUUID().toString() + FileUtil.getExtensionName(originFileName);
+        String fileName = UUID.randomUUID() + FileUtil.getExtensionName(originFileName);
         AliyunOssService ossService = this.getCurrentOssService(sys);
         Map<String, Object> map = new HashMap();
         map.put("uploaderId", uploaderId);
@@ -426,6 +421,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return ossService.uploadObjectPolicy(ossService.getCurrentBucketName(), objectName, map);
     }
 
+    // TODO: cleanup and replace usage by the method with GcVideo
     public String getVideoSnapshotUrl(SysFile sysFile) {
         if (null == sysFile ) {
             return null;
@@ -433,61 +429,86 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         if (null!=sysFile.getThumbNailId()){
             SysFile thumbNail = sysFileService.getById(sysFile.getThumbNailId());
             return getResFullUrl(thumbNail,null);
-        } else if(("video/webm").equals(sysFile.getFileType()) && Objects.nonNull(sysFile.getThumbNailId())){
-                SysFile thumbNailFile = sysFileService.getById(sysFile.getThumbNailId());
-                return getResFullUrlSaveType2(thumbNailFile);
-        }else {
-            String videoSnapshotUrl = "";
-            AliyunOssService ossService = this.getCurrentOssService(systemService.getSystem());
-            if (null!=sysFile.getThumbNailUrl()){
-                videoSnapshotUrl = sysFile.getThumbNailUrl();
-                sysFile.setSnapshotUrl(sysFile.getThumbNailUrl());
+        }
+        if(("video/webm").equals(sysFile.getFileType()) && Objects.nonNull(sysFile.getThumbNailId())){
+            SysFile thumbNailFile = sysFileService.getById(sysFile.getThumbNailId());
+            return getResFullUrlSaveType2(thumbNailFile);
+        }
+        String videoSnapshotUrl = "";
+        AliyunOssService ossService = this.getCurrentOssService(systemService.getSystem());
+        if (null!=sysFile.getThumbNailUrl()){
+            videoSnapshotUrl = sysFile.getThumbNailUrl();
+            sysFile.setSnapshotUrl(sysFile.getThumbNailUrl());
 
-                if (!sysFile.getThumbNailUrl().contains("https")||!sysFile.getThumbNailUrl().contains("http")){
-                    videoSnapshotUrl = getS3Url(sysFile.getThumbNailUrl());
-                    sysFile.setSnapshotUrl(videoSnapshotUrl);
-                }
-                return videoSnapshotUrl;
-            }
-            switch(sysFile.getSaveType()) {
-            case 2:
-                if ((null!=sysFile.getFileTypeIndex()&&sysFile.getFileTypeIndex().equals(EventUnifyType.AUDIO_3))||(null!=sysFile.getFolder()&&sysFile.getFolder().equals(TableConstant.sysFile_folder_guidecoreAudio))){
-                    break;
-                }
-                String objectName = sysFile.getFileUrl();
-                videoSnapshotUrl = ossService.getVideoSnapshot(ossService.getCurrentBucketName(), objectName, 10000);//第3秒为视频预览图
+            if (!sysFile.getThumbNailUrl().contains("https")||!sysFile.getThumbNailUrl().contains("http")){
+                videoSnapshotUrl = getS3Url(sysFile.getThumbNailUrl());
                 sysFile.setSnapshotUrl(videoSnapshotUrl);
-                break;
-            case 1:
-            	 break;
-            default:
-            	sysFile.setSnapshotUrl(null);
-            	 break;
-                
             }
             return videoSnapshotUrl;
         }
-        
+        switch(sysFile.getSaveType()) {
+        case DISK_SAVE_TYPE:
+            if ((null!=sysFile.getFileTypeIndex()&&sysFile.getFileTypeIndex().equals(EventUnifyType.AUDIO_3))||(null!=sysFile.getFolder()&&sysFile.getFolder().equals(TableConstant.sysFile_folder_guidecoreAudio))){
+                break;
+            }
+            String objectName = sysFile.getFileUrl();
+            videoSnapshotUrl = ossService.getVideoSnapshot(ossService.getCurrentBucketName(), objectName, 10000);//第3秒为视频预览图
+            sysFile.setSnapshotUrl(videoSnapshotUrl);
+            break;
+        case FILE_SAVE_TYPE:
+             break;
+        default:
+            sysFile.setSnapshotUrl(null);
+             break;
+
+        }
+        return videoSnapshotUrl;
     }
 
     @Override
-    public String getVideoSnapshotUrlByThumbNail(SysFile sysFile) {
-        String videoSnapshotUrl = "";
-        if (null!=sysFile.getThumbNailUrl()){
-            return sysFile.getThumbNailUrl();
+    public String getVideoSnapshotUrl(GcVideo gcVideo) {
+        if (gcVideo == null || gcVideo.getVideoFile() == null) {
+            return null;
         }
-        if (null!=sysFile.getThumbNailId()){
-            videoSnapshotUrl = sysFileMapper.selectById(sysFile.getThumbNailId()).getThumbNailUrl();
+
+        SysFile videoFile = gcVideo.getVideoFile();
+
+        String videoSnapshotUrl = "";
+        AliyunOssService ossService = this.getCurrentOssService(systemService.getSystem());
+        if (null!=gcVideo.getThumbnailUrl()){
+            videoSnapshotUrl = gcVideo.getThumbnailUrl();
+            videoFile.setSnapshotUrl(videoSnapshotUrl);
+
+            if (!gcVideo.getThumbnailUrl().contains("https")||!gcVideo.getThumbnailUrl().contains("http")){
+                videoSnapshotUrl = getS3Url(gcVideo.getThumbnailUrl());
+                videoFile.setSnapshotUrl(videoSnapshotUrl);
+            }
+            return videoSnapshotUrl;
+        }
+        switch(videoFile.getSaveType()) {
+            case DISK_SAVE_TYPE:
+                if ((null!=videoFile.getFileTypeIndex()&&videoFile.getFileTypeIndex().equals(EventUnifyType.AUDIO_3))||(null!=videoFile.getFolder()&&videoFile.getFolder().equals(TableConstant.sysFile_folder_guidecoreAudio))){
+                    break;
+                }
+                String objectName = videoFile.getFileUrl();
+                videoSnapshotUrl = ossService.getVideoSnapshot(ossService.getCurrentBucketName(), objectName, 10000);
+                videoFile.setSnapshotUrl(videoSnapshotUrl);
+                break;
+            case FILE_SAVE_TYPE:
+                 break;
+            default:
+                videoFile.setSnapshotUrl(null);
+                 break;
         }
         return videoSnapshotUrl;
     }
 
     public SysFile saveWxImgUrl(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String url) {
-        String fileName = UUID.randomUUID().toString() + ".png";
+        String fileName = UUID.randomUUID() + ".png";
         String objectName = folder + File.separator + fileName;
         AliyunOssService ossService = this.getCurrentOssService(sys);
         switch(saveType) {
-        case 2:
+        case DISK_SAVE_TYPE:
             url = ossService.uploadNetObject(ossService.getCurrentBucketName(), objectName, url);
         default:
             SysFile fileEntity = new SysFile();

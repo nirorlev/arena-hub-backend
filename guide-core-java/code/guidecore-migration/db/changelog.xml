@@ -127,7 +127,7 @@
         <sql>
             UPDATE gc_video
             SET thumbnail_url = sys_file.thumb_nail_url,
-                video_time    = sys_file.video_long FROM sys_file
+                video_time    = coalesce(sys_file.video_long, 0) FROM sys_file
             WHERE gc_video.file_id = sys_file.id;
 
             INSERT INTO course_content (course_id, content_id, "order")

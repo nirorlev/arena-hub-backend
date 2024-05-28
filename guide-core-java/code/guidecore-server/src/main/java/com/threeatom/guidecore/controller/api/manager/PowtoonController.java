@@ -1486,7 +1486,7 @@ public class PowtoonController extends GuideCoreController {
 
 			if (null!=groupBySubId.get(i.getId())){
 				List<GcVideo> gcVideos = groupBySubId.get(i.getId());
-				Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+				Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 				i.setVideosTotalLong(totalSeconds);
 				i.setVideosTotalNum(gcVideos.size());
 			}else {

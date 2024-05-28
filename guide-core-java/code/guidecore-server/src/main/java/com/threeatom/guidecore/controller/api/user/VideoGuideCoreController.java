@@ -97,17 +97,12 @@ public class VideoGuideCoreController extends GuideCoreController {
     public Message getLikeVideoByUserId(HttpServletRequest request) {
 
         GcUser user = this.getGcUser();
-        SysSystem sys = this.getSystem();
         Integer masterId = getHeaderMasterId(request);
 
-        //		String sysIds = env.getProperty("systemId");
-        //    	int sysId = Integer.parseInt(sysIds);
-        //    	SysSystem sys = systemService.getSystemById(sysId);
         List<GcVideo> list = videoService.selectLikeVideoByUserId(user.getId(), masterId);
 
         for (GcVideo video : list) {
-            SysFile file = video.getVideoFile();
-            if (file != null) video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
+            video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
         }
         return new Message().ok("操作成功！").addData("likeVideoList", list);
     }
@@ -186,19 +181,16 @@ public class VideoGuideCoreController extends GuideCoreController {
         return new Message().error("操作失败！");
     }
 
-    @ApiOperation(value = "用户视频评论", httpMethod = "POST")
+    @ApiOperation(value = "User video comments", httpMethod = "POST")
     @PostMapping("/videoComment")
-    public Message videoComment(@RequestBody JSONObject jsonRequest, HttpServletRequest request)
-            throws IOException {
+    public Message videoComment(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
         Integer vid = jsonRequest.getInteger("vid");
         Integer masterId = getHeaderMasterId(request);
         String comment = jsonRequest.getString("comment");
         Integer fileId = jsonRequest.getInteger("fileId");
-        ApiAssert.notNull(vid, "参数vid缺失");
-        //        ApiAssert.notNull(comment, "参数comment缺失");
+        ApiAssert.notNull(vid, "Parameter vid is missing");
+
         GcUser user = this.getGcUser();
-        //        boolean isFlag =
-        // this.permitCheck(user.getUsername(),ActionsType.comment,masterId,ResourceType.videoItem,null);
         GcVideoComment videoComment = new GcVideoComment();
         videoComment.setMasterId(masterId);
         videoComment.setUserId(user.getId());
@@ -210,14 +202,13 @@ public class VideoGuideCoreController extends GuideCoreController {
             file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
             videoComment.setCommentFile(file);
         }
+
         if (videoCommentService.saveVideoComment(videoComment)) {
-            //            GcVideoComment reComment = videoCommentService.getSelfNewComment(user.getId(),
-            // vid);
-            //            return new Message().ok("评论成功！").addData("reComment", reComment);
-            return new Message().ok("评论成功！").addData("comment", videoComment);
-        } else {
-            return new Message().error("评论失败！");
+            return new Message().ok("Comment successful")
+                .addData("comment", videoComment);
         }
+
+        return new Message().error("Comment failed!");
     }
 
     @PostMapping("/DelVideoResourceFile")
