@@ -27,11 +27,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
     List<PtChannel> selectNewIndexHomeChannels(
             @Param("userId") Integer userId, @Param("masterId") Integer masterId);
 
-    List<PtChannel> selectPtchannelVideo(
-            @Param("userId") Integer userId,
-            @Param("name") String name,
-            @Param("masterId") Integer masterId);
-
     PtChannel selectChannelDetail(
             @Param("channelId") Integer channelId,
             @Param("slug") String slug,

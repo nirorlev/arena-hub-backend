@@ -251,7 +251,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         if (CollectionUtils.isNotEmpty(videos)) {
             Map<Integer, SysFile> createFileMap = new HashMap<>();
             List<GcUser> userList = videos.stream().map(SysFile::getGcUser).collect(Collectors.toList());
-            if (null != userList && TableConstant.COMMON_ZERO != userList.size()) {
+            if (!userList.isEmpty()) {
                 List<SysFile> createFile =
                         sysFileService.listByIds(
                                 userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
@@ -264,8 +264,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setSnapshotUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
-                    if (null != createFileMap
-                            && null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
+                    if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
                         sysFile
                                 .getGcUser()
                                 .setAvatarFullFileUrl(
@@ -275,6 +274,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 }
             }
         }
+
         return videos;
     }
 
