@@ -732,6 +732,12 @@
         <if test="filter.trendOnly">
             v.create_time &lt;= time_bucket
         </if>
+        <if test="!filter.videoIds.empty">
+            AND v.id IN
+            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+        </if>
         LEFT JOIN gc_subject s ON v.sub_id = s.id
         LEFT JOIN gc_content_group_course_assignment cgca ON s.sub_id = cgca.course_id
         LEFT JOIN gc_access a ON cgca.content_group_id = a.id AND a.master_id = #{masterId}

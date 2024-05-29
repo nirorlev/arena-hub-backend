@@ -72,6 +72,6 @@ public class AnalyticsController {
     @GetMapping("/engagement-rate")
     public ResponseEntity<AnalyticsResponseDto> engagementRete(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getEngagementReteAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getEngagementRateAnalytics(filter, masterId));
     }
 }

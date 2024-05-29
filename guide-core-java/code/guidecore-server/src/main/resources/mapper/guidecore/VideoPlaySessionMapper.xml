@@ -22,6 +22,12 @@
             create_time &lt;= time_bucket
         </if>
             AND master_id = #{masterId}
+            <if test="!filter.videoIds.empty">
+                AND video_id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+            </if>
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -46,6 +52,12 @@
             create_time &lt;= time_bucket
         </if>
         AND master_id = #{masterId}
+        <if test="!filter.videoIds.empty">
+            AND video_id IN
+            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+        </if>
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
