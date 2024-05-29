@@ -38,6 +38,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.entity.SysMenu;
@@ -66,6 +67,7 @@ import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.SysMenuService;
@@ -240,11 +242,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private SysMenuService sysMenuService;
+
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
-//	@Value("${channel.id:0}")
-//	private List<Integer> channelIdList;
+	@Autowired
+	private PtChannelContentService ptChannelContentService;
 
 	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system,GcUser user) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1963,24 +1966,19 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Override
 	public Message createVideoPlayRecordAndNode(@RequestBody GcUserVideoPlay userVideoPlay, HttpServletRequest request,Integer envFlag,GcUser user,Integer masterId,SysSystem system) {
-		Message message = new Message();
-
 		if (null!=userVideoPlay.getFileId()){
-			userVideoPlay.setUserId(user.getId());
-			userVideoPlay.setMasterId(masterId);
-			SysFile file = sysFileService.getById(userVideoPlay.getFileId());
-			GcUserVideoPlay videoPlay = userVideoPlayService.saveVideoPlayAndVideoPlaysNode(userVideoPlay);
-
-			return message.ok("获取成功")
-					.addData("videoPlayNode", videoPlay.getVideoPlaysNode())
-					.addData("videoPlay", videoPlay)
-					.addData("file",file);
+			return saveChannelContentVideoPlay(userVideoPlay, user, masterId, userVideoPlay.getFileId());
 		}
 
 		GcVideo thisVideo = gcVideoService.getVideoById(userVideoPlay.getVideoId());
 
+		Optional<PtChannelContent> channelContent = ptChannelContentService.getChannelContent(thisVideo.getId());
+		if (channelContent.isPresent()) {
+			return saveChannelContentVideoPlay(userVideoPlay, user, masterId, thisVideo.getFileId());
+		}
 
-		ApiAssert.notNull(masterId, "masterId缺失");
+		ApiAssert.notNull(masterId, "masterId is missing");
+		Message message = new Message();
 
 		userVideoPlay.setUserId(user.getId());
 		userVideoPlay.setMasterId(masterId);
@@ -1988,18 +1986,18 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 
 		List<Integer> subIdList = new ArrayList<>();
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("masterId", masterId);
 		params.put("pageSize", 1000);
 		params.put("fid", thisVideo.getSubId0());
 		params.put("userId", user.getId());
 
 		SubjectTotals subjectTotals = null;
-		//每次观看完都进行进度计算
-		if(TableConstant.COMMON_THREE==envFlag /*&& TableConstant.COMMON_ONE==userVideoPlay.getPlayState()*/) {
+		//Progress is calculated after each viewing
+		if(TableConstant.COMMON_THREE==envFlag) {
 			PageInfo<GcSubject> page = newUiGcSubjectService.listSubjectByFid(params, system, request, true, subIdList, envFlag);
 			List<GcSubject> orderSubject = page.getList();
-			//一级课程总进度
+			//Level 1 Course Overall Progress
 			if (Objects.nonNull(user.getId())) {
 				List<Integer> subId = new ArrayList<>();
 				GcSubject gcSubject = subjectService.getById(thisVideo.getSubId0());
@@ -2010,15 +2008,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				Map<Integer, List<GcVideo>> map = gcVideos.stream().filter(e -> null != e.getSubId()).collect(Collectors.groupingBy(GcVideo::getSubId));
 				for (GcSubject gcSubject1 : subjects) {
 					List<GcVideo> list = map.get(gcSubject1.getId());
-					if (null != list && TableConstant.COMMON_ZERO != list.size()) {
+					if (null != list && !list.isEmpty()) {
 						gcSubject1.setGcVideos(list);
 					}
 				}
 				subjectTotals = calcTotals(subjects, user.getId(), false, masterId,envFlag);
 				message.addData("subjectTotal", subjectTotals);
 
-				//二级课程进度
-				GcSubject gcSubject1 = subjectService.getById(thisVideo.getSubId());
+				//Level 2 Course Progress
 				Integer suboId = thisVideo.getSubId0();
 				List<Integer> suboList = new ArrayList<>();
 				subIdList.add(suboId);
@@ -2044,7 +2041,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 		}
 
-		//加入课程完成进度数据
+		//Add course completion progress data
 		GcSubjectComplete complete = subjectCompleteService.getSubjectCompleteInfo(masterId,user.getId(),thisVideo.getSubId0());
 		if (null==complete){
 			complete = new GcSubjectComplete();
@@ -2066,9 +2063,22 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		complete.setUserId(user.getId());
 		subjectCompleteService.saveOrUpdate(complete);
 
-		return  message.ok("获取成功")
+		return  message.ok("Get Success")
 				.addData("videoPlayNode", videoPlay.getVideoPlaysNode())
 				.addData("videoPlay", videoPlay);
+	}
+
+	private Message saveChannelContentVideoPlay(GcUserVideoPlay userVideoPlay, GcUser user, Integer masterId,
+												Integer thisVideo) {
+		userVideoPlay.setUserId(user.getId());
+		userVideoPlay.setMasterId(masterId);
+		SysFile file = sysFileService.getById(thisVideo);
+		GcUserVideoPlay videoPlay = userVideoPlayService.saveVideoPlayAndVideoPlaysNode(userVideoPlay);
+
+		return new Message().ok("Get Success")
+			.addData("videoPlayNode", videoPlay.getVideoPlaysNode())
+			.addData("videoPlay", videoPlay)
+			.addData("file", file);
 	}
 
 	@Override
