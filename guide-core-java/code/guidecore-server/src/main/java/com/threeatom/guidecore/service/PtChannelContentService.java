@@ -6,12 +6,6 @@ import com.threeatom.system.entity.SysFile;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * 系统帮助-反馈
- *
- * @author huangpei
- * @Date 2021-10-26
- */
 public interface PtChannelContentService extends IService<PtChannelContent> {
 
     Boolean changeContentOrder(List<Integer> contentIds);
@@ -22,4 +16,6 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     Boolean deleteContent(Integer videoId, Integer channelId);
 
     List<PtChannelContent> selectContentExist(Integer channelId);
+
+    boolean saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
 }

@@ -8,23 +8,18 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.StudentInfoVO;
+import com.threeatom.guidecore.enums.OriginType;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.scheduling.annotation.Async;
 
-/**
- * <p>
- * 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GcVideoService extends GcVideoServiceBll {
 
     List<GcVideo> getVideoListBySubIds(List<Integer> subIds);
@@ -175,4 +170,8 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<Integer> getIdsBySubIds(List<Integer> subIds);
 
     Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
+
+    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
+
+    Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
 }

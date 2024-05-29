@@ -3646,24 +3646,18 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 
-		GcUser user = this.getGcUser();
-        /*boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.videoItem, null);
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}*/
 		Message message = new Message();
 		PtChannel channel = ptChannelService.getById(ptChannel.getId());
 		String order = request.getHeader("order");
-		List<SysFile> videoList = new ArrayList<>();
+		List<SysFile> videoList;
 		if(Objects.isNull(ptChannel.getSearchName())) {
 			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), null);
 		}else {
 			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), channel.getLevel());
 		}
-		if (null!=videoList&&videoList.size()!=TableConstant.COMMON_ZERO){
+		if (null!=videoList&& !videoList.isEmpty()){
 			QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 			queryWrapper2.eq("master_id",masterId);
-			//queryWrapper2.eq("channel_id",ptChannel.getId());
 			queryWrapper2.in("file_id",videoList.stream().map(SysFile::getId).collect(Collectors.toList()));
 			queryWrapper2.eq("type",TableConstant.COMMON_TWO);
 			List<PtTags> list = ptTagsService.list(queryWrapper2);
@@ -3679,56 +3673,8 @@ public class PowtoonController extends GuideCoreController {
 
 		}
 
-		PageInfo pageInfo = new PageInfo<>(videoList);
-		return message.ok().addData("videos",pageInfo);
+		return message.ok().addData("videos", new PageInfo<>(videoList));
 	}
-
-
-//	@PostMapping("/selectVideosAndEvents")
-//	public Message selectVideosAndEvents(@RequestBody GcSubject subject, HttpServletRequest request) {
-//		Message message = new Message();
-//		GcUser user = this.getGcUser();
-//		if(Objects.isNull(subject.getId())){
-//			throw new SystemException(I18NUtil.get("powtoon.topic.error"));
-//		}
-//		PageParam pageParam = new PageParam(request);
-//		Integer pageNum = pageParam.getPageNum();
-//		Integer pageSize=pageParam.getPageSize();
-//		if (pageNum > 0 && pageSize > 0) {
-//			PageHelper.startPage(pageNum, pageSize);
-//		}
-//		List<GcVideo> gcVideos = gcVideoService.getVideoListBySubId(subject.getId());
-//		if(CollectionUtils.isNotEmpty(gcVideos)) {
-//			List<Integer> vids = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
-//			List<GcEvent> eventList = gcEventService.getEventListByVideoIds(vids,user.getId());
-//			for(GcVideo gcVideo : gcVideos){
-//				List<GcEvent> gcEventList = new ArrayList<>();
-//				for(GcEvent gcEvent : eventList){
-//					if(gcEvent.getVideoId().equals(gcVideo.getId())){
-//						if(gcEventList.size()<10){
-//							gcEventList.add(gcEvent);
-//						}
-//					}
-//				}
-//				List<GcEvent> events = eventList.stream().filter(e->e.getVideoId().equals(gcVideo.getId())).collect(Collectors.toList());
-//				List<GcEvent> gcEvents = events.stream().filter(e->e.getMyAnswer()!=null).collect(Collectors.toList());
-//				gcVideo.setAnsweredSumNums(events.size());
-//				gcVideo.setAnsweredNums(gcEvents.size());
-//				PageInfo<GcEvent> pageInfo = new PageInfo<>(gcEventList);
-//				if(CollectionUtils.isNotEmpty(events)) {
-//					pageInfo.setTotal(events.size());
-//					BigDecimal page = BigDecimal.valueOf(events.size()).divide(BigDecimal.valueOf(10),BigDecimal.ROUND_UP);
-//					pageInfo.setPages(page.intValue());
-//				}
-//				gcVideo.setEventListPageInfo(pageInfo);
-//			}
-//		}
-//		PageInfo<GcVideo> pageInfo = new PageInfo<>(gcVideos);
-//		return message.ok().addData("taskVideoList",pageInfo);
-//	}
-
-
-
 
 	@ApiOperation(value = "channel订阅")
 	@PostMapping("/channelSubscribe")
@@ -3886,7 +3832,7 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		if(ptChannelContentService.saveOrUpdateBatch(ptChannelContent)){
+		if(ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList)) {
 			for(PtChannelContent channelContent : ptChannelContent){
 				channelContent.getCourseTags().forEach(i -> {
 					PtTags newTags = new PtTags();
@@ -3915,9 +3861,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 			ptTagsService.saveOrUpdateBatch(tagsList);
 			return message.ok("success").addData("contentList",ptChannelContent);
-		}else {
-			return message.error();
 		}
+
+		return message.error();
 	}
 
 	@ApiOperation(value = "channelContent删除内容")

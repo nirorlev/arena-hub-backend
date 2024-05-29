@@ -6,21 +6,24 @@ import com.github.pagehelper.PageHelper;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.mapper.PtchannelContentMapper;
+import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.system.entity.SysFile;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
+@RequiredArgsConstructor
 public class PtChannelContentServiceImpl
-        extends ServiceImpl<PtchannelContentMapper, PtChannelContent>
-        implements PtChannelContentService {
+    extends ServiceImpl<PtchannelContentMapper, PtChannelContent>
+    implements PtChannelContentService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserSaveFolderServiceImpl.class);
+    private final GcVideoService videoService;
 
     public Boolean changeContentOrder(List<Integer> contentIds) {
         List<PtChannelContent> ptChannelContents = new ArrayList<>();
@@ -43,7 +46,7 @@ public class PtChannelContentServiceImpl
     }
 
     public List<SysFile> selectVideosInChannel(
-            Integer channelId, String order, Integer fileId, HttpServletRequest request) {
+        Integer channelId, String order, Integer fileId, HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -57,5 +60,22 @@ public class PtChannelContentServiceImpl
         QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("channel_id", channelId);
         return this.list(queryWrapper);
+    }
+
+    @Override
+    @Transactional
+    public boolean saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList) {
+        if (CollectionUtils.isEmpty(ptChannelContent)) {
+            return false;
+        }
+
+        videoService.saveChannelContent(ptChannelContent, sysFileList);
+
+        for (PtChannelContent content : ptChannelContent) {
+            videoService.getChannelVideoContent(content)
+                .ifPresent(videoContent -> content.setContentId(videoContent.getId()));
+        }
+
+        return this.saveOrUpdateBatch(ptChannelContent);
     }
 }

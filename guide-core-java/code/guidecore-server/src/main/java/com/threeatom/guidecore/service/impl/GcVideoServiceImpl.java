@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.enums.OriginType;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,14 +45,6 @@ import com.threeatom.system.service.SysFileService;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Service
 public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> implements GcVideoService {
 
@@ -686,6 +679,51 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	@Transactional
+	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles) {
+		List<GcVideo> channelVideoContent = ptChannelContent.stream()
+			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent))
+			.collect(Collectors.toList());
+
+		saveBatch(channelVideoContent);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent) {
+		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
+
+		queryWrapper.eq("file_id", channelContent.getFileId());
+
+		return Optional.ofNullable(getOne(queryWrapper));
+	}
+
+	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent) {
+		SysFile videoFile = getVideoFile(channelContent.getFileId(), sysFiles);
+
+		if (videoFile == null) {
+			return null;
+		}
+
+		GcVideo gcVideo = new GcVideo();
+		gcVideo.setVideoName(videoFile.getName());
+		gcVideo.setVideoDesc(videoFile.getDescription());
+		gcVideo.setOrder(channelContent.getContentOrder());
+		gcVideo.setFileId(videoFile.getId());
+		gcVideo.setThumbnailUrl(videoFile.getThumbNailUrl());
+		gcVideo.setVideoTime(videoFile.getVideoLong());
+
+		return gcVideo;
+	}
+
+	private SysFile getVideoFile(Integer fileId, List<SysFile> sysFiles) {
+		return sysFiles.stream()
+			.filter(sysFile -> sysFile.getId().equals(fileId))
+			.findFirst()
+			.orElse(null);
+	}
+
+	@Override
 	public List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
 		return this.baseMapper.getVideoCountAnalytics(filter, masterId);
 	}
@@ -845,33 +883,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 		return l;
 	}
-
-	/**
-	 * 根据课程id查询视频是否完成，根据 播放进度和问题回答数
-	 *
-	 * @param subjectIds
-	 * @return
-	 */
-//	@Override
-//	public Map<Integer, List<GcVideo>> getVideoCompleteStatusBySubject(List<Integer> subjectIds, int userId) {
-//		if(CollectionUtils.isNotEmpty(subjectIds)){
-//			int size = subjectIds.size();
-//
-//			List<GcVideo> gcVideoss = this.baseMapper.selectVideosOneLevelSubIds(subjectIds);//公共方法，查询出来在进行groupby
-//			if(CollectionUtils.isNotEmpty(gcVideoss)){
-//				Map<Integer, List<GcVideo>> videoMap = gcVideoss.stream().collect(Collectors.groupingBy(GcVideo::getSubId0));
-//				Map<Integer, List<GcVideo>> result = new HashMap<>(size);
-//				for(Map.Entry<Integer, List<GcVideo>> map : videoMap.entrySet()){
-//					List<GcVideo> value = map.getValue();
-//					List<Integer> ids = value.stream().map(GcVideo::getId).collect(Collectors.toList());
-//					Integer key = map.getKey();
-//					result.put(key, getVideoCompleteStatusByVideo(ids, userId));//这里只需要视频的完成状态，在前端显示绿色黄色灰色，不需要视频的具体信息，具体信息根据课程id查询
-//				}
-//				return result;
-//			}
-//		}
-//		return new HashMap<>(0);
-//	}
 
 	/**
 	 * 根据一级课程id查询返回视频信息，
