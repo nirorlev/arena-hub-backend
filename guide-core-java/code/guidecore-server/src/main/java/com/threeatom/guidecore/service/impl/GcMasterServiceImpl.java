@@ -128,27 +128,10 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         return null;
     }
 
-    //	@Override
-    //	public Integer countNewMessages(Integer uid, Integer portalId) {
-    //
-    //
-    //    	return newUIUserMapper.countNewMessagesDetail(uid,portalId);
-    //	}
-
     @Override
     public GcMaster getMaster(String context) {
         return gcMasterMapper.getMasterByContext(context);
     }
-
-    //	@Override
-    //	public List<GcMaster> selectMasterAndManager(PageParam pageParam) {
-    //		Integer pageNum = pageParam.getPageNum();
-    //		Integer pageSize=pageParam.getPageSize();
-    //		if (pageNum > 0 && pageSize > 0) {
-    //			PageHelper.startPage(pageNum, pageSize);
-    //		}
-    //		return gcMasterMapper.selectMasterAndManager();
-    //	}
 
     @Override
     public Message getContentFromOneFolder(
@@ -219,8 +202,6 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
             List<Integer> fileIds = this.gcUserSaveContentService.getVideoIdList(content);
             if (null != fileIds && fileIds.size() != 0) {
-                // videoList = gcVideoService.selectVideoAndTimeByIds(videoIdList,new
-                // PageParam(request),request.getIntHeader("masterId"));
                 fileList = sysFileService.listByIds(fileIds);
 
                 for (GcUserSaveContent userSaveContent : list) {
