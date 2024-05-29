@@ -3780,7 +3780,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 	}
 
-	@ApiOperation(value = "视频详情页")
+	@ApiOperation(value = "Video details page")
 	@PostMapping("/contentVideoDetail")
 	public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) {
 		Message message = new Message();
@@ -3799,8 +3799,9 @@ public class PowtoonController extends GuideCoreController {
 		}
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
-		SysFile videoFile = sysFileService.getById(ptChannelContent.getFileId());
-		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
+		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
 		String fullFileUrl = sysFileService.getResFullUrl(videoFile,request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
@@ -3810,6 +3811,7 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikedFlag(TableConstant.COMMON_ZERO);
 		}
 		message.ok().addData("thisVideo",videoFile);
+		message.ok().addData("videoId", channelVideoContent.getId());
 
 		PtChannel ptChannel = new PtChannel();
 		if(Objects.nonNull(ptChannelContent.getChannelId())) {
