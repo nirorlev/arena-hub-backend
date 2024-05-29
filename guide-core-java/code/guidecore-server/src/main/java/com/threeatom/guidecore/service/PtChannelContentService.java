@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 public interface PtChannelContentService extends IService<PtChannelContent> {
@@ -18,4 +19,6 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     List<PtChannelContent> selectContentExist(Integer channelId);
 
     boolean saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
+
+    Optional<PtChannelContent> getChannelContent(Integer contentId);
 }

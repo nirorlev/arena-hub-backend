@@ -11,6 +11,7 @@ import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.system.entity.SysFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -77,5 +78,14 @@ public class PtChannelContentServiceImpl
         }
 
         return this.saveOrUpdateBatch(ptChannelContent);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<PtChannelContent> getChannelContent(Integer contentId) {
+        QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("content_id", contentId);
+
+        return Optional.ofNullable(this.getOne(queryWrapper));
     }
 }

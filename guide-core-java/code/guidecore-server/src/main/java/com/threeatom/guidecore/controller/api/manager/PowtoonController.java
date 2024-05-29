@@ -889,11 +889,7 @@ public class PowtoonController extends GuideCoreController {
 
 	@GetMapping("/playListVideoDetailPt")
 	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoId,Integer playListId) {
-		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		if(Objects.isNull(videoId)){
+        if(Objects.isNull(videoId)){
 			throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
 		}
 		if(Objects.isNull(playListId)){
@@ -906,7 +902,6 @@ public class PowtoonController extends GuideCoreController {
 		List<Integer> playListIds = new ArrayList<>();
 		playListIds.add(playListId);
 		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderAllVideo(null, getHeaderMasterId(request),playListIds,request,null);
-		//获得当前用户
 		GcUser gcUser = gcUserService.getById(list.get(0).getUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
 		gcUser.setInfo(gcUserInfo);
@@ -915,8 +910,6 @@ public class PowtoonController extends GuideCoreController {
 			sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
 			gcUser.getInfo().setAvatarFile(sysFile);
 		}
-
-
 
 		list.get(0).setUser(gcUser);
 		List<Integer> listIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
@@ -948,18 +941,17 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 
-		//点赞数
 		if(Objects.nonNull(list.get(0)) & CollectionUtils.isNotEmpty(list.get(0).getSaveContentList())){
 			List<Integer> fileIdList = list.get(0)
 					.getSaveContentList()
 					.stream()
-					.filter(e->e.getFileId()!=null)
 					.map(GcUserSaveContent::getFileId)
+					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
-            //查询出点赞表
+
 			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(fileIdList);
 			Map<Integer,GcUserVideoAction> isLikeMap = new HashMap<>();
-			if (TableConstant.COMMON_ZERO!=fileIdList.size()){
+			if (!fileIdList.isEmpty()){
 				List<GcUserVideoAction> videoIsLike = gcUserVideoActionService.getVideoActionListByFildId(fileIdList, myUser.getId());
 				isLikeMap = videoIsLike.stream().collect(Collectors.toMap(GcUserVideoAction::getFileId,GcUserVideoAction -> GcUserVideoAction, (key1, key2) -> key2, LinkedHashMap::new));
 			}
@@ -976,10 +968,8 @@ public class PowtoonController extends GuideCoreController {
 						gcUserSaveContent.getVideoFile().setLikeNum(gcVideo.getVideoLikeNum());
 					}
 				}
-
 			}
 		}
-
 
 		GcUserVideoAction fileIsLike = UserVideoActionService.getFileActionListByFileIdAndUserId(videoId, myUser.getId());
 		if (null!=fileIsLike){
@@ -993,6 +983,9 @@ public class PowtoonController extends GuideCoreController {
 		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		gcVideoService.getVideoContent(file.getId())
+			.ifPresent(videoContent -> message.ok().addData("videoId", videoContent.getId()));
+
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
 				.addData("systemTime",df.format(new Date()));
@@ -3780,7 +3773,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 	}
 
-	@ApiOperation(value = "视频详情页")
+	@ApiOperation(value = "Video details page")
 	@PostMapping("/contentVideoDetail")
 	public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) {
 		Message message = new Message();
@@ -3799,8 +3792,9 @@ public class PowtoonController extends GuideCoreController {
 		}
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
-		SysFile videoFile = sysFileService.getById(ptChannelContent.getFileId());
-		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
+		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
 		String fullFileUrl = sysFileService.getResFullUrl(videoFile,request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
@@ -3810,6 +3804,7 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikedFlag(TableConstant.COMMON_ZERO);
 		}
 		message.ok().addData("thisVideo",videoFile);
+		message.ok().addData("videoId", channelVideoContent.getId());
 
 		PtChannel ptChannel = new PtChannel();
 		if(Objects.nonNull(ptChannelContent.getChannelId())) {
