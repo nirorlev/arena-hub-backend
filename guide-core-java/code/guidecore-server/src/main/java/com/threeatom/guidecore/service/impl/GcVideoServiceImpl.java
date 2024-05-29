@@ -2,7 +2,6 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
-import com.threeatom.guidecore.enums.OriginType;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -694,6 +693,16 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
 
 		queryWrapper.eq("file_id", channelContent.getFileId());
+
+		return Optional.ofNullable(getOne(queryWrapper));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<GcVideo> getVideoContent(Integer fileId) {
+		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
+
+		queryWrapper.eq("file_id", fileId);
 
 		return Optional.ofNullable(getOne(queryWrapper));
 	}

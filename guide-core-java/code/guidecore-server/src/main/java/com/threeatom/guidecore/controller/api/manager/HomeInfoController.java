@@ -29,7 +29,6 @@ import org.apache.ibatis.annotations.Param;
 import org.dom4j.*;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.hibernate.validator.internal.engine.messageinterpolation.parser.ELState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -139,10 +137,6 @@ public class HomeInfoController extends GuideCoreController {
 		}
 		
 		if(iGcMasterHomeInfoService.saveGcMasterHomeInfo(master.getId(), list)){
-			/*Set<String> keys = redisOperator.keys("getTagSubjectList "+master.getId());
-			redisOperator.del(keys);
-			keys = redisOperator.keys("portalInfosUnlogin "+master.getId());
-			redisOperator.del(keys);*/
 			return new Message().ok();
 		}
 		return new Message().error();
@@ -160,9 +154,6 @@ public class HomeInfoController extends GuideCoreController {
 	 public Message getWelcomeVideos(HttpServletRequest request) {
 		GcMaster master=this.getMaster();
 		SysSystem sys = this.getSystem();
-//		String sysIds = env.getProperty("systemId");
-//    	int sysId = Integer.parseInt(sysIds);
-//    	SysSystem sys = systemService.getSystemById(sysId);
 		return new Message().ok().addData("welcomeVideosList", iGcMasterHomeInfoService.getGcMasterHomeInfoList(master.getId(), TableConstant.gcMasterHomeInfo_name_welcomeVideo_list, sys, request));
     }
 
@@ -196,15 +187,9 @@ public class HomeInfoController extends GuideCoreController {
     	gcMaster.setLogoFullUrl(sysFileService.getResFullUrlSaveType2(gcMaster.getLogoFile()));
     	return gcMaster;
     }
-    
-    
+
     @PostMapping("/getSubByLevel0Sub")
     public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams,HttpServletRequest request) {
-//    	String portalId = requestParams.getString("portalId");
-//    	GcMaster gcMaster = masterService.getMasterByContext(portalId);
-//    	if(gcMaster==null) {
-//    		return m.error("guidecore.getForHome.portalIdNotExist");
-//    	}
     	Message m = new Message();
     	
     	String portalId = requestParams.getString("portalId");
@@ -217,9 +202,7 @@ public class HomeInfoController extends GuideCoreController {
     	
     	
     	List<GcSubject> level0sublist = subjectService.getLevel0SubLis(gcMaster.getId());
-    	
-    	
-    	
+
     	String sysIds = env.getProperty("systemId");
     	int sysId = Integer.parseInt(sysIds);
     	SysSystem sys = systemService.getSystemById(sysId);
@@ -233,10 +216,7 @@ public class HomeInfoController extends GuideCoreController {
     	m.addData("gcMaster", gcMaster);
     	m.ok().addData("subjectList", level0sublist);
     	m.ok().addData("topicList", a);
-    	//m.addData("说明","videoSource的值: "+env.getProperty("videoSourceType"));
-    	
-    	
-    	
+
     	return m;
     }
 	
@@ -830,13 +810,13 @@ private metarielConfig metarielConfig;
 			SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getSaveContentList().get(0).getFileId());
 			desc="Playlist last updated "+gcUserSaveFolder.getUpdateTime();
 			title=gcUserSaveFolder.getName();
-			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,desc,null);
+			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,desc);
 		}// /playlist/147/87878
 		else if(stats==4 && containNumber){
 			GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(folderId,subOrVid);
 			SysFile sysFile = sysFileService.getById(subOrVid);
 			title = "\"" + sysFile.getName() + "\"" + " in " + "\"" + gcUserSaveFolder.getName() + "\"" + " playlist";
-			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,sysFile.getDescribe(),null);
+			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,sysFile.getDescribe());
 		}// /channel/test1
 		else if(stats==5){
 			PtChannel ptChannel= ptChannelService.getbyChannelSlug(channelUrlId);
@@ -1179,7 +1159,7 @@ private metarielConfig metarielConfig;
 	}
 
 
-	private String playListMetaConfig(SysFile sysFile,GcUserSaveFolder gcUserSaveFolder,String host,HttpServletRequest request,String Title,String Desc,String hubUrl) {
+	private String playListMetaConfig(SysFile sysFile,GcUserSaveFolder gcUserSaveFolder,String host,HttpServletRequest request,String title,String description) {
 		String fullFileUrl;
 		if(sysFile.getFileTypeIndex().equals(13)){
 			String fileUrl = sysFile.getFileUrl();
@@ -1201,8 +1181,7 @@ private metarielConfig metarielConfig;
 		if(Objects.isNull(sysFile.getName())){
 			sysFile.setName("");
 		}
-		String addMetaContent = metaHtml(Title, Desc, fullFileUrl, host, request);
-		return addMetaContent;
+        return metaHtml(title, description, fullFileUrl, host, request);
 	}
 
 }

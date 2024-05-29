@@ -495,23 +495,6 @@
         </if>
     </select>
 
-    <select id="selectVideoAndTimeByIds" resultMap="baseResultMap">
-        select
-        v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source
-        <include refid="fileBaseColumn" />
-        from gc_video v
-        left join gc_user_save_content sc on sc.master_id = #{masterId} and sc.video_id = v.id
-        <include refid="leftJoinSysFile" />
-        <if test="list.size !=0">
-        where v.id in
-        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
-            #{id}
-        </foreach>
-        </if>
-        group by v.id
-        order by sc.create_time
-    </select>
-
     <select id="countVideosBySubId" resultType="java.lang.Integer">
         select count(g.id) from gc_video g
         <where>

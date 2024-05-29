@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.threeatom.guidecore.mapper.GcUserSaveContentMapper">
     <select id="getTwoSubIdList" resultType="java.lang.Integer">
         select s.id
@@ -20,6 +21,7 @@
                 and u.sub_id is not null
         </where>
     </select>
+
     <select id="getOneSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u
@@ -39,23 +41,28 @@
             and u.sub_id is not null
         </where>
     </select>
+
     <select id="getVideoIdList" resultType="java.lang.Integer">
-        select file_id from gc_user_save_content
+        select gv.file_id
+        from gc_user_save_content gusc
+            JOIN gc_video gv ON gv.id = gusc.content_id
         <where>
         1=1
-            /*video_id is not null*/
             <if test="entity.folderId != null">
-                and folder_id = #{entity.folderId}
+                and gusc.folder_id = #{entity.folderId}
             </if>
             <if test="entity.masterId != null">
-                and master_id = #{entity.masterId}
+                and gusc.master_id = #{entity.masterId}
             </if>
         </where>
-        order by create_time asc
+        order by gusc.create_time asc
     </select>
 
     <select id="deleteList" resultType="java.lang.Integer">
-        select id from gc_user_save_content where video_id = #{videoId}
+        select gusc.id
+        from gc_user_save_content gusc
+            JOIN  course_content cc ON cc.content_id = gusc.content_id
+            JOIN gc_video gv ON gv.id = cc.content_id AND gv.id = #{videoId}
         <if test="foderIds!=null and foderIds.size !=0">
         and folder_id in
         <foreach item="folderId" index="index" collection="foderIds"  open="(" separator="," close=")">
@@ -65,16 +72,27 @@
     </select>
 
     <select id="selectFolderIdByVideoId" resultType="java.lang.Integer">
-        select folder_id from gc_user_save_content where video_id = #{videoId} and master_id = #{masterId}
+        select gusc.folder_id
+        from gc_user_save_content gusc
+             JOIN  course_content cc ON cc.content_id = gusc.content_id
+             JOIN gc_video gv ON gv.id = cc.content_id AND gv.id = #{videoId}
+        where master_id = #{masterId}
     </select>
+
     <select id="selectFolderIdByFileId" resultType="java.lang.Integer">
-        select folder_id from gc_user_save_content where file_id = #{fileId} and master_id = #{masterId}
+        select gusc.folder_id
+        from gc_user_save_content gusc
+            JOIN gc_video gv ON gv.id = gusc.content_id AND gv.file_id = #{fileId}
+        where gusc.master_id = #{masterId}
     </select>
 
     <select id="deleteFileList" resultType="java.lang.Integer">
-        select id from gc_user_save_content where file_id = #{fileId}
+        select gusc.id
+        from gc_user_save_content gusc
+            JOIN gc_video gv ON gv.id = gusc.content_id
+        where gv.file_id = #{fileId}
         <if test="foderIds!=null and foderIds.size !=0">
-            and folder_id in
+            and gusc.folder_id in
             <foreach item="folderId" index="index" collection="foderIds"  open="(" separator="," close=")">
                 #{folderId}
             </foreach>

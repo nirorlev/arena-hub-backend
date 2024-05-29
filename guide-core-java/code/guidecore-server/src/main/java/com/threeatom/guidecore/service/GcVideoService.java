@@ -10,7 +10,6 @@ import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.StudentInfoVO;
-import com.threeatom.guidecore.enums.OriginType;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -74,14 +73,6 @@ public interface GcVideoService extends GcVideoServiceBll {
      * @return
      */
     Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
-
-    /**
-     * 根据课程id查询视频是否完成，根据 播放进度和问题回答数
-     * @param subjectIds
-     * @return
-     */
-    //	Map<Integer, List<GcVideo>> getVideoCompleteStatusBySubject(List<Integer> subjectIds, int
-    // userId);
 
     /**
      * 根据一级课id集合查询视频并返回二级课程id
@@ -174,4 +165,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
 
     Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
+
+    Optional<GcVideo> getVideoContent(Integer fileId);
 }

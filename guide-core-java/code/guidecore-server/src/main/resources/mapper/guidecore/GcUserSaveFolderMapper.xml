@@ -38,6 +38,7 @@
 				<result property="videoId" column="sc_video_id" />
 				<result property="subId" column="sc_sub_id" />
 				<result property="fileId" column="sc_file_id" />
+				<result property="contentId" column="content_id" />
 			    <association property="subject" javaType="GcSubject" column="sub_id" >
 					<result property="id" column="s_id" />
 					<result property="name" column="s_name" />
@@ -94,7 +95,7 @@
 	<select id="selectFolderForUserMaster" resultMap="baseResultMap">
 		SELECT DISTINCT ON (sf.id)
 		<include refid="baseColumn" />
-		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
+		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id, sc.content_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
 		v2.video_source as video_source,
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
@@ -102,8 +103,9 @@
 		<include refid="videoFileColumn" />
 		<include refid="subjectFileColumn" /> ,
 		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
-		(select f.id from gc_user_save_content sc
-		left join sys_file f on f.id = sc.file_id
+		(select gv.file_id from gc_user_save_content sc
+		join pt_channel_content pcc on pcc.content_id = sc.content_id
+		join gc_video gv on gv.id = pcc.content_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
 		order by sc.create_time asc limit 1) as firstVideoFileId
 		from gc_user_save_folder sf
@@ -114,7 +116,7 @@
 		<if test="userId!=null and playListName!=null">
 			AND (sc.user_id=#{userId} or sf.if_private != 1)
 		</if>
-		left join gc_video v on v.id = sc.video_id
+		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
 		left join gc_subject s on s.id= sc.sub_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
@@ -154,7 +156,7 @@
 	<select id="getPtNewHomePlayList" resultMap="baseResultMap">
 		SELECT DISTINCT ON (sf.id)
 		<include refid="baseColumn" />
-		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
+		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id, sc.content_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
 		v2.video_source as video_source,
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
@@ -162,13 +164,14 @@
 		<include refid="videoFileColumn" />
 		<include refid="subjectFileColumn" /> ,
 		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
-		(select f.id from gc_user_save_content sc
-		left join sys_file f on f.id = sc.file_id
+		(select gv.file_id from gc_user_save_content sc
+		join pt_channel_content pcc on pcc.content_id = sc.content_id
+		join gc_video gv on gv.id = pcc.content_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
 		order by sc.create_time asc limit 1) as firstVideoFileId
 		from gc_user_save_folder sf
 		left join gc_user_save_content sc on sc.folder_id = sf.id
-		left join gc_video v on v.id = sc.video_id
+		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
 		left join gc_subject s on s.id= sc.sub_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
@@ -205,16 +208,15 @@
 	<select id="selectFolderAllVideo" resultMap="baseResultMap">
 		SELECT DISTINCT ON (sc.file_id)
 		<include refid="baseColumn" />
-		,sc.id as sc_id, sc.video_id as sc_video_id, sc.sub_id as sc_sub_id,
-		sc.file_id,
-		sc.file_id as sc_file_id,
+		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id,sc.file_id,sc.file_id as sc_file_id, sc.content_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
 		<include refid="videoFileColumn" />
 		<include refid="subjectFileColumn" /> ,
 		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
-		(select f.id from gc_user_save_content sc
-		left join sys_file f on f.id = sc.file_id
+		(select gv.file_id from gc_user_save_content sc
+		join pt_channel_content pcc on pcc.content_id = sc.content_id
+		join gc_video gv on gv.id = pcc.content_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
 		order by sc.create_time asc limit 1) as firstVideoFileId
 		from gc_user_save_folder sf
@@ -222,7 +224,7 @@
 		<if test="userId!=null ">
 			AND sc.user_id=#{userId}
 		</if>
-		left join gc_video v on v.id = sc.video_id
+		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
 		left join gc_subject s on s.id= sc.sub_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
@@ -268,9 +270,10 @@
 		sf.name,c.file_id as sc_file_id,GREATEST(sf.update_time, c.update_time) AS update_time,	c.video_id as sc_video_id
 		from gc_user_save_folder sf
 		LEFT JOIN  gc_user_save_content c on sf.id=c.folder_id
+		LEFT JOIN  gc_video gv on gv.id=c.content_id
 		WHERE sf.id=#{folderId}
 		<if test="fileId != null">
-			and c.file_id=#{fileId}
+			and gv.file_id=#{fileId}
 		</if>
 		ORDER BY
 		ABS(EXTRACT(EPOCH FROM (sf.update_time - c.update_time)))  desc
