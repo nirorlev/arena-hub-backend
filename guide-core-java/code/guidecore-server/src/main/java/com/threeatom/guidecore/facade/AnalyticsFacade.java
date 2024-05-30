@@ -20,5 +20,5 @@ public interface AnalyticsFacade {
 
     AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsResponseDto getEngagementReteAnalytics(AnalyticsFilterDto filter, Integer masterId);
+    AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }
