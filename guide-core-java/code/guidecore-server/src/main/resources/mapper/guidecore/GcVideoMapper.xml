@@ -715,33 +715,39 @@
 
     <select id="getVideoCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT DISTINCT time_bucket, COUNT(v.id) OVER (ORDER BY time_bucket) AS value
-        <if test="filter.trendOnly">
-            FROM (
-            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+        FROM (
+            SELECT course_video.content_id
+            FROM course_content course_video
+                JOIN gc_subject s ON course_video.course_id = s.id AND s.master_id = #{masterId}
             UNION
-            SELECT #{filter.end}::timestamp with time zone
-            ) AS time_bucket
-        </if>
-        <if test="!filter.trendOnly">
-            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-        </if>
-        LEFT JOIN gc_video v ON
-        <if test="!filter.trendOnly">
-            v.create_time >= time_bucket AND v.create_time  &lt;  time_bucket + concat(#{filter.step}, ' second')::interval
-        </if>
-        <if test="filter.trendOnly">
-            v.create_time &lt;= time_bucket
-        </if>
-        <if test="!filter.videoIds.empty">
-            AND v.id IN
-            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                #{videoId}
-            </foreach>
-        </if>
-        LEFT JOIN gc_subject s ON v.sub_id = s.id
-        LEFT JOIN gc_content_group_course_assignment cgca ON s.sub_id = cgca.course_id
-        LEFT JOIN gc_access a ON cgca.content_group_id = a.id AND a.master_id = #{masterId}
+            SELECT channel_video.content_id
+            FROM pt_channel_content channel_video
+            JOIN pt_channel pc ON channel_video.channel_id = pc.id AND pc.master_id = #{masterId}
+        ) AS video_conent
+            JOIN gc_video v ON v.id = video_conent.content_id
+                <if test="!filter.videoIds.empty">
+                    AND v.id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
+            RIGHT JOIN
+                <choose>
+                    <when test="filter.trendOnly">
+                        (
+                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                            UNION
+                            SELECT #{filter.end}::timestamp with time zone
+                        ) AS time_bucket
+                        ON v.create_time &lt;= time_bucket
+                    </when>
+                    <otherwise>
+                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                        ON v.create_time >= time_bucket AND v.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                    </otherwise>
+                </choose>
         GROUP BY time_bucket, v.id
         ORDER BY time_bucket;
-</select>
+    </select>
+
 </mapper>

@@ -281,27 +281,25 @@
 	</select>
 
 	<select id="getPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT DISTINCT time_bucket, COUNT(gc_user_save_folder.id) OVER (ORDER BY time_bucket) AS value
-		<if test="filter.trendOnly">
-			FROM (
-			SELECT #{filter.start}::timestamp with time zone AS time_bucket
-			UNION
-			SELECT #{filter.end}::timestamp with time zone
-			) AS time_bucket
-		</if>
-		<if test="!filter.trendOnly">
-			FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-		</if>
-
-		LEFT JOIN gc_user_save_folder ON
-		<if test="!filter.trendOnly">
-			create_time >= time_bucket AND create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-		</if>
-		<if test="filter.trendOnly">
-			create_time &lt;= time_bucket
-		</if>
-			AND master_id = #{masterId}
-		GROUP BY time_bucket, gc_user_save_folder.id
+		SELECT DISTINCT time_bucket, COUNT(gusf.id) OVER (ORDER BY time_bucket) AS value
+			FROM gc_user_save_folder gusf
+			JOIN gc_user_save_folder filter  ON gusf.id = filter.id AND filter.master_id = #{masterId}
+			RIGHT JOIN
+				<choose>
+					<when test="filter.trendOnly">
+						(
+						SELECT #{filter.start}::timestamp with time zone AS time_bucket
+						UNION
+						SELECT #{filter.end}::timestamp with time zone
+						) AS time_bucket
+						    ON gusf.create_time &lt;= time_bucket
+					</when>
+					<otherwise>
+						generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+						ON gusf.create_time >= time_bucket AND gusf.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+					</otherwise>
+				</choose>
+		GROUP BY time_bucket, gusf.id
 		ORDER BY time_bucket;
 	</select>
 
