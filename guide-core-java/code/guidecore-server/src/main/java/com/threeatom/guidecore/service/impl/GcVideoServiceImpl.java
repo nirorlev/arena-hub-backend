@@ -2,6 +2,9 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +21,7 @@ import com.threeatom.system.entity.SysCaptionRequest;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -109,6 +113,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Autowired
 	private GcSubjectCompleteService subjectCompleteService;
+
+	@Autowired
+	private VideoMapping videoMapping;
 
 
 	@Override
@@ -705,6 +712,23 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		queryWrapper.eq("file_id", fileId);
 
 		return Optional.ofNullable(getOne(queryWrapper));
+	}
+
+	@Override
+	public VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId) {
+		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(query, masterId);
+
+		List<VideoSearchResultDto> searchResult = videos.stream()
+			.map(video -> videoMapping.map(video))
+			.collect(Collectors.toList());
+		return createVideoSearchResponse(searchResult);
+	}
+
+	private VideoSearchResponseDto createVideoSearchResponse(List<VideoSearchResultDto> searchResult) {
+		VideoSearchResponseDto response = new VideoSearchResponseDto();
+		response.setResult(searchResult);
+
+		return response;
 	}
 
 	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent) {
