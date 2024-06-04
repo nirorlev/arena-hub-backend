@@ -110,9 +110,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
             String videoNameIndex, String subNameIndex, Integer masterId);
 
-    List<GcVideo> selectVideoAndTimeByIds(
-            @Param("list") List<Integer> idList, @Param("masterId") Integer masterId);
-
     Integer countVideosBySubId(@Param("ids") List<Integer> ids);
 
     List<GcVideo> selectVideoInfoBySubId(@Param("list") List<Integer> list);

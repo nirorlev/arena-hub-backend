@@ -10,21 +10,12 @@ import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.awt.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Data
 @ApiModel(value = "GcVideo对象", description = "")
 public class GcVideo implements Serializable {
@@ -66,11 +57,10 @@ public class GcVideo implements Serializable {
     @TableField(exist = false)
     private Integer channelContentId;
 
-    //    @TableField(exist = false)
-    //    private Integer commentNums;//视频评论数
-
     @TableField(value = "\"order\"")
     private Integer order;
+
+    private String thumbnailUrl;
 
     @ApiModelProperty(value = "视频完整链接")
     @TableField(exist = false)
@@ -176,9 +166,6 @@ public class GcVideo implements Serializable {
     private Integer answeredSumNums; // 问题总数
 
     @TableField(exist = false)
-    private Integer videoLong; // 已回答问题数
-
-    @TableField(exist = false)
     private Integer subjectSubId; // 已回答问题数
 
     @TableField(exist = false)
@@ -213,9 +200,6 @@ public class GcVideo implements Serializable {
 
     @TableField(exist = false)
     private Integer currentStudentUserId;
-
-    //    @TableField(exist = false)
-    //    private List<Event> eventList;
 
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)

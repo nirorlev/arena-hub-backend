@@ -14,14 +14,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Data
 @ApiModel(value = "PtChannelContent", description = "")
 @TableName(autoResultMap = true)
@@ -48,8 +40,7 @@ public class PtChannelContent implements Serializable {
     @JSONField(deserialize = false)
     private Integer contentOrder;
 
-    @TableField(exist = false)
-    private String videoThumbNailUrl;
+    private Integer contentId;
 
     @TableField(exist = false)
     private SysFile videoFile;

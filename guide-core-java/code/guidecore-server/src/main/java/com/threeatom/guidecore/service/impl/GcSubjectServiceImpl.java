@@ -708,7 +708,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 //视频长度
                 if(groupBySubId.get(li.getId())!=null){
                     List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-                    Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+                    Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
                     li.setVideosTotalLong(totalSeconds);
                     li.setVideosTotalNum(gcVideos.size());
                 }

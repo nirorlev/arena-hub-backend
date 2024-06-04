@@ -21,6 +21,8 @@
         <result property="subId0" column="subId0" />
         <result property="starvalue" column="starvalue" />
         <result property="subjectName" column="subjectName"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="videoTime" column="video_time"/>
 
         <result property="resourceNum" column="resourceNum"/>
 
@@ -53,13 +55,13 @@
 
 	
 	<sql id="baseColumn">
-	    v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source,v.update_time, v.create_time
+	    v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source,v.update_time, v.create_time, v.thumbnail_url, v.video_time
 	</sql>
 
     <sql id="baseColumnSub1">
-	    v.id , v.sub_id,v.video_name, v.video_name_index, v.video_desc, v.file_id, v.source_url,v.video_source,v.update_time, v.create_time,v.order
+	    v.id , v.sub_id,v.video_name, v.video_name_index, v.video_desc, v.file_id, v.source_url,v.video_source,v.update_time, v.create_time,v.order, v.thumbnail_url, v.video_time
 	</sql>
-	
+
 	<sql id="fileBaseColumn">
 	   ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long
 	   ,f.file_type_index as f_file_type_index,f.thumb_nail_url as thumb_nail_url,f.thumb_nail_id as thumb_nail_id,f.file_type as f_file_type
@@ -401,26 +403,20 @@
     <!--计算视频的总时长-->
     <select id="sumVideoLongByIdUser" resultType="java.lang.Long">
         SELECT
-            SUM(f.video_long)
+            SUM(v.video_time)
         FROM
-            sys_file f
-            LEFT JOIN gc_video v ON f.id = v.file_id
-        WHERE
-            f.video_long IS NOT NULL
-            and v.id IN
+            gc_video v
+        WHERE v.id IN
             <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
                 #{videoId}
             </foreach>
     </select>
     <select id="sumVideoLong" resultType="java.lang.Long">
         SELECT
-        SUM(f.video_long)
+        SUM(v.video_time)
         FROM
-        sys_file f
-        LEFT JOIN gc_video v ON f.id = v.file_id
-        WHERE
-        f.video_long IS NOT NULL
-        and v.id IN
+        gc_video v
+        WHERE v.id IN
         <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
             #{videoId}
         </foreach>
@@ -429,14 +425,10 @@
     </select>
     <select id="sumVideoLongBySubId" resultMap="videoLongMap">
         SELECT
-        f.video_long as video_long,s.sub_id as sub_id
-        FROM
-        sys_file f
-        LEFT JOIN gc_video v ON f.id = v.file_id
-        left join gc_subject s on s.id=v.sub_id
-        WHERE
-        f.video_long IS NOT NULL
-        and v.id IN(SELECT id from gc_video where sub_id in (select id from gc_subject where sub_id in
+        v.video_time as video_long,s.sub_id as sub_id
+        FROM gc_video v
+            left join gc_subject s on s.id=v.sub_id
+        WHERE v.id IN(SELECT id from gc_video where sub_id in (select id from gc_subject where sub_id in
         <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
             #{subId}
         </foreach>
@@ -501,23 +493,6 @@
         <if test="null != videoNum">
             order by v.id desc, v.create_time desc
         </if>
-    </select>
-
-    <select id="selectVideoAndTimeByIds" resultMap="baseResultMap">
-        select
-        v.id , v.video_name, v.video_name_index, v.video_desc, v.file_id, v.sub_id, v.source_url,v.video_source
-        <include refid="fileBaseColumn" />
-        from gc_video v
-        left join gc_user_save_content sc on sc.master_id = #{masterId} and sc.video_id = v.id
-        <include refid="leftJoinSysFile" />
-        <if test="list.size !=0">
-        where v.id in
-        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
-            #{id}
-        </foreach>
-        </if>
-        group by v.id
-        order by sc.create_time
     </select>
 
     <select id="countVideosBySubId" resultType="java.lang.Integer">
@@ -600,8 +575,7 @@
 
     </select>
     <select id="getVideoLongListByVideoId" resultType="com.threeatom.guidecore.entity.GcVideo">
-        SELECT f.video_long,v.*,s.sub_id as subjectSubId FROM gc_video v
-        LEFT JOIN sys_file f on f.id=v.file_id
+        SELECT v.*,s.sub_id as subjectSubId FROM gc_video v
         LEFT JOIN gc_subject s on v.sub_id=s.id
         <if test="videoIds.size !=0">
         where v.id in
@@ -708,14 +682,12 @@
     </select>
 
     <select id="getVideoLongMapBySubjectId" resultMap="videoLongMap" >
-        select s.id as sub_id,sum(file.video_long) as video_long,
+        select s.id as sub_id,sum(v.video_time) as video_long,
         count(v.id) as video_count
         from gc_video v
                  left join gc_subject s2 on s2.id = v.sub_id
                  left join gc_subject s on s.id = s2.fid
-                 left join sys_file file on file.id = v.file_id
-        where 1=1
-          and s.id in
+        where s.id in
         <foreach collection="subjectIds" item="subIds" separator="," open="(" close=")">
             #{subIds}
         </foreach>
@@ -743,27 +715,39 @@
 
     <select id="getVideoCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT DISTINCT time_bucket, COUNT(v.id) OVER (ORDER BY time_bucket) AS value
-        <if test="filter.trendOnly">
-            FROM (
-            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+        FROM (
+            SELECT course_video.content_id
+            FROM course_content course_video
+                JOIN gc_subject s ON course_video.course_id = s.id AND s.master_id = #{masterId}
             UNION
-            SELECT #{filter.end}::timestamp with time zone
-            ) AS time_bucket
-        </if>
-        <if test="!filter.trendOnly">
-            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-        </if>
-        LEFT JOIN gc_video v ON
-        <if test="!filter.trendOnly">
-            v.create_time >= time_bucket AND v.create_time  &lt;  time_bucket + concat(#{filter.step}, ' second')::interval
-        </if>
-        <if test="filter.trendOnly">
-            v.create_time &lt;= time_bucket
-        </if>
-        LEFT JOIN gc_subject s ON v.sub_id = s.id
-        LEFT JOIN gc_content_group_course_assignment cgca ON s.sub_id = cgca.course_id
-        LEFT JOIN gc_access a ON cgca.content_group_id = a.id AND a.master_id = #{masterId}
+            SELECT channel_video.content_id
+            FROM pt_channel_content channel_video
+            JOIN pt_channel pc ON channel_video.channel_id = pc.id AND pc.master_id = #{masterId}
+        ) AS video_conent
+            JOIN gc_video v ON v.id = video_conent.content_id
+                <if test="!filter.videoIds.empty">
+                    AND v.id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
+            RIGHT JOIN
+                <choose>
+                    <when test="filter.trendOnly">
+                        (
+                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                            UNION
+                            SELECT #{filter.end}::timestamp with time zone
+                        ) AS time_bucket
+                        ON v.create_time &lt;= time_bucket
+                    </when>
+                    <otherwise>
+                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                        ON v.create_time >= time_bucket AND v.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                    </otherwise>
+                </choose>
         GROUP BY time_bucket, v.id
         ORDER BY time_bucket;
-</select>
+    </select>
+
 </mapper>

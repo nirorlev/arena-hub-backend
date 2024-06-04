@@ -493,9 +493,9 @@
         info.first_name as createUserFirstName,
         info.avatar_file_id as userInfo_avatar_file_id,
         content.id AS ptChannelContentId
-        FROM
-        sys_file file
-        right JOIN pt_channel_content content on content.file_id=file.id
+        FROM gc_video video_content
+        JOIN sys_file file ON video_content.file_id = file.id
+        right JOIN pt_channel_content content on content.content_id=video_content.id
         right JOIN(
         select channel.* from pt_channel channel
         LEFT JOIN pt_channel section on section.fid = channel.id
@@ -511,7 +511,7 @@
         left join gc_user_info info on info.id = u.info_id
         WHERE file.id is not null
         <if test="searchName!=null">
-            AND file.NAME LIKE concat('%',#{searchName},'%')
+            AND video_content.video_name LIKE concat('%',#{searchName},'%')
         </if>
         <choose>
             <when test="order!=null">
@@ -741,7 +741,7 @@
         channel.update_time,channel.channel_avatar_file_id,
         coalesce(ch2.id,channel.id) as id,
         coalesce(ch2.channel_name,channel.channel_name) as channel_name,
-        file.id as fileId,
+        video_content.file_id as fileId,
         info.last_name AS createUserLastName,
         info.first_name AS createUserFirstName,
         info.avatar_file_id as userInfo_avatar_file_id,
@@ -749,8 +749,8 @@
         count(vac.id) as likeNum,
         case when vac.user_id=#{userId} then 1 else 0 end as likedFlag,
         pcc.id as channelContentId
-        from sys_file file
-        left join pt_channel_content pcc on file.id = pcc.file_id
+        from gc_video video_content
+        left join pt_channel_content pcc on video_content.id = pcc.content_id
         left join pt_channel channel on pcc.channel_id = channel.id
         left join pt_channel ch2 on ch2.id = channel.fid
         left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
@@ -758,7 +758,7 @@
         left join gc_user us on us.id = userAccess.user_id
         left join gc_user us2 on us2.id = channel.create_user_id
         left join gc_user_info info on info.id = us2.info_id
-        left join gc_user_video_action vac on vac.file_id = file.id and vac."type" = 1
+        left join gc_user_video_action vac on vac.file_id = video_content.file_id and vac."type" = 1
         where 1=1
         and (userAccess.user_id = #{userId}
         and us.id = #{userId}
@@ -766,35 +766,10 @@
         OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
         and pcc.id is not null)
         <if test=" searchName!= null and searchName != ''">
-            and file."name" like concat('%',#{searchName},'%')
+            and video_content.video_name like concat('%',#{searchName},'%')
         </if>
-        GROUP BY file.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id
-        order by file.update_time desc
-    </select>
-
-    <select id="selectPtchannelVideo" resultMap="baseResultSearchVideoMap">
-        select DISTINCT ON (file.id) file.file_url channel_video_file_url,
-               file.save_type as channel_video_save_type,
-               file.file_type_index as channel_video_type_index,
-               file.thumb_nail_id as channel_thumb_nail_id,
-               file.thumb_nail_url as channel_thumb_nail_url
-                ,file.id as video_file_id,
-               channel.*,
-               us.username as channel_create_user_username,us.id as channel_create_uid,info.last_name as createUserLastName,
-               info.first_name as createUserFirstName,
-               info.avatar_file_id as userInfo_avatar_file_id
-        from pt_channel channel
-                 left join pt_channel_content pcc on channel.id = pcc.channel_id
-                 left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(channel.id::integer)
-        left join gc_user_access ac on ac.id = permission.user_access_id
-            left join gc_user us on ac.user_id = us.id
-            left join gc_user_info info on info.id = us.info_id
-            left join sys_file file on file.id = pcc.file_id
-        where 1=1
-          and ac.user_id = #{userId}
-          and ac.master_id = #{masterId}
-          and file.id is not null
-        order by file.update_time desc
+        GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id
+        order by video_content.update_time desc
     </select>
 
     <select id="indexPtChannels" resultMap="baseResultMap">
@@ -897,23 +872,23 @@
     <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
         select f.*,count( vac.id ) AS likeNum ,
                case when vac.user_id=#{userId} then 1 else 0 end as likedFlag
-        from (select DISTINCT ON (file.id)
+        from (select DISTINCT ON (video_content.id)
                   channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
-                  file.update_time as file_update_time,
+                  video_content.update_time as file_update_time,
                   coalesce(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
                   coalesce(ch2.id,channel.id) as id,
                   coalesce(ch2.channel_name,channel.channel_name) as channel_name,
-                  file.id as fileId,
+                  video_content.file_id as fileId,
                   info.last_name AS userInfo_lastName,
                   info.first_name AS userInfo_firstName,
                   info.avatar_file_id as userInfo_avatar_file_id,
                   us2.id as  channel_create_uid,
                   us2.username as channel_create_user_username,
                   pcc.id as channelContentId
-              from sys_file file
-                       left join pt_channel_content pcc on file.id = pcc.file_id
+              from gc_video video_content
+                       left join pt_channel_content pcc on video_content.id = pcc.content_id
                        left join pt_channel channel on pcc.channel_id = channel.id
                        left join pt_channel ch2 on ch2.id = channel.fid
                        left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
@@ -928,7 +903,7 @@
                 and pcc.id is not null
                  or((channel.create_user_id = #{userId} or ch2.create_user_id = #{userId}) and channel.master_id = #{masterId})
                 and channel.master_id = #{masterId}
-              order by file.id desc, file.update_time desc
+              order by video_content.id desc, video_content.update_time desc
              ) as f
                  left join gc_user_video_action vac on f.fileId = vac.file_id and vac."type" = 1
         GROUP BY f.fileId, f.channel_img_file_id, f."desc", f.create_user_id, f.visible_flag, f.category_id, f.level, f.fid,
@@ -990,26 +965,25 @@
     </select>
 
     <select id="getChannelCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT DISTINCT time_bucket, COUNT(pt_channel.id) OVER (ORDER BY time_bucket) AS value
-        <if test="filter.trendOnly">
-            FROM (
-            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-            UNION
-            SELECT #{filter.end}::timestamp with time zone
-            ) AS time_bucket
-        </if>
-        <if test="!filter.trendOnly">
-            FROM generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-        </if>
-            LEFT JOIN pt_channel ON
-        <if test="!filter.trendOnly">
-                create_time >= time_bucket AND create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-        </if>
-        <if test="filter.trendOnly">
-                create_time &lt;= time_bucket
-        </if>
-        AND master_id = #{masterId}
-        GROUP BY time_bucket, pt_channel.id
+        SELECT DISTINCT time_bucket, COUNT(pc.id) OVER (ORDER BY time_bucket) AS value
+            FROM pt_channel pc
+            JOIN pt_channel filter ON pc.id = filter.id AND filter.master_id = #{masterId}
+            RIGHT JOIN
+            <choose>
+                <when test="filter.trendOnly">
+                    (
+                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                    UNION
+                    SELECT #{filter.end}::timestamp with time zone
+                    ) AS time_bucket
+                    ON pc.create_time &lt;= time_bucket
+                </when>
+                <otherwise>
+                    generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    ON pc.create_time >= time_bucket AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                </otherwise>
+            </choose>
+        GROUP BY time_bucket, pc.id
         ORDER BY time_bucket;
     </select>
 

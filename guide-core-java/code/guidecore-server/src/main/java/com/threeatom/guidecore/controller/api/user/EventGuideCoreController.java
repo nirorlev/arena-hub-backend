@@ -99,13 +99,6 @@ public class EventGuideCoreController extends GuideCoreController {
     @PostMapping("/saveEventResourceCommon")
     public Message saveEventResourceCommon(
             @RequestBody GcUserEventResource userEventResource, HttpServletRequest request) {
-        //    	eventId
-        //    	type (原resType)
-        //    	targetUserId
-        //    	targetId
-        //    	timeNode
-        //    	content
-        //    	fileId(新增)
         ApiAssert.notNull(userEventResource.getEventId(), "eventId不可空");
         GcUser user = this.getGcUser();
         Integer masterId = getHeaderMasterId(request);
@@ -121,8 +114,7 @@ public class EventGuideCoreController extends GuideCoreController {
                     userEventResourceService.getById(userEventResource.getTargetId());
             userEventResource.setTargetUserId(eventResource.getUserId());
         } else if (null != userEventResource.getTargetUserIdList()
-                && TableConstant.COMMON_ZERO != userEventResource.getTargetUserIdList().size()) {
-            // usage页面批量保存通知
+                && !userEventResource.getTargetUserIdList().isEmpty()) {
             for (Integer userId : userEventResource.getTargetUserIdList()) {
                 GcUserEventResource gcUserEventResource = new GcUserEventResource();
                 gcUserEventResource.setEventId(userEventResource.getEventId());
@@ -137,24 +129,17 @@ public class EventGuideCoreController extends GuideCoreController {
 
         if (Objects.isNull(userEventResource.getTargetUserId())
                 && CollectionUtils.isNotEmpty(userEventResource.getTargetUserIdList())) {
-            // 批量feedback
             userEventResourceService.saveBatch(userEventResourceList);
         } else {
             if (!userEventResourceService.saveEventAction(userEventResource)) {
                 throw new SystemException(I18NUtil.get("upload.fail"));
             }
-            //            发送通知
-            //            if(!this.whetherUserIsStudent(masterId)) {
-            //                throw new SystemException("老师回复必须附带targetUserId！");
-            //            }
         }
 
         if (userEventResource.getTargetUserId() == null) {
-            // 如果是学生
             List<GcMasterMessage> masterMessageList = new ArrayList<>();
             List<Integer> sendIds = userService.getTalkerIds(user.getId(), masterId);
-            // 如果是usage页面
-            if (TableConstant.COMMON_ZERO != userEventResourceList.size()) {
+            if (!userEventResourceList.isEmpty()) {
                 List<GcMasterMessage> gcMasterMessageList = new ArrayList<>();
                 for (Integer userId : userEventResource.getTargetUserIdList()) {
                     GcMasterMessage gcmasterMessage = new GcMasterMessage();
@@ -172,7 +157,7 @@ public class EventGuideCoreController extends GuideCoreController {
                 }
                 masterMessageService.saveBatch(gcMasterMessageList);
             } else if (CollectionUtils.isEmpty(userEventResource.getTargetUserIdList())
-                    && sendIds.size() > 0) {
+                    && !sendIds.isEmpty()) {
                 for (Integer sendId : sendIds) {
                     GcMasterMessage masterMessage = new GcMasterMessage();
                     masterMessage.setEventType(userEventResource.getType());
@@ -185,7 +170,6 @@ public class EventGuideCoreController extends GuideCoreController {
                 masterMessageService.saveBatchMasterMessage(masterMessageList);
             }
         } else {
-            // 如果是老师
             GcMasterMessage masterMessage = new GcMasterMessage();
             masterMessage.setEventType(userEventResource.getType());
             masterMessage.setMasterId(masterId);

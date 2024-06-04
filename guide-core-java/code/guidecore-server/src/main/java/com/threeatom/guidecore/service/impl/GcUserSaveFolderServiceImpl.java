@@ -121,19 +121,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
         List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.selectFolderForUserMaster(userId, masterId,folderIdList,myFolderIdList,null);
         for(GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders){
-            List<GcUserSaveContent> gcUserSaveContents = new ArrayList<>();
             List<GcUserSaveContent> gcUserSaveContentList = gcUserSaveContentService.selectContetnByFolderId(gcUserSaveFolder.getId());
             if(CollectionUtils.isNotEmpty(gcUserSaveContentList)){
                 for(GcUserSaveContent gcUserSaveContent:gcUserSaveContentList){
-                    /*if(Objects.nonNull(gcUserSaveContent.getVideoId())){
-                        GcVideo video = gcVideoService.getVideoById(gcUserSaveContent.getVideoId());
-                        SysFile sysFile = sysFileService.getById(video.getFileId());
-                        sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
-                        sysFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-                        video.setVideoFile(sysFile);
-                        video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-                        gcUserSaveContent.setVideo(video);
-                    }*/
                     if (Objects.nonNull(gcUserSaveContent.getFileId())){
                         SysFile sysFile = sysFileService.getById(gcUserSaveContent.getFileId());
                         gcUserSaveContent.setVideoFile(sysFile);
@@ -150,13 +140,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                 }
             }
             gcUserSaveFolder.setSaveContentList(gcUserSaveContentList);
-            for(GcUserSaveContent gcUserSaveContent : gcUserSaveContents){
-                if(Objects.nonNull(gcUserSaveContent.getFileId()) && Objects.nonNull(gcUserSaveContent.getVideoFile())){
-                    SysFile sysFile =sysFileService.getById(gcUserSaveContent.getVideoFile().getId());
-                    String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-                    gcUserSaveContent.getVideoFile().setSnapshotUrl(snapshotUrl);
-                }
-            }
         }
     	return gcUserSaveFolders;
     }
@@ -179,7 +162,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                     gcUserSaveContent.getVideoFile().setSnapshotUrl(snapshotUrl);
                 }
             }
-            if (null!=gcUserSaveFolder&&null!=gcUserSaveFolder.getUser()&&null!=gcUserSaveFolder.getUser().getInfo()&&null!=gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
+            if (null != gcUserSaveFolder.getUser() && null != gcUserSaveFolder.getUser().getInfo() &&
+                null != gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
                 SysFile sysFile =sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
                 sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
                 gcUserSaveFolder.getUser().getInfo().setAvatarFile(sysFile);

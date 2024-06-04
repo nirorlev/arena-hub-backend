@@ -557,24 +557,14 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "保存课程/视频到一个文件夹", httpMethod = "GET")
 	@PostMapping("/saveContentToFolder")
-	public Message saveContentToFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) throws IOException {
+	public Message saveContentToFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
 		String portalId = request.getHeader("masterId");
 		if(Objects.isNull(portalId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
-		/*if(Objects.isNull(gcUserSaveFolder.getVideoId())){
-			throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
-		}*/
-		GcUser user = this.getGcUser();
-		/*boolean isFlag = this.permitCheck(user,ActionsType.addContent,Integer.parseInt(portalId),ResourceType.playList,user.getId(),null,gcUserSaveFolder.getFolderId());
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}*/
-		//用户所有的folder
 		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderForUserMaster(this.getGcUser().getId(), getHeaderMasterId(request),null,request,null);
 		if(CollectionUtils.isNotEmpty(list)) {
 			List<Integer> allFolderIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-//			List<Integer> selectFolderIds = gcUserSaveContent.stream().map(GcUserSaveContent::getFolderId).collect(Collectors.toList());
 			List<Integer> deleteFolderIds = allFolderIds.stream().filter(e -> null!=gcUserSaveFolder.getFolderId()&&!gcUserSaveFolder.getFolderId().contains(e)).collect(Collectors.toList());
 
 			if(CollectionUtils.isNotEmpty(deleteFolderIds)&&Objects.nonNull(gcUserSaveFolder.getVideoId())) {
@@ -591,18 +581,13 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 		}
-		List<Integer> containsFolderId = new ArrayList<>();
+
+		List<Integer> containsFolderId;
 		if (null!=gcUserSaveFolder.getVideoId()){
 			containsFolderId = gcUserSaveContentService.selectFolderIdByVideoId(gcUserSaveFolder.getVideoId(),request.getIntHeader("masterId"));
 		}else {
 			containsFolderId = gcUserSaveContentService.selectFolderIdByFileId(gcUserSaveFolder.getFileId(),request.getIntHeader("masterId"));
 		}
-		SysFile file = null;
-		if (null!=gcUserSaveFolder.getVideoId()){
-			GcVideo video = gcVideoService.getById(gcUserSaveFolder.getVideoId());
-			file = sysFileService.getById(video.getFileId());
-		}
-
 
 		List<GcUserSaveContent> userSaveContents = new ArrayList<>();
 		for(Integer folderId : gcUserSaveFolder.getFolderId()) {
@@ -611,14 +596,18 @@ public class PowtoonController extends GuideCoreController {
 			gcUserSaveContent.setMasterId(getHeaderMasterId(request));
 			gcUserSaveContent.setVideoId(gcUserSaveFolder.getVideoId());
 			gcUserSaveContent.setFolderId(folderId);
-			if (null!=file){
-				gcUserSaveContent.setFileId(file.getId());
-			}else if(null!=gcUserSaveFolder.getFileId()){
+			if (null!=gcUserSaveFolder.getVideoId()){
+				GcVideo videoContent = gcVideoService.getById(gcUserSaveFolder.getVideoId());
+				gcUserSaveContent.setFileId(videoContent.getFileId());
+				gcUserSaveContent.setContentId(videoContent.getId());
+			} else if(null!=gcUserSaveFolder.getFileId()){
 				gcUserSaveContent.setFileId(gcUserSaveFolder.getFileId());
+				gcVideoService.getVideoContent(gcUserSaveFolder.getFileId())
+					.ifPresent(videoContent -> gcUserSaveContent.setContentId(videoContent.getId()));
 			}
 			userSaveContents.add(gcUserSaveContent);
 		}
-		Iterator folderIterator = userSaveContents.iterator();
+		Iterator<GcUserSaveContent> folderIterator = userSaveContents.iterator();
 		while (folderIterator.hasNext()) {
 			JSONObject jsonObject = (JSONObject) JSONObject.toJSON(folderIterator.next());
 			if(containsFolderId.contains(jsonObject.get("folderId"))){
@@ -626,47 +615,12 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 
-//		GcUserSaveContent gcUserSaveContent1 = new GcUserSaveContent();
-//		gcUserSaveContent1.setFolderId(gcUserSaveContent.get(0).getFolderId());
-//
-//		List<Integer> videoIdList = gcUserSaveContent.stream().map(GcUserSaveContent::getVideoId).collect(Collectors.toList());
-//		List<Integer> idList =  gcUserSaveContentService.getVideoIdList(gcUserSaveContent1);
-//		for(Integer id : videoIdList){
-//			if(idList.contains(id))return new Message().error(101,I18NUtil.get("guidecore.user.saveContentRepeat"));
-//		}
-
 		if(gcUserSaveContentService.saveOrUpdateBatch(userSaveContents)) {
 			return new Message().ok("保存成功").addData("content", userSaveContents);
-		}else {
-			return new Message().ok();
 		}
+
+		return new Message().ok();
 	}
-
-
-//	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
-//	@PostMapping("/portalInfosUnlogin")
-//	public Message portalInfosUnlogin(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-//		return portalUnlogin(requestParams,EnvType.GC.getCode(), request);
-//	}
-//
-//	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
-//	@PostMapping("/portalInfosUnloginPt")
-//	public Message portalInfosUnloginPt(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-//		return portalUnlogin(requestParams,EnvType.PT.getCode(), request);
-//	}
-//
-//	@ApiOperation(value="区分环境的首页查询接口")
-//	public Message portalUnlogin(JSONObject requestParams,Integer envFlag,HttpServletRequest request){
-//		Message message = new Message();
-//		//复用
-//		SysSystem system = this.getSystem();
-//		String token = request.getHeader("Authorization");
-//		if (null != token && !"".equals(token) && !"undefined".equals(token)){
-//			GcUser user = this.getGcUser();
-//			return gvgMasterService.portalInfosUnlogin(requestParams,request,system,user);
-//		}
-//		return gvgMasterService.portalInfosUnlogin(requestParams,request,system,null);
-//	}
 
 	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
 	@PostMapping("index")
@@ -678,33 +632,9 @@ public class PowtoonController extends GuideCoreController {
 		}
 		SysSystem system = this.getSystem();
 		GcUser user = this.getGcUser();
-		/*boolean isFlag = this.permitCheck(user,ActionsType.view,Integer.parseInt(portalId),ResourceType.course,null);
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}*/
+
 		return  gvgMasterService.index(params,request,system,user,EnvType.PT.getCode());
 	}
-
-//	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
-//	@PostMapping("index")
-//	public Message index(@RequestBody Map<String, Object> params, HttpServletRequest request) {
-//		return envIndex(params,EnvType.GC.getCode(), request);
-//	}
-//
-//	@PostMapping("indexPt")
-//	public Message indexPt(@RequestBody Map<String, Object> params, HttpServletRequest request) {
-//		return envIndex(params,EnvType.PT.getCode(), request);
-//	}
-//
-//	@ApiOperation(value="区分环境的mycourse页面查询接口")
-//	public Message envIndex(Map<String,Object> params , Integer envFlag,HttpServletRequest request){
-//		Message message = new Message();
-//		//复用
-//		SysSystem system = this.getSystem();
-//		GcUser user = this.getGcUser();
-//		return  gvgMasterService.index(params,request,system,user);
-//	}
-
 
 	@PostMapping("navigation")
 	@ApiOperation(value="新UI课程首页-课程导航页", notes = "课程导航页", httpMethod = "POST")
@@ -959,26 +889,19 @@ public class PowtoonController extends GuideCoreController {
 
 	@GetMapping("/playListVideoDetailPt")
 	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoId,Integer playListId) {
-		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		if(Objects.isNull(videoId)){
+        if(Objects.isNull(videoId)){
 			throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
 		}
 		if(Objects.isNull(playListId)){
 			throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
 		}
 		Message message = new Message();
-		//GcVideo thisVideo = gcVideoService.getVideoById(videoId);
 		SysFile file = sysFileService.getById(videoId);
 		GcUser myUser =this.getGcUser();
 
 		List<Integer> playListIds = new ArrayList<>();
 		playListIds.add(playListId);
-		//sysFileService.getResFullUrl(thisVideo.getVideoFile(), request);
 		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderAllVideo(null, getHeaderMasterId(request),playListIds,request,null);
-		//获得当前用户
 		GcUser gcUser = gcUserService.getById(list.get(0).getUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
 		gcUser.setInfo(gcUserInfo);
@@ -987,8 +910,6 @@ public class PowtoonController extends GuideCoreController {
 			sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
 			gcUser.getInfo().setAvatarFile(sysFile);
 		}
-
-
 
 		list.get(0).setUser(gcUser);
 		List<Integer> listIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
@@ -1016,32 +937,21 @@ public class PowtoonController extends GuideCoreController {
 					content.setVideoFile(sysFileService.getById(content.getVideoFile().getId()));
 					content.getVideoFile().setSnapshotUrl(sysFileService.getVideoSnapshotUrl(content.getVideoFile()));
 					content.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(content.getVideoFile(),request));
-					//content.getVideo().setVideoFile(content.getVideoFile());
 				}
-				//if(content.getSubject()!=null)sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
-				/*if (null!=content.getFileId()&&content.getFileId().equals(videoId)){
-					//file.setVideoId(content.getVideoId());
-				}else if (null!=content.getVideoId()){
-					GcVideo video = gcVideoService.getVideoById(content.getVideoId());
-					if(video.getFileId().equals(videoId)){
-						//file.setVideoId(content.getVideoId());
-					}
-				}*/
 			}
 		}
 
-		//点赞数
 		if(Objects.nonNull(list.get(0)) & CollectionUtils.isNotEmpty(list.get(0).getSaveContentList())){
 			List<Integer> fileIdList = list.get(0)
 					.getSaveContentList()
 					.stream()
-					.filter(e->e.getFileId()!=null)
 					.map(GcUserSaveContent::getFileId)
+					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
-            //查询出点赞表
+
 			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(fileIdList);
 			Map<Integer,GcUserVideoAction> isLikeMap = new HashMap<>();
-			if (TableConstant.COMMON_ZERO!=fileIdList.size()){
+			if (!fileIdList.isEmpty()){
 				List<GcUserVideoAction> videoIsLike = gcUserVideoActionService.getVideoActionListByFildId(fileIdList, myUser.getId());
 				isLikeMap = videoIsLike.stream().collect(Collectors.toMap(GcUserVideoAction::getFileId,GcUserVideoAction -> GcUserVideoAction, (key1, key2) -> key2, LinkedHashMap::new));
 			}
@@ -1058,14 +968,9 @@ public class PowtoonController extends GuideCoreController {
 						gcUserSaveContent.getVideoFile().setLikeNum(gcVideo.getVideoLikeNum());
 					}
 				}
-
 			}
 		}
 
-
-		//原逻辑有问题,后续可能需要修改
-		//Integer likeNum = gcUserVideoActionService.countLikeForFile(videoId);
-		//file.setLikeNum(likeNum);
 		GcUserVideoAction fileIsLike = UserVideoActionService.getFileActionListByFileIdAndUserId(videoId, myUser.getId());
 		if (null!=fileIsLike){
 			file.setLikeNum(TableConstant.COMMON_ONE);
@@ -1078,6 +983,9 @@ public class PowtoonController extends GuideCoreController {
 		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		gcVideoService.getVideoContent(file.getId())
+			.ifPresent(videoContent -> message.ok().addData("videoId", videoContent.getId()));
+
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
 				.addData("systemTime",df.format(new Date()));
@@ -1486,7 +1394,7 @@ public class PowtoonController extends GuideCoreController {
 
 			if (null!=groupBySubId.get(i.getId())){
 				List<GcVideo> gcVideos = groupBySubId.get(i.getId());
-				Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoLong()!=null).mapToInt(GcVideo::getVideoLong).sum();
+				Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
 				i.setVideosTotalLong(totalSeconds);
 				i.setVideosTotalNum(gcVideos.size());
 			}else {
@@ -2950,30 +2858,6 @@ public class PowtoonController extends GuideCoreController {
 		}
 	}
 
-//	@ApiOperation(value = "删除分类")
-//	@PostMapping("/delTopic")
-//	public Message deleteSub(@RequestBody GcSubject subject,HttpServletRequest request) {
-//		GcMaster master = this.getMaster();
-//		Integer masterId = request.getIntHeader("masterId");
-//		if (Objects.isNull(master)&&Objects.nonNull(masterId)){
-//			master = new GcMaster();
-//			master.setId(masterId);
-//		}
-//		System.out.println(master.getId());
-//		if(Objects.nonNull(subject.getFid())){
-//			GcSubject gcSubject = subService.getById(subject.getId());
-//			GcSubject gcSubject0 = subService.getById(subject.getFid());
-//			gcSubject.setMasterId(gcSubject0.getMasterId());
-//			gcSubject.setSubId(subject.getFid());
-//			gcSubject.setFid(subject.getFid());
-//			if(subService.saveOrUpdate(gcSubject))return new Message().ok();
-//		}else {
-//			if (subService.deleteSub(subject.getId(),master.getId())) return new Message().ok();
-//
-//		}
-//		return new Message().error("删除失败");
-//	}
-
 	@ApiOperation(value = "查询自己创建的所有二级课程")
 	@PostMapping("/selectAllTopicList")
 	public Message selectAllTopicList(@RequestBody GcSubject gcSubject, HttpServletRequest request) {
@@ -2993,27 +2877,6 @@ public class PowtoonController extends GuideCoreController {
 
 		return new Message().ok().addData("topicList",subService.selectAllTopicList(masterId,TableConstant.COMMON_ONE,user.getId(),gcSubject));
 	}
-
-//	@ApiOperation(value = "查询自己创建的所有二级课程")
-//	@GetMapping("/publish")
-//	public Message publish(@RequestBody GcSubject gcSubject, HttpServletRequest request) {
-//		GcMaster master = this.getMaster();
-//		Integer masterId = request.getIntHeader("masterId");
-//		if (Objects.isNull(master)&&Objects.nonNull(masterId)){
-//			master = new GcMaster();
-//			master.setId(masterId);
-//		}
-//		GcUser user = this.getGcUser();
-//		subService.saveOrUpdate(gcSubject);
-//		GcMasterMessage gcMasterMessage = new GcMasterMessage();
-//		gcMasterMessage.setMasterId(master.getId());
-//		gcMasterMessage.setUserId(user.getId());
-////		gcMasterMessage.setTargetUserId();
-////		gcMasterMessage.setEventType(TableConstant.COMMON_ZERO);
-////		gcMasterMessage.setMessage(gcSubject.getPublishMessage());
-//
-//		return new Message().ok().addData("topicList",subService.selectAllTopicList(masterId,TableConstant.COMMON_ONE,user.getId()));
-//	}
 
 	@ApiOperation(value = "查询自己创建的所有二级课程")
 	@GetMapping("/selectAllSub0ListByUserId")
@@ -3646,24 +3509,18 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 
-		GcUser user = this.getGcUser();
-        /*boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.videoItem, null);
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}*/
 		Message message = new Message();
 		PtChannel channel = ptChannelService.getById(ptChannel.getId());
 		String order = request.getHeader("order");
-		List<SysFile> videoList = new ArrayList<>();
+		List<SysFile> videoList;
 		if(Objects.isNull(ptChannel.getSearchName())) {
 			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), null);
 		}else {
 			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), channel.getLevel());
 		}
-		if (null!=videoList&&videoList.size()!=TableConstant.COMMON_ZERO){
+		if (null!=videoList&& !videoList.isEmpty()){
 			QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 			queryWrapper2.eq("master_id",masterId);
-			//queryWrapper2.eq("channel_id",ptChannel.getId());
 			queryWrapper2.in("file_id",videoList.stream().map(SysFile::getId).collect(Collectors.toList()));
 			queryWrapper2.eq("type",TableConstant.COMMON_TWO);
 			List<PtTags> list = ptTagsService.list(queryWrapper2);
@@ -3679,56 +3536,8 @@ public class PowtoonController extends GuideCoreController {
 
 		}
 
-		PageInfo pageInfo = new PageInfo<>(videoList);
-		return message.ok().addData("videos",pageInfo);
+		return message.ok().addData("videos", new PageInfo<>(videoList));
 	}
-
-
-//	@PostMapping("/selectVideosAndEvents")
-//	public Message selectVideosAndEvents(@RequestBody GcSubject subject, HttpServletRequest request) {
-//		Message message = new Message();
-//		GcUser user = this.getGcUser();
-//		if(Objects.isNull(subject.getId())){
-//			throw new SystemException(I18NUtil.get("powtoon.topic.error"));
-//		}
-//		PageParam pageParam = new PageParam(request);
-//		Integer pageNum = pageParam.getPageNum();
-//		Integer pageSize=pageParam.getPageSize();
-//		if (pageNum > 0 && pageSize > 0) {
-//			PageHelper.startPage(pageNum, pageSize);
-//		}
-//		List<GcVideo> gcVideos = gcVideoService.getVideoListBySubId(subject.getId());
-//		if(CollectionUtils.isNotEmpty(gcVideos)) {
-//			List<Integer> vids = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
-//			List<GcEvent> eventList = gcEventService.getEventListByVideoIds(vids,user.getId());
-//			for(GcVideo gcVideo : gcVideos){
-//				List<GcEvent> gcEventList = new ArrayList<>();
-//				for(GcEvent gcEvent : eventList){
-//					if(gcEvent.getVideoId().equals(gcVideo.getId())){
-//						if(gcEventList.size()<10){
-//							gcEventList.add(gcEvent);
-//						}
-//					}
-//				}
-//				List<GcEvent> events = eventList.stream().filter(e->e.getVideoId().equals(gcVideo.getId())).collect(Collectors.toList());
-//				List<GcEvent> gcEvents = events.stream().filter(e->e.getMyAnswer()!=null).collect(Collectors.toList());
-//				gcVideo.setAnsweredSumNums(events.size());
-//				gcVideo.setAnsweredNums(gcEvents.size());
-//				PageInfo<GcEvent> pageInfo = new PageInfo<>(gcEventList);
-//				if(CollectionUtils.isNotEmpty(events)) {
-//					pageInfo.setTotal(events.size());
-//					BigDecimal page = BigDecimal.valueOf(events.size()).divide(BigDecimal.valueOf(10),BigDecimal.ROUND_UP);
-//					pageInfo.setPages(page.intValue());
-//				}
-//				gcVideo.setEventListPageInfo(pageInfo);
-//			}
-//		}
-//		PageInfo<GcVideo> pageInfo = new PageInfo<>(gcVideos);
-//		return message.ok().addData("taskVideoList",pageInfo);
-//	}
-
-
-
 
 	@ApiOperation(value = "channel订阅")
 	@PostMapping("/channelSubscribe")
@@ -3886,7 +3695,7 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		if(ptChannelContentService.saveOrUpdateBatch(ptChannelContent)){
+		if(ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList)) {
 			for(PtChannelContent channelContent : ptChannelContent){
 				channelContent.getCourseTags().forEach(i -> {
 					PtTags newTags = new PtTags();
@@ -3915,9 +3724,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 			ptTagsService.saveOrUpdateBatch(tagsList);
 			return message.ok("success").addData("contentList",ptChannelContent);
-		}else {
-			return message.error();
 		}
+
+		return message.error();
 	}
 
 	@ApiOperation(value = "channelContent删除内容")
@@ -3964,7 +3773,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 	}
 
-	@ApiOperation(value = "视频详情页")
+	@ApiOperation(value = "Video details page")
 	@PostMapping("/contentVideoDetail")
 	public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) {
 		Message message = new Message();
@@ -3983,8 +3792,9 @@ public class PowtoonController extends GuideCoreController {
 		}
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
-		SysFile videoFile = sysFileService.getById(ptChannelContent.getFileId());
-		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
+		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
 		String fullFileUrl = sysFileService.getResFullUrl(videoFile,request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
@@ -3994,6 +3804,7 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikedFlag(TableConstant.COMMON_ZERO);
 		}
 		message.ok().addData("thisVideo",videoFile);
+		message.ok().addData("videoId", channelVideoContent.getId());
 
 		PtChannel ptChannel = new PtChannel();
 		if(Objects.nonNull(ptChannelContent.getChannelId())) {

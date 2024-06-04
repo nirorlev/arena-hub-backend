@@ -107,9 +107,9 @@ public class WorkbookGuideCoreController extends GuideCoreController {
                 if (null != video.getVideoFile()) {
                     video
                             .getVideoFile()
-                            .setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video.getVideoFile()));
+                            .setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
                 }
-                if (video.getVideoLong() != null) videosTotalLong += video.getVideoLong(); // 累加视频数量
+                if (video.getVideoTime() != null) videosTotalLong += video.getVideoTime(); // 累加视频数量
                 Integer eventNumInVideo = TableConstant.COMMON_ZERO; // 单个video下问题数量
                 for (GcEvent event : video.getEventList()) {
                     if (null != event.getId()) {
@@ -207,8 +207,7 @@ public class WorkbookGuideCoreController extends GuideCoreController {
         List<GcVideo> allVideos = videoMapper.selectVideoListByTopSubIds(subIds);
         if (CollectionUtils.isNotEmpty(allVideos)) {
             for (GcVideo gcVideo : allVideos) {
-                SysFile sysFile = sysFileService.getById(gcVideo.getFileId());
-                gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
+                gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcVideo));
             }
             List<Integer> videoIds = allVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
             List<GcEvent> eventList = gcEventMapper.getEventListByVideoIds(videoIds, user.getId());

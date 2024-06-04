@@ -78,7 +78,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     }
 
     @Override
-    public AnalyticsResponseDto getEngagementReteAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> engagementRateAnalytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
         return getAnalyticsResponseDto(engagementRateAnalytics, "Engagement Rate");
     }
