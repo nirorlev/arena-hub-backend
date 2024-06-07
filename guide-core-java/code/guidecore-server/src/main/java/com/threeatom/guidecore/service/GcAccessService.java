@@ -67,15 +67,13 @@ public interface GcAccessService extends IService<GcAccess> {
 
     List<GcAccess> getAccessBySubjectId(Integer masterId, Integer subjectId);
 
-    List<GcAccess> getAccessByChannelId(Integer masterId, Integer subjectId);
+    List<GcAccess> getAccessByChannelId(Integer masterId, Integer channelId);
 
     List<GcAccess> getAccessByAdminId(Integer adminId);
 
     List<GcAccess> getAccessListByAdminId(Integer adminId);
 
     Map<String, Long> getALlAccessCodeNumsByMasterId(Integer masterId);
-
-    List<GcAccess> getContainsAccessList(String ptId, Integer masterId);
 
     List<GcAccess> getAccessByMasterIdAndCode(GcAccess access);
 
@@ -92,8 +90,6 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> selectAccessByCodeAndMasterId(List<String> codeList, Integer masterId);
 
     void insertOrUpdateList(List<GcAccess> accessList);
-
-    void insertOrUpdateChannel(List<GcAccess> accessList);
 
     List<GcAccess> selectAccessByIds(List<Integer> ids);
 
