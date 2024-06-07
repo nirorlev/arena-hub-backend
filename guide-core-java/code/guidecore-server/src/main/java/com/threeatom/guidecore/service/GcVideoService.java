@@ -6,6 +6,7 @@ import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannelContent;
@@ -167,4 +168,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
+
+    VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId);
 }
