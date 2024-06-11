@@ -2,11 +2,13 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
+import com.threeatom.guidecore.mapping.ContentGroupChannelSubscriptionMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +23,8 @@ import org.springframework.util.CollectionUtils;
 public class ContentGroupChannelSubscriptionServiceImpl
     extends ServiceImpl<ContentGroupChannelSubscriptionMapper, ContentGroupChannelSubscription>
     implements ContentGroupChannelSubscriptionService {
+
+    private final ContentGroupChannelSubscriptionMapping contentGroupChannelSubscriptionMapping;
 
     @Override
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
@@ -64,6 +68,16 @@ public class ContentGroupChannelSubscriptionServiceImpl
         queryWrapper.eq("channel_id", channel.getId());
 
         this.remove(queryWrapper);
+    }
+
+    @Override
+    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId) {
+        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
+            baseMapper.findByContentGroupId(contentGroupId, true);
+
+        return contentGroupChannelSubscriptions.stream()
+            .map(contentGroupChannelSubscriptionMapping::map)
+            .collect(Collectors.toList());
     }
 
     private List<Integer> getContentGroupIds(List<GcAccess> contentGroups) {

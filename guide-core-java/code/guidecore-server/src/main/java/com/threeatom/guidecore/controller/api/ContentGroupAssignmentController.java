@@ -1,7 +1,9 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
+import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcUserService;
 import java.util.List;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ContentGroupAssignmentController {
 
     private final GcContentGroupCourseAssignmentService gcContentGroupCourseAssignmentService;
+    private final ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
     private final GcUserService gcUserService;
 
     @GetMapping("/{content-group-id}/course-assignments")
@@ -35,21 +38,23 @@ public class ContentGroupAssignmentController {
         return ResponseEntity.ok().body(gcContentGroupCourseAssignmentService.findByContentGroupId(contentGroupId));
     }
 
-    @PostMapping(value = "/course/assign", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping(value = "/course/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> assignCourse(@RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourse(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/courses/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> assignCourses(@RequestBody List<AssignCourseDto> assignCourseDto, HttpServletRequest request) {
+    public ResponseEntity<Void> assignCourses(@RequestBody List<AssignCourseDto> assignCourseDto,
+                                              HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourses(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateCourseAssignment(
-        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
+        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto,
+        HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.updateCourseAssignment(
             courseAssignmentId, gcUserService.getCurrentUser(request), assignCourseDto);
         return ResponseEntity.ok().build();
@@ -60,6 +65,13 @@ public class ContentGroupAssignmentController {
         @PathVariable("assignment-id") Integer courseAssignmentId) {
         gcContentGroupCourseAssignmentService.removeCourseAssignment(courseAssignmentId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/{content-group-id}/channel-subscriptions")
+    public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> getChannelSubscriptions(
+        @PathVariable("content-group-id") Integer contentGroupId) {
+        return ResponseEntity.ok().body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId));
     }
 
 }
