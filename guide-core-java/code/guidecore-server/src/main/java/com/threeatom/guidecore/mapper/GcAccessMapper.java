@@ -22,9 +22,6 @@ public interface GcAccessMapper extends BaseMapper<GcAccess> {
 
     Map<String, Long> getALlAccessCodeNumsByMasterId(Integer masterId);
 
-    List<GcAccess> getContainsAccessList(
-            @Param("ptId") String ptId, @Param("masterId") Integer masterId);
-
     List<GcAccess> listContainsSub(Integer masterId, Integer subjectId);
 
     List<GcAccess> getAllPackage(
@@ -59,8 +56,6 @@ public interface GcAccessMapper extends BaseMapper<GcAccess> {
     List<GcAccess> getAccessByChannelId(@Param("masterId") Integer masterId, @Param("id") Integer id);
 
     void insertOrUpdateList(List<GcAccess> accessList);
-
-    void insertOrUpdateChannel(List<GcAccess> accessList);
 
     List<GcAccess> selectAccessByCodeAndMasterId(
             @Param("list") List<String> codeList, Integer masterId);

@@ -409,8 +409,7 @@
         SELECT
             channel.*,
             COALESCE((select count(ua.id) from gc_access access
-                                                   LEFT JOIN gc_user_access ua on ua.access_id=access.id
-                      where access.subscribe_json::jsonb @> to_jsonb(channel.id::integer)
+                                                   LEFT JOIN content_group_channel_subscription cgcs on cgcs.content_group_id=access.id AND cgcs.channel_id=channel.id AND is_subscribed=true
                      ),0) as subscribeNum,info.last_name as createUserLastName,
             info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
             string_agg(tags.tag_text, ',') as channelTags
@@ -431,10 +430,11 @@
         channel.*,
         access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
         subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName
-        FROM
-        pt_channel channel
-        left join gc_access access on access.channel_json::jsonb @> to_jsonb(channel.id::integer)
-        left join gc_access subscribeAccess on subscribeAccess.subscribe_json::jsonb @> to_jsonb(channel.id::integer)
+        FROM pt_channel channel
+        left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
+        left join gc_access access on access.id = public_cgcs.content_group_id
+        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = true
+        left join gc_access subscribeAccess on subscribeAccess.id = subscribe_cgcs.content_group_id
         LEFT JOIN gc_user_access_permission permission ON permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
         LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
         where channel.id in
@@ -462,8 +462,10 @@
         left join pt_channel_subscribe sub on sub.channel_id = channel.id
         left join (SELECT u.* FROM pt_channel_subscribe sub LEFT JOIN gc_user u ON u.id = sub.user_id ORDER BY sub.create_time desc LIMIT 6 )subscribe_us on subscribe_us.id = sub.user_id
         left join gc_user_info subscribe_info on subscribe_info.id = subscribe_us.info_id
-        left join gc_access access on access.channel_json::jsonb @> to_jsonb(channel.id::integer)
-        left join gc_access subscribeAccess on subscribeAccess.subscribe_json::jsonb @> to_jsonb(channel.id::integer)
+        left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
+        left join gc_access access on access.id = public_cgcs.content_group_id
+        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = true
+        left join gc_access subscribeAccess on subscribeAccess.id = subscribe_cgcs.content_group_id
         LEFT JOIN gc_user_access_permission permission ON permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
         LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
         WHERE 1=1
@@ -539,40 +541,12 @@
 
 
     <select id="selectFollowedChannel" resultMap="baseResultMap">
-        select access.*,string_agg(access.subscribe_json::text, ',') as subscribeAccessIds from gc_access access
-                                                                                                    LEFT JOIN gc_user_access ua on ua.access_id = access.id
+        select access.*, string_agg(cgcs.channel_id::text, ',') as subscribeAccessIds
+        from gc_access access
+            LEFT JOIN gc_user_access ua on ua.access_id = access.id
+            LEFT JOIN content_group_channel_subscription cgcs on cgcs.content_group_id = access.id AND cgcs.is_subscribed = true
         where ua.user_id = #{userId} and ua.master_id=#{masterId}
-    </select>
-
-    <select id="newSelectChannelsByIdAndName">
-        select ch.*,
-        u.username as channel_create_user_username,u.id as channel_create_uid,info.last_name as createUserLastName,
-        info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
-        string_agg(tags.tag_text, ',') as channelTags,
-        info.avatar_file_id as userInfo_avatar_file_id
-        from pt_channel ch
-        left join gc_access ac ON ac.channel_json::jsonb @> to_jsonb(ch.ID::integer)
-        left join gc_user_access ua on ac.id = ua.access_id and ac.master_id = ua.master_id
-        left join gc_user u on u.id = ch.create_user_id
-        left join gc_user_info info on info.id = u.info_id
-        left join sys_file file  on file.id = info.avatar_file_id
-        left join pt_tags tags on tags.channel_id = ch.id
-        where 1=1
-        and ua.user_id = #{userId}
-        and ua.master_id = #{userId}
-        <if test="idList!= null and idList.size !=0">
-            and ch.id not in
-            <foreach collection="idList" item="channelId" open="(" separator="," close=")">
-                #{channelId}
-            </foreach>
-        </if>
-        <if test="name!=null">
-            and ch.channel_name like concat('%',#{name},'%')
-        </if>
-        and ch.master_id = #{masterId}
-        and ch.level = 0
-        group by ch.id
-        order by ch.create_time desc
+        GROUP BY access.id;
     </select>
 
     <select id="selectChannelsByIdAndName"  resultMap="baseResultMap">
