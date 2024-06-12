@@ -17,6 +17,9 @@ public class ContentGroupChannelSubscriptionDto {
     @ApiModelProperty(notes = "The title of the title")
     private String channelTitle;
 
+    @ApiModelProperty(notes = "The slug of the channel")
+    private String channelSlug;
+
     @ApiModelProperty(notes = "The ID of the channel")
     private String channelId;
 

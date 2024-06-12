@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 public interface ContentGroupChannelSubscriptionMapping {
 
     @Mapping(target = "channelTitle", source = "channel.channelName")
+    @Mapping(target = "channelSlug", source = "channel.channelSlug")
     @Mapping(target = "channelId", source = "channel.id")
     @Mapping(target = "channelImageUrl", source = "channel.imgFullFileUrl")
     @Mapping(target = "source.contentGroup.id", source = "contentGroup.id")
