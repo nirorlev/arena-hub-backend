@@ -212,4 +212,12 @@
                      JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
         </sql>
     </changeSet>
+
+    <changeSet id="create-hubiary-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="hubiaryEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling hubiary usage on FE images"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
