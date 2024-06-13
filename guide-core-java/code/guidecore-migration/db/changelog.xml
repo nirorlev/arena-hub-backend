@@ -163,4 +163,14 @@
                                  constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
                                  referencedColumnNames="id" onUpdate="CASCADE"/>
     </changeSet>
+
+    <changeSet id="add-login-config-s2s-fields" author="cvmcosta">
+        <addColumn tableName="pt_login_config">
+            <column name="video_service_client_id" type="varchar(255)"/>
+        </addColumn>
+        <addColumn tableName="pt_login_config">
+            <column name="video_service_secret" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

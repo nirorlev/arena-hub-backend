@@ -7,12 +7,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -255,5 +258,41 @@ public class HttpUtil {
             return JSONObject.parseObject(resContent);
         }
         return null;
+    }
+
+    public static JSONObject post(String url, String body, ContentType contentType, Header[] headers) throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(body, contentType);
+        httpPost.setEntity(requestEntity);
+        httpPost.setHeaders(headers);
+
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+        HttpEntity responseEntity = response.getEntity();
+        if (responseEntity == null) return null;
+
+        String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
+        return JSONObject.parseObject(responseContent);
+    }
+
+    public static JSONObject post(String url, String body, ContentType contentType) throws IOException {
+        return post(url, body, contentType, new Header[0]);
+    }
+
+    public static JSONObject get(String url, Header[] headers) throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeaders(headers);
+
+        CloseableHttpResponse response = httpClient.execute(httpGet);
+        HttpEntity responseEntity = response.getEntity();
+        if (responseEntity == null) return null;
+
+        String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
+        return JSONObject.parseObject(responseContent);
+    }
+
+    public static JSONObject get(String url) throws IOException {
+        return get(url, new Header[0]);
     }
 }
