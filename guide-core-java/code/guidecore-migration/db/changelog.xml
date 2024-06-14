@@ -164,6 +164,63 @@
                                  referencedColumnNames="id" onUpdate="CASCADE"/>
     </changeSet>
 
+    <changeSet id="create-content-group-channel-subscription" author="vprokh">
+        <createTable tableName="content_group_channel_subscription" schemaName="arena_hub">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="channel_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_group_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_subscribed" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="channel_assignment_pt_channel_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="channel_id" referencedTableName="pt_channel" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_user_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="created_by_user_id" referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_access_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="content_group_id" referencedTableName="gc_access" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="migrate-content-group-channels" author="vprokh">
+        <preConditions>
+            <rowCount tableName="content_group_channel_subscription" expectedRows="0"/>
+        </preConditions>
+
+        <sql>
+            INSERT INTO content_group_channel_subscription (channel_id, created_by_user_id, content_group_id, is_subscribed)
+            SELECT content_group_channel.channel_id::integer, user_id, content_group_channel.content_group_id, is_subscribed
+            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id, user_id, gc_access.id as content_group_id, false AS is_subscribed
+                  FROM gc_access
+                           JOIN gc_user_access ON gc_access.id = gc_user_access.access_id
+                  UNION ALL
+                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id, user_id, gc_access.id, true AS is_subscribed
+                  FROM gc_access
+                           JOIN gc_user_access ON gc_access.id = gc_user_access.access_id) AS content_group_channel
+                     JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
+        </sql>
+    </changeSet>
+
+    <changeSet id="create-hubiary-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="hubiaryEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling hubiary usage on FE images"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
+
     <changeSet id="add-login-config-s2s-fields" author="cvmcosta">
         <addColumn tableName="pt_login_config">
             <column name="video_service_client_id" type="varchar(255)"/>

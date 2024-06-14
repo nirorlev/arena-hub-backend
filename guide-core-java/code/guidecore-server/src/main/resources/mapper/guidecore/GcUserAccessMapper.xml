@@ -443,24 +443,6 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
-    <select id="selectStudentByAdmin" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />
-        FROM
-        gc_access a
-        LEFT JOIN gc_user_access ua on ua.access_id = a.id
-        WHERE
-        a.admin_id = #{adminId}
-        <if test="userIds != null and userIds.size > 0">
-            AND ua.user_id in
-            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
-                #{userId}
-            </foreach>
-        </if>
-
-    </select>
-
     <select id="getAccessByUserIdMaster" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
