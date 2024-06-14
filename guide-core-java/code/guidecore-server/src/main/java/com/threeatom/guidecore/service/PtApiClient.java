@@ -13,6 +13,8 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
  * @date 2024/06/11
  */
 public interface PtApiClient {
-    JSONObject getPowtoonPlayerPageData(PtLoginConfig ptLogin, String powtoonId) throws IOException, SystemException;
+    JSONObject getPowtoonPlayerPageData(String powtoonId, PtLoginConfig ptConfig) throws IOException, SystemException;
+    JSONObject getPowtoonPlayerPageData(String powtoonId, String origin, String publicToken) throws IOException, SystemException;
+    JSONObject getPowtoonPlayerPageData(String powtoonId, String origin) throws IOException, SystemException;
 }
 
