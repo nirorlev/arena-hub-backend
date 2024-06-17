@@ -201,18 +201,14 @@
 
         <sql>
             INSERT INTO content_group_channel_subscription (channel_id, created_by_user_id, content_group_id, is_subscribed)
-            SELECT content_group_channel.channel_id::integer, pc.create_user_id,
-                   content_group_channel.content_group_id,
-                   is_subscribed
-            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id,
-                         gc_access.id as content_group_id,
-                         false        AS is_subscribed
+            SELECT content_group_channel.channel_id::integer, user_id, content_group_channel.content_group_id, is_subscribed
+            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id, user_id, gc_access.id as content_group_id, false AS is_subscribed
                   FROM gc_access
-                  UNION
-                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id,
-                         gc_access.id,
-                         true AS is_subscribed
-                  FROM gc_access) AS content_group_channel
+                           JOIN gc_user_access ON gc_access.id = gc_user_access.access_id
+                  UNION ALL
+                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id, user_id, gc_access.id, true AS is_subscribed
+                  FROM gc_access
+                           JOIN gc_user_access ON gc_access.id = gc_user_access.access_id) AS content_group_channel
                      JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
         </sql>
     </changeSet>
