@@ -753,16 +753,12 @@
     <select id="getVideoListByQuery" resultMap="baseResultMap">
         SELECT
         <include refid="baseColumn" />
-        FROM (
-            SELECT course_video.content_id
-            FROM course_content course_video
-                JOIN gc_subject s ON course_video.course_id = s.id AND s.master_id = #{masterId}  AND state = 1 AND available_type IN (2,4)
-            UNION
-            SELECT channel_video.content_id
-            FROM pt_channel_content channel_video
-                JOIN pt_channel pc ON channel_video.channel_id = pc.id AND pc.master_id = #{masterId} AND pc.visible_flag != 0
-        ) video_content
-        JOIN gc_video v ON v.id = video_content.content_id
+        FROM gc_video v
+            LEFT JOIN course_content course_video ON v.id = course_video.content_id
+            LEFT JOIN gc_subject s ON course_video.course_id = s.id
+            LEFT JOIN pt_channel_content channel_video ON v.id = channel_video.content_id
+            LEFT JOIN pt_channel pc ON channel_video.channel_id = pc.id
+        WHERE ((s.master_id = #{masterId} AND state = 1 AND available_type IN (2, 4)) OR (pc.master_id = #{masterId} AND pc.visible_flag != 0))
         <if test="query != null">
             AND v.video_name ILIKE CONCAT('%', #{query}, '%')
         </if>
