@@ -223,10 +223,10 @@
 
     <changeSet id="add-login-config-s2s-fields" author="cvmcosta">
         <addColumn tableName="pt_login_config">
-            <column name="video_service_client_id" type="varchar(255)"/>
+            <column name="video_service_client_id" type="text"/>
         </addColumn>
         <addColumn tableName="pt_login_config">
-            <column name="video_service_secret" type="varchar(255)"/>
+            <column name="video_service_secret" type="text"/>
         </addColumn>
     </changeSet>
 
