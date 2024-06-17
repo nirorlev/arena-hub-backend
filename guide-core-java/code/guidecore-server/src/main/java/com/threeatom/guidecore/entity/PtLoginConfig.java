@@ -27,4 +27,6 @@ public class PtLoginConfig implements Serializable {
     private Date updateTime;
     private String createBy;
     private String updateBy;
+    private String videoServiceClientId;
+    private String videoServiceSecret;
 }
