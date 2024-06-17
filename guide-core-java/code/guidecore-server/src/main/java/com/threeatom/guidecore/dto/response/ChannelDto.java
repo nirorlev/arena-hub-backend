@@ -2,6 +2,7 @@ package com.threeatom.guidecore.dto.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +27,7 @@ public class ChannelDto {
     private OwnerDto owner;
 
     @ApiModelProperty(value = "Public visibility status of the Channel")
-    private boolean isPublic;
+    private Boolean isPublic;
 
     @ApiModelProperty(value = "URL of the Channel's avatar")
     private String avatarUrl;
@@ -36,6 +37,9 @@ public class ChannelDto {
 
     @ApiModelProperty(value = "Total number of subscribers of the Channel")
     private Integer totalSubscribers;
+
+    @ApiModelProperty(value = "Time when user subscribed to the Channel")
+    private OffsetDateTime subscriptionTime;
 
     @ApiModelProperty(value = "Creation time of the Channel")
     private Date createTime;

@@ -95,4 +95,8 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
     List<PtChannel> selectOwnChannels(
         @Param("userId") Integer userId,
         @Param("masterId") Integer masterId);
+
+    List<PtChannel> selectSubscribedChannels(
+        @Param("userId") Integer userId,
+        @Param("masterId") Integer masterId);
 }

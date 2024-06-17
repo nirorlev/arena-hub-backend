@@ -25,8 +25,15 @@ public class ChannelController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
-    public List<ChannelDto> getSubscribedChannels(HttpServletRequest request) {
+    public List<ChannelDto> getOwned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return channelService.getOwnerChannels(userService.getCurrentUser(request), masterId);
+    }
+
+    @GetMapping("/subscribed")
+    @ApiOperation(value = "Get a list of channels subscribed by the current user")
+    public List<ChannelDto> getSubscribedChannels(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return channelService.getSubscribedChannels(userService.getCurrentUser(request), masterId);
     }
 }

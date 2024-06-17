@@ -12,6 +12,7 @@ import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -52,6 +53,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     private String channelSlug;
 
     private Integer channelAvatarFileId;
+
+    @TableField(exist = false)
+    private OffsetDateTime subscriptionTime;
 
     @TableField(exist = false)
     private SysFile avatarFile;

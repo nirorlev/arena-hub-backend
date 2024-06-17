@@ -587,8 +587,15 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     @Override
     public List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId) {
-        List<PtChannel> channels = baseMapper.selectOwnChannels(user.getId(), masterId);
+        return convert(baseMapper.selectOwnChannels(user.getId(), masterId));
+    }
 
+    @Override
+    public List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId) {
+        return convert(baseMapper.selectSubscribedChannels(currentUser.getId(), masterId));
+    }
+
+    private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()
             .map(channelMapping::map)
             .collect(Collectors.toList());
