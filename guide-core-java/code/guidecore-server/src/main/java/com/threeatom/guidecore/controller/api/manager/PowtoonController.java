@@ -3430,42 +3430,17 @@ public class PowtoonController extends GuideCoreController {
 				}else {
 					userAccessPermission.getSubscribePermission().add(ptChannelSubscribe.getChannelId());
 				}
-				//移除ChannelPermission中channelId
 				if (null!=userAccessPermission.getChannelPermission()){
 					userAccessPermission.getChannelPermission().remove(ptChannelSubscribe.getChannelId());
 				}
-				//移动到followChannel
-                /*if(CollectionUtils.isEmpty(userAccessPermission.getFollowChannel()) || userAccessPermission.getFollowChannel()==null){
-					jsonArray.add(ptChannelSubscribe.getChannelId());
-					userAccessPermission.setFollowChannel(jsonArray);
-					//移除ChannelPermission中channelId
-					userAccessPermission.getChannelPermission().remove(ptChannelSubscribe.getChannelId());
-					userAccessPermission.setChannelPermission(userAccessPermission.getChannelPermission());
-				}else {
-					userAccessPermission.getFollowChannel().add(ptChannelSubscribe.getChannelId());
-				}*/
 			}
 		}
 		if(gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList)){
-			QueryWrapper<PtChannelSubscribe> queryWrapper = new QueryWrapper<PtChannelSubscribe>();
-			queryWrapper.eq("channel_id",ptChannelSubscribe.getChannelId());
-			queryWrapper.eq("user_id",user.getId());
-			PtChannelSubscribe channelSubscribe = ptChannelSubscribeService.getOne(queryWrapper);
-			if (null!=channelSubscribe){
-				channelSubscribe.setUpdateTime(new Date());
-				ptChannelSubscribeService.saveOrUpdate(channelSubscribe);
-			}else {
-				PtChannelSubscribe subscribe = new PtChannelSubscribe();
-				subscribe.setChannelId(ptChannelSubscribe.getChannelId());
-				subscribe.setUserId(user.getId());
-				subscribe.setCreateTime(new Date());
-				subscribe.setUpdateTime(new Date());
-				ptChannelSubscribeService.saveOrUpdate(subscribe);
-			}
+			ptChannelSubscribeService.subscribe(user, ptChannelSubscribe.getChannelId());
 			return message.ok("success");
-		}else {
-			return message.error();
 		}
+
+		return message.error();
 	}
 
 	@ApiOperation(value = "channel取消订阅")
@@ -3494,32 +3469,14 @@ public class PowtoonController extends GuideCoreController {
 			} else {
 				gcUserAccessPermission.getChannelPermission().add(ptChannelSubscribe.getChannelId());
 			}
-
-            /*if(CollectionUtils.isNotEmpty(gcUserAccessPermission.getFollowChannel()) && gcUserAccessPermission.getFollowChannel()!=null){
-				if(gcUserAccessPermission.getFollowChannel().contains(ptChannelSubscribe.getChannelId())){
-					gcUserAccessPermission.getFollowChannel().remove(ptChannelSubscribe.getChannelId());
-				}
-				if(CollectionUtils.isEmpty(gcUserAccessPermission.getChannelPermission()) || gcUserAccessPermission.getChannelPermission()==null){
-					jsonArray.add(ptChannelSubscribe.getChannelId());
-					gcUserAccessPermission.setChannelPermission(jsonArray);
-				}else {
-					gcUserAccessPermission.getChannelPermission().add(ptChannelSubscribe.getChannelId());
-				}
-			}*/
 		}
 		ptChannelSubscribe.setUserId(user.getId());
 		if(gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList)){
-			QueryWrapper<PtChannelSubscribe> queryWrapper = new QueryWrapper<PtChannelSubscribe>();
-			queryWrapper.eq("channel_id",ptChannelSubscribe.getChannelId());
-			queryWrapper.eq("user_id",user.getId());
-			PtChannelSubscribe channelSubscribe = ptChannelSubscribeService.getOne(queryWrapper);
-			if(null!=channelSubscribe){
-				ptChannelSubscribeService.removeById(channelSubscribe.getId());
-			}
+			ptChannelSubscribeService.unsubscribe(user, ptChannelSubscribe.getChannelId());
 			return message.ok("success");
-		}else {
-			return message.error();
 		}
+
+		return message.error();
 	}
 
 	@ApiOperation(value = "channelContent保存内容")
