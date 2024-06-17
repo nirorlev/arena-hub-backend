@@ -126,11 +126,6 @@ public class PtChannel implements Serializable, TreeNodeEntity {
             exist = false)
     private JSONArray subscribeAccessIds;
 
-    //    @TableField(
-    //            value = "subscribeUserIds",
-    //            typeHandler = FastJsonArrayTypeHandler.class,
-    //            exist = false
-    //    )
     @TableField(exist = false)
     private String subscribeUserIds = new String();
 
@@ -172,7 +167,4 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(exist = false)
     private List<GcAccess> accessList;
-
-    //    @TableField(exist = false)
-    //    private String subscribeNum;
 }

@@ -91,4 +91,8 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
     List<DbAnalyticsResultDto> getChannelCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
+
+    List<PtChannel> selectOwnChannels(
+        @Param("userId") Integer userId,
+        @Param("masterId") Integer masterId);
 }

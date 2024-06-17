@@ -3,14 +3,14 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 public interface PtChannelService extends IService<PtChannel> {
-    List<PtChannel> selectPtChannels(
-            Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
     List<PtChannel> indexPtChannels(
             Integer userId, Integer type, HttpServletRequest request, Integer masterId);
@@ -54,4 +54,6 @@ public interface PtChannelService extends IService<PtChannel> {
     PtChannel getbyChannelSlug(String channelName);
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId);
 }

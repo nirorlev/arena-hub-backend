@@ -16,7 +16,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -27,12 +26,15 @@
         <result property="subscribeUserIds" column="subscribeUserIds"/>
         <result property="fileId" column="fileId"/>
         <result property="likeNum" column="likeNum"/>
+        <result property="avatarFullFileUrl" column="avatar_full_file_url"/>
+        <result property="imgFullFileUrl" column="img_full_file_url"/>
         <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
             <id property="id" column="channel_create_uid"/>
             <id property="username" column="channel_create_user_username"/>
             <id property="lastName" column="userInfo_lastName"/>
             <id property="firstName" column="userInfo_firstName"/>
             <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+            <id property="avatarFullFileUrl" column="owner_avatar_url"/>
         </association>
         <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
             <id property="id" column="channel_file_id" />
@@ -85,7 +87,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -154,7 +155,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -203,7 +203,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -961,4 +960,27 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="selectOwnChannels" resultMap="baseResultMap">
+        SELECT pc.*,
+               sf_avatar.file_url    as owner_avatar_url,
+               gu.id                 as channel_create_uid,
+               gui.first_name        as userInfo_firstName,
+               gui.last_name         as userInfo_lastName,
+               sf_pc_avatar.file_url as avatar_full_file_url,
+               sf_img.file_url       as img_full_file_url,
+               count(pcs.id)         as subscribeNum
+        FROM pt_channel pc
+                 JOIN gc_user gu ON pc.create_user_id = gu.id
+                 JOIN gc_user_info gui ON gu.info_id = gui.id
+                 LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+                 LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
+                 LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
+                 LEFT JOIN pt_channel_subscribe pcs ON pc.id = pcs.channel_id AND pcs.is_deleted = false
+        WHERE pc.level = 0
+          AND pc.create_user_id = #{userId}
+          AND pc.master_id = #{masterId}
+        GROUP BY pc.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
+        ORDER BY pc.update_time DESC;
+    </select>
 </mapper>
+
