@@ -328,7 +328,7 @@
         channels.subscribe_permission, channels.channel_permission, channels.followFlag
         order by channels.create_time desc
         ) as chan
-        LEFT JOIN pt_channel_subscribe sub on chan.id = sub.channel_id and user_id = #{userId}
+        LEFT JOIN pt_channel_subscribe sub on chan.id = sub.channel_id and user_id = #{userId} AND sub.is_deleted = false
         where chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer)
         and chan.create_user_id != #{userId}
         <if test="userId != null">
@@ -365,7 +365,7 @@
         string_agg(tags.tag_text, ',') AS channelTags
         FROM
         pt_channel channel
-        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id AND sub.is_deleted = false
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
@@ -459,8 +459,8 @@
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_channel sec on sec.fid = channel.id
-        left join pt_channel_subscribe sub on sub.channel_id = channel.id
-        left join (SELECT u.* FROM pt_channel_subscribe sub LEFT JOIN gc_user u ON u.id = sub.user_id ORDER BY sub.create_time desc LIMIT 6 )subscribe_us on subscribe_us.id = sub.user_id
+        left join pt_channel_subscribe sub on sub.channel_id = channel.id AND sub.is_deleted = false
+        left join (SELECT u.* FROM pt_channel_subscribe sub LEFT JOIN gc_user u ON u.id = sub.user_id WHERE sub.is_deleted = false ORDER BY sub.create_time desc LIMIT 6 )subscribe_us on subscribe_us.id = sub.user_id
         left join gc_user_info subscribe_info on subscribe_info.id = subscribe_us.info_id
         left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
         left join gc_access access on access.id = public_cgcs.content_group_id
@@ -662,7 +662,7 @@
         string_agg(tags.tag_text, ',') AS channelTags
         FROM
         pt_channel channel
-        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id AND sub.is_deleted = false
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
@@ -782,7 +782,7 @@
         </if>
         FROM
         pt_channel channel
-        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id
+        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id AND sub.is_deleted = false
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
