@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
@@ -21,4 +22,6 @@ public interface ContentGroupChannelSubscriptionService
     List<Integer> getPublicChannelIds(Integer contentGroupId);
 
     void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel);
+
+    List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId);
 }
