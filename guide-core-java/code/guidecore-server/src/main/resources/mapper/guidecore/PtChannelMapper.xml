@@ -1006,5 +1006,31 @@
         GROUP BY pc.id, pcs.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
         ORDER BY pcs.update_time DESC;
     </select>
+
+    <select id="selectDiscoverableChannels" resultMap="baseResultMap">
+        SELECT pc.*,
+               sf_avatar.file_url                                                                           as owner_avatar_url,
+               gu.id                                                                                        as channel_create_uid,
+               gui.first_name                                                                               as userInfo_firstName,
+               gui.last_name                                                                                as userInfo_lastName,
+               sf_pc_avatar.file_url                                                                        as avatar_full_file_url,
+               sf_img.file_url                                                                              as img_full_file_url,
+               (SELECT COUNT(id) FROM pt_channel_subscribe WHERE channel_id = pc.id AND is_deleted = false) as subscribeNum
+        FROM pt_channel pc
+                 JOIN content_group_channel_subscription cgc
+                      on cgc.channel_id = pc.id AND cgc.is_subscribed = false AND cgc.created_by_user_id != #{userId}
+                 JOIN gc_user_access ua
+                      on ua.access_id = cgc.content_group_id AND ua.master_id = #{masterId} AND ua.user_id = #{userId}
+                 LEFT JOIN pt_channel_subscribe pcs
+                           on cgc.channel_id = pcs.channel_id AND pcs.is_deleted = false AND pcs.user_id = #{userId}
+                 LEFT JOIN gc_user gu ON pc.create_user_id = gu.id
+                 LEFT JOIN gc_user_info gui ON gu.info_id = gui.id
+                 LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+                 LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
+                 LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
+        WHERE pc.level = 0
+          AND pcs.id IS NULL
+        ORDER BY cgc.modified_date DESC
+    </select>
 </mapper>
 

@@ -58,4 +58,6 @@ public interface PtChannelService extends IService<PtChannel> {
     List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId);
 
     List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId);
+
+    List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId);
 }

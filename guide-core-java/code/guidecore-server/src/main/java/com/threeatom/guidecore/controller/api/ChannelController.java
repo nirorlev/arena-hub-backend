@@ -36,4 +36,11 @@ public class ChannelController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return channelService.getSubscribedChannels(userService.getCurrentUser(request), masterId);
     }
+
+    @GetMapping("/discoverable")
+    @ApiOperation(value = "Get a list of channels discoverable by the current user")
+    public List<ChannelDto> getDiscoverableChannels(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return channelService.getDiscoverableChannels(userService.getCurrentUser(request), masterId);
+    }
 }
