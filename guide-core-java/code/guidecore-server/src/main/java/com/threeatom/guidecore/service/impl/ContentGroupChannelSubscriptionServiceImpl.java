@@ -13,6 +13,7 @@ import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -47,6 +48,11 @@ public class ContentGroupChannelSubscriptionServiceImpl
     @Transactional(readOnly = true)
     public List<Integer> getSubscribedChannelIds(Integer contentGroupId) {
         return getChannelIds(contentGroupId, true);
+    }
+
+    @Override
+    public List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds) {
+        return getChannelIds(contentGroupIds, true);
     }
 
     @Override
@@ -92,7 +98,20 @@ public class ContentGroupChannelSubscriptionServiceImpl
         queryWrapper.eq("content_group_id", contentGroupId);
         queryWrapper.eq("is_subscribed", subscribed);
 
-        return this.list(queryWrapper).stream()
+        return getChannelIds(this.list(queryWrapper));
+    }
+
+    private List<Integer> getChannelIds(List<Integer> contentGroupIds, boolean subscribed) {
+        QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.in("content_group_id", contentGroupIds);
+        queryWrapper.eq("is_subscribed", subscribed);
+
+        return getChannelIds(this.list(queryWrapper));
+    }
+
+    private List<Integer> getChannelIds(List<ContentGroupChannelSubscription> subscribes) {
+        return subscribes.stream()
             .map(ContentGroupChannelSubscription::getChannelId)
             .collect(Collectors.toList());
     }
