@@ -80,15 +80,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                     channel.setAccessList(accessChannel.getAccessList());
                 }
             }
-            if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-                channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-
-            if (Objects.nonNull(channel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
-                channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, channel);
         }
         return channels;
     }
@@ -239,14 +231,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             }
         }
         for (PtChannel ptChannel : channels) {
-            if (Objects.nonNull(ptChannel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
-                ptChannel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-            if (Objects.nonNull(ptChannel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(ptChannel.getChannelImgFileId());
-                ptChannel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, ptChannel);
         }
 
         return channels;
@@ -292,17 +277,21 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                         tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setChannelTags(StringUtils.join(strings, ","));
             }
-            if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-                channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-
-            if (Objects.nonNull(channel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
-                channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, channel);
         }
         return channels;
+    }
+
+    private void updateUrls(HttpServletRequest request, PtChannel channel) {
+        if (Objects.nonNull(channel.getChannelAvatarFileId())) {
+            SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
+            channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
+        }
+
+        if (Objects.nonNull(channel.getChannelImgFileId())) {
+            SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
+            channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
+        }
     }
 
     @Override
@@ -586,18 +575,24 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId) {
-        return convert(baseMapper.selectOwnChannels(user.getId(), masterId));
+    public List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectOwnChannels(user.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
     }
 
     @Override
-    public List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId) {
-        return convert(baseMapper.selectSubscribedChannels(currentUser.getId(), masterId));
+    public List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectSubscribedChannels(currentUser.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
     }
 
     @Override
-    public List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId) {
-        return convert(baseMapper.selectDiscoverableChannels(currentUser.getId(), masterId));
+    public List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectDiscoverableChannels(currentUser.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
     }
 
     private List<ChannelDto> convert(List<PtChannel> channels) {

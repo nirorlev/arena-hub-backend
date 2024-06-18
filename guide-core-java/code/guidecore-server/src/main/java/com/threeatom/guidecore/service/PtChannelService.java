@@ -55,9 +55,9 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId);
+    List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request);
 
-    List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId);
+    List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
 
-    List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId);
+    List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
 }
