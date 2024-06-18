@@ -2006,6 +2006,8 @@ public class PowtoonController extends GuideCoreController {
 			idList.addAll(managedList);
 			// Query all groups
 			List<GcAccess> accessLists = accessService.selectAccessByCodeAndMasterId(idList,masterId);
+			ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, accessLists);
+
 			Map<String,GcAccess> gcAccessMap = accessLists.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity(), (key1, key2) -> key2));
 			for (Groups group : permissions.getPermissions().getGroups()) {
 				GcAccess access = new GcAccess();

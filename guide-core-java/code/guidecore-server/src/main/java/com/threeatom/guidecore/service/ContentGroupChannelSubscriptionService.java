@@ -19,6 +19,8 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 
+    List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
+
     List<Integer> getPublicChannelIds(Integer contentGroupId);
 
     void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel);
