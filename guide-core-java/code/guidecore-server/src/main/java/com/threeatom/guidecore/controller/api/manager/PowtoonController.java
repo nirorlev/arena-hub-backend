@@ -3204,26 +3204,18 @@ public class PowtoonController extends GuideCoreController {
 	@PostMapping("/selectAllChannels")
 	public Message selectAllChannels(HttpServletRequest request) {
 		Message message = new Message();
-		GcMaster master = this.getMaster();
-		GcUser gcuser = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
-		}
-		GcUser user = this.getGcUser();
-		/*boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.channel, null);
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}*/
-		//type为0查不是自己创建的channel，为1查询自己创建的channel
+        GcUser user = this.getGcUser();
 		List<PtChannel> channels = ptChannelService.indexPtChannels(user.getId(),TableConstant.COMMON_ZERO,request,masterId);
-		List<PtChannel> mychannels = ptChannelService.indexPtChannels(user.getId(),TableConstant.COMMON_ONE,request,masterId);
+		List<PtChannel> myChannels = ptChannelService.indexPtChannels(user.getId(),TableConstant.COMMON_ONE,request,masterId);
 		PageInfo channelPageInfo = new PageInfo<>(channels);
-		PageInfo myChannelPageInfo = new PageInfo<>(mychannels);
+		PageInfo myChannelPageInfo = new PageInfo<>(myChannels);
 		message.ok().addData("myChannels",myChannelPageInfo);
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return message.ok().addData("allChannelList",channelPageInfo).addData("systemTime",df.format(new Date())).addData("test","test123123");
+		return message.ok()
+			.addData("allChannelList",channelPageInfo)
+			.addData("systemTime",df.format(new Date()));
 	}
 
 	@ApiOperation(value = "指定teamchannel查询")

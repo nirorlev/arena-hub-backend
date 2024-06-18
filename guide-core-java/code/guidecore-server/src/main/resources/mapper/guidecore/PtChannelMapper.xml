@@ -16,7 +16,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -27,12 +26,16 @@
         <result property="subscribeUserIds" column="subscribeUserIds"/>
         <result property="fileId" column="fileId"/>
         <result property="likeNum" column="likeNum"/>
+        <result property="avatarFullFileUrl" column="avatar_full_file_url"/>
+        <result property="imgFullFileUrl" column="img_full_file_url"/>
+        <result property="subscriptionTime" column="subscription_time"/>
         <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
             <id property="id" column="channel_create_uid"/>
             <id property="username" column="channel_create_user_username"/>
             <id property="lastName" column="userInfo_lastName"/>
             <id property="firstName" column="userInfo_firstName"/>
             <id property="avatarFileId" column="userInfo_avatar_file_id"/>
+            <id property="avatarFullFileUrl" column="owner_avatar_url"/>
         </association>
         <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
             <id property="id" column="channel_file_id" />
@@ -85,7 +88,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -154,7 +156,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -203,7 +204,6 @@
         <result property="masterId" column="masterId"  />
         <result property="subscribeNum" column="subscribeNum"/>
         <result property="followFlag" column="followFlag"/>
-        <result property="subscribeNum" column="subscribeNum"/>
         <result property="channelSlug" column="channel_slug"/>
         <result property="createTime" column="create_time"/>
         <result property="createUserFirstName" column="createUserFirstName"/>
@@ -961,4 +961,73 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="selectOwnChannels" resultMap="baseResultMap">
+        SELECT pc.*,
+               sf_avatar.file_url    as owner_avatar_url,
+               gu.id                 as channel_create_uid,
+               gui.first_name        as userInfo_firstName,
+               gui.last_name         as userInfo_lastName,
+               sf_pc_avatar.file_url as avatar_full_file_url,
+               sf_img.file_url       as img_full_file_url,
+               count(pcs.id)         as subscribeNum
+        FROM pt_channel pc
+                 JOIN gc_user gu ON pc.create_user_id = gu.id
+                 JOIN gc_user_info gui ON gu.info_id = gui.id
+                 LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+                 LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
+                 LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
+                 LEFT JOIN pt_channel_subscribe pcs ON pc.id = pcs.channel_id AND pcs.is_deleted = false
+        WHERE pc.level = 0
+          AND pc.create_user_id = #{userId}
+          AND pc.master_id = #{masterId}
+        GROUP BY pc.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
+        ORDER BY pc.update_time DESC;
+    </select>
+
+    <select id="selectSubscribedChannels" resultMap="baseResultMap">
+        SELECT pc.*,
+               sf_avatar.file_url                    as owner_avatar_url,
+               gu.id                                 as channel_create_uid,
+               gui.first_name                        as userInfo_firstName,
+               gui.last_name                         as userInfo_lastName,
+               sf_pc_avatar.file_url                 as avatar_full_file_url,
+               sf_img.file_url                       as img_full_file_url,
+               pcs.update_time                       as subscription_time,
+               count(subscribe_pcs.id)               as subscribeNum
+        FROM pt_channel_subscribe pcs
+                 JOIN pt_channel pc ON pc.id = pcs.channel_id AND pc.master_id = #{masterId} AND pc.visible_flag != 0
+                 JOIN gc_user gu ON pc.create_user_id = gu.id
+                 JOIN gc_user_info gui ON gu.info_id = gui.id
+                 LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+                 LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
+                 LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
+                 LEFT JOIN pt_channel_subscribe subscribe_pcs ON pc.id = subscribe_pcs.channel_id AND pcs.is_deleted = false
+        WHERE pcs.is_deleted = false AND pcs.user_id = #{userId}
+        GROUP BY pc.id, pcs.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
+        ORDER BY pcs.update_time DESC;
+    </select>
+
+    <select id="selectDiscoverableChannels" resultMap="baseResultMap">
+        SELECT pc.*,
+               sf_avatar.file_url                                                                           as owner_avatar_url,
+               gu.id                                                                                        as channel_create_uid,
+               gui.first_name                                                                               as userInfo_firstName,
+               gui.last_name                                                                                as userInfo_lastName,
+               sf_pc_avatar.file_url                                                                        as avatar_full_file_url,
+               sf_img.file_url                                                                              as img_full_file_url,
+               (SELECT COUNT(id) FROM pt_channel_subscribe WHERE channel_id = pc.id AND is_deleted = false) as subscribeNum
+        FROM pt_channel pc
+                 LEFT JOIN content_group_channel_subscription cgc
+                           on cgc.channel_id = pc.id AND cgc.is_subscribed = false AND cgc.created_by_user_id != #{userId}
+                 LEFT JOIN gc_user_access ua on ua.access_id = cgc.content_group_id AND ua.master_id = #{masterId} AND ua.user_id = #{userId}
+                 LEFT JOIN pt_channel_subscribe pcs on pc.id = pcs.channel_id AND pcs.is_deleted = true AND pcs.user_id = #{userId}
+                 LEFT JOIN gc_user gu ON pc.create_user_id = gu.id
+                 LEFT JOIN gc_user_info gui ON gu.info_id = gui.id
+                 LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+                 LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
+                 LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
+        WHERE pc.level = 0 AND pc.visible_flag != 0 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL)
+        ORDER BY cgc.modified_date DESC
+    </select>
 </mapper>
+
