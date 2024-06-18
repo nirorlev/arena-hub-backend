@@ -3,7 +3,6 @@ package com.threeatom.guidecore.dto.response;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.time.OffsetDateTime;
-import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,8 +41,8 @@ public class ChannelDto {
     private OffsetDateTime subscriptionTime;
 
     @ApiModelProperty(value = "Creation time of the Channel")
-    private Date createTime;
+    private OffsetDateTime createTime;
 
     @ApiModelProperty(value = "Last update time of the Channel")
-    private Date updateTime;
+    private OffsetDateTime updateTime;
 }

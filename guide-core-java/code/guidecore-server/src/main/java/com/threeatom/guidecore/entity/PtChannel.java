@@ -77,9 +77,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<SysFile> videoList;
 
-    private Date updateTime;
+    private OffsetDateTime updateTime;
 
-    private Date createTime;
+    private OffsetDateTime createTime;
 
     @ApiModelProperty("课程tag标签")
     @TableField(value = "tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
