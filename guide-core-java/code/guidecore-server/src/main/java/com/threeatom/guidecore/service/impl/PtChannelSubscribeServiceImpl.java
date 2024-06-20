@@ -101,6 +101,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
                                                               List<Integer> allChannels) {
         return contentGroupSubscribed.stream()
             .filter(channelId -> !allChannels.contains(channelId))
+            .distinct()
             .map(channelId -> createChannelSubscribe(user, channelId, false))
             .collect(Collectors.toList());
     }
