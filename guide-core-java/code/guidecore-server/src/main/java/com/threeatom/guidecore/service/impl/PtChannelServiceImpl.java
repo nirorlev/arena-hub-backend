@@ -8,8 +8,10 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
+import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.system.entity.SysFile;
@@ -17,24 +19,20 @@ import com.threeatom.system.service.SysFileService;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel>
         implements PtChannelService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserSaveFolderServiceImpl.class);
+    private final SysFileService sysFileService;
+    private final PtTagsService tagsService;
+    private final ChannelMapping channelMapping;
 
-    @Autowired private SysFileService sysFileService;
-
-    @Autowired private PtTagsService tagsService;
-
-    public List<PtChannel> indexPtChannels(
-            Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
+    public List<PtChannel> indexPtChannels(Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -43,7 +41,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
         List<PtChannel> channels = this.baseMapper.indexPtChannels(userId, type, masterId, null);
         Map<Integer, List<PtTags>> tagMap = new HashMap<>();
-        if (channels.size() != TableConstant.COMMON_ZERO) {
+        if (!channels.isEmpty()) {
             List<PtTags> tagsList =
                     tagsService.selectPtChannelTagByIds(
                             channels.stream().map(PtChannel::getId).collect(Collectors.toList()), masterId);
@@ -53,7 +51,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<Integer> channelIdList =
                 channels.stream().map(PtChannel::getId).collect(Collectors.toList());
         Map<Integer, PtChannel> ptChannelMap = new HashMap<>();
-        if (channelIdList.size() != TableConstant.COMMON_ZERO) {
+        if (!channelIdList.isEmpty()) {
             List<PtChannel> accessChannelList =
                     this.baseMapper.getAccessChannelList(channelIdList, masterId, userId);
             ptChannelMap =
@@ -73,7 +71,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                         tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setChannelTags(StringUtils.join(strings, ","));
             }
-            if (null != ptChannelMap && null != ptChannelMap.get(channel.getId())) {
+            if (null != ptChannelMap.get(channel.getId())) {
                 PtChannel accessChannel = ptChannelMap.get(channel.getId());
                 if (null != accessChannel.getSubscribeAccessList()) {
                     channel.setSubscribeAccessList(accessChannel.getSubscribeAccessList());
@@ -82,88 +80,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                     channel.setAccessList(accessChannel.getAccessList());
                 }
             }
-            if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-                channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-
-            if (Objects.nonNull(channel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
-                channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
-        }
-        return channels;
-    }
-
-    public List<PtChannel> selectPtChannels(
-            Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize = pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        List<PtChannel> channels = this.baseMapper.selectChannelList(userId, type, masterId);
-
-        // 查询订阅人数
-        //        for(PtChannel ptChannel : channels){
-        //            ptChannel.setFollowFlag(TableConstant.COMMON_ZERO);
-        //        }
-
-        // 查询当前用户follow的channel
-        //        PtChannel followedChannel = this.baseMapper.selectFollowedChannel(userId,masterId);
-        //        if(Objects.nonNull(followedChannel)){
-        //            if(CollectionUtils.isNotEmpty(followedChannel.getSubscribeAccessIds())){
-        //                for(PtChannel ptChannel : channels){
-        //                    if(followedChannel.getSubscribeAccessIds().contains(ptChannel.getId())){
-        //                        ptChannel.setFollowFlag(TableConstant.COMMON_ONE);
-        //                    }
-        //                }
-        //            }
-        //        }
-
-        List<String> slugList =
-                channels.stream().map(PtChannel::getChannelSlug).collect(Collectors.toList());
-        Map<String, HashMap> ptChannelsMap = new HashMap<>();
-        if (slugList.size() != TableConstant.COMMON_ZERO && !CollectionUtils.isEmpty(slugList)) {
-            ptChannelsMap = baseMapper.selectFollowedUsers(slugList, masterId);
-        }
-        for (PtChannel channel : channels) {
-            //            主要添加文件
-            if (CollectionUtils.isNotEmpty(channel.getVideoList())) {
-                for (SysFile gcvideofile : channel.getVideoList()) {
-                    SysFile imgFile = sysFileService.getById(gcvideofile.getId());
-                    String imgFullFileUrl = sysFileService.getResFullUrl(imgFile, request);
-                    gcvideofile.setFullFileUrl(imgFullFileUrl);
-                }
-            }
-            // 查询订阅人数sql已去重
-            if (!"".equals(channel.getSubscribeUserIds())
-                    && Objects.nonNull(channel.getSubscribeUserIds()) // 判断slug不为空
-                    && null != ptChannelsMap
-                    && ptChannelsMap.size() != TableConstant.COMMON_ZERO) { // 判断ptChannelsMap不为空
-                // 获取订阅人数
-                HashMap subscribers = ptChannelsMap.get(channel.getChannelSlug());
-                if (subscribers != null) {
-                    // List<String> subscribeUserIds =
-                    // Arrays.asList(subscribers.getSubscribeUserIds().split(","));
-                    // subscribeUserIds = subscribeUserIds.stream().distinct().collect(Collectors.toList());
-                    Long subscribeUserIds = (Long) subscribers.get("subscribeUserIds");
-                    channel.setSubscribeNum(subscribeUserIds.intValue());
-                }
-            } else {
-                channel.setSubscribeNum(TableConstant.COMMON_ZERO);
-            }
-        }
-        for (PtChannel ptChannel : channels) {
-            if (Objects.nonNull(ptChannel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
-                ptChannel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-            if (Objects.nonNull(ptChannel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(ptChannel.getChannelImgFileId());
-                ptChannel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, channel);
         }
         return channels;
     }
@@ -314,14 +231,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             }
         }
         for (PtChannel ptChannel : channels) {
-            if (Objects.nonNull(ptChannel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
-                ptChannel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-            if (Objects.nonNull(ptChannel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(ptChannel.getChannelImgFileId());
-                ptChannel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, ptChannel);
         }
 
         return channels;
@@ -367,17 +277,21 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                         tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setChannelTags(StringUtils.join(strings, ","));
             }
-            if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-                channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
-            }
-
-            if (Objects.nonNull(channel.getChannelImgFileId())) {
-                SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
-                channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
-            }
+            updateUrls(request, channel);
         }
         return channels;
+    }
+
+    private void updateUrls(HttpServletRequest request, PtChannel channel) {
+        if (Objects.nonNull(channel.getChannelAvatarFileId())) {
+            SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
+            channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
+        }
+
+        if (Objects.nonNull(channel.getChannelImgFileId())) {
+            SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
+            channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
+        }
     }
 
     @Override
@@ -658,5 +572,32 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getChannelCountAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectOwnChannels(user.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
+    }
+
+    @Override
+    public List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectSubscribedChannels(currentUser.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
+    }
+
+    @Override
+    public List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectDiscoverableChannels(currentUser.getId(), masterId);
+        channels.forEach(channel -> updateUrls(request, channel));
+        return convert(channels);
+    }
+
+    private List<ChannelDto> convert(List<PtChannel> channels) {
+        return channels.stream()
+            .map(channelMapping::map)
+            .collect(Collectors.toList());
     }
 }

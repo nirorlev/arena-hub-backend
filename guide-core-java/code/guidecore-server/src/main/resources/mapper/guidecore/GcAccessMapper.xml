@@ -157,29 +157,6 @@
 		create_time = now()
 	</insert>
 
-	<insert id="insertOrUpdateChannel">
-		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,channel_json,subscribe_json,subject_json,update_time)
-		VALUES
-		<foreach collection="list" index="index" item="item" separator=",">
-			(#{item.id},#{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
-			#{item.groupName},
-			#{item.channelJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-			#{item.subscribeJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-			#{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-			now())
-		</foreach>
-		ON CONFLICT (id) DO UPDATE SET
-		master_id = excluded.master_id,
-		role_type = excluded.role_type,
-		admin_id = excluded.admin_id,
-		code = excluded.code,
-		subject_json = excluded.subject_json,
-		group_name = excluded.group_name,
-		channel_json = excluded.channel_json,
-		subscribe_json = excluded.subscribe_json,
-		create_time = now()
-	</insert>
-
 	<select id="getALlAccessCodeNumsByMasterId" resultType="Map">
 		select
 			COUNT(case when role_type=0 then 1 end) as adminNum,
@@ -266,11 +243,15 @@
     <select id="listAllAccess" resultMap="baseResultVoMap">
 		SELECT content_group_info.*, coalesce(course_assignment.assignment_count, 0) as subjectNum
 		FROM (
-		select coalesce(json_array_length(subscribe_json),0) as channelNum,ac.*
+		select coalesce(cgc.channelNum, 0) as channelNum, ac.*
 		,u.id as u_id,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type,
 		ui.id as info_id,ui.first_name as firstName ,ui.last_name as lastName,ui.avatar_file_id as avatarFileId,
 		u.username as username
 		from gc_access ac
+		LEFT JOIN (SELECT content_group_id, COUNT(id) AS channelNum
+			FROM content_group_channel_subscription
+			GROUP BY content_group_id)
+		    cgc ON ac.id = cgc.content_group_id
 		left join  gc_user_access ua on ua.access_id = ac.id
 		left join gc_user u on u.id = ua.user_id
 		left join gc_user_info ui on u.info_id = ui.id
@@ -314,15 +295,10 @@
 	</select>
 
 	<select id="getAccessByChannelId" resultType="com.threeatom.guidecore.entity.GcAccess">
-		select * from gc_access
-		where master_id = #{masterId}
-		  and (channel_json::jsonb @> to_jsonb(#{id}::integer) or subscribe_json::jsonb @> to_jsonb(#{id}::integer))
-	</select>
-
-	<select id="getContainsAccessList" resultType="com.threeatom.guidecore.entity.GcAccess">
-		select * from gc_access
-		where (channel_json::jsonb @> to_jsonb(#{ptId}::integer) or subscribe_json::jsonb @> to_jsonb(#{ptId}::integer))
-		  and master_id = #{masterId}
+		select ga.*
+		from gc_access ga
+				 JOIN content_group_channel_subscription cgc on ga.id = cgc.content_group_id AND cgc.channel_id = #{id}
+		where ga.master_id = #{masterId}
 	</select>
 
 	<select id="selectAccessByIds" resultMap="baseResultMap">
@@ -380,17 +356,15 @@
 		ac.role_json,
 		uap.may_subject_json as may_subject_json,
 		uap.must_subject_json as must_subject_json
-		FROM
-		gc_access ac
+		FROM gc_access ac
 		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
 		left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
 		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
-		WHERE
-		ac.master_id = #{masterId}
-		AND ac.group_name IS NOT NULL
-		AND ua.user_id = #{userId}
-		and (ua.role_json::text like '%groupMember%' or ua.role_json::text like '%groupAdmin%')
+		WHERE ac.master_id = #{masterId}
+			AND ac.group_name IS NOT NULL
+			AND ua.user_id = #{userId}
+			and (ua.role_json::text like '%groupMember%' or ua.role_json::text like '%groupAdmin%')
 		<if test="name != null">
 			and concat('%',#{name},'%')
 		</if>

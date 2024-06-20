@@ -101,9 +101,6 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
 
     List<Map<String, Object>> getAllManagerInThisMaster(Integer masterId);
 
-    List<GcUserAccess> selectStudentByAdmin(
-            @Param("adminId") Integer adminId, @Param("userIds") List<Integer> userIds);
-
     GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId);
 
     List<GcUserAccess> getUserAccessListByMasterIdAndUserId(

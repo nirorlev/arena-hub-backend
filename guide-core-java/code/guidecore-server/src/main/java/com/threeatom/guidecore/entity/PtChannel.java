@@ -12,6 +12,7 @@ import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -54,6 +55,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     private Integer channelAvatarFileId;
 
     @TableField(exist = false)
+    private OffsetDateTime subscriptionTime;
+
+    @TableField(exist = false)
     private SysFile avatarFile;
 
     @TableField(exist = false)
@@ -73,9 +77,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<SysFile> videoList;
 
-    private Date updateTime;
+    private OffsetDateTime updateTime;
 
-    private Date createTime;
+    private OffsetDateTime createTime;
 
     @ApiModelProperty("课程tag标签")
     @TableField(value = "tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
@@ -126,11 +130,6 @@ public class PtChannel implements Serializable, TreeNodeEntity {
             exist = false)
     private JSONArray subscribeAccessIds;
 
-    //    @TableField(
-    //            value = "subscribeUserIds",
-    //            typeHandler = FastJsonArrayTypeHandler.class,
-    //            exist = false
-    //    )
     @TableField(exist = false)
     private String subscribeUserIds = new String();
 
@@ -172,7 +171,4 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(exist = false)
     private List<GcAccess> accessList;
-
-    //    @TableField(exist = false)
-    //    private String subscribeNum;
 }

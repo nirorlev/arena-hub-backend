@@ -58,12 +58,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
             @Param("userId") Integer userId,
             @Param("masterId") Integer masterId);
 
-    List<PtChannel> newSelectChannelsByIdAndName(
-            @Param("idList") List<Integer> idList,
-            @Param("name") String name,
-            @Param("userId") Integer userId,
-            @Param("masterId") Integer masterId);
-
     List<PtChannel> selectChannelsByIdsAndName(
             @Param("idList") List<Integer> idList, @Param("name") String name);
 
@@ -96,5 +90,17 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<PtChannel> selectOwnChannels(
+        @Param("userId") Integer userId,
+        @Param("masterId") Integer masterId);
+
+    List<PtChannel> selectSubscribedChannels(
+        @Param("userId") Integer userId,
+        @Param("masterId") Integer masterId);
+
+    List<PtChannel> selectDiscoverableChannels(
+        @Param("userId") Integer userId,
         @Param("masterId") Integer masterId);
 }

@@ -90,11 +90,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
-    public void insertOrUpdateChannel(List<GcAccess> accessList) {
-        this.baseMapper.insertOrUpdateChannel(accessList);
-    }
-
-    @Override
     public List<GcAccess> selectAccessByIds(List<Integer> ids) {
         return this.baseMapper.selectAccessByIds(ids);
     }
@@ -373,8 +368,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return this.baseMapper.getAccessBySubjectId(masterId, id);
     }
 
-    public List<GcAccess> getAccessByChannelId(Integer masterId, Integer id) {
-        return this.baseMapper.getAccessByChannelId(masterId, id);
+    public List<GcAccess> getAccessByChannelId(Integer masterId, Integer channelId) {
+        return this.baseMapper.getAccessByChannelId(masterId, channelId);
     }
 
     @Override
@@ -395,11 +390,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     public Map<String, Long> getALlAccessCodeNumsByMasterId(Integer masterId) {
         return this.baseMapper.getALlAccessCodeNumsByMasterId(masterId);
-    }
-
-    @Override
-    public List<GcAccess> getContainsAccessList(String ptId, Integer masterId) {
-        return this.baseMapper.getContainsAccessList(ptId, masterId);
     }
 
     @Override
