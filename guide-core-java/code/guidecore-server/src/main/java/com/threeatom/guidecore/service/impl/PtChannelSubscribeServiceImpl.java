@@ -48,18 +48,22 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
     @Override
     @Transactional
     public void autoSubscribeToContentGroupChannels(GcUser user, List<GcAccess> accessLists) {
-        List<Integer> contentGroupIds = accessLists.stream()
-            .map(GcAccess::getId)
-            .collect(Collectors.toList());
+        try {
+            List<Integer> contentGroupIds = accessLists.stream()
+                .map(GcAccess::getId)
+                .collect(Collectors.toList());
 
-        List<Integer> contentGroupSubscribed =
-            contentGroupChannelSubscriptionService.getSubscribedChannelIds(contentGroupIds);
+            List<Integer> contentGroupSubscribed =
+                contentGroupChannelSubscriptionService.getSubscribedChannelIds(contentGroupIds);
 
-        List<Integer> channels = getAllByUser(user).stream()
-            .map(PtChannelSubscribe::getChannelId)
-            .collect(Collectors.toList());
+            List<Integer> channels = getAllByUser(user).stream()
+                .map(PtChannelSubscribe::getChannelId)
+                .collect(Collectors.toList());
 
-        saveBatch(getAutoSubscribeChannels(user, contentGroupSubscribed, channels));
+            saveBatch(getAutoSubscribeChannels(user, contentGroupSubscribed, channels));
+        } catch (Exception e) {
+            log.error("Channel auto-subscription failed for user " + user.getId(), e);
+        }
     }
 
     @Override
@@ -97,6 +101,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
                                                               List<Integer> allChannels) {
         return contentGroupSubscribed.stream()
             .filter(channelId -> !allChannels.contains(channelId))
+            .distinct()
             .map(channelId -> createChannelSubscribe(user, channelId, false))
             .collect(Collectors.toList());
     }
