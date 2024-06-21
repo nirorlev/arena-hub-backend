@@ -86,49 +86,24 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     public PtChannel selectChannelDetail(
-            Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId) {
-        //        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-        //        queryWrapper.eq("id",channelId);
-        //        return this.getOne(queryWrapper);
-        PtChannel ptChannel = new PtChannel();
+        Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId) {
+
+        PtChannel ptChannel;
         if (null != channelId) {
             ptChannel = this.baseMapper.selectChannelDetail(channelId, null, order, null);
         } else {
             ptChannel = this.baseMapper.selectChannelDetail(null, slug, order, masterId);
         }
-        //        for(PtChannel channel : ptChannel.getSectionList()){
-        //            for(SysFile sysFile : channel.getVideoList()){
-        //                String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
-        //                String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-        //                sysFile.setSnapshotUrl(snapShotUrl);
-        //                sysFile.setFullFileUrl(fullFileUrl);
-        //            }
-        //        }
-        if (!"".equals(ptChannel.getSubscribeUserIds())
-                && Objects.nonNull(ptChannel.getSubscribeUserIds())) {
-            List<String> subscribeUserIds = Arrays.asList(ptChannel.getSubscribeUserIds().split(","));
-            subscribeUserIds = subscribeUserIds.stream().distinct().collect(Collectors.toList());
-            ptChannel.setSubscribeNum(subscribeUserIds.size());
-        } else {
-            ptChannel.setSubscribeNum(TableConstant.COMMON_ZERO);
-        }
+
         SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
         SysFile imgFile = sysFileService.getById(ptChannel.getChannelImgFileId());
         String imgFileUrl = sysFileService.getResFullUrl(imgFile, request);
         String avatarUrl = sysFileService.getResFullUrl(avatarFile, request);
         ptChannel.setImgFullFileUrl(imgFileUrl);
         ptChannel.setAvatarFullFileUrl(avatarUrl);
-        for (SysFile sysFile : ptChannel.getVideoList()) {
-            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-            String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-            sysFile.setSnapshotUrl(snapShotUrl);
-            sysFile.setFullFileUrl(fullFileUrl);
-        }
-        for (GcUser user : ptChannel.getUserList()) {
-            SysFile sysFile = sysFileService.getById(user.getAvatarFileId());
-            String avatarFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-            user.setAvatarFullFileUrl(avatarFullFileUrl);
-        }
+
+        updateImageUrls(request, ptChannel);
+        updateUserAvatar(request, ptChannel);
 
         return ptChannel;
     }
@@ -593,6 +568,23 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectDiscoverableChannels(currentUser.getId(), masterId);
         channels.forEach(channel -> updateUrls(request, channel));
         return convert(channels);
+    }
+
+    private void updateUserAvatar(HttpServletRequest request, PtChannel ptChannel) {
+        for (GcUser user : ptChannel.getUserList()) {
+            SysFile sysFile = sysFileService.getById(user.getAvatarFileId());
+            String avatarFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+            user.setAvatarFullFileUrl(avatarFullFileUrl);
+        }
+    }
+
+    private void updateImageUrls(HttpServletRequest request, PtChannel ptChannel) {
+        for (SysFile sysFile : ptChannel.getVideoList()) {
+            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+            String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+            sysFile.setSnapshotUrl(snapShotUrl);
+            sysFile.setFullFileUrl(fullFileUrl);
+        }
     }
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
