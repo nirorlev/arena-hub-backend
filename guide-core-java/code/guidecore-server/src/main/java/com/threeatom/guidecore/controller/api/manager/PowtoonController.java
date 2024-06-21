@@ -2920,8 +2920,9 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
 		}
+
 		initPermit();
-		Boolean isOrgAdmin = false;
+		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
 		boolean isFlag = false;
 		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
@@ -2930,9 +2931,6 @@ public class PowtoonController extends GuideCoreController {
 				if (null!=userRoles.attributes.get("isOrgAdmin")){
 					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
 				}
-			}
-			if (!isOrgAdmin&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-				throw new PermitException("No permission for this!");
 			}
 		}
 		if (null!=ptChannel.getId()){
