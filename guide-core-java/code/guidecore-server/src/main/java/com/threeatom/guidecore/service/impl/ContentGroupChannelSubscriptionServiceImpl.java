@@ -10,10 +10,11 @@ import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
 import com.threeatom.guidecore.mapping.ContentGroupChannelSubscriptionMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
+import com.threeatom.system.service.SysFileService;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -26,6 +27,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     implements ContentGroupChannelSubscriptionService {
 
     private final ContentGroupChannelSubscriptionMapping contentGroupChannelSubscriptionMapping;
+    private final SysFileService fileService;
 
     @Override
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
@@ -77,13 +79,19 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId) {
+    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId, HttpServletRequest request) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
             baseMapper.findByContentGroupId(contentGroupId, true);
 
         return contentGroupChannelSubscriptions.stream()
+            .map(contentGroupChannelSubscription -> updateUrls(contentGroupChannelSubscription, request))
             .map(contentGroupChannelSubscriptionMapping::map)
             .collect(Collectors.toList());
+    }
+
+    private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription, HttpServletRequest request) {
+        fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);
+        return contentGroupChannelSubscription;
     }
 
     private List<Integer> getContentGroupIds(List<GcAccess> contentGroups) {
