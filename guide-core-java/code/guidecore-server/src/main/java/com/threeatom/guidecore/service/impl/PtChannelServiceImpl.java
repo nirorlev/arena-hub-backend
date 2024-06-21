@@ -14,6 +14,7 @@ import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
@@ -31,6 +32,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final SysFileService sysFileService;
     private final PtTagsService tagsService;
     private final ChannelMapping channelMapping;
+    private final VideoThumbnailProvider thumbnailProvider;
 
     public List<PtChannel> indexPtChannels(Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
         PageParam pageParam = new PageParam(request);
@@ -162,16 +164,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<SysFile> videos =
-                this.baseMapper.selectVideosInSection(
+        List<SysFile> videos = this.baseMapper.selectVideosInSection(
                         sectionId, order, searchName, request.getIntHeader("masterId"), level);
         if (CollectionUtils.isNotEmpty(videos)) {
             Map<Integer, SysFile> createFileMap = new HashMap<>();
             List<GcUser> userList = videos.stream().map(SysFile::getGcUser).collect(Collectors.toList());
             if (!userList.isEmpty()) {
-                List<SysFile> createFile =
-                        sysFileService.listByIds(
-                                userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
+                List<SysFile> createFile = sysFileService.listByIds(
+                    userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
                 createFileMap =
                         createFile.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
             }
@@ -180,6 +180,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                 sysFile.setSnapshotUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
+                sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
                         sysFile
