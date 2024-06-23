@@ -2922,27 +2922,28 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		initPermit();
-		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
-		boolean isFlag = false;
-		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-			UserRead userRoles = permit.api.users.get(user.getUsername());
-			if (null!=userRoles.attributes){
-				if (null!=userRoles.attributes.get("isOrgAdmin")){
-					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-				}
+
+		boolean isAllowed = false;
+		if (null!=ptChannel.getVisibleFlag()) {
+			isAllowed = this.permitCheck(user, ActionsType.publish, masterId, ResourceType.channel, ptChannel.getId(), null, null);
+			if (!isAllowed){
+				throw new PermitException("No permission to change channel visibility!");
 			}
 		}
+
 		if (null!=ptChannel.getId()){
-			isFlag = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.channel,ptChannel.getId(),null,null);
+			isAllowed = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.channel,ptChannel.getId(),null,null);
 		}else if (null!=ptChannel.getFid()){
-			isFlag = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.channel,ptChannel.getFid(),null,null);
+			isAllowed = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.channel,ptChannel.getFid(),null,null);
 		}else {
-			isFlag = this.permitCheck(user,ActionsType.createChannel,masterId,ResourceType.portal,null,null,null);
+			isAllowed = this.permitCheck(user,ActionsType.createChannel,masterId,ResourceType.portal,null,null,null);
 		}
-		if (!isFlag&&!isOrgAdmin){
+
+		if (!isAllowed){
 			throw new PermitException("No permission for this!");
 		}
+
 		ptChannel.setMasterId(masterId);
 		if (null==ptChannel.getId()){
 			ptChannel.setCreateUserId(user.getId());
@@ -3388,7 +3389,7 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.follow, masterId, ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
+		boolean isFlag = this.permitCheck(user, ActionsType.subscribe, masterId, ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
@@ -3423,7 +3424,7 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.following, Integer.parseInt(request.getHeader("masterId")), ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
+		boolean isFlag = this.permitCheck(user, ActionsType.unsubscribe, Integer.parseInt(request.getHeader("masterId")), ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
