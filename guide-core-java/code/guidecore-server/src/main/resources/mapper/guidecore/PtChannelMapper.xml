@@ -463,7 +463,7 @@
         left join gc_user_info subscribe_info on subscribe_info.id = subscribe_us.info_id
         left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
         left join gc_access access on access.id = public_cgcs.content_group_id
-        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = true
+        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND subscribe_cgcs.is_subscribed = true
         left join gc_access subscribeAccess on subscribeAccess.id = subscribe_cgcs.content_group_id
         WHERE 1=1
         <if test="channelId!=null">
