@@ -261,4 +261,12 @@
         </sql>
     </changeSet>
 
+    <changeSet id="create-analytics-table-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="analyticsTableEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling analytics table on FE"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
