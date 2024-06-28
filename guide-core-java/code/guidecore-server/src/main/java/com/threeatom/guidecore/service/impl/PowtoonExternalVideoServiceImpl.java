@@ -27,15 +27,15 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 
 	@Override
 	public PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile) {
-        Integer sysFileId = sysFile.getId();
-        JSONObject source = sysFile.getSource();
-        if (source == null) return null;
-        if (getBySysFileId(sysFileId) != null) return null;
+		Integer sysFileId = sysFile.getId();
+		JSONObject source = sysFile.getSource();
+		if (source == null) return null;
+		if (getBySysFileId(sysFileId) != null) return null;
 
-        String externalId = source.getString("id");
-        String origin = source.getString("origin");
-        String version = source.getString("version");
-        String publicToken = source.getString("publicToken");
+		String externalId = source.getString("id");
+		String origin = source.getString("origin");
+		String version = source.getString("version");
+		String publicToken = source.getString("publicToken");
 		PowtoonExternalVideo externalVideo = new PowtoonExternalVideo();
 		externalVideo.setSysFileId(sysFileId);
 		externalVideo.setExternalId(externalId);
