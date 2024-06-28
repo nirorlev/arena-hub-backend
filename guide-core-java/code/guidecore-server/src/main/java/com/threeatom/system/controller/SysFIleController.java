@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
+import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -33,6 +35,8 @@ public class SysFIleController extends GuideCoreController {
     @Autowired private SysFileService sysFileService;
 
     @Autowired private PtTagsService tagsService;
+
+    @Autowired private PowtoonExternalVideoService powtoonExternalVideoService;
 
     @ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
     @PostMapping("/saveLink")
@@ -67,6 +71,9 @@ public class SysFIleController extends GuideCoreController {
         sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
         sysFile.setSysId(sys.getId());
         if (sysFileService.saveOrUpdate(sysFile)) {
+            if (sysFile.getFileTypeIndex() == EventUnifyType.powtoonFileTypeIndex) {
+                powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
+            }
             sysFileService.getVideoSnapshotUrl(sysFile);
             sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
             sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile, request));
