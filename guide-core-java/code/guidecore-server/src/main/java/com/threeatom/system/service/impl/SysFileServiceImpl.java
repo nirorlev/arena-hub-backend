@@ -1,6 +1,10 @@
 package com.threeatom.system.service.impl;
 
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PowtoonExternalVideo;
+import com.threeatom.guidecore.service.PowtoonExternalVideoService;
+import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
+
 import java.io.*;
 import java.net.URL;
 import java.security.Security;
@@ -70,12 +74,31 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Autowired
     private RedisOperator redisOperator;
+
+    @Autowired
+    private PowtoonExternalVideoService powtoonExternalVideoService;
+
+    @Autowired
+    private PowtoonVideoProviderService powtoonVideoProviderService;
     
     public SysFileServiceImpl() {
     }
 
     public SysFile getInfoById(Integer id) {
     	return this.sysFileMapper.selectById(id);
+    }
+
+    private String getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
+        if (sysFile.getFileTypeIndex() != EventUnifyType.powtoonFileTypeIndex) return null;
+        PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
+        if (externalVideo == null) return null;
+
+        try {
+            JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+            return videoData.getString("playerUrl");
+        } catch (SystemException e) {
+            return null;
+        }
     }
     
     private AliyunOssService getCurrentOssService(SysSystem sys) {
@@ -625,5 +648,10 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return sysFileMapper.getFilesUploadByFileIds(fileIds);
     }
 
-
+    @Override
+    public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
+        String playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
+        if (playerUrl != null) return playerUrl;
+        return getResFullUrl(sysFile, request);
+    }
 }

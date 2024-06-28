@@ -95,4 +95,6 @@ public interface SysFileService extends IService<SysFile> {
     void deleteFile(SysSystem sys, SysFile file);
 
     Map<Integer, SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
+
+    String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request);
 }
