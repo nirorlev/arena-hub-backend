@@ -32,7 +32,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
     private static final String PUBLIC_TOKEN_PARAMETER = "public_link_token";
     private static final String[] VALID_POWTOON_ROOT_DOMAINS = new String[]{"powtoon.com"};
     private static final String PLAYER_URL_TEMPLATE = "https://www.kaltura.com/index.php/extwidget/preview/partner_id/%s/uiconf_id/%s/entry_id/%s/embed/dynamic?";
-    private static final String KALTURA_THUMBNAIL_URL_TEMPLATE = "https://cfvod.kaltura.com/p/%s/sp/%s/thumbnail/entry_id/%s";
 
     @Autowired
 	private PtApiClient ptApiClient;
@@ -106,10 +105,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         return String.format(PLAYER_URL_TEMPLATE, partnerId, uiConfId, entryId);
     }
 
-    private String buildThumbnailUrl (String partnerId, String uiConfId, String entryId) {
-        return String.format(KALTURA_THUMBNAIL_URL_TEMPLATE, partnerId, uiConfId, entryId);
-    }
-
     private JSONObject buildVideoData (String powtoonId, String origin, String publicToken, JSONObject playerPageData) {
         JSONObject videoHosting = playerPageData.getJSONObject("video_hosting");
         if (videoHosting == null) throw new SystemException("Video data does not contain video hosting information");
@@ -121,8 +116,8 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         videoData.put("title", playerPageData.getString("title"));
         videoData.put("description", playerPageData.getString("description"));
         videoData.put("duration", playerPageData.getFloat("video_duration"));
+        videoData.put("thumbnailUrl", playerPageData.getString("thumb_url"));
         videoData.put("playerUrl", buildPlayerUrl(partnerId, uiConfId, entryId));
-        videoData.put("thumbnailUrl", buildThumbnailUrl(partnerId, uiConfId, entryId));
         JSONObject source = new JSONObject();
         source.put("id", powtoonId);
         source.put("origin", origin);
