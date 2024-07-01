@@ -54,7 +54,9 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         String[] parameters = query.split("&");
         for (String parameter : parameters) {
             String[] parameterParts = parameter.split("=");
-            if (parameterParts[0].equals(PUBLIC_TOKEN_PARAMETER)) return parameterParts[1];
+            if (parameterParts[0].equals(PUBLIC_TOKEN_PARAMETER)) {
+                return parameterParts[1];
+            }
         }
         return null;
     }
@@ -99,7 +101,9 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         String[] pathParts = path.split("/");
         // If the first part of the URL (excluding the initial empty position) is one of the
         //  predetermined plain ID prefixes. Ex: /online-presentation/{powtoon_id}/...
-        if (PLAIN_ID_URL_PREFIXES.contains(pathParts[PLAYER_PAGE_TYPE_INDEX])) return pathParts[VIDEO_ID_INDEX];
+        if (PLAIN_ID_URL_PREFIXES.contains(pathParts[PLAYER_PAGE_TYPE_INDEX])) {
+            return pathParts[VIDEO_ID_INDEX];
+        }
         return getPowtoonIdFromLoadedPage(url);
     }
 
@@ -135,7 +139,9 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
 
     private JSONObject formatData (String powtoonId, String origin, String publicToken, JSONObject playerPageData) {
         JSONObject videoHosting = playerPageData.getJSONObject("video_hosting");
-        if (videoHosting == null) throw new SystemException("Video data does not contain video hosting information");
+        if (videoHosting == null) {
+            throw new SystemException("Video data does not contain video hosting information");
+        }
         JSONObject videoData = buildVideoData(playerPageData, videoHosting);
         JSONObject source = buildSourceData(powtoonId, origin, publicToken, playerPageData);
         videoData.put("source", source);
@@ -143,15 +149,21 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
     }
 
     private JSONObject getPlayerPageData(String powtoonId, String origin, String publicToken) {
-        if (publicToken != null) return ptApiClient.getPowtoonPlayerPageData(powtoonId, origin, publicToken);
+        if (publicToken != null) {
+            return ptApiClient.getPowtoonPlayerPageData(powtoonId, origin, publicToken);
+        }
         PtLoginConfig ptConfig = getPtConfig(origin);
-        if (ptConfig != null) return ptApiClient.getPowtoonPlayerPageData(powtoonId, ptConfig);
+        if (ptConfig != null) {
+            return ptApiClient.getPowtoonPlayerPageData(powtoonId, ptConfig);
+        }
         return ptApiClient.getPowtoonPlayerPageData(powtoonId, origin);
     }
 
     @Override
     public JSONObject getVideoDataFromUrl(URL url) throws SystemException {
-        if (!isValidPowtoonUrl(url)) throw new SystemException("Invalid Powtoon URL");
+        if (!isValidPowtoonUrl(url)) {
+            throw new SystemException("Invalid Powtoon URL");
+        }
         String powtoonId = getPowtoonIdFromUrl(url);
         String publicToken = getPublicTokenFromURL(url);
         String origin = url.getProtocol() + "://" + url.getHost();

@@ -91,9 +91,13 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     private String getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
-        if (sysFile.getFileTypeIndex() != EventUnifyType.powtoonFileTypeIndex) return null;
+        if (sysFile.getFileTypeIndex() != EventUnifyType.powtoonFileTypeIndex) {
+            return null;
+        }
         PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
-        if (externalVideo == null) return null;
+        if (externalVideo == null) {
+            return null;
+        }
 
         try {
             JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
@@ -654,7 +658,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
         String playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
-        if (playerUrl != null) return playerUrl;
+        if (playerUrl != null) {
+            return playerUrl;
+        }
         return getResFullUrl(sysFile, request);
     }
 
