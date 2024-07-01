@@ -34,8 +34,8 @@ public class ContentGroupAssignmentController {
 
     @GetMapping("/{content-group-id}/course-assignments")
     public ResponseEntity<List<ContentGroupCourseAssignmentDto>> getCourseAssignment(
-        @PathVariable("content-group-id") Integer contentGroupId) {
-        return ResponseEntity.ok().body(gcContentGroupCourseAssignmentService.findByContentGroupId(contentGroupId));
+        @PathVariable("content-group-id") Integer contentGroupId, HttpServletRequest request) {
+        return ResponseEntity.ok().body(gcContentGroupCourseAssignmentService.findByContentGroupId(contentGroupId, request));
     }
 
     @PostMapping(value = "/course/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -70,8 +70,8 @@ public class ContentGroupAssignmentController {
 
     @GetMapping("/{content-group-id}/channel-subscriptions")
     public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> getChannelSubscriptions(
-        @PathVariable("content-group-id") Integer contentGroupId) {
-        return ResponseEntity.ok().body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId));
+        @PathVariable("content-group-id") Integer contentGroupId, HttpServletRequest request) {
+        return ResponseEntity.ok().body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId, request));
     }
 
 }

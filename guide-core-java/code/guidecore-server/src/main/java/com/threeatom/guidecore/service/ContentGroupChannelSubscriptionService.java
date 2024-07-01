@@ -7,6 +7,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 public interface ContentGroupChannelSubscriptionService
     extends IService<ContentGroupChannelSubscription> {
@@ -25,5 +26,5 @@ public interface ContentGroupChannelSubscriptionService
 
     void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel);
 
-    List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId);
+    List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId, HttpServletRequest request);
 }
