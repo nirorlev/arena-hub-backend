@@ -8,6 +8,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -111,9 +113,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     public List<PtChannel> selectSectionList(
-            Integer fid, String slug, HttpServletRequest request, Integer masterId) {
-        //        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-        //        queryWrapper.eq("fid",fid);
+        Integer fid, String slug, HttpServletRequest request, Integer masterId) {
 
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
@@ -121,10 +121,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<PtChannel> sectionList =
-                this.baseMapper.selectSectionList(fid, slug, request.getHeader("order"), masterId);
-        //        List<PtChannel> sectionList = this.list(queryWrapper);
-        return sectionList;
+
+        List<PtChannel> channels = this.baseMapper.selectSectionList(fid, slug, request.getHeader("order"), masterId);
+        return channels.stream()
+            .sorted(Comparator.comparing(PtChannel::getOrder, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .collect(Collectors.toList());
     }
 
     public List<SysFile> selectVideosInSection(
@@ -587,6 +588,33 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             sysFile.setFullFileUrl(fullFileUrl);
         }
     }
+
+    @Override
+    @Transactional
+    public void updateSectionOrder(IdsDto sectionIds, Integer masterId) {
+        List<Integer> channelIdsToSort = sectionIds.getIds();
+        List<PtChannel> channels = findByIdAndMasterId(channelIdsToSort, masterId);
+
+        if (channels.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, PtChannel> idToChannel = channels.stream()
+            .collect(Collectors.toMap(PtChannel::getId, channel -> channel));
+        for (int i = 0; i < channelIdsToSort.size(); i++) {
+            idToChannel.get(channelIdsToSort.get(i)).setOrder(i);
+        }
+
+        this.updateBatchById(idToChannel.values());
+    }
+
+    public List<PtChannel> findByIdAndMasterId(List<Integer> channelIds, Integer masterId) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id", channelIds);
+        queryWrapper.eq("master_id", masterId);
+        return this.list(queryWrapper);
+    }
+
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()
