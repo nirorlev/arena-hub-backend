@@ -444,7 +444,7 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
 			JSONObject formattedData = formatKalturaVideoData(videoData);
-			return message.ok().addJson(formattedData);
+			return message.ok().setJsonData(formattedData);
 		} catch (Exception e){
 			e.printStackTrace();
 			String extractedInfo=e.getMessage();
