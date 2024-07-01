@@ -11,11 +11,13 @@ import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.system.service.SysFileService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,10 +34,11 @@ public class GcContentGroupCourseAssignmentServiceImpl
     private static final int MANDATORY_COURSE_VALUE = 1;
 
     private final GcContentGroupCourseAssignmentMapping gcContentGroupCourseAssignmentMapping;
+    private final SysFileService fileService;
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId) {
+    public List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.findByContentGroupId(contentGroupId);
 
@@ -44,8 +47,14 @@ public class GcContentGroupCourseAssignmentServiceImpl
         }
 
         return contentGroupCourseAssignments.stream()
+            .map(contentGroupCourseAssignment -> updateUrls(contentGroupCourseAssignment, request))
             .map(gcContentGroupCourseAssignmentMapping::map)
             .collect(Collectors.toList());
+    }
+
+    private GcContentGroupCourseAssignment updateUrls(GcContentGroupCourseAssignment contentGroupCourseAssignment, HttpServletRequest request) {
+        fileService.updateImageUrls(contentGroupCourseAssignment.getCourse(), request);
+        return contentGroupCourseAssignment;
     }
 
     @Override

@@ -13,7 +13,7 @@ public interface GcContentGroupCourseAssignmentMapping {
 
     @Mapping(target = "courseTitle", source = "course.name")
     @Mapping(target = "courseId", source = "course.id")
-    @Mapping(target = "courseImageUrl", source = "course.subImgFile.fileUrl")
+    @Mapping(target = "courseImageUrl", source = "course.subImgFile.fullFileUrl")
     @Mapping(target = "source.contentGroup.id", source = "contentGroup.id")
     @Mapping(target = "source.contentGroup.name", source = "contentGroup.groupName")
     @Mapping(target = "source.user.id", source = "createdBy.id")

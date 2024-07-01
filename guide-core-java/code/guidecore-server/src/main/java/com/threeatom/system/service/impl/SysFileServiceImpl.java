@@ -1,10 +1,12 @@
 package com.threeatom.system.service.impl;
 
+import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
 
+import com.threeatom.guidecore.entity.PtChannel;
 import java.io.*;
 import java.net.URL;
 import java.security.Security;
@@ -653,5 +655,34 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         String playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
         if (playerUrl != null) return playerUrl;
         return getResFullUrl(sysFile, request);
+    }
+
+    public void updateImageUrls(PtChannel channel, HttpServletRequest request) {
+        if(Objects.nonNull(channel.getCreateUser())) {
+            SysFile sysFile = getById(channel.getCreateUser().getAvatarFileId());
+            String imgFullFileUrl = getResFullUrl(sysFile, request);
+            channel.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
+        }
+
+        if(Objects.nonNull(channel.getChannelImgFileId())) {
+            SysFile sysFile = getById(channel.getChannelImgFileId());
+            String imgFullFileUrl = getResFullUrl(sysFile, request);
+            channel.setImgFullFileUrl(imgFullFileUrl);
+        }
+
+        if(Objects.nonNull(channel.getChannelAvatarFileId())) {
+            SysFile avatarFile = getById(channel.getChannelAvatarFileId());
+            String avatarFullFileUrl = getResFullUrl(avatarFile, request);
+            avatarFile.setFullFileUrl(avatarFullFileUrl);
+            channel.setAvatarFile(avatarFile);
+        }
+    }
+
+    @Override
+    public void updateImageUrls(GcSubject course, HttpServletRequest request) {
+        SysFile courseImage = course.getSubImgFile();
+
+        getResFullUrl(courseImage, request);
+        getVideoSnapshotUrl(courseImage);
     }
 }

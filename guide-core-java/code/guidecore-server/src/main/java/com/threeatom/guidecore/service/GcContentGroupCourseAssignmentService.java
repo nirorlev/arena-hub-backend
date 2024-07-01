@@ -9,10 +9,11 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 public interface GcContentGroupCourseAssignmentService
         extends IService<GcContentGroupCourseAssignment> {
-    List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
+    List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 
