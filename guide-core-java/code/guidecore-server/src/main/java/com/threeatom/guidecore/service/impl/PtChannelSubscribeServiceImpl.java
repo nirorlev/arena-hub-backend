@@ -54,7 +54,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
                 .collect(Collectors.toList());
 
             List<Integer> contentGroupSubscribed =
-                contentGroupChannelSubscriptionService.getSubscribedChannelIds(contentGroupIds);
+                contentGroupChannelSubscriptionService.getSubscribedChannelIdsExceptOwned(contentGroupIds, user.getId());
 
             List<Integer> channels = getAllByUser(user).stream()
                 .map(PtChannelSubscribe::getChannelId)
