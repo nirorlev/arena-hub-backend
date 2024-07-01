@@ -53,8 +53,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds) {
-        return getChannelIds(contentGroupIds, true);
+    public List<Integer> getSubscribedChannelIdsExceptOwned(List<Integer> contentGroupIds, Integer ownerId) {
+        return getChannelIds(baseMapper.getSubscribedChannelIdsExceptOwned(contentGroupIds, ownerId));
     }
 
     @Override
@@ -104,15 +104,6 @@ public class ContentGroupChannelSubscriptionServiceImpl
         QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq("content_group_id", contentGroupId);
-        queryWrapper.eq("is_subscribed", subscribed);
-
-        return getChannelIds(this.list(queryWrapper));
-    }
-
-    private List<Integer> getChannelIds(List<Integer> contentGroupIds, boolean subscribed) {
-        QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
-
-        queryWrapper.in("content_group_id", contentGroupIds);
         queryWrapper.eq("is_subscribed", subscribed);
 
         return getChannelIds(this.list(queryWrapper));

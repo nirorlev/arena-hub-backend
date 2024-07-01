@@ -20,7 +20,7 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 
-    List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
+    List<Integer> getSubscribedChannelIdsExceptOwned(List<Integer> contentGroupIds, Integer ownerId);
 
     List<Integer> getPublicChannelIds(Integer contentGroupId);
 
