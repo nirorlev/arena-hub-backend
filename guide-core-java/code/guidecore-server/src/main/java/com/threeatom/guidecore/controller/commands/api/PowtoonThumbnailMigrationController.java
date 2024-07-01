@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping(
     value = "/api/v2/commands/migrate-powtoon-thumbnails",
@@ -60,26 +62,26 @@ public class PowtoonThumbnailMigrationController {
     }
 
     private void migrateSysFileThumbnail(SysFile sysFile) {
-        System.out.println("Migrating thumbnail for sysFile: " + sysFile.getId());
-        System.out.println("Old thumbnail URL: " + sysFile.getThumbNailUrl());
+        log.info("Migrating thumbnail for sysFile: " + sysFile.getId());
+        log.info("Old thumbnail URL: " + sysFile.getThumbNailUrl());
 
         String playerUrl = sysFile.getFileUrl();
         if (playerUrl == null) {
-            System.out.println("No player URL found for sysFile: " + sysFile.getId());
+            log.info("No player URL found for sysFile: " + sysFile.getId());
             return;
         }
-        System.out.println("Player URL: " + playerUrl);
+        log.info("Player URL: " + playerUrl);
 
         String[] videoHostingData = getVideoHostingDataFromPlayerUrl(playerUrl);
         if (videoHostingData == null) {
-            System.out.println("Could not extract video hosting data from player URL: " + playerUrl);
+            log.info("Could not extract video hosting data from player URL: " + playerUrl);
             return;
         }
         String partnerId = videoHostingData[0];
         String uiConfId = videoHostingData[1];
         String entryId = videoHostingData[2];
         String newThumbnailUrl = String.format(KALTURA_THUMBNAIL_URL_TEMPLATE, partnerId, uiConfId, entryId);
-        System.out.println("New thumbnail URL: " + newThumbnailUrl);
+        log.info("SydFile updated " + sysFile.getId() + ". New thumbnail URL: " + newThumbnailUrl);
         sysFile.setThumbNailUrl(newThumbnailUrl);
         sysFileService.updateById(sysFile);
     }
