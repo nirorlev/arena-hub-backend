@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,11 +13,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jets3t.service.CloudFrontService;
 import org.jets3t.service.CloudFrontServiceException;
 import org.jets3t.service.utils.ServiceUtils;
@@ -90,21 +96,31 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         }
     }
 
-    private void retrieveFileAndUploadToS3(String fileUrl, String presignedUrl) throws SystemException {
+    private static byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpURLConnection connection = (HttpURLConnection) new URL(fileUrl).openConnection();
-            connection.setRequestMethod("GET");
-            InputStream inputStream = connection.getInputStream();
-            HttpPut putRequest = new HttpPut(presignedUrl);
-            putRequest.setHeader("Content-Type", connection.getContentType());
-            InputStreamEntity inputStreamEntity = new InputStreamEntity(inputStream, -1, null);
-            putRequest.setEntity(inputStreamEntity);
-            try (CloseableHttpResponse response = httpClient.execute(putRequest)) {
-            } finally {
-                inputStream.close();
+            HttpGet httpGet = new HttpGet(fileUrl);
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                HttpEntity entity = response.getEntity();
+                if (entity == null) throw new SystemException("Failed to download image. Null entity found.");
+                try (InputStream inputStream = entity.getContent()){
+                    return IOUtils.toByteArray(inputStream);
+                }
             }
         } catch (IOException e) {
-            throw new SystemException("Failed to upload file to S3");
+            throw new SystemException("Failed to retrieve file: " + e.getMessage());
+        }
+    }
+
+    private static void uploadFileToSignedUrl(byte[] filedata, String s3Url) throws SystemException {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpPut httpPut = new HttpPut(s3Url);
+            ByteArrayEntity byteArrayEntity = new ByteArrayEntity(filedata);
+            httpPut.setEntity(byteArrayEntity);
+            try (CloseableHttpResponse response = httpClient.execute(httpPut)) {
+                EntityUtils.consume(response.getEntity());
+            }
+        } catch (IOException e) {
+            throw new SystemException("Failed to upload file to S3: " + e.getMessage());
         }
     }
 
@@ -133,9 +149,10 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
     @Override
     public String uploadFileToS3(String fileUrl, Integer masterId, Integer userId) throws SystemException {
+        byte[] fileData = retrieveFileFromUrl(fileUrl);
         String key = buildFileS3Key(fileUrl, masterId, userId);
         String signedUrl = generateSignedUrl(key);
-        retrieveFileAndUploadToS3(fileUrl, signedUrl);
+        uploadFileToSignedUrl(fileData, signedUrl);
         return key;
     }
 }
