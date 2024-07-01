@@ -7,7 +7,9 @@ package com.threeatom.system.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.entity.SysUser;
@@ -97,4 +99,8 @@ public interface SysFileService extends IService<SysFile> {
     Map<Integer, SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
 
     String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request);
+
+    void updateImageUrls(PtChannel channel, HttpServletRequest request);
+
+    void updateImageUrls(GcSubject channel, HttpServletRequest request);
 }

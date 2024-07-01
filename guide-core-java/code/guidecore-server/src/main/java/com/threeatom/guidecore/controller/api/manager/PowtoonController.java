@@ -1254,8 +1254,7 @@ public class PowtoonController extends GuideCoreController {
 				List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
 				i.setAllTags(stringList);
 			}
-			sysFileService.getResFullUrl(i.getSubImgFile(),request);
-			sysFileService.getVideoSnapshotUrl(i.getSubImgFile());
+			sysFileService.updateImageUrls(i,request);
 		});
 		pageInfo = new PageInfo<>(subjects);
 		return new Message().ok().addData("pageInfo",pageInfo).addData("access",access);
@@ -1298,34 +1297,17 @@ public class PowtoonController extends GuideCoreController {
 		}
 		Map<Integer, List<PtTags>> finalTagsMap = tagsMap;
 
-		channels.forEach(i->{
-			if (null!= finalTagsMap.get(i.getId())){
-				List<PtTags> ptTagsList = finalTagsMap.get(i.getId());
+		channels.forEach(channel->{
+			if (null!= finalTagsMap.get(channel.getId())){
+				List<PtTags> ptTagsList = finalTagsMap.get(channel.getId());
 				List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
-				i.setAllTags(stringList);
+				channel.setAllTags(stringList);
 			}
-			if(Objects.nonNull(i.getCreateUser())) {
-				SysFile sysFile = sysFileService.getById(i.getCreateUser().getAvatarFileId());
-				String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				i.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
-			}
-			if(Objects.nonNull(i.getChannelImgFileId())) {
-				SysFile sysFile = sysFileService.getById(i.getChannelImgFileId());
-				String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				i.setImgFullFileUrl(imgFullFileUrl);
-			}
-			if(Objects.nonNull(i.getChannelAvatarFileId())) {
-				SysFile avatarFile = sysFileService.getById(i.getChannelAvatarFileId());
-				String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
-				avatarFile.setFullFileUrl(avatarFullFileUrl);
-				i.setAvatarFile(avatarFile);
-			}
+			sysFileService.updateImageUrls(channel, request);
 		});
 		PageInfo<PtChannel> pageInfo = new PageInfo<>(channels);
 		return new Message().ok().addData("pageInfo",pageInfo).addData("access",access);
 	}
-
-
 
 	@ApiOperation(value = "getAvailableCourses",httpMethod = "GET")
 	@GetMapping("/getAvailableCourses")
