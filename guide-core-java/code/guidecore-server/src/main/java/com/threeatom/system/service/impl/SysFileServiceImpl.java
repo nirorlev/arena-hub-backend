@@ -657,9 +657,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
-        String playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
-        if (playerUrl != null) {
-            return playerUrl;
+        Optional<String> playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
+        if (playerUrl.isPresent()) {
+            return playerUrl.get();
         }
         return getResFullUrl(sysFile, request);
     }
