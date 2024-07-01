@@ -60,7 +60,9 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         ClassLoader classLoader = getClass().getClassLoader();
         URL url = classLoader.getResource(classPathResource.getPath());
         if (url == null) {
-            throw new SystemException("Cannot find url: " + "privatekey/" + keyName);
+            String errMessage = "Cannot find AWS private key at path: " + "privatekey/" + keyName;
+            log.error(errMessage);
+            throw new SystemException(errMessage);
         }
         try (InputStream in = new FileInputStream(url.getFile());) {
             byte[] data = FileUtil.toByteArray(in);
@@ -150,7 +152,9 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                 policy
             );
         } catch (ParseException | CloudFrontServiceException e) {
-            throw new SystemException("Error signing AWS URL");
+            String errMessage = "Failed to sign AWS S3 URL";
+            log.error(errMessage, e);
+            throw new  SystemException(errMessage);
         }
     }
 
