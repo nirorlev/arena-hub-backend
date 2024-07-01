@@ -18,6 +18,17 @@ import org.springframework.stereotype.Service;
 public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternalVideoMapper, PowtoonExternalVideo>
 	implements PowtoonExternalVideoService {
 
+	private PowtoonExternalVideo createNewExternalVideo (Integer sysFileId, String origin, String externalId, String version, String publicToken) {
+		PowtoonExternalVideo externalVideo = new PowtoonExternalVideo();
+		externalVideo.setSysFileId(sysFileId);
+		externalVideo.setExternalId(externalId);
+		externalVideo.setOrigin(origin);
+		externalVideo.setVersion(version);
+		externalVideo.setPublicToken(publicToken);
+		save(externalVideo);
+		return externalVideo;
+	}
+
 	@Override
 	public PowtoonExternalVideo getBySysFileId(Integer sysFileId) {
 		QueryWrapper<PowtoonExternalVideo> queryWrapper = new QueryWrapper<>();
@@ -29,20 +40,14 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 	public PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile) {
 		Integer sysFileId = sysFile.getId();
 		JSONObject source = sysFile.getSource();
-		if (source == null) return null;
-		if (getBySysFileId(sysFileId) != null) return null;
+		if (source == null || getBySysFileId(sysFileId) != null) {
+			return null;
+		}
 
 		String externalId = source.getString("id");
 		String origin = source.getString("origin");
 		String version = source.getString("version");
 		String publicToken = source.getString("publicToken");
-		PowtoonExternalVideo externalVideo = new PowtoonExternalVideo();
-		externalVideo.setSysFileId(sysFileId);
-		externalVideo.setExternalId(externalId);
-		externalVideo.setOrigin(origin);
-		externalVideo.setVersion(version);
-		externalVideo.setPublicToken(publicToken);
-		save(externalVideo);
-		return externalVideo;
+		return createNewExternalVideo(sysFileId, origin, externalId, version, publicToken);
     }
 }

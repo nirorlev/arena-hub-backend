@@ -10,6 +10,6 @@ import com.threeatom.system.entity.SysFile;
  * @projectName jeeplus
  */
 public interface PowtoonExternalVideoService extends IService<PowtoonExternalVideo> {
-    public PowtoonExternalVideo getBySysFileId(Integer sysFileId);
-    public PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile);
+    PowtoonExternalVideo getBySysFileId(Integer sysFileId);
+    PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile);
 }
