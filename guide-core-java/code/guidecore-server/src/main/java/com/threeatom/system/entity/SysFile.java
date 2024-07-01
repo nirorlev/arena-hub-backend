@@ -6,6 +6,7 @@
 package com.threeatom.system.entity;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -125,6 +126,9 @@ public class SysFile implements Serializable {
 
     @TableField(exist = false)
     private Integer isLike;
+
+    @TableField(exist=false)
+    private JSONObject source;
 
     /**
      * 缩略图id

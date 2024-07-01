@@ -15,9 +15,7 @@ import com.threeatom.common.aws.entity.ResultVO;
 import com.threeatom.common.aws.entity.TemporaryCertVO;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.AwsS3Configuration;
-import com.threeatom.config.AwsUploadSignUrlConfiguration;
 import com.threeatom.constant.ObjectStorageConstants;
 import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -26,14 +24,13 @@ import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.FileUtil;
 import io.swagger.annotations.Api;
 import java.io.*;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
@@ -41,12 +38,9 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.jets3t.service.CloudFrontService;
-import org.jets3t.service.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
@@ -61,9 +55,7 @@ public class FileGuideCoreController extends GuideCoreController {
 
     @Autowired private AwsS3Configuration awsS3Configuration;
 
-    @Autowired private RedisOperator redisOperator;
-
-    @Autowired private AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
+    @Autowired private AwsS3StorageService awsS3StorageService;
 
     @PostMapping("/uploadImg")
     public Message uploadImg(MultipartFile img, HttpServletRequest request) {
@@ -404,52 +396,9 @@ public class FileGuideCoreController extends GuideCoreController {
     @SneakyThrows
     @PostMapping("/awsUploadSignUrl")
     public Message awsUploadSignUrl(@RequestBody JSONObject jsonParams, HttpServletRequest request) {
-        String S3ObjectKey = jsonParams.getString("S3ObjectKey");
-        // 1.加载Hash和签名算法类
+        String key = jsonParams.getString("S3ObjectKey");
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        byte[] derPrivateKey = null;
-        String signedUrl = null;
-        try {
-            if (null == redisOperator.get("awsPrivateKey")) {
-                String keyName = awsUploadSignUrlConfiguration.getPrivateKeyFilePath();
-                ClassPathResource classPathResource = new ClassPathResource("privatekey/" + keyName);
-                // 解析秘钥
-                ClassLoader classLoader = getClass().getClassLoader();
-                URL url = classLoader.getResource(classPathResource.getPath());
-                if (url == null) {
-                    throw new IllegalArgumentException("cannot find url: " + "privatekey/" + keyName);
-                }
-                InputStream in = new FileInputStream(url.getFile());
-                byte[] data = FileUtil.toByteArray(in);
-                in.close();
-                derPrivateKey = data;
-                // 保存秘钥
-                String byteToString = Base64.getEncoder().encodeToString(derPrivateKey);
-                redisOperator.set("awsPrivateKey", byteToString);
-            } else {
-                derPrivateKey = Base64.getDecoder().decode((String) redisOperator.get("awsPrivateKey"));
-            }
-            String param_UrlToBeSigned =
-                    "https://" + awsUploadSignUrlConfiguration.getDistributionDomain() + "/" + S3ObjectKey;
-
-            Date param_DateLessThan = ServiceUtils.parseIso8601Date("2123-07-15T22:20:00.000Z");
-
-            String policy =
-                    CloudFrontService.buildPolicyForSignedUrl(
-                            param_UrlToBeSigned,
-                            param_DateLessThan,
-                            awsUploadSignUrlConfiguration.getLimitToIpAddressCIDR(),
-                            null);
-            signedUrl =
-                    CloudFrontService.signUrl(
-                            param_UrlToBeSigned,
-                            awsUploadSignUrlConfiguration.getKeyPairId(),
-                            derPrivateKey,
-                            policy);
-        } catch (Exception e) {
-            String msg = e.getMessage();
-            throw new SystemException(I18NUtil.get("powtoon.awsUploadSignUrl.error") + msg);
-        }
+        String signedUrl = awsS3StorageService.generateSignedUrl(key);
         return new Message().ok().addData("signedUrl", signedUrl);
     }
 

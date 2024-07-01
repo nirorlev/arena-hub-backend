@@ -31,7 +31,7 @@ public class PtOauthServiceImpl implements PtOauthService {
     @Autowired
 	private RedisOperator redisOperator;
 
-    public String generateClientAccessToken(PtLoginConfig ptConfig) throws IOException, SystemException {
+    public String generateClientAccessToken(PtLoginConfig ptConfig) throws SystemException {
         String cacheKey = CLIENT_ACCESS_TOKEN_CACHE_PREFIX + ptConfig.getMasterId();
         String cachedToken = (String) redisOperator.get(cacheKey);
         if (cachedToken != null) return cachedToken;

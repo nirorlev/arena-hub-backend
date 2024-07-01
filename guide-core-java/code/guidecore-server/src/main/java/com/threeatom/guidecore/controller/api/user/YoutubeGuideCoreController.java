@@ -17,6 +17,7 @@ import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.PtLoginConfigService;
+import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.utils.HttpUtil;
 import io.swagger.annotations.ApiOperation;
@@ -66,6 +67,9 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 
 	@Autowired
 	private PtLoginConfigService ptLoginConfigService;
+
+	@Autowired
+	private PowtoonVideoProviderService powtoonVideoProviderService;
 
 	@Autowired
 	private Environment env;
@@ -421,156 +425,27 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 		    return message.ok().addData("yotubeList",youtubeList);
 	}
 
+	private JSONObject formatKalturaVideoData (JSONObject videoData) {
+		JSONObject result = new JSONObject();
+		result.put("url", videoData.getString("playerUrl"));
+		result.put("thumbNail", videoData.getString("thumbnailUrl"));
+		result.put("title", videoData.getString("title"));
+		result.put("description", videoData.getString("description"));
+		result.put("duration", videoData.getFloat("duration"));
+		result.put("source", videoData.getJSONObject("source"));
+		return result;
+	}
 
 	@PostMapping("/getKalturaVideos")
 	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest re) {
 		Message message = new Message();
-		String domain = re.getServerName();
-//		if (!videoUrl.contains(domain)){
-//			return message.error("The video domain is inconsistent with the API domain!");
-//		}
-		try {
-//			videoUrl = URLEncoder.encode(videoUrl, "UTF-8");
+		try {	
 			videoUrl = videoUrl.replaceAll(" ","%2B");
 			URL url = new URL(videoUrl);
-			InputStream inputStream = url.openStream();
-			InputStreamReader inputStreamReader =new InputStreamReader(inputStream);
-			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-			String str;
-			String pattern = "[^0-9]";
-			Pattern r = Pattern.compile(pattern);
-			String partnerId = null;
-			String uiConfId = null;
-			String entryId = null;
-			String Url = null;
-			String videoID=null;
-			int i = videoUrl.indexOf("online-presentation/");
-			// 本地视频
-			if (i>0){
-				String subString = videoUrl.substring(videoUrl.indexOf("online-presentation/") + "online-presentation/".length());
-				videoID = subString.substring(0, subString.indexOf("/"));
-				System.out.println(videoID);
-			}else {
-				while ((str = bufferedReader.readLine()) != null) {
-					System.out.println(str + "<---------------->");
-					if (str.contains("canonical")) {
-						//获取到网页元素视频链接
-						String startStr = "href=\"";
-						String endStr = "\">";
-						int startIndex = str.indexOf(startStr) + startStr.length();
-						int endIndex = str.indexOf(endStr, startIndex);
-						Url = str.substring(startIndex, endIndex);
-						//解析视频id
-						String subString = Url.substring(Url.indexOf("online-presentation/") + "online-presentation/".length());
-						videoID = subString.substring(0, subString.indexOf("/"));
-						System.out.println(videoID);
-					}
-					//废除改为调用pt接口
-					/*if(str.contains("uiConfId")){
-						String s = str.replaceAll(" ", "");
-						Matcher matcher = r.matcher(s);
-						String reult = matcher.replaceAll("");
-						uiConfId = reult;
-					}
-					if(str.contains("partnerId")){
-						String s = str.replaceAll(" ", "");
-						Matcher matcher = r.matcher(s);
-						String result = matcher.replaceAll("");
-						partnerId = result;
-					}
-					if(str.contains("entryId")){
-						Pattern pattern1 = Pattern.compile("\\'(.*?)\\'");
-						String s = str.replaceAll(" ", "");
-						Matcher matcher = pattern1.matcher(s);
-						ArrayList<String> list = new ArrayList<String>();
-						while (matcher.find()) {
-							list.add(matcher.group().trim().replace("\"",""));
-						}
-						entryId = list.get(0);
-						entryId = entryId.replaceAll("\'","");
-					}*/
-				}
-			}
-			bufferedReader.close();
-			inputStreamReader.close();
-			inputStream.close();
-			//获得userid
-			GcUser gcUser = this.getGcUser();
-			//redis获取pttoken
-			String accessToken = (String) redisOperator.get("access_token_userid"+gcUser.getId());
-			if (accessToken==null){
-				return message.error("Failed to obtain token, please log in again");
-			}
-			Integer masterId = getHeaderMasterId(re);
-			QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
-			loginConfigQueryWrapper.eq("master_id",masterId);
-			PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-
-			String replaceApi = ptLoginConfig.getPtRootUrl()+getVideoDetails.replace("{id}", String.valueOf(videoID));
-			//调取pt接口，获取视频详情
-			JSONObject object = HttpUtil.doGetAuthorization(replaceApi, accessToken);
-			if (object==null||object.getJSONObject("video_hosting")==null){
-				return message.error(I18NUtil.get("videoURL.not.exist"));
-			}
-			ApiAssert.notEmpty(object.getJSONObject("video_hosting"), I18NUtil.get("videoURL.not.exist"));
-			uiConfId=object.getJSONObject("video_hosting").getString("ui_conf_id");
-			partnerId=object.getJSONObject("video_hosting").getString("partner_id");
-			entryId=object.getJSONObject("video_hosting").getString("id");
-			String title=object.getString("title");
-			String description=object.getString("description");
-			String videoDuration=object.getString("video_duration");
-			String thumbUrl=object.getString("thumb_url");
-			if(null != entryId && null!= partnerId && null!=uiConfId){
-				String finalUrl = "https://www.kaltura.com/index.php/extwidget/preview/partner_id/"+partnerId+"/uiconf_id/"+uiConfId+"/entry_id/"+entryId+"/embed/dynamic?";
-				String thumbNail = "https://cfvod.kaltura.com/p/"+partnerId+"/sp/"+uiConfId+"/thumbnail/entry_id/"+entryId;
-				message.ok().addData("url",finalUrl);
-				message.ok().addData("thumbNail",thumbUrl);
-				message.ok().addData("title",title);
-				message.ok().addData("description",description);
-				message.ok().addData("videoDuration",videoDuration);
-			}
-
-			//调用kaltura api，创建一个session
-			String getSessionUrl = "https://www.kaltura.com/api_v3/service/session/action/start";
-			final okhttp3.OkHttpClient okHttpClient = new okhttp3.OkHttpClient();
-			okhttp3.RequestBody requestBody1 = new FormBody.Builder()
-					.add("secret","6ff4811dcc1fa598946c7f47c95e6ed7")
-					.add("userId","8d9d6bc7e92f38a51ca75098b148a41b")
-					.add("partnerId","4648013")
-					.add("type","0")
-					.build();
-
-			final okhttp3.Request request = new okhttp3.Request.Builder()
-					.addHeader("content-type", "application/json")
-					.url(getSessionUrl)
-					.post(requestBody1)
-					.build();
-			final okhttp3.Response response = okHttpClient.newCall(request).execute();
-			String result = response.body().string();
-			Integer index0 = result.indexOf("<result>");
-			String cuturl = result.substring("<xml><result>".length(),result.length());
-			Integer index1 = cuturl.indexOf("</result>");
-			String sessionId = cuturl.substring(0,index1);
-			System.out.println();
-
-			//通过创建的session调用kaltura的具体的视频查询接口
-//			okhttp3.RequestBody requestBody = new FormBody.Builder()
-//					.add("entryId",entryId)
-//					.add("version","-1")
-//					.build();
-//
-//			String mediaUrl = "https://www.kaltura.com/api_v3/service/media/action/get?ks="+sessionId+"&format=1&partnerId=4648013";
-////			https://www.kaltura.com/api_v3/service/media/action/get?ks=djJ8NDY0ODAxM3wTqFDN4QFqo0uvdu_j4mYSMsbJYOEQOca5S7yF5HYAGdK29ISyQOMWLLhQS7Dgu1BvvHolUKbEjr-kl2NI-Z8tBoqMYCLMPgDUPfuKGWZ9ueH5KzPCGoszzedsAaDV0Go%3D&format=1&partnerId=4648013
-//			final Request mediaRequest = new Request.Builder()
-//					.url(mediaUrl)
-//					.post(requestBody)
-//					.build();
-//			final Response mediaResponse = okHttpClient.newCall(mediaRequest).execute();
-//			String mediaresult = mediaResponse.body().string();
-//			message.ok().addData("duration",mediaresult);
-
-
-		}catch (Exception e){
+			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
+			JSONObject formattedData = formatKalturaVideoData(videoData);
+			return message.ok().setJsonData(formattedData);
+		} catch (Exception e){
 			e.printStackTrace();
 			String extractedInfo=e.getMessage();
 			if(e.getMessage().contains("detail")){
@@ -581,6 +456,5 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 			}
 			return message.error(extractedInfo);
 		}
-		return  message.ok();
 	}
 }

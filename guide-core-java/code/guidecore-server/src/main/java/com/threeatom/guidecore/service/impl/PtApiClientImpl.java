@@ -23,13 +23,13 @@ import com.threeatom.utils.HttpUtil;
 @Service
 public class PtApiClientImpl implements PtApiClient {
 
-    private static final String PLAYER_PAGE_DATA_API_ENDPOINT = "/api/v1.0/powtoons/%s/player-page";
+    private static final String PLAYER_PAGE_DATA_API_ENDPOINT = "/api/v2/powtoons/%s/player-page";
     private static final String PUBLIC_TOKEN_HEADER_NAME = "X-Public-Link-Token";
 
     @Autowired
 	private PtOauthServiceImpl ptOauthServiceImpl;
 
-    public JSONObject getPowtoonPlayerPageData(String powtoonId, PtLoginConfig ptConfig) throws IOException, SystemException {
+    public JSONObject getPowtoonPlayerPageData(String powtoonId, PtLoginConfig ptConfig) throws SystemException {
         String accessToken = ptOauthServiceImpl.generateClientAccessToken(ptConfig);
         Header[] headers = {new BasicHeader("Authorization", "Bearer " + accessToken)};
         String url = ptConfig.getPtRootUrl() + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
@@ -37,14 +37,14 @@ public class PtApiClientImpl implements PtApiClient {
         return response;
     }
 
-    public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin, String publicToken) throws IOException, SystemException {
+    public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin, String publicToken) throws SystemException {
         Header[] headers = {new BasicHeader(PUBLIC_TOKEN_HEADER_NAME, publicToken)};
         String url = origin + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
         JSONObject response = HttpUtil.get(url, headers);
         return response;
     }
 
-    public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin) throws IOException, SystemException {
+    public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin) throws SystemException {
         String url = origin + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
         JSONObject response = HttpUtil.get(url);
         return response;

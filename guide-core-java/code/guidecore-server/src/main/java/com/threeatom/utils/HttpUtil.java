@@ -1,7 +1,12 @@
 package com.threeatom.utils;
 
 import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.threeatom.common.exception.SystemException;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -36,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
  * @description: TODO
  * @date 2021/11/5/00511:17
  */
+@Slf4j
 public class HttpUtil {
     /**
      * 发送post请求，根据 Content-Type 返回不同的返回值
@@ -260,39 +266,55 @@ public class HttpUtil {
         return null;
     }
 
-    public static JSONObject post(String url, String body, ContentType contentType, Header[] headers) throws IOException {
+    public static JSONObject post(String url, String body, ContentType contentType, Header[] headers) throws SystemException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
         StringEntity requestEntity = new StringEntity(body, contentType);
         httpPost.setEntity(requestEntity);
         httpPost.setHeaders(headers);
 
-        CloseableHttpResponse response = httpClient.execute(httpPost);
-        HttpEntity responseEntity = response.getEntity();
-        if (responseEntity == null) return null;
-
-        String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
-        return JSONObject.parseObject(responseContent);
+        try (CloseableHttpResponse response = httpClient.execute(httpPost);){
+            HttpEntity responseEntity = response.getEntity();
+            if (responseEntity == null) return null;
+            String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
+            return JSONObject.parseObject(responseContent);
+        } catch (JSONException e) {
+            String msg = "Error parsing JSON response";
+            log.error(msg);
+            throw new SystemException(msg);
+        } catch (IOException e) {
+            String msg = "Error sending POST request";
+            log.error(msg);
+            throw new SystemException(msg);
+        }
     }
 
-    public static JSONObject post(String url, String body, ContentType contentType) throws IOException {
+    public static JSONObject post(String url, String body, ContentType contentType) throws SystemException {
         return post(url, body, contentType, new Header[0]);
     }
 
-    public static JSONObject get(String url, Header[] headers) throws IOException {
+    public static JSONObject get(String url, Header[] headers) throws SystemException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeaders(headers);
 
-        CloseableHttpResponse response = httpClient.execute(httpGet);
-        HttpEntity responseEntity = response.getEntity();
-        if (responseEntity == null) return null;
-
-        String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
-        return JSONObject.parseObject(responseContent);
+        try (CloseableHttpResponse response = httpClient.execute(httpGet);) {
+            HttpEntity responseEntity = response.getEntity();
+            if (responseEntity == null) return null;
+            String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
+            return JSONObject.parseObject(responseContent);
+        } catch (JSONException e) {
+            String msg = "Error parsing JSON response";
+            log.error(msg);
+            throw new SystemException(msg);
+        } catch (IOException e) {
+            String msg = "Error sending GET request";
+            log.error(msg);
+            throw new SystemException(msg);
+        }
     }
 
-    public static JSONObject get(String url) throws IOException {
+    public static JSONObject get(String url) throws SystemException {
         return get(url, new Header[0]);
     }
 }

@@ -3597,7 +3597,7 @@ public class PowtoonController extends GuideCoreController {
 		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
 		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
-		String fullFileUrl = sysFileService.getResFullUrl(videoFile,request);
+		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
 		if(Objects.nonNull(gcUserVideoAction)){

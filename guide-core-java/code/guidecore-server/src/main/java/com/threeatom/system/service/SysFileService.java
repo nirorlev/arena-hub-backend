@@ -98,6 +98,8 @@ public interface SysFileService extends IService<SysFile> {
 
     Map<Integer, SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
 
+    String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request);
+
     void updateImageUrls(PtChannel channel, HttpServletRequest request);
 
     void updateImageUrls(GcSubject channel, HttpServletRequest request);

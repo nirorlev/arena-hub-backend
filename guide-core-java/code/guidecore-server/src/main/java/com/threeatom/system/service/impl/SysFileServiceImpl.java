@@ -2,6 +2,10 @@ package com.threeatom.system.service.impl;
 
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PowtoonExternalVideo;
+import com.threeatom.guidecore.service.PowtoonExternalVideoService;
+import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
+
 import com.threeatom.guidecore.entity.PtChannel;
 import java.io.*;
 import java.net.URL;
@@ -72,12 +76,36 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Autowired
     private RedisOperator redisOperator;
+
+    @Autowired
+    private PowtoonExternalVideoService powtoonExternalVideoService;
+
+    @Autowired
+    private PowtoonVideoProviderService powtoonVideoProviderService;
     
     public SysFileServiceImpl() {
     }
 
     public SysFile getInfoById(Integer id) {
     	return this.sysFileMapper.selectById(id);
+    }
+
+    private Optional<String> getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
+        if (sysFile.getFileTypeIndex() != EventUnifyType.powtoonFileTypeIndex) {
+            return Optional.empty();
+        }
+        PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
+        if (externalVideo == null) {
+            return Optional.empty();
+        }
+
+        try {
+            JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+            return Optional.of(videoData.getString("playerUrl"));
+        } catch (SystemException e) {
+            LOGGER.error("Failed to get video player URL from external video", e);
+            return Optional.empty();
+        }
     }
     
     private AliyunOssService getCurrentOssService(SysSystem sys) {
@@ -628,6 +656,14 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
+    public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
+        Optional<String> playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
+        if (playerUrl.isPresent()) {
+            return playerUrl.get();
+        }
+        return getResFullUrl(sysFile, request);
+    }
+
     public void updateImageUrls(PtChannel channel, HttpServletRequest request) {
         if(Objects.nonNull(channel.getCreateUser())) {
             SysFile sysFile = getById(channel.getCreateUser().getAvatarFileId());
