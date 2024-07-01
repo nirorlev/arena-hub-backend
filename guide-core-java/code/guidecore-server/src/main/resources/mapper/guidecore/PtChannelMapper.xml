@@ -453,7 +453,7 @@
         subscribe_info.first_name as subscribe_userInfo_firstName,subscribe_info.avatar_file_id as subscribe_userInfo_avatar_file_id,
         access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
         subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName,
-        (SELECT count(id) FROM pt_channel_subscribe WHERE is_deleted = false AND channel_id = sec.id OR channel_id = channel.id) as subscribeNum
+        (SELECT count(id) FROM pt_channel_subscribe WHERE is_deleted = false AND (channel_id = sec.id OR channel_id = channel.id)) as subscribeNum
         FROM pt_channel channel
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
