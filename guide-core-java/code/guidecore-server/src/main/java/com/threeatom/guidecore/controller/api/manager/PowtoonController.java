@@ -2922,7 +2922,16 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		initPermit();
+		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
+		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
+			UserRead userRoles = permit.api.users.get(user.getUsername());
+			if (null!=userRoles.attributes){
+				if (null!=userRoles.attributes.get("isOrgAdmin")){
+					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
+				}
+			}
+		}
 
 		boolean isAllowed = false;
 		if (null!=ptChannel.getVisibleFlag()) {
