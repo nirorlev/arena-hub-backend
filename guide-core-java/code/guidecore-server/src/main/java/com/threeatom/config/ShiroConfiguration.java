@@ -142,6 +142,9 @@ public class ShiroConfiguration {
 
         filterChainDefinitionMap.put("/api/v2/app-config", "anon");
 
+        // TODO: Remove as soon as command is run
+        filterChainDefinitionMap.put("/api/v2/commands/migrate-powtoon-thumbnails", "anon");
+
         filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/*/weapp/**", "weappjwt");
