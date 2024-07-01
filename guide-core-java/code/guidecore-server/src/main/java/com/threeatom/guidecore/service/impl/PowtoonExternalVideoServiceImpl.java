@@ -40,10 +40,7 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 	public PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile) {
 		Integer sysFileId = sysFile.getId();
 		JSONObject source = sysFile.getSource();
-		if (source == null) {
-			return null;
-		}
-		if (getBySysFileId(sysFileId) != null) {
+		if (source == null || getBySysFileId(sysFileId) != null) {
 			return null;
 		}
 

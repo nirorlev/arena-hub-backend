@@ -90,21 +90,21 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     	return this.sysFileMapper.selectById(id);
     }
 
-    private String getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
+    private Optional<String> getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
         if (sysFile.getFileTypeIndex() != EventUnifyType.powtoonFileTypeIndex) {
-            return null;
+            return Optional.empty();
         }
         PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
         if (externalVideo == null) {
-            return null;
+            return Optional.empty();
         }
 
         try {
             JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
-            return videoData.getString("playerUrl");
+            return Optional.of(videoData.getString("playerUrl"));
         } catch (SystemException e) {
             LOGGER.error("Failed to get video player URL from external video", e);
-            return null;
+            return Optional.empty();
         }
     }
     

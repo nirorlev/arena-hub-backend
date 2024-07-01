@@ -425,6 +425,16 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 		    return message.ok().addData("yotubeList",youtubeList);
 	}
 
+	private JSONObject formatKalturaVideoData (JSONObject videoData) {
+		JSONObject result = new JSONObject();
+		result.put("url", videoData.getString("playerUrl"));
+		result.put("thumbNail", videoData.getString("thumbnailUrl"));
+		result.put("title", videoData.getString("title"));
+		result.put("description", videoData.getString("description"));
+		result.put("duration", videoData.getFloat("duration"));
+		result.put("source", videoData.getJSONObject("source"));
+		return result;
+	}
 
 	@PostMapping("/getKalturaVideos")
 	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest re) {
@@ -433,13 +443,8 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 			videoUrl = videoUrl.replaceAll(" ","%2B");
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
-			message.addData("url", videoData.getString("playerUrl"));
-			message.addData("thumbNail", videoData.getString("thumbnailUrl"));
-			message.addData("title", videoData.getString("title"));
-			message.addData("description", videoData.getString("description"));
-			message.addData("duration", videoData.getFloat("duration"));
-			message.addData("source", videoData.getJSONObject("source"));
-			return message.ok();
+			JSONObject formattedData = formatKalturaVideoData(videoData);
+			return message.ok().addJson(formattedData);
 		} catch (Exception e){
 			e.printStackTrace();
 			String extractedInfo=e.getMessage();

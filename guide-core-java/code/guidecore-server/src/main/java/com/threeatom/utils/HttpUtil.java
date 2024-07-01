@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.threeatom.common.exception.SystemException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -39,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
  * @description: TODO
  * @date 2021/11/5/00511:17
  */
+@Slf4j
 public class HttpUtil {
     /**
      * 发送post请求，根据 Content-Type 返回不同的返回值
@@ -270,16 +273,19 @@ public class HttpUtil {
         httpPost.setEntity(requestEntity);
         httpPost.setHeaders(headers);
 
-        try {
-            CloseableHttpResponse response = httpClient.execute(httpPost);
+        try (CloseableHttpResponse response = httpClient.execute(httpPost);){
             HttpEntity responseEntity = response.getEntity();
             if (responseEntity == null) return null;
             String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
             return JSONObject.parseObject(responseContent);
         } catch (JSONException e) {
-            throw new SystemException("Error parsing JSON response");
+            String msg = "Error parsing JSON response";
+            log.error(msg);
+            throw new SystemException(msg);
         } catch (IOException e) {
-            throw new SystemException("Error sending POST request");
+            String msg = "Error sending POST request";
+            log.error(msg);
+            throw new SystemException(msg);
         }
     }
 
@@ -292,16 +298,19 @@ public class HttpUtil {
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeaders(headers);
 
-        try {
-            CloseableHttpResponse response = httpClient.execute(httpGet);
+        try (CloseableHttpResponse response = httpClient.execute(httpGet);) {
             HttpEntity responseEntity = response.getEntity();
             if (responseEntity == null) return null;
             String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
             return JSONObject.parseObject(responseContent);
         } catch (JSONException e) {
-            throw new SystemException("Error parsing JSON response");
+            String msg = "Error parsing JSON response";
+            log.error(msg);
+            throw new SystemException(msg);
         } catch (IOException e) {
-            throw new SystemException("Error sending GET request");
+            String msg = "Error sending GET request";
+            log.error(msg);
+            throw new SystemException(msg);
         }
     }
 
