@@ -169,5 +169,5 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
-    VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId);
+    VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request);
 }

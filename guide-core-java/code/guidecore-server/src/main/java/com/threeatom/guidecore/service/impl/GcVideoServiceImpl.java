@@ -21,7 +21,6 @@ import com.threeatom.system.entity.SysCaptionRequest;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -116,6 +115,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Autowired
 	private VideoMapping videoMapping;
+
+	@Autowired
+	private VideoThumbnailProvider videoThumbnailProvider;
 
 
 	@Override
@@ -715,13 +717,26 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId) {
+	public VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request) {
 		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(query, masterId);
 
 		List<VideoSearchResultDto> searchResult = videos.stream()
-			.map(video -> videoMapping.map(video))
+			.map(video -> {
+				updateVideoUrls(request, video);
+				return videoMapping.map(video);
+			})
 			.collect(Collectors.toList());
 		return createVideoSearchResponse(searchResult);
+	}
+
+	private void updateVideoUrls(HttpServletRequest request, GcVideo video) {
+		SysFile videoFile = video.getVideoFile();
+		String fullFileUrl = sysFileService.getResFullUrl(videoFile, request);
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
+
+		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setFullFileUrl(fullFileUrl);
+		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
 
 	private VideoSearchResponseDto createVideoSearchResponse(List<VideoSearchResultDto> searchResult) {
