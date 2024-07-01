@@ -1,10 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -19,14 +17,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jets3t.service.CloudFrontService;
 import org.jets3t.service.CloudFrontServiceException;
 import org.jets3t.service.utils.ServiceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -37,18 +33,22 @@ import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.utils.FileUtil;
 import com.threeatom.utils.RandomUtils;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * @author cvmcosta
  * @title: AwsS3StorageServiceImpl
  * @description: Responsible for handling file storage in s3
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
-    @Autowired private RedisOperator redisOperator;
-
-    @Autowired private AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
+    private final RedisOperator redisOperator;
+    private final AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
 
 
     private byte[] getAwsPrivateKey() throws SystemException {
@@ -62,15 +62,16 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         if (url == null) {
             throw new SystemException("Cannot find url: " + "privatekey/" + keyName);
         }
-        try {
-            InputStream in = new FileInputStream(url.getFile());
+        try (InputStream in = new FileInputStream(url.getFile());) {
             byte[] data = FileUtil.toByteArray(in);
             in.close();
             String byteToString = Base64.getEncoder().encodeToString(data);
             redisOperator.set("awsPrivateKey", byteToString);
             return data;
         } catch (IOException e) {
-            throw new  SystemException("Failed to retrieve AWS private key");
+            String errMessage = "Failed to retrieve AWS private key";
+            log.error(errMessage, e);
+            throw new  SystemException(errMessage);
         }
     }
 
@@ -92,11 +93,13 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                     RandomUtils.getUUID(10),
                     fileName);
         } catch (MalformedURLException e) {
-            throw new SystemException("Failed to build S3 key from file URL");
+            String errMessage = "Failed to build S3 key from file URL";
+            log.error(errMessage, e);
+            throw new  SystemException(errMessage);
         }
     }
 
-    private static byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
+    private byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(fileUrl);
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
@@ -107,11 +110,13 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                 }
             }
         } catch (IOException e) {
-            throw new SystemException("Failed to retrieve file: " + e.getMessage());
+            String errMessage = "Failed to retrieve file from URL";
+            log.error(errMessage, e);
+            throw new  SystemException(errMessage);
         }
     }
 
-    private static void uploadFileToSignedUrl(byte[] filedata, String s3Url) throws SystemException {
+    private void uploadFileToSignedUrl(byte[] filedata, String s3Url) throws SystemException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPut httpPut = new HttpPut(s3Url);
             ByteArrayEntity byteArrayEntity = new ByteArrayEntity(filedata);
@@ -120,7 +125,9 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                 EntityUtils.consume(response.getEntity());
             }
         } catch (IOException e) {
-            throw new SystemException("Failed to upload file to S3: " + e.getMessage());
+            String errMessage = "Failed to upload file to S3 signed URL";
+            log.error(errMessage, e);
+            throw new  SystemException(errMessage);
         }
     }
 
