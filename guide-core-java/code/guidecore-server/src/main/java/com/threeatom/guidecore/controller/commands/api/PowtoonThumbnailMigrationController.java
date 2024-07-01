@@ -81,7 +81,7 @@ public class PowtoonThumbnailMigrationController {
         String uiConfId = videoHostingData[1];
         String entryId = videoHostingData[2];
         String newThumbnailUrl = String.format(KALTURA_THUMBNAIL_URL_TEMPLATE, partnerId, uiConfId, entryId);
-        log.info("SydFile updated " + sysFile.getId() + ". New thumbnail URL: " + newThumbnailUrl);
+        log.info("SysFile updated " + sysFile.getId() + ". New thumbnail URL: " + newThumbnailUrl);
         sysFile.setThumbNailUrl(newThumbnailUrl);
         sysFileService.updateById(sysFile);
     }
