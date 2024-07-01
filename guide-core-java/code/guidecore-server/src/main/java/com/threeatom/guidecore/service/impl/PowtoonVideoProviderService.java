@@ -36,7 +36,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
     private static final String PUBLIC_TOKEN_PARAMETER = "public_link_token";
     private static final List<String> VALID_POWTOON_ROOT_DOMAINS = Arrays.asList("powtoon.com");
     private static final String PLAYER_URL_TEMPLATE = "https://www.kaltura.com/index.php/extwidget/preview/partner_id/%s/uiconf_id/%s/entry_id/%s/embed/dynamic?";
-    private static final String KALTURA_THUMBNAIL_URL_TEMPLATE = "https://cfvod.kaltura.com/p/%s/sp/%s/thumbnail/entry_id/%s";
     private static final Integer PLAYER_PAGE_TYPE_INDEX = 1;
     private static final Integer VIDEO_ID_INDEX = 2;
 
@@ -111,10 +110,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         return String.format(PLAYER_URL_TEMPLATE, partnerId, uiConfId, entryId);
     }
 
-    private String buildThumbnailUrl (String partnerId, String uiConfId, String entryId) {
-        return String.format(KALTURA_THUMBNAIL_URL_TEMPLATE, partnerId, uiConfId, entryId);
-    }
-
     private JSONObject buildVideoData (JSONObject playerPageData, JSONObject videoHosting) {
         JSONObject videoData = new JSONObject();
         String partnerId = videoHosting.getString("partner_id");
@@ -123,8 +118,8 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         videoData.put("title", playerPageData.getString("title"));
         videoData.put("description", playerPageData.getString("description"));
         videoData.put("duration", playerPageData.getFloat("video_duration"));
+        videoData.put("thumbnailUrl", playerPageData.getString("thumb_url"));
         videoData.put("playerUrl", buildPlayerUrl(partnerId, uiConfId, entryId));
-        videoData.put("thumbnailUrl", buildThumbnailUrl(partnerId, uiConfId, entryId));
         return videoData;
     }
 
