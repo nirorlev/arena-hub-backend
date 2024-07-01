@@ -73,6 +73,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
             URL url = new URL(fileUrl);
             String path = url.getPath();
             String[] pathParts = path.split("/");
+            String fileName = pathParts[pathParts.length - 1];
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
             String formattedDate = now.format(formatter);
@@ -83,7 +84,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                     userId,
                     System.currentTimeMillis(),
                     RandomUtils.getUUID(10),
-                    pathParts[pathParts.length - 1]);
+                    fileName);
         } catch (MalformedURLException e) {
             throw new SystemException("Failed to build S3 key from file URL");
         }
