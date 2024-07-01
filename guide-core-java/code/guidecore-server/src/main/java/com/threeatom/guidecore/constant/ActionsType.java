@@ -23,15 +23,17 @@ public class ActionsType {
 
     public static final String edit = "edit";
 
+    public static final String publish = "publish";
+
     public static final String addContent = "addcontent";
 
     public static final String manageContent = "managecontent";
 
     public static final String changeOwner = "changeowner";
 
-    public static final String follow = "follow";
+    public static final String subscribe = "subscribe";
 
-    public static final String following = "unfollow";
+    public static final String unsubscribe = "unsubscribe";    
 
     public static final String createVideoItem = "createvideoitem";
 
