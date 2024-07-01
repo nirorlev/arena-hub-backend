@@ -106,7 +106,11 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
             HttpGet httpGet = new HttpGet(fileUrl);
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 HttpEntity entity = response.getEntity();
-                if (entity == null) throw new SystemException("Failed to download image. Null entity found.");
+                if (entity == null) {
+                    String errMessage = "Failed to download image. Null entity found.";
+                    log.error(errMessage);
+                    throw new  SystemException(errMessage);
+                }
                 try (InputStream inputStream = entity.getContent()){
                     return IOUtils.toByteArray(inputStream);
                 }
