@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtChannel;
@@ -60,4 +61,6 @@ public interface PtChannelService extends IService<PtChannel> {
     List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
 
     List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
+
+    void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 }

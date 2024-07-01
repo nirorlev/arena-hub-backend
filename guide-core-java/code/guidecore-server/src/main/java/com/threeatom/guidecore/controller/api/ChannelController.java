@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -8,9 +9,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,4 +48,13 @@ public class ChannelController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return channelService.getDiscoverableChannels(userService.getCurrentUser(request), masterId, request);
     }
+
+    @PostMapping("/sections/order")
+    @ApiOperation(value = "Update ordering of channel sections", httpMethod = "POST")
+    public ResponseEntity<Void> updateSectionOrder(@RequestBody @Valid IdsDto sectionIds, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        channelService.updateSectionOrder(sectionIds, masterId);
+        return ResponseEntity.ok().build();
+    }
+
 }
