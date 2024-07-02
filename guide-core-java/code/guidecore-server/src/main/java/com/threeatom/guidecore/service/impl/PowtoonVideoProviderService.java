@@ -50,6 +50,9 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
 
     private String getPublicTokenFromURL(URL url) {
         String query = url.getQuery();
+        if (query == null) {
+            return null;
+        }
         String[] parameters = query.split("&");
         for (String parameter : parameters) {
             String[] parameterParts = parameter.split("=");
