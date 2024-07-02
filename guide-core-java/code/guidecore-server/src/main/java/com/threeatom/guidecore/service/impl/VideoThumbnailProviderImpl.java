@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
@@ -44,6 +45,7 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
             return videoUrl;
         }
 
+        videoUrl = cleanUpUrl(videoUrl, videoType);
         String fullVideoUrl = VIDEO_TYPE_TO_URL_MAPPING.getOrDefault(videoType, "%s");
 
         if (VIDEO_TYPE_TO_URL_ID_REGEXP_MAPPING.containsKey(videoType)) {
@@ -51,6 +53,16 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
         }
 
         return String.format(fullVideoUrl, videoUrl);
+    }
+
+    private String cleanUpUrl(String videoUrl, VideoFileProvider videoType) {
+        if (VideoFileProvider.WISTIA == videoType) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(videoUrl);
+            builder.replaceQuery(null);
+            return builder.toUriString();
+        }
+
+        return videoUrl;
     }
 
     private String getThumbNailFromSnapshotUrl(String snapshotUrl, VideoFileProvider videoType) {
