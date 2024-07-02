@@ -13,6 +13,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -41,6 +42,8 @@ public class SysFIleController extends GuideCoreController {
     @Autowired private PowtoonExternalVideoService powtoonExternalVideoService;
 
     @Autowired private AwsS3StorageService awsS3StorageService;
+
+    @Autowired private VideoThumbnailProvider thumbnailProvider;
 
     @ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
     @PostMapping("/saveLink")
@@ -85,6 +88,7 @@ public class SysFIleController extends GuideCoreController {
                 powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
             }
             sysFileService.getVideoSnapshotUrl(sysFile);
+            sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
             sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
             sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile, request));
 
