@@ -3526,10 +3526,10 @@ public class PowtoonController extends GuideCoreController {
 
 			for(SysFile sysFile : sysFileList){
 				if(sysFile.getId().equals(channelContent.getFileId())){
-					String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+					String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
 					String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-					sysFile.setSnapshotUrl(snapShotUrl);
 					sysFile.setFullFileUrl(fullFileUrl);
+					sysFile.setSnapshotUrl(snapShotUrl);
 					sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
 					channelContent.setVideoFile(sysFile);
 				}
