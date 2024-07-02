@@ -91,6 +91,7 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -306,6 +307,10 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
+
+	@Autowired
+	private VideoThumbnailProvider thumbnailProvider;
+
 
 	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
 	@PostMapping("search")
@@ -3525,6 +3530,7 @@ public class PowtoonController extends GuideCoreController {
 					String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
 					sysFile.setFullFileUrl(fullFileUrl);
 					sysFile.setSnapshotUrl(snapShotUrl);
+					sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
 					channelContent.setVideoFile(sysFile);
 				}
 				if (null!=sysFile.getGcUser().getAvatarFileId()){

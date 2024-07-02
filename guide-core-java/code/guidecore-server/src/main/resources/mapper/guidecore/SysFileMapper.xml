@@ -24,6 +24,7 @@
         <result property="createTime" column="create_time" />
         <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="thumbNailUrl" column="thumb_nail_url"/>
         <result property="uuid" column="uuid"/>
     </resultMap>
 
@@ -48,6 +49,7 @@
         <result property="createTime" column="create_time" />
         <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="thumbNailUrl" column="thumb_nail_url"/>
         <result property="uuid" column="uuid"/>
 
         <association property="gcUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
@@ -80,6 +82,7 @@
         <result property="createTime" column="create_time" />
         <result property="targetLangJson" column="target_lang_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="thumbNailUrl" column="thumb_nail_url"/>
         <result property="uuid" column="uuid"/>
 
         <association property="gcUser" column="user_id" javaType="GcUser">
