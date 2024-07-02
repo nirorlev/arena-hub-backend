@@ -3505,38 +3505,36 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		if(ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList)) {
-			for(PtChannelContent channelContent : ptChannelContent){
-				channelContent.getCourseTags().forEach(i -> {
-					PtTags newTags = new PtTags();
-					newTags.setMasterId(masterId);
-					newTags.setTagText(i.toString());
-					newTags.setChannelId(channelContent.getChannelId());
-					newTags.setType(TableConstant.COMMON_TWO);
-					newTags.setOrder(TableConstant.COMMON_ZERO);
-					newTags.setFileId(channelContent.getFileId());
-					tagsList.add(newTags);
-				});
+		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList);
 
-				for(SysFile sysFile : sysFileList){
-					if(sysFile.getId().equals(channelContent.getFileId())){
-						String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
-						String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-						sysFile.setFullFileUrl(fullFileUrl);
-						sysFile.setSnapshotUrl(snapShotUrl);
-						channelContent.setVideoFile(sysFile);
-					}
-					if (null!=sysFile.getGcUser().getAvatarFileId()){
-						SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
-						sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
-					}
+		for(PtChannelContent channelContent : ptChannelContent){
+			channelContent.getCourseTags().forEach(i -> {
+				PtTags newTags = new PtTags();
+				newTags.setMasterId(masterId);
+				newTags.setTagText(i.toString());
+				newTags.setChannelId(channelContent.getChannelId());
+				newTags.setType(TableConstant.COMMON_TWO);
+				newTags.setOrder(TableConstant.COMMON_ZERO);
+				newTags.setFileId(channelContent.getFileId());
+				tagsList.add(newTags);
+			});
+
+			for(SysFile sysFile : sysFileList){
+				if(sysFile.getId().equals(channelContent.getFileId())){
+					String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+					String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+					sysFile.setFullFileUrl(fullFileUrl);
+					sysFile.setSnapshotUrl(snapShotUrl);
+					channelContent.setVideoFile(sysFile);
+				}
+				if (null!=sysFile.getGcUser().getAvatarFileId()){
+					SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+					sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
 				}
 			}
-			ptTagsService.saveOrUpdateBatch(tagsList);
-			return message.ok("success").addData("contentList",ptChannelContent);
 		}
-
-		return message.error();
+		ptTagsService.saveOrUpdateBatch(tagsList);
+		return message.ok("success").addData("contentList",ptChannelContent);
 	}
 
 	@ApiOperation(value = "channelContent删除内容")
