@@ -45,7 +45,6 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
             return videoUrl;
         }
 
-        videoUrl = cleanUpUrl(videoUrl, videoType);
         String fullVideoUrl = VIDEO_TYPE_TO_URL_MAPPING.getOrDefault(videoType, "%s");
 
         if (VIDEO_TYPE_TO_URL_ID_REGEXP_MAPPING.containsKey(videoType)) {
@@ -67,6 +66,7 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
 
     private String getThumbNailFromSnapshotUrl(String snapshotUrl, VideoFileProvider videoType) {
         if (videoType == VideoFileProvider.WISTIA) {
+            snapshotUrl = cleanUpUrl(snapshotUrl, videoType);
             return String.format(VIDEO_TYPE_TO_URL_MAPPING.get(videoType), snapshotUrl);
         }
 
