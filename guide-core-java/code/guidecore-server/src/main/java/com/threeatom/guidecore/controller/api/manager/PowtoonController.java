@@ -91,6 +91,7 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -306,6 +307,10 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
+
+	@Autowired
+	private VideoThumbnailProvider thumbnailProvider;
+
 
 	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
 	@PostMapping("search")
@@ -1254,8 +1259,7 @@ public class PowtoonController extends GuideCoreController {
 				List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
 				i.setAllTags(stringList);
 			}
-			sysFileService.getResFullUrl(i.getSubImgFile(),request);
-			sysFileService.getVideoSnapshotUrl(i.getSubImgFile());
+			sysFileService.updateImageUrls(i,request);
 		});
 		pageInfo = new PageInfo<>(subjects);
 		return new Message().ok().addData("pageInfo",pageInfo).addData("access",access);
@@ -1298,34 +1302,17 @@ public class PowtoonController extends GuideCoreController {
 		}
 		Map<Integer, List<PtTags>> finalTagsMap = tagsMap;
 
-		channels.forEach(i->{
-			if (null!= finalTagsMap.get(i.getId())){
-				List<PtTags> ptTagsList = finalTagsMap.get(i.getId());
+		channels.forEach(channel->{
+			if (null!= finalTagsMap.get(channel.getId())){
+				List<PtTags> ptTagsList = finalTagsMap.get(channel.getId());
 				List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
-				i.setAllTags(stringList);
+				channel.setAllTags(stringList);
 			}
-			if(Objects.nonNull(i.getCreateUser())) {
-				SysFile sysFile = sysFileService.getById(i.getCreateUser().getAvatarFileId());
-				String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				i.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
-			}
-			if(Objects.nonNull(i.getChannelImgFileId())) {
-				SysFile sysFile = sysFileService.getById(i.getChannelImgFileId());
-				String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				i.setImgFullFileUrl(imgFullFileUrl);
-			}
-			if(Objects.nonNull(i.getChannelAvatarFileId())) {
-				SysFile avatarFile = sysFileService.getById(i.getChannelAvatarFileId());
-				String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
-				avatarFile.setFullFileUrl(avatarFullFileUrl);
-				i.setAvatarFile(avatarFile);
-			}
+			sysFileService.updateImageUrls(channel, request);
 		});
 		PageInfo<PtChannel> pageInfo = new PageInfo<>(channels);
 		return new Message().ok().addData("pageInfo",pageInfo).addData("access",access);
 	}
-
-
 
 	@ApiOperation(value = "getAvailableCourses",httpMethod = "GET")
 	@GetMapping("/getAvailableCourses")
@@ -2938,10 +2925,10 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
 		}
+
 		initPermit();
-		Boolean isOrgAdmin = false;
+		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
-		boolean isFlag = false;
 		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
 			UserRead userRoles = permit.api.users.get(user.getUsername());
 			if (null!=userRoles.attributes){
@@ -2949,20 +2936,28 @@ public class PowtoonController extends GuideCoreController {
 					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
 				}
 			}
-			if (!isOrgAdmin&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-				throw new PermitException("No permission for this!");
+		}
+
+		boolean isAllowed = false;
+		if (null!=ptChannel.getVisibleFlag()) {
+			isAllowed = this.permitCheck(user, ActionsType.publish, masterId, ResourceType.channel, ptChannel.getId(), null, null);
+			if (!isAllowed){
+				throw new PermitException("No permission to change channel visibility!");
 			}
 		}
+
 		if (null!=ptChannel.getId()){
-			isFlag = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.channel,ptChannel.getId(),null,null);
+			isAllowed = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.channel,ptChannel.getId(),null,null);
 		}else if (null!=ptChannel.getFid()){
-			isFlag = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.channel,ptChannel.getFid(),null,null);
+			isAllowed = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.channel,ptChannel.getFid(),null,null);
 		}else {
-			isFlag = this.permitCheck(user,ActionsType.createChannel,masterId,ResourceType.portal,null,null,null);
+			isAllowed = this.permitCheck(user,ActionsType.createChannel,masterId,ResourceType.portal,null,null,null);
 		}
-		if (!isFlag&&!isOrgAdmin){
+
+		if (!isAllowed){
 			throw new PermitException("No permission for this!");
 		}
+
 		ptChannel.setMasterId(masterId);
 		if (null==ptChannel.getId()){
 			ptChannel.setCreateUserId(user.getId());
@@ -3408,7 +3403,7 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.follow, masterId, ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
+		boolean isFlag = this.permitCheck(user, ActionsType.subscribe, masterId, ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
@@ -3443,7 +3438,7 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.following, Integer.parseInt(request.getHeader("masterId")), ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
+		boolean isFlag = this.permitCheck(user, ActionsType.unsubscribe, Integer.parseInt(request.getHeader("masterId")), ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
@@ -3515,38 +3510,37 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		if(ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList)) {
-			for(PtChannelContent channelContent : ptChannelContent){
-				channelContent.getCourseTags().forEach(i -> {
-					PtTags newTags = new PtTags();
-					newTags.setMasterId(masterId);
-					newTags.setTagText(i.toString());
-					newTags.setChannelId(channelContent.getChannelId());
-					newTags.setType(TableConstant.COMMON_TWO);
-					newTags.setOrder(TableConstant.COMMON_ZERO);
-					newTags.setFileId(channelContent.getFileId());
-					tagsList.add(newTags);
-				});
+		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList);
 
-				for(SysFile sysFile : sysFileList){
-					if(sysFile.getId().equals(channelContent.getFileId())){
-						String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
-						String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-						sysFile.setFullFileUrl(fullFileUrl);
-						sysFile.setSnapshotUrl(snapShotUrl);
-						channelContent.setVideoFile(sysFile);
-					}
-					if (null!=sysFile.getGcUser().getAvatarFileId()){
-						SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
-						sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
-					}
+		for(PtChannelContent channelContent : ptChannelContent){
+			channelContent.getCourseTags().forEach(i -> {
+				PtTags newTags = new PtTags();
+				newTags.setMasterId(masterId);
+				newTags.setTagText(i.toString());
+				newTags.setChannelId(channelContent.getChannelId());
+				newTags.setType(TableConstant.COMMON_TWO);
+				newTags.setOrder(TableConstant.COMMON_ZERO);
+				newTags.setFileId(channelContent.getFileId());
+				tagsList.add(newTags);
+			});
+
+			for(SysFile sysFile : sysFileList){
+				if(sysFile.getId().equals(channelContent.getFileId())){
+					String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+					String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+					sysFile.setFullFileUrl(fullFileUrl);
+					sysFile.setSnapshotUrl(snapShotUrl);
+					sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
+					channelContent.setVideoFile(sysFile);
+				}
+				if (null!=sysFile.getGcUser().getAvatarFileId()){
+					SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+					sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
 				}
 			}
-			ptTagsService.saveOrUpdateBatch(tagsList);
-			return message.ok("success").addData("contentList",ptChannelContent);
 		}
-
-		return message.error();
+		ptTagsService.saveOrUpdateBatch(tagsList);
+		return message.ok("success").addData("contentList",ptChannelContent);
 	}
 
 	@ApiOperation(value = "channelContent删除内容")
@@ -3615,7 +3609,7 @@ public class PowtoonController extends GuideCoreController {
 		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
 		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
-		String fullFileUrl = sysFileService.getResFullUrl(videoFile,request);
+		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
 		if(Objects.nonNull(gcUserVideoAction)){

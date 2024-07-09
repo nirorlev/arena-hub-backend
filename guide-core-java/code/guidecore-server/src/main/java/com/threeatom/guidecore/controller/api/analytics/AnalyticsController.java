@@ -91,6 +91,6 @@ public class AnalyticsController {
     @GetMapping("/video-list")
     public ResponseEntity<VideoSearchResponseDto> engagementRete(@RequestParam(value = "query", required = false) String query, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(videoService.getVideoListByQuery(query, masterId));
+        return ResponseEntity.ok(videoService.getVideoListByQuery(query, masterId, request));
     }
 }

@@ -4,11 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
+import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.service.AwsS3StorageService;
+import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -34,6 +39,12 @@ public class SysFIleController extends GuideCoreController {
 
     @Autowired private PtTagsService tagsService;
 
+    @Autowired private PowtoonExternalVideoService powtoonExternalVideoService;
+
+    @Autowired private AwsS3StorageService awsS3StorageService;
+
+    @Autowired private VideoThumbnailProvider thumbnailProvider;
+
     @ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
     @PostMapping("/saveLink")
     public Message saveLink(@RequestBody SysFile sysFile, HttpServletRequest request) {
@@ -48,6 +59,7 @@ public class SysFIleController extends GuideCoreController {
             // ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),EventUnifyType.video_links_JSON_STR,"fileTypeIndex字段错误，请于后端人员确认");
         }
         GcMaster master = this.getMaster();
+        GcUser user = this.getGcUser();
         if (null == master && null != request.getHeader("masterId")) {
             master = new GcMaster();
             master.setId(Integer.parseInt(request.getHeader("masterId")));
@@ -66,8 +78,17 @@ public class SysFIleController extends GuideCoreController {
         SysSystem sys = this.getSystem();
         sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
         sysFile.setSysId(sys.getId());
+        if (sysFile.getFileTypeIndex() == EventUnifyType.powtoonFileTypeIndex) {
+            String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
+            sysFile.setThumbNailUrl(fileKey);
+        }
+
         if (sysFileService.saveOrUpdate(sysFile)) {
+            if (sysFile.getFileTypeIndex() == EventUnifyType.powtoonFileTypeIndex) {
+                powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
+            }
             sysFileService.getVideoSnapshotUrl(sysFile);
+            sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
             sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
             sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile, request));
 

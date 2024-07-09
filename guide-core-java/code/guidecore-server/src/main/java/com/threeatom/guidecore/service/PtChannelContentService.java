@@ -18,7 +18,7 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
 
     List<PtChannelContent> selectContentExist(Integer channelId);
 
-    boolean saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
+    void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
 
     Optional<PtChannelContent> getChannelContent(Integer contentId);
 }

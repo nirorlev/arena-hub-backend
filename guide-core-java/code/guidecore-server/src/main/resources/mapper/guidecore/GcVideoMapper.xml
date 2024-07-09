@@ -752,8 +752,10 @@
 
     <select id="getVideoListByQuery" resultMap="baseResultMap">
         SELECT
-            <include refid="baseColumn" />
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>
         FROM gc_video v
+            JOIN sys_file f ON v.file_id = f.id
             LEFT JOIN course_content course_video ON v.id = course_video.content_id
             LEFT JOIN gc_subject s ON course_video.course_id = s.id
             LEFT JOIN pt_channel_content channel_video ON v.id = channel_video.content_id

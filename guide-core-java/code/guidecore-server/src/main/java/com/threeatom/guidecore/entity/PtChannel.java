@@ -46,6 +46,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     private Integer fid;
 
+    @TableField(value = "\"order\"")
     private Integer order;
 
     private Integer masterId;

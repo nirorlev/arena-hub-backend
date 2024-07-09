@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.mapper.PtchannelContentMapper;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -65,19 +66,34 @@ public class PtChannelContentServiceImpl
 
     @Override
     @Transactional
-    public boolean saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList) {
+    public void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList) {
         if (CollectionUtils.isEmpty(ptChannelContent)) {
-            return false;
+            log.error("Channel content list cannot be empty");
+            throw new IllegalArgumentException("Channel content list cannot be empty");
         }
 
-        videoService.saveChannelContent(ptChannelContent, sysFileList);
+        List<PtChannelContent> existingChannelContents = new ArrayList<>();
+        List<PtChannelContent> newChannelContent = new ArrayList<>();
 
         for (PtChannelContent content : ptChannelContent) {
+            Optional<GcVideo> videoContent = videoService.getVideoContent(content.getFileId());
+
+            videoContent.ifPresentOrElse(video -> getChannelContent(video.getId())
+                .ifPresentOrElse(existingChannelContent -> {
+                    existingChannelContent.setChannelId(content.getChannelId());
+                    existingChannelContents.add(existingChannelContent);
+                }, () -> newChannelContent.add(content)), () -> newChannelContent.add(content));
+        }
+
+        updateBatchById(existingChannelContents);
+        videoService.saveChannelContent(newChannelContent, sysFileList);
+
+        for (PtChannelContent content : newChannelContent) {
             videoService.getChannelVideoContent(content)
                 .ifPresent(videoContent -> content.setContentId(videoContent.getId()));
         }
 
-        return this.saveOrUpdateBatch(ptChannelContent);
+        this.saveOrUpdateBatch(newChannelContent);
     }
 
     @Override

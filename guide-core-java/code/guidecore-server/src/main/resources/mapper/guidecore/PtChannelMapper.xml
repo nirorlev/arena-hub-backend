@@ -449,13 +449,12 @@
     <select id="selectChannelDetail" resultMap="baseResultMap">
         SELECT
         channel.*,us.username as channel_create_user_username,us.id as channel_create_uid,
-        string_agg(userAccess.user_id::text, ',') as subscribeUserIds,
         info.last_name as userInfo_lastName,info.first_name as userInfo_firstName,subscribe_us.id as subscribe_user_id,subscribe_us.username as subscribe_user_username,subscribe_info.last_name as subscribe_userInfo_lastName,
         subscribe_info.first_name as subscribe_userInfo_firstName,subscribe_info.avatar_file_id as subscribe_userInfo_avatar_file_id,
         access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
-        subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName
-        FROM
-        pt_channel channel
+        subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName,
+        (SELECT count(id) FROM pt_channel_subscribe WHERE is_deleted = false AND (channel_id = sec.id OR channel_id = channel.id)) as subscribeNum
+        FROM pt_channel channel
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_channel sec on sec.fid = channel.id
@@ -464,10 +463,8 @@
         left join gc_user_info subscribe_info on subscribe_info.id = subscribe_us.info_id
         left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
         left join gc_access access on access.id = public_cgcs.content_group_id
-        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = true
+        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND subscribe_cgcs.is_subscribed = true
         left join gc_access subscribeAccess on subscribeAccess.id = subscribe_cgcs.content_group_id
-        LEFT JOIN gc_user_access_permission permission ON permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
         WHERE 1=1
         <if test="channelId!=null">
             and channel.id = #{channelId}
@@ -478,10 +475,7 @@
         <if test="masterId !=null">
             and channel.master_id = #{masterId}
         </if>
-        group by channel.id, sec.id, sub.id, subscribe_us.id, subscribe_info.id, access.id, subscribeAccess.id, us.username,
-        us.id, info.last_name, info.first_name, subscribe_us.username, subscribe_info.last_name,
-        subscribe_info.first_name, subscribe_info.avatar_file_id, access.code, subscribeAccess.code, access.group_name,
-        subscribeAccess.group_name
+        GROUP BY channel.id, us.id, info.id, subscribe_us.id, subscribe_info.id, access.id, subscribeAccess.id, sec.id, subscribe_us.username
         order by sec.create_time ${order}
     </select>
 
@@ -1001,7 +995,7 @@
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-                 LEFT JOIN pt_channel_subscribe subscribe_pcs ON pc.id = subscribe_pcs.channel_id AND pcs.is_deleted = false
+                 LEFT JOIN pt_channel_subscribe subscribe_pcs ON pc.id = subscribe_pcs.channel_id AND subscribe_pcs.is_deleted = false
         WHERE pcs.is_deleted = false AND pcs.user_id = #{userId}
         GROUP BY pc.id, pcs.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
         ORDER BY pcs.update_time DESC;
@@ -1021,12 +1015,13 @@
                            on cgc.channel_id = pc.id AND cgc.is_subscribed = false AND cgc.created_by_user_id != #{userId}
                  LEFT JOIN gc_user_access ua on ua.access_id = cgc.content_group_id AND ua.master_id = #{masterId} AND ua.user_id = #{userId}
                  LEFT JOIN pt_channel_subscribe pcs on pc.id = pcs.channel_id AND pcs.is_deleted = true AND pcs.user_id = #{userId}
+                 LEFT JOIN pt_channel_subscribe pcs_subscribed on pc.id = pcs_subscribed.channel_id AND pcs_subscribed.is_deleted = false AND pcs_subscribed.user_id = #{userId}
                  LEFT JOIN gc_user gu ON pc.create_user_id = gu.id
                  LEFT JOIN gc_user_info gui ON gu.info_id = gui.id
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-        WHERE pc.level = 0 AND pc.visible_flag != 0 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL)
+        WHERE pc.level = 0 AND (pc.create_user_id = #{userId} AND pcs_subscribed.id IS NULL OR pc.visible_flag != 0 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
     </select>
 </mapper>

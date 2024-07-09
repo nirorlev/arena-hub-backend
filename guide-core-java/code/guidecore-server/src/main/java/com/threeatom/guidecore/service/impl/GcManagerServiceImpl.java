@@ -104,7 +104,7 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                 // 复制课程权限
                 GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
                 userAccessPermission.setSubPermission(
-                    JSONArray.parseArray(JSON.toString(contentGroupCourseAssignmentService.findByContentGroupId(accessCode.getId())))
+                    JSONArray.parseArray(JSON.toString(contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessCode.getId())))
                 );
                 userAccessPermission.setUserAccessId(userAccess.getId());
                 userAccessService.saveUserAccessPermission(userAccessPermission);

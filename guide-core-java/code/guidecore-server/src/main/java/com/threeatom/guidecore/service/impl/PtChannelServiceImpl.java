@@ -8,12 +8,14 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
@@ -22,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final SysFileService sysFileService;
     private final PtTagsService tagsService;
     private final ChannelMapping channelMapping;
+    private final VideoThumbnailProvider thumbnailProvider;
 
     public List<PtChannel> indexPtChannels(Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
         PageParam pageParam = new PageParam(request);
@@ -86,57 +90,30 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     public PtChannel selectChannelDetail(
-            Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId) {
-        //        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-        //        queryWrapper.eq("id",channelId);
-        //        return this.getOne(queryWrapper);
-        PtChannel ptChannel = new PtChannel();
+        Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId) {
+
+        PtChannel ptChannel;
         if (null != channelId) {
             ptChannel = this.baseMapper.selectChannelDetail(channelId, null, order, null);
         } else {
             ptChannel = this.baseMapper.selectChannelDetail(null, slug, order, masterId);
         }
-        //        for(PtChannel channel : ptChannel.getSectionList()){
-        //            for(SysFile sysFile : channel.getVideoList()){
-        //                String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
-        //                String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-        //                sysFile.setSnapshotUrl(snapShotUrl);
-        //                sysFile.setFullFileUrl(fullFileUrl);
-        //            }
-        //        }
-        if (!"".equals(ptChannel.getSubscribeUserIds())
-                && Objects.nonNull(ptChannel.getSubscribeUserIds())) {
-            List<String> subscribeUserIds = Arrays.asList(ptChannel.getSubscribeUserIds().split(","));
-            subscribeUserIds = subscribeUserIds.stream().distinct().collect(Collectors.toList());
-            ptChannel.setSubscribeNum(subscribeUserIds.size());
-        } else {
-            ptChannel.setSubscribeNum(TableConstant.COMMON_ZERO);
-        }
+
         SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
         SysFile imgFile = sysFileService.getById(ptChannel.getChannelImgFileId());
         String imgFileUrl = sysFileService.getResFullUrl(imgFile, request);
         String avatarUrl = sysFileService.getResFullUrl(avatarFile, request);
         ptChannel.setImgFullFileUrl(imgFileUrl);
         ptChannel.setAvatarFullFileUrl(avatarUrl);
-        for (SysFile sysFile : ptChannel.getVideoList()) {
-            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-            String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-            sysFile.setSnapshotUrl(snapShotUrl);
-            sysFile.setFullFileUrl(fullFileUrl);
-        }
-        for (GcUser user : ptChannel.getUserList()) {
-            SysFile sysFile = sysFileService.getById(user.getAvatarFileId());
-            String avatarFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-            user.setAvatarFullFileUrl(avatarFullFileUrl);
-        }
+
+        updateImageUrls(request, ptChannel);
+        updateUserAvatar(request, ptChannel);
 
         return ptChannel;
     }
 
     public List<PtChannel> selectSectionList(
-            Integer fid, String slug, HttpServletRequest request, Integer masterId) {
-        //        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-        //        queryWrapper.eq("fid",fid);
+        Integer fid, String slug, HttpServletRequest request, Integer masterId) {
 
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
@@ -144,10 +121,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<PtChannel> sectionList =
-                this.baseMapper.selectSectionList(fid, slug, request.getHeader("order"), masterId);
-        //        List<PtChannel> sectionList = this.list(queryWrapper);
-        return sectionList;
+
+        List<PtChannel> channels = this.baseMapper.selectSectionList(fid, slug, request.getHeader("order"), masterId);
+        return channels.stream()
+            .sorted(Comparator.comparing(PtChannel::getOrder, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .collect(Collectors.toList());
     }
 
     public List<SysFile> selectVideosInSection(
@@ -162,16 +140,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<SysFile> videos =
-                this.baseMapper.selectVideosInSection(
+        List<SysFile> videos = this.baseMapper.selectVideosInSection(
                         sectionId, order, searchName, request.getIntHeader("masterId"), level);
         if (CollectionUtils.isNotEmpty(videos)) {
             Map<Integer, SysFile> createFileMap = new HashMap<>();
             List<GcUser> userList = videos.stream().map(SysFile::getGcUser).collect(Collectors.toList());
             if (!userList.isEmpty()) {
-                List<SysFile> createFile =
-                        sysFileService.listByIds(
-                                userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
+                List<SysFile> createFile = sysFileService.listByIds(
+                    userList.stream().map(GcUser::getAvatarFileId).collect(Collectors.toList()));
                 createFileMap =
                         createFile.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
             }
@@ -180,6 +156,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                 sysFile.setSnapshotUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
+                sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
                         sysFile
@@ -594,6 +571,50 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         channels.forEach(channel -> updateUrls(request, channel));
         return convert(channels);
     }
+
+    private void updateUserAvatar(HttpServletRequest request, PtChannel ptChannel) {
+        for (GcUser user : ptChannel.getUserList()) {
+            SysFile sysFile = sysFileService.getById(user.getAvatarFileId());
+            String avatarFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+            user.setAvatarFullFileUrl(avatarFullFileUrl);
+        }
+    }
+
+    private void updateImageUrls(HttpServletRequest request, PtChannel ptChannel) {
+        for (SysFile sysFile : ptChannel.getVideoList()) {
+            String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+            String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+            sysFile.setSnapshotUrl(snapShotUrl);
+            sysFile.setFullFileUrl(fullFileUrl);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateSectionOrder(IdsDto sectionIds, Integer masterId) {
+        List<Integer> channelIdsToSort = sectionIds.getIds();
+        List<PtChannel> channels = findByIdAndMasterId(channelIdsToSort, masterId);
+
+        if (channels.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, PtChannel> idToChannel = channels.stream()
+            .collect(Collectors.toMap(PtChannel::getId, channel -> channel));
+        for (int i = 0; i < channelIdsToSort.size(); i++) {
+            idToChannel.get(channelIdsToSort.get(i)).setOrder(i);
+        }
+
+        this.updateBatchById(idToChannel.values());
+    }
+
+    public List<PtChannel> findByIdAndMasterId(List<Integer> channelIds, Integer masterId) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id", channelIds);
+        queryWrapper.eq("master_id", masterId);
+        return this.list(queryWrapper);
+    }
+
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()

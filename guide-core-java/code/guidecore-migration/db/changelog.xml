@@ -237,6 +237,36 @@
             </column>
         </addColumn>
     </changeSet>
+    
+    <changeSet id="create_powtoon_external_video" author="cvmcosta">
+        <createTable tableName="powtoon_external_video">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="sys_file_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="origin" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="public_token" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="powtoon_external_video_sys_file_id_fk" baseTableName="powtoon_external_video"
+                                 baseColumnNames="sys_file_id" referencedTableName="sys_file" referencedColumnNames="id"
+                                 onUpdate="CASCADE"/>
+        <addUniqueConstraint
+            columnNames="sys_file_id"
+            constraintName="powtoon_external_video_sys_file_id_fk_uniq"
+            tableName="powtoon_external_video"/>
+    </changeSet>
 
     <changeSet id="fix-migrate-content-group-channels" author="vprokh">
         <preConditions>
@@ -259,6 +289,14 @@
                   FROM gc_access) AS content_group_channel
                      JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
         </sql>
+    </changeSet>
+
+    <changeSet id="create-analytics-table-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="analyticsTableEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling analytics table on FE"/>
+            <column name="value" value="false"/>
+        </insert>
     </changeSet>
 
 </databaseChangeLog>
