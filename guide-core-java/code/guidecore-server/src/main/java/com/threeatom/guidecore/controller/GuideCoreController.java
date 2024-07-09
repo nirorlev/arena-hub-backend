@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.controller;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -8,11 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.PermitException;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.constant.*;
-import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
 import io.permit.sdk.Permit;
@@ -58,9 +55,11 @@ public class GuideCoreController extends BaseController{
 	private GcUserSaveFolderService folderService;
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-
+	@Autowired
+	private PtChannelContentService channelContentService;
 
 	private static final Logger log = LoggerFactory.getLogger(GuideCoreController.class);
+	public static Permit permit = null;
 
 	public GcManager getManager() {
 		if(checkRole("manager")) {
@@ -178,40 +177,19 @@ public class GuideCoreController extends BaseController{
 
 	}
 
-
-
-	/**
-	 * 随机字符串
-	 * @param length
-	 * @return
-	 */
-	public static String getRandomString(int length) {
-		String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		Random random = new Random();
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < length; i++) {
-			int number = random.nextInt(62);
-			sb.append(str.charAt(number));
-		}
-		return sb.toString();
-	}
-	public static Permit permit = null;
-
-	public boolean permitCheck(GcUser userInfo, String action, Integer masterId, String resourceType, Integer resourceTypeUserId,List<String> codeList,List<Integer> subIds) throws IOException {
-
-		/*if (1==1){
-			return true;
-		}*/
+	public boolean permitCheck(GcUser userInfo, String action, Integer masterId, String resourceType, Integer resourceTypeUserId,List<String> codeList,List<Integer> subIds) {
 		if (permitConfiguration.getPermitSwitch().equals(TableConstant.COMMON_ONE)){
 			return true;
 		}
+
 		this.permit = new Permit(
 				new PermitConfig.Builder(permitConfiguration.getApiKey())
 						.withPdpAddress(permitConfiguration.getPdpAddress())
 						.withDebugMode(true)
 						.build()
 		);
-		List<String> accessCodes = new ArrayList<>();
+
+		List<String> accessCodes;
 		List<GcUserAccess> userAccessList = userAccessService.getAccessListByUser(userInfo.getId());
 		List<Integer> accessIds = userAccessList.stream().map(GcUserAccess::getAccessId).collect(Collectors.toList());
 		accessCodes = accessService.listByIds(accessIds).stream().map(GcAccess::getCode).collect(Collectors.toList());
@@ -220,15 +198,14 @@ public class GuideCoreController extends BaseController{
 		TenantRead tenant = null;
 		Resource resource = null;
 		Context context = new Context();
-		boolean permitted = false;
+		boolean permitted;
+
 		try {
 			HashMap<String, Object> hashMap = new HashMap<>();
-			//resourceType 指传入的资源类型
-			//resourceTypeUserId 指资源的id,如果传入的是course,就代表是课程id videoItem则是视频id
 			List<String> accessList = new ArrayList<>();
 			if (null!=resourceTypeUserId){
 				GcUser gcUser = null;
-				//通过资源id获取资源的创建人
+
 				switch (resourceType){
 					case ResourceType.course:
 						Integer createUserId = null;
@@ -246,17 +223,24 @@ public class GuideCoreController extends BaseController{
 						break;
 					case ResourceType.videoItem:
 						GcVideo video = videoService.getById(resourceTypeUserId);
-						GcSubject subject1 = subjectService.getById(subjectService.getById(video.getSubId()).getFid());
+						GcSubject topic = subjectService.getById(video.getSubId());
 						Integer createUser = null;
-						if (null!=subject1&&null!=subject1.getCreateUser()){
-							createUser = subject1.getCreateUser();
+
+						if (topic != null) {
+							GcSubject subject1 = subjectService.getById(topic.getFid());
+							if (null!=subject1&&null!=subject1.getCreateUser()){
+								createUser = subject1.getCreateUser();
+								accessList = accessService.getAccessBySubjectId(masterId,subject1.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
+								if (null!=subject1.getAvailableType()&&(subject1.getAvailableType().equals(TableConstant.COMMON_ONE)||subject1.getAvailableType().equals(TableConstant.COMMON_THREE))){
+									accessList = accessCodes;
+								}
+							}
+						} else {
+							createUser = getChannelOwnerUserId(video);
 						}
+
 						if (null!=createUser){
 							gcUser = userService.getById(createUser);
-						}
-						accessList = accessService.getAccessBySubjectId(masterId,subject1.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
-						if (null!=subject1.getAvailableType()&&(subject1.getAvailableType().equals(TableConstant.COMMON_ONE)||subject1.getAvailableType().equals(TableConstant.COMMON_THREE))){
-							accessList = accessCodes;
 						}
 						break;
 					case ResourceType.channel:
@@ -286,56 +270,63 @@ public class GuideCoreController extends BaseController{
 						if (null!=access){
 							accessList.add(access.getCode());
 						}
-						if (accessList.size()!=TableConstant.COMMON_ZERO){
+						if (!accessList.isEmpty()){
 							hashMap.put("groupIDs",JSONArray.parseArray(JSON.toJSONString(accessList)).toJSONString());
 						}
 						break;
 				}
-				//传入owners字段,判断是否是创建者
 				if (null!=gcUser&&gcUser.getId().equals(userInfo.getId())){
 					hashMap.put("owner",gcUser.getUsername());
 					context.put("owner",gcUser.getUsername());
 				}
 			}
 			log.info("accessList::"+accessList);
-			//发布时检查组
+
 			if (resourceType.equals(ResourceType.contentGroup)&&action.equals(ActionsType.addContent)&&null!=codeList){
 				log.info("addContent::groupIDs:"+JSONArray.parseArray(JSON.toJSONString(codeList)));
 				hashMap.put("groupIDs",JSONArray.parseArray(JSON.toJSONString(codeList)));
 			}
-			//查询时检查权限
-			if (null!=accessList&&accessList.size()!= TableConstant.COMMON_ZERO){
+
+			if (!accessList.isEmpty()){
 				log.info("json::"+JSONArray.parseArray(JSON.toJSONString(accessList)));
 				hashMap.put("contentGroups",JSONArray.parseArray(JSON.toJSONString(accessList)));
-			}else {
+			} else {
 				log.info("no contentGroups"+new Date());
 				hashMap.put("contentGroups",null);
 			}
 			GcMaster master = masterService.getById(masterId);
-			//获取tenant
 			tenant = permit.api.tenants.get(master.getContext());
-			//获取用户key
 			UserRead userRead = permit.api.users.get(userInfo.getUsername());
+
 			user = User.fromString(userRead.key);
 			resource = new Resource.Builder(resourceType)
-					.withTenant(tenant.key).withAttributes(hashMap)
+					.withTenant(tenant.key)
+					.withAttributes(hashMap)
 					.build();
 
-		//进行权限效验
-		 permitted = permit.check(
-				User.fromString(user.getKey()),
-				action,
-				resource,context
-		);
+		 permitted = permit.check(User.fromString(user.getKey()), action, resource,context);
 		}catch (Exception | PermitApiError e){
 			e.printStackTrace();
 			throw new PermitException(e.getMessage());
-			//e.printStackTrace();
 		}
 		if (!permitted){
 			throw new PermitException("No permission for this!");
 		}
-		return permitted;
+
+		return true;
+	}
+
+	private Integer getChannelOwnerUserId(GcVideo video) {
+		Optional<PtChannelContent> ptChannel = channelContentService.getChannelContent(video.getId());
+		if (ptChannel.isPresent()) {
+			PtChannelContent ptChannelContent = ptChannel.get();
+			PtChannel channel = ptChannelService.getById(ptChannelContent.getChannelId());
+			if (null!=channel&&null!=channel.getCreateUserId()){
+				return channel.getCreateUserId();
+			}
+		}
+
+		return null;
 	}
 
 }
