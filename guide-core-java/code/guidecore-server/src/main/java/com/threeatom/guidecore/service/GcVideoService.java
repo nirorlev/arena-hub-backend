@@ -168,4 +168,8 @@ public interface GcVideoService extends GcVideoServiceBll {
     Optional<GcVideo> getVideoContent(Integer fileId);
 
     VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request);
+
+    boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
+
+    void updateCourseTags(List<GcVideo> videoList, Integer masterId);
 }
