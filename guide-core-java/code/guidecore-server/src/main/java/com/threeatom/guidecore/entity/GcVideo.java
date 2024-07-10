@@ -26,6 +26,10 @@ public class GcVideo implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
+    private Integer originChannelId;
+
+    private Integer originCourseId;
+
     @ApiModelProperty(value = "视频名称")
     private String videoName;
 

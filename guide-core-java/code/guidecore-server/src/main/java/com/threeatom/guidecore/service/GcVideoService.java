@@ -163,9 +163,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
 
-    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
-
-    Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
+    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 

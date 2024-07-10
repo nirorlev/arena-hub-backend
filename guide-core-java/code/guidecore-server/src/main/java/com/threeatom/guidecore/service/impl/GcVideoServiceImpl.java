@@ -688,22 +688,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles) {
+	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles, Integer originChannelId) {
 		List<GcVideo> channelVideoContent = ptChannelContent.stream()
-			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent))
+			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent, originChannelId))
 			.collect(Collectors.toList());
 
 		saveBatch(channelVideoContent);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent) {
-		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
-
-		queryWrapper.eq("file_id", channelContent.getFileId());
-
-		return Optional.ofNullable(getOne(queryWrapper));
 	}
 
 	@Override
@@ -746,7 +736,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return response;
 	}
 
-	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent) {
+	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent,
+											  Integer originChannelId) {
 		SysFile videoFile = getVideoFile(channelContent.getFileId(), sysFiles);
 
 		if (videoFile == null) {
@@ -760,6 +751,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		gcVideo.setFileId(videoFile.getId());
 		gcVideo.setThumbnailUrl(videoFile.getThumbNailUrl());
 		gcVideo.setVideoTime(videoFile.getVideoLong());
+		gcVideo.setOriginChannelId(originChannelId);
 
 		return gcVideo;
 	}

@@ -66,7 +66,8 @@ public class PtChannelContentServiceImpl
 
     @Override
     @Transactional
-    public void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList) {
+    public void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList,
+                                           Integer channelId) {
         if (CollectionUtils.isEmpty(ptChannelContent)) {
             log.error("Channel content list cannot be empty");
             throw new IllegalArgumentException("Channel content list cannot be empty");
@@ -86,10 +87,10 @@ public class PtChannelContentServiceImpl
         }
 
         updateBatchById(existingChannelContents);
-        videoService.saveChannelContent(newChannelContent, sysFileList);
+        videoService.saveChannelContent(newChannelContent, sysFileList, channelId);
 
         for (PtChannelContent content : newChannelContent) {
-            videoService.getChannelVideoContent(content)
+            videoService.getVideoContent(content.getFileId())
                 .ifPresent(videoContent -> content.setContentId(videoContent.getId()));
         }
 
