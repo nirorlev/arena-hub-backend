@@ -13,7 +13,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
@@ -165,7 +164,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
      * 点过1 没点过0
      */
     @TableField(exist = false)
-    private Integer likedFlag;
+    private Integer isLiked;
 
     @TableField(exist = false)
     private List<GcAccess> subscribeAccessList;

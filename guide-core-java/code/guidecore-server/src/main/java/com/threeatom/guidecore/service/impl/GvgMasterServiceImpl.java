@@ -430,10 +430,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			message.addData("discoverCourses",myMaySubjectPage);
 
 			//已订阅的channel视频,自己上传的不显示
-			PageInfo<PtChannel> channelPageInfo = new PageInfo<>();
-			List<PtChannel> channelPage = new ArrayList<>();
-			channelPage = ptChannelService.searchChannelsBySysFileNew(user.getId(),request,gcMaster.getId());
-			channelPageInfo = new PageInfo<>(channelPage);
+			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(user.getId(),request,gcMaster.getId());
+			PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channelPage);
 			message.addData("channelVideoPage",channelPageInfo);
 
 		});

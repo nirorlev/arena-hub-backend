@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.config.CourseStarConfiguration;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.enums.ReactionType;
 import com.threeatom.guidecore.mapper.GcUserVideoActionMapper;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import java.util.*;
@@ -29,14 +30,11 @@ public class GcUserVideoActionServiceImpl
 
     @Autowired private CourseStarConfiguration courseStarConfiguration;
 
-    //    private static final Logger LOGGER =
-    // LoggerFactory.getLogger(GcUserVideoActionServiceImpl.class);
-
     @Override
     @Transactional
     public boolean saveVideoAction(Integer contentId, Integer userId, Integer type) {
         GcUserVideoAction oldVideoAction = this.getOldVideoAction(contentId, userId, type);
-        boolean re = false;
+        boolean re;
         if (oldVideoAction != null) {
             re = this.deleteOldVideoAction(contentId, userId, type);
         } else {
@@ -54,16 +52,16 @@ public class GcUserVideoActionServiceImpl
     public List<Integer> getVideoLikeNumsByVideoIds(List<Integer> videoIds) {
         if (videoIds.isEmpty()) {
             return null;
-        } else {
-            List<Integer> likeNums = new ArrayList<Integer>();
-            for (Integer videoId : videoIds) {
-                QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("content_id", videoId);
-                queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
-                likeNums.add(this.count(queryWrapper));
-            }
-            return likeNums;
         }
+
+        List<Integer> likeNums = new ArrayList<>();
+        for (Integer videoId : videoIds) {
+            QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("content_id", videoId);
+            queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
+            likeNums.add(this.count(queryWrapper));
+        }
+        return likeNums;
     }
 
     @Override
@@ -246,5 +244,14 @@ public class GcUserVideoActionServiceImpl
         queryWrapper.eq("type", userVideoAction.getType());
         queryWrapper.eq("content_id", userVideoAction.getContentId());
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public boolean isLikedByUser(Integer contentId, Integer userId) {
+        QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("video_id", contentId);
+        queryWrapper.eq("type", ReactionType.LIKE.getReactionCode());
+        return this.count(queryWrapper) > 0;
     }
 }

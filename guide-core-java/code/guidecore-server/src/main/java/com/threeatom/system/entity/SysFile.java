@@ -125,7 +125,7 @@ public class SysFile implements Serializable {
     private Integer videoId;
 
     @TableField(exist = false)
-    private Integer isLike;
+    private Integer isLiked;
 
     @TableField(exist=false)
     private JSONObject source;

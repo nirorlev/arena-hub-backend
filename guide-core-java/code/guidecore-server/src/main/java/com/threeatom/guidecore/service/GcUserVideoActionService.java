@@ -60,4 +60,6 @@ public interface GcUserVideoActionService extends IService<GcUserVideoAction> {
     List<GcUserVideoAction> countLikeForFiles(List<Integer> fileId);
 
     GcUserVideoAction getActionByAction(GcUserVideoAction userVideoAction);
+
+    boolean isLikedByUser(Integer contentId, Integer userId);
 }

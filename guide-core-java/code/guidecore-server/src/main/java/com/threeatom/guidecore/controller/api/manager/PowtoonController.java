@@ -967,9 +967,9 @@ public class PowtoonController extends GuideCoreController {
 
 			for(GcUserSaveContent gcUserSaveContent : list.get(0).getSaveContentList()){
 				if (null!=isLikeMap.get(gcUserSaveContent.getContentId())){
-					gcUserSaveContent.getVideoFile().setIsLike(TableConstant.COMMON_ONE);
+					gcUserSaveContent.getVideoFile().setIsLiked(TableConstant.COMMON_ONE);
 				}else {
-					gcUserSaveContent.getVideoFile().setIsLike(TableConstant.COMMON_ZERO);
+					gcUserSaveContent.getVideoFile().setIsLiked(TableConstant.COMMON_ZERO);
 				}
 				gcUserSaveContent.getVideoFile().setLikeNum(TableConstant.COMMON_ZERO);
 				for (GcUserVideoAction gcVideo : gcVideos) {
