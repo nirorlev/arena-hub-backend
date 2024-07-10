@@ -843,6 +843,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
             String url = sysFileService.getResFullUrl(file, request);
             video.setVideoFullUrl(url);
             video.setSubId0(sub0Id);
+            video.setOriginCourseId(sub0Id);
             video.setThumbnailUrl(file.getThumbNailUrl());
             video.setVideoTime(file.getVideoLong());
         }
