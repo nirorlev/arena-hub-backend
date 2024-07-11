@@ -22,7 +22,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     implements SysMenuService {
 
     private static final Map<String, PermitResource> PERMIT_CHECK_MENU_RESOURCE_MAPPING =
-        Map.of("Insights1", PermitResource.PORTAL);
+        Map.of("Insights", PermitResource.PORTAL);
     private static final Map<String, PermitAction> PERMIT_CHECK_MENU_ACTION_MAPPING =
         Map.of("Insights", PermitAction.ACCESS_ANALYTICS);
     private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
