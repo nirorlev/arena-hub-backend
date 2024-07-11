@@ -48,14 +48,15 @@ public class PtChannelContentServiceImpl
     }
 
     public List<SysFile> selectVideosInChannel(
-        Integer channelId, String order, Integer fileId, HttpServletRequest request) {
+        Integer channelId, String order, Integer fileId, HttpServletRequest request, Integer userId) {
         PageParam pageParam = new PageParam(request);
+
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        return this.baseMapper.selectVideosInChannel(channelId, order, fileId);
+        return this.baseMapper.selectVideosInChannel(channelId, order, fileId, userId);
     }
 
     public List<PtChannelContent> selectContentExist(Integer channelId) {

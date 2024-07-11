@@ -104,7 +104,7 @@ public class GcVideo implements Serializable {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "是否点赞")
-    private int isLike;
+    private int isLiked;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "一级课程id")

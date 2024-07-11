@@ -248,9 +248,13 @@ public class GcUserVideoActionServiceImpl
 
     @Override
     public boolean isLikedByUser(Integer contentId, Integer userId) {
+        if (userId == null) {
+            return false;
+        }
+
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("video_id", contentId);
+        queryWrapper.eq("content_id", contentId);
         queryWrapper.eq("type", ReactionType.LIKE.getReactionCode());
         return this.count(queryWrapper) > 0;
     }

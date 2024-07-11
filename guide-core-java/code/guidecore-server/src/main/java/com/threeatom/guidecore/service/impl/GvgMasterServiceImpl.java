@@ -1593,64 +1593,30 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		List<Integer> permissionSubIds = new ArrayList<>();
 
 		if (envFlag.equals(EnvType.PT.getCode())){
-			if (null!= user){
-				List<GcUserAccess> gcUserAccess = gcUserAccessService.selectPtUserAccessByMasterIdAndUserId(user.getId(),masterId);
-				List<GcUserAccessPermission> userAccessPermissions = gcUserAccessService.getUsersAccessPermissions(gcUserAccess.stream().map(GcUserAccess::getId).collect(Collectors.toList()));
-				for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
-					if (null!=userAccessPermission.getSubPermission()){
-						permissionSubIds.addAll(userAccessPermission.getSubPermission().toJavaList(Integer.class));
-					}
-				}
-				permissionSubIds.add(subject.getFid());
-			}else {
-				user = new GcUser();
-			}
-		}else {
-			if (null != user){
-				GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(),masterId);
-				gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
-				if (null!=gcUserAccessPermission.getSubPermission()){
-					permissionSubIds.addAll(gcUserAccessPermission.getSubPermission().toJavaList(Integer.class));
-				}
-			}else {
-				user = new GcUser();
-			}
-		}
+            List<GcUserAccess> gcUserAccess =
+                gcUserAccessService.selectPtUserAccessByMasterIdAndUserId(user.getId(), masterId);
+            List<GcUserAccessPermission> userAccessPermissions = gcUserAccessService.getUsersAccessPermissions(gcUserAccess.stream().map(GcUserAccess::getId).collect(Collectors.toList()));
+            for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
+                if (null!=userAccessPermission.getSubPermission()){
+                    permissionSubIds.addAll(userAccessPermission.getSubPermission().toJavaList(Integer.class));
+                }
+            }
+            permissionSubIds.add(subject.getFid());
+        }else {
+            GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(), masterId);
+            gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
+            if (null!=gcUserAccessPermission.getSubPermission()){
+                permissionSubIds.addAll(gcUserAccessPermission.getSubPermission().toJavaList(Integer.class));
+            }
+        }
 
-
-//		if (null != user){
-//			GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(),masterId);
-//			gcUserAccessPermission = gcUserAccess.getGcUserAccessPermission();
-//			JSONArray subPermission = gcUserAccessPermission.getSubPermission();
-//			//判断该用户是否拥有当前视频权限，以及当前视频所在的课程是否过期
-//			List<Integer> accessPermission = gcUserAccessPermission.getSubPermission().toJavaList(Integer.class);
-//			if(!accessPermission.contains(subject.getFid())){
-//				return new Message().error(I18NUtil.get("guidecore.video.access"));
-//			}else if(accessPermission.contains(subject.getFid()) && null!=gcUserAccessPermission.getShortTermPermission()){
-//				List<SysPackagePeriod> gcUserAccessPermissionList = gcUserAccessPermission.getShortTermPermission().toJavaList(SysPackagePeriod.class);
-//				List<Integer> shortTermIds = gcUserAccessPermissionList.stream().map(SysPackagePeriod::getId).collect(Collectors.toList());
-//				Date date = new Date();
-//				if (shortTermIds.contains(subject.getFid())) {
-//					Optional<SysPackagePeriod> userAccessPermission = gcUserAccessPermissionList.stream().filter(e->subject.getFid().equals(e.getId())).findFirst();
-//					SysPackagePeriod sysPackagePeriod = userAccessPermission.get();
-//					if(sysPackagePeriod.getExpired().before(date)){
-//						return new Message().error(I18NUtil.get("guidecore.video.access"));
-//					}
-//				}
-//			}
-//		}else {
-//			user = new GcUser();
-//		}
-
-
-		List<GcResource> resourceServiceList = new ArrayList<>();
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
 		}
-		resourceServiceList = resourceService.getResByVid(videoId);
+		List<GcResource> resourceServiceList = resourceService.getResByVid(videoId);
 		//如果没登录，不返回fullfileurl
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		if (Objects.nonNull(user.getId()) && permissionSubIds.contains(subject.getFid())) {
@@ -1699,14 +1665,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		//点赞，评价, userVideoAction
 		List<GcUserVideoAction> videoActionList = gcUserVideoActionService.getVideoActionListByVidAndUserId(videoId, user.getId());
-		Integer isLike =0;
+		int isLiked =0;
 		GcUserVideoAction rateVideoAction=null;
 		GcUserVideoAction startAction=null;
 		Double starValue=null;
 		for(GcUserVideoAction va:videoActionList) {
-			if(va.getType().intValue()==TableConstant.gcUserVideoAction_type_like1)isLike=1;
-			if(va.getType().intValue()==TableConstant.gcUserVideoAction_type_rate2)rateVideoAction=va;
-			if(va.getType().intValue()==TableConstant.gcUserVideoAction_type_star3)starValue=va.getStarValue();
+			if(va.getType() ==TableConstant.gcUserVideoAction_type_like1)isLiked=1;
+			if(va.getType() ==TableConstant.gcUserVideoAction_type_rate2)rateVideoAction=va;
+			if(va.getType() ==TableConstant.gcUserVideoAction_type_star3)starValue=va.getStarValue();
 		}
 
 		PageInfo<GcResource> resourcePageInfo = new PageInfo<>(resourceServiceList);
@@ -1719,7 +1685,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		m.addData("countLike", countLike);
 		m.addData("countComment", countComment);
 		m.addData("countNote", countNote);
-		m.addData("isLike", isLike);//点赞
+		m.addData("isLiked", isLiked);//点赞
 		m.addData("starValue", starValue);//打星评价
 		m.addData("subject0",subject0);//一级课程信息
 		m.addData("返回说明", "thisVideo视频对象，eventList问题列表，totalEventNum总问题数，"

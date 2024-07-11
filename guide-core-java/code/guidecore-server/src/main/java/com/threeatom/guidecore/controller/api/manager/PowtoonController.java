@@ -887,11 +887,12 @@ public class PowtoonController extends GuideCoreController {
 		GcVideo videoContent = gcVideoService.getVideoContent(fileId).orElseThrow();
 		Integer countLike= gcUserVideoActionService.countLikeForFile(videoContent.getId());
 		GcUserVideoAction videoActionList = gcUserVideoActionService.getFileActionListByFileIdAndUserId(videoContent.getId(), user.getId());
-		Integer isLike =0;
+		int isLiked = 0;
 		if (null!=videoActionList){
-			isLike=1;
+			isLiked= 1;
 		}
-		file.setLikedFlag(isLike);
+		file.setLikedFlag(isLiked);
+		file.setIsLiked(isLiked);
 		file.setLikeNum(countLike);
 		return new Message().ok().addData("file",file);
 	}
@@ -990,6 +991,8 @@ public class PowtoonController extends GuideCoreController {
 		String snapshotUrl = sysFileService.getVideoSnapshotUrl(file);
 		file.setSnapshotUrl(snapshotUrl);
 		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
+        file.setVideoId(videoContent.getId());
+        file.setIsLiked(videoActionService.isLikedByUser(videoContent.getId(), myUser.getId()) ? 1 : 0);
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -2758,24 +2761,21 @@ public class PowtoonController extends GuideCoreController {
 		return gvgMasterService.answerQuestion(jsonRequest,request,request.getIntHeader("masterId"),this.getGcUser(),EnvType.PT.getCode(),this.getSystem());
 	}
 
-	@ApiOperation(value = "获取单个文件夹的内容列表", httpMethod = "POST")
+	@ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")
 	@PostMapping("/getContentFromOneFolder")
 	public Message getContentFromOneFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
 		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		if(Objects.isNull(gcUserSaveFolder.getId())){
+        if(Objects.isNull(gcUserSaveFolder.getId())){
 			throw new SystemException(I18NUtil.get("powtoon.folder.error"));
 		}
 		String token = request.getHeader("Authorization");
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		if (null != token && !"".equals(token) && !"undefined".equals(token)) {
+		if (!"undefined".equals(token)) {
 			GcUser gcUser = getGcUser();
 			return gcMasterService.getContentFromOneFolder(gcUserSaveFolder,gcUser,request,EnvType.PT.getCode()).addData("systemTime",df.format(new Date()));
-		}else {
-			return gcMasterService.getContentFromOneFolder(gcUserSaveFolder,null,request,EnvType.PT.getCode()).addData("systemTime",df.format(new Date()));
 		}
+
+		return gcMasterService.getContentFromOneFolder(gcUserSaveFolder,null,request,EnvType.PT.getCode()).addData("systemTime",df.format(new Date()));
 	}
 
 	@ApiOperation(value = "查询自己创建的所有二级课程")
@@ -3607,11 +3607,7 @@ public class PowtoonController extends GuideCoreController {
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
 		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
-		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
-		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
-		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
-		videoFile.setFullFileUrl(fullFileUrl);
-		videoFile.setSnapshotUrl(snapShotUrl);
+		SysFile videoFile = getFile(request, channelVideoContent, currentUser.getId());
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);
 		}else {
@@ -3632,7 +3628,7 @@ public class PowtoonController extends GuideCoreController {
 			ptChannel.setChannelSlug(channel.getChannelSlug());
 		}
 		message.ok().addData("channel",ptChannel);
-		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request);
+		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
 		for(SysFile sysFile : videofiles){
 			String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
 			sysFile.setSnapshotUrl(snapshotUrl);
@@ -3730,76 +3726,18 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error("删除失败");
 	}
 
-
-
-
-//	@ApiOperation(value = "视频详情页-问题详情框", httpMethod = "GET")
-//	@PostMapping("/eventDetail")
-//	public Message  videoEventDetail(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-//		Message m = new Message().ok();
-//		Integer eventId = jsonRequest.getInteger("eventId");
-//		Integer masterId = request.getIntHeader("masterId");
-//		GcMaster master = masterService.getById(masterId);
-//		ApiAssert.notNull(eventId, "事件id不可空");
-//		//问题信息
-//		GcEvent event = eventService.getEventById(eventId,this.getGcUser().getId());
-//		//其他回答过问题的用户的头像
-//		List<GcUserAnswer> eventAnswerList = new ArrayList<>();
-//		if(null==master.getAnswerShowFlag() || TableConstant.COMMON_ONE==master.getAnswerShowFlag()) {
-//			eventAnswerList = userAnswerService.getAnswerListByEventId(eventId, null, masterId);
-//		}else {
-//			eventAnswerList = new ArrayList<>();
-//		}
-//
-//		List<Integer> userIdList = new ArrayList<>();
-//		for (GcUserAnswer eventAnswer : eventAnswerList) {
-//			userIdList.add(eventAnswer.getUserId());
-//			SysFile userFile = new SysFile();
-//			userFile.setFileUrl(eventAnswer.getAvatarUrl());
-//			userFile.setSaveType(eventAnswer.getSaveType());
-//			if (eventAnswer.getAvatarUrl() != "")
-//				eventAnswer.setAvatarUrl(sysFileService.getResFullUrl(userFile, request));
-//		}
-//
-//		if(userIdList!=null && TableConstant.COMMON_ZERO!=userIdList.size()){
-//			List<GcUserFabulous> fabulousNum = gcUserFabulousService.getEventFabulousNumList(eventId,userIdList);
-//			List<GcUserNoteComment> commentNum = gcUserNoteCommentService.selectCommentNumList(eventId,userIdList,masterId);
-//			Map<Integer,List<GcUserFabulous>> fabulousmap = fabulousNum.stream().collect(Collectors.groupingBy(GcUserFabulous::getTargetUserId));
-//			Map<Integer,List<GcUserNoteComment>> commentNummap = commentNum.stream().collect(Collectors.groupingBy(GcUserNoteComment::getTargetUserId));
-//			for(Integer key : fabulousmap.keySet()){
-//				List<GcUserFabulous> gcUserFabulous = fabulousmap.get(key);
-//				for (GcUserAnswer gcUserAnswer : eventAnswerList) {
-//					if(gcUserAnswer.getUserId().equals(key)){
-//						gcUserAnswer.setLikeNum(gcUserFabulous.size());
-//					}
-//				}
-//			}
-//
-//			for(Integer key : commentNummap.keySet()){
-//				List<GcUserNoteComment> gcUserNoteComments = commentNummap.get(key);
-//				for (GcUserAnswer gcUserAnswer : eventAnswerList) {
-//					if(gcUserAnswer.getUserId().equals(key)){
-//						gcUserAnswer.setCommentNum(gcUserNoteComments.size());
-//					}
-//				}
-//			}
-//		}
-//
-//		//暂时循环调用
-//		for(GcUserAnswer gcUserAnswer : eventAnswerList){
-//			Integer userId = gcUserAnswer.getUserId();
-//			JSONObject jsonObject = new JSONObject();
-//			jsonObject.put("eventId",eventId);
-//			jsonObject.put("otherUserId",userId);
-//			Message answerList = gvgMasterService.eventAnswerList(jsonObject,request,this.getGcUser());
-//			gcUserAnswer.setAnswerMap(answerList.getData());
-//		}
-//
-//		m.addData("eventAnswerList", eventAnswerList);
-//		m.addData("event", event);
-//		m.addData("说明", "event-事件详情，eventAnswerList-事件回答头像list");
-//		return m;
-//	}
+	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, Integer userId) {
+		Integer contentId = channelVideoContent.getId();
+		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
+		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
+		videoFile.setFullFileUrl(fullFileUrl);
+		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setVideoId(contentId);
+		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, userId) ? 1 : 0);
+		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
+		return videoFile;
+	}
 }
 
 

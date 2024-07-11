@@ -12,7 +12,7 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     Boolean changeContentOrder(List<Integer> contentIds);
 
     List<SysFile> selectVideosInChannel(
-            Integer channelId, String order, Integer videoFileId, HttpServletRequest request);
+        Integer channelId, String order, Integer videoFileId, HttpServletRequest request, Integer userId);
 
     Boolean deleteContent(Integer videoId, Integer channelId);
 

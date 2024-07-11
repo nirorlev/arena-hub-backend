@@ -11,5 +11,6 @@ public interface PtchannelContentMapper extends BaseMapper<PtChannelContent> {
     List<SysFile> selectVideosInChannel(
             @Param("channelId") Integer channelId,
             @Param("order") String order,
-            @Param("fileId") Integer fileId);
+            @Param("fileId") Integer fileId,
+            @Param("userId") Integer userId);
 }
