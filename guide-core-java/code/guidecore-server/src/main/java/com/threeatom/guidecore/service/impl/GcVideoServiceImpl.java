@@ -444,7 +444,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			//Map<Integer,List<GcVideo>>videoMaps = gcVideos.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 
 			Map<String, Object> videoParams = new HashMap<>();
-			videoParams.put("videoIds",videoIds);
+			videoParams.put("contentIds",videoIds);
 			videoParams.put("type",1);
 			//查询点赞
 			Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);
@@ -821,10 +821,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if(CollectionUtils.isNotEmpty(gcVideos)){
 			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
 			Map<String, Object> videoParams = new HashMap<>(3);
-			videoParams.put("videoIds", videoIds);
-//			videoParams.put("subjectIds", subjectIds);
+			videoParams.put("contentIds", videoIds);
 			videoParams.put("type", 1);//点赞
-//			videoParams.putAll(params);//
 			//查询点赞
 			Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);
 			// 查询评论 根据视频id查询评论 评论列表单独接口
@@ -1034,7 +1032,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
 
 			Map<String, Object> videoParams = new HashMap<>();
-			videoParams.put("videoIds",videoIds);
+			videoParams.put("contentIds",videoIds);
 			videoParams.put("type",1);
 			//查询点赞
 			Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);

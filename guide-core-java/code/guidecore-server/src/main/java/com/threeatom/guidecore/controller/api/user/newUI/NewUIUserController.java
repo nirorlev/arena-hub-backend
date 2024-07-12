@@ -422,6 +422,8 @@ public class NewUIUserController extends GuideCoreController {
             @RequestBody GcUserVideoAction userVideoAction, HttpServletRequest request) {
         ApiAssert.notNull(userVideoAction.getVideoId(), "视频id不可空");
         ApiAssert.notNull(userVideoAction.getStarValue(), "视频id不可空");
+
+        userVideoAction.setContentId(userVideoAction.getVideoId());
         userVideoAction.setUserId(this.getGcUser().getId());
         userVideoAction.setType(TableConstant.gcUserVideoAction_type_star3);
 

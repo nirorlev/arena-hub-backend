@@ -13,7 +13,9 @@
 
     <select id="selectVideosInChannel" resultType="com.threeatom.system.entity.SysFile">
         select video.*, content.id as ptChannelContentId ,
-        coalesce((select count(1) from gc_user_video_action where file_id=video.id and type=1),0) as likeNum
+        coalesce((select count(1)
+                  from gc_user_video_action
+                  where gc_user_video_action.content_id = video_content.id and type=1),0) as likeNum
         from gc_video video_content
         JOIN sys_file video ON video_content.file_id = video.id
         left join pt_channel_content content on content.content_id = video_content.id

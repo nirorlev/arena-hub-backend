@@ -1106,134 +1106,6 @@
 		</choose>
 	</select>
 
-	<select id="selectCategorySubject" resultMap="baseResultMap">
-		select DISTINCT
-		a.ID,
-		a.MASTER_ID,
-		a.NAME,
-		a.DESCRIPTION,
-		a.TYPE,
-		a.SUB_ID,
-		a.LEVEL,
-		a.FID,
-		a.ORDER,
-		a.SUB_IMG_ID,
-		a.STATE,
-		a.TOKEN,
-		a.IS_PUBLIC,
-		a.UPDATE_TIME,
-		a.CREATE_TIME,
-		a.INTRO_ON_OFF,
-		a.TEMPLATE_ID,
-		a.COURSE_TAGLINE,
-		a.cate_id,
-		sys.ID AS F_ID,
-		sys.NAME AS F_NAME,
-		sys.FILE_URL AS F_FILE_URL,
-		sys.SAVE_TYPE AS F_SAVE_TYPE,
-		a.video_name as videoName,
-		sys.file_type as fileType,
-		a.activate_size as price,
-		coalesce(sum(sys.video_long),0) as sumVideoLong,
-		coalesce(count(UVA.id),0) as subjectStarUsers,
-		coalesce(AVG(UVA.STAR_VALUE),0.0) as subjectStarAvg,
-		coalesce(count(record.id),0) as orderNum
-		from (
-		select s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
-		s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
-		,s.state, s.token, s.is_public,s.cate_id ,s.language,s.course_tagline,v.video_name,active.activate_size,v.file_id from gc_subject s
-		left join gc_subject sub1 on s.id = sub1.fid
-		left join gc_video v on v.sub_id=sub1.id
-		where 1=1 and s.level=0
-		<if test="cateParams.categoryIds !=null">
-			and s.cate_id in
-			<foreach collection="cateParams.categoryIds" item="categoryId" index="index" open="(" close=")" separator=",">
-				#{categoryId}
-			</foreach>
-		</if >
-		<if test="cateParams.languages!=null">
-			and s.language in
-			<foreach collection="cateParams.languages" item="language" index="index" open="(" close=")" separator=",">
-				#{language}
-			</foreach>
-		</if>
-		<if test="cateParams.subjectName != null and cateParams.subjectName != ''">
-			and s.name LIKE CONCAT(CONCAT('%', #{cateParams.subjectName}),'%')
-		</if>
-		<if test="cateParams.subIds != null and cateParams.subIds.size !=0">
-			and S.id in
-			<foreach collection="cateParams.subIds" item="subId" index="index" open="(" close=")" separator=",">
-				#{subId}
-			</foreach>
-		</if>
-		group by s.id
-		)a
-		left join sys_file sys on sys.id=a.file_id
-		left join gc_user_video_action uva on uva.sub_id = a.id
-		left join gc_master_pay_records record on record.subject_id = a.id and record.state=1
-		where 1=1
-		group by a.id,record.id
-		<if test="cateParams.durationMax1 !=null or cateParams.durationMax2 !=null or cateParams.durationMax3 !=null or cateParams.durationMin4 !=null">
-			HAVING 1=2 or(
-			1=2
-			<if test="cateParams.durationMax1 !=null and cateParams.durationMax1 !=''">
-				or (sumVideoLong&lt;=#{cateParams.durationMax1} and sumVideoLong&gt;=#{cateParams.durationMin1})
-			</if>
-			<if test="cateParams.durationMax2 !=null and cateParams.durationMax2 !=''">
-				or (sumVideoLong&lt;=#{cateParams.durationMax2} and sumVideoLong&gt;=#{cateParams.durationMin2})
-			</if>
-			<if test="cateParams.durationMax3 !=null and cateParams.durationMax3 !=''">
-				or (sumVideoLong&lt;=#{cateParams.durationMax3} and sumVideoLong&gt;=#{cateParams.durationMin3})
-			</if>
-			<if test="cateParams.durationMin4 !=null and cateParams.durationMin4 !=''">
-				or (sumVideoLong&gt;=#{cateParams.durationMin4})
-			</if>
-			)
-			<if test="cateParams.starMax1 !=null or cateParams.starMax2 !=null or cateParams.starMax3!=null or cateParams.starMax5 !=null">
-				and (
-				1=2
-				<if test="cateParams.starMax1 != null and cateParams.starMax1 != ''">
-					or (subjectStarAvg&gt;=#{cateParams.starMin1} and subjectStarAvg&lt;=#{cateParams.starMax1})
-				</if>
-				<if test="cateParams.starMax2 != null and cateParams.starMax2 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin2} and subjectStarAvg&lt;=#{cateParams.starMax2})
-				</if>
-				<if test="cateParams.starMax3 != null and cateParams.starMax3 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin3} and subjectStarAvg&lt;=#{cateParams.starMax3})
-				</if>
-				<if test="cateParams.starMax4 != null and cateParams.starMax4 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin4} and subjectStarAvg&lt;=#{cateParams.starMax4})
-				</if>
-				<if test="cateParams.starMax5 != null and cateParams.starMax5 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin5} and subjectStarAvg&lt;=#{cateParams.starMax5})
-				</if>
-				)
-			</if>
-		</if>
-		<if test="cateParams.durationMax1 ==null and cateParams.durationMax2 ==null and cateParams.durationMax3 ==null and cateParams.durationMin4 ==null">
-			<if test="cateParams.starMax1 !=null or cateParams.starMax2 !=null or cateParams.starMax3!=null or cateParams.starMax5 !=null">
-				Having 1=2 or(
-				1=2
-				<if test="cateParams.starMax1 != null and cateParams.starMax1 != ''">
-					or (subjectStarAvg&gt;=#{cateParams.starMin1} and subjectStarAvg&lt;=#{cateParams.starMax1})
-				</if>
-				<if test="cateParams.starMax2 != null and cateParams.starMax2 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin2} and subjectStarAvg&lt;=#{cateParams.starMax2})
-				</if>
-				<if test="cateParams.starMax3 != null and cateParams.starMax3 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin3} and subjectStarAvg&lt;=#{cateParams.starMax3})
-				</if>
-				<if test="cateParams.starMax4 != null and cateParams.starMax4 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin4} and subjectStarAvg&lt;=#{cateParams.starMax4})
-				</if>
-				<if test="cateParams.starMax5 != null and cateParams.starMax5 != ''">
-					or (subjectStarAvg&gt;#{cateParams.starMin5} and subjectStarAvg&lt;=#{cateParams.starMax5})
-				</if>
-				)
-			</if>
-		</if>
-		order by orderNum desc
-	</select>
 
 	<select id="selectAllSubsByPartipants" resultType="com.threeatom.guidecore.entity.GcUser">
 		SELECT subject_id as "subjectId", SUM(SUBJECT_USERS) as "subjectUsers" ,master_id as subjectMasterId FROM (
@@ -1253,19 +1125,6 @@
 		GROUP BY S.ID
 		) T WHERE SUBJECT_ID IS NOT NULL
 		group by SUBJECT_ID
-	</select>
-
-	<select id="recommentCourse" resultMap="baseResultMap">
-		select DISTINCT s.id,s.master_id,s.name,s.description,s.cate_id,s.sub_img_id,avg(va.star_value) as subjectStarAvg from gc_subject s
-																																															  LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
-																																															  LEFT JOIN gc_video v on v.sub_id = sub1.id
-																																															  LEFT JOIN gc_user_video_action va on va.sub_id = s.id
-
-		where s.cate_id in
-			  (select cate_id from gc_subject where id in
-													(select DISTINCT subject_id from gc_master_pay_records where user_id = #{userId} and subject_id is not null))
-		group by s.id
-		order by orderNum desc
 	</select>
 
 	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.GcSubject">
@@ -2400,7 +2259,7 @@
 		LEFT JOIN gc_user u ON u.id = s.create_user
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		LEFT JOIN sys_file f2 ON f2.id = v.file_id
-		LEFT JOIN gc_user_video_action ac ON ac.video_id = v.id AND ac.type = 1
+		LEFT JOIN gc_user_video_action ac ON ac.content_id = v.id AND ac.type = 1
 		WHERE s.level = 0
 		AND (s.available_type = 1 OR s.available_type = 3)
 		AND s.master_id = #{masterId}

@@ -726,7 +726,7 @@
         left join gc_user us on us.id = userAccess.user_id
         left join gc_user us2 on us2.id = channel.create_user_id
         left join gc_user_info info on info.id = us2.info_id
-        left join gc_user_video_action vac on vac.file_id = video_content.file_id and vac."type" = 1
+        left join gc_user_video_action vac on vac.content_id = video_content.id and vac."type" = 1
         where 1=1
         and (userAccess.user_id = #{userId}
         and us.id = #{userId}
@@ -845,6 +845,7 @@
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
                   video_content.update_time as file_update_time,
+                  video_content.id as videoContentId,
                   coalesce(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
                   coalesce(ch2.id,channel.id) as id,
                   coalesce(ch2.channel_name,channel.channel_name) as channel_name,
@@ -873,7 +874,7 @@
                 and channel.master_id = #{masterId}
               order by video_content.id desc, video_content.update_time desc
              ) as f
-                 left join gc_user_video_action vac on f.fileId = vac.file_id and vac."type" = 1
+                 left join gc_user_video_action vac on f.videoContentId = vac.content_id and vac."type" = 1
         GROUP BY f.fileId, f.channel_img_file_id, f."desc", f.create_user_id, f.visible_flag, f.category_id, f.level, f.fid,
                  f."order", f.master_id, f.channel_slug, f.create_time, f.update_time, f.file_update_time,
                  f.channel_avatar_file_id, f.id, f.channel_name, f.userInfo_lastName, f.userInfo_firstName,
@@ -908,11 +909,11 @@
                                                                left join pt_channel channel on pcc.channel_id = channel.id
                                                                left join pt_channel ch2 on ch2.id = channel.fid
                                                                left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
-             left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+                                                               left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
                                                           left join gc_user us on us.id = userAccess.user_id
                                                           left join gc_user us2 on us2.id = channel.create_user_id
                                                           left join gc_user_info info on info.id = us2.info_id
-                                                          left join gc_user_video_action vac on vac.file_id = file.id and vac."type" = 1
+                                                          left join gc_user_video_action vac on vac.content_id = pcc.content_id and vac."type" = 1
                                                       where 1=1
                                                         and userAccess.user_id = #{userId}
                                                         and us.id = #{userId}

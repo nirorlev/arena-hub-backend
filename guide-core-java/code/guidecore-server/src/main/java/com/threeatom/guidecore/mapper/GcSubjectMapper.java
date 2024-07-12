@@ -163,11 +163,7 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
             @Param("masterId") Integer masterId,
             @Param("context") String context);
 
-    List<GcSubject> selectCategorySubject(@Param("cateParams") Map<String, Object> cateParams);
-
     List<GcUser> selectAllSubsByPartipants(@Param("params") Map<String, Object> params);
-
-    List<GcSubject> recommentCourse(@Param("userId") Integer userId);
 
     GcSubject selectTagsById(@Param("id") Integer subjectId, @Param("masterId") Integer masterId);
 

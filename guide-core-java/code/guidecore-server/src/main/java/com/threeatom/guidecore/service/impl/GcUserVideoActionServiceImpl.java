@@ -34,17 +34,17 @@ public class GcUserVideoActionServiceImpl
 
     @Override
     @Transactional
-    public boolean saveVideoAction(Integer vid, Integer userId, Integer type) {
-        // TODO Auto-generated method stub
-        GcUserVideoAction oldVideoAction = this.getOldVideoAction(vid, userId, type);
+    public boolean saveVideoAction(Integer contentId, Integer userId, Integer type) {
+        GcUserVideoAction oldVideoAction = this.getOldVideoAction(contentId, userId, type);
         boolean re = false;
         if (oldVideoAction != null) {
-            re = this.deleteOldVideoAction(vid, userId, type);
+            re = this.deleteOldVideoAction(contentId, userId, type);
         } else {
             GcUserVideoAction videoAction = new GcUserVideoAction();
             videoAction.setUserId(userId);
             videoAction.setType(type);
-            videoAction.setVideoId(vid);
+            videoAction.setVideoId(contentId);
+            videoAction.setContentId(contentId);
             re = this.saveOrUpdate(videoAction);
         }
         return re;
@@ -58,7 +58,7 @@ public class GcUserVideoActionServiceImpl
             List<Integer> likeNums = new ArrayList<Integer>();
             for (Integer videoId : videoIds) {
                 QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("video_id", videoId);
+                queryWrapper.eq("content_id", videoId);
                 queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
                 likeNums.add(this.count(queryWrapper));
             }
@@ -74,26 +74,26 @@ public class GcUserVideoActionServiceImpl
     }
 
     @Override
-    public List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId) {
+    public List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer content_id, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("video_id", vid);
+        queryWrapper.eq("content_id", content_id);
         return this.list(queryWrapper);
     }
 
     @Override
-    public GcUserVideoAction getFileActionListByFileIdAndUserId(Integer fileId, Integer userId) {
+    public GcUserVideoAction getFileActionListByFileIdAndUserId(Integer contentId, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("file_id", fileId);
+        queryWrapper.eq("content_id", contentId);
         queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
         return this.getOne(queryWrapper);
     }
 
     @Override
-    public List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> fileId, Integer userId) {
+    public List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> contentIds, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("file_id", fileId);
+        queryWrapper.in("content_id", contentIds);
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", TableConstant.gcUserVideoAction_type_like1);
         return this.list(queryWrapper);
@@ -104,34 +104,34 @@ public class GcUserVideoActionServiceImpl
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", type);
-        queryWrapper.eq("video_id", vid);
+        queryWrapper.eq("content_id", vid);
         return getOne(queryWrapper);
     }
 
     @Override
-    public GcUserVideoAction getOldChannelVideoAction(Integer fileId, Integer userId, Integer type) {
+    public GcUserVideoAction getOldChannelVideoAction(Integer contentId, Integer userId, Integer type) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", type);
-        queryWrapper.eq("file_id", fileId);
+        queryWrapper.eq("content_id", contentId);
         return getOne(queryWrapper);
     }
 
     @Override
-    public boolean deleteOldVideoAction(Integer vid, Integer userId, Integer type) {
+    public boolean deleteOldVideoAction(Integer content_id, Integer userId, Integer type) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", type);
-        queryWrapper.eq("video_id", vid);
+        queryWrapper.eq("content_id", content_id);
         return this.remove(queryWrapper);
     }
 
     @Override
-    public boolean deleteChannelOldVideoAction(Integer fileId, Integer userId, Integer type) {
+    public boolean deleteChannelOldVideoAction(Integer contentId, Integer userId, Integer type) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("type", type);
-        queryWrapper.eq("file_id", fileId);
+        queryWrapper.eq("content_id", contentId);
         return this.remove(queryWrapper);
     }
 
@@ -147,7 +147,7 @@ public class GcUserVideoActionServiceImpl
     public Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params) {
         List<GcUserVideoAction> vos = this.baseMapper.getVideoActionBySubject(params);
         if (CollectionUtils.isNotEmpty(vos)) {
-            return vos.stream().collect(Collectors.groupingBy(GcUserVideoAction::getVideoId));
+            return vos.stream().collect(Collectors.groupingBy(GcUserVideoAction::getContentId));
         }
         return new HashMap<>(0);
     }
@@ -227,14 +227,14 @@ public class GcUserVideoActionServiceImpl
     }
 
     @Override
-    public Integer countLikeForFile(Integer fileId) {
-        return this.baseMapper.countLikeForFile(fileId);
+    public Integer countLikeForFile(Integer contentId) {
+        return this.baseMapper.countLikeForFile(contentId);
     }
 
     @Override
-    public List<GcUserVideoAction> countLikeForFiles(List<Integer> fileId) {
-        if (null != fileId && fileId.size() > 0) {
-            return this.baseMapper.countLikeForFiles(fileId);
+    public List<GcUserVideoAction> countLikeForFiles(List<Integer> contentIds) {
+        if (CollectionUtils.isNotEmpty(contentIds)) {
+            return this.baseMapper.countLikeForFiles(contentIds);
         }
         return new ArrayList<>();
     }
@@ -244,7 +244,7 @@ public class GcUserVideoActionServiceImpl
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userVideoAction.getUserId());
         queryWrapper.eq("type", userVideoAction.getType());
-        queryWrapper.eq("video_id", userVideoAction.getVideoId());
+        queryWrapper.eq("content_id", userVideoAction.getContentId());
         return getOne(queryWrapper);
     }
 }

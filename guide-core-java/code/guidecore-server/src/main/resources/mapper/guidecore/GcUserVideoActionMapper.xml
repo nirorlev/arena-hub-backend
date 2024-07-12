@@ -28,42 +28,32 @@
 	</resultMap>
 
 	<select id="countTypeRateForVideo" resultType="map">
-		select value, count(1) as count from gc_user_video_action
-		where video_id=#{videoId} and type=#{type} group by value
+		select value, count(1) as count
+		from gc_user_video_action
+		where content_id=#{contentId} and type=#{type} group by value
 	</select>
 
 	<select id="getVideoActionBySubject"
 		parameterType="java.util.Map"
 		resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
 		SELECT
-		S.ID AS "subjectId",UVA.VIDEO_ID as "videoId", UVA.TYPE as "type",
+		S.ID AS "subjectId",UVA.content_id as "contentId", UVA.TYPE as "type",
 		UVA.STAR_VALUE as "starValue", UVA.VALUE as "value"
 		FROM
 		GC_SUBJECT S
 		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
 		LEFT JOIN GC_VIDEO V ON
 		V.SUB_ID = S0.ID
-		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
-		V.ID
+		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.content_id = V.ID
 		<where>
-			<if test="videoId != null">
-				AND UVA.VIDEO_ID = #{videoId}
-			</if>
 			<if test="type != null">
 				AND UVA.TYPE = #{type}
 			</if>
-			<if test="videoIds != null">
-				AND UVA.VIDEO_ID IN
-				<foreach item="videoId" collection="videoIds" open="("
+			<if test="contentIds != null">
+				AND UVA.content_id IN
+				<foreach item="contentId" collection="contentIds" open="("
 					separator="," close=")">
-					#{videoId}
-				</foreach>
-			</if>
-			<if test="ids != null">
-				AND S.ID IN
-				<foreach item="id" collection="subjectIds" open="("
-					separator="," close=")">
-					#{id}
+					#{contentId}
 				</foreach>
 			</if>
 		</where>
@@ -81,21 +71,13 @@
 		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
 		LEFT JOIN GC_VIDEO V ON
 		V.SUB_ID = S0.ID
-		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
-		V.ID
+		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.content_id = V.ID
 		WHERE UVA.type=3
 		<if test="subjectIds != null and subjectIds.size !=0">
 			AND S.ID IN
 			<foreach item="id" collection="subjectIds" open="("
 				separator="," close=")">
 				#{id}
-			</foreach>
-		</if>
-		<if test="videoIds != null">
-			AND UVA.VIDEO_ID IN
-			<foreach item="videoId" collection="videoIds" open="("
-				separator="," close=")">
-				#{videoId}
 			</foreach>
 		</if>
 		GROUP BY s.id
@@ -117,88 +99,34 @@
 		GROUP BY s.id, UVA.sub_id
 	</select>
 
-	<!-- 根据课程ID和视频IDlist统计课程下的打星总人数和平均值 -->
-	<select id="getSubjectUserStars" parameterType="java.util.Map"
-			resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
-		SELECT
-		S.ID AS "subjectId",COUNT(uva."user_id") as "subjectStarUsers",
-		AVG(UVA.STAR_VALUE) as "subjectStarAvg"
-		FROM
-		GC_SUBJECT S
-		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
-		LEFT JOIN GC_VIDEO V ON
-		V.SUB_ID = S0.ID
-		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.VIDEO_ID =
-		V.ID
-		WHERE UVA.type=3 AND S.id=#{subId}
-		<if test="videoList != null">
-			AND UVA.VIDEO_ID IN
-			<foreach item="videoId" collection="videoList" open="("
-					 separator="," close=")">
-				#{videoId}
-			</foreach>
-		</if>
-		GROUP BY S.id
-	</select>
-
-	<select id="getStarList" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
-		SELECT a.user_id as userId,a.*,s.sub_id as subjectId from gc_user_video_action a
-        left join gc_video v on v.id=a.video_id
-        left join gc_subject s on s.id = v.sub_id
-        where v.id in
-		<foreach item="videoId" collection="videoIds" open="("
-				 separator="," close=")">
-			#{videoId}
-		</foreach>
-	</select>
-
-
-
 	<select id="countLikeForVideo" resultType="Integer">
 		select count(1) from
-		gc_user_video_action where type =1 and video_id = #{videoId}
+		gc_user_video_action where type =1 and content_id = #{videoId}
 	</select>
 
 	<select id="countLikeForVideos" resultMap="baseaResultMap">
-		select count(1) as videoLikeNum,video_id as videoId from
-			gc_user_video_action where type =1 and video_id in
+		select count(1) as videoLikeNum,content_id as contentId from
+			gc_user_video_action where type =1 and content_id in
 		<foreach item="videoId" collection="videoIds" open="("
 				 separator="," close=")">
 			#{videoId}
 		</foreach>
-          group by video_id
+          group by content_id
 	</select>
 
-	<select id="getReviewListByCourseId" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
-		select ac.*,info.avatar_file_id as userAvatarFileId,info.last_name as userLastName,info.first_name as userFirstName from gc_user_video_action ac
-		left join gc_user us on us.id = ac.user_id
-		left join gc_user_info info on info.id = us.info_id
-		where ac.sub_id=#{subId} and type=#{starType}
-		<if test="starFilter != null">
-			AND ac.star_value=#{starFilter}
-		</if>
-		<if test="starOrder==0">
-			order by ac.star_value desc
-		</if>
-		<if test="starOrder==1">
-			order by ac.star_value asc
-		</if>
-	    <if test="starOrder==null">
-			order by ac.update_time desc
-		</if>
-	</select>
 	<select id="countLikeForFiles" resultType="com.threeatom.guidecore.entity.GcUserVideoAction">
-		select count(1) as videoLikeNum,file_id as videoId from
-		gc_user_video_action where type =1 and file_id in
-		<foreach item="fileId" collection="fileIds" open="("
+		select count(1) as videoLikeNum, content_id as contentId
+		from gc_user_video_action where type = 1 and content_id in
+		<foreach item="contentId" collection="contentIds" open="("
 				 separator="," close=")">
-			#{fileId}
+			#{contentId}
 		</foreach>
-		group by file_id
+		group by content_id
 	</select>
+
 	<select id="countLikeForFile" resultType="java.lang.Integer">
 		select count(1) from
-			gc_user_video_action where type =1 and file_id = #{fileId}
+			gc_user_video_action where type = 1 and content_id = #{contentId}
 	</select>
 
 </mapper>

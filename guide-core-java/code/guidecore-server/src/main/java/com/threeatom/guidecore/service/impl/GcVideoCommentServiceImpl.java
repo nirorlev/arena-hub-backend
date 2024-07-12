@@ -121,7 +121,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
             subIds = subjectService.getSubjectChildIds(subId);
             videoList = videoService.getVideoListBySubIds(subIds);
         }
-        List<Integer> videoIds = videoList.stream().map(v -> v.getId()).collect(Collectors.toList());
+        List<Integer> videoIds = videoList.stream().map(GcVideo::getId).collect(Collectors.toList());
 
         List<Integer> videoLikeNums = videoActionService.getVideoLikeNumsByVideoIds(videoIds);
         List<Integer> videoCommentNums = this.getCommentNumsByVideoIds(videoIds);
@@ -158,7 +158,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                     jsonVideoObject.put("videoFullUrl", video.getVideoFile());
                     List<GcUserVideoAction> videoActioList =
                             userVideoActions.stream()
-                                    .filter(va -> va.getVideoId().equals(video.getId()))
+                                    .filter(va -> va.getContentId().equals(video.getId()))
                                     .collect(Collectors.toList());
 
                     Integer isLike = 0;

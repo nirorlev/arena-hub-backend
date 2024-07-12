@@ -884,8 +884,9 @@ public class PowtoonController extends GuideCoreController {
 		SysFile file = sysFileService.getById(fileId);
 		file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
 		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
-		Integer countLike= gcUserVideoActionService.countLikeForFile(fileId);
-		GcUserVideoAction videoActionList = gcUserVideoActionService.getFileActionListByFileIdAndUserId(fileId, user.getId());
+		GcVideo videoContent = gcVideoService.getVideoContent(fileId).orElseThrow();
+		Integer countLike= gcUserVideoActionService.countLikeForFile(videoContent.getId());
+		GcUserVideoAction videoActionList = gcUserVideoActionService.getFileActionListByFileIdAndUserId(videoContent.getId(), user.getId());
 		Integer isLike =0;
 		if (null!=videoActionList){
 			isLike=1;
@@ -950,36 +951,36 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		if(Objects.nonNull(list.get(0)) & CollectionUtils.isNotEmpty(list.get(0).getSaveContentList())){
-			List<Integer> fileIdList = list.get(0)
+			List<Integer> contentIds = list.get(0)
 					.getSaveContentList()
 					.stream()
-					.map(GcUserSaveContent::getFileId)
+					.map(GcUserSaveContent::getContentId)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 
-			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(fileIdList);
+			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(contentIds);
 			Map<Integer,GcUserVideoAction> isLikeMap = new HashMap<>();
-			if (!fileIdList.isEmpty()){
-				List<GcUserVideoAction> videoIsLike = gcUserVideoActionService.getVideoActionListByFildId(fileIdList, myUser.getId());
-				isLikeMap = videoIsLike.stream().collect(Collectors.toMap(GcUserVideoAction::getFileId,GcUserVideoAction -> GcUserVideoAction, (key1, key2) -> key2, LinkedHashMap::new));
+			if (!contentIds.isEmpty()){
+				List<GcUserVideoAction> videoIsLike = gcUserVideoActionService.getVideoActionListByFildId(contentIds, myUser.getId());
+				isLikeMap = videoIsLike.stream().collect(Collectors.toMap(GcUserVideoAction::getContentId,GcUserVideoAction -> GcUserVideoAction, (key1, key2) -> key2, LinkedHashMap::new));
 			}
 
 			for(GcUserSaveContent gcUserSaveContent : list.get(0).getSaveContentList()){
-				if (null!=isLikeMap.get(gcUserSaveContent.getFileId())){
+				if (null!=isLikeMap.get(gcUserSaveContent.getContentId())){
 					gcUserSaveContent.getVideoFile().setIsLike(TableConstant.COMMON_ONE);
 				}else {
 					gcUserSaveContent.getVideoFile().setIsLike(TableConstant.COMMON_ZERO);
 				}
 				gcUserSaveContent.getVideoFile().setLikeNum(TableConstant.COMMON_ZERO);
 				for (GcUserVideoAction gcVideo : gcVideos) {
-					if (gcUserSaveContent.getVideoFile().getId().equals(gcVideo.getVideoId())){
+					if (gcUserSaveContent.getVideoFile().getId().equals(gcVideo.getContentId())){
 						gcUserSaveContent.getVideoFile().setLikeNum(gcVideo.getVideoLikeNum());
 					}
 				}
 			}
 		}
-
-		GcUserVideoAction fileIsLike = UserVideoActionService.getFileActionListByFileIdAndUserId(videoId, myUser.getId());
+		GcVideo videoContent = gcVideoService.getVideoContent(videoId).orElseThrow();
+		GcUserVideoAction fileIsLike = UserVideoActionService.getFileActionListByFileIdAndUserId(videoContent.getId(), myUser.getId());
 		if (null!=fileIsLike){
 			file.setLikeNum(TableConstant.COMMON_ONE);
 		}else {
@@ -991,11 +992,10 @@ public class PowtoonController extends GuideCoreController {
 		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		gcVideoService.getVideoContent(file.getId())
-			.ifPresent(videoContent -> message.ok().addData("videoId", videoContent.getId()));
 
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
+				.addData("videoId", videoContent.getId())
 				.addData("systemTime",df.format(new Date()));
 	}
 
@@ -3596,7 +3596,7 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
 		}
 		ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
-		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getFileId(),currentUser.getId(),TableConstant.COMMON_ONE);
+		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
 		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
 		GcUser user = userService.getById(ptchannel.getCreateUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(user.getInfoId());
@@ -3653,9 +3653,12 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(gcUserVideoAction.getFileId())){
 			throw new SystemException(I18NUtil.get("powtoon.channel.noContentFileId"));
 		}
-		GcUserVideoAction oldAction = videoActionService.getOldChannelVideoAction(gcUserVideoAction.getFileId(), user.getId(), gcUserVideoAction.getType());
+		GcVideo videoContent = gcVideoService.getVideoContent(gcUserVideoAction.getFileId()).orElseThrow();
+		gcUserVideoAction.setContentId(videoContent.getId());
+
+		GcUserVideoAction oldAction = videoActionService.getOldChannelVideoAction(gcUserVideoAction.getContentId(), user.getId(), gcUserVideoAction.getType());
 		if(Objects.nonNull(oldAction)){
-			videoActionService.deleteChannelOldVideoAction(gcUserVideoAction.getFileId(), user.getId(), gcUserVideoAction.getType());
+			videoActionService.deleteChannelOldVideoAction(gcUserVideoAction.getContentId(), user.getId(), gcUserVideoAction.getType());
 		}else {
 			gcUserVideoAction.setUserId(user.getId());
 			videoActionService.saveOrUpdate(gcUserVideoAction);

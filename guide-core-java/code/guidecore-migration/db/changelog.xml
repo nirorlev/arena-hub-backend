@@ -337,4 +337,28 @@
                 ADD CONSTRAINT chk_origin_channel_id_origin_course_id CHECK ((origin_channel_id IS NULL) &lt;&gt; (origin_course_id IS NULL));
         </sql>
     </changeSet>
+    <changeSet id="add-content-id-for-video-action-table" author="vprokh">
+        <addColumn tableName="gc_user_video_action">
+            <column name="content_id" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="migrate-content-id-for-video-action-table" author="vprokh">
+        <sql>
+            UPDATE gc_user_video_action
+            SET content_id = gc_video.id
+            FROM gc_video
+            WHERE gc_video.file_id = gc_user_video_action.file_id;
+
+            UPDATE gc_user_video_action
+            SET content_id = video_id
+            WHERE video_id IS NOT NULL;
+        </sql>
+
+        <addNotNullConstraint tableName="gc_user_video_action" columnName="content_id"/>
+        <addForeignKeyConstraint baseTableName="gc_user_video_action" baseColumnNames="content_id"
+                                 constraintName="gc_user_video_action_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>
