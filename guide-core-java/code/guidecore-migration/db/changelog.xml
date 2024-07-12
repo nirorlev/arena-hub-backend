@@ -237,7 +237,7 @@
             </column>
         </addColumn>
     </changeSet>
-    
+
     <changeSet id="create_powtoon_external_video" author="cvmcosta">
         <createTable tableName="powtoon_external_video">
             <column name="id" type="bigserial" autoIncrement="true">
@@ -263,9 +263,9 @@
                                  baseColumnNames="sys_file_id" referencedTableName="sys_file" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
         <addUniqueConstraint
-            columnNames="sys_file_id"
-            constraintName="powtoon_external_video_sys_file_id_fk_uniq"
-            tableName="powtoon_external_video"/>
+                columnNames="sys_file_id"
+                constraintName="powtoon_external_video_sys_file_id_fk_uniq"
+                tableName="powtoon_external_video"/>
     </changeSet>
 
     <changeSet id="fix-migrate-content-group-channels" author="vprokh">
@@ -321,22 +321,45 @@
 
     <changeSet id="migrate-origin-id-columns" author="vprokh">
         <sql>
-            UPDATE gc_video
-            SET origin_channel_id = CASE WHEN pt_channel.fid IS NULL THEN pt_channel.id ELSE pt_channel.fid END
-            FROM pt_channel_content
-                JOIN pt_channel ON pt_channel_content.channel_id = pt_channel.id
-            WHERE pt_channel_content.content_id = gc_video.id;
+            -- Remove sections that have no connected channel
+            DELETE
+            FROM pt_channel
+            WHERE pt_channel.fid IN (SELECT DISTINCT section.fid
+                                     FROM pt_channel section
+                LEFT JOIN pt_channel channel
+            on channel.id = section.fid
+            WHERE channel.id IS NULL AND section.fid IS NOT NULL);
 
             UPDATE gc_video
-            SET origin_course_id = CASE WHEN gc_subject.sub_id IS NULL THEN gc_subject.id ELSE gc_subject.sub_id END
-            FROM course_content
-                JOIN gc_subject ON course_content.course_id = gc_subject.id
+            SET origin_channel_id = CASE WHEN pt_channel.fid IS NULL THEN pt_channel.id ELSE pt_channel.fid END FROM pt_channel_content
+                JOIN pt_channel
+            ON pt_channel_content.channel_id = pt_channel.id
+            WHERE pt_channel_content.content_id = gc_video.id;
+
+            -- Remove topics that have no connected course
+            DELETE
+            FROM gc_subject
+            WHERE gc_subject.sub_id IN (SELECT DISTINCT topic.sub_id
+                                        FROM gc_subject topic
+                                                 LEFT JOIN gc_subject course on course.id = topic.sub_id
+                                        WHERE course.id IS NULL
+                                          AND topic.sub_id IS NOT NULL);
+            UPDATE gc_video
+            SET origin_course_id = CASE WHEN gc_subject.sub_id IS NULL THEN gc_subject.id ELSE gc_subject.sub_id END FROM course_content
+                JOIN gc_subject
+            ON course_content.course_id = gc_subject.id
             WHERE course_content.content_id = gc_video.id;
+
+            -- delete videos that are not referenced neither from the channel or course
+            DELETE
+            FROM gc_video
+            WHERE origin_channel_id IS NULL AND origin_course_id IS NULL;
 
             ALTER TABLE gc_video
                 ADD CONSTRAINT chk_origin_channel_id_origin_course_id CHECK ((origin_channel_id IS NULL) &lt;&gt; (origin_course_id IS NULL));
         </sql>
     </changeSet>
+
     <changeSet id="add-content-id-for-video-action-table" author="vprokh">
         <addColumn tableName="gc_user_video_action">
             <column name="content_id" type="integer"/>
@@ -347,7 +370,7 @@
         <sql>
             UPDATE gc_user_video_action
             SET content_id = gc_video.id
-            FROM gc_video
+                FROM gc_video
             WHERE gc_video.file_id = gc_user_video_action.file_id;
 
             UPDATE gc_user_video_action
