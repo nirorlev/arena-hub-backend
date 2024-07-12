@@ -9,43 +9,37 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.enums.ReactionType;
 import com.threeatom.guidecore.mapper.GcUserVideoActionMapper;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 用户对视频的操作，点赞 或者 收藏 等等  服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
-public class GcUserVideoActionServiceImpl
-        extends ServiceImpl<GcUserVideoActionMapper, GcUserVideoAction>
-        implements GcUserVideoActionService {
+public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionMapper, GcUserVideoAction>
+    implements GcUserVideoActionService {
 
-    @Autowired private CourseStarConfiguration courseStarConfiguration;
+    @Autowired
+    private CourseStarConfiguration courseStarConfiguration;
 
     @Override
     @Transactional
     public boolean saveVideoAction(Integer contentId, Integer userId, Integer type) {
         GcUserVideoAction oldVideoAction = this.getOldVideoAction(contentId, userId, type);
-        boolean re;
         if (oldVideoAction != null) {
-            re = this.deleteOldVideoAction(contentId, userId, type);
-        } else {
-            GcUserVideoAction videoAction = new GcUserVideoAction();
-            videoAction.setUserId(userId);
-            videoAction.setType(type);
-            videoAction.setVideoId(contentId);
-            videoAction.setContentId(contentId);
-            re = this.saveOrUpdate(videoAction);
+            return this.deleteOldVideoAction(contentId, userId, type);
         }
-        return re;
+
+        GcUserVideoAction videoAction = new GcUserVideoAction();
+        videoAction.setUserId(userId);
+        videoAction.setType(type);
+        videoAction.setVideoId(contentId);
+            videoAction.setContentId(contentId);
+        return this.saveOrUpdate(videoAction);
     }
 
     @Override
@@ -152,6 +146,7 @@ public class GcUserVideoActionServiceImpl
 
     /**
      * 根据课程id，类型查询星级评价平均值和评论人数
+     *
      * @param videoParams
      * @return
      */
@@ -165,23 +160,17 @@ public class GcUserVideoActionServiceImpl
                 GcUserVideoAction userVideoAction = map.get(gcUserVideoAction.getSubjectId());
                 if (Objects.nonNull(userVideoAction)) {
                     Long newStarusers =
-                            gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
+                        gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
                     Double newAvgStar =
-                            (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
-                                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
-                                    / newStarusers;
+                        (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
+                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
+                            / newStarusers;
                     userVideoAction.setSubjectStarUsers(newStarusers);
                     userVideoAction.setSubjectStarAvg(newAvgStar);
                     userVideoAction.setSubjectId(gcUserVideoAction.getSubjectId());
                     map.put(gcUserVideoAction.getSubjectId(), userVideoAction);
                     continue;
                 }
-                //            else {
-                //                GcUserVideoAction videoAction = new GcUserVideoAction();
-                //                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
-                //                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
-                //                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
-                //            }
             }
         }
         return map;
@@ -197,23 +186,16 @@ public class GcUserVideoActionServiceImpl
                 GcUserVideoAction userVideoAction = map.get(gcUserVideoAction.getSubjectId());
                 if (Objects.nonNull(userVideoAction)) {
                     Long newStarusers =
-                            gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
+                        gcUserVideoAction.getSubjectStarUsers() + userVideoAction.getSubjectStarUsers();
                     Double newAvgStar =
-                            (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
-                                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
-                                    / newStarusers;
+                        (gcUserVideoAction.getSubjectStarAvg() * gcUserVideoAction.getSubjectStarUsers()
+                            + userVideoAction.getSubjectStarUsers() * userVideoAction.getSubjectStarAvg())
+                            / newStarusers;
                     userVideoAction.setSubjectStarUsers(newStarusers);
                     userVideoAction.setSubjectStarAvg(newAvgStar);
                     userVideoAction.setSubjectId(gcUserVideoAction.getSubjectId());
                     map.put(gcUserVideoAction.getSubjectId(), userVideoAction);
-                    continue;
                 }
-                //            else {
-                //                GcUserVideoAction videoAction = new GcUserVideoAction();
-                //                videoAction.setSubjectId(gcUserVideoAction.getSubjectId());
-                //                videoAction.setSubjectStarUsers(gcUserVideoAction.getSubjectStarUsers());
-                //                videoAction.setSubjectStarAvg(gcUserVideoAction.getSubjectStarAvg());
-                //            }
             }
         }
         return map;
@@ -234,6 +216,7 @@ public class GcUserVideoActionServiceImpl
         if (CollectionUtils.isNotEmpty(contentIds)) {
             return this.baseMapper.countLikeForFiles(contentIds);
         }
+
         return new ArrayList<>();
     }
 
@@ -257,5 +240,26 @@ public class GcUserVideoActionServiceImpl
         queryWrapper.eq("content_id", contentId);
         queryWrapper.eq("type", ReactionType.LIKE.getReactionCode());
         return this.count(queryWrapper) > 0;
+    }
+
+    @Override
+    @Transactional
+    public void updateReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {
+        deleteReactions(contentId, userId, reactions);
+        saveReactions(contentId, userId, reactions);
+    }
+
+    private void saveReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {
+        reactions.entrySet().stream()
+            .filter(Map.Entry::getValue)
+            .forEach(
+                entry -> saveVideoAction(contentId, userId, ReactionType.valueOf(entry.getKey()).getReactionCode()));
+    }
+
+    private void deleteReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {
+        reactions.entrySet().stream()
+            .filter(entry -> !entry.getValue())
+            .forEach(entry -> deleteOldVideoAction(contentId, userId,
+                ReactionType.valueOf(entry.getKey()).getReactionCode()));
     }
 }
