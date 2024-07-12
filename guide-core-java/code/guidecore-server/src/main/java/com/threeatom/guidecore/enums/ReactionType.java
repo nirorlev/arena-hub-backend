@@ -10,4 +10,9 @@ public enum ReactionType {
     LIKE(1);
 
     private final int reactionCode;
+
+    @Override
+    public String toString() {
+        return name().toLowerCase();
+    }
 }
