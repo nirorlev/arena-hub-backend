@@ -161,14 +161,14 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                                     .filter(va -> va.getContentId().equals(video.getId()))
                                     .collect(Collectors.toList());
 
-                    Integer isLike = 0;
+                    int isLiked = 0;
                     GcUserVideoAction rateVideoAction = null;
                     for (GcUserVideoAction va : videoActioList) {
-                        if (va.getType().intValue() == TableConstant.gcUserVideoAction_type_like1) isLike = 1;
-                        if (va.getType().intValue() == TableConstant.gcUserVideoAction_type_rate2)
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_like1) isLiked = 1;
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_rate2)
                             rateVideoAction = va;
                     }
-                    jsonVideoObject.put("isLike", isLike);
+                    jsonVideoObject.put("isLiked", isLiked);
                     jsonVideoObject.put("rateVideoAction", rateVideoAction);
 
                     // 我的评论，待删除

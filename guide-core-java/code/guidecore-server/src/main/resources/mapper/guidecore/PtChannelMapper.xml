@@ -166,7 +166,7 @@
         <result property="subscribeUserIds" column="subscribeUserIds"/>
         <result property="fileId" column="fileId"/>
         <result property="likeNum" column="likeNum"/>
-        <result property="likedFlag" column="likedFlag"/>
+        <result property="isLiked" column="isLiked"/>
         <result property="channelContentId" column="channelContentId"/>
         <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
             <id property="id" column="channel_create_uid"/>
@@ -186,6 +186,7 @@
             <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
             <result property="videoLong" column="channel_video_long"/>
             <result property="ptChannelContentId" column="pt_channel_content_id"/>
+            <result property="videoId" column="video_id"/>
         </collection>
     </resultMap>
 
@@ -214,7 +215,7 @@
         <result property="subscribeUserIds" column="subscribeUserIds"/>
         <result property="fileId" column="fileId"/>
         <result property="likeNum" column="likeNum"/>
-        <result property="likedFlag" column="likedFlag"/>
+        <result property="isLiked" column="isLiked"/>
         <result property="channelContentId" column="channelContentId"/>
         <association property="createUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
             <id property="id" column="channel_create_uid"/>
@@ -234,6 +235,7 @@
             <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
             <result property="videoLong" column="channel_video_long"/>
             <result property="ptChannelContentId" column="pt_channel_content_id"/>
+            <result property="videoId" column="video_id"/>
         </association>
 
     </resultMap>
@@ -262,6 +264,7 @@
         <result property="thumbNailUrl" column="thumb_nail_url"/>
         <result property="uuid" column="uuid"/>
         <result property="ptChannelContentId" column="ptChannelContentId"/>
+        <result property="videoId" column="video_id"/>
         <association property="gcUser" column="create_user_id" javaType="com.threeatom.guidecore.entity.GcUser">
             <id property="id" column="channel_create_uid"/>
             <id property="username" column="channel_create_user_username"/>
@@ -483,6 +486,7 @@
         SELECT
         DISTINCT ON (file.id)
         file.*,
+        video_content.id as video_id,
         u.username as channel_create_user_username,
         u.id as channel_create_uid,
         info.last_name as createUserLastName,
@@ -709,13 +713,14 @@
         channel.update_time,channel.channel_avatar_file_id,
         coalesce(ch2.id,channel.id) as id,
         coalesce(ch2.channel_name,channel.channel_name) as channel_name,
+        video_content.id as video_id,
         video_content.file_id as fileId,
         info.last_name AS createUserLastName,
         info.first_name AS createUserFirstName,
         info.avatar_file_id as userInfo_avatar_file_id,
         us2.id as channel_create_uid,
         count(vac.id) as likeNum,
-        case when vac.user_id=#{userId} then 1 else 0 end as likedFlag,
+        case when vac.user_id=#{userId} then 1 else 0 end as isLiked,
         pcc.id as channelContentId
         from gc_video video_content
         left join pt_channel_content pcc on video_content.id = pcc.content_id
@@ -839,11 +844,12 @@
 
     <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
         select f.*,count( vac.id ) AS likeNum ,
-               case when vac.user_id=#{userId} then 1 else 0 end as likedFlag
+               case when vac.user_id=#{userId} then 1 else 0 end as isLiked
         from (select DISTINCT ON (video_content.id)
                   channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
+                  video_content.id as video_id,
                   video_content.update_time as file_update_time,
                   video_content.id as videoContentId,
                   coalesce(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
@@ -879,7 +885,7 @@
                  f."order", f.master_id, f.channel_slug, f.create_time, f.update_time, f.file_update_time,
                  f.channel_avatar_file_id, f.id, f.channel_name, f.userInfo_lastName, f.userInfo_firstName,
                  f.userInfo_avatar_file_id, f.channel_create_uid, f.channel_create_user_username, f.channelContentId,
-                 vac.user_id
+                 f.video_id, vac.user_id
         order by f.file_update_time desc
     </select>
 
@@ -898,12 +904,13 @@
                                                              info.first_name AS createUserFirstName,
                                                              info.avatar_file_id as userInfo_avatar_file_id,
                                                              count(vac.id) as likeNum,
-                                                             case when vac.user_id=#{userId} then 1 else 0 end as likedFlag,
+                                                             case when vac.user_id=#{userId} then 1 else 0 end as isLiked,
                                                              info.last_name AS userInfo_lastName,
                                                              info.first_name AS userInfo_firstName,
                                                              us2.id as  channel_create_uid,
                                                              us2.username as channel_create_user_username,
-                                                             pcc.id as channelContentId
+                                                             pcc.id as channelContentId,
+                                                             pcc.content_id as video_id
                                                       from sys_file file
                                                                left join pt_channel_content pcc on file.id = pcc.file_id
                                                                left join pt_channel channel on pcc.channel_id = channel.id
@@ -928,8 +935,8 @@
         GROUP BY b.fileId, b.channel_img_file_id, b."desc", b.create_user_id, b.visible_flag, b.category_id, b.level, b.fid,
                  b."order", b.master_id, b.channel_slug, b.create_time, b.update_time, b.channel_avatar_file_id, b.id,
                  b.channel_name, b.file_create_time, b.file_update_time, b.createUserLastName, b.createUserFirstName,
-                 b.userInfo_avatar_file_id, b.likeNum, b.likedFlag, b.userInfo_lastName, b.userInfo_firstName,
-                 b.channel_create_uid, b.channel_create_user_username, b.channelContentId
+                 b.userInfo_avatar_file_id, b.likeNum, b.isLiked, b.userInfo_lastName, b.userInfo_firstName,
+                 b.channel_create_uid, b.channel_create_user_username, b.channelContentId, b.video_id
         order by likeNum desc ,count(play.id) desc,file_update_time desc
     </select>
 

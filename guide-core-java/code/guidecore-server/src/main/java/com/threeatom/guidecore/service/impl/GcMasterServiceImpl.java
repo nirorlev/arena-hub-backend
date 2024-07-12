@@ -142,13 +142,12 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         Message m = new Message();
         Map<String, Object> params = new HashMap<>();
         List<GcSubject> twoList = new ArrayList<>();
-        //		List<GcSubject> oneList = new ArrayList<>();
-        // List<GcVideo> videoList = new ArrayList<>();
         List<SysFile> fileList = new ArrayList<>();
+
         try {
-            GcUser gcUser = user;
+            Integer userId = null;
             if (Objects.nonNull(user)) {
-                Integer userId = gcUser.getId();
+                userId = user.getId();
                 params.put("userId", userId);
             }
             gcUserSaveFolder = gcUserSaveFolderService.getById(gcUserSaveFolder.getId());
@@ -209,6 +208,8 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     for (SysFile file : fileList) {
                         if (userSaveContent.getFileId().equals(file.getId())) {
                             file.setContentId(userSaveContent.getId());
+                            file.setVideoId(userSaveContent.getContentId());
+                            file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
                         }
                     }
                 }
@@ -218,7 +219,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             if (CollectionUtils.isNotEmpty(list) && envFlag.equals(EnvType.PT.getCode())) {
                 m.addData("videoNum", list.size());
             }
-            if (Objects.nonNull(gcUser)) {
+            if (Objects.nonNull(user)) {
                 List<Integer> follows =
                         gcUserSaveContentFollowService.selectFollowPlayList(
                                 user.getId(), request.getIntHeader("masterId"));
