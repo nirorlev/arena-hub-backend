@@ -373,6 +373,10 @@
                 FROM gc_video
             WHERE gc_video.file_id = gc_user_video_action.file_id;
 
+            -- delete actions that refer to not-existing videos
+            DELETE FROM gc_user_video_action
+            WHERE content_id IS NULL AND video_id IS NULL;
+
             UPDATE gc_user_video_action
             SET content_id = video_id
             WHERE video_id IS NOT NULL;
