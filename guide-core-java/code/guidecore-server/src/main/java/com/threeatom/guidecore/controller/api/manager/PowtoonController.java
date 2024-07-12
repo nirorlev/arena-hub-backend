@@ -998,7 +998,6 @@ public class PowtoonController extends GuideCoreController {
 
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
-				.addData("videoId", videoContent.getId())
 				.addData("systemTime",df.format(new Date()));
 	}
 
@@ -3614,7 +3613,6 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikedFlag(TableConstant.COMMON_ZERO);
 		}
 		message.ok().addData("thisVideo",videoFile);
-		message.ok().addData("videoId", channelVideoContent.getId());
 
 		PtChannel ptChannel = new PtChannel();
 		if(Objects.nonNull(ptChannelContent.getChannelId())) {
