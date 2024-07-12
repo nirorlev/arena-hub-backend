@@ -692,4 +692,21 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         getResFullUrl(courseImage, request);
         getVideoSnapshotUrl(courseImage);
     }
+
+    @Override
+    public SysFile getVideoFile(GcVideo video, HttpServletRequest request) {
+        SysFile file = getInfoById(video.getFileId());
+        String url = getResFullUrl(file, request);
+        video.setVideoFullUrl(url);
+
+        String fullFileUrl = getResFullUrl(file, request);
+        file.setFullFileUrl(fullFileUrl);
+
+        String snapshotUrl = getVideoSnapshotUrl(video);
+        file.setSnapshotUrl(snapshotUrl);
+
+        video.setVideoFile(file);
+        return file;
+    }
+
 }

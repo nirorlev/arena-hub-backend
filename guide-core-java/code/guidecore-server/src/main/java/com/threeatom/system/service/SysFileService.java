@@ -103,4 +103,6 @@ public interface SysFileService extends IService<SysFile> {
     void updateImageUrls(PtChannel channel, HttpServletRequest request);
 
     void updateImageUrls(GcSubject channel, HttpServletRequest request);
+
+    SysFile getVideoFile(GcVideo video, HttpServletRequest request);
 }

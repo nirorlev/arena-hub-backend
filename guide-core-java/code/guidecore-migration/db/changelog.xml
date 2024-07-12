@@ -299,4 +299,42 @@
         </insert>
     </changeSet>
 
+    <changeSet id="add-origin-id-columns" author="vprokh">
+        <addColumn tableName="gc_video">
+            <column name="origin_channel_id" type="integer"/>
+        </addColumn>
+        <addColumn tableName="gc_video">
+            <column name="origin_course_id" type="integer"/>
+        </addColumn>
+
+        <addForeignKeyConstraint constraintName="gc_video_origin_channel_id_fk" baseTableName="gc_video"
+                                 baseColumnNames="origin_channel_id" referencedTableName="pt_channel"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="gc_video_origin_course_id_fk"
+                                 baseTableName="gc_video" baseColumnNames="origin_course_id"
+                                 referencedTableName="gc_subject" referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="migrate-origin-id-columns" author="vprokh">
+        <sql>
+            UPDATE gc_video
+            SET origin_channel_id = CASE WHEN pt_channel.fid IS NULL THEN pt_channel.id ELSE pt_channel.fid END
+            FROM pt_channel_content
+                JOIN pt_channel ON pt_channel_content.channel_id = pt_channel.id
+            WHERE pt_channel_content.content_id = gc_video.id;
+
+            UPDATE gc_video
+            SET origin_course_id = CASE WHEN gc_subject.sub_id IS NULL THEN gc_subject.id ELSE gc_subject.sub_id END
+            FROM course_content
+                JOIN gc_subject ON course_content.course_id = gc_subject.id
+            WHERE course_content.content_id = gc_video.id;
+
+            ALTER TABLE gc_video
+                ADD CONSTRAINT chk_origin_channel_id_origin_course_id CHECK ((origin_channel_id IS NULL) &lt;&gt; (origin_course_id IS NULL));
+        </sql>
+    </changeSet>
 </databaseChangeLog>

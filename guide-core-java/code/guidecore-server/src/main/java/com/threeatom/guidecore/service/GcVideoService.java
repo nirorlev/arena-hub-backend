@@ -163,11 +163,13 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
 
-    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
-
-    Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
+    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
     VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request);
+
+    boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
+
+    void updateCourseTags(List<GcVideo> videoList, Integer masterId);
 }

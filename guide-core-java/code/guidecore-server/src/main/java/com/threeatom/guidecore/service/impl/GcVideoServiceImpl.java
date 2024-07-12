@@ -5,6 +5,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.mapping.VideoMapping;
+import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysCaptionRequest;
 import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,7 @@ import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Slf4j
 public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> implements GcVideoService {
 
 
@@ -152,23 +155,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	@Transactional
 	public boolean saveVideo(GcVideo video) {
-
-		//新增生成order字段
-		if (video.getId() != null){
-			//查找同级video数
-			/*List<GcVideo> orderList = new ArrayList<GcVideo>();
-			QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<GcVideo>();
-			queryWrapper.eq("sub_id", video.getSubId());
-			orderList = this.list(queryWrapper);
-			video.setOrder((orderList.size()+1));*/
-		}
-
-		// TODO Auto-generated method stub
-//		if(this.videoSourceAssert(video))
-
 		return this.saveOrUpdate(video);
-//		return false;
 	}
 
 	//删除视频下的全部事件
@@ -556,82 +545,63 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public boolean saveVideoInfo(SysSystem sys,GcVideo video,Integer masterId, HttpServletRequest request) {
-		if (null!=video.getId()){
+	public boolean saveVideoInfo(SysSystem sys, GcVideo video, Integer masterId, HttpServletRequest request) {
+		if (null != video.getId()) {
 			Message message = new Message();
-			//GcVideo oldVideo = videoService.getVideoById(video.getId());
+
 			this.saveOrUpdate(video);
 			SysFile file = new SysFile();
-			if(Objects.nonNull(video.getFileId())) {
-				file = sysFileService.getInfoById(video.getFileId());
-				String url = sysFileService.getResFullUrl(file, request);
-				video.setVideoFullUrl(url);
-				String fullFileUrl = sysFileService.getResFullUrl(file,request);
-				file.setFullFileUrl(fullFileUrl);
-				String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
-				file.setSnapshotUrl(snapshoturl);
-				video.setVideoFile(file);
+			if (Objects.nonNull(video.getFileId())) {
+				file = sysFileService.getVideoFile(video, request);
+				video.setVideoTime(file.getVideoLong());
+				video.setThumbnailUrl(file.getThumbNailUrl());
 			}
 
-			List<GcEvent> eventList = eventService.getEventListByVid(video.getId(),masterId);
-			if(CollectionUtils.isNotEmpty(eventList)){
-				message.addData("eventNum",eventList.size());
-			}
-			List<GcResource>  resources = resourceService.getResByVid(video.getId());
-			if(CollectionUtils.isNotEmpty(resources)){
-				message.addData("resourceNum",resources.size());
-			}
+			populateVideoEvents(video, masterId, message);
 
-            /*if (oldVideo.getFileId()!=video.getFileId()){
-                sysFileCaptionService.deleteCaption(oldVideo.getId());
-                videoService.asyncMethodSaveVideo(video,request);
-            }else {
-                sysFileCaptionService.updateCaptionState(video.getTargetLang(),video.getId());
-                videoService.asyncMethodUpdateVideo(video,request,sys);
-            }*/
-			if (null!=video.getTargetLang()&&video.getTargetLang().size()!=0) {
-				//video.getTargetLang().add(video.getLang());
+			if (CollectionUtils.isNotEmpty(video.getTargetLang())) {
 				file.setTargetLangJson(video.getTargetLang());
 				sysFileService.saveOrUpdate(file);
 				sysFileCaptionService.updateCaptionState(video.getTargetLang(), video.getId());
-				this.asyncMethodUpdateVideo(video, request, sys);
+				asyncMethodUpdateVideo(video, request, sys);
 			}
 
-			return true;//message.ok("添加成功！").addData("sync", video);
+			return true;
 		}
-		ApiAssert.ifStringNotInList(video.getVideoName(), CommonConstant.defaultNoCourseOrVideName, "视频名称错误，不可用该值");
-		//通过视频id保存课程
-		if(video.getFileId()!=null) {
-//    		if(VideoConstant.LOCAL!=video.getVideoSource()) return new Message().error("通过视频id保存课程的videoSource必须为1");
-			ApiAssert.jsonValueIntegerIn(video.getVideoSource(), VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr, "VideoSource值错误，必须为: "+VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr);
+		ApiAssert.ifStringNotInList(video.getVideoName(), CommonConstant.defaultNoCourseOrVideName,
+			"The video name is incorrect and the value cannot be used");
+		if (video.getFileId() != null) {
+			ApiAssert.jsonValueIntegerIn(video.getVideoSource(), VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr,
+				"VideoSource值错误，必须为: " + VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr);
 			SysFile file = sysFileService.getById(video.getFileId());
-			if(file==null) throw new SystemException("该视频id不存在");
-//    		video.setVideoFile(file);
+			if (file == null) {
+				throw new SystemException("The video id does not exist");
+			}
 			String url = sysFileService.getResFullUrl(file, request);
 			video.setVideoFullUrl(url);
 			video.setVideoFile(file);
-		}else {
-			//通过视频链接保存课程
-			ApiAssert.notNull(video.getVideoSource(), "视频源不能为null");
+			video.setThumbnailUrl(file.getThumbNailUrl());
+			video.setVideoTime(file.getVideoLong());
+            video.setOriginCourseId(getOriginCourseId(Collections.singletonList(video)));
+		} else {
+			// Save lesson via video link
+			ApiAssert.notNull(video.getVideoSource(), "The video source cannot be null");
 		}
-		if(video.getVideoName()==null || video.getSubId() ==null)throw new SystemException("视频名称及课程id不可空");
-//    	if(video.getVideoName().contains("-"))throw new SystemException("名称不可含横杠字符-");
-//        int count = videoService.countVideoNameInSub0(video);
-//        if(count>0) {
-//            return new Message().error(10000, "'" + video.getVideoName() + "'- " + I18NUtil.get("guidecore.master.sameVideoNameNotice"));
-//        }
+		if (video.getVideoName() == null || video.getSubId() == null) {
+			throw new SystemException("The video name and course id cannot be empty");
+		}
 		List<GcVideo> videoList = this.getVideoListBySubId(video.getSubId());
-		if (null!=videoList&&TableConstant.COMMON_ZERO!=videoList.size()&&null==video.getId()){
-			Integer max = videoList.stream().mapToInt(GcVideo::getOrder).max().getAsInt();
-			video.setOrder(max+1);
+		if (CollectionUtils.isNotEmpty(videoList) && null == video.getId()) {
+			int max = videoList.stream().mapToInt(GcVideo::getOrder).max().getAsInt();
+			video.setOrder(max + 1);
 		}
-		boolean flag = this.saveVideo(video);
-		//新视频取消原来完成的课程进度
-		subjectCompleteService.updateStateByVideoId(video.getId(),masterId);
+		boolean savedSuccessfully = this.saveVideo(video);
+		// New videos cancel the previously completed course progress
+		subjectCompleteService.updateStateByVideoId(video.getId(), masterId);
 
 		SysFile sysFile = new SysFile();
-		if(null!=video.getIfCaption()&&TableConstant.COMMON_ONE==video.getIfCaption()){
-			this.asyncMethodSaveVideo(video,request);
+		if (null != video.getIfCaption() && TableConstant.COMMON_ONE == video.getIfCaption()) {
+			this.asyncMethodSaveVideo(video, request);
 			sysFile.setIfCaption(video.getIfCaption().toString());
 		}
 		sysFile.setName(video.getVideoName());
@@ -642,33 +612,41 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		video.setFileTypeIndex(fileTypeIndex);
 
 		SysFile newVideoFile = sysFileService.getById(video.getFileId());
-		String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
-		String fullFileUrl = sysFileService.getResFullUrl(newVideoFile,request);
-		newVideoFile.setSnapshotUrl(snapshoturl);
+		String fullFileUrl = sysFileService.getResFullUrl(newVideoFile, request);
+		newVideoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
 		newVideoFile.setFullFileUrl(fullFileUrl);
 		video.setVideoFile(newVideoFile);
+		updateCourseTags(Collections.singletonList(video), masterId);
 
-		if (null!=video.getCourseTags()){
-			QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-			queryWrapper.in("video_id", video.getId());
-			queryWrapper.in("master_id",masterId);
-			queryWrapper.in("type",TableConstant.COMMON_TWO);
-			ptTagsService.remove(queryWrapper);
-			List<String> tagList = video.getCourseTags().toJavaList(String.class);
-			List<PtTags> ptTagsList = new ArrayList<>();
-			Integer finalMasterId = masterId;
-			tagList.forEach(i->{
-				PtTags newTags = new PtTags();
-				newTags.setMasterId(finalMasterId);
-				newTags.setTagText(i);
-				newTags.setVideoId(video.getId());
-				newTags.setType(TableConstant.COMMON_TWO);
-				newTags.setOrder(TableConstant.COMMON_ZERO);
-				ptTagsList.add(newTags);
-			});
-			ptTagsService.saveOrUpdateBatch(ptTagsList);
+		return savedSuccessfully;
+	}
+
+	private void populateVideoEvents(GcVideo video, Integer masterId, Message message) {
+		List<GcEvent> eventList = eventService.getEventListByVid(video.getId(), masterId);
+		if(CollectionUtils.isNotEmpty(eventList)){
+			message.addData("eventNum",eventList.size());
 		}
-		return flag;
+		List<GcResource>  resources = resourceService.getResByVid(video.getId());
+		if(CollectionUtils.isNotEmpty(resources)){
+			message.addData("resourceNum",resources.size());
+		}
+	}
+
+	private List<PtTags> createCourseTags(GcVideo video, Integer masterId) {
+		List<String> tagList = video.getCourseTags().toJavaList(String.class);
+		return tagList.stream()
+			.map(tag -> createCourseTag(masterId, tag, video.getId()))
+			.collect(Collectors.toList());
+	}
+
+	private PtTags createCourseTag(Integer masterId, String tagText, Integer videoId) {
+		PtTags courseTag = new PtTags();
+		courseTag.setMasterId(masterId);
+		courseTag.setTagText(tagText);
+		courseTag.setVideoId(videoId);
+		courseTag.setType(TableConstant.COMMON_TWO);
+		courseTag.setOrder(TableConstant.COMMON_ZERO);
+		return courseTag;
 	}
 
 	@Override
@@ -688,22 +666,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles) {
+	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles, Integer originChannelId) {
 		List<GcVideo> channelVideoContent = ptChannelContent.stream()
-			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent))
+			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent, originChannelId))
 			.collect(Collectors.toList());
 
 		saveBatch(channelVideoContent);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent) {
-		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
-
-		queryWrapper.eq("file_id", channelContent.getFileId());
-
-		return Optional.ofNullable(getOne(queryWrapper));
 	}
 
 	@Override
@@ -729,6 +697,71 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return createVideoSearchResponse(searchResult);
 	}
 
+	@Override
+	@Transactional
+	public boolean createVideos(List<GcVideo> videoList, HttpServletRequest request) {
+        Integer originCourseId = getOriginCourseId(videoList);
+
+		for (GcVideo video : videoList) {
+			ApiAssert.notNull(video.getVideoName(), "Video name cannot be empty");
+			ApiAssert.notNull(video.getFileId(), "The file id cannot be empty");
+
+			SysFile file = sysFileService.getById(video.getFileId());
+			if (file == null) {
+				log.error("Failed to save videos for course {}. File not found, file id: {}", originCourseId,
+					video.getFileId());
+				return false;
+			}
+			updateVideo(originCourseId, request, video, file);
+		}
+		return saveOrUpdateBatch(videoList);
+	}
+
+	private void updateVideo(Integer originCourseId, HttpServletRequest request, GcVideo video, SysFile file) {
+		video.setVideoName(stringWidthConvertUtil.stringWidthConvert(video.getVideoName()));
+		video.setVideoFullUrl(sysFileService.getResFullUrl(file, request));
+		video.setSubId0(originCourseId);
+		video.setOriginCourseId(originCourseId);
+		video.setThumbnailUrl(file.getThumbNailUrl());
+		video.setVideoTime(file.getVideoLong());
+	}
+
+	@Override
+	public void updateCourseTags(List<GcVideo> videoList, Integer masterId) {
+		if (videoList.isEmpty()) {
+			return;
+		}
+
+		List<PtTags> tags = videoList.stream()
+			.filter(video -> video.getCourseTags() != null)
+			.flatMap(video -> createCourseTags(video, masterId).stream())
+			.collect(Collectors.toList());
+
+		removeCourseTags(masterId, videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
+
+		if (!tags.isEmpty()) {
+			ptTagsService.saveOrUpdateBatch(tags);
+		}
+	}
+
+	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
+		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
+		queryWrapper.in("video_id", videoIds);
+		queryWrapper.in("master_id", masterId);
+		queryWrapper.in("type", TableConstant.COMMON_TWO);
+		ptTagsService.remove(queryWrapper);
+	}
+
+    private Integer getOriginCourseId(List<GcVideo> videoList) {
+        if (videoList.isEmpty()) {
+            return null;
+        }
+        Integer courseId = videoList.get(TableConstant.COMMON_ZERO).getSubId();
+        Integer originCourseId = subjectService.getById(courseId).getFid();
+
+        return originCourseId == null ? courseId : originCourseId;
+    }
+
 	private void updateVideoUrls(HttpServletRequest request, GcVideo video) {
 		SysFile videoFile = video.getVideoFile();
 		String fullFileUrl = sysFileService.getResFullUrl(videoFile, request);
@@ -746,7 +779,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return response;
 	}
 
-	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent) {
+	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent,
+											  Integer originChannelId) {
 		SysFile videoFile = getVideoFile(channelContent.getFileId(), sysFiles);
 
 		if (videoFile == null) {
@@ -760,6 +794,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		gcVideo.setFileId(videoFile.getId());
 		gcVideo.setThumbnailUrl(videoFile.getThumbNailUrl());
 		gcVideo.setVideoTime(videoFile.getVideoLong());
+		gcVideo.setOriginChannelId(originChannelId);
 
 		return gcVideo;
 	}
@@ -1251,7 +1286,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		return new ArrayList<>();
 	}
-	
+
 	@Override
 	public SysFile unifiedFileSave(JSONObject jsonObject) {
 		//添加到数据库中
@@ -1272,7 +1307,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				if(jsonObject.getInteger("userRole")!=null) {
 					fileEntity.setUserRole(jsonObject.getInteger("userRole"));
 				}
-				
+
 				if(jsonObject.getInteger("videoLong")!=null){
 					fileEntity.setVideoLong(jsonObject.getInteger("videoLong"));
 				}
@@ -1298,16 +1333,16 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				fileService.save(fileEntity);
 				return fileEntity;
 	}
-	
-	
+
+
 	@Transactional
 	@Override
 	public GcVideo callbackSaveVideo(JSONObject jsonObject) {
 		//添加到数据库中
 		SysFile fileEntity=this.unifiedFileSave(jsonObject);
-		
+
 		GcVideo video=new GcVideo();
-		
+
 		video.setVideoName(jsonObject.getString("videoName"));
 		video.setVideoDesc(jsonObject.getString("videoDesc"));
 		video.setFileId(fileEntity.getId());
@@ -1320,13 +1355,13 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return video;
 	}
 
-	
+
 	@Transactional
 	@Override
 	public GcMaster callbackSaveMasterVideo(JSONObject jsonObject) {
 		//添加到数据库中
 		SysFile fileEntity=this.unifiedFileSave(jsonObject);
-		
+
 		GcMaster gcMaster = gcMasterService.getById(jsonObject.getInteger("masterId"));
 		if(gcMaster!=null) {
 			gcMaster.setIntroVideoId(fileEntity.getId());
@@ -1339,7 +1374,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public Integer getSubIdByVid(Integer vid) {
 		// TODO Auto-generated method stub
-		
+
 		return this.baseMapper.selectSubIdByVid(vid);
 	}
 
@@ -1369,7 +1404,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		// TODO Auto-generated method stub
 		return this.baseMapper.selectVideoTopicSubjectInfo(vid);
 	}
-	
+
 	@Override
 	public List<GcVideo> selectVideoByVideoAndSub0NameIndex(String videoNameIndex,String subNameIndex,Integer masterId) {
 		return this.baseMapper.selectVideoByVideoAndSub0NameIndex(videoNameIndex,subNameIndex,masterId);

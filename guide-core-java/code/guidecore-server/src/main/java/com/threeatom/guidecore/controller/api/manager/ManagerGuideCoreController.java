@@ -680,207 +680,43 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     }
 
-    @ApiOperation(value = "文件id添加视频课程", httpMethod = "POST")
+    @ApiOperation(value = "File id add video course", httpMethod = "POST")
     @PostMapping("/saveVideo")
-    public Message saveVideo(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体") GcVideo video, HttpServletRequest request) {
+    public Message saveVideo(@RequestBody @ApiParam(name = "Save Video", value = "Video entity") GcVideo video, HttpServletRequest request) {
         SysSystem sys = this.getSystem();
         GcMaster master = this.getMaster();
         Integer masterId;
-        if (null==master&&null!=request.getHeader("masterId")){
+        if (null == master && null != request.getHeader("masterId")) {
             masterId = Integer.parseInt(request.getHeader("masterId"));
-        }else {
+        } else {
             masterId = master.getId();
         }
+        boolean successful = gcVideoService.saveVideoInfo(sys, video, masterId, request);
 
-        if (null!=video.getId()) {
-            Message message = new Message();
-            videoService.saveOrUpdate(video);
-
-            SysFile file = new SysFile();
-            if(Objects.nonNull(video.getFileId())) {
-                file = sysFileService.getInfoById(video.getFileId());
-                String url = sysFileService.getResFullUrl(file, request);
-                video.setVideoFullUrl(url);
-                String fullFileUrl = sysFileService.getResFullUrl(file,request);
-                file.setFullFileUrl(fullFileUrl);
-                String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
-                file.setSnapshotUrl(snapshoturl);
-                video.setVideoFile(file);
-                video.setVideoTime(file.getVideoLong());
-                video.setThumbnailUrl(file.getThumbNailUrl());
-            }
-
-            List<GcEvent> eventList = eventService.getEventListByVid(video.getId(),masterId);
-            if(CollectionUtils.isNotEmpty(eventList)){
-                message.addData("eventNum",eventList.size());
-            }
-            List<GcResource>  resources = resourceService.getResByVid(video.getId());
-            if(CollectionUtils.isNotEmpty(resources)){
-                message.addData("resourceNum",resources.size());
-            }
-
-            if (null!=video.getTargetLang()&& !video.getTargetLang().isEmpty()) {
-                file.setTargetLangJson(video.getTargetLang());
-                sysFileService.saveOrUpdate(file);
-                sysFileCaptionService.updateCaptionState(video.getTargetLang(), video.getId());
-                videoService.asyncMethodUpdateVideo(video, request, sys);
-            }
-            if (null!=video.getCourseTags()){
-                QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-                queryWrapper.in("video_id", video.getId());
-                queryWrapper.in("master_id",masterId);
-                queryWrapper.in("type",TableConstant.COMMON_TWO);
-
-                ptTagsService.remove(queryWrapper);
-                List<String> tagList = video.getCourseTags().toJavaList(String.class);
-                List<PtTags> ptTagsList = new ArrayList<>();
-
-                tagList.forEach(i->{
-                    PtTags newTags = new PtTags();
-                    newTags.setMasterId(masterId);
-                    newTags.setTagText(i);
-                    newTags.setVideoId(video.getId());
-                    newTags.setType(TableConstant.COMMON_TWO);
-                    newTags.setOrder(TableConstant.COMMON_ZERO);
-                    ptTagsList.add(newTags);
-                });
-                ptTagsService.saveOrUpdateBatch(ptTagsList);
-            }
-            courseContentService.saveCourseContent(video);
-            return message.ok("添加成功！").addData("sync", video);
-        }
-        ApiAssert.ifStringNotInList(video.getVideoName(), CommonConstant.defaultNoCourseOrVideName, "视频名称错误，不可用该值");
-        if(video.getFileId()!=null) {
-            ApiAssert.jsonValueIntegerIn(video.getVideoSource(), VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr, "VideoSource值错误，必须为: "+VideoConstant.GCVIDEO_VIDEOSOURCE_jsonStr);
-            SysFile file = iSysFileService.getById(video.getFileId());
-            if(file==null) return new Message().error("该视频id不存在");
-            String url = sysFileService.getResFullUrl(file, request);
-            video.setVideoFullUrl(url);
-            video.setVideoFile(file);
-            video.setThumbnailUrl(file.getThumbNailUrl());
-            video.setVideoTime(file.getVideoLong());
-        }else {
-            ApiAssert.notNull(video.getVideoSource(), "视频源不能为null");
-        }
-        if(video.getVideoName()==null || video.getSubId() ==null)throw new SystemException("视频名称及课程id不可空");
-        List<GcVideo> videoList = videoService.getVideoListBySubId(video.getSubId());
-        if (null!=videoList&&TableConstant.COMMON_ZERO!=videoList.size()&&null==video.getId()){
-            Integer max = videoList.stream().mapToInt(GcVideo::getOrder).max().getAsInt();
-            video.setOrder(max+1);
-        }
-
-        boolean flag = videoService.saveVideo(video);
-        courseContentService.saveCourseContent(video);
-
-        subjectCompleteService.updateStateByVideoId(video.getId(),masterId);
-        SysFile sysFile = new SysFile();
-        if(null!=video.getIfCaption()&&TableConstant.COMMON_ONE==video.getIfCaption()){
-            videoService.asyncMethodSaveVideo(video,request);
-            sysFile.setIfCaption(video.getIfCaption().toString());
-        }
-        sysFile.setName(video.getVideoName());
-        sysFile.setId(video.getFileId());
-        sysFile.setTargetLangJson(video.getTargetLang());
-        sysFileService.updateById(sysFile);
-        Integer fileTypeIndex = sysFileService.selectFileTypeIndexByVideoId(video.getId());
-        video.setFileTypeIndex(fileTypeIndex);
-
-        SysFile newVideoFile = sysFileService.getById(video.getFileId());
-        String snapshoturl = sysFileService.getVideoSnapshotUrl(video);
-        String fullFileUrl = sysFileService.getResFullUrl(newVideoFile,request);
-        newVideoFile.setSnapshotUrl(snapshoturl);
-        newVideoFile.setFullFileUrl(fullFileUrl);
-        video.setVideoFile(newVideoFile);
-        System.out.println("?????????????????");
-        if (null!=video.getCourseTags()){
-            QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("video_id", video.getId());
-            queryWrapper.in("master_id",masterId);
-            queryWrapper.in("type",TableConstant.COMMON_TWO);
-            ptTagsService.remove(queryWrapper);
-            List<String> tagList = video.getCourseTags().toJavaList(String.class);
-            List<PtTags> ptTagsList = new ArrayList<>();
-            tagList.forEach(i->{
-                PtTags newTags = new PtTags();
-                newTags.setMasterId(masterId);
-                newTags.setTagText(i);
-                newTags.setVideoId(video.getId());
-                newTags.setType(TableConstant.COMMON_TWO);
-                newTags.setOrder(TableConstant.COMMON_ZERO);
-                ptTagsList.add(newTags);
-            });
-            ptTagsService.saveOrUpdateBatch(ptTagsList);
-        }
-        if (flag){
+        if (successful) {
             video.setSubId0(subService.getById(video.getSubId()).getFid());
             return new Message().ok("添加成功！").addData("sync", video);
-        } else {
-            return new Message().error("添加失败！");
         }
+
+        return new Message().error("添加失败！");
     }
 
-    @ApiOperation(value = "多个文件id批量添加视频课程", httpMethod = "POST")
+    @ApiOperation(value = "Batch save video courses with multiple file IDs", httpMethod = "POST")
     @PostMapping("/saveVideoBatch")
-    public Message saveVideoBatch(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体list") List<GcVideo> videoList, HttpServletRequest request) {
-        Integer sub0Id = null;
-        if (!videoList.isEmpty()){
-            if (null!=subService.getById(videoList.get(TableConstant.COMMON_ZERO).getSubId()).getFid()){
-                sub0Id = subService.getById(videoList.get(TableConstant.COMMON_ZERO).getSubId()).getFid();
-            }else {
-                sub0Id = videoList.get(TableConstant.COMMON_ZERO).getSubId();
-            }
-        }
+    public Message saveVideoBatch(
+        @RequestBody @ApiParam(name = "Save Video", value = "Video entities") List<GcVideo> videoList,
+        HttpServletRequest request) {
+
         Integer masterId = request.getIntHeader("masterId");
-        List<PtTags> allPtTagsList = new ArrayList<>();
-        for (GcVideo video : videoList) {
-            ApiAssert.notNull(video.getVideoName(), "视频名不可空");
-            video.setVideoName(stringWidthConvertUtil.stringWidthConvert(video.getVideoName()));
-
-            ApiAssert.notNull(video.getFileId(), "文件id不可空");//后期等gc_video的链接统一整合到sys_file中后，可在数据库直接加上video_name和file_id不可空
-            SysFile file = iSysFileService.getById(video.getFileId());
-            if(file==null) return new Message().error("该视频id不存在");
-
-            String url = sysFileService.getResFullUrl(file, request);
-            video.setVideoFullUrl(url);
-            video.setSubId0(sub0Id);
-            video.setThumbnailUrl(file.getThumbNailUrl());
-            video.setVideoTime(file.getVideoLong());
-        }
-
-        if (videoService.saveOrUpdateBatch(videoList)) {
+        if (videoService.createVideos(videoList, request)) {
             courseContentService.saveCourseContents(videoList);
 
-            for (GcVideo video : videoList) {
-                if (null!=video.getCourseTags()){
-                    List<String> tagList = video.getCourseTags().toJavaList(String.class);
-                    List<PtTags> ptTagsList = new ArrayList<>();
-                    tagList.forEach(j->{
-                        PtTags newTags = new PtTags();
-                        newTags.setMasterId(masterId);
-                        newTags.setTagText(j);
-                        newTags.setVideoId(video.getId());
-                        newTags.setType(TableConstant.COMMON_TWO);
-                        newTags.setOrder(TableConstant.COMMON_ZERO);
-                        ptTagsList.add(newTags);
-                    });
-                    allPtTagsList.addAll(ptTagsList);
-                }
-            }
-
-            if (!videoList.isEmpty()) {
-                QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-                queryWrapper.in("video_id", videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
-                queryWrapper.in("master_id", masterId);
-                queryWrapper.in("type", TableConstant.COMMON_TWO);
-                ptTagsService.remove(queryWrapper);
-            }
-            if (!allPtTagsList.isEmpty()) {
-                ptTagsService.saveOrUpdateBatch(allPtTagsList);
-            }
-            return new Message().ok("添加成功！").addData("sync", videoList);
-        }else {
-            return new Message().error("添加失败！");
+            videoService.updateCourseTags(videoList, masterId);
+            return new Message().ok("Added successfully")
+                .addData("sync", videoList);
         }
+
+        return new Message().error("Failed to add videos");
     }
 
     //弃用
