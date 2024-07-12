@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.config.CourseStarConfiguration;
 import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.dto.response.ReactionDetailsDto;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.enums.ReactionType;
 import com.threeatom.guidecore.mapper.GcUserVideoActionMapper;
@@ -15,16 +16,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionMapper, GcUserVideoAction>
     implements GcUserVideoActionService {
 
-    @Autowired
-    private CourseStarConfiguration courseStarConfiguration;
+    private final CourseStarConfiguration courseStarConfiguration;
 
     @Override
     @Transactional
@@ -66,10 +67,17 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
     }
 
     @Override
-    public List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer content_id, Integer userId) {
+    public List<GcUserVideoAction> getVideoActionsByContentAndUserId(Integer contentId, Integer userId) {
         QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("content_id", content_id);
+        queryWrapper.eq("content_id", contentId);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<GcUserVideoAction> getVideoActionsByContentId(Integer contentId) {
+        QueryWrapper<GcUserVideoAction> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("content_id", contentId);
         return this.list(queryWrapper);
     }
 
@@ -247,6 +255,31 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
     public void updateReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {
         deleteReactions(contentId, userId, reactions);
         saveReactions(contentId, userId, reactions);
+    }
+
+    @Override
+    public Map<ReactionType, ReactionDetailsDto> getReactions(Integer contentId, Integer userId) {
+        Map<Integer, List<GcUserVideoAction>> reactionTypeToReaction = getVideoActionsByContentId(contentId).stream()
+            .collect(Collectors.groupingBy(GcUserVideoAction::getType));
+        Map<ReactionType, ReactionDetailsDto> result = new HashMap<>();
+
+        for (ReactionType reactionType : ReactionType.values()) {
+            List<GcUserVideoAction> reactions = reactionTypeToReaction.get(reactionType.getReactionCode());
+            if (CollectionUtils.isNotEmpty(reactions)) {
+                result.put(reactionType, getReactionDetails(userId, reactions));
+            } else {
+                result.put(reactionType, new ReactionDetailsDto());
+            }
+        }
+
+        return result;
+    }
+
+    private ReactionDetailsDto getReactionDetails(Integer userId, List<GcUserVideoAction> reactions) {
+        ReactionDetailsDto value = new ReactionDetailsDto();
+        value.setCurrentUserReacted(reactions.stream().anyMatch(reaction -> reaction.getUserId().equals(userId)));
+        value.setCount(reactions.size());
+        return value;
     }
 
     private void saveReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {

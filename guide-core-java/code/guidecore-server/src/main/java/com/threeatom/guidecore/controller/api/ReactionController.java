@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.response.ReactionDetailsDto;
+import com.threeatom.guidecore.enums.ReactionType;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import io.swagger.annotations.Api;
@@ -11,6 +13,7 @@ import javax.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,5 +38,15 @@ public class ReactionController {
 
         userVideoActionService.updateReactions(videoId, userId, reactions);
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping(value = "/videos/{videoId}/reactions")
+    @ApiOperation(value = "Get reactions")
+    public ResponseEntity<Map<ReactionType, ReactionDetailsDto>> getReactions(@PathVariable Integer videoId,
+                                                                              HttpServletRequest request) {
+        Integer userId = userService.getCurrentUser(request).getId();
+
+        return ResponseEntity.ok().body(userVideoActionService.getReactions(videoId, userId));
     }
 }

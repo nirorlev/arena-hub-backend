@@ -1664,7 +1664,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		Integer countNote=gcUserNoteService.countNoteForVideo(videoId,user.getId(),masterId);
 
 		//点赞，评价, userVideoAction
-		List<GcUserVideoAction> videoActionList = gcUserVideoActionService.getVideoActionListByVidAndUserId(videoId, user.getId());
+		List<GcUserVideoAction> videoActionList = gcUserVideoActionService.getVideoActionsByContentAndUserId(videoId, user.getId());
 		int isLiked =0;
 		GcUserVideoAction rateVideoAction=null;
 		GcUserVideoAction startAction=null;

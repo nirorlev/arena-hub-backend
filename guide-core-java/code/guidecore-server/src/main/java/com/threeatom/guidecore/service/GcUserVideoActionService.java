@@ -1,7 +1,9 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.response.ReactionDetailsDto;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.enums.ReactionType;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +21,9 @@ public interface GcUserVideoActionService extends IService<GcUserVideoAction> {
 
     boolean deleteChannelOldVideoAction(Integer contentId, Integer userId, Integer type);
 
-    List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId);
+    List<GcUserVideoAction> getVideoActionsByContentAndUserId(Integer contentId, Integer userId);
+
+    List<GcUserVideoAction> getVideoActionsByContentId(Integer contentId);
 
     GcUserVideoAction getFileActionListByFileIdAndUserId(Integer contentId, Integer userId);
 
@@ -46,4 +50,6 @@ public interface GcUserVideoActionService extends IService<GcUserVideoAction> {
     boolean isLikedByUser(Integer contentId, Integer userId);
 
     void updateReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions);
+
+    Map<ReactionType, ReactionDetailsDto> getReactions(Integer contentId, Integer userId);
 }
