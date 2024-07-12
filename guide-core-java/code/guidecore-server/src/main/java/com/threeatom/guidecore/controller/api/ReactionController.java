@@ -31,13 +31,13 @@ public class ReactionController {
 
     @PatchMapping(value = "/videos/{videoId}/reactions", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Update reactions")
-    public ResponseEntity<Void> updateReactions(@PathVariable Integer videoId,
+    public ResponseEntity<Map<ReactionType, ReactionDetailsDto>> updateReactions(@PathVariable Integer videoId,
                                                 @RequestBody @Valid @NotEmpty Map<String, Boolean> reactions,
                                                 HttpServletRequest request) {
         Integer userId = userService.getCurrentUser(request).getId();
 
         userVideoActionService.updateReactions(videoId, userId, reactions);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(userVideoActionService.getReactions(videoId, userId));
     }
 
 

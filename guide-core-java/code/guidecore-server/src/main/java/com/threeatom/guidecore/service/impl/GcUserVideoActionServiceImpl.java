@@ -286,13 +286,13 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         reactions.entrySet().stream()
             .filter(Map.Entry::getValue)
             .forEach(
-                entry -> saveVideoAction(contentId, userId, ReactionType.valueOf(entry.getKey()).getReactionCode()));
+                entry -> saveVideoAction(contentId, userId, ReactionType.valueOf(entry.getKey().toUpperCase()).getReactionCode()));
     }
 
     private void deleteReactions(Integer contentId, Integer userId, Map<String, Boolean> reactions) {
         reactions.entrySet().stream()
             .filter(entry -> !entry.getValue())
             .forEach(entry -> deleteOldVideoAction(contentId, userId,
-                ReactionType.valueOf(entry.getKey()).getReactionCode()));
+                ReactionType.valueOf(entry.getKey().toUpperCase()).getReactionCode()));
     }
 }
