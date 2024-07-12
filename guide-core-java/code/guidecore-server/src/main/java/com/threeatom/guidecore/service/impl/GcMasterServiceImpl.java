@@ -181,7 +181,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             }
             // 获取一级课程
             List<Integer> oneSubIdList = this.gcUserSaveContentService.getOneSubIdList(content);
-            if (oneSubIdList.size() != 0) {
+            if (!oneSubIdList.isEmpty()) {
                 params.put("subjectIds", oneSubIdList);
                 List<GcSubject> oneList = subjectService.selectBuildSubject(params, request);
                 newUiGcSubjectService.buildSubject2(
@@ -192,7 +192,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
             // 获取二级课程
             List<Integer> twoSubIdList = this.gcUserSaveContentService.getTwoSubIdList(content);
-            if (twoSubIdList.size() != 0) {
+            if (!twoSubIdList.isEmpty()) {
                 twoList = subjectService.selectTwoSubjectByIds(twoSubIdList, request);
             }
             PageInfo<GcSubject> gcSubjectPageInfo = new PageInfo<>(twoList);
@@ -200,8 +200,9 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             // 获取视频
             List<GcUserSaveContent> list =
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
-            List<Integer> fileIds = this.gcUserSaveContentService.getVideoIdList(content);
-            if (null != fileIds && fileIds.size() != 0) {
+            List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
+            if (CollectionUtils.isNotEmpty(contentIds)) {
+                List<Integer> fileIds = gcVideoService.listByIds(contentIds).stream().map(GcVideo::getFileId).toList();
                 fileList = sysFileService.listByIds(fileIds);
 
                 for (GcUserSaveContent userSaveContent : list) {
@@ -211,9 +212,9 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                         }
                     }
                 }
-                m.addData("firstVideoId", fileIds.stream().findFirst());
+                m.addData("firstVideoId", contentIds.stream().findFirst());
             }
-            Integer followFlag = TableConstant.COMMON_ZERO;
+            int followFlag = TableConstant.COMMON_ZERO;
             if (CollectionUtils.isNotEmpty(list) && envFlag.equals(EnvType.PT.getCode())) {
                 m.addData("videoNum", list.size());
             }
@@ -231,12 +232,11 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 m.addData("followFlag", followFlag);
             }
             if (CollectionUtils.isNotEmpty(list)) {
-                List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(fileIds);
+                List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(contentIds);
                 for (SysFile file : fileList) {
                     for (GcUserVideoAction gcUserVideoAction : gcVideos) {
-                        if (file.getId().equals(gcUserVideoAction.getVideoId())) {
+                        if (file.getId().equals(gcUserVideoAction.getContentId())) {
                             file.setLikeNum(gcUserVideoAction.getVideoLikeNum());
-                            continue;
                         }
                     }
                     file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));

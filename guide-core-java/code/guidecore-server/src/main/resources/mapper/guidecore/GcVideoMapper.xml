@@ -78,7 +78,7 @@
 	</sql>
 	
 	<sql id="leftJoinUserVideoAtion">
-	   LEFT JOIN gc_user_video_action uva ON v.id=uva.video_id
+	   LEFT JOIN gc_user_video_action uva ON v.id=uva.content_id
 	</sql>
 	
 	<sql id="where_gcSubject_state_not_hidden">
@@ -250,7 +250,7 @@
         v.order
         from gc_video v 
          <include refid="leftJoinSysFile" />
-        left join  gc_user_video_action ac on ac.video_id = v.id
+        left join  gc_user_video_action ac on ac.content_id = v.id
         where v.sub_id=#{subId}
         group by v.id, f.id
         order by v."order" asc,v.create_time asc,v.id

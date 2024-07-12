@@ -21,17 +21,17 @@ public interface GcUserVideoActionService extends IService<GcUserVideoAction> {
 
     GcUserVideoAction getOldVideoAction(Integer vid, Integer userId, Integer type);
 
-    GcUserVideoAction getOldChannelVideoAction(Integer vid, Integer userId, Integer type);
+    GcUserVideoAction getOldChannelVideoAction(Integer contentId, Integer userId, Integer type);
 
     boolean deleteOldVideoAction(Integer vid, Integer userId, Integer type);
 
-    boolean deleteChannelOldVideoAction(Integer vid, Integer userId, Integer type);
+    boolean deleteChannelOldVideoAction(Integer contentId, Integer userId, Integer type);
 
     List<GcUserVideoAction> getVideoActionListByVidAndUserId(Integer vid, Integer userId);
 
-    GcUserVideoAction getFileActionListByFileIdAndUserId(Integer fileId, Integer userId);
+    GcUserVideoAction getFileActionListByFileIdAndUserId(Integer contentId, Integer userId);
 
-    List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> fileId, Integer userId);
+    List<GcUserVideoAction> getVideoActionListByFildId(List<Integer> contentIds, Integer userId);
 
     List<GcUserVideoAction> getVideoActionListByUserId(Integer userId);
 

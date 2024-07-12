@@ -127,53 +127,38 @@ public class VideoGuideCoreController extends GuideCoreController {
     @PostMapping("/videoAction")
     public Message videoAction(
             @RequestBody @Valid GcUserVideoAction gcUserVideoAction, HttpServletRequest request) {
-        if (gcUserVideoAction.getVid() != null)
+        if (gcUserVideoAction.getVid() != null) {
             gcUserVideoAction.setVideoId(gcUserVideoAction.getVid());
+        }
 
-        //        this.assertResourceLimit(request, gcUserVideoAction.getVideoId(),
-        // SysResourceType.VIDEO);
-
+        gcUserVideoAction.setContentId(gcUserVideoAction.getVideoId());
         int userId = this.getGcUser().getId();
         gcUserVideoAction.setUserId(userId);
         GcUserVideoAction oldVideoAction = null;
 
-        if (null != gcUserVideoAction.getVideoId()) {
+        if (null != gcUserVideoAction.getContentId()) {
             oldVideoAction =
                     videoActionService.getOldVideoAction(
-                            gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
-        } else if (null != gcUserVideoAction.getFileId()) {
-            oldVideoAction =
-                    videoActionService.getFileActionListByFileIdAndUserId(
-                            gcUserVideoAction.getFileId(), userId);
+                            gcUserVideoAction.getContentId(), userId, gcUserVideoAction.getType());
         }
 
-        // 点赞
-        if (gcUserVideoAction.getType().intValue() == TableConstant.gcUserVideoAction_type_like1) {
+        if (gcUserVideoAction.getType() == TableConstant.gcUserVideoAction_type_like1) {
             if (oldVideoAction != null) {
-                boolean a = false;
-                if (null != gcUserVideoAction.getVideoId()) {
-                    a =
+                boolean sucess = false;
+                if (null != gcUserVideoAction.getContentId()) {
+                    sucess =
                             videoActionService.deleteOldVideoAction(
-                                    gcUserVideoAction.getVideoId(), userId, gcUserVideoAction.getType());
-                } else {
-                    a =
-                            videoActionService.deleteChannelOldVideoAction(
-                                    gcUserVideoAction.getFileId(), userId, gcUserVideoAction.getType());
+                                    gcUserVideoAction.getContentId(), userId, gcUserVideoAction.getType());
                 }
-                if (a) return new Message().ok("操作成功！");
+                if (sucess) return new Message().ok("操作成功！");
             }
 
-            if (null != gcUserVideoAction.getVideoId()) {
-                GcVideo video = videoService.getVideoById(gcUserVideoAction.getVideoId());
-                if (null != video) {
-                    gcUserVideoAction.setFileId(video.getFileId());
-                }
+            if (videoActionService.saveOrUpdate(gcUserVideoAction)) {
+                return new Message().ok("操作成功！");
             }
-            boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
-            if (a) return new Message().ok("操作成功！");
         }
 
-        if (gcUserVideoAction.getType().intValue() == TableConstant.gcUserVideoAction_type_rate2) {
+        if (gcUserVideoAction.getType() == TableConstant.gcUserVideoAction_type_rate2) {
             if (oldVideoAction != null) gcUserVideoAction.setId(oldVideoAction.getId());
             boolean a = videoActionService.saveOrUpdate(gcUserVideoAction);
             if (a) return new Message().ok("操作成功！");
