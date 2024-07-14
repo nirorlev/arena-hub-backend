@@ -447,19 +447,26 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtNewHomePlayList(user.getId(), gcMaster.getId(),recommenFolderIds,request);
 
 				List<Integer> firstVideos = recommenFolderList.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
-				List<SysFile> fileList = sysFileService.listByIds(firstVideos);
-				fileList.forEach(i-> i.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(i)));
-				Map<Integer,SysFile> firstVideoMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
 
-				for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
-					//缩略图
-					if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())&&null!=firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
-						SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
-						if (null!=gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)){
-							gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).setVideoFile(sysFile);
-							gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile().setSnapshotUrl(sysFile.getSnapshotUrl());
+				if (CollectionUtils.isNotEmpty(firstVideos)) {
+					List<SysFile> fileList = sysFileService.listByIds(firstVideos);
+					fileList.forEach(i -> i.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(i)));
+					Map<Integer, SysFile> firstVideoMap =
+						fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+
+					for (GcUserSaveFolder gcUserSaveFolder : recommenFolderList) {
+						//缩略图
+						if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId()) &&
+							null != firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
+							SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
+							if (null != gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)) {
+								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)
+									.setVideoFile(sysFile);
+								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile()
+									.setSnapshotUrl(sysFile.getSnapshotUrl());
+							}
+							gcUserSaveFolder.setSnapshotUrl(sysFile.getSnapshotUrl());
 						}
-						gcUserSaveFolder.setSnapshotUrl(sysFile.getSnapshotUrl());
 					}
 				}
 
