@@ -23,6 +23,7 @@ import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -688,13 +689,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	public VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request) {
 		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(query, masterId);
 
-		List<VideoSearchResultDto> searchResult = videos.stream()
-			.map(video -> {
-				updateVideoUrls(request, video);
-				return videoMapping.map(video);
-			})
-			.collect(Collectors.toList());
-		return createVideoSearchResponse(searchResult);
+		List<VideoSearchResultDto> result = getChannelOriginVideoListResult(request, videos);
+		result.addAll(getCourseOriginVideoListResult(request, videos));
+
+		return createVideoSearchResponse(result);
 	}
 
 	@Override
@@ -1430,4 +1428,23 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return this.baseMapper.getVideoLongListByVideoId(videoIds);
 	}
 
+	private List<VideoSearchResultDto> getCourseOriginVideoListResult(HttpServletRequest request, List<GcVideo> videos) {
+		return videos.stream()
+			.filter(video -> video.getOriginCourseId() != null)
+			.map(video -> {
+				updateVideoUrls(request, video);
+				return videoMapping.mapCourseOrigin(video);
+			})
+			.collect(Collectors.toList());
+	}
+
+	private List<VideoSearchResultDto> getChannelOriginVideoListResult(HttpServletRequest request, List<GcVideo> videos) {
+		return videos.stream()
+			.filter(video -> video.getOriginChannelId() != null)
+			.map(video -> {
+				updateVideoUrls(request, video);
+				return videoMapping.mapChannelOrigin(video);
+			})
+			.collect(Collectors.toList());
+	}
 }

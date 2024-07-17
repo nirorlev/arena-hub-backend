@@ -8,7 +8,7 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing an Owner")
 @Getter
 @Setter
-public class OwnerDto {
+public class UserDetailsDto {
     @ApiModelProperty(value = "Unique identifier of the Owner")
     private Integer id;
 
@@ -19,5 +19,5 @@ public class OwnerDto {
     private String lastName;
 
     @ApiModelProperty(value = "URL of the Owner's avatar")
-    private String avatarUrl;
+    private String thumbUrl;
 }

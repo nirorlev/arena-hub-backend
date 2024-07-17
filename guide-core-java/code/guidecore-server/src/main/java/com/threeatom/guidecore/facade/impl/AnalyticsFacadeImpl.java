@@ -6,6 +6,7 @@ import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
+import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -32,55 +33,55 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> channelsCountAnalytics = channelService.getChannelsCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(channelsCountAnalytics, "Channels Count");
+        return getAnalyticsResponseDto(channelsCountAnalytics, AnalyticsType.CHANNEL_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> videoCountAnalytics = videoService.getVideoCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoCountAnalytics, "Videos Count");
+        return getAnalyticsResponseDto(videoCountAnalytics, AnalyticsType.VIDEO_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> playlistCountAnalytics = userSaveFolderService.getPlaylistCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(playlistCountAnalytics, "Playlist Count");
+        return getAnalyticsResponseDto(playlistCountAnalytics, AnalyticsType.PLAYLIST_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> videoViewCountAnalytics = videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoViewCountAnalytics, "Video View Count");
+        return getAnalyticsResponseDto(videoViewCountAnalytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> videoWatchingTimeAnalytics = videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoWatchingTimeAnalytics, "Video Watching Time");
+        return getAnalyticsResponseDto(videoWatchingTimeAnalytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> viewersCountAnalytics = videoPlaySessionService.getViewersCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(viewersCountAnalytics, "Viewers Count");
+        return getAnalyticsResponseDto(viewersCountAnalytics, AnalyticsType.VIEWERS_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> averageVideoWatchingTimeAnalytics = videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics, "Average Video Watching Time");
+        return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics, AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> dropOffRateAnalytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(dropOffRateAnalytics, "Drop Off Rate");
+        return getAnalyticsResponseDto(dropOffRateAnalytics, AnalyticsType.DROP_OFF_RATE.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> engagementRateAnalytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(engagementRateAnalytics, "Engagement Rate");
+        return getAnalyticsResponseDto(engagementRateAnalytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
     }
 
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
