@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -89,10 +90,10 @@ public class GcVideo implements Serializable {
     private Integer childSubOrder;
 
     @JSONField(deserialize = false)
-    private Date updateTime;
+    private OffsetDateTime updateTime;
 
     @JSONField(deserialize = false)
-    private Date createTime;
+    private OffsetDateTime createTime;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "评论数")
@@ -204,6 +205,12 @@ public class GcVideo implements Serializable {
 
     @TableField(exist = false)
     private Integer currentStudentUserId;
+
+    @TableField(exist = false)
+    private PtChannel originChannel;
+
+    @TableField(exist = false)
+    private GcSubject originCourse;
 
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
