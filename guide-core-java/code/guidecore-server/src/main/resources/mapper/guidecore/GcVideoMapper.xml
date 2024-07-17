@@ -795,8 +795,8 @@
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
         WHERE ((gs.master_id = #{masterId} AND gs.state = 1 AND course_owner.id IS NOT NULL)
             OR (pc.master_id = #{masterId} AND pc.visible_flag != 0 AND channel_owner.id IS NOT NULL))
-        <if test="query != null">
-            AND v.video_name ILIKE CONCAT('%', #{query}, '%')
+        <if test="filter.query != null">
+            AND v.video_name ILIKE CONCAT('%', #{filter.query}, '%')
         </if>
         ORDER BY v.create_time DESC
     </select>

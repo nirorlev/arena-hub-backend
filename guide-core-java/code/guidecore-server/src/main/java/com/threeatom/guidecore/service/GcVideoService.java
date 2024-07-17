@@ -6,6 +6,7 @@ import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -167,7 +168,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
-    VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request);
+    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
 
     boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
 
