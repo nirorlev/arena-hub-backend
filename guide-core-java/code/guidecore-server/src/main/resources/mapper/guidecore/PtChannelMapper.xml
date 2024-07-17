@@ -843,15 +843,13 @@
     </select>
 
     <select id="indexSubscribeChannel" resultMap="baseResultSearchMap">
-        select f.*,count( vac.id ) AS likeNum ,
-               case when vac.user_id=#{userId} then 1 else 0 end as isLiked
+        select f.*
         from (select DISTINCT ON (video_content.id)
                   channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                   channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                   channel.update_time,
                   video_content.id as video_id,
                   video_content.update_time as file_update_time,
-                  video_content.id as videoContentId,
                   coalesce(ch2.channel_avatar_file_id,channel.channel_avatar_file_id) as channel_avatar_file_id,
                   coalesce(ch2.id,channel.id) as id,
                   coalesce(ch2.channel_name,channel.channel_name) as channel_name,
@@ -880,12 +878,11 @@
                 and channel.master_id = #{masterId}
               order by video_content.id desc, video_content.update_time desc
              ) as f
-                 left join gc_user_video_action vac on f.videoContentId = vac.content_id and vac."type" = 1
         GROUP BY f.fileId, f.channel_img_file_id, f."desc", f.create_user_id, f.visible_flag, f.category_id, f.level, f.fid,
                  f."order", f.master_id, f.channel_slug, f.create_time, f.update_time, f.file_update_time,
                  f.channel_avatar_file_id, f.id, f.channel_name, f.userInfo_lastName, f.userInfo_firstName,
                  f.userInfo_avatar_file_id, f.channel_create_uid, f.channel_create_user_username, f.channelContentId,
-                 f.video_id, vac.user_id
+                 f.video_id
         order by f.file_update_time desc
     </select>
 
@@ -903,8 +900,6 @@
                                                              info.last_name AS createUserLastName,
                                                              info.first_name AS createUserFirstName,
                                                              info.avatar_file_id as userInfo_avatar_file_id,
-                                                             count(vac.id) as likeNum,
-                                                             case when vac.user_id=#{userId} then 1 else 0 end as isLiked,
                                                              info.last_name AS userInfo_lastName,
                                                              info.first_name AS userInfo_firstName,
                                                              us2.id as  channel_create_uid,
@@ -920,7 +915,6 @@
                                                           left join gc_user us on us.id = userAccess.user_id
                                                           left join gc_user us2 on us2.id = channel.create_user_id
                                                           left join gc_user_info info on info.id = us2.info_id
-                                                          left join gc_user_video_action vac on vac.content_id = pcc.content_id and vac."type" = 1
                                                       where 1=1
                                                         and userAccess.user_id = #{userId}
                                                         and us.id = #{userId}
@@ -928,16 +922,16 @@
                                                         and pcc.id is not null
                                                         and channel.id is not null
                                                          OR ( channel.create_user_id =#{userId} AND channel.LEVEL = 0  AND channel.master_id = #{masterId})
-                                                      GROUP BY file.id, permission.id, channel.id, ch2.id, us2.id, pcc.id, info.id, vac.id
-                                                      order by count(vac.id) desc ,file.update_time desc
+                                                      GROUP BY file.id, permission.id, channel.id, ch2.id, us2.id, pcc.id, info.id
+                                                      order by file.update_time desc
                                                   ) as b
                                                       left join gc_user_video_play play on play.file_id = b.fileId
         GROUP BY b.fileId, b.channel_img_file_id, b."desc", b.create_user_id, b.visible_flag, b.category_id, b.level, b.fid,
                  b."order", b.master_id, b.channel_slug, b.create_time, b.update_time, b.channel_avatar_file_id, b.id,
                  b.channel_name, b.file_create_time, b.file_update_time, b.createUserLastName, b.createUserFirstName,
-                 b.userInfo_avatar_file_id, b.likeNum, b.isLiked, b.userInfo_lastName, b.userInfo_firstName,
+                 b.userInfo_avatar_file_id, b.userInfo_lastName, b.userInfo_firstName,
                  b.channel_create_uid, b.channel_create_user_username, b.channelContentId, b.video_id
-        order by likeNum desc ,count(play.id) desc,file_update_time desc
+        order by count(play.id) desc,file_update_time desc
     </select>
 
     <select id="getChannelCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">

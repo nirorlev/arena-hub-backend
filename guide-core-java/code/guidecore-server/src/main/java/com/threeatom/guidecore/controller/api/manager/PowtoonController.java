@@ -943,57 +943,16 @@ public class PowtoonController extends GuideCoreController {
 				folder.setFollowNum(list1.size());
 			}
 			for(GcUserSaveContent content: folder.getSaveContentList()) {
-				if(content.getVideoFile()!=null){
-					content.setVideoFile(sysFileService.getById(content.getVideoFile().getId()));
-					content.getVideoFile().setSnapshotUrl(sysFileService.getVideoSnapshotUrl(content.getVideoFile()));
-					content.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(content.getVideoFile(),request));
+				SysFile videoFile = content.getVideoFile();
+				if(videoFile != null) {
+					SysFile videoFileById = sysFileService.getById(videoFile.getId());
+					content.setVideoFile(videoFileById);
+					populateVideoContent(request, videoFileById, myUser.getId());
 				}
 			}
 		}
 
-		if(Objects.nonNull(list.get(0)) & CollectionUtils.isNotEmpty(list.get(0).getSaveContentList())){
-			List<Integer> contentIds = list.get(0)
-					.getSaveContentList()
-					.stream()
-					.map(GcUserSaveContent::getContentId)
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-			List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(contentIds);
-			Map<Integer,GcUserVideoAction> isLikeMap = new HashMap<>();
-			if (!contentIds.isEmpty()){
-				List<GcUserVideoAction> videoIsLike = gcUserVideoActionService.getVideoActionListByFildId(contentIds, myUser.getId());
-				isLikeMap = videoIsLike.stream().collect(Collectors.toMap(GcUserVideoAction::getContentId,GcUserVideoAction -> GcUserVideoAction, (key1, key2) -> key2, LinkedHashMap::new));
-			}
-
-			for(GcUserSaveContent gcUserSaveContent : list.get(0).getSaveContentList()){
-				if (null!=isLikeMap.get(gcUserSaveContent.getContentId())){
-					gcUserSaveContent.getVideoFile().setIsLiked(TableConstant.COMMON_ONE);
-				}else {
-					gcUserSaveContent.getVideoFile().setIsLiked(TableConstant.COMMON_ZERO);
-				}
-				gcUserSaveContent.getVideoFile().setLikeNum(TableConstant.COMMON_ZERO);
-				for (GcUserVideoAction gcVideo : gcVideos) {
-					if (gcUserSaveContent.getVideoFile().getId().equals(gcVideo.getContentId())){
-						gcUserSaveContent.getVideoFile().setLikeNum(gcVideo.getVideoLikeNum());
-					}
-				}
-			}
-		}
-		GcVideo videoContent = gcVideoService.getVideoContent(videoId).orElseThrow();
-		GcUserVideoAction fileIsLike = UserVideoActionService.getFileActionListByFileIdAndUserId(videoContent.getId(), myUser.getId());
-		if (null!=fileIsLike){
-			file.setLikeNum(TableConstant.COMMON_ONE);
-		}else {
-			file.setLikeNum(TableConstant.COMMON_ZERO);
-		}
-
-		String snapshotUrl = sysFileService.getVideoSnapshotUrl(file);
-		file.setSnapshotUrl(snapshotUrl);
-		file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
-        file.setVideoId(videoContent.getId());
-        file.setIsLiked(videoActionService.isLikedByUser(videoContent.getId(), myUser.getId()) ? 1 : 0);
-
+		populateVideoContent(request, file, myUser.getId());
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		return message.ok().addData("thisVideo",file)
@@ -1001,6 +960,16 @@ public class PowtoonController extends GuideCoreController {
 				.addData("systemTime",df.format(new Date()));
 	}
 
+	private void populateVideoContent(HttpServletRequest request, SysFile videoFile, Integer userId) {
+		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+		videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
+		gcVideoService.getVideoContent(videoFile.getId()).ifPresent(videoContent -> {
+			videoFile.setVideoId(videoContent.getId());
+			videoFile.setLikeNum(videoActionService.countLikeForVideo(videoContent.getId()));
+			videoFile.setIsLiked(
+				videoActionService.isLikedByUser(videoContent.getId(), userId) ? 1 : 0);
+		});
+	}
 
 	@ApiOperation(value = "logout", httpMethod = "GET")
 	@GetMapping("/logout")
@@ -3628,10 +3597,7 @@ public class PowtoonController extends GuideCoreController {
 		message.ok().addData("channel",ptChannel);
 		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
 		for(SysFile sysFile : videofiles){
-			String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-			sysFile.setSnapshotUrl(snapshotUrl);
-			String fullUrl = sysFileService.getResFullUrl(sysFile,request);
-			sysFile.setFullFileUrl(fullUrl);
+			populateVideoContent(request, sysFile, currentUser.getId());
 		}
 		PageInfo videoFiles = new PageInfo<>(videofiles);
 		message.ok().addData("videoList",videoFiles);

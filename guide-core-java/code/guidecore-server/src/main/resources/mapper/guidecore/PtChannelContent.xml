@@ -12,15 +12,12 @@
     </resultMap>
 
     <select id="selectVideosInChannel" resultType="com.threeatom.system.entity.SysFile">
-        select video.*, content.id as ptChannelContentId, video_content.id as videoId,
-        count(uva.id) as likeNum,
-        case when uva.user_id = #{userId} then 1 else 0 end as isLiked
+        select video.*, content.id as ptChannelContentId, video_content.id as videoId
         from gc_video video_content
         JOIN sys_file video ON video_content.file_id = video.id
         left join pt_channel_content content on content.content_id = video_content.id
-        left join gc_user_video_action uva on video_content.id = uva.content_id and uva."type" = 1
         where content.channel_id =#{channelId}
-        group by video.id, content.id, video_content.id, uva.id
+        group by video.id, content.id, video_content.id
         <choose>
             <when test="order!=null">
                 order by convert_to(video_content.video_name, 'UTF8') ${order}

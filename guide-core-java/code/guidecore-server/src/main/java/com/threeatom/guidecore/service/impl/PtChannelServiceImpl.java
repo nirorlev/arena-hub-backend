@@ -437,21 +437,20 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
 
         List<SysFile> fileList = sysFileService.listByIds(idList);
-        for (SysFile file: fileList) {
-            videoService.getVideoContent(file.getId()).ifPresent(videoContent -> file.setVideoId(videoContent.getId()));
-        }
 
         Map<Integer, SysFile> fileMap =
                 fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
         for (PtChannel channel : channels) {
-            if (fileMap.get(channel.fileId) != null) {
-                channel.setVideoFile(fileMap.get(channel.fileId));
-                channel
-                        .getVideoFile()
-                        .setSnapshotUrl(sysFileService.getVideoSnapshotUrl(fileMap.get(channel.fileId)));
-                channel
-                        .getVideoFile()
-                        .setFullFileUrl(sysFileService.getResFullUrl(fileMap.get(channel.fileId), request));
+            SysFile videoFile = fileMap.get(channel.fileId);
+            if (videoFile != null) {
+                channel.setVideoFile(videoFile);
+                videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+                videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
+                videoService.getVideoContent(videoFile.getId()).ifPresent(videoContent -> {
+                    videoFile.setVideoId(videoContent.getId());
+                    channel.setIsLiked(userVideoActionService.isLikedByUser(videoContent.getId(), userId) ? 1 : 0);
+                    channel.setLikeNum(userVideoActionService.countLikeForVideo(videoContent.getId()));
+                });
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {
                 channel.setAvatarFullFileUrl(
@@ -520,9 +519,12 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
         for (PtChannel channel : channels) {
             if (fileMap.get(channel.fileId) != null) {
-                channel.setVideoFile(fileMap.get(channel.fileId));
-                channel.getVideoFile().setSnapshotUrl(fileMap.get(channel.fileId).getSnapshotUrl());
-                channel.getVideoFile().setFullFileUrl(fileMap.get(channel.fileId).getFullFileUrl());
+                SysFile videoFile = fileMap.get(channel.fileId);
+                channel.setVideoFile(videoFile);
+                channel.getVideoFile().setSnapshotUrl(videoFile.getSnapshotUrl());
+                channel.getVideoFile().setFullFileUrl(videoFile.getFullFileUrl());
+                channel.setIsLiked(userVideoActionService.isLikedByUser(videoFile.getVideoId(), userId) ? 1 : 0);
+                channel.setLikeNum(userVideoActionService.countLikeForVideo(videoFile.getVideoId()));
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {
                 channel.setAvatarFullFileUrl(
