@@ -25,6 +25,4 @@ public class AnalyticsFilterDto {
     private Long step;
 
     private List<Integer> videoIds = new ArrayList<>();
-
-    private boolean trendOnly;
 }

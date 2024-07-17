@@ -286,7 +286,7 @@
 			JOIN gc_user_save_folder filter  ON gusf.id = filter.id AND filter.master_id = #{masterId}
 			RIGHT JOIN
 				<choose>
-					<when test="filter.trendOnly">
+					<when test="filter.step == 0">
 						(
 						SELECT #{filter.start}::timestamp with time zone AS time_bucket
 						UNION
