@@ -3,6 +3,7 @@ package com.threeatom.guidecore.facade;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
+import java.util.Map;
 
 public interface AnalyticsFacade {
     AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
@@ -23,5 +24,5 @@ public interface AnalyticsFacade {
 
     AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    AnalyticsResponseDto getAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId);
+    Map<Integer, String> getVideoIdAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId);
 }

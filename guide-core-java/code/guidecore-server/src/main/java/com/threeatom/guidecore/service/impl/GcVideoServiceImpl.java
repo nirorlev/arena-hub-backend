@@ -3,7 +3,6 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
-import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -32,7 +31,6 @@ import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -708,10 +706,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return createVideoSearchResponse(result);
 		}
 
-		AnalyticsResponseDto<Integer, String> analytics =
-			analyticsFacade.getAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
+		Map<Integer, String> videoIdAnalytics =
+			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
 
-		return createVideoSearchResponse(populateSortedByValue(result, analytics, filter));
+		return createVideoSearchResponse(populateSortedByValue(result, videoIdAnalytics, filter));
 	}
 
 	@Override
@@ -1473,21 +1471,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			Collectors.toList());
 	}
 
-	private List<VideoSearchResultDto> populateSortedByValue(List<VideoSearchResultDto> result, AnalyticsResponseDto<Integer, String> analytics,
+	private List<VideoSearchResultDto> populateSortedByValue(List<VideoSearchResultDto> result, Map<Integer, String> analytics,
 															 VideoListFilterDto filter) {
-		if (analytics.getResult().isEmpty() || analytics.getResult().get(0).getValues().isEmpty()) {
+		if (analytics.isEmpty()) {
 			return result;
 		}
 
-		result.forEach(videoSearchResult -> {
-			analytics.getResult().stream()
-				.map(ResultDto::getValues)
-				.flatMap(List::stream)
-				.filter(analyticsResultDto -> videoSearchResult.getId().equals(analyticsResultDto.getX()))
-				.findFirst()
-				.map(MetricValuePairDto::getY)
-				.ifPresentOrElse(setSortBy(videoSearchResult, filter.getSortBy()), () -> setSortBy(videoSearchResult, filter.getSortBy()).accept("0"));
-		});
+		result.forEach(videoSearchResult -> setSortBy(videoSearchResult, filter.getSortBy())
+			.accept(analytics.get(videoSearchResult.getId())));
 
 		return sortVideoSearchResultByAnalytics(result, filter.getSortOrder(), filter.getSortBy());
 	}

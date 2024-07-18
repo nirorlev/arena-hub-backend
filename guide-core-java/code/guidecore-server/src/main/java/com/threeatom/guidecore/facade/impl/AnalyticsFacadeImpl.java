@@ -152,8 +152,12 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     }
 
     @Override
-    public AnalyticsResponseDto getAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId) {
-        return analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, masterId);
+    public Map<Integer, String> getVideoIdAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId) {
+        AnalyticsResponseDto<Integer, String> analytics =
+            analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, masterId);
+
+        return analytics.getResult().get(0).getValues().stream()
+            .collect(Collectors.toMap(MetricValuePairDto::getX, MetricValuePairDto::getY));
     }
 
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults,
