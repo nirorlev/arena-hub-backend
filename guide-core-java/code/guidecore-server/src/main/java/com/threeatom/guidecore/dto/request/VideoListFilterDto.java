@@ -11,7 +11,7 @@ public class VideoListFilterDto extends DateRangeDto {
 
     private String query;
     private String sortBy;
-    private String sortOrder = "desc";
+    private String sortOrder = SortOrder.DESC.getCode();
 
     public AnalyticsType getSortBy() {
         return sortBy == null ? null : AnalyticsType.fromSortCode(sortBy);
