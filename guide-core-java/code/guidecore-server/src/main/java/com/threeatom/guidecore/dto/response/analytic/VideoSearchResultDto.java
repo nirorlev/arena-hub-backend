@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.dto.response.analytic;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.enums.VideoFileProvider;
 import io.swagger.annotations.ApiModel;
@@ -25,6 +26,8 @@ public class VideoSearchResultDto {
     private VideoFileProvider source;
 
     @ApiModelProperty(value = "private video flag")
+
+    @JSONField(name = "private")
     private boolean isPrivate;
 
     @ApiModelProperty(value = "Video content origiin details")
