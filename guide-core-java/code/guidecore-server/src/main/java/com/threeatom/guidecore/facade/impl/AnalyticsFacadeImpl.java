@@ -57,6 +57,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIEWERS_COUNT, this::getViewersCountAnalytics);
         analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.DROP_OFF_RATE, this::getDropOffRateAnalytics);
         analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.ENGAGEMENT_RATE, this::getEngagementRateAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.LIKES, this::getLikesAnalytics);
     }
 
     @Override
@@ -160,6 +161,12 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
             .collect(Collectors.toMap(MetricValuePairDto::getX, MetricValuePairDto::getY));
     }
 
+    @Override
+    public AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultVideoIdDto> likesAnalytics = videoService.getLikesByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(likesAnalytics, AnalyticsType.LIKES.getLabel());
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults,
                                                          String metricName) {
         AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
@@ -168,9 +175,9 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return analyticsResponseDto;
     }
 
-    private AnalyticsResponseDto getAnalyticsByVideoResponseDto(List<DbAnalyticsResultVideoIdDto> analyticsCountResults,
-                                                                String metricName) {
-        AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
+    private AnalyticsResponseDto<Integer, String> getAnalyticsByVideoResponseDto(
+        List<DbAnalyticsResultVideoIdDto> analyticsCountResults, String metricName) {
+        AnalyticsResponseDto<Integer, String> analyticsResponseDto = new AnalyticsResponseDto<>();
         ResultDto<Integer, String> resultDto = createResultByVideoIdDto(analyticsCountResults, metricName);
         analyticsResponseDto.setResult(Collections.singletonList(resultDto));
         return analyticsResponseDto;

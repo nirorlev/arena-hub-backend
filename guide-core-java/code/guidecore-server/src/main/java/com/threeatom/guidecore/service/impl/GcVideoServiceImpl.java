@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
@@ -708,7 +709,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		Map<Integer, String> videoIdAnalytics =
 			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
-
 		return createVideoSearchResponse(populateSortedByValue(result, videoIdAnalytics, filter));
 	}
 
@@ -757,6 +757,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if (!tags.isEmpty()) {
 			ptTagsService.saveOrUpdateBatch(tags);
 		}
+	}
+
+	@Override
+	public List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+		return this.baseMapper.getLikesByVideoAnalytics(filter, masterId);
 	}
 
 	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
@@ -1496,6 +1501,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
 			return videoSearchResult::setDropOffRate;
 		}
+		if (AnalyticsType.LIKES.equals(sortBy)) {
+			return videoSearchResult::setVideoLikesCount;
+		}
 
 		return videoSearchResult::setVideoWatchingTime;
 	}
@@ -1524,6 +1532,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
 			return VideoSearchResultDto::getDropOffRate;
+		}
+		if (AnalyticsType.LIKES.equals(sortBy)) {
+			return VideoSearchResultDto::getVideoLikesCount;
 		}
 
 		return VideoSearchResultDto::getVideoWatchingTime;

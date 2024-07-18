@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -173,4 +174,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
 
     void updateCourseTags(List<GcVideo> videoList, Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

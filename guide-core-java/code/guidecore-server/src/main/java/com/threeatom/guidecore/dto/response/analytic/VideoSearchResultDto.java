@@ -50,4 +50,6 @@ public class VideoSearchResultDto {
     private String enagementRate;
     @ApiModelProperty(value = "Analytics video drop off rate sorted by")
     private String dropOffRate;
+    @ApiModelProperty(value = "Analytics video likes sorted by")
+    private String videoLikesCount;
 }

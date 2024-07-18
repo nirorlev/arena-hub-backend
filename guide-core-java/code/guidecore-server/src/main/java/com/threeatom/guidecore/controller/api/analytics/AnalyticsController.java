@@ -83,10 +83,16 @@ public class AnalyticsController {
     }
 
     @GetMapping("/engagement-rate")
-    public ResponseEntity<AnalyticsResponseDto> engagementRete(@Valid AnalyticsFilterDto filter,
+    public ResponseEntity<AnalyticsResponseDto> engagementRate(@Valid AnalyticsFilterDto filter,
                                                                HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getEngagementRateAnalytics(filter, masterId));
+    }
+
+    @GetMapping("/video-likes-count")
+    public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, masterId));
     }
 
     @GetMapping("/video-list")
