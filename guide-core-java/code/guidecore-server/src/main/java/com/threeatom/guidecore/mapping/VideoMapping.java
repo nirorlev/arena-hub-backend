@@ -1,8 +1,11 @@
 package com.threeatom.guidecore.mapping;
 
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -39,6 +42,9 @@ public interface VideoMapping {
     @Mapping(target = "created", source = "createTime")
     @Mapping(target = "updated", source = "updateTime")
     VideoSearchResultDto mapCourseOrigin(GcVideo video);
+
+    @Mapping(target = "step", constant = "0L")
+    AnalyticsFilterDto mapFilter(VideoListFilterDto filter, List<Integer> videoIds);
 
     @Named("mapPrivate")
     default boolean mapPrivate(Integer code) {

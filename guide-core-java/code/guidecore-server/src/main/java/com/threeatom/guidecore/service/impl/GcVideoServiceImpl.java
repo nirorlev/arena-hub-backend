@@ -3,8 +3,12 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
+import com.threeatom.guidecore.dto.response.analytic.ResultDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
+import com.threeatom.guidecore.enums.SortOrder;
+import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import java.util.*;
@@ -124,6 +128,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Autowired
 	private VideoThumbnailProvider videoThumbnailProvider;
 
+	@Autowired
+	private AnalyticsFacade analyticsFacade;
+
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -185,7 +192,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if(list.size()<1) {
 			return true;
 		}
-		List<Integer> videoIds=list.stream().map(GcVideo::getId).collect(Collectors.toList());
+		List<Integer> videoIds= getVideoIds(list);
 		LOGGER.info(videoIds.size()+"   "+list.size());
 		//批量删除视频下的事件
 		eventService.deleteEventByVids(videoIds);
@@ -367,7 +374,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		List<GcVideo> newGcVideos = new ArrayList<>();
 
 		if (CollectionUtils.isNotEmpty(gcVideos)){
-			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+			List<Integer> videoIds = getVideoIds(gcVideos);
 			//总问题数量
 			List<GcEvent> eventNum = gcEventService.getEventNumByVideos(videoIds,masterId);
 
@@ -441,7 +448,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		List<GcVideo> newGcVideos = new ArrayList<>();
 
 		if (CollectionUtils.isNotEmpty(gcVideos)){
-			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+			List<Integer> videoIds = getVideoIds(gcVideos);
 
 			//Map<Integer,List<GcVideo>>videoMaps = gcVideos.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 
@@ -693,7 +700,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		List<VideoSearchResultDto> result = getChannelOriginVideoListResult(request, videos);
 		result.addAll(getCourseOriginVideoListResult(request, videos));
 
-		return createVideoSearchResponse(result);
+		if (filter.getSortBy() == null) {
+			return createVideoSearchResponse(result);
+		}
+
+		AnalyticsResponseDto analytics =
+			analyticsFacade.getAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
+
+		return createVideoSearchResponse(populateSortedByValue(result, analytics, filter));
 	}
 
 	@Override
@@ -736,7 +750,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			.flatMap(video -> createCourseTags(video, masterId).stream())
 			.collect(Collectors.toList());
 
-		removeCourseTags(masterId, videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
+		removeCourseTags(masterId, getVideoIds(videoList));
 
 		if (!tags.isEmpty()) {
 			ptTagsService.saveOrUpdateBatch(tags);
@@ -818,7 +832,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public List<GcVideo> buildVideoInfo(Integer userId, SysSystem sys, List<GcVideo> gcVideos,Integer masterId,HttpServletRequest request,Integer envFlag) {
 		if(CollectionUtils.isNotEmpty(gcVideos)){
-			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+			List<Integer> videoIds = getVideoIds(gcVideos);
 			Map<String, Object> videoParams = new HashMap<>(3);
 			videoParams.put("contentIds", videoIds);
 			videoParams.put("type", 1);//点赞
@@ -1028,7 +1042,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		List<GcVideo> newGcVideos = new ArrayList<>();
 
 		if (CollectionUtils.isNotEmpty(gcVideos)){
-			List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+			List<Integer> videoIds = getVideoIds(gcVideos);
 
 			Map<String, Object> videoParams = new HashMap<>();
 			videoParams.put("contentIds",videoIds);
@@ -1446,6 +1460,40 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				updateVideoUrls(request, video);
 				return videoMapping.mapChannelOrigin(video);
 			})
+			.collect(Collectors.toList());
+	}
+
+	private List<Integer> getVideoIds(List<GcVideo> videos) {
+		return videos.stream().map(GcVideo::getId).collect(
+			Collectors.toList());
+	}
+
+	private List<VideoSearchResultDto> populateSortedByValue(List<VideoSearchResultDto> result, AnalyticsResponseDto analytics,
+															 VideoListFilterDto filter) {
+		if (analytics.getResult().isEmpty() || analytics.getResult().get(0).getValues().isEmpty()) {
+			return result;
+		}
+
+		result.forEach(videoSearchResult -> {
+			analytics.getResult().stream()
+				.map(ResultDto::getValues)
+				.flatMap(List::stream)
+				.filter(analyticsResultDto -> analyticsResultDto.getX().equals(videoSearchResult.getId()))
+				.findFirst()
+				.ifPresent(a -> videoSearchResult.setValue(a.getY()));
+		});
+
+		return sortVideoSearchREsultByAnalytics(result, filter.getSortOrder());
+	}
+
+	private List<VideoSearchResultDto> sortVideoSearchREsultByAnalytics(List<VideoSearchResultDto> result, SortOrder sortOrder) {
+		Comparator<VideoSearchResultDto> comparator = Comparator.comparing(VideoSearchResultDto::getValue);
+		if (SortOrder.DESC.equals(sortOrder)) {
+			comparator = Comparator.comparing(VideoSearchResultDto::getValue).reversed();
+		}
+
+		return result.stream()
+			.sorted(comparator)
 			.collect(Collectors.toList());
 	}
 }

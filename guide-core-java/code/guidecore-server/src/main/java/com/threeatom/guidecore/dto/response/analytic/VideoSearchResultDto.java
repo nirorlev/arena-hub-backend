@@ -36,4 +36,7 @@ public class VideoSearchResultDto {
     private OffsetDateTime created;
     @ApiModelProperty(value = "Video content updated date and time")
     private OffsetDateTime updated;
+
+    @ApiModelProperty(value = "Analytics value sorted by")
+    private String value;
 }

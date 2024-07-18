@@ -15,20 +15,44 @@ import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
+    private final Map<AnalyticsType, BiFunction<AnalyticsFilterDto, Integer, AnalyticsResponseDto>> analyticsTypeAnalyticsResponseDtoMap = new HashMap<>();
+
     private final PtChannelService channelService;
-    private final GcVideoService videoService;
     private final GcUserSaveFolderService userSaveFolderService;
     private final VideoPlaySessionService videoPlaySessionService;
     private final VideoPlaySegmentService videoPlaySegmentService;
+
+    @Lazy
+    @Autowired
+    private GcVideoService videoService;
+
+    @PostConstruct
+    public void init() {
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.CHANNEL_COUNT, this::getChannelsCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_COUNT, this::getVideoCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.PLAYLIST_COUNT, this::getPlaylistCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_VIEW_COUNT, this::getVideoViewCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_WATCHING_TIME, this::getVideoWatchingTimeAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME, this::getAverageVideoWatchingTimeAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIEWERS_COUNT, this::getViewersCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.DROP_OFF_RATE, this::getDropOffRateAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.ENGAGEMENT_RATE, this::getEngagementRateAnalytics);
+    }
 
     @Override
     public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
@@ -82,6 +106,11 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> engagementRateAnalytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
         return getAnalyticsResponseDto(engagementRateAnalytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
+    }
+
+    @Override
+    public AnalyticsResponseDto getAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId) {
+        return analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, masterId);
     }
 
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
