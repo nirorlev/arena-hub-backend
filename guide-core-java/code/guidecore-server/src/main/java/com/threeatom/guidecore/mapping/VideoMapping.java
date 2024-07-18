@@ -44,6 +44,7 @@ public interface VideoMapping {
     VideoSearchResultDto mapCourseOrigin(GcVideo video);
 
     @Mapping(target = "step", constant = "0L")
+    @Mapping(target = "aggregateBy", constant = "video-id")
     AnalyticsFilterDto mapFilter(VideoListFilterDto filter, List<Integer> videoIds);
 
     @Named("mapPrivate")

@@ -2,6 +2,7 @@ package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import java.util.List;
@@ -15,6 +16,10 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
+    List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
     List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
@@ -25,6 +30,15 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
         @Param("dropOffThreshold") double dropOffThreshold);
 
     List<DbAnalyticsResultDto> getEngagementRateAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId,
+        @Param("dropOffThreshold") double dropOffThreshold);
+
+    List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 }

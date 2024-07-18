@@ -10,10 +10,10 @@ import java.util.List;
 @Getter
 @Setter
 @ApiModel(description = "Data Transfer Object representing a result")
-public class ResultDto {
+public class ResultDto<T, V> {
     @ApiModelProperty(value = "Metric data")
     private MetricDto metric;
 
     @ApiModelProperty(value = "List of values")
-    private List<MetricValuePairDto<OffsetDateTime, String>> values;
+    private List<MetricValuePairDto<T, V>> values;
 }

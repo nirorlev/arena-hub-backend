@@ -4,15 +4,19 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
+import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
+import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.enums.SortOrder;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -704,7 +708,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return createVideoSearchResponse(result);
 		}
 
-		AnalyticsResponseDto analytics =
+		AnalyticsResponseDto<Integer, String> analytics =
 			analyticsFacade.getAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
 
 		return createVideoSearchResponse(populateSortedByValue(result, analytics, filter));
@@ -1464,11 +1468,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	private List<Integer> getVideoIds(List<GcVideo> videos) {
-		return videos.stream().map(GcVideo::getId).collect(
+		return videos.stream()
+            .map(GcVideo::getId).collect(
 			Collectors.toList());
 	}
 
-	private List<VideoSearchResultDto> populateSortedByValue(List<VideoSearchResultDto> result, AnalyticsResponseDto analytics,
+	private List<VideoSearchResultDto> populateSortedByValue(List<VideoSearchResultDto> result, AnalyticsResponseDto<Integer, String> analytics,
 															 VideoListFilterDto filter) {
 		if (analytics.getResult().isEmpty() || analytics.getResult().get(0).getValues().isEmpty()) {
 			return result;
@@ -1478,22 +1483,58 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			analytics.getResult().stream()
 				.map(ResultDto::getValues)
 				.flatMap(List::stream)
-				.filter(analyticsResultDto -> analyticsResultDto.getX().equals(videoSearchResult.getId()))
+				.filter(analyticsResultDto -> videoSearchResult.getId().equals(analyticsResultDto.getX()))
 				.findFirst()
-				.ifPresent(a -> videoSearchResult.setValue(a.getY()));
+				.map(MetricValuePairDto::getY)
+				.ifPresentOrElse(setSortBy(videoSearchResult, filter.getSortBy()), () -> setSortBy(videoSearchResult, filter.getSortBy()).accept("0"));
 		});
 
-		return sortVideoSearchREsultByAnalytics(result, filter.getSortOrder());
+		return sortVideoSearchResultByAnalytics(result, filter.getSortOrder(), filter.getSortBy());
 	}
 
-	private List<VideoSearchResultDto> sortVideoSearchREsultByAnalytics(List<VideoSearchResultDto> result, SortOrder sortOrder) {
-		Comparator<VideoSearchResultDto> comparator = Comparator.comparing(VideoSearchResultDto::getValue);
-		if (SortOrder.DESC.equals(sortOrder)) {
-			comparator = Comparator.comparing(VideoSearchResultDto::getValue).reversed();
+	private Consumer<String> setSortBy(VideoSearchResultDto videoSearchResult, AnalyticsType sortBy) {
+		if (AnalyticsType.VIDEO_VIEW_COUNT.equals(sortBy)) {
+			return videoSearchResult::setVideoViewCount;
+		}
+		if (AnalyticsType.VIEWERS_COUNT.equals(sortBy)) {
+			return videoSearchResult::setViewersCount;
+		}
+		if (AnalyticsType.ENGAGEMENT_RATE.equals(sortBy)) {
+			return videoSearchResult::setEnagementRate;
+		}
+		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
+			return videoSearchResult::setDropOffRate;
+		}
+
+		return videoSearchResult::setVideoWatchingTime;
+	}
+
+	private List<VideoSearchResultDto> sortVideoSearchResultByAnalytics(List<VideoSearchResultDto> result, SortOrder sortDirection, AnalyticsType sortBy) {
+		Comparator<VideoSearchResultDto> comparator = Comparator.comparing(getComparingField(sortBy), Comparator.nullsLast(Comparator.naturalOrder()));
+
+		if (SortOrder.DESC.equals(sortDirection)) {
+			comparator = Comparator.comparing(getComparingField(sortBy), Comparator.nullsLast(Comparator.naturalOrder())).reversed();
 		}
 
 		return result.stream()
 			.sorted(comparator)
 			.collect(Collectors.toList());
+	}
+
+	private Function<VideoSearchResultDto, String> getComparingField(AnalyticsType sortBy) {
+		if (AnalyticsType.VIDEO_VIEW_COUNT.equals(sortBy)) {
+			return VideoSearchResultDto::getVideoViewCount;
+		}
+		if (AnalyticsType.VIEWERS_COUNT.equals(sortBy)) {
+			return VideoSearchResultDto::getViewersCount;
+		}
+		if (AnalyticsType.ENGAGEMENT_RATE.equals(sortBy)) {
+			return VideoSearchResultDto::getEnagementRate;
+		}
+		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
+			return VideoSearchResultDto::getDropOffRate;
+		}
+
+		return VideoSearchResultDto::getVideoWatchingTime;
 	}
 }

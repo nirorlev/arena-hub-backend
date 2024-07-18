@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
 import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -52,6 +53,12 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
+    public List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(AnalyticsFilterDto filter,
+                                                                                  Integer masterId) {
+        return baseMapper.getVideoWatchingTimeByVideoAnalytics(filter, masterId);
+    }
+
+    @Override
     public List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getAverageVideoWatchingTimeAnalytics(filter, masterId);
     }
@@ -64,6 +71,18 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     @Override
     public List<DbAnalyticsResultDto> getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getEngagementRateAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(AnalyticsFilterDto filter,
+                                                                               Integer masterId) {
+        return baseMapper.getEngagementRateByVideoAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(AnalyticsFilterDto filter,
+                                                                            Integer masterId) {
+        return baseMapper.getDropOffRateByVideoAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {

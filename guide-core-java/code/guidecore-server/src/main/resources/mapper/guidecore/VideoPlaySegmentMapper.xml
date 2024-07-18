@@ -49,6 +49,21 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="getVideoWatchingTimeByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT play_session.video_id, SUM(upper(segment) - lower(segment)) AS value
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session
+                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                AND play_session.create_time >= #{filter.start} AND play_session.create_time &lt; #{filter.end}
+                <if test="!filter.videoIds.empty">
+                    AND play_session.video_id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
+        GROUP BY play_session.video_id;
+    </select>
+
     <select id="getAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(DISTINCT play_session.user_id)::double precision AS value
         FROM video_play_segment play_segment
@@ -123,6 +138,34 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="getDropOffRateByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT videoId as videoId, AVG(ratio) AS value
+        FROM (
+            SELECT engagement.videoId as videoId,
+                CASE
+                    WHEN COUNT(engagement_rate) OVER (PARTITION BY engagement.videoId) = 0 THEN 0
+                    ELSE COUNT(engagement_rate) FILTER (WHERE engagement_rate &lt; #{dropOffThreshold} AND engagement_rate != 0.0) OVER (PARTITION BY engagement.videoId) / COUNT(engagement_rate) OVER (PARTITION BY engagement.videoId)::double precision
+                END AS ratio
+            FROM (
+                SELECT play_session.video_id as videoId,
+                    SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS engagement_rate
+                FROM video_play_segment play_segment
+                    JOIN video_play_session play_session
+                        ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                        AND play_session.create_time >= #{filter.start} AND play_session.create_time &lt; #{filter.end}
+                        <if test="!filter.videoIds.empty">
+                            AND play_session.video_id IN
+                            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                                #{videoId}
+                            </foreach>
+                        </if>
+                    JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
+                    GROUP BY play_session.video_id
+        ) AS engagement
+        ) AS drop_off
+        GROUP BY drop_off.videoId;
+    </select>
+
     <select id="getEngagementRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket,
             SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS value
@@ -153,6 +196,24 @@
                 </choose>
         GROUP BY time_bucket
         ORDER BY time_bucket;
+    </select>
+
+    <select id="getEngagementRateByVideoAnalytics" parameterType="map"
+            resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT play_session.video_id as videoId,
+            SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS value
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session
+                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                AND play_session.create_time >= #{filter.start} AND play_session.create_time &lt; #{filter.end}
+            <if test="!filter.videoIds.empty">
+                AND play_session.video_id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+            </if>
+            JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
+        GROUP BY play_session.video_id;
     </select>
 
 </mapper>

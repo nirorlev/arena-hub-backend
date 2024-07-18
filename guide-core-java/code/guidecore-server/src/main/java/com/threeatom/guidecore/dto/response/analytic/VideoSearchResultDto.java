@@ -37,6 +37,14 @@ public class VideoSearchResultDto {
     @ApiModelProperty(value = "Video content updated date and time")
     private OffsetDateTime updated;
 
-    @ApiModelProperty(value = "Analytics value sorted by")
-    private String value;
+    @ApiModelProperty(value = "Analytics video view count sorted by")
+    private String videoViewCount;
+    @ApiModelProperty(value = "Analytics video viewers count sorted by")
+    private String viewersCount;
+    @ApiModelProperty(value = "Analytics video watching time sorted by")
+    private String videoWatchingTime;
+    @ApiModelProperty(value = "Analytics video engagement rate sorted by")
+    private String enagementRate;
+    @ApiModelProperty(value = "Analytics video drop off rate sorted by")
+    private String dropOffRate;
 }

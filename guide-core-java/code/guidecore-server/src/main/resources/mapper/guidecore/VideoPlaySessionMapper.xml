@@ -31,6 +31,19 @@
         ORDER BY time_bucket;
     </select>
 
+    <select id="getVideoViewCountByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT play_session.video_id as videoId, COUNT(play_session.id) AS value
+        FROM video_play_session play_session
+        WHERE play_session.master_id = #{masterId} AND play_session.create_time >= #{filter.start} AND play_session.create_time &lt; #{filter.end}
+            <if test="!filter.videoIds.empty">
+                AND play_session.video_id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+            </if>
+        GROUP BY play_session.video_id;
+    </select>
+
     <select id="getViewersCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, COUNT(DISTINCT play_session.user_id) AS value
         FROM video_play_session play_session
@@ -58,6 +71,19 @@
                 </choose>
         GROUP BY time_bucket
         ORDER BY time_bucket;
+    </select>
+
+    <select id="getViewersCountByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT play_session.video_id as videoId, COUNT(DISTINCT play_session.user_id) AS value
+        FROM video_play_session play_session
+        WHERE play_session.master_id = #{masterId} AND play_session.create_time >= #{filter.start} AND play_session.create_time &lt; #{filter.end}
+            <if test="!filter.videoIds.empty">
+                AND play_session.video_id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+            </if>
+        GROUP BY play_session.video_id;
     </select>
 
 </mapper>
