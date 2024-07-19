@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -17,5 +18,9 @@ public interface VideoPlaySessionService extends IService<VideoPlaySession> {
 
     List<DbAnalyticsResultDto> getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
+    List<DbAnalyticsResultVideoIdDto> getVideoViewCountByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
     List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getViewersCountByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

@@ -11,7 +11,4 @@ import lombok.Setter;
 public class MetricDto {
     @ApiModelProperty(value = "Name of the metric", example = "VIDEO_VIEW")
     private String name;
-
-    @ApiModelProperty(value = "ID of the video", example = "1")
-    private Integer videoId;
 }

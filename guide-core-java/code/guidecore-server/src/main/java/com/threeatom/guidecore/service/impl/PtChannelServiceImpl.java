@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +42,10 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
     private final GcUserService userService;
-    private final GcVideoService videoService;
+
+    @Lazy
+    @Autowired
+    private GcVideoService videoService;
 
     public List<PtChannel> indexPtChannels(Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
         PageParam pageParam = new PageParam(request);
