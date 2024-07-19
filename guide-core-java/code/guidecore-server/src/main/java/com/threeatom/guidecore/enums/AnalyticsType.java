@@ -15,7 +15,8 @@ public enum AnalyticsType {
     AVERAGE_VIDEO_WATCHING_TIME("Average video watching time", "average-video-watching-time"),
     VIEWERS_COUNT("Viewers count", "viewers-count"),
     DROP_OFF_RATE("Drop off rate", "drop-off-rate"),
-    ENGAGEMENT_RATE("Engagement rate", "engagement-rate");
+    ENGAGEMENT_RATE("Engagement rate", "engagement-rate"),
+    LIKES("Likes count", "video-likes-count");
 
     private final String label;
     private final String sortCode;

@@ -25,4 +25,6 @@ public interface AnalyticsFacade {
     AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     Map<Integer, String> getVideoIdAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId);
+
+    AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

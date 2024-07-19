@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -150,4 +151,7 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> getVideoListByQuery(
         @Param("filter") VideoListFilterDto filter, @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter, @Param("masterId") Integer masterId);
 }

@@ -801,4 +801,20 @@
         ORDER BY v.create_time DESC
     </select>
 
+    <select id="getLikesByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT video.id as videoId, count(action.id) AS value
+        FROM gc_video video
+            LEFT JOIN gc_user_video_action action ON video.id = action.content_id
+                AND action.type = 1
+                AND action.create_time >= #{filter.start}
+                AND action.create_time &lt; #{filter.end}
+        <if test="!filter.videoIds.empty">
+            WHERE video.id IN
+            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+        </if>
+        GROUP BY video.id
+    </select>
+
 </mapper>
