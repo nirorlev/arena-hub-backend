@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.mapping.VideoMapping;
@@ -686,8 +687,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request) {
-		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(query, masterId);
+	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request) {
+		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, masterId);
 
 		List<VideoSearchResultDto> result = getChannelOriginVideoListResult(request, videos);
 		result.addAll(getCourseOriginVideoListResult(request, videos));

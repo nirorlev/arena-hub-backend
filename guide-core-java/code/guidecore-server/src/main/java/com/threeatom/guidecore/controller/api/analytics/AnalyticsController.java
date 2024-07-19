@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.controller.api.analytics;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
@@ -89,8 +90,8 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-list")
-    public ResponseEntity<VideoSearchResponseDto> engagementRete(@RequestParam(value = "query", required = false) String query, HttpServletRequest request) {
+    public ResponseEntity<VideoSearchResponseDto> engagementRete(@Valid VideoListFilterDto filter, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(videoService.getVideoListByQuery(query, masterId, request));
+        return ResponseEntity.ok(videoService.getVideoListByQuery(filter, masterId, request));
     }
 }

@@ -32,7 +32,7 @@
                     </if>
             RIGHT JOIN
                 <choose>
-                    <when test="filter.trendOnly">
+                    <when test="filter.step == 0">
                         (
                             SELECT #{filter.start}::timestamp with time zone AS time_bucket
                             UNION
@@ -62,7 +62,7 @@
                     </if>
             RIGHT JOIN
                 <choose>
-                    <when test="filter.trendOnly">
+                    <when test="filter.step == 0">
                         (
                             SELECT #{filter.start}::timestamp with time zone AS time_bucket
                             UNION
@@ -102,7 +102,7 @@
                         </if>
                     RIGHT JOIN
                         <choose>
-                            <when test="filter.trendOnly">
+                            <when test="filter.step == 0">
                                 (
                                 SELECT #{filter.start}::timestamp with time zone AS time_bucket
                                 UNION
@@ -138,7 +138,7 @@
                 </if>
             RIGHT JOIN
                 <choose>
-                    <when test="filter.trendOnly">
+                    <when test="filter.step == 0">
                         (
                             SELECT #{filter.start}::timestamp with time zone AS time_bucket
                             UNION
