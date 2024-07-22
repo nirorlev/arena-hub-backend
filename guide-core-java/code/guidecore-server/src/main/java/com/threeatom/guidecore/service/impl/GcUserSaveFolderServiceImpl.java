@@ -30,14 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 @Service
 public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder> implements GcUserSaveFolderService {
 
@@ -177,7 +169,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
         return gcUserSaveFolders;
     }
-	
+
 	@Override
     public Integer countFolder(GcUserSaveFolder gcUserSaveFolder) {
         QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
