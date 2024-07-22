@@ -15,6 +15,7 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.enums.CourseType;
@@ -311,22 +312,26 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private VideoThumbnailProvider thumbnailProvider;
 
+	@Autowired
+	private PermitService permitService;
 
-	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
+
+	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
 	public Message searchVideo(@RequestBody Map<String, Object> params, HttpServletRequest request) {
-		//复用
-		String portalId = request.getHeader("masterId");
-		if(Objects.isNull(portalId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		String token = request.getHeader("Authorization");
+		RequestUtil.getMasterId(request)
+			.orElseThrow(() -> new SystemException(I18NUtil.get("guidecore.unlogin.error")));
+
+		String token = RequestUtil.getRequestAuthHeader(request);
 		SysSystem system = this.getSystem();
-		if (null != token && !"".equals(token) && !"undefined".equals(token)){
+
+		if (!"undefined".equals(token)) {
 			GcUser gcUser = this.getGcUser();
-			return gvgMasterService.searchResultPt(params,request,gcUser,system,EnvType.PT.getCode()).addData("date:::",new Date());
+			return gvgMasterService.searchResultPt(params, request, gcUser, system, EnvType.PT.getCode())
+				.addData("date:::", new Date());
 		}
-		return gvgMasterService.searchResultPt(params,request,null,system,EnvType.PT.getCode());
+
+		return gvgMasterService.searchResultPt(params, request, null, system, EnvType.PT.getCode());
 	}
 
 	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
@@ -668,14 +673,7 @@ public class PowtoonController extends GuideCoreController {
 
 			initPermit();
 
-			boolean isOrgAdmin = false;
-			UserRead userRoles = permit.api.users.get(user.getUsername());
-			if (null!=userRoles.attributes){
-				if (null!=userRoles.attributes.get("isOrgAdmin")){
-					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-				}
-			}
-			user.setIsOrgAdmin(isOrgAdmin);
+			user.setIsOrgAdmin(permitService.isUserOrgAdmin(user.getUsername()));
 
 			return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
 		}
@@ -1100,33 +1098,19 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getAccessList", httpMethod = "GET")
 	@GetMapping("/getAccessList")
-	public Message getAccessList(String name,HttpServletRequest request) throws PermitApiError, PermitContextError, IOException {
+	public Message getAccessList(String name, HttpServletRequest request) {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
-		PageInfo<GcAccess> accessList = null;
+		PageInfo<GcAccess> accessList;
 		initPermit();
 
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
+		PageParam pageParam = new PageParam(request);
+		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
-		/*if (isOrgAdmin){
-			PageParam pageParam = new PageParam(request);
-			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-			}
-			accessList = new PageInfo<>(accessService.findAccessListByMasterId(masterId));
-		}else {*/
-			PageParam pageParam = new PageParam(request);
-			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-			}
-			accessList =new PageInfo<>(accessService.listAccess(name,masterId,user.getId(),request));
-		//}
-		return new Message().ok().addData("accessList",accessList);
+		accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId()));
+
+		return new Message().ok().addData("accessList", accessList);
 	}
 
 	@ApiOperation(value = "getTeamUser", httpMethod = "GET")
@@ -1145,16 +1129,19 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getAllGroup", httpMethod = "GET")
 	@PostMapping("/getAllGroup")
-	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) throws PermitContextError, PermitApiError, IOException {
+	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) {
 		GcUser user = this.getGcUser();
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		initPermit();
+
 		params.put("masterId",masterId);
-		List<GcAccess> gcAccessList = accessService.listAllAccess(params,request);
+		List<GcAccess> gcAccessList = accessService.listAllAccess(params, request);
 		params.put("userId",user.getId());
 		List<GcAccess> gcAccessList2 = accessService.listAllAccess(params,request);
+
 		PageInfo<GcAccess> accessList = new PageInfo<>(gcAccessList2);
 		Map<Integer,GcAccess> gcAccessMap = gcAccessList.stream().collect(Collectors.toMap(GcAccess::getId,GcAccess -> GcAccess, (key1, key2) -> key2, LinkedHashMap::new));
+
 		accessList.getList().forEach(i->{
 			if (null!=gcAccessMap.get(i.getId())){
 				i.setUsers(gcAccessMap.get(i.getId()).getUsers());
@@ -1165,6 +1152,7 @@ public class PowtoonController extends GuideCoreController {
 				});
 			}
 		});
+
 		return new Message().ok().addData("accessList",accessList);
 	}
 
@@ -2519,14 +2507,9 @@ public class PowtoonController extends GuideCoreController {
 		GcMaster master = this.getMaster();
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
-		Boolean isOrgAdmin = false;
 		initPermit();
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
+
+		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		user.setIsOrgAdmin(isOrgAdmin);
 
 		if (null==master&&null!=request.getHeader("masterId")){
@@ -2545,7 +2528,7 @@ public class PowtoonController extends GuideCoreController {
 				if (user.getIsOrgAdmin()){
 					accessListMay = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}else {
-					accessListMay = gcAccessService.listAccess(null, masterId, user.getId(),null).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					accessListMay = gcAccessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}
 				if (accessListMay.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(accessListMay);
@@ -2555,7 +2538,7 @@ public class PowtoonController extends GuideCoreController {
 				if (user.getIsOrgAdmin()){
 					mustAccessList = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}else {
-					mustAccessList = gcAccessService.listAccess(null,masterId,user.getId(),null).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					mustAccessList = gcAccessService.listAccess(null,masterId,user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}
 				if (mustAccessList.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(mustAccessList);
@@ -2898,12 +2881,7 @@ public class PowtoonController extends GuideCoreController {
 		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
 		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-			UserRead userRoles = permit.api.users.get(user.getUsername());
-			if (null!=userRoles.attributes){
-				if (null!=userRoles.attributes.get("isOrgAdmin")){
-					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-				}
-			}
+			isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		}
 
 		boolean isAllowed = false;
@@ -2983,7 +2961,7 @@ public class PowtoonController extends GuideCoreController {
 						if (isOrgAdmin){
 							subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}else {
-							subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
+							subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}
 						ptChannel.setAccessIdList(new ArrayList<>());
 						ptChannel.setSubscribeAccessIdList(new ArrayList<>());
@@ -3070,7 +3048,7 @@ public class PowtoonController extends GuideCoreController {
 					if (isOrgAdmin){
 						subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}else {
-						subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
+						subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}
 					ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
 				}
@@ -3455,15 +3433,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		initPermit();
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
+		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		boolean isFlag = this.permitCheck(user, ActionsType.edit, masterId, ResourceType.channel, channelFid,null,null);
-		if (!isFlag&&!isOrgAdmin){
+		if (!isFlag && !isOrgAdmin) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -3521,14 +3493,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
 		initPermit();
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
-		if (!isOrgAdmin){
+		if (!permitService.isUserOrgAdmin(user.getUsername())) {
 			boolean isFlag = this.permitCheck(user, ActionsType.delete, masterId, ResourceType.channel, ptChannelContent.getChannelId(),null,null);
 			if (!isFlag){
 				throw new PermitException("No permission for this!");

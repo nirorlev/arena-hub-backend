@@ -366,7 +366,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             channels = this.baseMapper.searchChannelsBySysFile(null, userId, masterId);
         }
         List<Integer> idList = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
-        if (TableConstant.COMMON_ZERO == idList.size()) {
+        if (idList.isEmpty()) {
             return new ArrayList<>();
         }
         List<SysFile> fileList = sysFileService.listByIds(idList);
@@ -374,13 +374,8 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         Map<Integer, SysFile> createFileMap = new HashMap<>();
         List<GcUser> createUserFile =
                 channels.stream().map(PtChannel::getCreateUser).collect(Collectors.toList());
-        if (null != createUserFile && createUserFile.size() != TableConstant.COMMON_ZERO) {
-            if (createUserFile.stream()
-                            .filter(users -> null != users && null != users.getAvatarFileId())
-                            .map(GcUser::getAvatarFileId)
-                            .collect(Collectors.toList())
-                            .size()
-                    != TableConstant.COMMON_ZERO) {
+        if (CollectionUtils.isNotEmpty(createUserFile)) {
+            if (userAvatarFileExists(createUserFile)) {
                 List<SysFile> createFile =
                         sysFileService.listByIds(
                                 createUserFile.stream()
@@ -395,14 +390,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         Map<Integer, SysFile> fileMap =
                 fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
         for (PtChannel channel : channels) {
-            if (fileMap.get(channel.fileId) != null) {
-                channel.setVideoFile(fileMap.get(channel.fileId));
-                channel
-                        .getVideoFile()
-                        .setSnapshotUrl(sysFileService.getVideoSnapshotUrl(fileMap.get(channel.fileId)));
-                channel
-                        .getVideoFile()
-                        .setFullFileUrl(sysFileService.getResFullUrl(fileMap.get(channel.fileId), request));
+            SysFile videoFile = fileMap.get(channel.fileId);
+
+            if (videoFile != null) {
+                channel.setVideoFile(videoFile);
+                videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+                videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
+                videoService.getVideoContent(videoFile.getId())
+                    .ifPresent(videoContent -> videoFile.setVideoId(videoContent.getId()));
             }
             if (null != channel.getCreateUser() && null != channel.getCreateUser().getAvatarFileId()) {
                 if (null != createFileMap.get(channel.getCreateUser().getAvatarFileId())) {
@@ -414,6 +409,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             }
         }
         return channels;
+    }
+
+    private boolean userAvatarFileExists(List<GcUser> createUserFile) {
+        return createUserFile.stream()
+            .filter(users -> null != users && null != users.getAvatarFileId())
+            .map(GcUser::getAvatarFileId)
+            .findAny()
+            .isPresent();
     }
 
     @Override
@@ -502,12 +505,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<GcUser> createUserFile =
                 channels.stream().map(PtChannel::getCreateUser).collect(Collectors.toList());
         if (null != createUserFile && createUserFile.size() != TableConstant.COMMON_ZERO) {
-            if (createUserFile.stream()
-                            .filter(users -> null != users && null != users.getAvatarFileId())
-                            .map(GcUser::getAvatarFileId)
-                            .collect(Collectors.toList())
-                            .size()
-                    != TableConstant.COMMON_ZERO) {
+            if (userAvatarFileExists(createUserFile)) {
                 List<SysFile> createFile =
                         sysFileService.listByIds(
                                 createUserFile.stream()

@@ -181,8 +181,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
-    public List<GcAccess> listAccess(
-            String name, Integer masterId, Integer userId, HttpServletRequest request) {
+    public List<GcAccess> listAccess(String name, Integer masterId, Integer userId) {
         return this.baseMapper.listAccess(name, masterId, userId);
     }
 
@@ -273,8 +272,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
             PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
         }
-        List<GcAccess> accessList = this.baseMapper.listAllAccess(params);
-        return accessList;
+
+        return this.baseMapper.listAllAccess(params);
     }
 
     @Override

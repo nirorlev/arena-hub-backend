@@ -24,12 +24,15 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PermitServiceImpl implements PermitService {
+
+    private static final String IS_ORG_ADMIN_ATTRIBUTE = "isOrgAdmin";
 
     private final PermitConfiguration permitConfiguration;
     private final GcMasterService gcMasterService;
@@ -43,6 +46,28 @@ public class PermitServiceImpl implements PermitService {
                 .withDebugMode(true)
                 .build()
         );
+    }
+
+    @Override
+    public boolean isUserOrgAdmin(String username) {
+        UserRead userRoles = null;
+        try {
+            userRoles = readUser(username);
+
+            if (!CollectionUtils.isEmpty(userRoles.attributes)
+                && userRoles.attributes.get(IS_ORG_ADMIN_ATTRIBUTE) != null) {
+                return (boolean) userRoles.attributes.get(IS_ORG_ADMIN_ATTRIBUTE);
+            }
+        } catch (Exception e) {
+            log.error("Exception when checking if user '{}' is org admin", username, e);
+            throw new PermitException(500, format("Error checking if user '%s' is org admin", username), e);
+        } catch (PermitApiError e) {
+            log.error("Permit error when checking if user '{}' is org admin", username, e);
+            throw new PermitException(
+                format("Permit error occurred when checking user %s is org admin. ", username) + e.getMessage());
+        }
+
+        return false;
     }
 
     @Override
