@@ -29,4 +29,11 @@ public class SharableLinkController {
 
         return ResponseEntity.ok(sharableListService.getSharableListByContentId(id, user));
     }
+
+    @GetMapping("/channels/{id}/access")
+    public ResponseEntity<GroupAccessDto> getGroupsByChannelId(@PathVariable("id") Integer id, HttpServletRequest request) {
+        GcUser user = userService.getCurrentUser(request);
+
+        return ResponseEntity.ok(sharableListService.getSharableListByChannelId(id, user));
+    }
 }
