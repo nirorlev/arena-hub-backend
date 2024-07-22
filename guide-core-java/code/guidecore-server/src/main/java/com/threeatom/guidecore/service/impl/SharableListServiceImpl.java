@@ -39,10 +39,11 @@ public class SharableListServiceImpl implements SharableListService {
             return getCourseSharableList(content.getOriginCourseId(), user);
         }
 
-        return getChannelSharableList(content.getOriginChannelId(), user);
+        return getSharableListByChannelId(content.getOriginChannelId(), user);
     }
 
-    private GroupAccessDto getChannelSharableList(Integer channelId, GcUser user) {
+    @Override
+    public GroupAccessDto getSharableListByChannelId(Integer channelId, GcUser user) {
         PtChannel channel = channelService.getById(channelId);
 
         if (channel == null) {
