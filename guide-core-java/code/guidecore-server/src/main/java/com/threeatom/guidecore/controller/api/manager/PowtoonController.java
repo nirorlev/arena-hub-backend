@@ -15,6 +15,7 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.enums.CourseType;
@@ -310,6 +311,9 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private VideoThumbnailProvider thumbnailProvider;
+
+	@Autowired
+	private PermitService permitService;
 
 
 	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
@@ -668,14 +672,7 @@ public class PowtoonController extends GuideCoreController {
 
 			initPermit();
 
-			boolean isOrgAdmin = false;
-			UserRead userRoles = permit.api.users.get(user.getUsername());
-			if (null!=userRoles.attributes){
-				if (null!=userRoles.attributes.get("isOrgAdmin")){
-					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-				}
-			}
-			user.setIsOrgAdmin(isOrgAdmin);
+			user.setIsOrgAdmin(permitService.isUserOrgAdmin(user.getUsername()));
 
 			return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
 		}
@@ -2509,14 +2506,9 @@ public class PowtoonController extends GuideCoreController {
 		GcMaster master = this.getMaster();
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
-		Boolean isOrgAdmin = false;
 		initPermit();
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
+
+		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		user.setIsOrgAdmin(isOrgAdmin);
 
 		if (null==master&&null!=request.getHeader("masterId")){
@@ -2888,12 +2880,7 @@ public class PowtoonController extends GuideCoreController {
 		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
 		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-			UserRead userRoles = permit.api.users.get(user.getUsername());
-			if (null!=userRoles.attributes){
-				if (null!=userRoles.attributes.get("isOrgAdmin")){
-					isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-				}
-			}
+			isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		}
 
 		boolean isAllowed = false;
@@ -3445,15 +3432,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		initPermit();
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
+		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		boolean isFlag = this.permitCheck(user, ActionsType.edit, masterId, ResourceType.channel, channelFid,null,null);
-		if (!isFlag&&!isOrgAdmin){
+		if (!isFlag && !isOrgAdmin) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -3511,14 +3492,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
 		initPermit();
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
-		}
-		if (!isOrgAdmin){
+		if (!permitService.isUserOrgAdmin(user.getUsername())) {
 			boolean isFlag = this.permitCheck(user, ActionsType.delete, masterId, ResourceType.channel, ptChannelContent.getChannelId(),null,null);
 			if (!isFlag){
 				throw new PermitException("No permission for this!");
