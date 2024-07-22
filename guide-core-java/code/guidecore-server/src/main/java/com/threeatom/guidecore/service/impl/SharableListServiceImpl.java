@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.dto.response.AccessGroupDetailsDto;
+import com.threeatom.guidecore.dto.response.AccessSourceDto;
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -9,6 +10,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.enums.SourceType;
 import com.threeatom.guidecore.mapping.SharableListMapping;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcSubjectService;
@@ -57,15 +59,47 @@ public class SharableListServiceImpl implements SharableListService {
 
         Integer visibleFlag = channel.getVisibleFlag();
 
+        AccessSourceDto accessSourceDto =
+            getAccessSourceDto(channelId, user, channel.getCreateUserId(), SourceType.CHANNEL);
+        accessSourceDto.setSlug(channel.getChannelSlug());
         if (isChannelPrivate(visibleFlag)) {
-            return getGroupAccessDto(false, true, Collections.emptyList());
+            return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
         if (isChannelPublic(visibleFlag)) {
-            return getGroupAccessDto(true, false, Collections.emptyList());
+            return getGroupAccessDto(true, false, Collections.emptyList(), accessSourceDto);
         }
 
-        return getGroupAccessDto(false, false, getChannelSharableGroups(channelId, channel.getMasterId(), user));
+        List<AccessGroupDetailsDto> groups = getChannelSharableGroups(channelId, channel.getMasterId(), user);
+        return getGroupAccessDto(false, false, groups, accessSourceDto);
+    }
+
+    @Override
+    public GroupAccessDto getSharableListByCourseId(Integer courseId, GcUser user) {
+        GcSubject course = courseService.getById(courseId);
+
+        if (course == null) {
+            log.error("Course with id {} not found", courseId);
+            throw new IllegalArgumentException("Course not found");
+        }
+
+        AccessSourceDto accessSourceDto = getAccessSourceDto(courseId, user, course.getCreateUser(), SourceType.COURSE);
+        if (isCoursePrivate(course)) {
+            return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
+        }
+
+        List<AccessGroupDetailsDto> groups = getCourseSharableGroups(courseId, course.getMasterId(), user);
+        return getGroupAccessDto(false, false, groups, accessSourceDto);
+    }
+
+    @Override
+    public GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user) {
+        GcUserSaveFolder playlist = playlistService.getById(id);
+        boolean isPublic = playlist.getIfPrivate() != 1;
+        boolean isPrivate = playlist.getIfPrivate() == 1;
+        AccessSourceDto accessSourceDto = getAccessSourceDto(id, user, playlist.getUserId(), SourceType.PLAYLIST);
+
+        return getGroupAccessDto(isPublic, isPrivate, null, accessSourceDto);
     }
 
     private List<AccessGroupDetailsDto> getChannelSharableGroups(Integer channelId, Integer masterId, GcUser user) {
@@ -84,34 +118,28 @@ public class SharableListServiceImpl implements SharableListService {
         return visibleFlag == 0;
     }
 
-    @Override
-    public GroupAccessDto getSharableListByCourseId(Integer courseId, GcUser user) {
-        GcSubject course = courseService.getById(courseId);
-
-        if (course == null) {
-            log.error("Course with id {} not found", courseId);
-            throw new IllegalArgumentException("Course not found");
-        }
-
-        if (isCoursePrivate(course)) {
-            return getGroupAccessDto(false, true, Collections.emptyList());
-        }
-
-        return getGroupAccessDto(false, false, getCourseSharableGroups(courseId, course.getMasterId(), user));
-    }
-
-    @Override
-    public GroupAccessDto getSharableListByPlaylistId(Integer id) {
-        GcUserSaveFolder playlist = playlistService.getById(id);
-        return getGroupAccessDto(false, playlist.getIfPrivate() == 0, null);
-    }
-
     private GroupAccessDto getGroupAccessDto(boolean isPublic, boolean isPrivate, List<AccessGroupDetailsDto> groups) {
         GroupAccessDto groupAccessDto = new GroupAccessDto();
         groupAccessDto.setIsPrivate(isPrivate);
         groupAccessDto.setIsPublic(isPublic);
         groupAccessDto.setGroups(groups);
         return groupAccessDto;
+    }
+
+    private GroupAccessDto getGroupAccessDto(boolean isPublic, boolean isPrivate, List<AccessGroupDetailsDto> groups,
+                                             AccessSourceDto source) {
+        GroupAccessDto groupAccessDto = getGroupAccessDto(isPublic, isPrivate, groups);
+        groupAccessDto.setSource(source);
+        return groupAccessDto;
+    }
+
+    private AccessSourceDto getAccessSourceDto(Integer channelId, GcUser user, Integer createUserId,
+                                               SourceType sourceType) {
+        AccessSourceDto accessSourceDto = new AccessSourceDto();
+        accessSourceDto.setId(String.valueOf(channelId));
+        accessSourceDto.setType(sourceType.toString());
+        accessSourceDto.setCanPublish(user.getId().equals(createUserId));
+        return accessSourceDto;
     }
 
     private List<AccessGroupDetailsDto> getCourseSharableGroups(Integer courseId, Integer masterId, GcUser user) {

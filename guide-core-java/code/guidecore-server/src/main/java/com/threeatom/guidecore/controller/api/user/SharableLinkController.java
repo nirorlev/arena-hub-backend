@@ -23,28 +23,34 @@ public class SharableLinkController {
     private final GcUserService userService;
 
     @GetMapping("/videos/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByContentId(@PathVariable("id") Integer id, HttpServletRequest request) {
+    public ResponseEntity<GroupAccessDto> getGroupsByContentId(@PathVariable("id") Integer id,
+                                                               HttpServletRequest request) {
         GcUser user = userService.getCurrentUser(request);
 
         return ResponseEntity.ok(sharableListService.getSharableListByContentId(id, user));
     }
 
     @GetMapping("/channels/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByChannelId(@PathVariable("id") Integer id, HttpServletRequest request) {
+    public ResponseEntity<GroupAccessDto> getGroupsByChannelId(@PathVariable("id") Integer id,
+                                                               HttpServletRequest request) {
         GcUser user = userService.getCurrentUser(request);
 
         return ResponseEntity.ok(sharableListService.getSharableListByChannelId(id, user));
     }
 
     @GetMapping("/courses/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByCourseId(@PathVariable("id") Integer id, HttpServletRequest request) {
+    public ResponseEntity<GroupAccessDto> getGroupsByCourseId(@PathVariable("id") Integer id,
+                                                              HttpServletRequest request) {
         GcUser user = userService.getCurrentUser(request);
 
         return ResponseEntity.ok(sharableListService.getSharableListByCourseId(id, user));
     }
 
     @GetMapping("/playlists/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByPlaylistId(@PathVariable("id") Integer id, HttpServletRequest request) {
-        return ResponseEntity.ok(sharableListService.getSharableListByPlaylistId(id));
+    public ResponseEntity<GroupAccessDto> getGroupsByPlaylistId(@PathVariable("id") Integer id,
+                                                                HttpServletRequest request) {
+        GcUser user = userService.getCurrentUser(request);
+
+        return ResponseEntity.ok(sharableListService.getSharableListByPlaylistId(id, user));
     }
 }
