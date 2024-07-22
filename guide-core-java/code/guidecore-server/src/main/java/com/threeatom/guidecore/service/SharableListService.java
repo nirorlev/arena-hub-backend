@@ -10,4 +10,6 @@ public interface SharableListService {
     GroupAccessDto getSharableListByChannelId(Integer id, GcUser user);
 
     GroupAccessDto getSharableListByCourseId(Integer id, GcUser user);
+
+    GroupAccessDto getSharableListByPlaylistId(Integer id);
 }

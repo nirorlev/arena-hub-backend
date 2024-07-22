@@ -42,4 +42,9 @@ public class SharableLinkController {
 
         return ResponseEntity.ok(sharableListService.getSharableListByCourseId(id, user));
     }
+
+    @GetMapping("/playlists/{id}/access")
+    public ResponseEntity<GroupAccessDto> getGroupsByPlaylistId(@PathVariable("id") Integer id, HttpServletRequest request) {
+        return ResponseEntity.ok(sharableListService.getSharableListByPlaylistId(id));
+    }
 }
