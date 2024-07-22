@@ -1100,33 +1100,19 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getAccessList", httpMethod = "GET")
 	@GetMapping("/getAccessList")
-	public Message getAccessList(String name,HttpServletRequest request) throws PermitApiError, PermitContextError, IOException {
+	public Message getAccessList(String name, HttpServletRequest request) {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
-		PageInfo<GcAccess> accessList = null;
+		PageInfo<GcAccess> accessList;
 		initPermit();
 
-		boolean isOrgAdmin = false;
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
-			}
+		PageParam pageParam = new PageParam(request);
+		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
-		/*if (isOrgAdmin){
-			PageParam pageParam = new PageParam(request);
-			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-			}
-			accessList = new PageInfo<>(accessService.findAccessListByMasterId(masterId));
-		}else {*/
-			PageParam pageParam = new PageParam(request);
-			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-			}
-			accessList =new PageInfo<>(accessService.listAccess(name,masterId,user.getId(),request));
-		//}
-		return new Message().ok().addData("accessList",accessList);
+		accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId(), request));
+
+		return new Message().ok().addData("accessList", accessList);
 	}
 
 	@ApiOperation(value = "getTeamUser", httpMethod = "GET")
@@ -1145,16 +1131,19 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getAllGroup", httpMethod = "GET")
 	@PostMapping("/getAllGroup")
-	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) throws PermitContextError, PermitApiError, IOException {
+	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) {
 		GcUser user = this.getGcUser();
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		initPermit();
+
 		params.put("masterId",masterId);
-		List<GcAccess> gcAccessList = accessService.listAllAccess(params,request);
+		List<GcAccess> gcAccessList = accessService.listAllAccess(params, request);
 		params.put("userId",user.getId());
 		List<GcAccess> gcAccessList2 = accessService.listAllAccess(params,request);
+
 		PageInfo<GcAccess> accessList = new PageInfo<>(gcAccessList2);
 		Map<Integer,GcAccess> gcAccessMap = gcAccessList.stream().collect(Collectors.toMap(GcAccess::getId,GcAccess -> GcAccess, (key1, key2) -> key2, LinkedHashMap::new));
+
 		accessList.getList().forEach(i->{
 			if (null!=gcAccessMap.get(i.getId())){
 				i.setUsers(gcAccessMap.get(i.getId()).getUsers());
@@ -1165,6 +1154,7 @@ public class PowtoonController extends GuideCoreController {
 				});
 			}
 		});
+
 		return new Message().ok().addData("accessList",accessList);
 	}
 
