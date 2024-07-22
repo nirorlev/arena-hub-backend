@@ -1110,7 +1110,7 @@ public class PowtoonController extends GuideCoreController {
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
-		accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId(), request));
+		accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId()));
 
 		return new Message().ok().addData("accessList", accessList);
 	}
@@ -2535,7 +2535,7 @@ public class PowtoonController extends GuideCoreController {
 				if (user.getIsOrgAdmin()){
 					accessListMay = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}else {
-					accessListMay = gcAccessService.listAccess(null, masterId, user.getId(),null).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					accessListMay = gcAccessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}
 				if (accessListMay.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(accessListMay);
@@ -2545,7 +2545,7 @@ public class PowtoonController extends GuideCoreController {
 				if (user.getIsOrgAdmin()){
 					mustAccessList = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}else {
-					mustAccessList = gcAccessService.listAccess(null,masterId,user.getId(),null).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					mustAccessList = gcAccessService.listAccess(null,masterId,user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
 				}
 				if (mustAccessList.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(mustAccessList);
@@ -2973,7 +2973,7 @@ public class PowtoonController extends GuideCoreController {
 						if (isOrgAdmin){
 							subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}else {
-							subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
+							subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}
 						ptChannel.setAccessIdList(new ArrayList<>());
 						ptChannel.setSubscribeAccessIdList(new ArrayList<>());
@@ -3060,7 +3060,7 @@ public class PowtoonController extends GuideCoreController {
 					if (isOrgAdmin){
 						subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}else {
-						subscribeAccessList = accessService.listAccess(null, masterId, user.getId(), null).stream().map(GcAccess::getId).collect(Collectors.toList());
+						subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}
 					ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
 				}

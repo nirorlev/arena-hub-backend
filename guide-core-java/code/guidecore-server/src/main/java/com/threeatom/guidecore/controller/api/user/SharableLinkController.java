@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api.user;
 
 
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
+import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.SharableListService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -24,8 +25,8 @@ public class SharableLinkController {
 
     @GetMapping("/videos/{id}/access")
     public ResponseEntity<GroupAccessDto> getGroupsByContentId(@PathVariable("id") Integer id, HttpServletRequest request) {
-        Integer userId = userService.getCurrentUser(request).getId();
+        GcUser user = userService.getCurrentUser(request);
 
-        return ResponseEntity.ok(sharableListService.getSharableListByContentId(id, userId));
+        return ResponseEntity.ok(sharableListService.getSharableListByContentId(id, user));
     }
 }

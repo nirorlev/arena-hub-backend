@@ -29,8 +29,7 @@ public interface GcAccessService extends IService<GcAccess> {
 
     GcAccess getAccessByName(String codeName, Integer masterId);
 
-    List<GcAccess> listAccess(
-            String name, Integer masterId, Integer userId, HttpServletRequest request);
+    List<GcAccess> listAccess(String name, Integer masterId, Integer userId);
 
     List<GcAccess> getTeamAccessList(
             String name, Integer masterId, Integer userId, HttpServletRequest request);

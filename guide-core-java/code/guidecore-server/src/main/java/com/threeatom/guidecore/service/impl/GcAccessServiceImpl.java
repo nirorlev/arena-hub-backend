@@ -181,8 +181,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
-    public List<GcAccess> listAccess(
-            String name, Integer masterId, Integer userId, HttpServletRequest request) {
+    public List<GcAccess> listAccess(String name, Integer masterId, Integer userId) {
         return this.baseMapper.listAccess(name, masterId, userId);
     }
 
