@@ -11,5 +11,5 @@ public interface SharableListService {
 
     GroupAccessDto getSharableListByCourseId(Integer id, GcUser user);
 
-    GroupAccessDto getSharableListByPlaylistId(Integer id);
+    GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user);
 }
