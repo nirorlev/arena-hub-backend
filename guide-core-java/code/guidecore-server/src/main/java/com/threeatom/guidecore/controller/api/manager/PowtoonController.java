@@ -316,21 +316,22 @@ public class PowtoonController extends GuideCoreController {
 	private PermitService permitService;
 
 
-	@ApiOperation(value="搜索视频", notes = "搜索视频，复用gc环境的搜索", httpMethod = "POST")
+	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
 	public Message searchVideo(@RequestBody Map<String, Object> params, HttpServletRequest request) {
-		//复用
-		String portalId = request.getHeader("masterId");
-		if(Objects.isNull(portalId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		String token = request.getHeader("Authorization");
+		RequestUtil.getMasterId(request)
+			.orElseThrow(() -> new SystemException(I18NUtil.get("guidecore.unlogin.error")));
+
+		String token = RequestUtil.getRequestAuthHeader(request);
 		SysSystem system = this.getSystem();
-		if (null != token && !"".equals(token) && !"undefined".equals(token)){
+
+		if (!"undefined".equals(token)) {
 			GcUser gcUser = this.getGcUser();
-			return gvgMasterService.searchResultPt(params,request,gcUser,system,EnvType.PT.getCode()).addData("date:::",new Date());
+			return gvgMasterService.searchResultPt(params, request, gcUser, system, EnvType.PT.getCode())
+				.addData("date:::", new Date());
 		}
-		return gvgMasterService.searchResultPt(params,request,null,system,EnvType.PT.getCode());
+
+		return gvgMasterService.searchResultPt(params, request, null, system, EnvType.PT.getCode());
 	}
 
 	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")

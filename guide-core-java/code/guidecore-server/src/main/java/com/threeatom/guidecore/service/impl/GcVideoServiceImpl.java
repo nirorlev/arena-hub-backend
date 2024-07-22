@@ -4,8 +4,6 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
-import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
-import com.threeatom.guidecore.dto.response.analytic.ResultDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -908,6 +906,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 					video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
 					video.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(videoFile,request));
 					video.setVideoTime(videoFile.getVideoLong());
+					videoFile.setVideoId(video.getId());
 				}
 //				sysFileService.getResFullUrl(videoFile, sys, request);
 				// 改成在外面查出来，在这里set
@@ -1136,165 +1135,41 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return newGcVideos;
 	}
 
-	/**
-	 * 根据课程id查询视频是否完成，根据播放进度和问题回答数
-	 *
-	 * @param
-	 * @return
-	 */
-//	@Override
-//	public List<GcVideo> getVideoCompleteStatusByVideo(List<Integer> videoIds, int userId) {
-//		if(CollectionUtils.isNotEmpty(videoIds)){
-//			//查询得到播放进度
-//			Map<Integer, GcUserVideoPlay> videoPlayBySubject = userVideoPlayService.findVideoPalyStateByVideos(videoIds, userId);
-//			//查询问题 key为videoId
-//			List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(videoIds, userId);
-//			Map<Integer, List<GcEvent>> eventAnswerMap = new HashMap<>(0);
-//			if(CollectionUtils.isNotEmpty(eventAnswers)){
-//				eventAnswerMap = eventAnswers.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
-//			}
-//
-//			int len = videoIds.size();
-//			List<GcVideo> videos = new ArrayList<>(len);
-//			for(Integer videoId : videoIds){
-//				GcVideo video = new GcVideo();
-//				video.setId(videoId);
-//				GcUserVideoPlay play = videoPlayBySubject.get(videoId);
-//				List<GcEvent> events = eventAnswerMap.get(videoId);
-//				//判断是否完成了视频，视频playstate == 1 and 问题全部回答完或者没问题
-//				if(play == null){
-//					//没有播放直接直接设置完成状态为0
-//					video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);
-//				}else{
-//					//有播放记录
-//					video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS1);
-//					Integer playState = play.getPlayState();
-//					if(TableConstant.COMMON_ONE == playState){//播放完成
-//						//在判断问题
-//						if(CollectionUtils.isEmpty(events)){
-//							//没有问题，播放完成设置视频完成状态为绿色
-//							video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS2);
-//						}else{
-//							//有问题，需要看是否都回答了
-//							List<GcEvent> answerJson = events.stream().filter(e -> StringUtils.isNotEmpty(e.getAnswerJson())).collect(Collectors.toList());
-//							if(CollectionUtils.isNotEmpty(answerJson) && answerJson.size() == events.size()){
-//								//有问题且都回答完毕
-//								video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS2);
-//							}
-//							video.setEventList(events);//问题回答list
-//						}
-//					}
-//				}
-//				videos.add(video);
-//			}
-//			return videos;
-//		}
-//		return new ArrayList<>(0);
-//	}
-
-
-//	public GcVideo getVideoCompleteStatusByVideoId(GcVideo video, int userId) {
-//		if(video != null){
-//
-//			Integer videoId = video.getId();
-//			//查询得到播放进度
-//			GcUserVideoPlay play = userVideoPlayService.findVideoPalyStateByVideoId(videoId, userId);
-//			//查询问题 key为videoId
-//			List<Integer> videoIds = Arrays.asList(videoId);
-//			List<GcEvent> events = gcEventService.findEventAnswerByVideoIdsUser(videoIds, userId);
-//			//判断是否完成了视频，视频playstate == 1 and 问题全部回答完或者没问题
-//			if(play == null){
-//				//没有播放直接直接设置完成状态为0
-//				video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);
-//			}else{
-//				//有播放记录
-//				video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS1);
-//				Integer playState = play.getPlayState();
-//				if(TableConstant.COMMON_ONE == playState){//播放完成
-//					//在判断问题
-//					if(CollectionUtils.isEmpty(events)){
-//						//没有问题，播放完成设置视频完成状态为绿色
-//						video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS2);
-//					}else{
-//						//有问题，需要看是否都回答了
-//						List<GcEvent> answerJson = events.stream().filter(e -> StringUtils.isNotEmpty(e.getAnswerJson())).collect(Collectors.toList());
-//						if(CollectionUtils.isNotEmpty(answerJson) && answerJson.size() == events.size()){
-//							//有问题且都回答完毕
-//							video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS2);
-//						}
-//						video.setEventList(events);//问题回答list
-//					}
-//				}
-//			}
-//			return video;
-//		}
-//		return null;
-//	}
-
-	/**
-	 * 根据课程id加载视频信息
-	 *
-	 * @param subjectId
-	 * @param userId
-	 * @param isLoadVideoStatus 是否加载视频完成状态
-	 * @return
-	 */
-//	@Override
-//	public List<GcVideo> getVideosBySubId(Integer subjectId, Integer userId, boolean isLoadVideoStatus) {
-//		List<GcVideo> gcVideoss = this.baseMapper.selectVideoListBySubId(subjectId);
-//		if(CollectionUtils.isNotEmpty(gcVideoss) && isLoadVideoStatus){//有视频并且需要加载视频完成状态
-//			List<Integer> ids = gcVideoss.stream().map(GcVideo::getId).collect(Collectors.toList());
-//			List<GcVideo> videoStatus = getVideoCompleteStatusByVideo(ids, userId);
-//			Map<Integer, GcVideo> videoStatusMap = videoStatus.stream().collect(Collectors.toMap(GcVideo::getId, Function.identity(), (key1, key2) -> key2));
-//			//不能直接返回，文件信息丢失，只需要设置状态
-//			for(GcVideo video : gcVideoss){
-//				GcVideo tmp = videoStatusMap.get(video.getId());
-//				if(tmp !=  null){
-//					video.setCompleteStatus(tmp.getCompleteStatus());
-////					video.set
-//				}
-//			}
-//		}
-//		return gcVideoss;
-//	}
-
-	/**
-	 * 分页查询视频
-	 *
-	 * @param params
-	 * @param request
-	 * @return
-	 */
 	@Override
 	public PageInfo<GcVideo> page(Map<String, Object> params,SysSystem sys, HttpServletRequest request) {
-		Integer pageNum = 1;
-		Integer pageSize = 10;
+		int pageNum = 1;
+		int pageSize = 10;
 		try {
 			pageNum = Integer.parseInt(params.get("pageNum") == null ? "1": params.get("pageNum").toString());
 			pageSize = Integer.parseInt(params.get("pageSize") == null ? "10": params.get("pageSize").toString());
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
+
 		String masterId = request.getHeader("masterId");
-		if(Objects.isNull(masterId)){
+		if (Objects.isNull(masterId)) {
 			throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
 		}
+
 		params.put("masterId", masterId);
 		Page<GcVideo> page = PageHelper.startPage(pageNum, pageSize, true);
 		this.baseMapper.pageVideo(params);
-		PageInfo<GcVideo> pageInfo = new PageInfo<GcVideo>(page);
-		//设置播放状态等字段
+
+		PageInfo<GcVideo> pageInfo = new PageInfo<>(page);
 		List<GcVideo> gcVideos = pageInfo.getList();
 		List<Integer> ids = gcVideos.stream().map(GcVideo::getFileId).collect(Collectors.toList());
-		if (null!=ids&&ids.size()!=TableConstant.COMMON_ZERO){
-		Map<Integer,SysFile> fileMap = fileService.getFilesUploadByFileIds(ids);
-		for (GcVideo gcVideo : gcVideos) {
-			if (null!=fileMap) {
-				SysFile file = fileMap.get(gcVideo.getVideoFile().getId());
-				if (null != file) {
-					gcVideo.getVideoFile().setGcUser(file.getGcUser());
+
+		if (CollectionUtils.isNotEmpty(ids)) {
+			Map<Integer, SysFile> fileMap = fileService.getFilesUploadByFileIds(ids);
+
+			for (GcVideo gcVideo : gcVideos) {
+				if (null != fileMap) {
+					SysFile file = fileMap.get(gcVideo.getVideoFile().getId());
+					if (null != file) {
+						gcVideo.getVideoFile().setGcUser(file.getGcUser());
+					}
 				}
 			}
 		}
-		}
+
 		Integer userId = (Integer) params.get("userId");
 		pageInfo.setList(this.buildVideoInfo(userId, sys, gcVideos,Integer.parseInt(masterId),request,EnvType.GC.getCode()));
 		return pageInfo;
