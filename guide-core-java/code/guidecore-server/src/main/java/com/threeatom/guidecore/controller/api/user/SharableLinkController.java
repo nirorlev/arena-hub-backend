@@ -5,7 +5,6 @@ import com.threeatom.guidecore.dto.response.GroupAccessDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.SharableListService;
-import com.threeatom.guidecore.util.RequestUtil;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -35,5 +34,12 @@ public class SharableLinkController {
         GcUser user = userService.getCurrentUser(request);
 
         return ResponseEntity.ok(sharableListService.getSharableListByChannelId(id, user));
+    }
+
+    @GetMapping("/courses/{id}/access")
+    public ResponseEntity<GroupAccessDto> getGroupsByCourseId(@PathVariable("id") Integer id, HttpServletRequest request) {
+        GcUser user = userService.getCurrentUser(request);
+
+        return ResponseEntity.ok(sharableListService.getSharableListByCourseId(id, user));
     }
 }

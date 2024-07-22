@@ -36,7 +36,7 @@ public class SharableListServiceImpl implements SharableListService {
     public GroupAccessDto getSharableListByContentId(Integer contentId, GcUser user) {
         GcVideo content = videoService.getVideoById(contentId);
         if (content.getOriginCourseId() != null) {
-            return getCourseSharableList(content.getOriginCourseId(), user);
+            return getSharableListByCourseId(content.getOriginCourseId(), user);
         }
 
         return getSharableListByChannelId(content.getOriginChannelId(), user);
@@ -84,7 +84,8 @@ public class SharableListServiceImpl implements SharableListService {
         return visibleFlag == 0;
     }
 
-    private GroupAccessDto getCourseSharableList(Integer courseId, GcUser user) {
+    @Override
+    public GroupAccessDto getSharableListByCourseId(Integer courseId, GcUser user) {
         GcSubject course = courseService.getById(courseId);
 
         if (course == null) {
