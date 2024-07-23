@@ -23,7 +23,7 @@ public class ChannelDto {
     private String desc;
 
     @ApiModelProperty(value = "Owner of the Channel")
-    private OwnerDto owner;
+    private UserDetailsDto owner;
 
     @ApiModelProperty(value = "Public visibility status of the Channel")
     private Boolean isPublic;

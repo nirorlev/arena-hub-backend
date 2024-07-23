@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -103,4 +98,6 @@ public interface SysFileService extends IService<SysFile> {
     void updateImageUrls(PtChannel channel, HttpServletRequest request);
 
     void updateImageUrls(GcSubject channel, HttpServletRequest request);
+
+    SysFile getVideoFile(GcVideo video, HttpServletRequest request);
 }

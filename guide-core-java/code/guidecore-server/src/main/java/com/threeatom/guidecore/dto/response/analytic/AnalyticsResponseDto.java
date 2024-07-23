@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @ApiModel(description = "Data Transfer Object representing analytics response")
-public class AnalyticsResponseDto {
+public class AnalyticsResponseDto<T, V> {
     @ApiModelProperty(value = "List of results")
-    private List<ResultDto> result;
+    private List<ResultDto<T, V>> result;
 }

@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.entity;
 
 import com.alibaba.fastjson.JSONArray;
@@ -125,7 +120,7 @@ public class SysFile implements Serializable {
     private Integer videoId;
 
     @TableField(exist = false)
-    private Integer isLike;
+    private Integer isLiked;
 
     @TableField(exist=false)
     private JSONObject source;
@@ -150,19 +145,4 @@ public class SysFile implements Serializable {
 
     @TableField(exist = false)
     public String describe;
-
-    //    @ApiModelProperty("批量youtube视频url")
-    //    @TableField(
-    //            value = "url",
-    //            typeHandler = FastJsonObjectTypeHandler.class
-    //    )
-    //    private JSONObject youtubeUrl = new JSONObject();
-    //
-    //    @ApiModelProperty("批量youtube视频时长")
-    //    @TableField(
-    //            value = "MultiVideoLong",
-    //            typeHandler = FastJsonObjectTypeHandler.class
-    //    )
-    //    private JSONObject youtubeTime = new JSONObject();
-    //
 }

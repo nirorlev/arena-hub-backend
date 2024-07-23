@@ -1,30 +1,26 @@
 package com.threeatom.guidecore.dto.request;
 
-import com.threeatom.common.validation.annotation.StartBeforeEndDate;
-import java.time.OffsetDateTime;
+import com.threeatom.common.validation.annotation.AggregateByWithStep;
+import com.threeatom.guidecore.enums.AnalyticsAggregation;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@StartBeforeEndDate
-public class AnalyticsFilterDto {
-    @NotNull(message = "Start cannot be null")
-    private OffsetDateTime start;
-
-    private OffsetDateTime end = OffsetDateTime.now();
-
-    @NotNull(message = "Step cannot be null")
-    @Positive(message = "Step must be positive number")
+@AggregateByWithStep
+public class AnalyticsFilterDto extends DateRangeDto {
     private Long step;
+
+    private String aggregateBy = AnalyticsAggregation.DATE.getCode();
 
     private List<Integer> videoIds = new ArrayList<>();
 
-    private boolean trendOnly;
+    public AnalyticsAggregation getAggregateBy() {
+        return AnalyticsAggregation.fromCode(aggregateBy);
+    }
 }

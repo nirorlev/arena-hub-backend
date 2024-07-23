@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -42,8 +43,20 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     @Override
+    public List<DbAnalyticsResultVideoIdDto> getVideoViewCountByVideoAnalytics(AnalyticsFilterDto filter,
+                                                                               Integer masterId) {
+        return baseMapper.getVideoViewCountByVideoAnalytics(filter, masterId);
+    }
+
+    @Override
     public List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getViewersCountAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultVideoIdDto> getViewersCountByVideoAnalytics(AnalyticsFilterDto filter,
+                                                                             Integer masterId) {
+        return baseMapper.getViewersCountByVideoAnalytics(filter, masterId);
     }
 
 }

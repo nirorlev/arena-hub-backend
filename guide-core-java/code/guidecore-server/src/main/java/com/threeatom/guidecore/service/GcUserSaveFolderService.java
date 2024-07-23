@@ -11,31 +11,31 @@ import org.apache.ibatis.annotations.Param;
 public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     List<GcUserSaveFolder> getPtHomePlayList(
-            Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request);
+        Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request);
 
     List<GcUserSaveFolder> getPtNewHomePlayList(
-            Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request);
+        Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request);
 
     List<GcUserSaveFolder> selectFolderForUserMaster(
-            Integer userId,
-            Integer masterId,
-            List<Integer> folderIdList,
-            HttpServletRequest request,
-            List<Integer> myFolderIdList);
+        Integer userId,
+        Integer masterId,
+        List<Integer> folderIdList,
+        HttpServletRequest request,
+        List<Integer> myFolderIdList);
 
     List<GcUserSaveFolder> selectFolderAllVideo(
-            Integer userId,
-            Integer masterId,
-            List<Integer> folderIdList,
-            HttpServletRequest request,
-            List<Integer> myFolderIdList);
+        Integer userId,
+        Integer masterId,
+        List<Integer> folderIdList,
+        HttpServletRequest request,
+        List<Integer> myFolderIdList);
 
     Integer countFolder(GcUserSaveFolder gcUserSaveFolder);
 
     List<GcUserSaveFolder> selectFolderInMaster(Integer masterId);
 
     Integer selectFolderByIdsAndUser(
-            @Param("folderIds") List<Integer> folderIds, @Param("userId") Integer userId);
+        @Param("folderIds") List<Integer> folderIds, @Param("userId") Integer userId);
 
     GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId);
 

@@ -1,11 +1,14 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
+import com.threeatom.guidecore.enums.AnalyticsAggregation;
+import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -14,100 +17,204 @@ import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
+    private final Map<AnalyticsType, BiFunction<AnalyticsFilterDto, Integer, AnalyticsResponseDto>>
+        analyticsTypeAnalyticsResponseDtoMap = new HashMap<>();
+
     private final PtChannelService channelService;
-    private final GcVideoService videoService;
     private final GcUserSaveFolderService userSaveFolderService;
     private final VideoPlaySessionService videoPlaySessionService;
     private final VideoPlaySegmentService videoPlaySegmentService;
 
+    @Lazy
+    @Autowired
+    private GcVideoService videoService;
+
+    @PostConstruct
+    public void init() {
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.CHANNEL_COUNT, this::getChannelsCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_COUNT, this::getVideoCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.PLAYLIST_COUNT, this::getPlaylistCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_VIEW_COUNT, this::getVideoViewCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIDEO_WATCHING_TIME,
+            this::getVideoWatchingTimeAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME,
+            this::getAverageVideoWatchingTimeAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.VIEWERS_COUNT, this::getViewersCountAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.DROP_OFF_RATE, this::getDropOffRateAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.ENGAGEMENT_RATE, this::getEngagementRateAnalytics);
+        analyticsTypeAnalyticsResponseDtoMap.put(AnalyticsType.LIKES, this::getLikesAnalytics);
+    }
+
     @Override
     public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> channelsCountAnalytics = channelService.getChannelsCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(channelsCountAnalytics, "Channels Count");
+        return getAnalyticsResponseDto(channelsCountAnalytics, AnalyticsType.CHANNEL_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultDto> videoCountAnalytics = videoService.getVideoCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoCountAnalytics, "Videos Count");
+        return getAnalyticsResponseDto(videoCountAnalytics, AnalyticsType.VIDEO_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> playlistCountAnalytics = userSaveFolderService.getPlaylistCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(playlistCountAnalytics, "Playlist Count");
+        List<DbAnalyticsResultDto> playlistCountAnalytics =
+            userSaveFolderService.getPlaylistCountAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(playlistCountAnalytics, AnalyticsType.PLAYLIST_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> videoViewCountAnalytics = videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoViewCountAnalytics, "Video View Count");
+        if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
+            List<DbAnalyticsResultDto> videoViewCountAnalytics =
+                videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId);
+            return getAnalyticsResponseDto(videoViewCountAnalytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
+        }
+
+        List<DbAnalyticsResultVideoIdDto> videoViewCountAnalytics =
+            videoPlaySessionService.getVideoViewCountByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(videoViewCountAnalytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> videoWatchingTimeAnalytics = videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(videoWatchingTimeAnalytics, "Video Watching Time");
+        if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
+            List<DbAnalyticsResultDto> videoWatchingTimeAnalytics =
+                videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId);
+            return getAnalyticsResponseDto(videoWatchingTimeAnalytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
+        }
+
+        List<DbAnalyticsResultVideoIdDto> videoWatchingTimeAnalytics =
+            videoPlaySegmentService.getVideoWatchingTimeByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(videoWatchingTimeAnalytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> viewersCountAnalytics = videoPlaySessionService.getViewersCountAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(viewersCountAnalytics, "Viewers Count");
+        if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
+            List<DbAnalyticsResultDto> viewersCountAnalytics =
+                videoPlaySessionService.getViewersCountAnalytics(filter, masterId);
+            return getAnalyticsResponseDto(viewersCountAnalytics, AnalyticsType.VIEWERS_COUNT.getLabel());
+        }
+
+        List<DbAnalyticsResultVideoIdDto> viewersCountAnalytics =
+            videoPlaySessionService.getViewersCountByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(viewersCountAnalytics, AnalyticsType.VIEWERS_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> averageVideoWatchingTimeAnalytics = videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics, "Average Video Watching Time");
+        List<DbAnalyticsResultDto> averageVideoWatchingTimeAnalytics =
+            videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
+        return getAnalyticsResponseDto(averageVideoWatchingTimeAnalytics,
+            AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> dropOffRateAnalytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(dropOffRateAnalytics, "Drop Off Rate");
+        if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
+            List<DbAnalyticsResultDto> dropOffRateAnalytics =
+                videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
+            return getAnalyticsResponseDto(dropOffRateAnalytics, AnalyticsType.DROP_OFF_RATE.getLabel());
+        }
+
+        List<DbAnalyticsResultVideoIdDto> dropOffRateAnalytics =
+            videoPlaySegmentService.getDropOffRateByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(dropOffRateAnalytics, AnalyticsType.DROP_OFF_RATE.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> engagementRateAnalytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
-        return getAnalyticsResponseDto(engagementRateAnalytics, "Engagement Rate");
+        if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
+            List<DbAnalyticsResultDto> engagementRateAnalytics =
+                videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
+            return getAnalyticsResponseDto(engagementRateAnalytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
+        }
+
+        List<DbAnalyticsResultVideoIdDto> engagementRateAnalytics =
+            videoPlaySegmentService.getEngagementRateByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(engagementRateAnalytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
     }
 
-    private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
+    @Override
+    public Map<Integer, String> getVideoIdAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType, Integer masterId) {
+        AnalyticsResponseDto<Integer, String> analytics =
+            analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, masterId);
+
+        return analytics.getResult().get(0).getValues().stream()
+            .collect(Collectors.toMap(MetricValuePairDto::getX, MetricValuePairDto::getY));
+    }
+
+    @Override
+    public AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        List<DbAnalyticsResultVideoIdDto> likesAnalytics = videoService.getLikesByVideoAnalytics(filter, masterId);
+        return getAnalyticsByVideoResponseDto(likesAnalytics, AnalyticsType.LIKES.getLabel());
+    }
+
+    private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults,
+                                                         String metricName) {
         AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
-        ResultDto resultDto = createResultDto(analyticsCountResults, metricName);
+        ResultDto<OffsetDateTime, String> resultDto = createResulDateDto(analyticsCountResults, metricName);
         analyticsResponseDto.setResult(Collections.singletonList(resultDto));
         return analyticsResponseDto;
     }
 
-    private ResultDto createResultDto(List<DbAnalyticsResultDto> analyticsCountResults, String metricName) {
-        ResultDto resultDto = new ResultDto();
-        MetricDto metricDto = new MetricDto();
-        metricDto.setName(metricName);
+    private AnalyticsResponseDto<Integer, String> getAnalyticsByVideoResponseDto(
+        List<DbAnalyticsResultVideoIdDto> analyticsCountResults, String metricName) {
+        AnalyticsResponseDto<Integer, String> analyticsResponseDto = new AnalyticsResponseDto<>();
+        ResultDto<Integer, String> resultDto = createResultByVideoIdDto(analyticsCountResults, metricName);
+        analyticsResponseDto.setResult(Collections.singletonList(resultDto));
+        return analyticsResponseDto;
+    }
 
+    private ResultDto<OffsetDateTime, String> createResulDateDto(List<DbAnalyticsResultDto> analyticsCountResults,
+                                                                 String metricName) {
         List<MetricValuePairDto<OffsetDateTime, String>> metricValuePair = analyticsCountResults.stream()
-            .map(this::createMetricValuePairDto)
+            .map(entry -> createMetricValuePairDto(entry.getTimeBucket(), entry.getValue()))
             .collect(Collectors.toList());
 
+        return createResultDto(metricValuePair, metricName);
+    }
+
+    private ResultDto<Integer, String> createResultByVideoIdDto(List<DbAnalyticsResultVideoIdDto> analyticsCountResults,
+                                                                String metricName) {
+        List<MetricValuePairDto<Integer, String>> metricValuePair = analyticsCountResults.stream()
+            .map(entry -> createMetricValuePairDto(entry.getVideoId(), entry.getValue()))
+            .collect(Collectors.toList());
+
+        return createResultDto(metricValuePair, metricName);
+    }
+
+    private <T, U> ResultDto<T, U> createResultDto(List<MetricValuePairDto<T, U>> metricValuePairs,
+                                                   String metricName) {
+        ResultDto<T, U> resultDto = new ResultDto<>();
+        MetricDto metricDto = new MetricDto();
+        metricDto.setName(metricName);
         resultDto.setMetric(metricDto);
-        resultDto.setValues(metricValuePair);
+        resultDto.setValues(metricValuePairs);
         return resultDto;
     }
 
-    private MetricValuePairDto<OffsetDateTime, String> createMetricValuePairDto(DbAnalyticsResultDto entry) {
-        MetricValuePairDto<OffsetDateTime, String> metricValuePairDto = new MetricValuePairDto<>();
-        metricValuePairDto.setX(entry.getTimeBucket());
-        metricValuePairDto.setY(String.valueOf(entry.getValue()));
+    private <T> MetricValuePairDto<T, String> createMetricValuePairDto(T xValue, double yValue) {
+        MetricValuePairDto<T, String> metricValuePairDto = new MetricValuePairDto<>();
+        metricValuePairDto.setX(xValue);
+        metricValuePairDto.setY(String.valueOf(yValue));
         return metricValuePairDto;
     }
 }

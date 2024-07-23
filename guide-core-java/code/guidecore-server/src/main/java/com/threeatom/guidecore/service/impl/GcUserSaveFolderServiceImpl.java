@@ -30,14 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 @Service
 public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder> implements GcUserSaveFolderService {
 
@@ -97,14 +89,19 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             }
         }
 
+        if (CollectionUtils.isEmpty(fileIds)) {
+            return gcUserSaveFolders;
+        }
+
         List<SysFile> fileList = sysFileService.listByIds(fileIds);
         for (SysFile file : fileList) {
-            file.setFullFileUrl(sysFileService.getResFullUrl(file,request));
+            file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
         }
-        Map<Integer,SysFile> sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId,SysFile -> SysFile, (key1, key2) -> key2, LinkedHashMap::new));
-
-        gcUserSaveFolders.forEach(i->{
-            if (null!=i.getUser().getInfo().getAvatarFileId()&&null!=sysFileMap.get(i.getUser().getInfo().getAvatarFileId())){
+        Map<Integer, SysFile> sysFileMap = fileList.stream().collect(
+            Collectors.toMap(SysFile::getId, SysFile -> SysFile, (key1, key2) -> key2, LinkedHashMap::new));
+        gcUserSaveFolders.forEach(i -> {
+            if (null != i.getUser().getInfo().getAvatarFileId() &&
+                null != sysFileMap.get(i.getUser().getInfo().getAvatarFileId())) {
                 i.getUser().getInfo().setAvatarFile(sysFileMap.get(i.getUser().getInfo().getAvatarFileId()));
             }
         });
@@ -172,7 +169,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
         return gcUserSaveFolders;
     }
-	
+
 	@Override
     public Integer countFolder(GcUserSaveFolder gcUserSaveFolder) {
         QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();

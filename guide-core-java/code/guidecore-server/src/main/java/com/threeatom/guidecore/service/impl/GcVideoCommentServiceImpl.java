@@ -121,7 +121,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
             subIds = subjectService.getSubjectChildIds(subId);
             videoList = videoService.getVideoListBySubIds(subIds);
         }
-        List<Integer> videoIds = videoList.stream().map(v -> v.getId()).collect(Collectors.toList());
+        List<Integer> videoIds = videoList.stream().map(GcVideo::getId).collect(Collectors.toList());
 
         List<Integer> videoLikeNums = videoActionService.getVideoLikeNumsByVideoIds(videoIds);
         List<Integer> videoCommentNums = this.getCommentNumsByVideoIds(videoIds);
@@ -158,17 +158,17 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                     jsonVideoObject.put("videoFullUrl", video.getVideoFile());
                     List<GcUserVideoAction> videoActioList =
                             userVideoActions.stream()
-                                    .filter(va -> va.getVideoId().equals(video.getId()))
+                                    .filter(va -> va.getContentId().equals(video.getId()))
                                     .collect(Collectors.toList());
 
-                    Integer isLike = 0;
+                    int isLiked = 0;
                     GcUserVideoAction rateVideoAction = null;
                     for (GcUserVideoAction va : videoActioList) {
-                        if (va.getType().intValue() == TableConstant.gcUserVideoAction_type_like1) isLike = 1;
-                        if (va.getType().intValue() == TableConstant.gcUserVideoAction_type_rate2)
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_like1) isLiked = 1;
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_rate2)
                             rateVideoAction = va;
                     }
-                    jsonVideoObject.put("isLike", isLike);
+                    jsonVideoObject.put("isLiked", isLiked);
                     jsonVideoObject.put("rateVideoAction", rateVideoAction);
 
                     // 我的评论，待删除

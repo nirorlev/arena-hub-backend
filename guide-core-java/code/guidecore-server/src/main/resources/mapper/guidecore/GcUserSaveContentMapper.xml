@@ -43,9 +43,8 @@
     </select>
 
     <select id="getVideoIdList" resultType="java.lang.Integer">
-        select gv.file_id
+        select gusc.content_id
         from gc_user_save_content gusc
-            JOIN gc_video gv ON gv.id = gusc.content_id
         <where>
         1=1
             <if test="entity.folderId != null">

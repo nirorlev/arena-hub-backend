@@ -5,7 +5,9 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -163,11 +165,15 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
 
-    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
-
-    Optional<GcVideo> getChannelVideoContent(PtChannelContent channelContent);
+    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
-    VideoSearchResponseDto getVideoListByQuery(String query, Integer masterId, HttpServletRequest request);
+    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
+
+    boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
+
+    void updateCourseTags(List<GcVideo> videoList, Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 }

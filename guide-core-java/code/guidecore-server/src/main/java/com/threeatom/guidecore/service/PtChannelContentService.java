@@ -12,13 +12,13 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     Boolean changeContentOrder(List<Integer> contentIds);
 
     List<SysFile> selectVideosInChannel(
-            Integer channelId, String order, Integer videoFileId, HttpServletRequest request);
+        Integer channelId, String order, Integer videoFileId, HttpServletRequest request, Integer userId);
 
     Boolean deleteContent(Integer videoId, Integer channelId);
 
     List<PtChannelContent> selectContentExist(Integer channelId);
 
-    void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList);
+    void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
 
     Optional<PtChannelContent> getChannelContent(Integer contentId);
 }
