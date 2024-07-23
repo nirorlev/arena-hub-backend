@@ -16,6 +16,7 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,7 +202,10 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
             List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
             if (CollectionUtils.isNotEmpty(contentIds)) {
-                List<Integer> fileIds = gcVideoService.listByIds(contentIds).stream().map(GcVideo::getFileId).toList();
+                List<Integer> fileIds = gcVideoService.listByIds(contentIds).stream()
+                    .map(GcVideo::getFileId)
+                    .collect(Collectors.toList());
+
                 fileList = sysFileService.listByIds(fileIds);
 
                 for (GcUserSaveContent userSaveContent : list) {
