@@ -63,4 +63,6 @@ public interface PtChannelService extends IService<PtChannel> {
     List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
+
+    PtChannel findBySlugAndMasterId(String slug, Integer masterId);
 }
