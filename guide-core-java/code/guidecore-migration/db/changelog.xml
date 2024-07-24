@@ -398,4 +398,10 @@
         </sql>
     </changeSet>
 
+    <changeSet id="remove-analytics-table-feature-toggle" author="rodion.dolhii">
+        <delete tableName="feature_toggle">
+            <where>name='analyticsTableEnabled'</where>
+        </delete>
+    </changeSet>
+
 </databaseChangeLog>
