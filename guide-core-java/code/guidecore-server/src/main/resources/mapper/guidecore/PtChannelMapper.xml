@@ -1023,7 +1023,7 @@
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-        WHERE pc.level = 0 AND (pc.create_user_id = #{userId} AND pcs_subscribed.id IS NULL OR pc.visible_flag != 0 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
+        WHERE pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
     </select>
 </mapper>
