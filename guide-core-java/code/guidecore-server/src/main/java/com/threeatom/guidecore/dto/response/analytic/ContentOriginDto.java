@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 public class ContentOriginDto {
     private Integer id;
+    private Integer contentId;
     private ContentOrigin type;
     private String title;
+    private String channelSlug;
 }

@@ -1371,7 +1371,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return videoSearchResult::setViewersCount;
 		}
 		if (AnalyticsType.ENGAGEMENT_RATE.equals(sortBy)) {
-			return videoSearchResult::setEnagementRate;
+			return videoSearchResult::setEngagementRate;
 		}
 		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
 			return videoSearchResult::setDropOffRate;
@@ -1403,7 +1403,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return VideoSearchResultDto::getViewersCount;
 		}
 		if (AnalyticsType.ENGAGEMENT_RATE.equals(sortBy)) {
-			return VideoSearchResultDto::getEnagementRate;
+			return VideoSearchResultDto::getEngagementRate;
 		}
 		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
 			return VideoSearchResultDto::getDropOffRate;
