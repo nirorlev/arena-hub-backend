@@ -768,20 +768,20 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@GetMapping("/videoDetailPt")
-	public Message videoDetailPt(HttpServletRequest request,Integer videoId) throws IOException {
+	public Message videoDetailPt(HttpServletRequest request,Integer videoId) {
 		SysSystem system = this.getSystem();
-		String token = request.getHeader("Authorization");
-		if (null != token && !"".equals(token) && !"undefined".equals(token)) {
+		String token = RequestUtil.getRequestAuthHeader(request);
+		if (!"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
-			GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
+			GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
 			boolean isFlag = this.permitCheck(user,ActionsType.view,master.getId(),ResourceType.videoItem,videoId,null,null);
 			if (!isFlag){
 				throw new PermitException("No permission for this!");
 			}
 			return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.PT.getCode());
-		}else {
-			return gvgMasterService.videoDetail(request, videoId, null, system, EnvType.PT.getCode());
 		}
+
+		return gvgMasterService.videoDetail(request, videoId, null, system, EnvType.PT.getCode());
 	}
 
 	@PostMapping("/selectVideosAndEvents")

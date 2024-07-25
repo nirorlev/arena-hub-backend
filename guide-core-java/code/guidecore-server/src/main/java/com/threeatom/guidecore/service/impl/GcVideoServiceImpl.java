@@ -861,8 +861,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			if(null!=userId) {
 				videoPalyStateByVideos = userVideoPlayService.findVideoPalyStateByVideos(videoIds, userId, masterId);
 			}
-			Map<Integer,Object> videoPlayCount = new HashMap<>();
-			videoPlayCount = userVideoPlayService.getVideoPlayCount(videoIds);
+			Map<Integer,Object> videoPlayCount = userVideoPlayService.getVideoPlayCount(videoIds);
 
 			//查询单个视频播放进度
 			List<GcEvent> events = gcEventService.getEventListByVideoIds(videoIds,userId);
@@ -871,7 +870,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			for (GcVideo video : gcVideos){
 				if (Objects.nonNull(videoPlayCount.get(video.getId()))){
 					Map map = (Map)videoPlayCount.get(video.getId());
-					video.setPlayNum(Integer.parseInt(map.get("countNum").toString()));
+					video.setPlayNum(Integer.parseInt(map.get("countnum").toString()));
 				}
 
 				List<GcEvent> eventList = eventmap.get(video.getId());
