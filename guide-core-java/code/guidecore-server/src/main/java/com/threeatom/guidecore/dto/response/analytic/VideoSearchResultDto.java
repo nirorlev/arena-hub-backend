@@ -26,11 +26,10 @@ public class VideoSearchResultDto {
     private VideoFileProvider source;
 
     @ApiModelProperty(value = "private video flag")
-
     @JSONField(name = "private")
     private boolean isPrivate;
 
-    @ApiModelProperty(value = "Video content origiin details")
+    @ApiModelProperty(value = "Video content origin details")
     private ContentOriginDto origin;
     @ApiModelProperty(value = "Video content owner details")
     private UserDetailsDto owner;
@@ -47,7 +46,7 @@ public class VideoSearchResultDto {
     @ApiModelProperty(value = "Analytics video watching time sorted by")
     private String videoWatchingTime;
     @ApiModelProperty(value = "Analytics video engagement rate sorted by")
-    private String enagementRate;
+    private String engagementRate;
     @ApiModelProperty(value = "Analytics video drop off rate sorted by")
     private String dropOffRate;
     @ApiModelProperty(value = "Analytics video likes sorted by")

@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.dto.response;
 
-import com.threeatom.guidecore.enums.SourceType;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;

@@ -19,6 +19,8 @@ public interface VideoMapping {
     @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoSource")
     @Mapping(target = "origin.id", source = "originChannel.id")
     @Mapping(target = "origin.type", constant = "CHANNEL")
+    @Mapping(target = "origin.channelSlug", source = "originChannel.channelSlug")
+    @Mapping(target = "origin.contentId", source = "originChannel.channelContentId")
     @Mapping(target = "origin.title", source = "originChannel.channelName")
     @Mapping(target = "owner.id", source = "originChannel.createUser.id")
     @Mapping(target = "owner.firstName", source = "originChannel.createUser.firstName")
