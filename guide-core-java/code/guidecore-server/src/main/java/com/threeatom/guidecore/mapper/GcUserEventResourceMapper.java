@@ -8,14 +8,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- * 事件资源文件 Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 public interface GcUserEventResourceMapper extends BaseMapper<GcUserEventResource> {
 
     List<GcUserEventResource> selectGetFilesByUserId(Integer userId, List<Integer> eventIds);
@@ -26,12 +18,6 @@ public interface GcUserEventResourceMapper extends BaseMapper<GcUserEventResourc
     List<GcUserEventResource> selectGetEventResourceByEventIdAndTargetUserId(
             Integer eventId, Integer userId, Integer commentResourceFileId);
 
-    /***
-     * 获取上传资源文件数量
-     * @param subIds
-     * @param userIds
-     * @return
-     */
     List<Map<String, Object>> selectUsersUploadResNumByUserIdsAndSubIds(
             @Param("subIds") List<Integer> subIds,
             @Param("userIds") List<Integer> userIds,
@@ -72,7 +58,6 @@ public interface GcUserEventResourceMapper extends BaseMapper<GcUserEventResourc
 
     Integer countALLResourceListByGcMasterMessageTargetUserId(MessageFIlterVo messageFIlterVo);
 
-    // key是学生的userid
     List<Map<String, Object>> countALLResourceListByGcMasterMessageTargetUserId_map(
             MessageFIlterVo messageFIlterVo);
 

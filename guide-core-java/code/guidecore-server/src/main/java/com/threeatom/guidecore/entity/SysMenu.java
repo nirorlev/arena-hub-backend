@@ -7,13 +7,6 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: SysMenu
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/10/01016:12
- */
 @Data
 public class SysMenu {
     @ApiModelProperty("业务id")

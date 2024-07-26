@@ -152,17 +152,6 @@ public class NewUIUserController extends GuideCoreController {
             }
         }
 
-        //        //暂时循环调用
-        //        for(GcUserAnswer gcUserAnswer : eventAnswerList){
-        //            Integer userId = gcUserAnswer.getUserId();
-        //            JSONObject jsonObject = new JSONObject();
-        //            jsonObject.put("eventId",eventId);
-        //            jsonObject.put("otherUserId",userId);
-        //            Message answerList =
-        // gvgMasterService.eventAnswerList(jsonObject,request,this.getGcUser());
-        //            gcUserAnswer.setAnswerMap(answerList.getData());
-        //        }
-
         m.addData("eventAnswerList", eventAnswerList);
         m.addData("event", event);
         m.addData("说明", "event-事件详情，eventAnswerList-事件回答头像list");
@@ -181,8 +170,6 @@ public class NewUIUserController extends GuideCoreController {
         GcUser user = this.getGcUser();
         GcEvent event = eventService.getById(eventId);
         Integer videoId = event.getVideoId();
-        // 门户上传的问题list
-        //        List<GcEvent> portalEventsList = gcEventService.selectEventUploadByPortal(videoId);
         List<GcEvent> gcEventList = new ArrayList<>();
         if (jsonRequest.getInteger("studentId") == null) {
             // 如果studentid为空，代表是学生用户,查找视频下自己有权限的问题
@@ -296,21 +283,6 @@ public class NewUIUserController extends GuideCoreController {
             }
         }
 
-        int answeredEventNum = 0;
-        // 计算任务数和已回答数
-        //        Map<Integer,Object> answerNumMap = gcEventService.videoEventsAnswerNumMap(videoId,
-        // user.getId(),masterId);
-        //            for (GcEvent answerEvent : gcEventList) {
-        //                Map numMap = (Map) answerNumMap.get(answerEvent.getId());
-        //                int num = 0;
-        //                if (numMap != null && numMap.get("answerNum") != null) {
-        //                    num = ((Long) numMap.get("answerNum")).intValue();
-        //                    //循环计算已回答的问题数量，每有一条数量加1
-        //                    if(num > TableConstant.COMMON_ZERO){
-        //                        answeredEventNum +=TableConstant.COMMON_ONE;
-        //                    }
-        //                }
-        //            }
         List<GcEvent> answeredEvents =
                 gcEventList.stream()
                         .filter(e -> e.getThisUserAnsweredOrNot() == TableConstant.COMMON_ONE)
@@ -339,14 +311,6 @@ public class NewUIUserController extends GuideCoreController {
         GcMaster master = this.getMaster();
         GcUser user = userService.getUserByUserName(gcUser.getUsername());
         if (null != user) throw new SystemException(I18NUtil.get("guidecore.email"));
-        //        List<GcUserAccess> gcUserAccessList =
-        // gcUserAccessService.getAccessListByUser(gcUser.getId());
-        //        List<Integer> masterIdList =
-        // gcUserAccessList.stream().map(GcUserAccess::getMasterId).collect(Collectors.toList());
-        //        if(null!=masterIdList && masterIdList.size()>TableConstant.COMMON_ZERO &&
-        // masterIdList.contains(gcUser.getSubjectMasterId())){
-        //            return new Message().error("the user does not belong to this master");
-        //        }
         if (TableConstant.COMMON_ONE == gcManager.getSuperAdminFlag()) {
             return new Message()
                     .ok()

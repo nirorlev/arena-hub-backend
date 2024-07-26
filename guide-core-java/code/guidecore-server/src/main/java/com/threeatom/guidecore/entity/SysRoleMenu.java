@@ -4,13 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: Sys_role_menu
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/10/01016:25
- */
 @Data
 public class SysRoleMenu {
     private Integer id;

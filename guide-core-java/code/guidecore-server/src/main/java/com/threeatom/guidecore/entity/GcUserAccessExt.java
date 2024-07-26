@@ -12,9 +12,6 @@ import lombok.Data;
 @Data
 public class GcUserAccessExt implements Serializable {
 
-    /**
-     * 2021-10-09,改造成登录记录后需将points删除，重置功能需重构
-     */
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)

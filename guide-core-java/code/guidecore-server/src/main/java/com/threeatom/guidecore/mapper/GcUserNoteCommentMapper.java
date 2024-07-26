@@ -6,13 +6,6 @@ import com.threeatom.guidecore.entity.GcUserNoteComment;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * @author huangpei
- * @title: GcUserNodeCommentMapper
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/27/02714:55
- */
 public interface GcUserNoteCommentMapper extends BaseMapper<GcUserNoteComment> {
 
     List<UserNoteCommentVo> selectUserNoteComment(

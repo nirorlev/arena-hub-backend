@@ -30,14 +30,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Service
 public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         implements GcAccessService {
@@ -55,7 +47,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getAccessByMasterIdAndCode(GcAccess access) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", access.getMasterId());
         queryWrapper.eq("code", access.getCode());
@@ -64,7 +55,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public GcAccess selectFreeCodeByMaster(Integer masterId) {
-        // TODO Auto-generated method stub
         QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("code_type", TableConstant.COMMON_TWO);
@@ -133,7 +123,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     @Transactional
     public boolean addAccess(GcAccess access) {
-        // TODO Auto-generated method stub
         // 清缓存
         userAccessService.clearCacheAll();
         this.saveOrUpdate(access);
@@ -164,7 +153,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getAdminAccessListByMasterId(Integer masterId) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", masterId);
         //        queryWrapper.isNull("package_name");
@@ -173,7 +161,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public GcAccess getAccessByName(String accessName, Integer masterId) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("code", accessName);
@@ -278,7 +265,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public Integer deleteAccess(Integer id) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("id", id);
         return this.baseMapper.delete(queryWrapper);
@@ -292,9 +278,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             String accessCode,
             Integer inviteUserId,
             GcUser user,
-            HttpServletRequest request)
-            throws ClientException, IOException {
-        // TODO Auto-generated method stub
+            HttpServletRequest request) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", masterId).eq("code", accessCode);
         GcAccess access = this.getOne(queryWrapper);
@@ -304,7 +288,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         queryWrapper2.eq("master_id", masterId).eq("user_id", userId).eq("access_id", access.getId());
         GcUserAccess userAccess = userAccessService.getOne(queryWrapper2);
         Message message = new Message().ok();
-        //        if(userAccess != null)return message.ok("Already have your code in this portal");
         if (userAccess == null) {
             userAccess = new GcUserAccess();
             userAccess.setUserId(userId);
@@ -327,8 +310,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                                 .replace("{user.name}", user.getFirstName() + user.getLastName())
                                 .replace("{email}", user.getUsername())
                                 .replace("{url}", request.getHeader("origin"));
-                // SingleSendMailResponse response =
-                // emailService.sendEmail(emailService.getLoginMasterEmail(emailList,htmlBody));
             }
             if (mondayConfiguration.getCallMondayApiFlag().equals(TableConstant.COMMON_ONE)) {
                 GcUser gcUser = gcUserService.getById(userId);
@@ -338,7 +319,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                 MondayApiVo mondayApiVo = new MondayApiVo();
                 mondayApiVo.setEmail(gcUser.getUsername());
                 mondayApiVo.setCodeName(access.getCode());
-                //                mondayApiVo.setInvoiceUrl(charge.getReceiptUrl());
                 mondayApiVo.setUsername(gcUserInfo.getFirstName() + " " + gcUserInfo.getLastName());
                 mondayApiVo.setPortalName(gcMaster.getContext());
                 mondayApiVo.setPaidFlag(0);
@@ -349,9 +329,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         if (inviteUserId != null && inviteUserId != 0) {
             GcUserAccess inviteUserAccess =
                     userAccessService.getUserAccessByMasterIdAndUserId(masterId, inviteUserId);
-            if (inviteUserAccess != null) {
-                // userAccessInviteService.inviteUser(inviteUserAccess.getUserId(), masterId, userId);
-            }
         }
 
         return message.addData("access", access).addData("userAccess", userAccess);
@@ -380,7 +357,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getAccessListByAdminId(Integer adminId) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("admin_id", adminId);
         return this.list(queryWrapper);

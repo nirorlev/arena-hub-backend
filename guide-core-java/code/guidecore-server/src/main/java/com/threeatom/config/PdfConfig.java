@@ -1,6 +1,5 @@
 package com.threeatom.config;
 
-import com.threeatom.common.pdf.PdfService;
 import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.pdf.impl.PdfServicePtImpl;
 import org.springframework.context.annotation.Bean;
@@ -15,13 +14,6 @@ import java.net.URL;
 
 @Configuration
 public class PdfConfig {
-
-    /*@Bean(name = "pdfService")
-    public PdfService pdfService() throws IOException {
-        ClassPathResource classPathResource = new ClassPathResource("pdf/noImgSample.pdf");
-        byte[] pdfBytes = this.inputStream2ByteArray(classPathResource.getPath());
-        return new PdfServiceImpl(pdfBytes);
-    }*/
 
     @Bean(name = "pdfServicePt")
     public PdfServicePt pdfServicePt() throws IOException {

@@ -14,7 +14,6 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // TODO Auto-generated method stub
         registry
                 .addHandler(webSocketHandler(), "/guidecore/messageServer")
                 .setAllowedOrigins("*")

@@ -124,10 +124,6 @@ public class SysFile implements Serializable {
 
     @TableField(exist=false)
     private JSONObject source;
-
-    /**
-     * 缩略图id
-     */
     private Integer thumbNailId;
 
     private String uuid;

@@ -6,15 +6,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.threeatom.guidecore.constant.EventUnifyType;
-import com.threeatom.guidecore.util.I18NUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
@@ -37,14 +34,6 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 
-/**
- * <p>
- * 用户对视频的播放记录 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
 public class GcUserVideoPlayServiceImpl extends ServiceImpl<GcUserVideoPlayMapper, GcUserVideoPlay> implements GcUserVideoPlayService {
 
@@ -115,40 +104,16 @@ public class GcUserVideoPlayServiceImpl extends ServiceImpl<GcUserVideoPlayMappe
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("subId", sub.getId());
             jsonObj.put("topicName", sub.getName());
-//            if(sub.getSubImgId()!=null) {
-//            	String subImgFullUrl=sysFileService.getResFullUrl(sub.getSubImgFile(), sys, request);
-//            	jsonObj.put("subImgFullUrl", subImgFullUrl);
-//            }
             //查找sub下面子集
             List<GcSubject> childSubList = parentList.stream().filter(s -> s.getId().equals(sub.getId())).collect(Collectors.toList());
 
-//          int subIndex = 1;
             for (GcSubject chilrenSub : childSubList) {
                 //添加topic
                 JSONObject topicObject = new JSONObject();
-//              topicObject.put("topicName", chilrenSub.getName());
-//              topicObject.put("topicId", chilrenSub.getId());
 
                 JSONArray videoInfoArr = new JSONArray();
                 //搜索子集下面的视频
                 List<GcVideo> subVideoList = videoList.stream().filter(v -> v.getSubId().equals(chilrenSub.getId())).collect(Collectors.toList());
-//              int videoIndex = 1;
-//              for (GcVideo video : subVideoList) {
-//            	  
-//                  JSONObject videoObj = new JSONObject();
-//                  videoObj.put("vid", video.getId());
-////                  videoObj.put("name", subIndex + "." + videoIndex);
-//                  videoObj.put("videoName", video.getVideoName());
-//                  videoObj.put("videoDesc", video.getVideoDesc());
-//                  videoObj.put("videoIndex", videoIndex);
-//                  videoObj.put("img",video.getSnapshotUrl());
-//                  videoObj.put("videoSource", video.getVideoSource());
-//
-//                  videoInfoArr.add(videoObj);
-//                  videoIndex++;
-//              }
-
-//              subIndex++;
 
                 jsonObj.put("list", subVideoList);
 
@@ -222,22 +187,12 @@ public class GcUserVideoPlayServiceImpl extends ServiceImpl<GcUserVideoPlayMappe
 
         List<GcUser> list = new ArrayList<>();
 
-        /*for (Integer subId : subIds) {
-            List<GcUser> collect = this.baseMapper.getWatchCompletedStudentBySubject(masterId, subId);
-            list.addAll(collect);
-        }*/
         List<GcUser> userList = this.baseMapper.getWatchCompletedStudentBySubjectList(masterId,subIds);
         list.addAll(userList);
         list =list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(GcUser::getId))), ArrayList::new));
         return list.size()<=0?null:list.stream().map(GcUser::getId).collect(Collectors.toList());
     }
-    /**
-     * 根据视频id，用户id查询视频播放状态，空间id暂时不需要
-     *
-     * @param videoIds
-     * @param userId
-     * @return
-     */
+
     @Override
     public  Map<Integer, GcUserVideoPlay> findVideoPalyStateByVideos(List<Integer> videoIds, Integer userId,Integer masterId) {
         return this.baseMapper.findVideoPalyStateByVideos(videoIds, userId,masterId);

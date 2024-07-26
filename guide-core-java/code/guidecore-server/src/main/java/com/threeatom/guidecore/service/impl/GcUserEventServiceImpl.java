@@ -10,14 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 视频下的event 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @Service
 public class GcUserEventServiceImpl extends ServiceImpl<GcUserEventMapper, GcUserEvent>
         implements GcUserEventService {

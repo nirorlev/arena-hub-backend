@@ -7,11 +7,6 @@ import java.util.stream.Collectors;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-/**
- * 类型验证器
- * @date 2021/3/25 10:28
- * @author wei.heng
- */
 public class IntTypeValidator implements ConstraintValidator<IntTypeConstraint, Integer> {
 
     private IntTypeConstraint annotation;

@@ -2,7 +2,6 @@ package com.threeatom.guidecore.dto.response.analytic;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;

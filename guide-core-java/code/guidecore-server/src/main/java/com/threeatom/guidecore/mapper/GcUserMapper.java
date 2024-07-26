@@ -15,14 +15,6 @@ import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- * Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @Component
 public interface GcUserMapper extends BaseMapper<GcUser> {
     GcUser getGcUserByUserId(Integer id);
@@ -47,12 +39,6 @@ public interface GcUserMapper extends BaseMapper<GcUser> {
             @Param("ifStudent") Boolean ifStudent,
             @Param("groupId") Integer groupId);
 
-    /**
-     * 	根据课程id统计参与人数
-     * @param ids
-     * @param userId
-     * @return
-     */
     @MapKey("subjectId")
     Map<Integer, GcUser> getUsersBySubject(
             @Param("ids") List<Integer> ids, @Param("masterId") Integer masterId);

@@ -4,14 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcResource;
 import java.util.List;
 
-/**
- * <p>
- *  服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-19
- */
 public interface GcResourceService extends IService<GcResource> {
 
     boolean saveResource(GcResource resource);

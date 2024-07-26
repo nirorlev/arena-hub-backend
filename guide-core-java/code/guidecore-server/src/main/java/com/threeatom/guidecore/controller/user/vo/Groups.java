@@ -2,13 +2,6 @@ package com.threeatom.guidecore.controller.user.vo;
 
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: Groups
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/2/28/02810:49
- */
 @Data
 public class Groups {
 

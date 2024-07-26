@@ -15,7 +15,6 @@ public class SystemConfiguration extends SystemConfig {
 
     @Override
     public String getBusinessKey() {
-        // TODO Auto-generated method stub
         return "guidecore";
     }
 }

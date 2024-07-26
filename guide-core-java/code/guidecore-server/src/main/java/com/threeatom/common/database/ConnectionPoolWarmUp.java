@@ -5,16 +5,9 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author PC
- * @title: ConnectionPoolWarmUp
- * @projectName code-generator
- * @description: TODO
- * @date 2024/1/2516:34
- */
 @Component
 public class ConnectionPoolWarmUp {
-    @Autowired private DataSource dataSource; // 注入数据源
+    @Autowired private DataSource dataSource;
 
     @PostConstruct
     public void warmUpConnectionPool() {

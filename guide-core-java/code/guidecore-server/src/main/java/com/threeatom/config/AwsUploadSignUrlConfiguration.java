@@ -7,13 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-/**
- * @author Administrator
- * @title: AwsSignedConfiguration
- * @projectName book
- * @description: TODO
- * @date 2022/7/14/01415:09
- */
 @Configuration
 @PropertySource(value = "classpath:system.yml", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "uploadsignurl")

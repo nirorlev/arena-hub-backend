@@ -3,14 +3,7 @@ package com.threeatom.guidecore.constant;
 import java.util.ArrayList;
 import java.util.List;
 
-// 事件统一类型字段：
 public class EventUnifyType {
-    /*
-    适用：
-    gc_user_event_resource - EventResType
-    gc_master_message - MessageEventType
-    sys_file - file_type_index -TableConstant
-    */
 
     public static final int TEXT_0 = 0; // 文字
     public static final int IMAGE_1 = 1; // 照片

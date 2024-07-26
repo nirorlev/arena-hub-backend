@@ -10,14 +10,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GcSubjectService extends IService<GcSubject> {
 
     boolean saveSub(GcSubject sub);
@@ -200,9 +192,6 @@ public interface GcSubjectService extends IService<GcSubject> {
             HttpServletRequest request,
             List<String> groupCodeList,
             Integer orderType);
-
-    // Map<Integer,GcSubject> getSubjectInfoByList(List<GcSubject> level0sublist,Integer
-    // masterId,HttpServletRequest request);
 
     List<GcSubject> getSubjectInfoByList(
             List<GcSubject> level0sublist, Integer masterId, Integer userId, HttpServletRequest request);

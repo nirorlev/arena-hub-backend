@@ -9,14 +9,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 事件资源文件 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 public interface GcUserEventResourceService extends IService<GcUserEventResource> {
 
     boolean saveEventAction(GcUserEventResource UserEventResource);
@@ -26,11 +18,6 @@ public interface GcUserEventResourceService extends IService<GcUserEventResource
     List<GcUserEventResource> selectGetEventResourceByEventIdAndTargetUserId(
             Integer eventId, Integer userId, Integer commentResourceFileId);
 
-    /**
-     * @param subIds
-     * @param userIds
-     * @return
-     */
     List<Map<String, Object>> getUsersUploadResNumByUserIdsAndSubIds(
             List<Integer> subIds, List<Integer> userIds, String order);
 

@@ -11,14 +11,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 用户对视频的播放记录
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @ApiModel(value = "GcUserVideoPlay对象", description = "用户对视频的播放记录")
 @Data
 public class GcUserVideoPlay implements Serializable {

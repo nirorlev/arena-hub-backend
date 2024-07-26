@@ -6,13 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-/**
- * @author Administrator
- * @title: AwsS3Configuration
- * @projectName uploadServer
- * @description: TODO
- * @date 2022/4/28/02816:39
- */
 @Configuration
 @PropertySource(value = "classpath:system.yml", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "aws")

@@ -12,14 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 事件的用户问题回答 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
 public class GcUserAnswerServiceImpl extends ServiceImpl<GcUserAnswerMapper, GcUserAnswer>
         implements GcUserAnswerService {
@@ -34,7 +26,6 @@ public class GcUserAnswerServiceImpl extends ServiceImpl<GcUserAnswerMapper, GcU
 
     @Override
     public boolean saveUserAnswer(GcUserAnswer userAnswer) {
-        // TODO Auto-generated method stub
         return this.saveOrUpdate(userAnswer);
     }
 

@@ -10,26 +10,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * @author Administrator
- * @title: TranslateUtil
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/11/01115:34
- */
 public class TranslateUtil {
-    /**
-     * 百度翻译接口地址
-     */
-
-    /**
-     * 获得翻译结果
-     * @param query
-     * @param from
-     * @param to
-     * @return
-     * @throws IOException
-     */
     public static List<TransData> getTransResult(
             String query, String from, String to, String TRANS_API_HOST, String appid, String securityKey)
             throws IOException {
@@ -54,15 +35,6 @@ public class TranslateUtil {
         }
     }
 
-    /**
-     * 构建参数map
-     *
-     * @param query
-     * @param from
-     * @param to
-     * @return
-     * @throws UnsupportedEncodingException
-     */
     private static Map<String, String> buildParams(
             String query, String from, String to, String appid, String securityKey)
             throws UnsupportedEncodingException {
@@ -84,13 +56,6 @@ public class TranslateUtil {
         return params;
     }
 
-    /**
-     * 拼接url get方式拼接参数  返回url
-     *
-     * @param url
-     * @param params
-     * @return
-     */
     public static String getUrlWithQueryString(String url, Map<String, String> params) {
         if (params == null) {
             return url;
@@ -124,12 +89,6 @@ public class TranslateUtil {
         return builder.toString();
     }
 
-    /**
-     * 对输入的字符串进行URL编码, 即转换为%20这种形式
-     *
-     * @param input 原文
-     * @return URL编码. 如果编码失败, 则返回原文
-     */
     public static String encode(String input) {
         if (input == null) {
             return "";

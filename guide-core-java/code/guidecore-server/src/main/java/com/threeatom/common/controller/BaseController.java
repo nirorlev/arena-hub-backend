@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.controller;
 
 import com.threeatom.common.ApiAssert;
@@ -42,7 +37,6 @@ public class BaseController {
 
     public String getTokenValue(String field) {
         String token = this.request.getHeader("Authorization");
-        // 验证token
         return JwtUtil.getValueByToken(token, field);
     }
 
@@ -73,10 +67,7 @@ public class BaseController {
         return (AuthorizingRealm) realm;
     }
 
-    // 后期需把sysSystem概念删除
     public SysSystem getSystem() {
-        //        Integer sysId = Integer.parseInt(this.getTokenValue("sysId"));
-        //        return this.systemService.getSystemById(sysId);
         return systemService.getSystem();
     }
 
@@ -129,7 +120,6 @@ public class BaseController {
     }
 
     public String getParams(String name) {
-        String value = this.request.getParameter(name);
-        return value;
+        return this.request.getParameter(name);
     }
 }

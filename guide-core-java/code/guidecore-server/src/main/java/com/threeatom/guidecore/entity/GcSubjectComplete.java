@@ -6,13 +6,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author PC
- * @title: GcSubjectComplete
- * @projectName uploadServer
- * @description: TODO
- * @date 2023/12/810:50
- */
 @Data
 public class GcSubjectComplete implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -20,38 +13,17 @@ public class GcSubjectComplete implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    /**
-     * 进度
-     */
     private Integer inProgress;
 
-    /**
-     * 课程id
-     */
     private Integer subjectId;
 
-    /**
-     * 完成状态 1完成 0未开始 2已开始
-     */
     private Integer subjectState;
 
-    /**
-     * 门户id
-     */
     private Integer masterId;
 
-    /**
-     * 用户id
-     */
     private Integer userId;
 
-    /**
-     * 创建时间
-     */
     private Date createTime;
 
-    /**
-     * 修改时间
-     */
     private Date updateTime;
 }

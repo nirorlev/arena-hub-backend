@@ -79,8 +79,6 @@ public interface SysFileService extends IService<SysFile> {
 
     SysFile selectByLogoId(Integer id);
 
-    //    List<SysFile> selectBySubId(Integer id);
-
     Integer selectFileTypeIndexByVideoId(Integer videoId);
 
     SysFile getInfoById(Integer id);

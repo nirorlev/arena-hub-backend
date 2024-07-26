@@ -11,14 +11,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 视频下的event
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @ApiModel(value = "GcEvent对象", description = "视频下的event")
 @Data
 public class GcEvent implements Serializable {
@@ -100,9 +92,6 @@ public class GcEvent implements Serializable {
 
     @ApiModelProperty(value = "额外的")
     private String ext;
-
-    //    @TableField(value="ext",typeHandler = FastJsonArrayTypeHandler.class)
-    //    private JSONObject extJson;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "事件图片")

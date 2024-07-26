@@ -14,6 +14,5 @@ public class EventResType {
     public static final int AUDIO_3 = EventUnifyType.AUDIO_3; // 音频
     public static final int DOC_4 = EventUnifyType.DOC_4; // 文档
     // 5留空，为保与gc_master_message的event_type一致，5留空
-    public static final int SCREENROCK_6 = EventUnifyType.SCREENROCK_6; // ScreenRock链接
     public static final String JSON_STR = EventUnifyType.JSON_STR012346;
 }

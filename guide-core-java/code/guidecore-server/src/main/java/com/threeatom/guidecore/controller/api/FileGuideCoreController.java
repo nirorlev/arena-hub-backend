@@ -141,7 +141,6 @@ public class FileGuideCoreController extends GuideCoreController {
         Integer subId = jsonObject.getInteger("subId");
         Integer videoSource = jsonObject.getInteger("videoSource");
         Integer id = jsonObject.getInteger("id");
-        //		String  ifCaption=jsonObject.getString("ifCaption");
 
         Map<String, Object> extParams = new HashMap<>();
         extParams.put("videoName", videoName);
@@ -153,7 +152,6 @@ public class FileGuideCoreController extends GuideCoreController {
             extParams.put("videoLong", jsonObject.getString("videoLong"));
         }
 
-        //		extParams.put("ifCaption",ifCaption);
         extParams.put("subId", subId);
         extParams.put("videoSource", videoSource);
         extParams.put("id", id);
@@ -281,10 +279,8 @@ public class FileGuideCoreController extends GuideCoreController {
         GcUser user = this.getGcUser();
         SysSystem sys = this.getSystem();
         Integer masterId = Integer.parseInt(request.getHeader("masterId"));
-        //		GcMaster master = this.getMaster();
 
         String originFileName = jsonParams.getString("originFileName");
-        //		String tag=jsonParams.getString("tag");
         String type = jsonParams.getString("type");
 
         Map<String, Object> extParams = new HashMap<>();
@@ -312,8 +308,6 @@ public class FileGuideCoreController extends GuideCoreController {
     }
 
     //	禁用s3通用方式上传，用cloudfront 上传 /api/v1/guidecore/file/awsUploadSignUrl
-    //	@GetMapping("/getUploadCert")
-    //	@ResponseBody
     public ResultVO getUploadCert() {
         try {
             AWSSecurityTokenService stsClient =
@@ -341,58 +335,11 @@ public class FileGuideCoreController extends GuideCoreController {
 
         } catch (AmazonServiceException e) {
             throw new SystemException(I18NUtil.get("guidecore.aws.error") + e.getMessage());
-            //			e.printStackTrace();
         } catch (SdkClientException e) {
             throw new SystemException(I18NUtil.get("guidecore.aws.error") + e.getMessage());
-            //			e.printStackTrace();
         }
-        //		return ResultVO.fail();
     }
 
-    //
-    /*
-     * ID:    338344d9-5658-4931-9206-3d5cf5c2cd33
-     * Nme:   powtoon_guide_signed_links_key_group
-     * https://us-east-1.console.aws.amazon.com/cloudfront/v3/home?region=eu-west-2#/keygrouplist/details/338344d9-5658-4931-9206-3d5cf5c2cd33
-     * Containing Public Key ID: K1JQYEVI2UZJ98
-     */
-    //	@GetMapping("/SignUrlTest")
-    //	public void SignUrlTest() {
-    //		SignerUtils.Protocol protocol = SignerUtils.Protocol.https;
-    //		String distributionDomain = "stage.store.demoguide.xyz";
-    //		File privateKeyFile = new File("E:\\privateKey\\powtoon_guide_signed_links_private_key.der");
-    //		String s3ObjectKey = "a/b/hai.jpg";
-    //		s3ObjectKey = s3ObjectKey.replace(" ", "+");
-    //		s3ObjectKey = UriUtils.encodePath(s3ObjectKey, StandardCharsets.UTF_8);
-    //
-    //		//K1JQYEVI2UZJ98
-    //		//338344d9-5658-4931-9206-3d5cf5c2cd33
-    //		String keyPairId = "K1JQYEVI2UZJ98";
-    //		Date dateLessThan = DateUtils.parseISO8601Date("2022-07-20T22:20:00.000Z");
-    //		Date dateGreaterThan = DateUtils.parseISO8601Date("2022-07-10T22:20:00.000Z");
-    //		String ipRange = "0.0.0.0/0";
-    //		//0.0.0.0/0
-    //		try {
-    //			String url1 = CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
-    //					protocol, distributionDomain, privateKeyFile,
-    //					s3ObjectKey, keyPairId, dateLessThan);
-    //			String url2 = CloudFrontUrlSigner.getSignedURLWithCustomPolicy(
-    //					protocol, distributionDomain, privateKeyFile,
-    //					s3ObjectKey, keyPairId, dateLessThan,
-    //					dateGreaterThan, ipRange);
-    //			System.out.println("u1:"+url1);
-    //			System.out.println("u2:"+url2);
-    //		} catch (InvalidKeySpecException | IOException e) {
-    //			// TODO Auto-generated catch block
-    //			e.printStackTrace();
-    //		}
-    //
-    //	}
-
-    /**
-     * aws上传文件
-     * @return
-     */
     @SneakyThrows
     @PostMapping("/awsUploadSignUrl")
     public Message awsUploadSignUrl(@RequestBody JSONObject jsonParams, HttpServletRequest request) {
@@ -402,120 +349,6 @@ public class FileGuideCoreController extends GuideCoreController {
         return new Message().ok().addData("signedUrl", signedUrl);
     }
 
-    //	@SneakyThrows
-    //	@GetMapping("/test1")
-    //	public void test1() throws IOException, ParseException, CloudFrontServiceException {
-    //		//1.加载Hash和签名算法类
-    //		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    //
-    //		// ================================================================
-    //		// ================2.签名相关参数====================================
-    //		// ================================================================
-    //
-    //		//2.1.CloudFront为发布点分配的域名或者用户自己的域名
-    //		//String param_DistributionDomain = "你自己的域名或cloudfront发布点的域名";
-    //		String param_DistributionDomain = "stage.store.demoguide.xyz";
-    //
-    //		//2.2.将转化成"＊.der"格式的私钥文件
-    //		//String param_PrivateKeyFilePath = "你本地保存的*.der格式的cloudfront密钥对私钥文件路径全名";
-    //		String param_PrivateKeyFilePath =
-    // "E:\\privateKey\\powtoon_guide_signed_links_private_key.der";
-    //
-    //		//2.3.S3存储桶中文件的访问Key值
-    //		//String param_S3ObjectKey = "需要被访问的S3存储桶内文件访问key值";
-    //		String param_S3ObjectKey = "a/b/hpppp.jpg";
-    //
-    //		//2.4.CloudFront密钥对对应的访问KEY值
-    //		//String param_KeyPairId = "你使用根账号创建的CloudFront密钥对Key值";
-    //		String param_KeyPairId = "K1JQYEVI2UZJ98";
-    //
-    //		//2.5.待签名的URL
-    //		/*String param_UrlToBeSigned = "http://或者https://"
-    //				+ param_DistributionDomain
-    //				+ "/"
-    //				+ param_S3ObjectKey;*/
-    //
-    //	     String param_UrlToBeSigned = "https://"
-    //	                                + param_DistributionDomain
-    //	                                + "/"
-    //	                                + param_S3ObjectKey;
-    //
-    //
-    //		//3.加载私钥文件内容
-    //		byte[] derPrivateKey =
-    //				ServiceUtils.readInputStreamToBytes(
-    //						new FileInputStream(param_PrivateKeyFilePath));
-    //
-    //		// ================================================================
-    //		// ================4.定制策略相关参数================================
-    //		// ================================================================
-    //
-    //		//4.1.权限策略生效的路径，可以使用"*"和"?"来实现批量匹配,
-    //		//具体协议(http/https)需要和CloudFront发布点设置对应
-    //		/*String param_PolicyResourcePath = "http://或者https://"
-    //				+ param_DistributionDomain
-    //				+ "/"
-    //				+ param_S3ObjectKey;*/
-    //	      String param_PolicyResourcePath = "https://"
-    //	                                      + param_DistributionDomain
-    //	                                      + "/"
-    //	                                      + param_S3ObjectKey;
-    //
-    //		//4.2.签名URL失效时间
-    //		//Date param_DateLessThan = ServiceUtils.parseIso8601Date("UTC格式的签名URL失效时间");
-    //		Date param_DateLessThan = ServiceUtils.parseIso8601Date("2022-07-15T10:00:00.000Z");
-    //
-    //		//4.3.请求客户端的Ip地址范围CIDR设置（可选参数）
-    //		//String param_limitToIpAddressCIDR = "CIDR格式的请求源IP地址范围";
-    //		String param_limitToIpAddressCIDR = "0.0.0.0/0";
-    //
-    //		//4.4.签名URL生效时间（可选参数，不输入立即生效）
-    //		//Date param_DateGreaterThan = ServiceUtils.parseIso8601Date("UTC格式的签名URL生效时间");
-    //		Date param_DateGreaterThan = ServiceUtils.parseIso8601Date("2022-07-10T06:31:56.000Z");
-    //
-    //		//5.根据输入参数创建定制策略
-    //		String policy =
-    //				CloudFrontService.buildPolicyForSignedUrl(
-    //						param_PolicyResourcePath,
-    //						param_DateLessThan,
-    //						param_limitToIpAddressCIDR,
-    //						param_DateGreaterThan
-    //				);
-    //
-    //		System.out.println("［INFO］实际构造的的定制策略内容是【" + policy + "】");
-    //
-    //		//6.执行实际签名操作（哈希＋签名＋Base64编码）
-    //		String signedUrl =
-    //				CloudFrontService.signUrl(
-    //						param_UrlToBeSigned,
-    //						param_KeyPairId,
-    //						derPrivateKey,
-    //						policy
-    //				);
-    //
-    //		System.out.println("［INFO］输出的签名URL内容【" + signedUrl + "】");
-    //
-    //		//下面是输出内容的例子,当你产生类似下列输出后，可以直接输入到浏览器或提供给移动客户端中下载S3存储桶中的内容。
-    //		//［INFO］实际构造的的定制策略内容是【{"Statement":
-    // [{"Resource":"http://dqlbgmeivj213.cloudfront.net/example.txt","Condition":{"DateLessThan":{"AWS:EpochTime":1447539600},"IpAddress":{"AWS:SourceIp":"0.0.0.0/0"},"DateGreaterThan":{"AWS:EpochTime":1429165916}}}]}】
-    //
-    //	//［INFO］输出的签名URL内容【http://dqlbgmeivj213.cloudfront.net/example.txt?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHA6Ly9kcWxiZ21laXZqMjEzLmNsb3VkZnJvbnQubmV0L2V4YW1wbGUudHh0IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNDQ3NTM5NjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjAuMC4wLjAvMCJ9LCJEYXRlR3JlYXRlclRoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTQyOTE2NTkxNn19fV19&Signature=qWjDSIaiYmgA-0ptW4DXXhjDtAzSYBtl-5yxvd25xokhR2lutBIfkIvbfISomMPAtCbH90Q1H9GGiegR1LP7lKx7lmYKqX40nAljvi12lrpKwftX4qrIBkJB3XL1XMBVEkgRnW0xEZh6qRFkNpWIS48FnnQvNGJt9C8j3IB-k1Pk8OaitssNpMf~C-nbmmd485pbUJpNf8SLwSv51OHxZeI5yj8z~u8OQa4rjRM6eBGkjzf1lTdKegi1HQRsmNn7-tgydmA3Hv6EY4-tIanHmV8o~pZ1mdoKlnlQoYlg~L-DaUiZkald8dplQNk3YXermcLsXq3q71Mw94ygrG03fw__&Key-Pair-Id=APKAIVAT4VOBHNXXXXXX】
-    //
-    //	}
-    /**
-     * 签名URL
-     *
-     * @param distributionDomain 域名
-     * @param privateKeyFile     私钥文件
-     * @param s3ObjectKey        s3key
-     * @param keyPairId          密钥id
-     * @param dateLessThan       小于日期
-     * @param dateGreaterThan    大于日期
-     * @return 签名url
-     *
-     * https://blog.csdn.net/fxtxz2/article/details/119108474
-     * https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CFPrivateDistJavaDevelopment.html
-     */
     public static String signUrl(
             String distributionDomain,
             File privateKeyFile,

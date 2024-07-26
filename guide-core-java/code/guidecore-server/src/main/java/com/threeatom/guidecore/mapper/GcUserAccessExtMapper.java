@@ -7,14 +7,6 @@ import java.util.Map;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-25
- */
 @Component
 public interface GcUserAccessExtMapper extends BaseMapper<GcUserAccessExt> {
     List<Map<String, Object>> getUserLoginNum(

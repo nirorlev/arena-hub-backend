@@ -10,14 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 @Service
 public class GcUserSaveContentServiceImpl
         extends ServiceImpl<GcUserSaveContentMapper, GcUserSaveContent>
@@ -27,7 +19,6 @@ public class GcUserSaveContentServiceImpl
 
     @Override
     public Integer countSaveContent(GcUserSaveContent gcUserSaveContent) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserSaveContent> queryWrapper = new QueryWrapper<GcUserSaveContent>();
         queryWrapper.eq("user_id", gcUserSaveContent.getUserId());
 

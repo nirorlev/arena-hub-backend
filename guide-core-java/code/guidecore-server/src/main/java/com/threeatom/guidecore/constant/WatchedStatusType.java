@@ -31,11 +31,6 @@ public enum WatchedStatusType {
         this.desc = desc;
     }
 
-    /***
-     * 根据CODE获取枚举实例
-     * @param code
-     * @return
-     */
     public static WatchedStatusType getByCode(int code) {
         for (WatchedStatusType enumType : values()) {
             if (enumType.getCode() == code) {

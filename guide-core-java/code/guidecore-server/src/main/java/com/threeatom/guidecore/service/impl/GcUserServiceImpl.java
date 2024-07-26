@@ -31,22 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @Service
 public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> implements GcUserService {
 
-    public static final String CACHE_TAG = "GcUser";
-
-    //    private static final String KEY_TAG_ENTITY = "'entity:'+";
-
-    //    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserServiceImpl.class);
 
     @Autowired private SysSystemService systemService;
     @Autowired private SysFileService fileService;
@@ -68,10 +55,8 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     }
 
     @Override
-    //    @Cacheable(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#p0") // GuideCoreUserRealm
     // 中用到，后续需加上，注释原因是因为在各门户首页新进入门户后退出再进入时拿不到code，待研究如何刷新
     public GcUser getUserByIdCache(Integer id) {
-        // TODO Auto-generated method stub
         return this.baseMapper.getGcUserByUserId(id);
     }
 
@@ -87,7 +72,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
     @Override
     public GcUser checkGcUser(String username, String password) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUser> queryWrapper = new QueryWrapper<GcUser>();
         queryWrapper.eq("username", username);
         GcUser user = this.getOne(queryWrapper);
@@ -105,7 +89,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     @Transactional
     public GcUser createGcUser(
             Integer sysId, String username, String password, String firstName, String lastName) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUser> queryWrapper = new QueryWrapper<GcUser>();
         queryWrapper.eq("sys_id", sysId).eq("username", username);
         int count = this.count(queryWrapper);
@@ -125,23 +108,15 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         user.setState(1);
         String pwdHash = new SimpleHash("MD5", password, salt + SysConstant.PASS_SALT).toHex();
         user.setPassword(pwdHash);
-        //
         this.save(user);
         return user;
     }
 
-    /**
-     * 根据账号身份获取对应的老师ids或学生ids   RoleType ：0为老师1为学生
-     * @param userId
-     * @param masterId
-     * @return
-     */
     @Override
     public List<Integer> getTalkerIds(Integer userId, Integer masterId) {
         List<GcUserAccess> userAccess =
                 userAccessService.selectPtUserAccessByMasterIdAndUserId(userId, masterId);
         log.error("更新时间::" + new Date());
-        // List<Integer> accessIds = new ArrayList<>();
         if (userAccess.size() != 0) {
             return userAccessService.getUserAccessListUserIds(
                     masterId, userAccess.stream().map(GcUserAccess::getId).collect(Collectors.toList()));
@@ -191,7 +166,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return this.getOne(queryWrapper);
     }
 
-    // @Override
     public GcUser getUserByStripeCustomerId(String userName) {
         QueryWrapper<GcUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", userName);
@@ -213,7 +187,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return this.baseMapper.getTeamUser(params);
     }
 
-    // TODO: take a look at the security auth globally and rework the storing of current user logged in
     @Override
     public GcUser getCurrentUser(HttpServletRequest request) {
         if (AuthorizationUtil.isUser(request)) {

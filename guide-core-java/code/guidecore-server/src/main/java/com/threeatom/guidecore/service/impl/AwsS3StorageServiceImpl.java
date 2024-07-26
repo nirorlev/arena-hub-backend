@@ -37,11 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
-/**
- * @author cvmcosta
- * @title: AwsS3StorageServiceImpl
- * @description: Responsible for handling file storage in s3
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

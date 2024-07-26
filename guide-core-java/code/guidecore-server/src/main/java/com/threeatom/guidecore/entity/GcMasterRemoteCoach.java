@@ -13,21 +13,12 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import lombok.Data;
 
-/**
- * 系统反馈
- *
- * @author huangpei
- * @Date 2021-10-26
- */
 @Data
 @TableName(autoResultMap = true)
 public class GcMasterRemoteCoach implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键id
-     */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 

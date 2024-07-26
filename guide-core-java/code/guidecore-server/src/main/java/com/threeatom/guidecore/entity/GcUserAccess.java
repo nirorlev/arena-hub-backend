@@ -13,14 +13,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @Data
 @ApiModel(value = "GcUserAccess对象", description = "")
 public class GcUserAccess implements Serializable {

@@ -13,14 +13,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-25
- */
 @ApiModel(value = "GcUserAccessPermission对象", description = "")
 @Data
 @TableName(autoResultMap = true)

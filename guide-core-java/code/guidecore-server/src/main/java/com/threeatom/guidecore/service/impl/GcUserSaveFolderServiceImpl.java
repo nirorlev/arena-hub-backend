@@ -33,8 +33,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder> implements GcUserSaveFolderService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserSaveFolderServiceImpl.class);
-
     @Autowired
     private SysFileService sysFileService;
 
@@ -74,7 +72,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public List<GcUserSaveFolder> getPtNewHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request){
-       // String playListName = (String) request.getAttribute("playListName");
         PageParam pageParam = new PageParam(request);
         Integer pageSize = pageParam.getPageSize();
         Integer pageNum = pageParam.getPageNum();
@@ -182,10 +179,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     public List<GcUserSaveFolder> selectFolderInMaster(Integer masterId) {
         QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
-//        .ne("if_private", 1)
-//        .or()
-//        .eq("master_id", masterId)
-//        .isNull("if_private");
         return this.list(queryWrapper);
     }
 

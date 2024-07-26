@@ -35,14 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 事件资源文件 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
 public class GcUserEventResourceServiceImpl
         extends ServiceImpl<GcUserEventResourceMapper, GcUserEventResource>
@@ -108,7 +100,6 @@ public class GcUserEventResourceServiceImpl
 
     @Override
     public boolean saveEventAction(GcUserEventResource UserEventResource) {
-        // TODO Auto-generated method stub
         if (UserEventResource.getTargetId() != null && UserEventResource.getTargetId() == 0)
             UserEventResource.setTargetId(null);
         return this.saveOrUpdate(UserEventResource);
@@ -130,7 +121,6 @@ public class GcUserEventResourceServiceImpl
     @Override
     public List<Map<String, Object>> getUsersUploadResNumByUserIdsAndSubIds(
             List<Integer> subIds, List<Integer> userIds, String order) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUsersUploadResNumByUserIdsAndSubIds(subIds, userIds, order);
     }
 
@@ -202,52 +192,33 @@ public class GcUserEventResourceServiceImpl
     @Override
     public List<GcUserEventResource> selectUnCheckedTeacherMessage(
             Integer userId, List<Integer> eventIds, Integer masterId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUnCheckedTeacherMessage(userId, eventIds, masterId);
     }
 
     @Override
     public List<GcUserEventResource> selectUnCheckedStudentMessage(
             Integer studentId, List<Integer> eventIds, Integer userId, Integer masterId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUnCheckedStudentMessage(studentId, eventIds, userId, masterId);
     }
 
     // OSS 回调用
     @Override
     public GcUserEventResource uploadEventResourceFile(JSONObject jsonObject) {
-        //		GcUserEventResource userEventResource = new GcUserEventResource();
         Integer eventId = jsonObject.getInteger("eventId");
         Integer resType = jsonObject.getInteger("resType");
         Integer targetId = jsonObject.getInteger("targetId");
         Integer timeNode = jsonObject.getInteger("timeNode");
         Integer targetUserId = jsonObject.getInteger("targetUserId");
         Integer masterId = jsonObject.getInteger("masterId");
-        String fileName = jsonObject.getString("originFileName");
-        //		 Integer masterId = getHeaderMasterId(request);
         Integer userId = jsonObject.getInteger("userId");
 
         ApiAssert.jsonValueIntegerIn(resType, EventResType.JSON_STR, "请填写" + EventResType.JSON_STR);
-        //	        String fileName = file.getOriginalFilename();
         // 获取事件
         GcEvent event = eventService.getById(eventId);
         if (event == null) throw new SystemException(I18NUtil.get("event.empty"));
 
-        //	        if (file == null) throw new SystemException("上传文件");
-
-        // 上传视频
-        //	        GcUser user = this.getGcUser();
-        //	        SysSystem sys = this.getSystem();
         GcUserEventResource userEventResource = new GcUserEventResource();
 
-        //	        if (resType.equals(EventResType.TEXT)) {//作业本上传内容类型
-        //	            throw new SystemException("这里需要上传文件");
-        //	        }
-
-        //	        SysFile sysFile = sysFileService.saveRes(userId, sys, SysFilePath.event,
-        // ObjectStorageConstants.ALIYUN_OSS, fileName, file);
-        //	        sysFileService.getResFullUrl(sysFile, sys, request);
-        // 保存视频
         SysFile sysFile = videoService.unifiedFileSave(jsonObject);
 
         String sysIds = env.getProperty("systemId");

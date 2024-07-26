@@ -15,5 +15,4 @@ public class ScheduleParamVo {
     private Integer videoId; // 视频id，level=11时需要
     private JSONArray weekDates; // 1-6=周一至周六，0=周日
     private Integer level; // 级别，1=1级课程，2=2级话题，11=视频
-    //    private Integer addbyUserId;//添加的老师id
 }

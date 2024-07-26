@@ -7,14 +7,6 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- * 事件的用户问题回答 Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Component
 public interface GcUserAnswerMapper extends BaseMapper<GcUserAnswer> {
 

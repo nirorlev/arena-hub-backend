@@ -52,11 +52,6 @@ public enum TimeZoneType {
         this.desc = desc;
     }
 
-    /***
-     * 根据CODE获取枚举实例
-     * @param code
-     * @return
-     */
     public static TimeZoneType getByCode(int code) {
         for (TimeZoneType enumType : values()) {
             if (enumType.getCode() == code) {

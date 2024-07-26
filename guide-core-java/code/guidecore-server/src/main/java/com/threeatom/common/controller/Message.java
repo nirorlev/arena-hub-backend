@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.controller;
 
 import com.alibaba.fastjson.JSONObject;
@@ -43,7 +38,6 @@ public class Message {
 
     public Message mergeJson(JSONObject jsonObject) {
         new Exception().printStackTrace(System.out);
-        // Here I need to ittreate over the Json and add it to this.xyz.put(key, object)
         jsonObject
                 .keySet()
                 .forEach(
@@ -52,26 +46,22 @@ public class Message {
                                 this.release = new HashMap();
                                 Object value = jsonObject.get(key);
                                 this.release.put(key, value);
-                                // logger.info("Key: {0}\tValue: {1}", key, value);
                             }
                             if (this.site == null) {
                                 this.site = new HashMap();
                                 Object value = jsonObject.get(key);
                                 this.site.put(key, value);
-                                // logger.info("Key: {0}\tValue: {1}", key, value);
                             }
                             if (this.admin == null) {
                                 this.admin = new HashMap();
                                 Object value = jsonObject.get(key);
                                 this.admin.put(key, value);
-                                // logger.info("Key: {0}\tValue: {1}", key, value);
                             }
                         });
         return this;
     }
 
     public Message setJsonData(JSONObject jsonObject) {
-        // Here I need to ittreate over the Json and add it to this.data.put(key, object)
         if (this.data == null) {
             this.data = new HashMap();
             jsonObject
@@ -80,21 +70,18 @@ public class Message {
                             key -> {
                                 Object value = jsonObject.get(key);
                                 this.data.put(key, value);
-                                // logger.info("Key: {0}\tValue: {1}", key, value);
                             });
         }
         return this;
     }
 
     public Message addJson(JSONObject jsonObject) {
-        // Here I need to ittreate over the Json and add it to this.meta.put(key, object)
         jsonObject
                 .keySet()
                 .forEach(
                         key -> {
                             Object value = jsonObject.get(key);
                             this.meta.put(key, value);
-                            // logger.info("Key: {0}\tValue: {1}", key, value);
                         });
         return this;
     }

@@ -34,13 +34,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-/**
- * @author Administrator
- * @title: SysFileCaptionImpl
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/8/00811:00
- */
 @Service
 public class SysFileCaptionImpl extends ServiceImpl<SysFileCaptionMapper, SysFileCaption> implements SysFileCaptionService {
 
@@ -64,9 +57,6 @@ public class SysFileCaptionImpl extends ServiceImpl<SysFileCaptionMapper, SysFil
 
     @Value("${fanyi.rate:1000}")
     private Integer rateLength;
-
-    /*@Autowired
-    private GcExternalMessageService externalMessageService;*/
 
     @Resource
     SysFileCaptionMapper sysFileCaptionMapper;
@@ -252,17 +242,7 @@ public class SysFileCaptionImpl extends ServiceImpl<SysFileCaptionMapper, SysFil
                     e.printStackTrace();
                 }
             });
-            /*if (null!=message){
-                externalMessageService.save(message);
-            }*/
         }catch (Exception e){
-            /*GcExternalMessage externalMessage = new GcExternalMessage();
-            externalMessage.setCode(ExternalMessageType.ERROR_CODE);
-            externalMessage.setMessage(e.getMessage());
-            externalMessage.setCreateTime(new Date());
-            externalMessage.setUpdateTime(new Date());
-            externalMessage.setType(ExternalMessageType.TRANSRESULT);
-            externalMessageService.save(externalMessage);*/
             e.printStackTrace();
         }
     }

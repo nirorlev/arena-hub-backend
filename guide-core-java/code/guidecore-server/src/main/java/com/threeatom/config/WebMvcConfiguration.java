@@ -41,7 +41,6 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         fastJsonConfig.setSerializerFeatures(SerializerFeature.PrettyFormat);
         // 全局配置将会导致对象上的注解无效
         fastJsonConfig.setDateFormat("yyyy-MM-dd HH:mm:ss");
-        // JSON.DEFFAULT_DATE_FORMAT="yyyy-MM-dd HH:mm:ss";
         fastJsonConfig.setCharset(Charset.forName("UTF-8"));
         // 时区设置
         JSON.defaultTimeZone = TimeZone.getTimeZone(timeZone);
@@ -54,11 +53,6 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         return new HttpMessageConverters(converters);
     }
 
-    /**
-     * 国际化资源配置
-     *
-     * @return
-     */
     @Bean
     public ResourceBundleMessageSource messageSource() {
         Locale.setDefault(new Locale("zh", "CN"));

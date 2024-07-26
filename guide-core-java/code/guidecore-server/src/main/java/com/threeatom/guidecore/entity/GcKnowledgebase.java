@@ -10,11 +10,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 知识库
- * </p>
- */
 @ApiModel(value = "GcFaq", description = "知识库")
 @Data
 public class GcKnowledgebase implements Serializable {

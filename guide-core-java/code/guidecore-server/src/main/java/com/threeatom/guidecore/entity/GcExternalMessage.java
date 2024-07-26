@@ -6,13 +6,6 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: GcExternalMessage
- * @projectName jeeplus
- * @description: TODO
- * @date 2022/8/1/00117:35
- */
 @Data
 public class GcExternalMessage {
 

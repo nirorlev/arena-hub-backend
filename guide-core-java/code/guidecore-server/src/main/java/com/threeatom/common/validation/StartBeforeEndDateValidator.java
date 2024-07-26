@@ -1,7 +1,6 @@
 package com.threeatom.common.validation;
 
 import com.threeatom.common.validation.annotation.StartBeforeEndDate;
-import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.DateRangeDto;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
