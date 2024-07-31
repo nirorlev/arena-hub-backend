@@ -388,4 +388,8 @@
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="update-if-private-name" author="vprokh">
+        <renameColumn tableName="gc_user_save_folder" oldColumnName="if_private" newColumnName="is_private" />
+    </changeSet>
+
 </databaseChangeLog>
