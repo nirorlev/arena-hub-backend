@@ -4,14 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcUserAnswer;
 import java.util.List;
 
-/**
- * <p>
- * 事件的用户问题回答 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 public interface GcUserAnswerService extends IService<GcUserAnswer> {
 
     List<GcUserAnswer> getAnswerListByEventId(Integer eventId, Integer userId, Integer masterId);

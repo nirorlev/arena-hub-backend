@@ -29,14 +29,6 @@ public class GcMasterMessageServiceImpl extends ServiceImpl<GcMasterMessageMappe
         saveOrUpdate(masterMessage);
     }
 
-    /**
-     * 未读消息
-     *
-     * @param masterId
-     * @param userId
-     * @param type     1 视频未读 2全部未读
-     * @return
-     */
     @Override
     public Integer getUnReadMessage(Integer masterId, Integer userId, Integer type) {
         QueryWrapper<GcMasterMessage> queryWrapper = new QueryWrapper<>();

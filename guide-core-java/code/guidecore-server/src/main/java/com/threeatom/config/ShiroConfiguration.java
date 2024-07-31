@@ -4,7 +4,6 @@ import com.threeatom.common.redis.ShiroRedisCacheManager;
 import com.threeatom.common.shiro.filter.AdminJwtFilter;
 import com.threeatom.common.shiro.filter.WeappJwtFilter;
 import com.threeatom.common.shiro.mudular.UserModularRealmAuthenticator;
-import com.threeatom.common.shiro.mudular.UserModularRealmAuthorizer;
 import com.threeatom.common.shiro.realm.AdminUserRealm;
 import com.threeatom.guidecore.shiro.GuideCoreJwtFilter;
 import com.threeatom.guidecore.shiro.GuideCoreUserRealm;
@@ -90,7 +89,6 @@ public class ShiroConfiguration {
         filterChainDefinitionMap.put("/api/*/guidecore/user/weapp/bindLogin", "anon");
 
         filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/getForHome", "anon");
-        //		filterChainDefinitionMap.put("/api/*/guidecore/getIp", "anon");
         filterChainDefinitionMap.put("/api/*/guidecore/homeInfo/*", "anon");
         filterChainDefinitionMap.put("/api/*/guidecore/subversion/gcManagerCollection", "anon");
 
@@ -173,25 +171,16 @@ public class ShiroConfiguration {
         evaluator.setSessionStorageEnabled(Boolean.FALSE);
 
         securityManager.setAuthenticator(new UserModularRealmAuthenticator());
-        securityManager.setAuthorizer(new UserModularRealmAuthorizer());
 
         securityManager.setRealms(realms);
         return securityManager;
     }
 
-    /**
-     * Shiro生命周期处理器
-     * @return
-     */
     @Bean(name = "lifecycleBeanPostProcessor")
     public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
         return new LifecycleBeanPostProcessor();
     }
 
-    /**
-     * 开启Shiro注解(如@RequiresRoles,@RequiresPermissions)
-     * @return
-     */
     @Bean
     @DependsOn("lifecycleBeanPostProcessor")
     public DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator() {

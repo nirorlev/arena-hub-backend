@@ -6,14 +6,6 @@ import com.threeatom.guidecore.entity.GcEvent;
 import java.util.List;
 import java.util.Map;
 
-/**
- * <p>
- * 视频下的event 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 public interface GcEventService extends IService<GcEvent> {
 
     boolean saveEvent(GcEvent event, Integer masterId);
@@ -42,13 +34,6 @@ public interface GcEventService extends IService<GcEvent> {
 
     List<GcEvent> getEventListByVideoIds(List<Integer> videoIds, Integer uid);
 
-    /**
-     *  根据视频id集合和用户id
-     *      查询问题的回答情况
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     List<GcEvent> findEventAnswerByVideoIdsUser(
             List<Integer> videoIds, Integer userId, Integer masterId, Integer envFlag);
 

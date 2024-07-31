@@ -5,7 +5,6 @@ import java.time.OffsetDateTime;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.validation.annotation.Validated;
 
 @Getter
 @Setter

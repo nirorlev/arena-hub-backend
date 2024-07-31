@@ -8,13 +8,6 @@ import java.io.Serializable;
 import java.util.List;
 import org.joda.time.DateTime;
 
-/**
- * @author Administrator
- * @title: SysFileCaption
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/8/00810:05
- */
 public class SysFileCaption implements Serializable {
     @ApiModelProperty("主键")
     @TableId(value = "id", type = IdType.AUTO)

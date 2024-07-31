@@ -3,11 +3,6 @@ package com.threeatom.guidecore.entity;
 import java.util.List;
 import lombok.Data;
 
-/**
- * @auther: rjunchao
- * @date: 2021/8/24 19:41
- * @desc: 课程总计信息对象
- */
 @Data
 public class SubjectTotals {
 

@@ -7,14 +7,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- * 主站点实例 Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GcMasterMapper extends BaseMapper<GcMaster> {
 
     GcMaster selectMasterByUid(Integer uid);

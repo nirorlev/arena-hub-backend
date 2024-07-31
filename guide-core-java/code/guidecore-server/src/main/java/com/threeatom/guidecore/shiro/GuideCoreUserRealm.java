@@ -34,7 +34,6 @@ public class GuideCoreUserRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        // TODO Auto-generated method stub
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
         LOGGER.info("guidecore授权");
 
@@ -52,7 +51,6 @@ public class GuideCoreUserRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token)
             throws AuthenticationException {
-        // TODO Auto-generated method stub
         String tokenStr = (String) token.getCredentials();
         LOGGER.info("guidecore登录认证");
 
@@ -65,8 +63,6 @@ public class GuideCoreUserRealm extends AuthorizingRealm {
             case "web":
             case "native":
                 return doWebClient(tokenStr);
-                /*case "weapp":
-                return doWeappClient(tokenStr);*/
             default:
                 return null;
         }

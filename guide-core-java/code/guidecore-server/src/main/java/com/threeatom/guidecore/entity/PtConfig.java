@@ -6,13 +6,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: PtConfig
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/4/10/01011:59
- */
 @Data
 public class PtConfig implements Serializable {
 
@@ -20,8 +13,6 @@ public class PtConfig implements Serializable {
     private Integer id;
 
     private Integer masterId;
-    /* private Integer showPlaylists;
-    private Integer showSearchBar;*/
     private String pageHeader;
     private String pageBody;
     private Date createTime;

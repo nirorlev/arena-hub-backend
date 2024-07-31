@@ -5,13 +5,6 @@ import com.threeatom.guidecore.entity.PtTags;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * @author Administrator
- * @title: PtTags
- * @projectName jcasbin
- * @description: TODO
- * @date 2023/1/9/00910:24
- */
 public interface PtTagsService extends IService<PtTags> {
 
     List<PtTags> selectPtChannelTags(Integer masterId, HttpServletRequest request, String name);

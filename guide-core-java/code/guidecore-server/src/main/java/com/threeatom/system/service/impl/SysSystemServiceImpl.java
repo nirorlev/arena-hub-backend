@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -22,9 +17,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SysSystemServiceImpl extends ServiceImpl<SysSystemMapper, SysSystem>
         implements SysSystemService {
-    private static final String CACHE_TAG = "SysSystem";
-    private static final String KEY_TAG_ENTITY = "'entity:'+";
-    private static final String KEY_TAG_LIST_BUSINESSKEY = "'list:key-'+";
 
     @Autowired private Environment env;
 
@@ -56,7 +48,6 @@ public class SysSystemServiceImpl extends ServiceImpl<SysSystemMapper, SysSystem
     public SysSystem getSystem() {
         String sysIds = env.getProperty("systemId");
         int sysId = Integer.parseInt(sysIds);
-        //    	SysSystem sys = systemService.getSystemById(sysId);
 
         SysSystem sys = new SysSystem();
         sys.setId(sysId);

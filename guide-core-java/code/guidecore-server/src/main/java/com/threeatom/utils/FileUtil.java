@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.utils;
 
 import com.threeatom.guidecore.constant.TableConstant;
@@ -38,13 +33,6 @@ public class FileUtil {
         return data;
     }
 
-    /**
-     * 流转二进制数组
-     *
-     * @param in
-     * @return
-     * @throws IOException
-     */
     static byte[] inputStream2ByteArray(InputStream in) throws IOException {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -56,13 +44,6 @@ public class FileUtil {
         return out.toByteArray();
     }
 
-    /**
-     * 保存文件
-     *
-     * @param filePath
-     * @param fileName
-     * @param content
-     */
     public static void save(String filePath, String fileName, byte[] content) {
         try {
             File filedir = new File(filePath);

@@ -29,11 +29,6 @@ public enum EnvType {
         this.desc = desc;
     }
 
-    /***
-     * 根据CODE获取枚举实例
-     * @param code
-     * @return
-     */
     public static EnvType getByCode(int code) {
         for (EnvType enumType : values()) {
             if (enumType.getCode() == code) {

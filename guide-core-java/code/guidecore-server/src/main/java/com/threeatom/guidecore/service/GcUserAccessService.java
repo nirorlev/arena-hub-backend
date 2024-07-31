@@ -11,21 +11,8 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 public interface GcUserAccessService extends GcUserAccessServiceBll {
 
-    /***
-     * 创建数据，同时创建副表
-     * @param userAccess
-     * @return
-     */
     boolean createUserAccess(GcUserAccess userAccess);
 
     GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId);
@@ -46,20 +33,9 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     Integer selectUserAccessesByMasterId(Integer userId, Integer masterId, String role);
 
-    /***
-     * 获取当前空间下教师对应的全部学生表
-     * @param userId
-     * @param masterId
-     * @return
-     */
     List<GcUserAccess> getStudentsAccessByTeacherId(
             Integer userId, Integer masterId, Integer page, Integer pageNum);
 
-    /***
-     * 获取accessIds下的所有用户
-     * @param accessIds
-     * @return
-     */
     List<GcUserAccess> getUsersByAccessIds(List<Integer> accessIds, UserCommonInfo commonInfo);
 
     Integer createOrUpdateById(GcUserAccessExt userAccessExt);
@@ -67,48 +43,16 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
             Integer masterId, List<Integer> userIds, String order);
 
-    /***
-     * 获取权限表
-     * @param userAccess
-     * @return
-     */
     GcUserAccessPermission getUserAccessPermission(Integer userAccessId);
 
-    /***
-     * 获取影响用户的权限表
-     * @param userAccessIds
-     * @return
-     */
     List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds);
 
-    /***
-     * 批量更新权限表
-     * @param perList
-     * @return
-     */
     int updateUserAccessPermissions(List<GcUserAccessPermission> perList);
 
-    /***
-     * 检索教师对应的学生注册数量
-     * @param lastDay
-     * @param teacherAccessId
-     * @return
-     */
     Map<String, Integer> getLastUsersNum(List<Integer> lastDays, Integer teacherAccessId);
 
-    /***
-     * 检索活跃用户的图表情况
-     * @param lastDays
-     * @param teacherAccessId
-     * @return
-     */
     Map<String, Integer> getActiveUsersNum(List<Integer> lastDays, Integer teacherAccessId);
 
-    /***
-     * 获取空间下学生和教师的数量
-     * @param masterId
-     * @return
-     */
     Map<String, Long> getMasterIdUsersNum(Integer masterId);
 
     List<Map<String, Object>> getAllUserInThisMaster(
@@ -120,11 +64,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<Map<String, Object>> getAllManagerInThisMaster(Integer masterId);
 
-    /***
-     * 更新相关用户的权限
-     * @param userAccessIds 用户userAccessIds
-     * @return
-     */
     int updateUserAccessPermission(List<Integer> userAccessIds, GcAccess gcAccess);
 
     Integer saveUserAccessPermission(GcUserAccessPermission userAccessPermission);

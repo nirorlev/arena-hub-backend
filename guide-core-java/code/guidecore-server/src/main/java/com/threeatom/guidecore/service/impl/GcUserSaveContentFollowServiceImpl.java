@@ -11,14 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 @Service
 public class GcUserSaveContentFollowServiceImpl
         extends ServiceImpl<GcUserSaveContentFollowMapper, GcUserSaveContentFollow>

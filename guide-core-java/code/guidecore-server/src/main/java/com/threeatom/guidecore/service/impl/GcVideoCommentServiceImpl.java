@@ -27,14 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 视频评论 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
 public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper, GcVideoComment>
         implements GcVideoCommentService {
@@ -56,7 +48,6 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
 
     @Override
     public boolean saveVideoComment(GcVideoComment videoComment) {
-        // TODO Auto-generated method stub
         return this.saveOrUpdate(videoComment);
     }
 
@@ -218,12 +209,6 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         return this.baseMapper.countCommentForVideo(videoId, userId, masterId);
     }
 
-    /**
-     * 根据视频id加载评论列表，以及评论人信息
-     *
-     * @param videoIds
-     * @return
-     */
     @Override
     public List<GcVideoComment> getVideoComments(List<Integer> videoIds, Integer masterId) {
         return this.baseMapper.getVideoComments(videoIds, masterId);

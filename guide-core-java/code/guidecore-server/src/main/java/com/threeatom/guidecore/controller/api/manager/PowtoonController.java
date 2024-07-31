@@ -160,7 +160,6 @@ public class PowtoonController extends GuideCoreController {
 
 	private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
 
-
 	@Autowired
 	private GcVideoService service;
 
@@ -483,7 +482,6 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value="pt新首页", notes = "新UI课程首页", httpMethod = "POST")
 	@PostMapping("/newPtIndexHome")
 	public Message newPtIndexHome(@RequestBody JSONObject requestParams, HttpServletRequest request){
-		//复用
 		SysSystem system = this.getSystem();
 		String portalId = requestParams.getString("portalId");
 		if(Objects.isNull(portalId)){
@@ -529,7 +527,6 @@ public class PowtoonController extends GuideCoreController {
 		ptTags.setType(TableConstant.COMMON_TWO);
 		ptTags.setTagText(name);
 		List<String> allVideoTag = ptTagsService.selectPtTagList(ptTags,request);
-		//allVideoTag = allVideoTag.stream().distinct().collect(Collectors.toList());
 		PageInfo<String> pageInfo = new PageInfo<>(allVideoTag);
 		return new Message().ok().addData("allVideoTag",pageInfo);
 	}
@@ -547,7 +544,6 @@ public class PowtoonController extends GuideCoreController {
 		ptTags.setTagText(name);
 
 		List<String> allVideoTag = ptTagsService.selectPtTagList(ptTags,request);
-		//allVideoTag = allVideoTag.stream().distinct().collect(Collectors.toList());
 		PageInfo<String> pageInfo = new PageInfo<>(allVideoTag);
 		return new Message().ok().addData("allSubjectTag",pageInfo);
 	}
@@ -651,7 +647,6 @@ public class PowtoonController extends GuideCoreController {
 
 	@PostMapping("navigation")
 	@ApiOperation(value="新UI课程首页-课程导航页", notes = "课程导航页", httpMethod = "POST")
-	//@RequiresRoles("admin")
 	public Message navigation(@RequestBody (required=false) Map<String, Object> params, HttpServletRequest request) throws IOException, PermitContextError, PermitApiError {
 		//复用
 		Object fid = params.get("fid");
@@ -719,20 +714,6 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException("Your course is not completed!");
 		}
 		subject.setSubjects(gcSubjectService.getChildSubjectBySubId(subject.getId()));
-		//List<Integer> subIdList = subject.getSubjects().stream().map(GcSubject::getId).collect(Collectors.toList());
-		/*Double courseTotalTime = 0.00;
-		if(subIdList.size()!=TableConstant.COMMON_ZERO) {
-			//计算package下所有课程的总时长,赋值到packagelist中
-			Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubject1Duration(subIdList);
-			for (Integer key : subjectsDurationMap.keySet()) {
-				courseTotalTime += Integer.parseInt(subjectsDurationMap.get(key).getSubjectVideoDuration().toString());
-			}
-		}*/
-		/*courseTotalTime = courseTotalTime/60;
-		if (null!=subject.getCpdHours()){
-			Double cpdHours = Double.valueOf(subject.getCpdHours());
-			courseTotalTime = cpdHours*60;
-		}*/
 		DateFormat format = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 		Date date = new Date();
 		String today = format.format(date);
@@ -855,7 +836,6 @@ public class PowtoonController extends GuideCoreController {
 			GcAccess access = new GcAccess();
 			access.setRoleType(AccessRoleType.STUDENT);
 			gcUserAccess.setAccess(access);
-			//gcUserAccess = gcUserAccessService.getUserAccessByMasterIdAndUserId(masterId, user.getId());
 			if (gcUserAccess.getAccess().getRoleType() == AccessRoleType.STUDENT) {//判断是否是老师用户，如果是老师用户则不会去查询已回答问题数量
 				for (GcEvent event : eventList) {
 					Map numMap = (Map) answerNumMap.get(event.getId());
@@ -982,11 +962,6 @@ public class PowtoonController extends GuideCoreController {
 		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
 
 		if (null!=accessToken){
-
-			/*if (null==ptLoginConfig){
-				ptLoginConfig = new PtLoginConfig();
-				ptLoginConfig.setLogOut(env.getProperty("logOut"));
-			}*/
 			ptLoginConfig = getPtConfig(ptLoginConfig);
 			body.put("token",accessToken);
 			body.put("client_id",ptLoginConfig.getClientId());
@@ -998,6 +973,7 @@ public class PowtoonController extends GuideCoreController {
 			}
 			redisOperator.del("PT:"+user.getUsername());
 		}
+
 		return new Message().ok();
 	}
 
@@ -1288,9 +1264,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=adminFlag&&TableConstant.COMMON_ZERO!=adminFlag){
 			subjects = gcSubjectService.getAvailableCourses(name,masterId,idList,null,orderType);
 		}else {
-			//subjects = gcSubjectService.getAvailableCourses(name,masterId,idList,user.getId(),orderType);
-			//2023-12-07更新
-			//当前用户全部may课程,不在当前组的,不管是可管理还是可查看权限的may课程都查出来
+			// All 'may' courses of the current user, not in the current group, regardless of whether they have management or viewing permissions, are queried out
 			subjects = gcSubjectService.newGetAvailableCourses(name,masterId,idList,user.getId(),orderType);
 		}
 
@@ -1463,7 +1437,6 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		accessService.saveOrUpdate(access);
-		//List<Integer> userIds = userAccessPermissions.stream().map(GcUserAccessPermission::getUserId).collect(Collectors.toList());
 		Map<String,Object> map = new HashMap<>();
 		map.put("userIds",userIds);
 		map.put("subIds",idList);
@@ -2359,7 +2332,6 @@ public class PowtoonController extends GuideCoreController {
 		HashMap<String, Object> userAttributes = new HashMap<>();
 		JSONArray adminGroups = new JSONArray();
 		JSONArray memberGroups = new JSONArray();
-		//JSONArray groups = new JSONArray();
 		//判断memberGroups和adminGroups
 		for (Groups memberGroup : permissionsVo.getPermissions().getGroups()) {
 			memberGroups.add(memberGroup.getId().toString());
@@ -2376,7 +2348,6 @@ public class PowtoonController extends GuideCoreController {
 		//用户属性
 		userAttributes.put("managedGroups",adminGroups);
 		userAttributes.put("groups",memberGroups);
-		//userAttributes.put("contentGroups",groups);
 		//同步用户信息
 		try {
 			CreateOrUpdateResult<UserRead> response = permit.api.users.sync(
@@ -2388,7 +2359,6 @@ public class PowtoonController extends GuideCoreController {
 							.build()
 			);
 			//同步用户角色
-			//RoleAssignmentRead[] assignedRoles = permit.api.users.getAssignedRoles(userRead.key);
 			RoleAssignmentRead[] assignedRoles = permit.api.users.getAssignedRoles(response.getResult().key,tenant.key,1,50);
 			List<String> oldRoleList = new ArrayList<>();
 			for (RoleAssignmentRead assignedRole : assignedRoles) {
@@ -2420,10 +2390,8 @@ public class PowtoonController extends GuideCoreController {
 	@GetMapping("/getSubjectNameIndex")
 	public Message getSubjectNameIndex(@Param("name")String name,HttpServletRequest request){
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		//name = URLDecoder.decode(name);
 		Integer count = subService.getSubjectNameIndex(master.getId(),name);
 		if (TableConstant.COMMON_ZERO!=count){
-			//throw new SystemException(I18NUtil.get("subject.index.error").replace("{name}",name));
 			return new Message().error(TableConstant.SUBJECT_ERROR_CODE,I18NUtil.get("subject.index.error").replace("{name}",name));
 		}
 		return new Message().ok();
@@ -2434,7 +2402,6 @@ public class PowtoonController extends GuideCoreController {
 	public Message getCoursesInfo(HttpServletRequest request){
 		GcUser user = this.getGcUser();
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		//2023-04-24需修改
 		List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.getGroupMemberPermissionByUidList(user.getId(),master.getId(),GroupsType.groupMember);
 		JSONArray jsonArray = new JSONArray();
 		for (GcUserAccessPermission permission : userAccessPermissionList) {
@@ -2457,7 +2424,6 @@ public class PowtoonController extends GuideCoreController {
 		}
 		List<Integer> publicSubjectIds = gcSubjectService.getPublicSubjectIds(master.getId());
 
-		//Integer progressNum = gcSubjectService.selectSubjectPt(null,TableConstant.COMMON_ZERO,TableConstant.COMMON_ONE,null,master.getId(),user.getId(),channelIdList,publicSubjectIds);
 		Integer progressNum = gcSubjectService.inProgressNum(user.getId(),master.getId());
 
 		Integer published = gcSubjectService.getCreateUserPublished(user.getId(),master.getId(),TableConstant.COMMON_ONE);
@@ -2473,10 +2439,8 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		Integer DiscoverNum = gcSubjectService.selectSubjectPt(null,TableConstant.COMMON_FOUR,TableConstant.gcSubject_state_visible_1,null,master.getId(),user.getId(),channelIdList,idLists);
-		//Integer DiscoverNum = gcSubjectService.getDiscoverNum(user.getId(),master.getId());
 		Integer completedNum = gcSubjectService.selectSubjectPt(null,TableConstant.COMMON_TWO,TableConstant.COMMON_ONE,null,master.getId(),user.getId(),channelIdList,publicSubjectIds);
 
-		//MyAssignmentNew
 		Integer MyAssignmentNew = gcSubjectService.getNewMyAssignmentNew(master.getId(),user.getId());
 
 		QueryWrapper<PtViewSubject> queryWrapper = new QueryWrapper<PtViewSubject>();
@@ -2503,7 +2467,6 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
 	@PostMapping("/saveSub")
 	public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject sub, HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
-		//ApiAssert.ifStringNotInList(sub.getName(), CommonConstant.defaultNoCourseOrVideName, "课程名称错误，不可用该值");
 		GcMaster master = this.getMaster();
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
@@ -2641,7 +2604,6 @@ public class PowtoonController extends GuideCoreController {
 		String comment = jsonRequest.getString("comment");
 		Integer fileId = jsonRequest.getInteger("fileId");
 		ApiAssert.notNull(vid, "参数vid缺失");
-//        ApiAssert.notNull(comment, "参数comment缺失");
 		GcUser user = this.getGcUser();
 		boolean isFlag = this.permitCheck(user,ActionsType.comment,masterId,ResourceType.videoItem,vid,null,null);
 		if (!isFlag){
@@ -2715,7 +2677,6 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")
 	@PostMapping("/getContentFromOneFolder")
 	public Message getContentFromOneFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
-		Integer masterId = request.getIntHeader("masterId");
         if(Objects.isNull(gcUserSaveFolder.getId())){
 			throw new SystemException(I18NUtil.get("powtoon.folder.error"));
 		}
@@ -2825,10 +2786,6 @@ public class PowtoonController extends GuideCoreController {
 
 		}
 		return new Message().error();
-
-//        System.out.println(master.getId());
-//        if (subService.deleteSub(subId,master.getId())) return new Message().ok();
-//        return new Message().error("删除失败");
 	}
 
 	@ApiOperation(value = "删除视频", httpMethod = "DELETE")
@@ -2848,24 +2805,16 @@ public class PowtoonController extends GuideCoreController {
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
-//        if (videoService.deleteVideo(vid)) return new Message().ok();
-//
-//        return new Message().error();
 		return gvgMasterService.deleteVideoPt(vid,EnvType.PT.getCode(),this.getGcUser().getId(),master.getId(),request);
 	}
 
 
-	@ApiOperation(value = "channel新增修改")
 	@GetMapping("/getBySlug")
-	public Message getBySlug(String channelSlug,HttpServletRequest request){
+	public Message getBySlug(String channelSlug, HttpServletRequest request){
 		Integer masterId = request.getIntHeader("masterId");
-		QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-		queryWrapper.eq("master_id", masterId);
-		queryWrapper.eq("channel_slug", channelSlug);
-		Integer id = ptChannelService.getOne(queryWrapper).getId();
-		return new Message().ok().addData("id",id);
+		int channelId = ptChannelService.findBySlugAndMasterId(channelSlug, masterId).getId();
+		return new Message().ok().addData("id", channelId);
 	}
-
 
 	@ApiOperation(value = "channel新增修改")
 	@PostMapping("/saveOrUpdateChannel")
@@ -2929,7 +2878,6 @@ public class PowtoonController extends GuideCoreController {
 			if (ptChannel.getVisibleFlag() == 2) {
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
 					if (null!=ptChannel.getTags()){
-						//tag
 						PtTags ptTags = new PtTags();
 						ptTags.setChannelId(ptChannel.getId());
 						ptTags.setMasterId(masterId);
@@ -2937,7 +2885,6 @@ public class PowtoonController extends GuideCoreController {
 						List<PtTags> newTagList = new ArrayList<>();
 						int finalMasterId = masterId;
 						tagList.forEach(i -> {
-							//if (!newTagText.contains(i)){
 							PtTags newTags = new PtTags();
 							newTags.setMasterId(finalMasterId);
 							newTags.setTagText(i);
@@ -2945,7 +2892,6 @@ public class PowtoonController extends GuideCoreController {
 							newTags.setType(TableConstant.COMMON_ONE);
 							newTags.setOrder(TableConstant.COMMON_ZERO);
 							newTagList.add(newTags);
-							//}
 						});
 						QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 						queryWrapper2.in("master_id", masterId);
@@ -2956,7 +2902,7 @@ public class PowtoonController extends GuideCoreController {
 						ptChannel.setAllTags(tagList);
 					}
 
-					List <Integer> subscribeAccessList = new ArrayList<>();
+					List <Integer> subscribeAccessList;
 					if ((null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO))||(null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))){
 						if (isOrgAdmin){
 							subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
@@ -3196,27 +3142,18 @@ public class PowtoonController extends GuideCoreController {
 		return message.ok().addData("tagPageInfo",pageInfo);
 	}
 
-	@ApiOperation(value = "channel详情页")
 	@PostMapping("/selectChannelDetail")
 	public Message selectChannelDetail(@RequestBody PtChannel ptChannel,HttpServletRequest request) throws IOException {
 		Message message = new Message();
-		GcMaster master = this.getMaster();
-		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
-		}
-		/*if(Objects.isNull(ptChannel.getId())){
-			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelId"));
-		}*/
-		Integer ptChannelId = null;
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        Integer ptChannelId = null;
 		if (null!=ptChannel.getId()){
 			ptChannelId = ptChannel.getId();
 		}else if (null!=ptChannel.getChannelSlug()){
-			QueryWrapper<PtChannel> queryWrapper=new QueryWrapper<PtChannel>();
-			queryWrapper.eq("channel_slug", ptChannel.getChannelSlug());
-			queryWrapper.eq("master_id",masterId);
-			ptChannelId = ptChannelService.getOne(queryWrapper).getId();
+			ptChannelId = ptChannelService.findBySlugAndMasterId(ptChannel.getChannelSlug(), masterId).getId();
 		}
+
 		GcUser user = this.getGcUser();
 		boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.channel, ptChannelId,null,null);
 		if (!isFlag){
@@ -3224,7 +3161,6 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		String order = request.getHeader("order");
-		PageInfo<GcSubject> pageInfo = new PageInfo<>();
 		List<PtChannel> sectionList = new ArrayList<>();
 		if (null!=ptChannel.getChannelSlug()){
 			sectionList = ptChannelService.selectSectionList(null,ptChannel.getChannelSlug(),request,masterId);
@@ -3232,10 +3168,10 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=ptChannel.getId()){
 			sectionList = ptChannelService.selectSectionList(ptChannel.getId(),null,request,null);
 		}
-		//List<PtChannel> sectionList = ptChannelService.selectSectionList(ptChannel.getId(),request);
-		PageInfo sectionPageInfo = new PageInfo<>(sectionList);
 
+		PageInfo sectionPageInfo = new PageInfo<>(sectionList);
 		PtChannel channel = new PtChannel();
+
 		if (null!=ptChannel.getChannelSlug()){
 			channel = ptChannelService.selectChannelDetail(null,ptChannel.getChannelSlug(),request,order,masterId);
 		}
@@ -3243,15 +3179,11 @@ public class PowtoonController extends GuideCoreController {
 			channel = ptChannelService.selectChannelDetail(ptChannel.getId(),null,request,order,masterId);
 		}
 
-		//PtChannel channel = ptChannelService.selectChannelDetail(ptChannel.getId(),request,order);
-		PtChannelSubscribe ptChannelSubscribe = new PtChannelSubscribe();
+		PtChannelSubscribe ptChannelSubscribe;
 		if (null!=ptChannel.getId()){
 			ptChannelSubscribe = ptChannelSubscribeService.selectIfSubscribe(user.getId(),ptChannel.getId());
 		}else {
-			QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<PtChannel>();
-			queryWrapper.eq("channel_slug",ptChannel.getChannelSlug());
-			queryWrapper.eq("master_id",masterId);
-			Integer channelId = ptChannelService.getOne(queryWrapper).getId();
+			int channelId = ptChannelService.findBySlugAndMasterId(ptChannel.getChannelSlug(), masterId).getId();
 			ptChannelSubscribe = ptChannelSubscribeService.selectIfSubscribe(user.getId(),channelId);
 		}
 
@@ -3272,8 +3204,7 @@ public class PowtoonController extends GuideCoreController {
 		channel.setImgFullFileUrl(channelImgFullFileUrl);
 		message.ok().addData("channel",channel);
 
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return message.ok().addData("systemTime",df.format(new Date()));
+		return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 	}
 
 	@ApiOperation(value = "文件id添加视频课程", httpMethod = "POST")

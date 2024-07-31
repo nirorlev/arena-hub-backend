@@ -5,12 +5,6 @@ import com.threeatom.guidecore.entity.GcCategory;
 import com.threeatom.guidecore.entity.GcProblem;
 import java.util.List;
 
-/**
- * 查询常见问题
- *
- * @author huangpei
- * @Date 2021-10-26
- */
 public interface GcProblemService extends IService<GcProblem> {
     List<GcCategory> selectCategoryList();
 }

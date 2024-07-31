@@ -3,13 +3,6 @@ package com.threeatom.guidecore.constant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Administrator
- * @title: GroupsType
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/7/00714:25
- */
 public class GroupsType {
 
     public static final String orgAdmin = "orgAdmin";
@@ -61,9 +54,6 @@ public class GroupsType {
     public static final List<String> groupList =
             new ArrayList<String>() {
                 {
-                    /*this.add(superAdmin);
-                    this.add(admin);
-                    this.add(member);*/
                     this.add(orgAdmin);
                     this.add(orgMember);
                 }

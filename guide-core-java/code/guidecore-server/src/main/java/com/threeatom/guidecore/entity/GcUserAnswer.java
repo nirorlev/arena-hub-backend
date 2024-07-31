@@ -14,14 +14,6 @@ import java.util.Date;
 import java.util.Map;
 import lombok.Data;
 
-/**
- * <p>
- * 事件的用户问题回答
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Data
 @ApiModel(value = "GcUserAnswer对象", description = "事件的用户问题回答")
 @TableName(autoResultMap = true)

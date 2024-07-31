@@ -7,14 +7,6 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Component
 public interface GcAccessMapper extends BaseMapper<GcAccess> {
 

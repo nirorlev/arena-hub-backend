@@ -12,14 +12,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * <p>
- * 主站点实例 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GvgMasterService extends IService<GcMaster> {
 
     // 复用 gc的接口

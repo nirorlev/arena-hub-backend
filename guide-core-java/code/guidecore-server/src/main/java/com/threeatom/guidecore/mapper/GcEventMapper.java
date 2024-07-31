@@ -9,14 +9,6 @@ import org.apache.ibatis.annotations.MapKey;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- * 视频下的event Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @Component
 public interface GcEventMapper extends BaseMapper<GcEvent> {
 
@@ -50,12 +42,6 @@ public interface GcEventMapper extends BaseMapper<GcEvent> {
 
     List<Integer> selectEventIdsByMasterId(Integer masterId);
 
-    /**
-     * 根据视频id和用户，查询视频问题的回答情况
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     List<GcEvent> findEventAnswerByVideoIdsUser(
             @Param("videoIds") List<Integer> videoIds,
             @Param("userId") Integer userId,

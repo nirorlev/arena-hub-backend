@@ -622,6 +622,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return this.list(queryWrapper);
     }
 
+    @Override
+    public PtChannel findBySlugAndMasterId(String slug, Integer masterId) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("channel_slug", slug);
+        queryWrapper.eq("master_id", masterId);
+        return this.getOne(queryWrapper);
+    }
+
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()

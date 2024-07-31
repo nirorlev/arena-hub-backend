@@ -8,14 +8,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
 
     GcUserAccess selectUserAccessByUserAndMaster(
@@ -65,25 +57,10 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
             @Param("userIds") List<Integer> userIds,
             @Param("order") String order);
 
-    /***
-     * 创建数据
-     * @param userAccessExt
-     * @return
-     */
     int insertGcUserAccessExt(GcUserAccessExt userAccessExt);
 
-    /***
-     * 更新数据
-     * @param userAccessExt
-     * @return
-     */
     int updateGcUserAccessExtById(GcUserAccessExt userAccessExt);
 
-    /***
-     * 根据accessId查询
-     * @param accessId
-     * @return
-     */
     GcUserAccessExt selectGcUserAccessExtByAccessId(Integer accessId);
 
     Map<String, Integer> selectLastUsersNum(

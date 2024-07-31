@@ -8,14 +8,6 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * <p>
- * 商户管理员
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @ApiModel(value = "GcManager对象", description = "商户管理员")
 public class GcManager implements Serializable {
 

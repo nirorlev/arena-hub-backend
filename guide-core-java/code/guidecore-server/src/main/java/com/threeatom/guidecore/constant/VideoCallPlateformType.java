@@ -27,11 +27,6 @@ public enum VideoCallPlateformType {
         this.desc = desc;
     }
 
-    /***
-     * 根据CODE获取枚举实例
-     * @param code
-     * @return
-     */
     public static VideoCallPlateformType getByCode(int code) {
         for (VideoCallPlateformType enumType : values()) {
             if (enumType.getCode() == code) {

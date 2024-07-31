@@ -48,11 +48,6 @@ public enum LogicOperatorType {
         this.desc = desc;
     }
 
-    /***
-     * 根据CODE获取枚举实例
-     * @param code
-     * @return
-     */
     public static LogicOperatorType getByCode(int code) {
         for (LogicOperatorType enumType : values()) {
             if (enumType.getCode() == code) {
@@ -62,11 +57,6 @@ public enum LogicOperatorType {
         return null;
     }
 
-    /***
-     * 判断code值是否都是enum中的code
-     * @param list
-     * @return
-     */
     public static boolean isValidEnum(List<Integer> list) {
         for (Integer val : list) {
             if (!isValidEnum(val)) return false;

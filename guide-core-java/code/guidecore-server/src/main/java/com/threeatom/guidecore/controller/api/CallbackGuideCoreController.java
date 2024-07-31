@@ -9,7 +9,6 @@ import com.threeatom.guidecore.service.*;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.*;
-import com.threeatom.utils.*;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,6 @@ public class CallbackGuideCoreController extends GuideCoreController {
     @Autowired private SysSystemService systemService;
     @Autowired private Environment env;
 
-    /*@Autowired
-    private GcExternalMessageService externalMessageService;*/
-
     @PostMapping("/aliyunOssCallback")
     public Message aliyunOssCallback(@RequestBody JSONObject jsonObject) {
 
@@ -44,7 +40,6 @@ public class CallbackGuideCoreController extends GuideCoreController {
 
         // Case 1: 门户批量上传视频
         // 及用户端上传
-        // uploadPolicyFile
         if (uploadType != null
                 && uploadType.equals(UploadType.portalBulk_1)) { // 值参考FileGuideCoreController中uploadType
             // 添加到数据库中
@@ -54,7 +49,6 @@ public class CallbackGuideCoreController extends GuideCoreController {
         }
 
         // Case 2: 门户首页视频上传
-        // guidecore/file/uploadPolicyMasterVideo
         if (uploadType != null && uploadType.equals(UploadType.portalFrontPageVideo_2)) {
             GcMaster gcMaster = videoService.callbackSaveMasterVideo(jsonObject);
             // 设置视频完整路径
@@ -79,7 +73,6 @@ public class CallbackGuideCoreController extends GuideCoreController {
         }
 
         // Case 默认: 门户课程视频上传：
-        // guidecore/file/uploadPolicyVideo
         GcVideo video = videoService.callbackSaveVideo(jsonObject);
         return new Message().ok().addData("video", video).addData("ossCallback", jsonObject);
     }

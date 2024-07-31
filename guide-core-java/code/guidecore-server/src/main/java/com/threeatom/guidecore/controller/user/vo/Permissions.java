@@ -3,13 +3,6 @@ package com.threeatom.guidecore.controller.user.vo;
 import java.util.List;
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: Permissions
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/1/00110:52
- */
 @Data
 public class Permissions {
 

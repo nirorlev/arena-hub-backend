@@ -23,7 +23,6 @@ public class GuidecoreMessageWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // TODO Auto-generated method stub
         super.afterConnectionEstablished(session);
 
         Integer userAccessId = (Integer) session.getAttributes().get("userAccessId");
@@ -41,7 +40,6 @@ public class GuidecoreMessageWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        // TODO Auto-generated method stub
         super.afterConnectionClosed(session, status);
 
         Integer userAccessId = (Integer) session.getAttributes().get("userAccessId");
@@ -52,20 +50,11 @@ public class GuidecoreMessageWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // TODO Auto-generated method stub
         super.handleTextMessage(session, message);
 
-        String msg = message.getPayload();
-
-        LOGGER.info("msg:" + msg);
+        LOGGER.info("msg:" + message.getPayload());
     }
 
-    /**
-     * 给某个用户发送消息
-     *
-     * @param userName
-     * @param message
-     */
     public static void sendMessageToUser(Integer userAccessId, TextMessage message) {
         WebSocketSession session = webSocketMap.get(userAccessId);
 

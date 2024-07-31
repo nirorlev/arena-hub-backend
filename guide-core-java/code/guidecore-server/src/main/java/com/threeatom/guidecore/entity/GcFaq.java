@@ -8,14 +8,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- * 视频下的event
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @ApiModel(value = "GcFaq", description = "常见问题")
 @Data
 public class GcFaq implements Serializable {

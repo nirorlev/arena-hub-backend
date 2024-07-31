@@ -10,14 +10,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 视频下的event
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @ApiModel(value = "GcCategory", description = "category")
 @Data
 public class GcCategory implements Serializable {

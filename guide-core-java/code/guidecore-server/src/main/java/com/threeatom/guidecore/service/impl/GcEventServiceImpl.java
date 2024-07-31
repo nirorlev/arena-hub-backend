@@ -18,14 +18,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 视频下的event 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-18
- */
 @Service
 public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
         implements GcEventService {
@@ -46,7 +38,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
     @Transactional
     public boolean saveEvent(GcEvent event, Integer masterId) {
 
-        // TODO Auto-generated method stub
         try {
             ArrayList<GcUserEvent> userEvents = new ArrayList<>();
             // 校验数据
@@ -63,7 +54,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
                 if (event.getOtherQuesImgId() == null || event.getOtherQuesImgId().equals(0))
                     throw new SystemException(I18NUtil.get("file.upload"));
 
-                //
                 Integer quesImgId = event.getOtherQuesImgId();
                 JSONObject object = new JSONObject();
                 object.put("quesImgId", quesImgId);
@@ -87,7 +77,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
                 for (Integer userId : userIds) {
                     userEvents.add(new GcUserEvent(userId, event.getId(), masterId));
                 }
-                // event_id存在则更新
                 if (eid != null) {
                     gcUserEventService.updateUserEvents(eid, userIds, masterId);
                 } else {
@@ -104,7 +93,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
 
     @Override
     public boolean deleteEventByVid(Integer vid) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcEvent> queryWrapper = new QueryWrapper<GcEvent>();
         queryWrapper.eq("video_id", vid);
         return this.remove(queryWrapper);
@@ -117,18 +105,14 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
 
     @Override
     public List<GcEvent> getEventListByVid(Integer vid, Integer masterId) {
-        // TODO Auto-generated method stub
         Integer uplpadType = TableConstant.COMMON_ONE;
-        List<GcEvent> l = this.baseMapper.selectGetEventListByVid(vid, masterId, uplpadType);
-        return l;
+        return this.baseMapper.selectGetEventListByVid(vid, masterId, uplpadType);
     }
 
     @Override
     public List<GcEvent> selectGetEventListByVid(Integer vid, Integer userId, Integer masterId) {
-        // TODO Auto-generated method stub
         Integer type = TableConstant.COMMON_ONE;
-        List<GcEvent> l = this.baseMapper.selectEventListByVid(vid, userId, type, masterId);
-        return l;
+        return this.baseMapper.selectEventListByVid(vid, userId, type, masterId);
     }
 
     @Override
@@ -194,7 +178,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
 
     @Override
     public boolean deleteEventByVids(List<Integer> vids) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcEvent> queryWrapper = new QueryWrapper<GcEvent>();
         queryWrapper.in("video_id", vids);
         return this.remove(queryWrapper);
@@ -217,24 +200,9 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
 
     @Override
     public List<GcEvent> getEventListByVideoIds(List<Integer> videoIds, Integer uid) {
-        //        QueryWrapper<GcEvent> queryWrapper = new QueryWrapper<>();
-        //        if(videoIds!=null&&videoIds.size()>0){
-        //            queryWrapper.in("video_id",videoIds);
-        //            queryWrapper.orderByAsc("create_time");
-        //        }
-        //        return this.list(queryWrapper);
-
         return this.baseMapper.getEventListByVideoIds(videoIds, uid);
     }
 
-    /**
-     * 根据视频id集合和用户id
-     * 查询问题的回答情况
-     *
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     @Override
     public List<GcEvent> findEventAnswerByVideoIdsUser(
             List<Integer> videoIds, Integer userId, Integer masterId, Integer envFlag) {

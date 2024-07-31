@@ -203,19 +203,6 @@ public class NewUISaveContentController extends GuideCoreController {
         }
     }
 
-    //	@PostMapping("/deletePlayListFollow")
-    //	public Message deletePlayListFollow(@RequestBody GcUserSaveContentFollow
-    // gcUserSaveContentFollow, HttpServletRequest request) {
-    //		GcUserSaveContentFollow gcUserSaveContentFollow1 =
-    // gcUserSaveContentFollowService.selectFollowByUserId(this.getGcUser().getId(),getHeaderMasterId(request));
-    //		if(gcUserSaveContentFollowService.removeById(gcUserSaveContentFollow1)) {
-    //			return new Message().ok().addData("gcUserSaveContentFollow", gcUserSaveContentFollow);
-    //		}else {
-    //			return new Message().error();
-    //		}
-    //
-    //	}
-
     // 参数：name，id-更新
     @ApiOperation(value = "新建一个保存课程/视频的文件夹，带id可更新", httpMethod = "GET")
     @PostMapping("/newContentFolder")

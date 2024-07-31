@@ -38,8 +38,6 @@ public class ScheduleTable {
 
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
-
         return date.toString() + vids.size();
     }
 }

@@ -12,58 +12,31 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * 门户首页信息
- *
- * @author huangwenjun
- * @date 2021-01-09 14:44:12
- */
 @ApiModel(value = "GcMasterHomeInfo", description = "门户首页信息")
 @TableName(autoResultMap = true)
 public class GcMasterHomeInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     *  id
-     */
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    /**
-     *  门户Id
-     */
     @ApiModelProperty(value = "门户Id")
     private Integer masterId;
 
-    /**
-     *  内容名称，
-     */
     @ApiModelProperty(value = "内容名称，")
     private String name;
 
-    /**
-     *  各组内部排序
-     */
     @ApiModelProperty(value = "各组内部排序")
     private Integer order;
 
-    /**
-     *  1或null=文字，2=图片，3=视频
-     */
     @ApiModelProperty(value = "1或null=文字，2=图片，3=视频")
     private Integer type;
 
-    /**
-     *  文字内容
-     */
     @ApiModelProperty(value = "文字内容")
     private String content;
 
-    /**
-     *  type=2或3时的文件id
-     */
     @ApiModelProperty(value = "type=2或3时的文件id")
     private Integer fileId;
 
@@ -71,21 +44,12 @@ public class GcMasterHomeInfo implements Serializable {
     @TableField(exist = false)
     private SysFile file;
 
-    /**
-     *  逻辑删除,-1=关闭
-     */
     @ApiModelProperty(value = "逻辑删除,-1=关闭")
     private Integer state;
 
-    /**
-     *
-     */
     @ApiModelProperty(value = "")
     private Date updateTime;
 
-    /**
-     *
-     */
     @ApiModelProperty(value = "")
     private Date createTime;
 

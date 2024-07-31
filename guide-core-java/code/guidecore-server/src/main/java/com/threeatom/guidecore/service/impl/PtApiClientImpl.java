@@ -13,13 +13,6 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.PtApiClient;
 import com.threeatom.utils.HttpUtil;
 
-/**
- * @author cvmcosta
- * @title: PtOauthService
- * @projectName jeeplus
- * @description: Responsible for communicating with the Powtoon API
- * @date 2024/06/11
- */
 @Service
 public class PtApiClientImpl implements PtApiClient {
 
@@ -33,21 +26,18 @@ public class PtApiClientImpl implements PtApiClient {
         String accessToken = ptOauthServiceImpl.generateClientAccessToken(ptConfig);
         Header[] headers = {new BasicHeader("Authorization", "Bearer " + accessToken)};
         String url = ptConfig.getPtRootUrl() + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
-        JSONObject response = HttpUtil.get(url, headers);
-        return response;
+        return HttpUtil.get(url, headers);
     }
 
     public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin, String publicToken) throws SystemException {
         Header[] headers = {new BasicHeader(PUBLIC_TOKEN_HEADER_NAME, publicToken)};
         String url = origin + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
-        JSONObject response = HttpUtil.get(url, headers);
-        return response;
+        return HttpUtil.get(url, headers);
     }
 
     public JSONObject getPowtoonPlayerPageData(String powtoonId, String origin) throws SystemException {
         String url = origin + String.format(PLAYER_PAGE_DATA_API_ENDPOINT, powtoonId);
-        JSONObject response = HttpUtil.get(url);
-        return response;
+        return HttpUtil.get(url);
     }
 
 }

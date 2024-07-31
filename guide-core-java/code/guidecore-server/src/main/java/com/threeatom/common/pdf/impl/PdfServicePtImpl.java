@@ -15,13 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Administrator
- * @title: PdfServicePtImpl
- * @projectName jeeplus-core
- * @description: TODO
- * @date 2022/8/22/02214:57
- */
 public class PdfServicePtImpl implements PdfServicePt {
 
     private final byte[] pdfByte;
@@ -52,25 +45,12 @@ public class PdfServicePtImpl implements PdfServicePt {
             map.put("context",model.getContext());
             fillPdfCellForm(map, form);
 
-            /*
-             * 设置图片
-            byte[] image1 = IOUtils.toByteArray(model.getImg1Url());
-            byte[] image2 = IOUtils.toByteArray(model.getImg2Url());
-            //添加图片
-            addImage(image1, stamper, form, "img1Url");
-            addImage(image2, stamper, form, "img2Url");
-*/
-
-
             // true代表生成的PDF文件不可编辑
             stamper.setFormFlattening(true);
             stamper.close();
         } catch (IOException | DocumentException e) {
             e.printStackTrace();
         }
-
-//        FileOutputStream fos = new FileOutputStream("/Users/kylewong/Desktop/shouju_fb.pdf");
-//        fos.write(bos.toByteArray());
 
         return bos;
     }

@@ -4,13 +4,6 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * @author Administrator
- * @title: MD5
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/11/01115:40
- */
 public class MD5 {
     private static final char[] hexDigits =
             new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};

@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.redis;
 
 import org.apache.shiro.cache.AbstractCacheManager;

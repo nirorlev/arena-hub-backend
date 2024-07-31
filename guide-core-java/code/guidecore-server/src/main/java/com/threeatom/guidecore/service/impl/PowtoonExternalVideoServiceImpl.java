@@ -10,10 +10,6 @@ import com.threeatom.system.entity.SysFile;
 
 import org.springframework.stereotype.Service;
 
-/**
- * @author Administrator
- * @title: PowtoonExternalVideoServiceImpl
- */
 @Service
 public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternalVideoMapper, PowtoonExternalVideo>
 	implements PowtoonExternalVideoService {

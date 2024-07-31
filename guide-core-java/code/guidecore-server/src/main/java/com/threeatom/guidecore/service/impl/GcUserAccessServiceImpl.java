@@ -35,14 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @Service
 public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcUserAccess>
         implements GcUserAccessService {
@@ -68,10 +60,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Autowired
     private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
-    //    @Cacheable(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#userId+'-masterId-'+#masterId")
     @Override
     public GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUserAccessByUserAndMaster(userId, masterId);
     }
 
@@ -89,7 +79,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public void clearCache(Integer userId, Integer masterId) {
-        // TODO Auto-generated method stub
 
         redisOperator.del(
                 redisOperator.getFullKeyByValueAndKey(
@@ -103,7 +92,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public List<GcUserAccess> getUserAccessListByUserId(Integer userId, HttpServletRequest request) {
-        // TODO Auto-generated method stub
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -115,7 +103,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public void clearCacheAll() {
-        // TODO Auto-generated method stub
         @SuppressWarnings("unchecked")
         Set<String> sets = redisOperator.keys(CACHE_TAG + "*");
         LOGGER.info(sets.size() + "xxxxx");
@@ -140,7 +127,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Override
     public List<GcUserAccess> getStudentsAccessByTeacherId(
             Integer userId, Integer masterId, Integer page, Integer pageNum) {
-        // TODO Auto-generated method stub
         GcUserAccess ua = this.getUserAccessByMasterIdAndUserId(masterId, userId);
 
         if (!ua.getAccess().getRoleType().equals(AccessRoleType.TEACHER))
@@ -161,7 +147,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Override
     public List<GcUserAccess> getUsersByAccessIds(
             List<Integer> accessIds, UserCommonInfo commonInfo) {
-        // TODO Auto-generated method stub
         if (accessIds.size() < 1) throw new SystemException(I18NUtil.get("access.id"));
 
         return this.baseMapper.selectUserAccessListByAccessIds(accessIds, commonInfo);
@@ -169,7 +154,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public Integer createOrUpdateById(GcUserAccessExt userAccessExt) {
-        // TODO Auto-generated method stub
         if (userAccessExt.getId() == null) return this.baseMapper.insertGcUserAccessExt(userAccessExt);
         else return this.baseMapper.updateGcUserAccessExtById(userAccessExt);
     }
@@ -177,14 +161,12 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Override
     public List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
             Integer masterId, List<Integer> userIds, String order) {
-        // TODO Auto-generated method stub
 
         return this.baseMapper.selectUserAccessExtListByMasterIdAndUserIds(masterId, userIds, order);
     }
 
     @Override
     public GcUserAccessPermission getUserAccessPermission(Integer userAccessId) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
         queryWrapper.eq("user_access_id", userAccessId);
         GcUserAccessPermission permission = userAccessPermissionMapper.selectOne(queryWrapper);
@@ -193,7 +175,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
         queryWrapper.in("user_access_id", userAccessIds);
 
@@ -202,7 +183,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public boolean createUserAccess(GcUserAccess userAccess) {
-        // TODO Auto-generated method stub
 
         if (this.save(userAccess)) {
             GcUserAccessExt userAccessExt = new GcUserAccessExt();
@@ -226,26 +206,22 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public int updateUserAccessPermissions(List<GcUserAccessPermission> perList) {
-        // TODO Auto-generated method stub
         if (perList == null || perList.size() < 1) return 0;
         return this.userAccessPermissionMapper.updateGcUserAccessPermissions(perList);
     }
 
     @Override
     public Map<String, Integer> getLastUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectLastUsersNum(lastDays, teacherAccessId);
     }
 
     @Override
     public Map<String, Integer> getActiveUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectActiveUsersNum(lastDays, teacherAccessId);
     }
 
     @Override
     public Map<String, Long> getMasterIdUsersNum(Integer masterId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUsersNum(masterId);
     }
 
@@ -280,36 +256,9 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         return this.baseMapper.getAllManagerInThisMaster(masterId);
     }
 
-    //    @Override
-    //    public List<Integer> getUserAccessSubIds(Integer masterId, Integer userId) {
-    //        //获取初始权限
-    //        GcUserAccess userAccess = this.getUserAccessByMasterIdAndUserId(masterId, userId);
-    //        List<Integer> firstSubIds =
-    // JSONObject.parseArray(userAccess.getAccess().getSubjectJson().toJSONString(), Integer.class);
-    //
-    //        //获取二次权限
-    //        List<Map<String,Object>> userAccessPermissionList =
-    // userAccessPermissionMapper.selectListByUserAccessIdAndMasterId(masterId,userAccess.getId());
-    //
-    //        //合并权限
-    //        List<Integer> allSubIds = new ArrayList<Integer>();
-    //        if (userAccessPermissionList.size() == 0) {
-    //            allSubIds = firstSubIds;
-    //        } else {
-    //            allSubIds.addAll(firstSubIds);
-    //            for (Map<String,Object> userAccessPermission : userAccessPermissionList) {
-    //
-    // allSubIds.addAll(JSONObject.parseArray(userAccessPermission.get("sub_permission").toString(),
-    // Integer.class));
-    //            }
-    //        }
-    //        return allSubIds;
-    //    }
-
     @Override
     @Transactional
     public int updateUserAccessPermission(List<Integer> userAccessIds, GcAccess gcAccess) {
-        // TODO Auto-generated method stub
         // 查询相关用户的实体
         List<GcUserAccess> list = this.baseMapper.selectUserAccessListByIds(userAccessIds);
         // 将用户相关的组全部取出
@@ -420,14 +369,11 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public BigDecimal addPoints(Integer userAccessId, BigDecimal point) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
         queryWrapper.eq("user_access_id", userAccessId);
-        // GcUserAccessExt userAccessExt= userAccessExtMapper.selectOne(queryWrapper);
         GcUserAccessExt userAccessExt = userAccessExtMapper.getOneByUserAccessId(userAccessId);
         if (userAccessExt == null) throw new SystemException("没有找到用户数据表");
 
-        //
         GcUserAccessExt updateUserAccessExt = new GcUserAccessExt();
         updateUserAccessExt.setId(userAccessExt.getId());
 
@@ -441,7 +387,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public BigDecimal reducePoints(Integer userAccessId, BigDecimal point) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
         queryWrapper.eq("user_access_id", userAccessId);
         GcUserAccessExt userAccessExt = userAccessExtMapper.selectOne(queryWrapper);
@@ -460,7 +405,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public BigDecimal getCurrentUserPoints(Integer userAccessId) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
         queryWrapper.eq("user_access_id", userAccessId);
         GcUserAccessExt userAccessExt = userAccessExtMapper.selectOne(queryWrapper);

@@ -8,9 +8,6 @@ import lombok.Data;
 @Data
 public class UserCommonInfo {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     private Integer userId;
@@ -20,7 +17,7 @@ public class UserCommonInfo {
 
     private Integer userAccessId;
 
-    private String username; // 邮箱
+    private String username;
 
     private String lastName;
 

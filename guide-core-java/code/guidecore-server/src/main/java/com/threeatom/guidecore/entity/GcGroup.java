@@ -13,14 +13,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- * 教师编辑的组权限
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-25
- */
 @Data
 @ApiModel(value = "GcGroup对象", description = "教师编辑的组权限")
 @TableName(autoResultMap = true)

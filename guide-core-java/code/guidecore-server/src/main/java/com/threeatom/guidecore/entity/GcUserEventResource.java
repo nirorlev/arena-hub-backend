@@ -11,14 +11,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 事件资源文件
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Data
 @ApiModel(value = "GcUserEventResource对象", description = "事件资源文件")
 public class GcUserEventResource implements Serializable {
@@ -36,7 +28,6 @@ public class GcUserEventResource implements Serializable {
     private Integer masterId;
 
     @ApiModelProperty(value = "用户id")
-    //    @JSONField(serialize = false)
     private Integer userId;
 
     @ApiModelProperty(value = "目标用户id")
@@ -61,9 +52,7 @@ public class GcUserEventResource implements Serializable {
     @ApiModelProperty(value = "文件Id")
     private Integer fileId;
 
-    //    @JSONField(serialize = false)
     private Date updateTime;
-    //    @JSONField(serialize = false)
     private Date createTime;
 
     @TableField(exist = false)

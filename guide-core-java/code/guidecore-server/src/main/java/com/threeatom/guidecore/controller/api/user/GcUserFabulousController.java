@@ -10,12 +10,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-/**
- *
- *
- * @author huangpei
- * @date 2021-10-29 12:06:51
- */
 @Api(tags = "generator")
 @RestController
 @RequestMapping("/api/v1/guidecore/user/fabulous")

@@ -1,6 +1,3 @@
-/**
- * Copyright © 2015-2020 <a href="http://www.jeeplus.org/">JeePlus</a> All rights reserved.
- */
 package com.threeatom.guidecore.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
@@ -11,17 +8,9 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * 课程门户关联Entity
- * @author Kyle
- * @version 2021-05-29
- */
 @Data
 public class GcSubjectAssociation implements Serializable {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "主键")

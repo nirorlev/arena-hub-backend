@@ -34,23 +34,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * @author Administrator
- * @title: HttpUtil
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/5/00511:17
- */
 @Slf4j
 public class HttpUtil {
-    /**
-     * 发送post请求，根据 Content-Type 返回不同的返回值
-     *
-     * @param url
-     * @param header
-     * @param body
-     * @return
-     */
     public static Map<String, Object> doPost2(String url, Map<String, String> header, String body) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         PrintWriter out = null;
@@ -106,14 +91,6 @@ public class HttpUtil {
         }
     }
 
-    /**
-     * 发送post请求
-     *
-     * @param url
-     * @param header
-     * @param body
-     * @return
-     */
     public static String doPost1(String url, Map<String, String> header, String body) {
         String result = "";
         BufferedReader in = null;
@@ -168,13 +145,6 @@ public class HttpUtil {
         return result;
     }
 
-    /**
-     * 流转二进制数组
-     *
-     * @param in
-     * @return
-     * @throws IOException
-     */
     private static byte[] toByteArray(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024 * 4];
@@ -185,12 +155,6 @@ public class HttpUtil {
         return out.toByteArray();
     }
 
-    /**
-     *  get 请求
-     * @param url
-     * @return
-     * @throws IOException
-     */
     public static JSONObject doGetStr(String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
@@ -214,13 +178,6 @@ public class HttpUtil {
         return JSONObject.parseObject(resEntity.getBody());
     }
 
-    /**
-     * post 请求 String装填
-     * @param url
-     * @param reqContent
-     * @return
-     * @throws IOException
-     */
     public static JSONObject doPostStr(String url, String reqContent) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
@@ -236,13 +193,6 @@ public class HttpUtil {
         return null;
     }
 
-    /**
-     * post 请求 map装填
-     * @param url
-     * @param reqContent
-     * @return
-     * @throws IOException
-     */
     public static JSONObject doPostStr(String url, Map<String, String> reqContent)
             throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();

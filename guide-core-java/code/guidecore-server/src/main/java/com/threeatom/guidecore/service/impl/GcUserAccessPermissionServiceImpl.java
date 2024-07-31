@@ -1,10 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcUserAccess;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,9 +10,7 @@ import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
 import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 
-import java.sql.Wrapper;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccessPermissionMapper, GcUserAccessPermission> implements GcUserAccessPermissionService {
@@ -75,14 +71,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
         this.baseMapper.updatePermissionData(masterId,userId);
     }
 
-/*    @Override
-    public List<GcUserAccessPermission> getGcUserAccessPermissions(List<Integer> ids) {
-        QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("user_access_id", ids);
-
-        return this.baseMapper.selectList(queryWrapper);
-    }*/
-
     @Override
     public GcUserAccessPermission getPermissionByUid(Integer userId,Integer portalId) {
         return this.baseMapper.getPermissionByUid(userId,portalId);
@@ -95,7 +83,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
 
     @Override
     public List<GcUserAccessPermission> selectUserAccessPermissions(List<Integer> userAccessIds) {
-        // TODO Auto-generated method stub
         QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.in("user_access_id",userAccessIds);
         return this.list(queryWrapper);

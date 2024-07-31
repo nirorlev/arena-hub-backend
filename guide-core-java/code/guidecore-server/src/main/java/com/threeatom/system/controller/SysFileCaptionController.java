@@ -14,25 +14,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * @author huangpei
- * @title: SysFileCaptionController
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/5/00511:06
- */
 @RestController
 @RequestMapping("/api/v1/guidecore/sysFileCaption")
 public class SysFileCaptionController extends GuideCoreController {
     private static final Logger LOGGER = LoggerFactory.getLogger(SysFIleController.class);
 
-    @Autowired SysFileCaptionService sysFileCaptionService;
+    @Autowired
+    SysFileCaptionService sysFileCaptionService;
 
     @ApiOperation(value = "查询字幕文件", httpMethod = "POST")
     @PostMapping("/selectSysFileCaption")
     public Message selectSysFileCaption(@RequestBody SysFileCaption sysFileCaption) {
         SysFile captionList = this.sysFileCaptionService.selectSysFileCaption(sysFileCaption.getId());
-        //        return captionList;
         return (new Message()).ok().addData("fileCaption", captionList);
     }
 

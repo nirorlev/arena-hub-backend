@@ -10,14 +10,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 用户对视频的播放记录 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Service
 public class GcUserVideoPlaysNodeServiceImpl
         extends ServiceImpl<GcUserVideoPlaysNodeMapper, GcUserVideoPlaysNode>

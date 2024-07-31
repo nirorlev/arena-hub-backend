@@ -6,9 +6,6 @@ import lombok.Data;
 @Data
 public class youtubeVo {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     // 字段名

@@ -9,23 +9,11 @@ import com.threeatom.guidecore.mapper.GcUserNoteMapper;
 import com.threeatom.guidecore.service.GcUserNoteService;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 @Service
 public class GcUserNoteServiceImpl extends ServiceImpl<GcUserNoteMapper, GcUserNote>
         implements GcUserNoteService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserNoteServiceImpl.class);
 
     @Override
     public List<GcUserNote> selectNoteByUserId(

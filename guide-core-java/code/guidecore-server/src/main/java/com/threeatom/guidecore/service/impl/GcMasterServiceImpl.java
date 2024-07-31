@@ -26,14 +26,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * <p>
- * 主站点实例 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Service
 public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         implements GcMasterService {
@@ -68,15 +60,12 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
     @Override
     @Cacheable(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#p0")
     public GcMaster getMasterByUidCache(Integer uid) {
-        // TODO Auto-generated method stub
-
         return this.baseMapper.selectMasterByUid(uid);
     }
 
     @Override
     @CacheEvict(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#p0")
     public boolean setMasterState(Integer uid, Integer value) {
-        // TODO Auto-generated method stub
         UpdateWrapper<GcMaster> updateWrap = new UpdateWrapper<GcMaster>();
         updateWrap.set("state", value).eq("manager_id", uid);
         return this.update(updateWrap);
@@ -85,7 +74,6 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
     @Override
     @CacheEvict(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#p0")
     public boolean superAdminSetMasterState(Integer masterId, Integer value) {
-        // TODO Auto-generated method stub
         UpdateWrapper<GcMaster> updateWrap = new UpdateWrapper<GcMaster>();
         updateWrap.set("state", value).eq("id", masterId);
         return this.update(updateWrap);
@@ -94,32 +82,26 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
     @Override
     @CacheEvict(value = CACHE_TAG, key = KEY_TAG_ENTITY + "#master.managerId")
     public boolean setMaster(GcMaster master) {
-        // TODO Auto-generated method stub
         return this.updateById(master);
     }
 
     @Override
     public boolean updateSourceNull(Integer id) {
-        // TODO Auto-generated method stub
         return this.baseMapper.updateSourceNull(id);
     }
 
     @Override
     public GcMaster getMasterByContext(String context) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectMasterByContext(context);
     }
 
     @Override
     public GcMaster getMasterById(Integer id) {
-        // TODO Auto-generated method stub
-
         return this.baseMapper.selectMasterById(id);
     }
 
     @Override
     public Object getMasterConfig(Integer id, String key) {
-        // TODO Auto-generated method stub
         GcMaster master = this.getById(id);
         if (master.getExtVar() == null) {
             master.setExtVar(new JSONObject());

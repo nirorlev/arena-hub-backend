@@ -5,35 +5,12 @@ import com.threeatom.guidecore.entity.GcUserSaveContent;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 public interface GcUserSaveContentMapper extends BaseMapper<GcUserSaveContent> {
 
-    /**
-     * 获取二级课程id
-     * @param userSaveContent
-     * @return
-     */
     List<Integer> getTwoSubIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
-    /**
-     * 获取一级课程id
-     * @param userSaveContent
-     * @return
-     */
     List<Integer> getOneSubIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
-    /**
-     * 获取视频id
-     * @param userSaveContent
-     * @return
-     */
     List<Integer> getVideoIdList(@Param("entity") GcUserSaveContent userSaveContent);
 
     List<Integer> deleteList(

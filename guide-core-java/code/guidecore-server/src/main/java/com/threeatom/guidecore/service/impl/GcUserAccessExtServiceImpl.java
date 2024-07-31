@@ -9,14 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @Service
 public class GcUserAccessExtServiceImpl extends ServiceImpl<GcUserAccessExtMapper, GcUserAccessExt>
         implements GcUserAccessExtService {
@@ -30,9 +22,4 @@ public class GcUserAccessExtServiceImpl extends ServiceImpl<GcUserAccessExtMappe
 
         return this.baseMapper.getUserLoginNum(userIds, startDate, endDate);
     }
-
-    //    @Override
-    //    public Integer updateBatchEmailTime(List<Integer> extIds) {
-    //        return this.baseMapper.getAllUserLastLogin(14);
-    //    }
 }
