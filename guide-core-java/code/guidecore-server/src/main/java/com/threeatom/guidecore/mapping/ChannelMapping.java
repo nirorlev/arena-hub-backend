@@ -15,11 +15,5 @@ public interface ChannelMapping {
     @Mapping(target = "avatarUrl", source = "avatarFullFileUrl")
     @Mapping(target = "backgroundUrl", source = "imgFullFileUrl")
     @Mapping(target = "totalSubscribers", source = "subscribeNum")
-    @Mapping(target = "isPublic", source = "visibleFlag", qualifiedByName = "mapIsPublic")
     ChannelDto map(PtChannel channel);
-
-    @Named("mapIsPublic")
-    default boolean mapIsPublic(Integer visibleFlag) {
-        return visibleFlag != null && visibleFlag != 0;
-    }
 }

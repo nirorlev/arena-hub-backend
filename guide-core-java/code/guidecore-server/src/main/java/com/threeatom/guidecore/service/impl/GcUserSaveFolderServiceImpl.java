@@ -153,7 +153,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                     SysFile sysFile =sysFileService.getById(gcUserSaveContent.getFileId());
                     gcUserSaveContent.setVideoFile(sysFile);
                     String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-                    gcUserSaveContent.getVideoFile().setSnapshotUrl(snapshotUrl);
+                    sysFile.setSnapshotUrl(snapshotUrl);
+                    gcVideoService.updateVideoFilePrivacy(sysFile);
                 }
             }
             if (null != gcUserSaveFolder.getUser() && null != gcUserSaveFolder.getUser().getInfo() &&

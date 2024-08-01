@@ -118,4 +118,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter, @Param("masterId") Integer masterId);
+
+    GcVideo getVideoContentByFileId(@Param("fileId") Integer fileId);
 }

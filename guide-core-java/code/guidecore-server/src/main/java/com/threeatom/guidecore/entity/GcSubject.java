@@ -101,6 +101,9 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
     private Integer state;
 
+    @TableField(exist = false)
+    private Boolean isPrivate;
+
     @ApiModelProperty(value = "课程标语")
     private String courseTagline;
 
@@ -437,4 +440,8 @@ public class GcSubject implements Serializable, TreeNodeEntity {
      */
     @TableField(exist = false)
     private Integer isToDo;
+
+    public Boolean getIsPrivate() {
+        return state != null && state == 0;
+    }
 }

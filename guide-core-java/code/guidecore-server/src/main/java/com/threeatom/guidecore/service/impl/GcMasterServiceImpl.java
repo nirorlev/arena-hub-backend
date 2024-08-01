@@ -197,6 +197,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                             file.setVideoId(userSaveContent.getContentId());
                             file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
                             file.setLikeNum(gcUserVideoActionService.countLikeForVideo(userSaveContent.getContentId()));
+                            gcVideoService.updateVideoFilePrivacy(file);
                         }
                     }
                 }

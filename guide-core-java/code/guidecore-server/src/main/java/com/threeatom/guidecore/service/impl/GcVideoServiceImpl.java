@@ -650,6 +650,24 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public void updateVideoFilePrivacy(SysFile videoFile) {
+		GcVideo video = baseMapper.getVideoContentByFileId(videoFile.getId());
+		updatePrivacy(videoFile, video);
+	}
+
+	private void updatePrivacy(SysFile videoFile, GcVideo video) {
+		if (video == null) {
+			return;
+		}
+
+		if (video.getOriginCourse() != null) {
+			videoFile.setIsPrivate(video.getOriginCourse().getIsPrivate());
+		} else if (video.getOriginChannel() != null) {
+			videoFile.setIsPrivate(video.getOriginChannel().getIsPrivate());
+		}
+	}
+
+	@Override
 	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request) {
 		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, masterId);
 

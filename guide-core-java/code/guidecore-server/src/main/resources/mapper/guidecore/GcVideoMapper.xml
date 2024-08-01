@@ -804,6 +804,40 @@
         ORDER BY v.create_time DESC
     </select>
 
+    <select id="getVideoContentByFileId" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            pc.id                         AS channel_id,
+            pc.channel_name               AS channel_channel_name,
+            pc.channel_slug               AS channel_channel_slug,
+            pcc.id                        AS channel_channel_content_id,
+            channel_owner.id              AS channel_create_user_id,
+            channel_owner_info.first_name AS channel_create_user_first_name,
+            channel_owner_info.last_name  AS channel_create_user_last_name,
+            channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
+            gs.id                         AS course_id,
+            gs.name                       AS course_name,
+            course_owner.id               AS course_user_info_id,
+            course_owner_info.first_name  AS course_user_info_first_name,
+            course_owner_info.last_name   AS course_user_info_last_name,
+            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url
+        FROM gc_video v
+            JOIN sys_file f ON v.file_id = f.id
+
+            LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN pt_channel_content pcc ON pcc.content_id = v.id
+            LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
+            LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
+            LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
+
+            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
+            LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
+            LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
+        WHERE v.file_id = #{fileId}
+    </select>
+
     <select id="getLikesByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
         SELECT video.id as videoId, count(action.id) AS value
         FROM gc_video video
