@@ -95,11 +95,9 @@ public class SharableListServiceImpl implements SharableListService {
     @Override
     public GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user) {
         GcUserSaveFolder playlist = playlistService.getById(id);
-        boolean isPublic = playlist.getIsPrivate();
-        boolean isPrivate = playlist.getIsPrivate();
         AccessSourceDto accessSourceDto = getAccessSourceDto(id, user, playlist.getUserId(), SourceType.PLAYLIST);
 
-        return getGroupAccessDto(isPublic, isPrivate, null, accessSourceDto);
+        return getGroupAccessDto(!playlist.getIsPrivate(), playlist.getIsPrivate(), null, accessSourceDto);
     }
 
     private List<AccessGroupDetailsDto> getChannelSharableGroups(Integer channelId, Integer masterId, GcUser user) {

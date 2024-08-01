@@ -392,4 +392,10 @@
         <renameColumn tableName="gc_user_save_folder" oldColumnName="if_private" newColumnName="is_private" />
     </changeSet>
 
+    <changeSet id="update-is-private-type" author="vprokh">
+        <sql>
+            ALTER TABLE gc_user_save_folder ALTER COLUMN is_private TYPE boolean USING (is_private::boolean);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

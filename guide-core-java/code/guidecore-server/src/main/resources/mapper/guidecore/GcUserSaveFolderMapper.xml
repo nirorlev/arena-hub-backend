@@ -114,7 +114,7 @@
 			AND (sc.user_id=#{userId})
 		</if>
 		<if test="userId!=null and playListName!=null">
-			AND (sc.user_id=#{userId} or sf.is_private != 1)
+			AND (sc.user_id=#{userId} or not sf.is_private)
 		</if>
 		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
 		left join gc_subject s on s.id= sc.sub_id
@@ -132,7 +132,7 @@
 		<if test="playListName!=null">
 			and sf.name like CONCAT('%',#{playListName},'%')
 		</if>
-		and (sf.is_private != 1 or sf.user_id=#{userId}) <!-- 1为私有 -->
+		and (not sf.is_private or sf.user_id=#{userId}) <!-- 1为私有 -->
 		and
 		sf.master_id=#{masterId}
 		<if test="folderIdList!=null and folderIdList.size !=0">
@@ -184,7 +184,7 @@
 		<if test="userId!=null">
 			AND sf.user_id !=#{userId}
 		</if>
-		and (sf.is_private != 1) <!-- 1为私有 -->
+		and (not sf.is_private) <!-- 1为私有 -->
 		and
 		sf.master_id=#{masterId}
 		<if test="folderIdList!=null and folderIdList.size !=0">

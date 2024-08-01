@@ -48,7 +48,7 @@ public class GcUserSaveFolder implements Serializable {
     @TableField(exist = false)
     private Integer firstVideoFileId;
 
-    private Integer isPrivate;
+    private Boolean isPrivate = false;
 
     @TableField(exist = false)
     private Integer followFlag;
@@ -74,8 +74,4 @@ public class GcUserSaveFolder implements Serializable {
 
     @TableField(exist = false)
     private Integer videoSource;
-
-    public boolean getIsPrivate() {
-        return isPrivate != null && isPrivate == 0;
-    }
 }
