@@ -488,7 +488,7 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 		String token = request.getHeader("Authorization");
-		if (null != token && !"".equals(token) && !"undefined".equals(token)){
+		if (!"undefined".equals(token)){
 			GcUser user = this.getGcUser();
 			return gvgMasterService.newPtIndexHome(requestParams,request,system,user).addData("times",new Date());
 		}
@@ -947,6 +947,8 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setIsLiked(
 				videoActionService.isLikedByUser(videoContent.getId(), userId) ? 1 : 0);
 		});
+
+		gcVideoService.updateVideoFilePrivacy(videoFile);
 	}
 
 	@ApiOperation(value = "logout", httpMethod = "GET")
@@ -3596,6 +3598,8 @@ public class PowtoonController extends GuideCoreController {
 		videoFile.setVideoId(contentId);
 		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, userId) ? 1 : 0);
 		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
+		gcVideoService.updateVideoFilePrivacy(videoFile);
+
 		return videoFile;
 	}
 }

@@ -171,6 +171,8 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
                 sysFile.setIsLiked(isLikedByUser(sysFile.getVideoId(), userId));
+                videoService.updateVideoFilePrivacy(sysFile);
+
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
                         sysFile
