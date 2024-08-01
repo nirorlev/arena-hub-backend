@@ -25,9 +25,6 @@ public class ChannelDto {
     @ApiModelProperty(value = "Owner of the Channel")
     private UserDetailsDto owner;
 
-    @ApiModelProperty(value = "Public visibility status of the Channel")
-    private Boolean isPublic;
-
     @ApiModelProperty(value = "Privacy visibility for sharable button")
     private Boolean isPrivate;
 
