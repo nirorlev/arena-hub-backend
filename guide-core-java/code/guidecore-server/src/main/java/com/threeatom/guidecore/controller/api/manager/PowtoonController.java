@@ -92,6 +92,7 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
+import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -313,6 +314,8 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private PermitService permitService;
+	@Autowired
+	private UnavailableVideoService unavailableVideoService;
 
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
@@ -931,8 +934,10 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		populateVideoContent(request, file, myUser.getId());
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		unavailableVideoService.nullifyVideoData(file);
+		unavailableVideoService.nullifyPlaylistContent(list.get(0).getSaveContentList());
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
 				.addData("systemTime",df.format(new Date()));
