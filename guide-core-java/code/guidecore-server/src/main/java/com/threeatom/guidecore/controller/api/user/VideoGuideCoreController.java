@@ -89,6 +89,7 @@ public class VideoGuideCoreController extends GuideCoreController {
     @Autowired private GvgMasterService gvgMasterService;
 
     @Autowired private NewUiGcSubjectService newUiGcSubjectService;
+    @Autowired private UnavailableVideoService unavailableVideoService;
 
     @ApiOperation(value = "用户视频点赞的视频列表", httpMethod = "GET", notes = "type操作类型1点赞2收藏")
     @GetMapping("/getLikeVideoByUserId")
@@ -278,6 +279,7 @@ public class VideoGuideCoreController extends GuideCoreController {
             }
         }
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
+        unavailableVideoService.nullifyVideoComments(videoCommentPageInfo, vid);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return new Message()
                 .ok()
