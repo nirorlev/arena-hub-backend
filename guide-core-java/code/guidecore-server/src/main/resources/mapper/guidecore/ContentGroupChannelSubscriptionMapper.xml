@@ -92,14 +92,15 @@
 		</if>
 	</select>
 
-	<select id="getSubscribedChannelIdsExceptOwned" resultMap="baseResultMap">
+	<select id="getByContentGroupIds" resultMap="baseResultMap">
 		SELECT
             cgcs.id,
+			cgcs.channel_id,
             cgcs.is_subscribed,
             cgcs.created_date,
             cgcs.modified_date
 		FROM content_group_channel_subscription cgcs
-			JOIN pt_channel pc ON cgcs.channel_id = pc.id AND pc.create_user_id != #{ownerId}
+			JOIN pt_channel pc ON cgcs.channel_id = pc.id
 		<if test="contentGroupIds != null and contentGroupIds.size > 0">
 			WHERE cgcs.content_group_id in
 			<foreach collection="contentGroupIds" item="id" index="index" open="(" close=")" separator=",">

@@ -54,7 +54,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
 
     @Override
     public List<Integer> getSubscribedChannelIdsExceptOwned(List<Integer> contentGroupIds, Integer ownerId) {
-        return getChannelIds(baseMapper.getSubscribedChannelIdsExceptOwned(contentGroupIds, ownerId));
+        return getChannelIds(baseMapper.getByContentGroupIds(contentGroupIds, ownerId));
     }
 
     @Override

@@ -12,7 +12,7 @@ public interface ContentGroupChannelSubscriptionMapper
         @Param("contentGroupId") Integer contentGroupId,
         @Param("isSubscribed") Boolean isSubscribed);
 
-    List<ContentGroupChannelSubscription> getSubscribedChannelIdsExceptOwned(
+    List<ContentGroupChannelSubscription> getByContentGroupIds(
         @Param("contentGroupIds") List<Integer> contentGroupIds,
         @Param("ownerId") Integer ownerId);
 }
