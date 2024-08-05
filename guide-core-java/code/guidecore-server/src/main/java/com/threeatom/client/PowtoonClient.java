@@ -1,0 +1,16 @@
+package com.threeatom.client;
+
+
+import com.threeatom.client.dto.PowtoonUserDto;
+import java.net.URI;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+@FeignClient(name = "powtoon", url = "https://runtime-placeholder.com")
+public interface PowtoonClient {
+
+    @GetMapping("/api/v1.0/integrations/hub/users/me")
+    PowtoonUserDto getUserInfo(URI baseUrl, @RequestHeader("Authorization") String token);
+
+}

@@ -8,6 +8,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.threeatom.client.PowtoonClient;
+import com.threeatom.client.dto.GroupDto;
+import com.threeatom.client.dto.ManagedGroupDto;
+import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.PermitException;
@@ -29,7 +33,6 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.PermissionsVo;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
@@ -117,6 +120,7 @@ import io.swagger.annotations.ApiParam;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -314,6 +318,8 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private PermitService permitService;
+	@Autowired
+	private PowtoonClient powtoonClient;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 
@@ -1881,43 +1887,38 @@ public class PowtoonController extends GuideCoreController {
 			accessToken = requestJson.getString("access_token");
 			refreshToken = requestJson.getString("refresh_token");
 			// Get user information
-			JSONObject object = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getUserUrl(),"Bearer "+accessToken);
-			log.info("PT登录接口返回::"+object.toJSONString());
-			PermissionsVo permissions = object.toJavaObject(PermissionsVo.class);
-			if (null==permissions||null==permissions.getPermissions()){
-				throw new SystemException("Powtoon returns no permission data!");
-			}
-
+			PowtoonUserDto userInfo
+				= powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), "Bearer " + accessToken);
 			// Get the group the user belongs to
 			JSONObject groupObject = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getGroups(),"Bearer "+accessToken);
 			PtGroupsVo ptGroupsVo = groupObject.toJavaObject(PtGroupsVo.class);
 			log.info("PtGroups interface returns:"+groupObject);
 			Map<String,Groups> groupsMap = ptGroupsVo.getResults().stream().collect(Collectors.toMap(Groups::getId, (p) -> p));
 
-			user = userService.getUserByUserName(permissions.getProfile().getEmail());
+			user = userService.getUserByUserName(userInfo.getProfile().getEmail());
 			// Add permission table data
 			List<GcAccess> gcAccessesList = new ArrayList<>();
 			List<GcAccess> gcAccessLists = new ArrayList<>();
 			List<GcUserAccess> userAccessList = new ArrayList<>();
 			List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-			List<String> roleLists = getRoleLists(permissions);
+			List<String> roleLists = getRoleLists(userInfo);
 
 			if (null==user){
-                user = createGcUser(permissions, master, studentAccess, masterId);
+                user = createGcUser(userInfo, master, studentAccess, masterId);
 			}else {
 				// Update name
 				user.setPtUser(TableConstant.COMMON_ONE);
 				userService.updateById(user);
 				GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
-				gcUserInfo.setFirstName(permissions.getProfile().getFirstName());
-				gcUserInfo.setLastName(permissions.getProfile().getLastName());
+				gcUserInfo.setFirstName(userInfo.getProfile().getFirstName());
+				gcUserInfo.setLastName(userInfo.getProfile().getLastName());
 
 				if (null!=gcUserInfo.getAvatarFileId()){
 					SysFile file = sysFileService.getById(gcUserInfo.getAvatarFileId());
-					file.setFileUrl(permissions.getProfile().getThumbUrl());
+					file.setFileUrl(userInfo.getProfile().getThumbUrl());
 					sysFileService.saveOrUpdate(file);
 				}else {
-					SysFile file = getSysFile(user, permissions, masterId);
+					SysFile file = getSysFile(user, userInfo, masterId);
 					sysFileService.saveOrUpdate(file);
 					gcUserInfo.setAvatarFileId(file.getId());
 				}
@@ -1926,16 +1927,16 @@ public class PowtoonController extends GuideCoreController {
 				user = userService.getUserByIdCache(user.getId());
 			}
 
-			List<String> idList = permissions.getPermissions().getGroups().stream().map(Groups::getId).collect(Collectors.toList());
+			List<String> idList = userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
 			// Add managed_groups
-			List<String> managedList = permissions.getPermissions().getManaged_groups().stream().map(Groups::getId).collect(Collectors.toList());
+			List<String> managedList = userInfo.getPermissions().getManagedGroups().stream().map(ManagedGroupDto::getId).collect(Collectors.toList());
 			idList.addAll(managedList);
 			// Query all groups
 			List<GcAccess> accessLists = accessService.selectAccessByCodeAndMasterId(idList,masterId);
 			ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, accessLists);
 
 			Map<String,GcAccess> gcAccessMap = accessLists.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity(), (key1, key2) -> key2));
-			for (Groups group : permissions.getPermissions().getGroups()) {
+			for (GroupDto group : userInfo.getPermissions().getGroups()) {
 				GcAccess access = new GcAccess();
 				if (null!=gcAccessMap.get(group.getId())){
 					access = gcAccessMap.get(group.getId());
@@ -1950,17 +1951,17 @@ public class PowtoonController extends GuideCoreController {
 					access.setSubscribeJson(new JSONArray());
                 }
                 access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
-                if (null!=group.getRole_id()&&group.getRole_id().equals(GroupsType.orgAdmin)){
+                if (null!=group.getRoleId()&&group.getRoleId().equals(GroupsType.orgAdmin)){
                     access.getRoleJson().add(GroupsType.orgAdmin);
                 }
                 gcAccessesList.add(access);
 			}
 			List<String> gcAccessesListCodes = gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList());
 
-			for (Groups group : permissions.getPermissions().getManaged_groups()) {
-				GcAccess access = gcAccessMap.get(group.getId());
+			for (ManagedGroupDto managerGroup : userInfo.getPermissions().getManagedGroups()) {
+				GcAccess access = gcAccessMap.get(managerGroup.getId());
 				if(null!=access){
-					access.setGroupName(group.getTitle());
+					access.setGroupName(managerGroup.getTitle());
 					if (null!=access.getRoleJson()){
 						access.getRoleJson().addAll(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
 					}else {
@@ -1969,8 +1970,8 @@ public class PowtoonController extends GuideCoreController {
 				}else {
 					access = new GcAccess();
 					access.setMasterId(masterId);
-					access.setCode(group.getId());
-					access.setGroupName(group.getTitle());
+					access.setCode(managerGroup.getId());
+					access.setGroupName(managerGroup.getTitle());
 					access.setRoleType(TableConstant.COMMON_ONE);
 					access.setCodeType(TableConstant.COMMON_ZERO);
 					access.setSubjectJson(new JSONArray());
@@ -2016,14 +2017,14 @@ public class PowtoonController extends GuideCoreController {
 				.collect(Collectors.toList()),masterId);
 
 			updateUserPermissions(userAccesses, userAccessPermissions);
-			if (null!=permissions.getProfile().getThumbUrl()){
-				thumbUrl = permissions.getProfile().getThumbUrl();
+			if (null!=userInfo.getProfile().getThumbUrl()){
+				thumbUrl = userInfo.getProfile().getThumbUrl();
 			}
-			if (null!=permissions.getProfile().getEmail()){
-				ptEmail = permissions.getProfile().getEmail();
+			if (null!=userInfo.getProfile().getEmail()){
+				ptEmail = userInfo.getProfile().getEmail();
 			}
-			if (null!=permissions.getProfile().getId()){
-				ptId = permissions.getProfile().getId().toString();
+			if (null!=userInfo.getProfile().getId()){
+				ptId = userInfo.getProfile().getId().toString();
 			}
 			List<Integer> codeIdList = new ArrayList<>();
 			accessLists = gcAccessService.list();
@@ -2036,7 +2037,7 @@ public class PowtoonController extends GuideCoreController {
 				gcUserAccessService.deleteUserAccess(user.getId(),masterId,codeIdList);
 			}
 			// Sync to permit
-			assignUser(user,roleLists,permissions,masterId);
+			assignUser(user,roleLists,userInfo,masterId);
 			redisOperator.set("PT:"+user.getUsername(),accessToken);
 			redisOperator.set("PT_refresh_token:"+user.getUsername(),refreshToken);
 			//access_token存入redis
@@ -2178,35 +2179,35 @@ public class PowtoonController extends GuideCoreController {
 		return JSONArray.parseArray(JSON.toJSONString(integerList));
 	}
 
-	private SysFile getSysFile(GcUser user, PermissionsVo permissions, Integer masterId) {
+	private SysFile getSysFile(GcUser user, PowtoonUserDto userInfo, Integer masterId) {
 		SysFile file = new SysFile();
 		file.setSysId(TableConstant.COMMON_TWO);
 		file.setUploadUid(user.getId());
-		file.setName(permissions.getProfile().getThumbUrl());
+		file.setName(userInfo.getProfile().getThumbUrl());
 		file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
 		file.setFileType(TableConstant.sysFile_fileType_resLink);
 		file.setFileTypeIndex(TableConstant.COMMON_ONE);
 		file.setMasterId(masterId);
 		file.setSaveType(TableConstant.COMMON_THREE);
 		file.setFileRemark(new JSONArray());
-		file.setFileUrl(permissions.getProfile().getThumbUrl());
+		file.setFileUrl(userInfo.getProfile().getThumbUrl());
 		return file;
 	}
 
-	private GcUser createGcUser(PermissionsVo permissions, GcMaster master, GcAccess studentAccess, Integer masterId)
+	private GcUser createGcUser(PowtoonUserDto userInfo, GcMaster master, GcAccess studentAccess, Integer masterId)
 		throws ClientException, IOException {
-		GcUser user1 = userService.createGcUser(2, permissions.getProfile().getEmail(), get8UUID(),
-			permissions.getProfile().getFirstName(), permissions.getProfile().getLastName());
+		GcUser user1 = userService.createGcUser(2, userInfo.getProfile().getEmail(), get8UUID(),
+			userInfo.getProfile().getFirstName(), userInfo.getProfile().getLastName());
 		user1.setInfo(infoService.getById(user1.getInfoId()));
 		accessService.checkUserAccess(master.getId(), user1.getId(), studentAccess.getCode(), null, null, null);
 		user1.setPtUser(TableConstant.COMMON_ONE);
-		user1.setFirstName(permissions.getProfile().getFirstName());
-		user1.setLastName(permissions.getProfile().getLastName());
+		user1.setFirstName(userInfo.getProfile().getFirstName());
+		user1.setLastName(userInfo.getProfile().getLastName());
 
 		SysFile file = new SysFile();
 		file.setSysId(TableConstant.COMMON_TWO);
 		file.setUploadUid(user1.getId());
-		file.setName(permissions.getProfile().getThumbUrl());
+		file.setName(userInfo.getProfile().getThumbUrl());
 		file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
 		file.setFileType(TableConstant.sysFile_fileType_resLink);
 		file.setFileTypeIndex(TableConstant.COMMON_ONE);
@@ -2222,7 +2223,7 @@ public class PowtoonController extends GuideCoreController {
 
 		try {
 			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
-			if (!GroupsType.groupList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+			if (!GroupsType.groupList.contains(userInfo.getPermissions().getOrg().getRoleId())) {
 				throw new Exception("xxx”!Please create the role xxx in Permit first.");
 			}
 
@@ -2234,18 +2235,18 @@ public class PowtoonController extends GuideCoreController {
 		return user1;
 	}
 
-	private List<String> getRoleLists(PermissionsVo permissions) {
+	private List<String> getRoleLists(PowtoonUserDto permissions) {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
-		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.admin);
-		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRole_id())) {
+		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.superAdmin);
 		}
-		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRole_id())) {
+		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
 		}
 		return roleLists;
@@ -2317,7 +2318,7 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	//同步用户
-	public void assignUser(GcUser user,List<String> roleList,PermissionsVo permissionsVo,Integer masterId){
+	public void assignUser(GcUser user,List<String> roleList,PowtoonUserDto userInfo,Integer masterId){
 		GcMaster master = masterService.getMasterById(masterId);
 		TenantRead tenant = null;
 		try {
@@ -2340,11 +2341,11 @@ public class PowtoonController extends GuideCoreController {
 		JSONArray adminGroups = new JSONArray();
 		JSONArray memberGroups = new JSONArray();
 		//判断memberGroups和adminGroups
-		for (Groups memberGroup : permissionsVo.getPermissions().getGroups()) {
-			memberGroups.add(memberGroup.getId().toString());
+		for (GroupDto memberGroup : userInfo.getPermissions().getGroups()) {
+			memberGroups.add(memberGroup.getId());
 		}
-		for (Groups adminGroup : permissionsVo.getPermissions().getManaged_groups()) {
-			adminGroups.add(adminGroup.getId().toString());
+		for (ManagedGroupDto adminGroup : userInfo.getPermissions().getManagedGroups()) {
+			adminGroups.add(adminGroup.getId());
 		}
 
 		if (roleList.contains(GroupsType.admin)){
