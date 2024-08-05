@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.dto.PowtoonUserDto;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
 import com.threeatom.guidecore.entity.UserLicense;
 import com.threeatom.guidecore.mapper.UserLicenseMapper;
@@ -11,10 +12,13 @@ import com.threeatom.guidecore.service.OrgLicenseLimitService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import java.util.Optional;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -32,6 +36,48 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         getByUserId(userId).ifPresentOrElse(
             userLicense -> updateExisting(userLicense, powtoonUserDto, masterId),
             () -> create(powtoonUserDto, masterId, userId));
+    }
+
+    @Override
+    public void addPlaylistCount(GcUserSaveFolder gcUserSaveFolder, Integer userId) {
+        if (gcUserSaveFolder.getIsPrivate()) {
+            updateCount(userId,
+                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() + 1));
+            return;
+        }
+
+        updateCount(userId,
+            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1));
+    }
+
+    @Override
+    public void decreasePlaylistCount(Integer userId, Integer playlistId) {
+        GcUserSaveFolder gcUserSaveFolder = playlistService.getById(playlistId);
+        if (gcUserSaveFolder == null) {
+            log.info("Failed to decrease playlist. Playlist with id {} not found", playlistId);
+            return;
+        }
+
+        if (gcUserSaveFolder.getIsPrivate()) {
+            updateCount(userId,
+                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() - 1));
+            return;
+        }
+
+        updateCount(userId,
+            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() - 1));
+    }
+
+    private void updateCount(Integer userId, Consumer<UserLicense> updateCountSupplier) {
+        UserLicense userLicense = getByUserId(userId).orElseThrow();
+        updateCountSupplier.accept(userLicense);
+        this.updateById(userLicense);
+    }
+
+    private void addPublicPlaylistCount(Integer userId) {
+        UserLicense userLicense = getByUserId(userId).orElseThrow();
+        userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1);
+        this.updateById(userLicense);
     }
 
     public void setActive(Integer userId, boolean active) {

@@ -51,6 +51,7 @@ public class NewUISaveContentController extends GuideCoreController {
 
     @Autowired private GcMasterService gcMasterService;
     @Autowired private GcMasterHomeInfoService iGcMasterHomeInfoService;
+    @Autowired private UserLicenseService userLicenseService;
 
     @ApiOperation(value = "获取已有保存课程/视频的文件夹列表", httpMethod = "GET")
     @GetMapping("/contentFolderList")
@@ -206,15 +207,14 @@ public class NewUISaveContentController extends GuideCoreController {
     // 参数：name，id-更新
     @ApiOperation(value = "新建一个保存课程/视频的文件夹，带id可更新", httpMethod = "GET")
     @PostMapping("/newContentFolder")
-    public Message newContentFolder(
-            @RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request)
-            throws IOException {
+    public Message newContentFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
         ApiAssert.notNull(gcUserSaveFolder.getName(), "文件夹名称不可空");
         gcUserSaveFolder.setUserId(this.getGcUser().getId());
         gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
         GcUser user = this.getGcUser();
-        GcMaster master = this.getMaster();
+
         if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
+            userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
             return new Message().ok("保存成功").addData("folder", gcUserSaveFolder);
         } else {
             return new Message().ok("保存是吧");

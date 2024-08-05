@@ -2641,24 +2641,26 @@ public class PowtoonController extends GuideCoreController {
 		}
 	}
 
-	@ApiOperation(value = "新建一个保存课程/视频的文件夹，带id可更新", httpMethod = "GET")
 	@PostMapping("/newContentFolder")
-	public Message newContentFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) throws IOException {
-		ApiAssert.notNull(gcUserSaveFolder.getName(), "文件夹名称不可空");
-		gcUserSaveFolder.setUserId(this.getGcUser().getId());
-		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
+	public Message newContentFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
+		ApiAssert.notNull(gcUserSaveFolder.getName(), "The folder name cannot be empty!");
 		GcUser user = this.getGcUser();
+		gcUserSaveFolder.setUserId(user.getId());
+		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		boolean isFlag = this.permitCheck(user, ActionsType.createPlayList,master.getId(), ResourceType.portal,null,null,null);
-		if (!isFlag){
+		boolean isFlag =
+			this.permitCheck(user, ActionsType.createPlayList, master.getId(), ResourceType.portal, null, null, null);
+		if (!isFlag) {
 			throw new PermitException("No permission for this!");
 		}
-		if(gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
-			return new Message().ok("保存成功").addData("folder", gcUserSaveFolder);
-		}else {
-			return new Message().ok("保存是吧");
+
+		if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
+			userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
+			return new Message().ok("Saved successfully")
+				.addData("folder", gcUserSaveFolder);
 		}
 
+		return new Message().ok();
 	}
 
 	@ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
@@ -3566,22 +3568,25 @@ public class PowtoonController extends GuideCoreController {
 		return new Message().ok().addData("eventResList", pageInfo).addData("otherPageInfo",otherPageInfo);
 	}
 
-	@ApiOperation(value = "删除单个文件夹", httpMethod = "GET")
 	@GetMapping("/deleteContentFromOneFolder")
 	public Message deleteFolder(Integer folderId) {
-		ApiAssert.notNull(folderId, "folderId不可空");
+		ApiAssert.notNull(folderId, "folderId cannot be empty");
+		Integer userId = this.getGcUser().getId();
 
 		GcUserSaveFolder gcUserSaveFolder = new GcUserSaveFolder();
 		gcUserSaveFolder.setId(folderId);
-		gcUserSaveFolder.setUserId(this.getGcUser().getId());
+		gcUserSaveFolder.setUserId(userId);
 
-		if(gcUserSaveFolderService.countFolder(gcUserSaveFolder)==0)
-			return new Message().error("该用户folderId不存在记录");
+		if (gcUserSaveFolderService.countFolder(gcUserSaveFolder) == 0) {
+			return new Message().error("The user folderId does not exist");
+		}
 
-		if (gcUserSaveFolderService.removeById(folderId))
-			return new Message().ok("删除成功");
-		else
-			return new Message().error("删除失败");
+		userLicenseService.decreasePlaylistCount(userId, folderId);
+		if (gcUserSaveFolderService.removeById(folderId)) {
+			return new Message().ok("Successfully deleted");
+		}
+
+		return new Message().error("Failed to delete");
 	}
 
 	@ApiOperation(value = "删除单个playList视频", httpMethod = "GET")
