@@ -7,8 +7,8 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
-@TableName(value = "user_viewer_license", autoResultMap = true)
-public class UserViewerLicense implements Serializable {
+@TableName(value = "user_license", autoResultMap = true)
+public class UserLicense implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -16,11 +16,12 @@ public class UserViewerLicense implements Serializable {
     private Integer id;
 
     private Integer userId;
-    private Integer publishChannelLimit;
-    private Integer publishPlaylistLimit;
+    private Integer orgLicenseId;
+
     private Integer privateChannelCount;
     private Integer privatePlaylistCount;
     private Integer publishChannelCount;
     private Integer publishPlaylistCount;
+
     private boolean active;
 }

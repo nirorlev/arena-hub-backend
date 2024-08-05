@@ -95,7 +95,7 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
-import com.threeatom.guidecore.service.UserViewerLicenseService;
+import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -322,7 +322,7 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private PowtoonClient powtoonClient;
 	@Autowired
-	private UserViewerLicenseService userViewerLicenseService;
+	private UserLicenseService userLicenseService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 
@@ -1929,7 +1929,7 @@ public class PowtoonController extends GuideCoreController {
 				infoService.updateById(gcUserInfo);
 				user = userService.getUserByIdCache(user.getId());
 			}
-			userViewerLicenseService.update(user.getId(), userInfo, masterId);
+			userLicenseService.update(user.getId(), userInfo, masterId);
 
 			List<String> idList = userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
 			// Add managed_groups
