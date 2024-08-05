@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
+import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.UserLicense;
 import com.threeatom.guidecore.mapper.UserLicenseMapper;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -66,6 +67,44 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
 
         updateCount(userId,
             userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() - 1));
+    }
+
+    @Override
+    public void decreaseChannelCount(Integer userId, Integer channelId) {
+        PtChannel channel = channelService.getById(channelId);
+        if (channel == null) {
+            log.info("Failed to decrease channel. Channel with id {} not found", channelId);
+            return;
+        }
+
+        if (channel.getFid() != null) {
+            return;
+        }
+
+        if (channel.getIsPrivate()) {
+            updateCount(userId,
+                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() - 1));
+            return;
+        }
+
+        updateCount(userId,
+            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() - 1));
+    }
+
+    @Override
+    public void addChannelCount(PtChannel ptChannel, Integer userId) {
+        if (ptChannel.getId() != null) {
+            return;
+        }
+
+        if (ptChannel.getIsPrivate()) {
+            updateCount(userId,
+                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() + 1));
+            return;
+        }
+
+        updateCount(userId,
+            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() + 1));
     }
 
     private void updateCount(Integer userId, Consumer<UserLicense> updateCountSupplier) {

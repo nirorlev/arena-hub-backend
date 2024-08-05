@@ -25,12 +25,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel>
@@ -634,6 +636,23 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         queryWrapper.eq("channel_slug", slug);
         queryWrapper.eq("master_id", masterId);
         return this.getOne(queryWrapper);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PtChannel findById(Integer id) {
+        PtChannel channel = this.getById(id);
+
+        if (channel == null) {
+            log.info("Failed to find channel with id {}", id);
+            throw new IllegalArgumentException(String.format("Channel with id %s not found", id));
+        }
+
+        if (channel.getFid() != null) {
+            channel = this.getById(channel.getFid());
+        }
+
+        return channel;
     }
 
     @Override

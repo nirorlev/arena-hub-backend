@@ -66,6 +66,8 @@ public interface PtChannelService extends IService<PtChannel> {
 
     PtChannel findBySlugAndMasterId(String slug, Integer masterId);
 
+    PtChannel findById(Integer id);
+
     Integer countUserPrivateChannels(Integer userId, Integer masterId);
 
     Integer countUserPublicChannels(Integer userId, Integer masterId);

@@ -3069,7 +3069,9 @@ public class PowtoonController extends GuideCoreController {
 					return message.error();
 				}
 			}
-		}else {
+
+			userLicenseService.addChannelCount(ptChannel, user.getId());
+		} else {
 			if (ptChannelService.saveOrUpdate(ptChannel)) {
 				return message.ok("success").addData("channel", ptChannel);
 			} else {
@@ -3082,20 +3084,23 @@ public class PowtoonController extends GuideCoreController {
 		return message.error();
 	}
 
-	@ApiOperation(value = "删除")
 	@PostMapping("/deleteChannelSection")
-	public Message deleteChannelSection(@RequestBody PtChannel ptChannel,HttpServletRequest request) throws IOException {
+	public Message deleteChannelSection(@RequestBody PtChannel ptChannel, HttpServletRequest request) {
 		Message message = new Message();
-		if(Objects.isNull(ptChannel.getId())){
+		if (Objects.isNull(ptChannel.getId())) {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelId"));
 		}
 		GcUser user = this.getGcUser();
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		boolean isFlag = this.permitCheck(user, ActionsType.delete, master.getId(), ResourceType.channel, ptChannel.getId(),null,null);
-		if (!isFlag){
+		boolean isFlag =
+			this.permitCheck(user, ActionsType.delete, master.getId(), ResourceType.channel, ptChannel.getId(), null,
+				null);
+		if (!isFlag) {
 			throw new PermitException("No permission for this!");
 		}
-		if(ptChannelService.removeById(ptChannel.getId())) {
+
+		userLicenseService.decreaseChannelCount(user.getId(), ptChannel.getId());
+		if (ptChannelService.removeById(ptChannel.getId())) {
 			return message.ok("success");
 		}
 
