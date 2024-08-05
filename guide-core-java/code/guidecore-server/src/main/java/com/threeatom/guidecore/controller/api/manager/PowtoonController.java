@@ -61,6 +61,7 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -150,6 +151,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -2654,10 +2656,14 @@ public class PowtoonController extends GuideCoreController {
 			throw new PermitException("No permission for this!");
 		}
 
-		if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
-			userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
-			return new Message().ok("Saved successfully")
-				.addData("folder", gcUserSaveFolder);
+		try {
+			if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
+				userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
+				return new Message().ok("Saved successfully")
+					.addData("folder", gcUserSaveFolder);
+			}
+		} catch (LicenseLimitExceededException e) {
+			return new Message().error(HttpStatus.FORBIDDEN.value(), e.getMessage());
 		}
 
 		return new Message().ok();
@@ -2998,7 +3004,7 @@ public class PowtoonController extends GuideCoreController {
 							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 						}
 					}
-					return message.ok("success").addData("channel", ptChannel);
+					message.addData("channel", ptChannel);
 				}
 			} else if (ptChannel.getVisibleFlag() == 1) {
 
@@ -3054,17 +3060,18 @@ public class PowtoonController extends GuideCoreController {
 					}
 					gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 				}
-				return message.ok("success").addData("channel", ptChannel);
+
+				message.addData("channel", ptChannel);
 			} else if (ptChannel.getVisibleFlag() == 0) {
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
-					return message.ok("success").addData("channel", ptChannel);
+					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
 				}
 			//公共
 			}else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
-					return message.ok("success").addData("channel", ptChannel);
+					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
 				}
@@ -3073,15 +3080,18 @@ public class PowtoonController extends GuideCoreController {
 			userLicenseService.addChannelCount(ptChannel, user.getId());
 		} else {
 			if (ptChannelService.saveOrUpdate(ptChannel)) {
-				return message.ok("success").addData("channel", ptChannel);
+				message.addData("channel", ptChannel);
 			} else {
 				return message.error();
 			}
 		}
 		}catch (DuplicateKeyException e){
 			throw new SystemException(I18NUtil.get("userpt.channel.slug"));
+		} catch (LicenseLimitExceededException e) {
+			message.error(HttpStatus.FORBIDDEN.value(), "License limit exceeded");
 		}
-		return message.error();
+
+		return message.ok();
 	}
 
 	@PostMapping("/deleteChannelSection")

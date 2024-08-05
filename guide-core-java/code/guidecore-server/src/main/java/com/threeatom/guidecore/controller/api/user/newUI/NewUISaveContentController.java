@@ -11,6 +11,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -22,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -213,11 +215,15 @@ public class NewUISaveContentController extends GuideCoreController {
         gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
         GcUser user = this.getGcUser();
 
-        if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
-            userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
-            return new Message().ok("保存成功").addData("folder", gcUserSaveFolder);
-        } else {
-            return new Message().ok("保存是吧");
+        try {
+            if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
+                userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
+                return new Message().ok("保存成功").addData("folder", gcUserSaveFolder);
+            } else {
+                return new Message().ok("保存是吧");
+            }
+        } catch (LicenseLimitExceededException e) {
+            return new Message().error(HttpStatus.FORBIDDEN.value(), e.getMessage());
         }
     }
 

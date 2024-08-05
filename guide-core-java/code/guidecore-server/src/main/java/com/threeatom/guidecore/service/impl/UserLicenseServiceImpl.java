@@ -41,14 +41,19 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
 
     @Override
     public void addPlaylistCount(GcUserSaveFolder gcUserSaveFolder, Integer userId) {
+        UserLicense dbUserLicense = getByUserId(userId).orElseThrow();
+
         if (gcUserSaveFolder.getIsPrivate()) {
-            updateCount(userId,
-                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() + 1));
+            updateCount(
+                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() + 1),
+                dbUserLicense);
             return;
         }
 
-        updateCount(userId,
-            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1));
+        orgLicenseLimitService.checkPlaylistLimit(dbUserLicense.getOrgLicenseId(), dbUserLicense.getPublishPlaylistCount() + 1);
+        updateCount(
+            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1),
+            dbUserLicense);
     }
 
     @Override
@@ -60,13 +65,15 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         }
 
         if (gcUserSaveFolder.getIsPrivate()) {
-            updateCount(userId,
-                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() - 1));
+            updateCount(
+                userLicense -> userLicense.setPrivatePlaylistCount(userLicense.getPrivatePlaylistCount() - 1),
+                getByUserId(userId).orElseThrow());
             return;
         }
 
-        updateCount(userId,
-            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() - 1));
+        updateCount(
+            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() - 1),
+            getByUserId(userId).orElseThrow());
     }
 
     @Override
@@ -82,13 +89,15 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         }
 
         if (channel.getIsPrivate()) {
-            updateCount(userId,
-                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() - 1));
+            updateCount(
+                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() - 1),
+                getByUserId(userId).orElseThrow());
             return;
         }
 
-        updateCount(userId,
-            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() - 1));
+        updateCount(
+            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() - 1),
+            getByUserId(userId).orElseThrow());
     }
 
     @Override
@@ -97,25 +106,22 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
+        UserLicense dbUserLicense = getByUserId(userId).orElseThrow();
         if (ptChannel.getIsPrivate()) {
-            updateCount(userId,
-                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() + 1));
+            updateCount(
+                userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() + 1),
+                dbUserLicense);
             return;
         }
 
-        updateCount(userId,
-            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() + 1));
+        orgLicenseLimitService.checkChannelLimit(dbUserLicense.getOrgLicenseId(), dbUserLicense.getPublishChannelCount() + 1);
+        updateCount(
+            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() + 1),
+            dbUserLicense);
     }
 
-    private void updateCount(Integer userId, Consumer<UserLicense> updateCountSupplier) {
-        UserLicense userLicense = getByUserId(userId).orElseThrow();
+    private void updateCount(Consumer<UserLicense> updateCountSupplier, UserLicense userLicense) {
         updateCountSupplier.accept(userLicense);
-        this.updateById(userLicense);
-    }
-
-    private void addPublicPlaylistCount(Integer userId) {
-        UserLicense userLicense = getByUserId(userId).orElseThrow();
-        userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1);
         this.updateById(userLicense);
     }
 
