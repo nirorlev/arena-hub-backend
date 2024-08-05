@@ -404,4 +404,44 @@
         </delete>
     </changeSet>
 
+    <changeSet id="create-user-license-table" author="vprokh">
+        <createTable tableName="user_viewer_license" schemaName="arena_hub">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_channel_limit" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_playlist_limit" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_channel_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_playlist_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_channel_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_playlist_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_viewer_license" baseColumnNames="user_id"
+                                 constraintName="user_viewer_license_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint
+                columnNames="user_id"
+                constraintName="user_viewer_license_user_id_uindex"
+                tableName="user_viewer_license"/>
+    </changeSet>
+
 </databaseChangeLog>

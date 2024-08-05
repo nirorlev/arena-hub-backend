@@ -36,6 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel>
         implements PtChannelService {
 
+    private static final int PRIVATE_VISIBLE_FLAG = 0;
+    private static final int PUBLIC_VISIBLE_FLAG = 1;
+    private static final int TEAM_ASSIGNED_VISIBLE_FLAG = 2;
+
     private final SysFileService sysFileService;
     private final PtTagsService tagsService;
     private final ChannelMapping channelMapping;
@@ -632,6 +636,25 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return this.getOne(queryWrapper);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Integer countUserPrivateChannels(Integer userId, Integer masterId) {
+        return countChannels(userId, masterId, List.of(PRIVATE_VISIBLE_FLAG));
+    }
+
+    @Override
+    public Integer countUserPublicChannels(Integer userId, Integer masterId) {
+        return countChannels(userId, masterId, List.of(PUBLIC_VISIBLE_FLAG, TEAM_ASSIGNED_VISIBLE_FLAG));
+    }
+
+    private int countChannels(Integer userId, Integer masterId, List<Integer> privacyCodes) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("create_user_id", userId);
+        queryWrapper.eq("master_id", masterId);
+        queryWrapper.in("visible_flag", privacyCodes);
+
+        return this.count(queryWrapper);
+    }
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()

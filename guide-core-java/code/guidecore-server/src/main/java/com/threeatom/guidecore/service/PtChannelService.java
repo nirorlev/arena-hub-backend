@@ -65,4 +65,8 @@ public interface PtChannelService extends IService<PtChannel> {
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 
     PtChannel findBySlugAndMasterId(String slug, Integer masterId);
+
+    Integer countUserPrivateChannels(Integer userId, Integer masterId);
+
+    Integer countUserPublicChannels(Integer userId, Integer masterId);
 }

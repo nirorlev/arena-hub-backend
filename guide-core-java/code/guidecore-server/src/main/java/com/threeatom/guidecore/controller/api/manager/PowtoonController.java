@@ -95,6 +95,7 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
+import com.threeatom.guidecore.service.UserViewerLicenseService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -320,6 +321,8 @@ public class PowtoonController extends GuideCoreController {
 	private PermitService permitService;
 	@Autowired
 	private PowtoonClient powtoonClient;
+	@Autowired
+	private UserViewerLicenseService userViewerLicenseService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 
@@ -1887,13 +1890,13 @@ public class PowtoonController extends GuideCoreController {
 			accessToken = requestJson.getString("access_token");
 			refreshToken = requestJson.getString("refresh_token");
 			// Get user information
-			PowtoonUserDto userInfo
-				= powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), "Bearer " + accessToken);
 			// Get the group the user belongs to
 			JSONObject groupObject = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getGroups(),"Bearer "+accessToken);
 			PtGroupsVo ptGroupsVo = groupObject.toJavaObject(PtGroupsVo.class);
 			log.info("PtGroups interface returns:"+groupObject);
 			Map<String,Groups> groupsMap = ptGroupsVo.getResults().stream().collect(Collectors.toMap(Groups::getId, (p) -> p));
+			PowtoonUserDto userInfo
+				= powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), "Bearer " + accessToken);
 
 			user = userService.getUserByUserName(userInfo.getProfile().getEmail());
 			// Add permission table data
@@ -1926,6 +1929,7 @@ public class PowtoonController extends GuideCoreController {
 				infoService.updateById(gcUserInfo);
 				user = userService.getUserByIdCache(user.getId());
 			}
+			userViewerLicenseService.update(user.getId(), userInfo, masterId);
 
 			List<String> idList = userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
 			// Add managed_groups
