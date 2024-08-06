@@ -467,4 +467,13 @@
                 constraintName="user_license_org_license_limit_id_user_id_uindex"
                 tableName="user_license"/>
     </changeSet>
+
+    <changeSet id="create-unavailable-video-random-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="unavailableVideoRandomEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling randomizing logic for unavailable video"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>

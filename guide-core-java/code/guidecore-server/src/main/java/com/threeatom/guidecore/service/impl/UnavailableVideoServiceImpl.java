@@ -3,19 +3,26 @@ package com.threeatom.guidecore.service.impl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.system.entity.SysFile;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UnavailableVideoServiceImpl implements UnavailableVideoService {
+
+    private static final String FEATURE_NAME = "unavailableVideoRandomEnabled";
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
+
+    private final FeatureToggleService featureToggleService;
 
     @PostConstruct
     public void init() {
@@ -44,6 +51,10 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoData(List<SysFile> files) {
+        if (featureIsDisabled()) {
+            return;
+        }
+
         files.stream()
             .filter(this::isVideoUnavailable)
             .forEach(file -> {
@@ -51,8 +62,16 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             });
     }
 
+    private boolean featureIsDisabled() {
+        return !Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
+    }
+
     @Override
     public void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent) {
+        if (featureIsDisabled()) {
+            return;
+        }
+
         playlistContent.stream()
             .filter(content -> isVideoUnavailable(content.getVideoFile()))
             .forEach(content -> {
@@ -64,11 +83,19 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoData(SysFile file) {
+        if (featureIsDisabled()) {
+            return;
+        }
+
         nullifyVideoData(Collections.singletonList(file));
     }
 
     @Override
     public void nullifyVideoComments(PageInfo<GcVideoComment> comments, Integer videoId) {
+        if (featureIsDisabled()) {
+            return;
+        }
+
         comments.getList().clear();
     }
 
