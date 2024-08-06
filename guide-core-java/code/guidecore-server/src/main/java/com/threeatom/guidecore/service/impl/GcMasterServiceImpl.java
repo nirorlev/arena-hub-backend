@@ -53,6 +53,8 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired @Lazy private NewUiGcSubjectService newUiGcSubjectService;
 
+    @Autowired private UnavailableVideoService unavailableVideoService;
+
     private static final String CACHE_TAG = "GcMaster";
 
     private static final String KEY_TAG_ENTITY = "'entity:uid-'+";
@@ -233,6 +235,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 }
             }
             PageInfo<SysFile> pageInfo = new PageInfo<>(fileList);
+            unavailableVideoService.nullifyVideoData(fileList);
             m.addData("videoList", pageInfo);
         } catch (Exception e) {
             e.printStackTrace();
