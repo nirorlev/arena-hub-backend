@@ -73,6 +73,7 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     }
 
     private boolean isVideoUnavailable(SysFile videoFile) {
-        return Math.random() > 0.8;
+        Integer videoId = videoFile.getVideoId();
+        return videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
     }
 }
