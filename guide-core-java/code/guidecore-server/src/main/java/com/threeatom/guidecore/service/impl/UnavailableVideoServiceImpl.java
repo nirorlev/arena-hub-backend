@@ -5,7 +5,6 @@ import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.system.entity.SysFile;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
-    private final List<Integer> unavailableVideoFileIds = new ArrayList<>();
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
 
@@ -47,32 +45,22 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     @Override
     public void nullifyVideoData(List<SysFile> files) {
         files.stream()
-            .filter(file -> unavailableVideoFileIds.contains(file.getId()) || randomizeUnavailableVideoData())
+            .filter(this::isVideoUnavailable)
             .forEach(file -> {
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(file));
-                updateUnavailableVideoIds(file.getVideoId());
             });
     }
 
     @Override
     public void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent) {
         playlistContent.stream()
-            .filter(content ->
-                content.getVideoFile().getVideoId() != null
-                    && unavailableVideoFileIds.contains(content.getVideoFile().getVideoId())
-                    || randomizeUnavailableVideoData())
+            .filter(content -> isVideoUnavailable(content.getVideoFile()))
             .forEach(content -> {
                 playlistContentNullifySuppliers.forEach(supplier -> supplier.accept(content));
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(content.getVideoFile()));
-                updateUnavailableVideoIds(content.getVideoFile().getVideoId());
             });
     }
 
-    private void updateUnavailableVideoIds(Integer videoId) {
-        if (videoId != null) {
-            unavailableVideoFileIds.add(videoId);
-        }
-    }
 
     @Override
     public void nullifyVideoData(SysFile file) {
@@ -81,12 +69,10 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoComments(PageInfo<GcVideoComment> comments, Integer videoId) {
-        if (unavailableVideoFileIds.contains(videoId)) {
-            comments.getList().clear();
-        }
+        comments.getList().clear();
     }
 
-    private boolean randomizeUnavailableVideoData() {
+    private boolean isVideoUnavailable(SysFile videoFile) {
         return Math.random() > 0.8;
     }
 }
