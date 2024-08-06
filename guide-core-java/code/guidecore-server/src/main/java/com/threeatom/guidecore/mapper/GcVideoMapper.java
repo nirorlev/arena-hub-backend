@@ -13,14 +13,6 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Component
 public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
@@ -28,11 +20,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> selectVideoListBySubIds(List<Integer> subIds);
 
-    /**
-     * 根据一级课程id查询视频信息
-     * @param subIds
-     * @return
-     */
     List<GcVideo> selectVideosOneLevelSubIds(List<Integer> subIds);
 
     List<GcVideo> selectVideosSubIds(List<Integer> videoIds);
@@ -47,11 +34,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
             @Param("subjectId") Integer subjectId,
             @Param("masterId") Integer masterId);
 
-    /**
-     * 根据视频id和视频名称查询
-     * @param subIds
-     * @return
-     */
     List<GcVideo> selectVideosBySubIdsAndVideoName(
             @Param("subIds") List<Integer> subIds, @Param("videoName") String videoName);
 
@@ -79,12 +61,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     Integer countVideoNameInSub0(GcVideo v);
 
-    /**
-     * 根据视频id和用户查询视频的总时长
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     Long sumVideoLongByIdUser(
             @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
@@ -92,23 +68,11 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<videoLongVo> sumVideoLongBySubId(@Param("subIds") List<Integer> subIds);
 
-    /**
-     * 根据视频id和用户id查询播放的时长
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     Long sumPlayVideoLongByIdUser(
             @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
-    /**
-     * 分页查询
-     * @param params
-     * @return
-     */
     List<GcVideo> pageVideo(Map<String, Object> params);
 
-    // 正常只返回一个
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
             String videoNameIndex, String subNameIndex, Integer masterId);
 
@@ -154,4 +118,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter, @Param("masterId") Integer masterId);
+
+    GcVideo getVideoContentByFileId(@Param("fileId") Integer fileId);
 }

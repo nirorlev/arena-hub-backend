@@ -10,14 +10,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- * 视频评论
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Data
 @ApiModel(value = "GcVideoComment对象", description = "视频评论")
 public class GcVideoComment implements Serializable {

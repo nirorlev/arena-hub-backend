@@ -68,25 +68,9 @@ public class ResourceManagerGuidecoreController extends GuideCoreController {
         return new Message().ok().addData("page", page);
     }
 
-    //    private PageInfo<SysFile> getSysFile(JSONObject jsonParams, List<Integer>
-    // typeIndexIds,HttpServletRequest request) {
-    //    	SysSystem system=this.getSystem();
-    //    	GcMaster master = this.getMaster();
-    //    	Integer pageSize=jsonParams.getInteger("pageSize");
-    //    	Integer pageNum=jsonParams.getInteger("pageNum");
-    //    	String searchTag=jsonParams.getString("searchTag");
-    //    	String searchString=jsonParams.getString("searchString");
-    //    	List<SysFile> list=sysFileService.getFiles(master.getId(), typeIndexIds, searchTag,
-    // pageNum, pageSize,searchString);
-    //    	PageInfo<SysFile> page=new PageInfo<SysFile>(list);
-    //    	return page;
-    //	}
-
     @ApiOperation(value = "资源文件标签列表", httpMethod = "GET")
     @GetMapping("/fileTag/{type}")
     public Message getAllFileTag(@PathVariable("type") String type) {
-
-        //    	try {
         SysSystem system = this.getSystem();
         GcMaster master = this.getMaster();
 
@@ -99,9 +83,5 @@ public class ResourceManagerGuidecoreController extends GuideCoreController {
 
         List<String> tags = sysFileService.getAllTag(master.getId(), system, folders);
         return new Message().ok().addData("tags", tags);
-        //    	}catch (Exception e) {
-        //    		return new Message().error().addData("Exception", e.toString());
-        //		}
-
     }
 }

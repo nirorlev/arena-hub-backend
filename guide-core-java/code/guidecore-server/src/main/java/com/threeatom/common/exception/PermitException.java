@@ -1,12 +1,5 @@
 package com.threeatom.common.exception;
 
-/**
- * @author PC
- * @title: PermitException
- * @projectName uploadServer
- * @description: TODO
- * @date 2023/8/2919:44
- */
 public class PermitException extends RuntimeException {
 
     private int code = 510;

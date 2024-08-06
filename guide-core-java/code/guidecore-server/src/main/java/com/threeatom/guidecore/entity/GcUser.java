@@ -11,14 +11,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-25
- */
 @ApiModel(value = "GcUser对象", description = "")
 @Data
 public class GcUser implements Serializable {
@@ -60,13 +52,6 @@ public class GcUser implements Serializable {
 
     @TableField(exist = false)
     private String firstName;
-
-    //
-    //    @TableField(exist = false)
-    //    private Integer avatarFileId;
-    //
-    //    @TableField(exist = false)
-    //    private SysFile avatarFile;
 
     @ApiModelProperty(value = "父id：老师的id")
     private Integer pid;

@@ -14,13 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * @author huangpei
- * @title: GcUserNoteCommentServiceImpl
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/27/02714:54
- */
 @Service
 public class GcUserNoteCommentServiceImpl
         extends ServiceImpl<GcUserNoteCommentMapper, GcUserNoteComment>

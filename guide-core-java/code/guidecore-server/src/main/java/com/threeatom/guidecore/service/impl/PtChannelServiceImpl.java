@@ -171,6 +171,8 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
                 sysFile.setIsLiked(isLikedByUser(sysFile.getVideoId(), userId));
+                videoService.updateVideoFilePrivacy(sysFile);
+
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
                         sysFile
@@ -620,6 +622,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         queryWrapper.in("id", channelIds);
         queryWrapper.eq("master_id", masterId);
         return this.list(queryWrapper);
+    }
+
+    @Override
+    public PtChannel findBySlugAndMasterId(String slug, Integer masterId) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("channel_slug", slug);
+        queryWrapper.eq("master_id", masterId);
+        return this.getOne(queryWrapper);
     }
 
 

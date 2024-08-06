@@ -6,13 +6,6 @@ import com.threeatom.guidecore.entity.GcUserNoteComment;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * @author huangpei
- * @title: GcUserNoteCommentService
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/27/02714:40
- */
 public interface GcUserNoteCommentService extends IService<GcUserNoteComment> {
 
     List<UserNoteCommentVo> selectNoteComment(

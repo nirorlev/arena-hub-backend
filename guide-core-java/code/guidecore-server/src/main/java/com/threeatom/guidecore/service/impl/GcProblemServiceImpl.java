@@ -15,8 +15,6 @@ import org.springframework.stereotype.Service;
 public class GcProblemServiceImpl extends ServiceImpl<GcProblemMapper, GcProblem>
         implements GcProblemService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserSaveFolderServiceImpl.class);
-
     @Override
     public List<GcCategory> selectCategoryList() {
         Integer level = TableConstant.COMMON_ZERO;

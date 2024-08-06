@@ -14,14 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 教师编辑的组权限 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-25
- */
 @Service
 public class GcGroupServiceImpl extends ServiceImpl<GcGroupMapper, GcGroup>
         implements GcGroupService {
@@ -44,8 +36,6 @@ public class GcGroupServiceImpl extends ServiceImpl<GcGroupMapper, GcGroup>
 
     @Override
     public List<GcGroup> getGroupListByUserAccessIds(List<Integer> userAccessIds) {
-        // TODO Auto-generated method stub
-
         // 拼接foreach ， 并在中间都拼接 or
         String sql =
                 userAccessIds.stream()

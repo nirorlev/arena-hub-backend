@@ -5,13 +5,6 @@ import com.threeatom.guidecore.entity.PtTags;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * @author Administrator
- * @title: PtTagsMapper
- * @projectName
- * @description: TODO
- * @date 2023/1/9/00910:32
- */
 public interface PtTagsMapper extends BaseMapper<PtTags> {
 
     List<String> selectPtTagList(@Param("ptTags") PtTags ptTags);

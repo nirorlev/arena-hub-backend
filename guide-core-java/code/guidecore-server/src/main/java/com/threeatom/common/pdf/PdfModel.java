@@ -14,19 +14,10 @@ public class PdfModel {
 
     private String number; // 可用几年
 
-    /**
-     * 最上面的图片url
-     */
     private URL img1Url;
 
-    /**
-     * 右下角的图片url
-     */
     private URL img2Url;
 
-    /**
-     * 课程时长
-     */
     private String courseTotalTime;
 
     private String context;

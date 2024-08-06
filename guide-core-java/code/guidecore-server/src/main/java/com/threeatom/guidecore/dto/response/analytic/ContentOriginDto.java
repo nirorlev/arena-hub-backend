@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.dto.response.analytic;
 
 import com.threeatom.guidecore.enums.ContentOrigin;
-import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.Setter;
 

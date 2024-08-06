@@ -7,13 +7,6 @@ import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- * @author Administrator
- * @title: SysFileCaptionService
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/8/00810:56
- */
 public interface SysFileCaptionService extends IService<SysFileCaption> {
     SysFile selectSysFileCaption(Integer id);
 

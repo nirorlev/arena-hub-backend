@@ -14,14 +14,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- * 主站点实例
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Data
 @ApiModel(value = "GcMaster对象", description = "主站点实例")
 @TableName(autoResultMap = true)

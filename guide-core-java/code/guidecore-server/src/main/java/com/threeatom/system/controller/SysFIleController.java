@@ -50,13 +50,8 @@ public class SysFIleController extends GuideCoreController {
     public Message saveLink(@RequestBody SysFile sysFile, HttpServletRequest request) {
         if (null == sysFile.getId()) {
             ApiAssert.notNull(sysFile.getFileUrl()); // file url不可空
-            // 判断folder是否是正确值
-            //		ApiAssert.ifStringInList(sysFile.getFolder(), TableConstant.sysFile_folder_link_list,
-            // "foler字段错误，请于后端人员确认");
             ApiAssert.ifStringInList(
                     sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
-            // 因s3上传文件取消
-            // ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),EventUnifyType.video_links_JSON_STR,"fileTypeIndex字段错误，请于后端人员确认");
         }
         GcMaster master = this.getMaster();
         GcUser user = this.getGcUser();
@@ -118,46 +113,15 @@ public class SysFIleController extends GuideCoreController {
         return new Message().error("保存失败");
     }
 
-    //	@ApiOperation(value = "批量保存youtube视频", httpMethod = "POST")
-    //	@PostMapping("/saveYoutubeLink")
-    //	public Message saveYoutubeLink(@RequestBody List<SysFile> sysFile1) {
-    //		for(SysFile sysFile : sysFile1) {
-    ////			ApiAssert.notNull(sysFile.getYoutubeUrl());//file url不可空
-    //			ApiAssert.notNull(sysFile1);
-    //			ApiAssert.ifStringInList(sysFile.getFileType(), TableConstant.sysFile_fileType_list,
-    // "fileType字段错误，请于后端人员确认");
-    //			ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(), EventUnifyType.video_links_JSON_STR,
-    // "fileTypeIndex字段错误，请于后端人员确认");
-    //			if (TableConstant.sysFile_userRole_portal1 == sysFile.getUserRole().intValue()) {
-    //				sysFile.setUploadUid(this.getManager().getId());
-    //				sysFile.setMasterId(this.getMaster().getId());
-    //			} else if (TableConstant.sysFile_userRole_user2 == sysFile.getUserRole().intValue()) {
-    //				sysFile.setUploadUid(this.getGcUser().getId());
-    //			} else {
-    //				throw new SystemException("userRole不存在，请查看通用枚举配置");
-    //			}
-    //			SysSystem sys = this.getSystem();
-    //			sysFile.setSaveType(TableConstant.sysFile_saveType_youtubeLink_4);
-    //			sysFile.setSysId(sys.getId());
-    //		}
-    //		if (sysFileService.saveBatch(sysFile1)) {
-    //			return new Message().ok().addData("file", sysFile1);
-    //		}
-    //		return new Message().error("保存失败");
-    //	}
-
     @PostMapping("/saveBatichLink")
     public Message saveBatichLink(@RequestBody List<SysFile> sysFile1, HttpServletRequest request) {
         for (SysFile sysFile : sysFile1) {
             ApiAssert.notNull(sysFile1);
             ApiAssert.ifStringInList(
                     sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
-            // ApiAssert.jsonValueIntegerIn(sysFile.getFileTypeIndex(),
-            // EventUnifyType.video_links_JSON_STR, "fileTypeIndex字段错误，请于后端人员确认");
             SysSystem sys = this.getSystem();
             sysFile.setSysId(sys.getId());
             String value = sysFile.getFileUrl().substring(sysFile.getFileUrl().length() - 11);
-            String cuturl = StringUtils.join(value, "/");
             StringBuffer stringBuffer = new StringBuffer();
             stringBuffer.append("https://media.screenrock.com/");
             for (int i = 0; i < value.length(); i++) {

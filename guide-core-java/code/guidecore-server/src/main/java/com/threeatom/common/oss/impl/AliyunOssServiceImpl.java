@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.oss.impl;
 
 import com.alibaba.fastjson.JSONObject;
@@ -221,8 +216,6 @@ public class AliyunOssServiceImpl implements AliyunOssService {
 
         try {
             inputStream = (new URL(url)).openStream();
-        } catch (MalformedURLException var7) {
-            var7.printStackTrace();
         } catch (IOException var8) {
             var8.printStackTrace();
         }

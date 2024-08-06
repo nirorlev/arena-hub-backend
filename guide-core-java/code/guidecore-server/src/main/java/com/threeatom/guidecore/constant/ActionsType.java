@@ -1,12 +1,5 @@
 package com.threeatom.guidecore.constant;
 
-/**
- * @author Administrator
- * @title: ActionsType
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/8/00811:06
- */
 public class ActionsType {
 
     public static final String delete = "delete";

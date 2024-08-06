@@ -20,7 +20,6 @@ public class GcSubjectAssociationServiceImpl
 
     @Override
     public List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectSubsByMasterId(masterId);
     }
 

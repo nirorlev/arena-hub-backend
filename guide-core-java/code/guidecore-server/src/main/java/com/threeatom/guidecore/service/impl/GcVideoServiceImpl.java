@@ -135,10 +135,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
-		// TODO Auto-generated method stub
-//		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
-//        queryWrapper.in("sub_id", subIds);
-//        return this.list(queryWrapper);
 		if(subIds!=null&&subIds.size()>0) {
 			List<GcVideo> list = this.baseMapper.selectVideoListBySubIds(subIds);
 			list.forEach(i->{
@@ -153,14 +149,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<GcVideo> selectLikeVideoByUserId(Integer userId, Integer masterId) {
-		// TODO Auto-generated method stub
 		List<GcVideo> list = this.baseMapper.selectLikeVideoByUserId(userId,masterId);
         return list;
 	}
 
 	@Override
 	public GcVideo getVideoById(Integer vid) {
-		// TODO Auto-generated method stub
 		return this.baseMapper.selectVideoByid(vid);
 	}
 
@@ -175,7 +169,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	@Transactional
 	public boolean deleteVideo(Integer vid) {
-		// TODO Auto-generated method stub
 		//删除视频,先删除视频下面的所有的事件
 		eventService.deleteEventByVid(vid);
 
@@ -185,7 +178,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	@Transactional
 	public boolean deleteVideoBySubIds(List<Integer> subIds) {
-		// TODO Auto-generated method stub
 		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
 		queryWrapper.select("id").in("sub_id", subIds);
 
@@ -206,18 +198,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public int getVideoNum(Integer masterId,List<Integer> subIds,Integer managerId) {
-//		// TODO Auto-generated method stub
-//		List<Integer> ids=subjectService.getSubjectIds(masterId);
-//
-//		if(ids.size()<1) {
-//			return 0;
-//		}
-//
-//		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
-//
-//		queryWrapper.in("sub_id", ids);
-//
-//		return this.count(queryWrapper);
 		Integer type =TableConstant.COMMON_ONE;
 		Integer state = TableConstant.COMMON_ZERO;
 		return this.baseMapper.countVideoNumInPortal(masterId,type,state,subIds,managerId);
@@ -225,24 +205,16 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<GcVideo> getVideoListBySubId(Integer subId) {
-		// TODO Auto-generated method stub
 		return this.baseMapper.selectVideoListBySubId(subId);
 	}
 
 
-	//门户端
 	@Override
 	public List<GcVideo> getFuzzyNameVideoInMaster(Integer masterId,String videoName){
 		return this.baseMapper.getFuzzyNameVideoInMaster(masterId,videoName);
 	}
 
 
-	/**
-	 * 根据视频id查询总时长
-	 *
-	 * @param videoIds
-	 * @param userId
-	 */
 	@Override
 	public Long sumVideoLongByIdUser(List<Integer> videoIds, Integer userId) {
 		Long l= this.baseMapper.sumVideoLongByIdUser(videoIds, userId);
@@ -252,19 +224,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return l;
 	}
 
-	/**
-	 * 根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
-	 *
-	 * @return
-	 */
 	public Message getVideosBySubIds(Integer subjectId, Map<String, Object> params, SysSystem sys, HttpServletRequest request) {
 
-		//查询出视频信息
-//		Object videoNameObj = params.get("videoName");
-//		String videoName = null;
-//		if(videoNameObj != null){
-//			videoName = videoNameObj.toString();
-//		}
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
@@ -297,9 +258,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public void asyncMethodSaveVideo(GcVideo video, HttpServletRequest request) {
 		SysFileCaption sysFileCaption1 = new SysFileCaption();
-		/*if (!video.getTargetLang().contains(video.getLang())){
-			sysFileCaption1.setState(TableConstant.COMMON_ZERO);
-		}*/
 		sysFileCaption1.setLang(video.getLang());
 		sysFileCaption1.setVideoId(video.getId());
 		sysFileCaption1 = sysFileCaptionService.getCaptionInfo(sysFileCaption1);
@@ -451,8 +409,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if (CollectionUtils.isNotEmpty(gcVideos)){
 			List<Integer> videoIds = getVideoIds(gcVideos);
 
-			//Map<Integer,List<GcVideo>>videoMaps = gcVideos.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-
 			Map<String, Object> videoParams = new HashMap<>();
 			videoParams.put("contentIds",videoIds);
 			videoParams.put("type",1);
@@ -534,7 +490,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 							}
 						}
 					}
-					//gcVideo.setCompleteStatus(buildCompleteStatus(Integer.parseInt(gcVideo.getPlayState()),  eventList));
 					gcVideo.setUserId(userId);
 					BeanUtils.copyProperties(gcVideo,videos);
 					newGcVideos.add(videos);
@@ -695,6 +650,24 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public void updateVideoFilePrivacy(SysFile videoFile) {
+		GcVideo video = baseMapper.getVideoContentByFileId(videoFile.getId());
+		updatePrivacy(videoFile, video);
+	}
+
+	private void updatePrivacy(SysFile videoFile, GcVideo video) {
+		if (video == null) {
+			return;
+		}
+
+		if (video.getOriginCourse() != null) {
+			videoFile.setIsPrivate(video.getOriginCourse().getIsPrivate());
+		} else if (video.getOriginChannel() != null) {
+			videoFile.setIsPrivate(video.getOriginChannel().getIsPrivate());
+		}
+	}
+
+	@Override
 	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request) {
 		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, masterId);
 
@@ -845,7 +818,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);
 			// 查询评论 根据视频id查询评论 评论列表单独接口
 			List<GcVideoComment> commentVideoIds = gcVideoCommentService.getVideoComments(videoIds,masterId);//查询评论数，不用加userID
-//
 			Map<Integer, List<GcVideoComment>> commentVideoMap = new HashMap<>(commentVideoIds.size());
 			if(CollectionUtils.isNotEmpty(commentVideoIds)){
 				commentVideoMap = commentVideoIds.stream().collect(Collectors.groupingBy(GcVideoComment::getVideoId));
@@ -884,12 +856,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				List<GcVideoComment> gcVideoComments = commentVideoMap.get(id);
 				if(CollectionUtils.isNotEmpty(gcVideoComments)){
 					video.setCommentNum(gcVideoComments.size());//评论数量
-//					video.setCommentList(gcVideoComments);//评论列表
 				}
 				//设置已回答的问题和问题总数
 				List<GcEvent> answers = eventAnswerMap.get(id);
 				if(CollectionUtils.isNotEmpty(answers)){
-//					video.setEventNum(answers.size());
 					video.setEventList(answers);
 					List<GcEvent> answereds = answers.stream().filter(a -> StringUtils.isNotEmpty(a.getAnswerJson())).collect(Collectors.toList());
 					if(CollectionUtils.isNotEmpty(answereds)){
@@ -907,7 +877,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 					video.setVideoTime(videoFile.getVideoLong());
 					videoFile.setVideoId(video.getId());
 				}
-//				sysFileService.getResFullUrl(videoFile, sys, request);
 				// 改成在外面查出来，在这里set
 				GcUserVideoPlay gcUserVideoPlay = videoPalyStateByVideos.get(id);
 				video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
@@ -928,7 +897,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		if(playState == null){//没有播放记录
 			return TableConstant.VIDEO_COMPLETE_STATUS0;
 		}
-//		if(TableConstant.COMMON_THREE==envFlag){
 			//pt环境
 			if(CollectionUtils.isNotEmpty(eventList)){
 				if(playState==1 && CollectionUtils.isNotEmpty(answers)) {
@@ -952,28 +920,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				}
 			}
 
-//		}
-//		if(1 == playState /*&& CollectionUtils.isEmpty(eventList)*/){
-//			//看完视频，没有问题
-//			return TableConstant.VIDEO_COMPLETE_STATUS2;
-//		}
-//		if(0 == playState /*&& CollectionUtils.isNotEmpty(eventList) && CollectionUtils.isEmpty(answers)*/){
-//			//看了视频但是没看完，并且问题没回答,gc环境
-//			return TableConstant.VIDEO_COMPLETE_STATUS1;
-//		}
-//		if (TableConstant.COMMON_THREE==envFlag) {
-//			 return TableConstant.VIDEO_COMPLETE_STATUS1;
-//		}
 		return TableConstant.VIDEO_COMPLETE_STATUS2;
 	}
 
-	/**
-	 * 根据视频id和用户id查询播放的时长
-	 *
-	 * @param videoIds
-	 * @param userId
-	 * @return
-	 */
 	@Override
 	public Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId) {
 		Long l= this.baseMapper.sumPlayVideoLongByIdUser(videoIds, userId);
@@ -983,13 +932,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return l;
 	}
 
-	/**
-	 * 根据一级课程id查询返回视频信息，
-	 * 	后面需要根据一级课程id或者二级课程id进行分组
-	 * @param subjectIds
-	 * @param userId
-	 * @return
-	 */
 	@Override
 	public  List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId,Integer masterId,HttpServletRequest request,Integer envFlag) {
 		if(CollectionUtils.isNotEmpty(subjectIds)){
@@ -998,19 +940,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			if (null!=gcVideoIdSubList&&gcVideoIdSubList.size()!=0){
 				gcVideoss = this.baseMapper.selectVideosSubIds(gcVideoIdSubList);
 			}
-			//List<GcVideo> gcVideoss = this.baseMapper.selectVideosOneLevelSubIds(subjectIds);//公共方法，查询出来在进行groupby
 			List<GcVideo> gcVideos = this.buildVideoInfo(userId, null, gcVideoss,masterId,request,envFlag);
 			return gcVideos;
-//			if(CollectionUtils.isNotEmpty(gcVideoss)){
-//				List<GcVideo> videos = new ArrayList<GcVideo>(gcVideoss.size());
-//				for(GcVideo video : gcVideoss){
-//					GcVideo tmpVideo = getVideoCompleteStatusByVideoId(video, userId);
-//					if(tmpVideo != null){
-//						videos.add(tmpVideo);
-//					}
-//				}
-//				return videos;
-//			}
 		}
 		return new ArrayList<GcVideo>(0);
 	}
@@ -1218,10 +1149,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 				if(StringUtils.isNotBlank(tag)) {
 					fileEntity.getFileRemark().add(tag);
 				}
-//				String langJson=jsonObject.getString("langJson");
-//				if(StringUtils.isNotBlank(langJson)){
-//					fileEntity.getLangJson().add(langJson);
-//				}
 				fileService.save(fileEntity);
 				return fileEntity;
 	}
@@ -1265,14 +1192,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public Integer getSubIdByVid(Integer vid) {
-		// TODO Auto-generated method stub
-
 		return this.baseMapper.selectSubIdByVid(vid);
 	}
 
 	@Override
 	public List<GcVideo> getVideoListByTopSubIds(List<Integer> subIds) {
-		// TODO Auto-generated method stub
 		return this.baseMapper.selectVideoListByTopSubIds(subIds);
 	}
 
@@ -1293,7 +1217,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public Map<String, Object> getVideoSubjectInfo(Integer vid) {
-		// TODO Auto-generated method stub
 		return this.baseMapper.selectVideoTopicSubjectInfo(vid);
 	}
 

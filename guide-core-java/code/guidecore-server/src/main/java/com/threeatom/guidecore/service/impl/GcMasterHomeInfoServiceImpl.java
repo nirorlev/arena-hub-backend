@@ -14,11 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- *
- * @author huangwenjun
- * @date 2021-01-09 14:44:12
- */
 @Service
 public class GcMasterHomeInfoServiceImpl
         extends ServiceImpl<GcMasterHomeInfoMapper, GcMasterHomeInfo>
@@ -52,7 +47,6 @@ public class GcMasterHomeInfoServiceImpl
     @Override
     public List<GcMasterHomeInfo> getGcMasterHomeInfoList(
             Integer masterId, List<String> nameList, SysSystem sys, HttpServletRequest request) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcMasterHomeInfo> queryWrapper = new QueryWrapper<GcMasterHomeInfo>();
         queryWrapper.eq("master_id", masterId);
         if (nameList != null && nameList.size() > 0) {
@@ -71,13 +65,4 @@ public class GcMasterHomeInfoServiceImpl
         }
         return list;
     }
-
-    //	@Override
-    //	public List<GcMasterHomeInfo> getGcMasterHomeInfoList(Integer masterId) {
-    // TODO Auto-generated method stub
-    //		QueryWrapper<GcMasterHomeInfo> queryWrapper=new QueryWrapper<GcMasterHomeInfo>();
-    //		queryWrapper.eq("master_id", masterId);
-    //		return this.list(queryWrapper);
-    //	}
-
 }

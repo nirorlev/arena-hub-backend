@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -14,10 +9,6 @@ import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
 public interface SysFileMapper extends BaseMapper<SysFile> {
-    //    List<SysFile> selectFilesByFolderAndTagSearch(@Param("masterId")Integer masterId,
-    // @Param("sysId") Integer sysId, @Param("folder") String folder, @Param("searchKey") String
-    // searchKey);
-
     List<SysFile> selectFilesByTypeIndexAndTagSearch(
             @Param("folder") String folder,
             @Param("masterId") Integer masterId,
@@ -36,9 +27,6 @@ public interface SysFileMapper extends BaseMapper<SysFile> {
             @Param("masterId") Integer masterId, @Param("ids") Set<Integer> ids);
 
     SysFile selectByLogoId(@Param("masterId") Integer masterId);
-
-    //
-    //    List<SysFile> selectBySubId(@Param("subId")Integer subId);
 
     Integer selectFileTypeIndexByVideoId(@Param("videoId") Integer videoId);
 

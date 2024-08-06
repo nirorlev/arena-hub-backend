@@ -95,12 +95,6 @@ public class GuideCoreController extends BaseController{
 		return null;
 	}
 
-
-	/***
-	 * 获取权限信息
-	 * @param masterId
-	 * @return
-	 */
 	public GcUserAccess getUserAccess(Integer masterId) {
 		if(checkRole("user")) {
 			Integer uid=Integer.parseInt(this.getTokenValue("uid"));
@@ -109,10 +103,6 @@ public class GuideCoreController extends BaseController{
 		return null;
 	}
 
-	/**
-	 * 验证是否是教师权限
-	 * @param masterId
-	 */
 	public void assertUserTeacher(Integer masterId) {
 		GcUserAccess userAccess=this.getUserAccess(masterId);
 		if(userAccess==null) throw new SystemException(I18NUtil.get("permission.error"));
@@ -121,10 +111,7 @@ public class GuideCoreController extends BaseController{
 			throw new SystemException(I18NUtil.get("permission.error"));
 
 	}
-	/**
-	 * 验证是否是学生权限
-	 * @param masterId
-	 */
+
 	public void assertUserStudent(Integer masterId) {
 		GcUserAccess userAccess=this.getUserAccess(masterId);
 		if(userAccess==null) throw new SystemException(I18NUtil.get("guidecore.master.userNoPortalAccess"));

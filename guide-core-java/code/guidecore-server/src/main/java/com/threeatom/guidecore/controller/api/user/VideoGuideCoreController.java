@@ -40,8 +40,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-// import static com.threeatom.guidecore.controller.api.manager.PowtoonController.permit;
-
 @RestController
 @RequestMapping("/api/v1/guidecore/user") // 与UserGuideCoreController的一致，注意命名
 @Api(tags = "用户端视频管理")
@@ -91,6 +89,7 @@ public class VideoGuideCoreController extends GuideCoreController {
     @Autowired private GvgMasterService gvgMasterService;
 
     @Autowired private NewUiGcSubjectService newUiGcSubjectService;
+    @Autowired private UnavailableVideoService unavailableVideoService;
 
     @ApiOperation(value = "用户视频点赞的视频列表", httpMethod = "GET", notes = "type操作类型1点赞2收藏")
     @GetMapping("/getLikeVideoByUserId")
@@ -240,7 +239,6 @@ public class VideoGuideCoreController extends GuideCoreController {
     @GetMapping("/videoCommentList/{subId}")
     public Message videoCommentList(
             @PathVariable("subId") Integer subId, HttpServletRequest request) {
-        //        ApiAssert.notNull(subId, "参数subId缺失");
         GcSubject sub = subjectService.getSubNameBysubId(subId);
         if (sub == null) {
             throw new SystemException(I18NUtil.get(I18NUtil.get("guidecore.master.canFindSubject")));
@@ -281,6 +279,7 @@ public class VideoGuideCoreController extends GuideCoreController {
             }
         }
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
+        unavailableVideoService.nullifyVideoComments(videoCommentPageInfo, vid);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return new Message()
                 .ok()
@@ -401,8 +400,6 @@ public class VideoGuideCoreController extends GuideCoreController {
     @PostMapping("/getAnswerMessageList")
     public Message getAnswerMessageList(
             @RequestBody(required = false) MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
-        // @RequestBody(required=false) MessageFIlterVo messageFIlterVo,
-        //    	MessageFIlterVo messageFIlterVo = null;
         Message m = new Message().ok("获取成功");
         messageFIlterVo = messageCommon(messageFIlterVo, request);
 
@@ -418,7 +415,6 @@ public class VideoGuideCoreController extends GuideCoreController {
         List<Map<String, Object>> list =
                 userEventResourceService.getAnswerMessageListByGcMasterMessageTargetUserId(
                         messageFIlterVo, this.getSystem(), request);
-        //         List<Map<String, Object>> orderList = list.stream().sorted(Comparator.comparing(ma))
         PageInfo<Map<String, Object>> page = new PageInfo<Map<String, Object>>(list);
         for (Map<String, Object> map : list) {
             SysFile sysFile = new SysFile();

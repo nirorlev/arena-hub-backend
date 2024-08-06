@@ -6,13 +6,6 @@ import com.threeatom.system.entity.SysFileCaption;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * @author Administrator
- * @title: SysFileCaptionMapper
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/8/00810:05
- */
 public interface SysFileCaptionMapper extends BaseMapper<SysFileCaption> {
     SysFile selectFileCaption(@Param("id") Integer id);
 

@@ -4,9 +4,6 @@ import com.threeatom.common.validation.annotation.AggregateByWithStep;
 import com.threeatom.guidecore.enums.AnalyticsAggregation;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 

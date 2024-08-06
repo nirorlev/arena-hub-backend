@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -16,8 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SysBusinessServiceImpl extends ServiceImpl<SysBusinessMapper, SysBusiness>
         implements SysBusinessService {
-    private static final String CACHE_TAG = "SysBusiness";
-    private static final String KEY_TAG_ENTITY = "'entity:key-'+";
 
     public SysBusinessServiceImpl() {}
 

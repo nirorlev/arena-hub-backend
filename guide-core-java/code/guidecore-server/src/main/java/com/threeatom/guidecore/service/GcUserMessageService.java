@@ -6,14 +6,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-09
- */
 public interface GcUserMessageService extends IService<GcUserMessage> {
 
     boolean saveUserMessage(GcUserMessage userMessage);

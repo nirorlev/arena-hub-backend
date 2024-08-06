@@ -7,13 +7,6 @@ import com.threeatom.guidecore.service.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
 
-/**
- * @author PC
- * @title: GcSubjectCompleteServiceImpl
- * @projectName uploadServer
- * @description: TODO
- * @date 2023/12/811:17
- */
 @Service
 public class GcSubjectCompleteServiceImpl
         extends ServiceImpl<GcSubjectCompleteMapper, GcSubjectComplete>

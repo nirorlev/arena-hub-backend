@@ -10,11 +10,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- * 视频的播放记录节点
- * </p>
- */
 @ApiModel(value = "GcUserVideoPlaysNode对象", description = "视频的播放记录节点")
 @Data
 public class GcUserVideoPlaysNode implements Serializable {

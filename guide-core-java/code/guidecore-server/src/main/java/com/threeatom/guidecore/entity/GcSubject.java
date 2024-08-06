@@ -20,14 +20,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Data
 @ApiModel(value = "GcSubject对象", description = "")
 @TableName(autoResultMap = true)
@@ -108,6 +100,9 @@ public class GcSubject implements Serializable, TreeNodeEntity {
 
     @ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
     private Integer state;
+
+    @TableField(exist = false)
+    private Boolean isPrivate;
 
     @ApiModelProperty(value = "课程标语")
     private String courseTagline;
@@ -446,18 +441,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer isToDo;
 
-    //	@ApiModelProperty(value = "关联课程的gc_subject的id")
-    //	private Integer relatedSubjectId;
-    //
-    //	@ApiModelProperty(value = "关联课程的关联关系，1=导入import，2=别名alias")
-    //	private Integer relationType;
-    //
-    //	@TableField(exist = false)
-    //	private Integer thisId;//当前门户的课的id
-    //
-    //	@TableField(exist = false)
-    //	private Integer thisOrder;//当前门户的课的排序
-    //
-    //	@TableField(exist = false)
-    //	private Integer originalId;//导入的原课id
+    public Boolean getIsPrivate() {
+        return state != null && state == 0;
+    }
 }

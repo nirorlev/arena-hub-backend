@@ -140,9 +140,6 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         return this.baseMapper.countTypeRateForVideo(videoId, type);
     }
 
-    /**
-     * 根据课程id查询评论、点赞、星级评价
-     */
     @Override
     public Map<Integer, List<GcUserVideoAction>> getVideoActionBySubject(Map<String, Object> params) {
         List<GcUserVideoAction> vos = this.baseMapper.getVideoActionBySubject(params);
@@ -152,12 +149,6 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
         return new HashMap<>(0);
     }
 
-    /**
-     * 根据课程id，类型查询星级评价平均值和评论人数
-     *
-     * @param videoParams
-     * @return
-     */
     @Override
     public Map<Integer, GcUserVideoAction> getSubjectUserStar(Map<String, Object> videoParams) {
         Map<Integer, GcUserVideoAction> map = this.baseMapper.getSubjectUserStar(videoParams);
@@ -177,7 +168,6 @@ public class GcUserVideoActionServiceImpl extends ServiceImpl<GcUserVideoActionM
                     userVideoAction.setSubjectStarAvg(newAvgStar);
                     userVideoAction.setSubjectId(gcUserVideoAction.getSubjectId());
                     map.put(gcUserVideoAction.getSubjectId(), userVideoAction);
-                    continue;
                 }
             }
         }

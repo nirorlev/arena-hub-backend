@@ -203,8 +203,6 @@ public class HomeGuideCoreController extends GuideCoreController {
                 teacherDataService.getStudentBehaviorChartsData(
                         user_id, subjectIds, masterId, startTime, endTime, message, this.getManager().getId());
 
-        // 查询门户登录次数
-
         return message.ok("查询成功").addData("studentBehaviorChartsData", jsonObject);
     }
 
@@ -318,7 +316,6 @@ public class HomeGuideCoreController extends GuideCoreController {
         ApiAssert.notEmpty(lastName, I18NUtil.get("guidecore.native.noLastName"));
         ApiAssert.notEmpty(firstName, I18NUtil.get("guidecore.native.noFirstName"));
 
-        //		GcManager user = managerService.getManagerByUsername(email);
         GcManager user = this.getManager();
         if (user == null) {
             return new Message().error(I18NUtil.get("guidecore.master.login.usernameError"));
@@ -338,28 +335,6 @@ public class HomeGuideCoreController extends GuideCoreController {
             return new Message().error();
         }
     }
-
-    //    @ApiOperation(value = "修改门户用户基础信息", httpMethod = "POST")
-    //    @PostMapping("/editMasterUserInfo")
-    //    public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
-    //        Message message = new Message();
-    //        GcManager gcManager1 = managerService.getManagerByUsername(gcManager.getUsername());
-    //        if(null !=gcManager.getPassword()){
-    //            String pwdHash = new SimpleHash("MD5", gcManager.getPassword(), gcManager1.getSalt()
-    // + SysConstant.PASS_SALT).toHex();
-    //            gcManager1.setPassword(pwdHash);
-    //            String salt= PasswordSecretUtil.createSalt();
-    //            gcManager1.setSalt(salt);
-    //        }
-    //        gcManager1.setLastName(gcManager.getLastName());
-    //        gcManager1.setFirstName(gcManager.getFirstName());
-    //        gcManager1.setUsername(gcManager.getUsername());
-    //        if(managerService.saveOrUpdateManager(gcManager1)){
-    //            return new Message().ok();
-    //        }else{
-    //            return new Message().error();
-    //        }
-    //    }
 
     @ApiOperation(value = "修改密码", httpMethod = "POST")
     @PostMapping("/changePassword")
@@ -394,56 +369,11 @@ public class HomeGuideCoreController extends GuideCoreController {
         }
     }
 
-    // 2021-01-(新)增加&更新社交媒体信息
-    //	@ApiOperation(value = "保存社交媒体账号配置", httpMethod = "POST")
-    //    @PostMapping("/save")
-    //    public Message save(@RequestBody List<SocialMediaConfig> list) {
-    //		GcMaster master=this.getMaster();
-    //
-    //		if(socialMediaService.saveSocialMediaConfig(master.getId(), list))
-    //			return new Message().ok();
-    //		return new Message().error();
-    //    }
-
-    //	@ApiOperation(value="修改社交账号",httpMethod = "POST")
-    //	@PostMapping("/updateSocialMedia")
-    //	public Message updateSocialMedia(@RequestBody JSONObject requestParams) {
-    //		//GcMaster master=this.getMaster();
-    //		//int masterId=master.getId();
-    //		int masterId=65;//测试数据masterId
-    //		GcSocialMedia gcSocialMedia = socialMediaService.getSocialMediaByMasterId(masterId);
-    //		if(gcSocialMedia==null) {
-    //			return new Message().error();
-    //		}
-    //		int fileId = Integer.parseInt(requestParams.getString("fileId"));
-    //		//if(fileId) {}
-    //		String name = requestParams.getString("name");
-    //		String link = requestParams.getString("link");
-    //		int type = Integer.parseInt(requestParams.getString("type"));
-    //		int onOff = Integer.parseInt(requestParams.getString("onOff"));
-    //		gcSocialMedia.setFileId(fileId);
-    //		gcSocialMedia.setName(name);
-    //		gcSocialMedia.setLink(link);
-    //		gcSocialMedia.setType(type);
-    //		gcSocialMedia.setOnOff(onOff);
-    //
-    //		if(socialMediaService.saveOrUpdate(gcSocialMedia)){
-    //			return new Message().ok();
-    //		}else{
-    //			return new Message().error();
-    //		}
-    //	}
-
-    //  It was this before: - James
-    //    @GetMapping("/version")
-    //    @GetMapping("/hub/api/v1/guidecore/version")
     @Order(1)
     @GetMapping("/version")
     public Message getVersion() {
         StringBuilder sb = null;
         try {
-            // InputStream inputStream =
-            // this.getClass().getClassLoader().getResourceAsStream("version.json");
             InputStream in = new BufferedInputStream(new FileInputStream("./version.json"));
             InputStreamReader inputStreamReader = new InputStreamReader(in, "UTF-8");
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -457,15 +387,7 @@ public class HomeGuideCoreController extends GuideCoreController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // return new Message().ok().addData("context",sb.toString());
-        // return new Message().ok();
-
-        // JSONObject json = new JSONObject(sb.toString());
-        // return new Message().ok().addJson(JSONObject.parse(sb.toString()));
-        // String jsonStringTest = "{\"JSON2\":\"Hello my
-        // World!\",\"JSON3\":{\"key1\":\"value1\"},\"JSON1\":\"Hello World!\"}";
         JSONObject jsonStringJson = (JSONObject) JSONObject.parse(sb.toString());
-        // return new Message().ok().mergeJson(jsonStringJson);
         return new Message().ok().setJsonData(jsonStringJson);
     }
 }

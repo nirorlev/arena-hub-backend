@@ -4,13 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcSubjectComplete;
 import java.util.List;
 
-/**
- * @author PC
- * @title: GcSubjectComplete
- * @projectName uploadServer
- * @description: TODO
- * @date 2023/12/811:11
- */
 public interface GcSubjectCompleteService extends IService<GcSubjectComplete> {
 
     GcSubjectComplete getSubjectCompleteInfo(Integer masterId, Integer userId, Integer subjectId);

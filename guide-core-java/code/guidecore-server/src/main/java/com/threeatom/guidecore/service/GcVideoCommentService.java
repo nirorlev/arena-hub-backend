@@ -9,14 +9,6 @@ import com.threeatom.system.entity.SysSystem;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 视频评论 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 public interface GcVideoCommentService extends IService<GcVideoComment> {
     boolean saveVideoComment(GcVideoComment videoComment);
 
@@ -34,18 +26,8 @@ public interface GcVideoCommentService extends IService<GcVideoComment> {
 
     Integer countCommentForVideo(Integer videoId, Integer userId, Integer masterId);
 
-    /**
-     * 	根据视频id加载评论列表，以及评论人信息
-     * @param videoIds
-     * @param limit
-     * @return
-     */
     List<GcVideoComment> getVideoComments(List<Integer> videoIds, Integer masterId);
 
-    /**
-     * 根据主评论id查询下级评论
-     * @return
-     */
     List<GcVideoComment> selectCommentByMainCommentId(Integer mainId);
 
     boolean insertComment(GcVideoComment gcVideoComment);

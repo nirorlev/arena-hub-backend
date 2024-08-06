@@ -5,14 +5,6 @@ import com.threeatom.guidecore.entity.GcUserSaveContentFollow;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-11
- */
 public interface GcUserSaveContentFollowMapper extends BaseMapper<GcUserSaveContentFollow> {
 
     List<Integer> selectFollowList(

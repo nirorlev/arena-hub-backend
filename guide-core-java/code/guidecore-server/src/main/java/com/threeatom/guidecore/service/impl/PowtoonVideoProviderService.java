@@ -22,12 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 import com.threeatom.guidecore.service.ExternalVideoProviderService;
 
-/**
- * @author cvmcosta
- * @title: PowtoonExternalVideoProviderService
- * @projectName jeeplus
- * @description: Responsible for importing video information from Powtoon
- */
 @Service
 @RequiredArgsConstructor
 public class PowtoonVideoProviderService implements ExternalVideoProviderService {
@@ -69,7 +63,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         return ptLoginConfigService.getOne(queryWrapper);
     }
 
-    // TODO: Refactor this piece of code
     private String getPowtoonIdFromLoadedPage(URL url) {
         try {
             InputStream inputStream = url.openStream();

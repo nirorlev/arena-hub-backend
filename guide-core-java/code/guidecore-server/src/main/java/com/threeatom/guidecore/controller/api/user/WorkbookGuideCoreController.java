@@ -17,7 +17,6 @@ import com.threeatom.guidecore.mapper.GcEventMapper;
 import com.threeatom.guidecore.mapper.GcVideoMapper;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -328,7 +327,6 @@ public class WorkbookGuideCoreController extends GuideCoreController {
         }
 
         return new Message().ok().addData("subVideoEventList", list);
-        //				.addData("numMap", numMap);
     }
 
     @ApiOperation(value = "作业本事件回复内容-新", httpMethod = "POST")

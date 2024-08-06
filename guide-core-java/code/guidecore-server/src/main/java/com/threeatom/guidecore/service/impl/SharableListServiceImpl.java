@@ -50,12 +50,7 @@ public class SharableListServiceImpl implements SharableListService {
 
     @Override
     public GroupAccessDto getSharableListByChannelId(Integer channelId, GcUser user) {
-        PtChannel channel = channelService.getById(channelId);
-
-        if (channel == null) {
-            log.error("Channel with id {} not found", channelId);
-            throw new IllegalArgumentException("Channel not found");
-        }
+        PtChannel channel = getChannel(channelId);
 
         Integer visibleFlag = channel.getVisibleFlag();
 
@@ -72,6 +67,22 @@ public class SharableListServiceImpl implements SharableListService {
 
         List<AccessGroupDetailsDto> groups = getChannelSharableGroups(channelId, channel.getMasterId(), user);
         return getGroupAccessDto(false, false, groups, accessSourceDto);
+    }
+
+    private PtChannel getChannel(Integer channelId) {
+        PtChannel channel = channelService.getById(channelId);
+
+        if (channel == null) {
+            log.error("Channel with id {} not found", channelId);
+            throw new IllegalArgumentException("Channel not found");
+        }
+
+        // channel is the section so get the original channel
+        if (channel.getFid() != null) {
+            return channelService.getById(channel.getFid());
+        }
+
+        return channel;
     }
 
     @Override
@@ -95,11 +106,9 @@ public class SharableListServiceImpl implements SharableListService {
     @Override
     public GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user) {
         GcUserSaveFolder playlist = playlistService.getById(id);
-        boolean isPublic = playlist.getIfPrivate() != 1;
-        boolean isPrivate = playlist.getIfPrivate() == 1;
         AccessSourceDto accessSourceDto = getAccessSourceDto(id, user, playlist.getUserId(), SourceType.PLAYLIST);
 
-        return getGroupAccessDto(isPublic, isPrivate, null, accessSourceDto);
+        return getGroupAccessDto(!playlist.getIsPrivate(), playlist.getIsPrivate(), null, accessSourceDto);
     }
 
     private List<AccessGroupDetailsDto> getChannelSharableGroups(Integer channelId, Integer masterId, GcUser user) {

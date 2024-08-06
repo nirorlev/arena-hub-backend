@@ -19,8 +19,6 @@ public class MessageEventType {
     public static final int AUDIO_3 = EventUnifyType.AUDIO_3; // 音频
     public static final int DOC_4 = EventUnifyType.DOC_4; // 文档
     public static final int QUESTION_5 = EventUnifyType.QUESTION_5; // 问题回答消息
-    // 5留空，为保与gc_user_event_resource的type一致
-    public static final int SCREENROCK_6 = EventUnifyType.SCREENROCK_6; // ScreenRock链接
 
     public static final String JSON_STR = EventUnifyType.JSON_STR012345;
     // 除5外

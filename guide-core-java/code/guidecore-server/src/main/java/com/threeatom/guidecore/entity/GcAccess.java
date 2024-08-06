@@ -14,14 +14,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @ApiModel(value = "GcAccess对象", description = "")
 @TableName(autoResultMap = true)
 public class GcAccess implements Serializable {

@@ -36,12 +36,6 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 
-/**
-* @author: rjunchao
-* @date: 2021-8-15 10:16:46
-* @desc: 新ui对应的课程service
-*
-*/
 @Service
 public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper, GcSubject> implements NewUiGcSubjectService{
 
@@ -74,18 +68,9 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	@Autowired
 	@Lazy
 	private GvgMasterService gvgMasterService;
-//
-//	@Autowired
-//	private GcVideoService videoService;//视频业务类
 
-	/**
-	 * 分页查询课程信息
-	 */
 	@Override
 	public PageInfo<GcSubject> list(Map<String, Object> params, SysSystem system, HttpServletRequest request,Integer envFlag) {
-
-//		ApiAssert.notEmpty(id, "没有找到masterId");
-
 		PageInfo<GcSubject> pageInfo = page(params, request);
 		Integer userId = (Integer) params.get("userId");
 		buildSubject(pageInfo, userId, system, request,envFlag);
@@ -93,26 +78,16 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	private PageInfo<GcSubject> page(Map<String, Object> params, HttpServletRequest request) {
-		String referer = request.getHeader("referer");
-//		Integer pageNum = 1;
-//		Integer pageSize = 10;
-
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 
 
 		String masterId = request.getHeader("masterId");
-//		ApiAssert.notEmpty(masterId, "没有找到masterId");
 		if(Objects.isNull(masterId)){
 		throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
 		}
 		params.put("masterId", masterId);
-//		if("https://govidigo.cn/".equals(referer)){
-//			params.put("gvgFlag",TableConstant.COMMON_ONE);
-//		}else {
-//			params.put("gvgFlag",null);
-//		}
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
 		}
@@ -121,18 +96,11 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	private PageInfo<GcSubject> listByFid(Map<String, Object> params, HttpServletRequest request) {
-		/*Integer pageNum = 1;
-		Integer pageSize = 10;
-		try {
-			pageNum = Integer.parseInt(params.get("pageNum") == null ? "1": params.get("pageNum").toString());
-			pageSize = Integer.parseInt(params.get("pageSize") == null ? "8": params.get("pageSize").toString());
-		} catch (Exception e) {}*/
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 
 		Integer masterId = RequestUtil.getMasterId(request).get();
- //		ApiAssert.notEmpty(masterId, "没有找到masterId");
 		params.put("masterId", masterId);
 		Page<GcSubject> page = PageHelper.startPage(pageNum, pageSize, true);
 		this.baseMapper.listByFid(params);
@@ -156,10 +124,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
 		}
-		List<GcSubject> list = this.baseMapper.findSubjects(params);
-//		Integer userId = (Integer) params.get("userId");
-//		return buildSubject2(list,userId,new SysSystem(),request,EnvType.GC.getCode());
-		return list;
+        return this.baseMapper.findSubjects(params);
 	}
 
 	@Override
@@ -197,7 +162,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			Map<Integer, GcSubject> subjectsDurationMap = sumSubjectDuration(subjectIds);
 			//3、查询出话题list
 			log.info("3、查询出话题list");//课程下视频播放进度
-//			Map<Integer, List<GcVideo>> videoPlayMap = gcVideoService.getVideoCompleteStatusBySubject(subjectIds, userId);
 			Map<Integer,Object> lastVideoPlayMap = gcUserVideoPlayService.getLastVideoPlayList(subjectIds,userId,masterId);
 
 			List<GcVideo> videosBySubjectIds0 = gcVideoService.getVideosBySubjectIds0(subjectIds, userId,masterId,request, envFlag);
@@ -208,7 +172,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			}
 //					4、整体百分比进度
 //				5、统计参与人数
-//			Map<Integer, GcUser> subjectUsers = gcUserService.getUsersBySubject(subjectIds,masterId);
 			Map<Integer, GcUser> subjectUsers = gcUserService.getWatchedUserNum(subjectIds,masterId);
 
 //			6、话题进度,查询评论总数和星级评价
@@ -222,9 +185,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 
 			for(GcSubject sub : subjects) {
 				Integer subjectId = sub.getId();
-//				log.info(sub.getId()+"");
-//				log.info(sub.getName());
-				//图片路径转换
 				SysFile subImgFile = sub.getSubImgFile();
 				sysFileService.getResFullUrl(subImgFile,request);
 				sub.setSubImgFile(subImgFile);
@@ -233,17 +193,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 				if(subjectVL != null){
 					sub.setSubjectVideoDuration(subjectVL.getSubjectVideoDuration());
 				}
-				//设置话题list 前端根据paly_state显示绿色或者黄色
-//				List<GcVideo> gcVideos = videoPlayMap.get(subjectId);
-//				if(CollectionUtils.isNotEmpty(gcVideos)) {
-//					//设置
-////					sub.setGcVideoCompletes(gcVideos);
-//					sub.setGcVideos(gcVideos);//视频播放list,播放
-//					//整体百分比进度
-//					sub.setVideoProgressPercent(calcVideoProgressPercent(gcVideos));
-//				}
-
-				//设置二级课程的数量
 				List<GcVideo> gcVideos = sub0Map.get(subjectId);
 				if(CollectionUtils.isNotEmpty(gcVideos)) {
 					Map<Integer, List<GcVideo>> sub1Map = gcVideos.stream().collect(Collectors.groupingBy(GcVideo::getSubId));//根据视频中的二级课程id在进行分组
@@ -251,7 +200,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 					sub.setSubjects(subjects1);//二级课程 没有视频也需要设置二级课程的值
 					sub.setGcVideos(gcVideos);
 					//整体百分比进度
-//					sub.setVideoProgressPercent(calcVideoProgressPercent(gcVideos));
 					SubjectTotals subjectTotals = gvgMasterService.calcTotals(subjects1,userId,true,masterId,envFlag);
 					sub.setVideoProgressPercent(subjectTotals.getTotalProgressPercent());
 					gcVideos.forEach(i->{
@@ -346,11 +294,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return subList;
 	}
 
-	/**
-	 * 构建二级课程
-	 * @param sub1Map
-	 * @return
-	 */
 	@Override
 	public List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map) {
 		List<GcSubject> subjects = new ArrayList<>(sub1Map.keySet().size());
@@ -381,21 +324,12 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return this.baseMapper.getSubjectNum(subIds);
 	}
 
-	/**
-	 * 计算课程下视频的播放进度
-	 * 	根据完成状态计算百分比
-	 * @param userVideoPlays
-	 * @return
-	 */
 	private int calcVideoProgressPercent(List<GcVideo> userVideoPlays) {
 		if(CollectionUtils.isEmpty(userVideoPlays)){
 			return 0;
 		}
 
 		List<GcVideo> finishs = userVideoPlays.stream().filter(e -> TableConstant.VIDEO_COMPLETE_STATUS2 == e.getCompleteStatus()).collect(Collectors.toList());
-//		if(CollectionUtils.isEmpty(finishs)) {
-//			return 0;
-//		}
 
 		List<GcVideo> harfs = userVideoPlays.stream().filter(e -> TableConstant.SUBJECT_COMPLETE_STATUS1 == e.getCompleteStatus()).collect(Collectors.toList());
 		int harfSize = 0;
@@ -421,9 +355,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return playState1.intValue();
 	}
 
-	/**
-	 * 	统计课程的时长，单位秒
-	 */
 	@Override
 	public Map<Integer, GcSubject> sumSubjectDuration(List<Integer> subjectIds) {
 		return  this.baseMapper.sumSubjectDuration(subjectIds);
@@ -470,13 +401,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 
 		return subjectMap;
 	}
-	/**
-	 * 根据一级课程id查询二级课程及视频信息
-	 *
-	 * @param params
-	 * @param request
-	 * @return
-	 */
+
 	@Override
 	public PageInfo<GcSubject> listSubjectByFid(Map<String, Object> params, SysSystem sys, HttpServletRequest request,boolean ifLogin,List<Integer> subIds,Integer envFlag) {
 		Object idObj = new Object();
@@ -497,13 +422,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			PageParam pageParam = new PageParam(request);
 			Integer pageNum = pageParam.getPageNum();
 			Integer pageSize=pageParam.getPageSize();
-//		 	if (pageNum == null) {
-//	            pageNum = 0;
-//	        }
-//
-//	        if (pageSize == null) {
-//	            pageSize = 0;
-//	        }
 			if (pageNum > 0 && pageSize > 0) {
 				PageHelper.startPage(pageNum, pageSize);
 			}
@@ -545,11 +463,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 
 
 
-	/**
-	 * 根据课程号查询上一个播放的视频ID
-	 *
-	 * @return
-	 */
 	@Override
 	public Integer selectLastVideoId(Integer subId,Integer userId,Integer masterId) {
 		return gcVideoMapper.selectLastVideoIdBySubjectId(subId,userId,masterId);

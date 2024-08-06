@@ -52,8 +52,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-//import static com.threeatom.guidecore.controller.api.manager.PowtoonController.permit;
-
 @RestController
 @RequestMapping("/api/v1/guidecore/manager")
 @RequiresRoles({"manager"})
@@ -164,14 +162,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "保存基本配置", httpMethod = "POST")
     @PostMapping("/save")
     public Message save(@RequestBody @ApiParam(name = "主站信息", value = "站点信息") GcMaster master) {
-        //test start
-//    	GcMaster m1 = masterService.getMasterById(master.getId());
-//    	String beforeSavedDate=JSONObject.toJSONString(m1.getIntroDoneStep())+"，对象："+m1.toString();
-//    	LOGGER.error("save接口1："+master.getId()+"-"+beforeSavedDate);
-//    	String inData=JSONObject.toJSONString(master.getIntroDoneStep())+"，对象："+master.toString();
-//    	LOGGER.error("save接口2："+master.getId()+"-"+inData);
-        //test end
-
         GcManager manager = this.getManager();
         if(Objects.isNull(manager.getSuperAdminFlag()) || !manager.getSuperAdminFlag().equals(1)) {
             master.setManagerId(manager.getId());
@@ -185,16 +175,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
         }
         if (masterService.setMaster(master)) {
             return new Message().ok(200, "保存成功").addData("master",master);
-            //test start
-//        	GcMaster m2 = masterService.getMasterById(master.getId());
-//        	String savedData=JSONObject.toJSONString(m2.getIntroDoneStep())+"，对象："+m2.toString();
-//        	LOGGER.error("save接口3："+master.getId()+"-"+savedData);
-//            return new Message().ok(200, "保存成功")
-//            		.addData("master_id", master.getId())
-//            		.addData("保存前参数", beforeSavedDate)
-//            		.addData("传入的参数", inData)
-//            		.addData("保存后参数", savedData);
-            //test end
         }else {
             return new Message().error();
         }
@@ -231,15 +211,11 @@ public class ManagerGuideCoreController extends GuideCoreController {
             list = subService.getSubListWithImgByIds(subIds, sys, request,master.getId());
 //          //门户课程
             list.addAll(subjectAssociationList);
-//            list = subService.listSubWithAssoWithChildSubNotHiddenByIds(master.getId(), subIds);
-
-
         }else{
             list = subService.getSubListWithImg(master.getId(), sys, request);
             List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),null,false);
             list.addAll(subjectAssociationList);
         }
-        List<Integer> idList = list.stream().map(GcSubject::getId).collect(Collectors.toList());
         return new Message().ok().addData("list", list);
     }
 
@@ -336,12 +312,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
         return new Message().ok();
     }
 
-
-
     @ApiOperation(value = "代码list", httpMethod = "POST")
     @PostMapping("/codeList")
     public Message listAccessCode(@RequestBody GcMaster filterMaster, HttpServletRequest request) {
-//        Message message = new Message();
         GcMaster master = this.getMaster();
         GcManager manager = this.getManager();
         List<Integer> masterIds = new ArrayList<>();
@@ -455,11 +428,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
             user.setPassword(newPwd);
             if(userService.saveOrUpdate(user)){
                 //发送邮件
-                String textBody = I18NUtil.get("guidecore.superAdminChangePassword") + requestParams.get("newPassword");
                 String email = user.getUsername();
                 List<String> emailList = new ArrayList<>();
                 emailList.add(email);
-                //SingleSendMailResponse response = emailService.sendEmail(emailService.portalRestPasswordEmail(emailList,textBody));
                 return new Message().ok("success");
             }else{
                 return new Message().error("fail");
@@ -475,7 +446,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
                         String email = user.getUsername();
                         List<String> emailList = new ArrayList<>();
                         emailList.add(email);
-                       // SingleSendMailResponse response = emailService.sendEmail(emailService.portalRestPasswordEmail(emailList, textBody));
                         return new Message().ok("success");
                     }catch (Exception e){
                         throw new Exception("invalid email");
@@ -562,8 +532,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
     @PostMapping("/saveSub")
     public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject sub,HttpServletRequest request) {
-//    	 LOGGER.info(sub.toString());
-
         ApiAssert.ifStringNotInList(sub.getName(), CommonConstant.defaultNoCourseOrVideName, "课程名称错误，不可用该值");
 
         GcManager manager = this.getManager();
@@ -572,7 +540,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
 
         GcMaster master = this.getMaster();
-//        Integer userId = this.getGcUser().getId();
         Integer masterId = null;
         if (null==master&&null!=request.getHeader("masterId")){
             masterId = Integer.parseInt(request.getHeader("masterId"));
@@ -583,19 +550,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         GcUser user = this.getGcUser();
         subService.saveSubInfo(sub,manager,master,user,request);
         return new Message().ok("添加成功！").addData("sync", sub);
-//        else return new Message().error("添加失败！");
     }
-
-    //    @ApiOperation(value = "修改课程状态", httpMethod = "POST")
-//    @PostMapping("/changeSubState")
-//    public Message changeSubOrder(@RequestBody GcSubject sub) {
-//    	ApiAssert.jsonValueIntegerIn(sub.getState(), TableConstant.gcSubjectState_hidden_m1_jsonStr, "state值必须为通用枚举中的一个");
-//    	if(sub.getMasterId()!=this.getMaster().getId()) {
-//    		throw new SystemException("该课程不属于该门户，不可修改状态");
-//    	}
-//
-//    }
-
 
     @ApiOperation(value = "修改课程排序", httpMethod = "POST")
     @PostMapping("/changeSubOrder")
@@ -859,9 +814,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "删除视频", httpMethod = "DELETE")
     @DeleteMapping("/delVideo/{id}")
     public Message deleteVideo(@PathVariable("id") Integer vid,HttpServletRequest request) {
-//        if (videoService.deleteVideo(vid)) return new Message().ok();
-//
-//        return new Message().error();
         return gvgMasterService.deleteVideo(vid,EnvType.GC.getCode(),null,null);
     }
 
@@ -960,9 +912,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
             master.setId(masterId);
         }
         return gvgMasterService.deleteSub(subId,EnvType.GC.getCode(),master,null);
-//        System.out.println(master.getId());
-//        if (subService.deleteSub(subId,master.getId())) return new Message().ok();
-//        return new Message().error("删除失败");
     }
 
     @ApiOperation(value = "事件类型", httpMethod = "GET")
@@ -1030,7 +979,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
         QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("master_id",masterId);
         queryWrapper.in("type",TableConstant.COMMON_THREE);
-        //Map<Integer,List<GcVideo>> videoMap = videoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
         Map<Integer,List<PtTags>> listMap =ptTagsService.list(queryWrapper).stream().collect(Collectors.groupingBy(PtTags::getResourceId));
         list.forEach(i->{
             if (null!=listMap.get(i.getId())){

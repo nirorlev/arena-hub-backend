@@ -5,14 +5,6 @@ import com.threeatom.guidecore.entity.GcVideoComment;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- * 视频评论 Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 public interface GcVideoCommentMapper extends BaseMapper<GcVideoComment> {
 
     List<GcVideoComment> selectGetAllCommentByVideoId(Integer vid, Integer limit);
@@ -24,11 +16,6 @@ public interface GcVideoCommentMapper extends BaseMapper<GcVideoComment> {
 
     Integer countCommentForVideo(Integer videoId, Integer userId, Integer masterId);
 
-    /**
-     * 	根据视频id加载评论列表，以及评论人信息
-     * @param videoIds
-     * @return
-     */
     List<GcVideoComment> getVideoComments(
             @Param("videoIds") List<Integer> videoIds, @Param("masterId") Integer masterId);
 

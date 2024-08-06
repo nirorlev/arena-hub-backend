@@ -17,14 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-09
- */
 @Service
 public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, GcUserMessage>
         implements GcUserMessageService {
@@ -89,7 +81,6 @@ public class GcUserMessageServiceImpl extends ServiceImpl<GcUserMessageMapper, G
     @Override
     public List<Map<String, Object>> getMessageNumByTeacherIdAndUserIds(
             Integer teacherId, List<Integer> userIds, String order) {
-        // TODO Auto-generated method stub
         return this.baseMapper.selectUsersMessageByTeacherIdAndUserIds(teacherId, userIds, order);
     }
 

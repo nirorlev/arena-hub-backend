@@ -5,13 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-/**
- * @author Administrator
- * @title: AliPayConfiguration
- * @projectName guidecore
- * @description: TODO
- * @date 2021/11/18/01815:12
- */
 @Configuration
 public class TimerTaskConfiguration {
     @Bean

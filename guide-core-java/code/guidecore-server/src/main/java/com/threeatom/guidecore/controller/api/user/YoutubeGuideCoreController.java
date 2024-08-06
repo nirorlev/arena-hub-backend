@@ -2,24 +2,14 @@ package com.threeatom.guidecore.controller.api.user;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-//import com.squareup.okhttp.MediaType;
-//import com.squareup.okhttp.OkHttpClient;
-//import com.squareup.okhttp.Request;
-//import com.squareup.okhttp.Response;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.redis.RedisOperator;
 
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
-import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
-import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.utils.HttpUtil;
 import io.swagger.annotations.ApiOperation;
 import okhttp3.*;
 import org.slf4j.Logger;
@@ -31,21 +21,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.apache.shiro.web.filter.mgt.DefaultFilter.user;
-
 
 @RestController
 @RequestMapping("/api/v1/guidecore/user/youtube")
@@ -176,8 +157,6 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 					String playUrl = "https://www.youtube.com/embed/" + vid1;
 					map.put("playUrl",playUrl);
 
-
-
 					String videoTimeUrl = "https://youtube.googleapis.com/youtube/v3/videos?part=id&part=contentDetails&part=snippet"+"&id="+vid1+"&key="+youtubeApiKey;
 					final OkHttpClient okHttpClient1 = new OkHttpClient();
 					final Request request1 = new Request.Builder()
@@ -233,21 +212,14 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 							Integer totalDuration = hours*3600+minutes * 60 + seconds;
 							map.put("duration", totalDuration);
 						}
-
-
 					}
-
 
 					vidList.add(map);
 					return message.ok().addData("yotubeList",vidList);
 				}else {
-					//如果有参数&
 					String vid = cutUrl.substring(index0, index1).substring("v=".length());
 					String playUrl = "https://www.youtube.com/embed/" + vid;
 					map.put("playUrl",playUrl);
-
-
-
 
 					String videoTimeUrl = "https://youtube.googleapis.com/youtube/v3/videos?part=id&part=contentDetails&part=snippet"+"&id="+vid+"&key="+youtubeApiKey;
 					final OkHttpClient okHttpClient1 = new OkHttpClient();
@@ -308,9 +280,6 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 						}
 					}
 
-
-
-
 					vidList.add(map);
 					return message.ok().addData("yotubeList", vidList);
 				}
@@ -323,7 +292,6 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 					.build();
 			final Response response = okHttpClient.newCall(request).execute();
 			JSONObject jsonObject = JSONObject.parseObject(response.body().string());
-//			System.out.println(jsonObject);
 			JSONArray jsonArray = jsonObject.getJSONArray("items");
 			List<Object> objectList = jsonArray.toJavaList(Object.class);
 			List<String> vidList = new ArrayList<>();

@@ -38,6 +38,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     private Integer visibleFlag;
 
+    @TableField(exist = false)
+    private Boolean isPrivate;
+
     private Integer categoryId;
 
     @TableField(value = "\"level\"")
@@ -171,4 +174,8 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(exist = false)
     private List<GcAccess> accessList;
+
+    public Boolean getIsPrivate() {
+        return visibleFlag != null && visibleFlag == 0;
+    }
 }

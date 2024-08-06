@@ -10,14 +10,6 @@ import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author qiaoxide
- * @since 2019-12-09
- */
 @Data
 @ApiModel(value = "GcUserMessage对象", description = "")
 public class GcUserMessage implements Serializable {

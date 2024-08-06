@@ -388,4 +388,20 @@
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="update-if-private-name" author="vprokh">
+        <renameColumn tableName="gc_user_save_folder" oldColumnName="if_private" newColumnName="is_private" />
+    </changeSet>
+
+    <changeSet id="update-is-private-type" author="vprokh">
+        <sql>
+            ALTER TABLE gc_user_save_folder ALTER COLUMN is_private TYPE boolean USING (is_private::boolean);
+        </sql>
+    </changeSet>
+
+    <changeSet id="remove-analytics-table-feature-toggle" author="rodion.dolhii">
+        <delete tableName="feature_toggle">
+            <where>name='analyticsTableEnabled'</where>
+        </delete>
+    </changeSet>
+
 </databaseChangeLog>

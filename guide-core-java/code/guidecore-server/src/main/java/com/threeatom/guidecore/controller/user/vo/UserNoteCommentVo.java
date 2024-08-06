@@ -5,13 +5,6 @@ import com.threeatom.system.entity.SysFile;
 import java.util.Date;
 import lombok.Data;
 
-/**
- * @author huangpei
- * @title: UserNodeCommentVo
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/27/02714:47
- */
 @Data
 public class UserNoteCommentVo {
 

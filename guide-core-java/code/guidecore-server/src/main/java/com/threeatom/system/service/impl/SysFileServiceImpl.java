@@ -109,13 +109,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
     
     private AliyunOssService getCurrentOssService(SysSystem sys) {
-       /* AliyunOssService ossService = (AliyunOssService)this.ossServiceMap.get(sys.getBusiness().getKey());
-        if (ossService == null) {
-            //throw new SystemException(I18NUtil.get("oss.error"));
-            return ossService;
-        } else {
-            return ossService;
-        }*/
         AliyunOssService ossService = null;
         return ossService;
     }
@@ -215,9 +208,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                 break;
             case DISK_SAVE_TYPE://oss保存
             	//原方法
-//            	IOssService ossService = this.getCurrentOssService(sys);
-//                String objectName = sysFile.getFileUrl();
-//                fullFileUrl = ossService.getObjectUrl(ossService.getCurrentBucketName(), objectName, 3600);
                 fullFileUrl = getResFullUrlSaveType2( sysFile);
                 break;
             case 3://链接形式，无需处理
@@ -623,11 +613,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         return sysFile;
     }
-
-//    public List<SysFile> selectBySubId(Integer subId) {
-//        List<SysFile> sysFile = sysFileMapper.selectBySubId(subId);
-//        return sysFile;
-//    }
 
     public Integer selectFileTypeIndexByVideoId(Integer videoId) {
         Integer fileTypeIndex = sysFileMapper.selectFileTypeIndexByVideoId(videoId);

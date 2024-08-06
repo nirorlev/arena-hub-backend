@@ -1,12 +1,9 @@
 package com.threeatom.guidecore.service.impl;
 
-import static java.util.stream.Collectors.*;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.controller.Message;
-import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAnswerMapper;

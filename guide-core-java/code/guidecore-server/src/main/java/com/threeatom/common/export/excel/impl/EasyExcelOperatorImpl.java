@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.threeatom.common.export.excel.impl;
 
 import com.alibaba.excel.EasyExcel;
@@ -120,14 +115,11 @@ public class EasyExcelOperatorImpl implements ExcelOperator {
     public static List<List<String>> createTestListStringHead(List<GcSubject> subjectList) {
         // 模型上没有注解，表头数据动态传入
         List<List<String>> head = new ArrayList<List<String>>();
-        // String titleStr = "First Name,Last Name,Email,Number of videos watched,Number of minutes
-        // watched,Number of questions answered";
         StringBuilder sb =
                 new StringBuilder(
                         "First Name&&Last Name&&Email&&Number of videos watched&&Number of minutes"
                                 + " watched&&Number of questions answered");
         for (GcSubject gcSubject : subjectList) {
-            // titleStr = String.join(",", titleStr, gcSubject.getName());
             sb.append("&&" + gcSubject.getName());
             if (Objects.nonNull(gcSubject.getSubjects())) {
                 gcSubject

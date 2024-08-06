@@ -56,8 +56,18 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "门户首页数据")
 public class HomeInfoController extends GuideCoreController {
 
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(HomeInfoController.class);
+
+	//  1 Add comments
+	//	2 Don't hard code values, get them from the enum class
+	//	3. Default image URL
+	//	4. How to add meta configuration class
+	//	5.Return error information
+	@Value("${frontendPath}")
+	private  String  hubUrl;
+
+	@Autowired
+	private metarielConfig metarielConfig;
 	@Value("${subscription.id:0}")
 	private List<Integer> subscriptionIdList;
 	@Autowired
@@ -128,8 +138,6 @@ public class HomeInfoController extends GuideCoreController {
 	@ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
     public Message saveOrUpdate(@RequestBody List<GcMasterHomeInfo> list,HttpServletRequest request) {
-		//name需要做判断 TableConstant的gc_master_home_info
-		
 		LOGGER.info(JSONObject.toJSONString(list));
 		GcMaster master=this.getMaster();
 		if(Objects.isNull(master)){
@@ -579,13 +587,9 @@ public class HomeInfoController extends GuideCoreController {
 			List<Integer> subIdList = gcSubjectList.stream().map(GcSubject::getId).collect(Collectors.toList());
 			List<Integer> gcSubjectAssoIdList = gcSubjectAssoList.stream().map(GcSubject::getId).collect(Collectors.toList());
 			subIdList.addAll(gcSubjectAssoIdList);
-//			List<Integer> vidList = gcVideoService.getVideoIdListBySubId(subIdList);
 			List<GcVideo> videoList = gcVideoService.getVideoListBySubId(subIdList);
 			gcSubjectList.addAll(gcSubjectAssoList);
-			Date date =new Date();
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-//			String time = df.format(date.getTime());
-
 
 			//筛选出首页数据的最新更新时间
 			Date subjectMaxDate = gcSubjectList.stream().max(Comparator.comparing(GcSubject::getUpdateTime)).get().getUpdateTime();
@@ -613,26 +617,8 @@ public class HomeInfoController extends GuideCoreController {
 					lastModEl.setText(df.format(subjectMaxDate.getTime()));
 				}
 
-				//测试
-//			Element testelement = headElement.addElement("test");
-//			Element ioctestelement = testelement.addElement("host");
-//			if(Objects.nonNull(request.getRequestURL())) {
-//				ioctestelement.setText(request.getHeader("host"));
-//			}
-//			Element referer = testelement.addElement("referer");
-//			if(Objects.nonNull(request.getHeader("referer"))) {
-//				referer.setText(request.getHeader("referer"));
-//			}
-
-
-//			Element origin = testelement.addElement("host");
-//			if(Objects.nonNull(request.getHeader("host"))) {
-//				origin.setText(request.getHeader("host"));
-//			}
-
 				headElement.add(attribute1);
 				headElement.add(attribute2);
-//			headElement.add(attribute);
 				for (GcSubject subject : gcSubjectList) {
 					Element bodyElement = headElement.addElement("url");
 					Element ioc = bodyElement.addElement("loc");
@@ -671,7 +657,6 @@ public class HomeInfoController extends GuideCoreController {
 
 		try{
 			httpServletResponse.reset();
-//				httpServletResponse.setHeader("content-disposition", "attachment;filename="+"sitemap"+".xml");
 			httpServletResponse.setContentType("application/xml");
 			httpServletResponse.addHeader("Access-Control-Allow-Origin","*");
 			httpServletResponse.setCharacterEncoding("utf-8");
@@ -682,21 +667,7 @@ public class HomeInfoController extends GuideCoreController {
 		}
 
 	}
-// 1 加注释
-//	2 不能写死值，从枚举类获取
-//	3. 默认图片url
-//	4. 怎加meta配置类
-//	5.return 报错信息
-//      James - this was: @GetMapping("/html/hub/index.html")
-@Value("${frontendPath}")
-private  String  hubUrl;
 
-
-@Autowired
-private metarielConfig metarielConfig;
-
-
-// TODO: possibly not used
 	@GetMapping({"/html${frontendPath}/index.html", "/html${frontendPath}/indexFromCloudfront.html", "/html${frontendPath}", "/html${frontendPath}/"})
 	public void html(HttpServletRequest request,HttpServletResponse response) {
 		String xRequestUri = request.getHeader("x-request-uri");
@@ -801,7 +772,7 @@ private metarielConfig metarielConfig;
 			addMetaContent=metaHtmlConfig(gcMaster,"homepageShareTitle","homepageShareDesc","homepageShareImg",host,request);
 
 
-		} //  /playlist/147
+		}
 		else if(stats==3 && containNumber){
 			GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(subOrVid,null);
 			if(Objects.isNull(gcUserSaveFolder)||gcUserSaveFolder.getSaveContentList().size()== TableConstant.COMMON_ZERO){
@@ -811,13 +782,13 @@ private metarielConfig metarielConfig;
 			desc="Playlist last updated "+gcUserSaveFolder.getUpdateTime();
 			title=gcUserSaveFolder.getName();
 			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,desc);
-		}// /playlist/147/87878
+		}
 		else if(stats==4 && containNumber){
 			GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(folderId,subOrVid);
 			SysFile sysFile = sysFileService.getById(subOrVid);
 			title = "\"" + sysFile.getName() + "\"" + " in " + "\"" + gcUserSaveFolder.getName() + "\"" + " playlist";
 			addMetaContent = playListMetaConfig(sysFile,gcUserSaveFolder,host,request,title,sysFile.getDescribe());
-		}// /channel/test1
+		}
 		else if(stats==5){
 			PtChannel ptChannel= ptChannelService.getbyChannelSlug(channelUrlId);
 			if(Objects.isNull(ptChannel)){
@@ -835,7 +806,7 @@ private metarielConfig metarielConfig;
 				ptChannel.setDesc("");
 			}
 			addMetaContent = metaHtml(channelUrlId, ptChannel.getDesc(), fullFileUrl, host, request);
-		}// /channel/test1/4513
+		}
 		else if(stats==6 && containNumber){
 			PtChannelContent ptChannelContent = ptChannelContentService.getById(Integer.parseInt(channelUrlId));
 			if(Objects.isNull(ptChannelContent)){
@@ -889,9 +860,8 @@ private metarielConfig metarielConfig;
 
 			addMetaContent=metaHtmlConfig(gcMaster,"playListPageShareTitle","playListPageShareDesc","playListPageShareImg",host,request);
 
-	}else if(//Course-Statics   /course/123
+	}else if(
 			stats==1 && containNumber){
-//			Integer courseId = Integer.parseInt(host.substring(host.lastIndexOf("/")+1,host.length()));
 			GcSubject gcSubject = subjectService.getById(subOrVid);
 			if(Objects.isNull(gcSubject)){
 				return;
@@ -910,7 +880,7 @@ private metarielConfig metarielConfig;
 			addMetaContent = metaHtml(gcSubject.getName(), gcSubject.getDescription(), fullFileUrl, host, request);
 
 
-	}else if(//Course-Video   /course/123/12
+	}else if(
 			stats==2  && containNumber){
 			GcVideo gcVideo = gcVideoService.getById(subOrVid);
 			GcSubject gcSubject = subjectService.getById(courseId);
@@ -941,7 +911,7 @@ private metarielConfig metarielConfig;
 			 title = "\"" + gcVideo.getVideoName() + "\"" + " in " + "\"" + gcSubject.getName() + "\"" + " courses";
 			addMetaContent = metaHtml(title, gcSubject.getDescription(), fullFileUrl, host, request);
 
-		}// /hub/course
+		}
 		else if(xRequestUri.contains(metarielConfig.getCourse())){
 			if(host.equals(siteMapConfiguration.getSiteUrl())){
 				gcMaster = gcMasterService.getMasterById(siteMapConfiguration.getDefaultId());
@@ -1035,7 +1005,6 @@ private metarielConfig metarielConfig;
 
 	@GetMapping("/html/robots.txt")
 	public void robots(HttpServletRequest request,HttpServletResponse response) throws IOException {
-//		FileWriter fileWriter = new FileWriter("robots.txt");
 		String host = request.getHeader("host");
 		GcMaster gcMaster = new GcMaster();
 		String content = "";
@@ -1073,7 +1042,6 @@ private metarielConfig metarielConfig;
 
 			response.setHeader("Content-Type","text;charset=UTF-8");
 			response.setCharacterEncoding("utf-8");
-//			response.setHeader("content-disposition", "attachment;filename="+"robots"+".txt");
 			printWriter.write(content);
 			printWriter.flush();
 		}catch (Exception e){

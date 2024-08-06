@@ -11,14 +11,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-/**
- * <p>
- * 服务类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GcAccessService extends IService<GcAccess> {
 
     boolean addAccess(GcAccess access);

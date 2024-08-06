@@ -12,13 +12,6 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
-/**
- * @author Administrator
- * @title: PtTagsServiceImpl
- * @projectName jcasbin
- * @description: TODO
- * @date 2023/1/9/00910:30
- */
 @Service
 public class PtTagsServiceImpl extends ServiceImpl<PtTagsMapper, PtTags> implements PtTagsService {
 

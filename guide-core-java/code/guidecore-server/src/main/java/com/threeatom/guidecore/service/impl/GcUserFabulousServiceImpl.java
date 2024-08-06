@@ -7,13 +7,6 @@ import com.threeatom.guidecore.service.GcUserFabulousService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
-/**
- * @author huangpei
- * @title: GcUserFabulousServiceImpl
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/29/02914:11
- */
 @Service
 public class GcUserFabulousServiceImpl extends ServiceImpl<GcUserFabulousMapper, GcUserFabulous>
         implements GcUserFabulousService {

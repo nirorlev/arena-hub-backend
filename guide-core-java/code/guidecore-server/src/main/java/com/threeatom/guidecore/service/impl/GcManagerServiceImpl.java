@@ -28,14 +28,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <p>
- * 商户管理员 服务实现类
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 @Service
 @Transactional
 public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager>
@@ -55,7 +47,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
     @Override
     @Cacheable(value = CACHE_TAG, key = "'entity:'+#p0")
     public GcManager getManagerByIdCache(Integer id) {
-        // TODO Auto-generated method stub
         return this.getById(id);
     }
 
@@ -65,8 +56,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
             Integer sysId, String email, String password, String fName, String lName, String code) {
         boolean flag;
         try {
-            // TODO Auto-generated method stub
-
             GcManager manager = new GcManager();
             GcAccess gcAccess = new GcAccess();
             manager.setSysId(sysId);
@@ -158,7 +147,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Override
     public GcManager getManagerByUsername(String username) {
-        // TODO Auto-generated method stub
         QueryWrapper<GcManager> queryWrapper = new QueryWrapper<GcManager>();
         queryWrapper.eq("username", username);
         return this.getOne(queryWrapper);

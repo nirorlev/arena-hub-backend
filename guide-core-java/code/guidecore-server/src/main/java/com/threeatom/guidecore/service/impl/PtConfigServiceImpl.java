@@ -6,13 +6,6 @@ import com.threeatom.guidecore.mapper.PtConfigMapper;
 import com.threeatom.guidecore.service.PtConfigService;
 import org.springframework.stereotype.Service;
 
-/**
- * @author Administrator
- * @title: PtConfigServiceImpl
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/4/10/01012:03
- */
 @Service
 public class PtConfigServiceImpl extends ServiceImpl<PtConfigMapper, PtConfig>
         implements PtConfigService {}

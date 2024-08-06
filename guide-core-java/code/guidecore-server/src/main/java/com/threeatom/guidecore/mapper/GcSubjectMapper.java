@@ -8,14 +8,6 @@ import java.util.Map;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * <p>
- * Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-11
- */
 public interface GcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<GcSubject> listSubWithAssoByIds(Integer masterId, List<Integer> list);
@@ -34,8 +26,6 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<GcSubject> listSubByIdsAndName(List<Integer> list, String name);
 
-    //    List<GcSubject>  selectImportedSubject(Integer masterId);
-    // ifLevel0 表示只查询顶级课程，子课程不查询
     List<GcSubject> selectSubjectAssociation(
             @Param("masterId") Integer masterId,
             @Param("subIds") List<Integer> subIds,

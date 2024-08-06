@@ -3,10 +3,6 @@ package com.threeatom.guidecore.constant;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * 注意：修改名字时，需全局搜索，有些字段在mapper.xml中有应用，refactor rename仅可改到java文件中的名字
- */
-
 public class TableConstant {
 
     // 1. 表：sys_file
@@ -62,7 +58,6 @@ public class TableConstant {
     public static final int sysFile_saveType_aliOSS_2 = 2; // 阿里云oss存储
     public static final int sysFile_saveType_link_3 = 3; // 链接形式 - sql备注未加
     public static final int sysFile_saveType_youtubeLink_6 = 6; // 链接形式 - sql备注未加
-    // if_caption字段，是否开启字幕，1为开启，0/null未开启
     public static final String sysFile_if_caption_1 = "1";
     public static final String sysFile_if_caption_0 = "0";
     // file_type文件类型字段
@@ -88,7 +83,6 @@ public class TableConstant {
     // user_role, upload_uid的角色，1=门户，2=用户
     public static final int sysFile_userRole_portal1 = 1;
     public static final int sysFile_userRole_user2 = 2;
-    // file_type_index，文件类型，枚举 ， 参考EventUnifyType
 
     // 分账，百分之十
     public static final long stripe10 = 10l;
@@ -109,8 +103,6 @@ public class TableConstant {
     public static final String Invoice = "Invoice";
 
     // 2. 表：gc_master_home_info 门户首页信息
-    // `type` tinyint(11) DEFAULT NULL COMMENT '1或null=文字，2=图片，3=视频',
-    // name` varchar(55) NOT NULL DEFAULT '' COMMENT '内容名称，',
     public static final String gcMasterHomeInfo_name_content1 = "content1";
     public static final String gcMasterHomeInfo_name_content2 = "content2";
     public static final String gcMasterHomeInfo_name_img1 = "img1";
@@ -175,9 +167,7 @@ public class TableConstant {
                     this.add(gcMasterHomeInfo_name_title2);
                 }
             };
-    //    public static final String gcMasterHomeInfo_name_homepage_list_names =
-    // gcMasterHomeInfo_name_homepage_list.stream().map(s -> "\'" + s +
-    // "\'").collect(Collectors.joining(", "));
+
     public static final List<String> gcMasterHomeInfo_name_welcomeVideo_list =
             new ArrayList<String>() {
                 {
@@ -209,7 +199,6 @@ public class TableConstant {
     public static final Integer Specific_person = 3;
     public static final Integer Private = 0;
 
-    // 2. 表：gc_subject_intro_info课程介绍信息表
     public static final String gcSubjectIntroInfo_name_content1 = "content1";
     public static final String gcSubjectIntroInfo_name_content2 = "content2";
     public static final String gcSubjectIntroInfo_name_img1 = "img1";
@@ -231,10 +220,6 @@ public class TableConstant {
     public static final int gcEvent_eventType_choice1 = 1;
     public static final int gcEvent_eventType_freeType2 = 2;
 
-    //    public static final String gcMasterHomeInfo_name_welcomeVideo_list_names =
-    // gcMasterHomeInfo_name_welcomeVideo_list.stream().map(s -> "\'" + s +
-    // "\'").collect(Collectors.joining(", "));
-    // type字段
     public static final int gcMasterHomeInfo_type_2 = 2; // 图片
     public static final int gcMasterHomeInfo_type_3 = 3; // 视频
 
@@ -248,11 +233,9 @@ public class TableConstant {
     public static final int gcSubject_type_subject0 = 0; // 父级主题课程
     public static final int gcSubject_type_topic1 = 1; // 子级话题课程
 
-    // gc_subject_association
     // 关联课程的关联关系，1=导入import，2=别名alias
     public static final int gcSubjectAssociation_relationType_1import = 1;
 
-    // gc_user_video_action
     public static final int gcUserVideoAction_type_like1 = 1;
     public static final int gcUserVideoAction_type_rate2 = 2;
     public static final int gcUserVideoAction_type_star3 = 3; // 视频星级评价
@@ -299,80 +282,34 @@ public class TableConstant {
     // 课程完成进度
     public static final int SUBJECT_COMPLETE_PERCENT0 = 100;
 
-    /**
-     * 公共 int 0
-     */
     public static final int COMMON_ZERO = 0; //
 
-    /**
-     * 公共 int 1
-     */
     public static final int COMMON_ONE = 1; //
 
-    /**
-     * 公共 int 2
-     */
     public static final int COMMON_TWO = 2; //
 
-    /**
-     * 公共 int 4
-     */
     public static final int COMMON_FOUR = 4; //
 
-    /**
-     * 公共 int 5
-     */
     public static final int COMMON_FIVE = 5; //
 
-    /**
-     *
-     * 公共 int 1
-     */
     public static final int COMMON_THREE = 3; //
 
-    /**
-     * 公共 long 0
-     */
     public static final long LONG_ZERO = 0L; //
 
-    /**
-     * 公共 double 0
-     */
     public static final double DOUBLE_ZERO = 0.0D; //
 
-    /**
-     * 返回视频
-     */
     public static final String VIDEO_SEARCH_RETURN_TYPE1 = "1"; //
 
-    /**
-     * 返回课程
-     */
     public static final String VIDEO_SEARCH_RETURN_TYPE2 = "2"; //
 
-    /**
-     * 返回视频和课程
-     */
     public static final String VIDEO_SEARCH_RETURN_TYPE3 = "3"; //
 
-    /**
-     * 课程
-     */
     public static final String VIDEO_SEARCH_RETURN_TYPE4 = "4"; //
 
-    /**
-     * channel
-     */
     public static final String CHANNEL_SEARCH_RETURN_TYPE5 = "5"; //
 
-    /**
-     * playList
-     */
     public static final String PLAYLIST_SEARCH_RETURN_TYPE6 = "6"; //
 
-    /**
-     * results
-     */
     public static final String RESULTS_SEARCH_RETURN_TYPE7 = "7"; //
 
     // GcMasterActive，gc_master_active
@@ -380,7 +317,6 @@ public class TableConstant {
     public static final int gcMasterActive_type_subject1 = 1; // 解锁一级或二级课程
     public static final int gcMasterActive_type_video2 = 2; // 解锁视频
 
-    //  	GcUserSchedule, gc_user_schedule
     public static final int gcUserSchedule_level_subject1 = 1; // 1级课程
     public static final int gcUserSchedule_level_topic2 = 2; // 2级话题
     public static final int gcUserSchedule_level_video11 = 11; // 11级视频

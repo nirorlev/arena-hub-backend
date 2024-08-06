@@ -10,7 +10,10 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
@@ -53,37 +56,13 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> selectLikeVideoByUserId(Integer userId, Integer masterId);
 
     List<GcVideo> getFuzzyNameVideoInMaster(Integer masterId, String videoName);
-
-    /**
-     * 根据视频id查询总时长
-     */
     Long sumVideoLongByIdUser(List<Integer> videoIds, Integer userId);
 
-    /**
-     * 根据课程id查询对应的视频信息，同时加载出评论数、点赞数、问题数、时长等信息
-     *
-     * @param subjectIds
-     * @return
-     */
     Message getVideosBySubIds(
         Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
-    /**
-     * 根据视频id和用户id查询播放的时长
-     *
-     * @param videoIds
-     * @param userId
-     * @return
-     */
     Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
 
-    /**
-     * 根据一级课id集合查询视频并返回二级课程id
-     *
-     * @param subjectIds
-     * @param userId
-     * @return
-     */
     List<GcVideo> getVideosBySubjectIds0(
         List<Integer> subjectIds,
         Integer userId,
@@ -107,13 +86,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> getVideoListByUserIdAndSubject(
         List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 
-    /**
-     * 分页查询视频
-     *
-     * @param params
-     * @param request
-     * @return
-     */
     PageInfo<GcVideo> page(Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
@@ -168,6 +140,8 @@ public interface GcVideoService extends GcVideoServiceBll {
     void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
+
+    void updateVideoFilePrivacy(SysFile videoFile);
 
     VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
 

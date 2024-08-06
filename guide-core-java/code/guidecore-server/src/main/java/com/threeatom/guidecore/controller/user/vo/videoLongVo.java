@@ -2,21 +2,10 @@ package com.threeatom.guidecore.controller.user.vo;
 
 import lombok.Data;
 
-/**
- * @author Administrator
- * @title: videoLongVo
- * @projectName guidecore
- * @description: TODO
- * @date 2021/12/16/01612:11
- */
 @Data
 public class videoLongVo {
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
-    // 视频时长
     private Integer videoLong;
 
     public Integer getVideoCount() {
@@ -27,9 +16,7 @@ public class videoLongVo {
         this.videoCount = videoCount;
     }
 
-    // fid
     private Integer subId;
-    // 视频数量
     private Integer videoCount;
 
     public Integer getVideoLong() {

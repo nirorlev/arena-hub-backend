@@ -6,14 +6,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
-/**
- * <p>
- * 用户对视频的播放记录 Mapper 接口
- * </p>
- *
- * @author qiaoxide
- * @since 2019-11-27
- */
 @Component
 public interface GcUserVideoPlaysNodeMapper extends BaseMapper<GcUserVideoPlaysNode> {
 

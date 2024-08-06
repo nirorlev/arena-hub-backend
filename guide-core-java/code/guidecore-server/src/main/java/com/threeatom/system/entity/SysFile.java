@@ -124,16 +124,15 @@ public class SysFile implements Serializable {
 
     @TableField(exist=false)
     private JSONObject source;
-
-    /**
-     * 缩略图id
-     */
     private Integer thumbNailId;
 
     private String uuid;
 
     @TableField(exist = false)
     private Integer contentId;
+
+    @TableField(exist = false)
+    private Boolean isPrivate = false;
 
     @JSONField(serialize = false)
     public String getIdToString() {

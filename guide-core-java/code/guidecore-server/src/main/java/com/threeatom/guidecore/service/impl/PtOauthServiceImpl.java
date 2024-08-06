@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import java.io.IOException;
 import java.util.Base64;
 
 import org.apache.http.Header;
@@ -16,13 +15,6 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.PtOauthService;
 import com.threeatom.utils.HttpUtil;
 
-/**
- * @author cvmcosta
- * @title: PtOauthService
- * @projectName jeeplus
- * @description: Responsible for performing oauth and generating access tokens
- * @date 2024/06/11
- */
 @Service
 public class PtOauthServiceImpl implements PtOauthService {
 

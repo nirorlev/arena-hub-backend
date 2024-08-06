@@ -5,13 +5,6 @@ import com.threeatom.guidecore.entity.GcUserFabulous;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * @author huangpei
- * @title: GcUserFabulousMapper
- * @projectName guidecore
- * @description: TODO
- * @date 2021/10/29/02914:13
- */
 public interface GcUserFabulousMapper extends BaseMapper<GcUserFabulous> {
 
     GcUserFabulous getUserFabulous(@Param("entity") GcUserFabulous gcUserFabulous);

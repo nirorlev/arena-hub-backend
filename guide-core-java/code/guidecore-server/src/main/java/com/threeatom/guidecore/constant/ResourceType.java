@@ -1,12 +1,5 @@
 package com.threeatom.guidecore.constant;
 
-/**
- * @author Administrator
- * @title: ResourceType
- * @projectName jeeplus
- * @description: TODO
- * @date 2023/3/8/00815:30
- */
 public class ResourceType {
     public static final String course = "Course";
 
