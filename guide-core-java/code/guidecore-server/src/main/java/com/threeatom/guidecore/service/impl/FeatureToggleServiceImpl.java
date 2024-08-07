@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.FeatureToggleValueDto;
 import com.threeatom.guidecore.dto.response.FeatureToggleDto;
 import com.threeatom.guidecore.entity.FeatureToggle;
@@ -53,7 +54,13 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     private FeatureToggle getByName(String featureName) {
         QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<FeatureToggle>()
             .eq(FEATURE_NAME_COLUMN, featureName);
-        return getOne(queryWrapper);
+        FeatureToggle featureToggle = getOne(queryWrapper);
+
+        if (featureToggle == null) {
+            throw new ResourceNotFoundException("Feature toggle not found: " + featureName);
+        }
+
+        return featureToggle;
     }
 
     @Override
@@ -90,13 +97,13 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
         FeatureToggle featureToggle =
             getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
         if (featureToggle == null) {
-            featureToggle = featureToggleMapping.map(featureToggleValueDto);
-            save(featureToggle);
-        } else {
-            featureToggle.setValue(featureToggleValueDto.getValue());
-            updateById(featureToggle);
+            throw new ResourceNotFoundException(
+                String.format("Feature toggle not found: %s. Master id: %s", featureToggleValueDto.getName(),
+                    featureToggleValueDto.getMasterId()));
         }
 
+        featureToggle.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggle);
         return getAllFeatures(featureToggleValueDto.getMasterId());
     }
 
