@@ -26,11 +26,15 @@ public class AuthorizationUtil {
     }
 
     public static Optional<String> getPayloadValueByName(String token, String name) {
-        if (StringUtils.isEmpty(token) || StringUtils.isEmpty(name) || UNDEFINED_TOKEN.equals(token)) {
+        if (StringUtils.isEmpty(token) || StringUtils.isEmpty(name) || UNDEFINED_TOKEN.equals(token) || isBearer(token)) {
             return Optional.empty();
         }
 
         return Optional.ofNullable(JwtUtil.getValueByToken(token, name));
+    }
+
+    private static boolean isBearer(String token) {
+        return token.startsWith("Bearer ");
     }
 
     public Integer getUserUid(HttpServletRequest request) {
