@@ -139,6 +139,7 @@ public class ShiroConfiguration {
         filterChainDefinitionMap.put("/api/v1/powtoon/home/updateData", "anon");
 
         filterChainDefinitionMap.put("/api/v2/app-config", "anon");
+        filterChainDefinitionMap.put("/api/v2/admin/feature-toggles", "anon");
 
         filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");

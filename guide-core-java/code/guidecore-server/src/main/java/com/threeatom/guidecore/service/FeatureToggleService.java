@@ -15,5 +15,5 @@ public interface FeatureToggleService extends IService<FeatureToggle> {
 
     FeatureToggleValueDto getFeatureToggle(String featureKey, Integer masterId);
 
-    FeatureToggleDto updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto);
+    void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto);
 }
