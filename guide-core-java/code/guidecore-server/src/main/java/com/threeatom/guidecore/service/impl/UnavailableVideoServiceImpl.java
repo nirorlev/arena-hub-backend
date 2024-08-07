@@ -51,10 +51,6 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoData(List<SysFile> files) {
-        if (featureIsDisabled()) {
-            return;
-        }
-
         files.stream()
             .filter(this::isVideoUnavailable)
             .forEach(file -> {
@@ -62,16 +58,12 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             });
     }
 
-    private boolean featureIsDisabled() {
-        return !Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
+    private boolean featureIsEnabled() {
+        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
     }
 
     @Override
     public void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent) {
-        if (featureIsDisabled()) {
-            return;
-        }
-
         playlistContent.stream()
             .filter(content -> isVideoUnavailable(content.getVideoFile()))
             .forEach(content -> {
@@ -83,24 +75,16 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoData(SysFile file) {
-        if (featureIsDisabled()) {
-            return;
-        }
-
         nullifyVideoData(Collections.singletonList(file));
     }
 
     @Override
     public void nullifyVideoComments(PageInfo<GcVideoComment> comments, Integer videoId) {
-        if (featureIsDisabled()) {
-            return;
-        }
-
         comments.getList().clear();
     }
 
     private boolean isVideoUnavailable(SysFile videoFile) {
         Integer videoId = videoFile.getVideoId();
-        return videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
+        return featureIsEnabled() && videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
     }
 }
