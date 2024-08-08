@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
+import com.threeatom.guidecore.entity.UserLicense;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.mapper.OrgLicenseLimitMapper;
 import com.threeatom.guidecore.mapping.UserLicenseMapping;
@@ -42,8 +43,12 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     }
 
     @Override
-    public void checkChannelLimit(Integer orgLicenseId, int expectedChannelCount) {
-        OrgLicenseLimit orgLicenseLimit = findById(orgLicenseId);
+    public void checkChannelLimit(UserLicense dbUserLicense, int expectedChannelCount) {
+        if (!dbUserLicense.isActive()) {
+            return;
+        }
+
+        OrgLicenseLimit orgLicenseLimit = findById(dbUserLicense.getOrgLicenseLimitId());
 
         if (orgLicenseLimit.getPublishedChannelLimit() < expectedChannelCount) {
             throw new LicenseLimitExceededException("Channel limit exceeded");
@@ -51,8 +56,12 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     }
 
     @Override
-    public void checkPlaylistLimit(Integer orgLicenseId, int expectedPlaylistCount) {
-        OrgLicenseLimit orgLicenseLimit = findById(orgLicenseId);
+    public void checkPlaylistLimit(UserLicense dbUserLicense, int expectedPlaylistCount) {
+        if (!dbUserLicense.isActive()) {
+            return;
+        }
+
+        OrgLicenseLimit orgLicenseLimit = findById(dbUserLicense.getOrgLicenseLimitId());
 
         if (orgLicenseLimit.getPublishedPlaylistLimit() < expectedPlaylistCount) {
             throw new LicenseLimitExceededException("Playlist limit exceeded");

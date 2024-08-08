@@ -53,8 +53,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
-        orgLicenseLimitService.checkPlaylistLimit(dbUserLicense.getOrgLicenseLimitId(),
-            dbUserLicense.getPublishedPlaylistCount() + 1);
+        orgLicenseLimitService.checkPlaylistLimit(dbUserLicense, dbUserLicense.getPublishedPlaylistCount() + 1);
         updateCount(
             userLicense -> userLicense.setPublishedPlaylistCount(userLicense.getPublishedPlaylistCount() + 1),
             dbUserLicense);
@@ -118,8 +117,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
-        orgLicenseLimitService.checkChannelLimit(dbUserLicense.getOrgLicenseLimitId(),
-            dbUserLicense.getPublishedChannelCount() + 1);
+        orgLicenseLimitService.checkChannelLimit(dbUserLicense, dbUserLicense.getPublishedChannelCount() + 1);
         updateCount(
             userLicense -> userLicense.setPublishedChannelCount(userLicense.getPublishedChannelCount() + 1),
             dbUserLicense);
