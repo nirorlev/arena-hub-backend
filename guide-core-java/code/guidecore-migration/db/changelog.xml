@@ -404,4 +404,68 @@
         </delete>
     </changeSet>
 
+    <changeSet id="create-user-license-table" author="vprokh">
+        <createTable tableName="user_license" schemaName="arena_hub">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="org_license_limit_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_channel_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="private_playlist_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_channel_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publish_playlist_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_license" baseColumnNames="user_id"
+                                 constraintName="user_license_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_license" baseColumnNames="org_limit_id"
+                                 constraintName="user_license_org_license_limit_id_fk"
+                                 referencedTableName="org_license_limit"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                columnNames="user_id, org_license_limit_id"
+                constraintName="user_license_org_license_limit_id_user_id_uindex"
+                tableName="user_license"/>
+    </changeSet>
+
+    <changeSet id="create-user-limits-table" author="vprokh">
+        <createTable tableName="org_license_limit" schemaName="arena_hub">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="master_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="published_channel_limit" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="published_playlist_limit" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                columnNames="master_id"
+                constraintName="org_license_limit_master_id_uindex"
+                tableName="org_license_limit"/>
+    </changeSet>
+
 </databaseChangeLog>
