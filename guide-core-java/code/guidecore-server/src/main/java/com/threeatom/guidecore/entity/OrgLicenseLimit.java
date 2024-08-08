@@ -15,6 +15,6 @@ public class OrgLicenseLimit implements Serializable {
     private Integer id;
 
     private Integer masterId;
-    private Integer publishChannelLimit;
-    private Integer publishPlaylistLimit;
+    private Integer publishedChannelLimit;
+    private Integer publishedPlaylistLimit;
 }

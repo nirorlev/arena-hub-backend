@@ -421,10 +421,10 @@
             <column name="private_playlist_count" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="publish_channel_count" type="integer">
+            <column name="published_channel_count" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="publish_playlist_count" type="integer">
+            <column name="published_playlist_count" type="integer">
                 <constraints nullable="false"/>
             </column>
             <column name="active" type="boolean">

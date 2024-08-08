@@ -1,12 +1,16 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.mapper.OrgLicenseLimitMapper;
+import com.threeatom.guidecore.mapping.UserLicenseMapping;
 import com.threeatom.guidecore.service.OrgLicenseLimitService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMapper, OrgLicenseLimit>
     implements OrgLicenseLimitService {
 
+    private final UserLicenseMapping userLicenseMapping;
+    private final SqlSession sqlSession;
 
     @Value("${publish.channel.limit.default}")
     private int publishChannelLimit;
@@ -31,6 +37,7 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
         }
 
         this.save(createNewOrgLimit(masterId));
+        sqlSession.flushStatements();
         return getByMasterId(masterId).orElseThrow();
     }
 
@@ -38,7 +45,7 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     public void checkChannelLimit(Integer orgLicenseId, int expectedChannelCount) {
         OrgLicenseLimit orgLicenseLimit = findById(orgLicenseId);
 
-        if (orgLicenseLimit.getPublishChannelLimit() < expectedChannelCount) {
+        if (orgLicenseLimit.getPublishedChannelLimit() < expectedChannelCount) {
             throw new LicenseLimitExceededException("Channel limit exceeded");
         }
     }
@@ -47,9 +54,14 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     public void checkPlaylistLimit(Integer orgLicenseId, int expectedPlaylistCount) {
         OrgLicenseLimit orgLicenseLimit = findById(orgLicenseId);
 
-        if (orgLicenseLimit.getPublishPlaylistLimit() < expectedPlaylistCount) {
+        if (orgLicenseLimit.getPublishedPlaylistLimit() < expectedPlaylistCount) {
             throw new LicenseLimitExceededException("Playlist limit exceeded");
         }
+    }
+
+    @Override
+    public LicensePermissionsDto getPermissions(Integer masterId) {
+        return userLicenseMapping.map(getByMasterId(masterId).orElseThrow());
     }
 
     @Transactional(readOnly = true)
@@ -64,14 +76,16 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
 
     @Transactional(readOnly = true)
     public Optional<OrgLicenseLimit> getByMasterId(Integer masterId) {
-        return Optional.ofNullable(this.lambdaQuery().eq(OrgLicenseLimit::getMasterId, masterId).one());
+        QueryWrapper<OrgLicenseLimit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("master_id", masterId);
+        return Optional.ofNullable(this.getOne(queryWrapper));
     }
 
     private OrgLicenseLimit createNewOrgLimit(Integer masterId) {
         OrgLicenseLimit orgLicenseLimit = new OrgLicenseLimit();
         orgLicenseLimit.setMasterId(masterId);
-        orgLicenseLimit.setPublishChannelLimit(publishChannelLimit);
-        orgLicenseLimit.setPublishPlaylistLimit(publishPlaylistLimit);
+        orgLicenseLimit.setPublishedChannelLimit(publishChannelLimit);
+        orgLicenseLimit.setPublishedPlaylistLimit(publishPlaylistLimit);
         return orgLicenseLimit;
     }
 }

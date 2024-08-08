@@ -3,11 +3,13 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.dto.PowtoonUserDto;
+import com.threeatom.guidecore.dto.response.LicenseUsageDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.UserLicense;
 import com.threeatom.guidecore.mapper.UserLicenseMapper;
+import com.threeatom.guidecore.mapping.UserLicenseMapping;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.OrgLicenseLimitService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -31,6 +33,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
     private final PtChannelService channelService;
     private final GcUserSaveFolderService playlistService;
     private final OrgLicenseLimitService orgLicenseLimitService;
+    private final UserLicenseMapping userLicenseMapping;
 
     @Override
     public void update(Integer userId, PowtoonUserDto powtoonUserDto, Integer masterId) {
@@ -50,9 +53,10 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
-        orgLicenseLimitService.checkPlaylistLimit(dbUserLicense.getOrgLicenseId(), dbUserLicense.getPublishPlaylistCount() + 1);
+        orgLicenseLimitService.checkPlaylistLimit(dbUserLicense.getOrgLicenseLimitId(),
+            dbUserLicense.getPublishedPlaylistCount() + 1);
         updateCount(
-            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() + 1),
+            userLicense -> userLicense.setPublishedPlaylistCount(userLicense.getPublishedPlaylistCount() + 1),
             dbUserLicense);
     }
 
@@ -72,7 +76,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         }
 
         updateCount(
-            userLicense -> userLicense.setPublishPlaylistCount(userLicense.getPublishPlaylistCount() - 1),
+            userLicense -> userLicense.setPublishedPlaylistCount(userLicense.getPublishedPlaylistCount() - 1),
             getByUserId(userId).orElseThrow());
     }
 
@@ -96,7 +100,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         }
 
         updateCount(
-            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() - 1),
+            userLicense -> userLicense.setPublishedChannelCount(userLicense.getPublishedChannelCount() - 1),
             getByUserId(userId).orElseThrow());
     }
 
@@ -114,20 +118,21 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
-        orgLicenseLimitService.checkChannelLimit(dbUserLicense.getOrgLicenseId(), dbUserLicense.getPublishChannelCount() + 1);
+        orgLicenseLimitService.checkChannelLimit(dbUserLicense.getOrgLicenseLimitId(),
+            dbUserLicense.getPublishedChannelCount() + 1);
         updateCount(
-            userLicense -> userLicense.setPublishChannelCount(userLicense.getPublishChannelCount() + 1),
+            userLicense -> userLicense.setPublishedChannelCount(userLicense.getPublishedChannelCount() + 1),
             dbUserLicense);
+    }
+
+    @Override
+    public LicenseUsageDto getPermissions(Integer userId) {
+        UserLicense userLicense = getByUserId(userId).orElseThrow();
+        return userLicenseMapping.map(userLicense);
     }
 
     private void updateCount(Consumer<UserLicense> updateCountSupplier, UserLicense userLicense) {
         updateCountSupplier.accept(userLicense);
-        this.updateById(userLicense);
-    }
-
-    public void setActive(Integer userId, boolean active) {
-        UserLicense userLicense = getByUserId(userId).orElseThrow();
-        userLicense.setActive(active);
         this.updateById(userLicense);
     }
 
@@ -147,7 +152,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
 
         userLicense.setUserId(userId);
         OrgLicenseLimit defaultLicenseLimit = orgLicenseLimitService.getDefaultLicenseLimit(masterId);
-        userLicense.setOrgLicenseId(defaultLicenseLimit.getId());
+        userLicense.setOrgLicenseLimitId(defaultLicenseLimit.getId());
 
         return userLicense;
     }
@@ -162,18 +167,20 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         userLicense.setPrivateChannelCount(channelService.countUserPrivateChannels(userId, masterId));
         userLicense.setPrivatePlaylistCount(playlistService.countUserPrivatePlaylists(userId, masterId));
 
-        userLicense.setPublishChannelCount(channelService.countUserPublicChannels(userId, masterId));
-        userLicense.setPublishPlaylistCount(playlistService.countUserPublicPlaylists(userId, masterId));
-        setActive(userId, active);
+        userLicense.setPublishedChannelCount(channelService.countUserPublicChannels(userId, masterId));
+        userLicense.setPublishedPlaylistCount(playlistService.countUserPublicPlaylists(userId, masterId));
+        userLicense.setActive(active);
     }
 
     private void updateExisting(UserLicense userLicense, PowtoonUserDto powtoonUserDto, Integer masterId) {
         if (shouldLicenseBeActive(powtoonUserDto)) {
             updateLimits(userLicense, true, masterId);
+            this.updateById(userLicense);
             return;
         }
 
-        setActive(userLicense.getUserId(), false);
+        userLicense.setActive(false);
+        this.updateById(userLicense);
     }
 
     @Transactional(readOnly = true)

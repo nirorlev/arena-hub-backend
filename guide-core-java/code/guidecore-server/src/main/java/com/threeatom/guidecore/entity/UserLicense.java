@@ -16,12 +16,12 @@ public class UserLicense implements Serializable {
     private Integer id;
 
     private Integer userId;
-    private Integer orgLicenseId;
+    private Integer orgLicenseLimitId;
 
     private Integer privateChannelCount;
     private Integer privatePlaylistCount;
-    private Integer publishChannelCount;
-    private Integer publishPlaylistCount;
+    private Integer publishedChannelCount;
+    private Integer publishedPlaylistCount;
 
     private boolean active;
 }
