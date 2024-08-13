@@ -59,8 +59,8 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(VideoPlaySegmentNotFoundException.class)
-    public Message handleVideoPlaySegmentNotFoundException(VideoPlaySegmentNotFoundException e) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public Message handleVideoPlaySegmentNotFoundException(ResourceNotFoundException e) {
         return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
     }
 
