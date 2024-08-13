@@ -49,18 +49,19 @@ public class ContentGroupChannelSubscriptionServiceImpl
     @Override
     @Transactional(readOnly = true)
     public List<Integer> getSubscribedChannelIds(Integer contentGroupId) {
-        return getChannelIds(contentGroupId, true);
+        return getChannelIds(List.of(contentGroupId), true);
     }
 
     @Override
-    public List<Integer> getSubscribedChannelIdsExceptOwned(List<Integer> contentGroupIds, Integer ownerId) {
-        return getChannelIds(baseMapper.getByContentGroupIds(contentGroupIds, ownerId));
+    @Transactional(readOnly = true)
+    public List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds) {
+        return getChannelIds(contentGroupIds, true);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Integer> getPublicChannelIds(Integer contentGroupId) {
-        return getChannelIds(contentGroupId, false);
+        return getChannelIds(List.of(contentGroupId), false);
     }
 
     @Override
@@ -100,10 +101,10 @@ public class ContentGroupChannelSubscriptionServiceImpl
             .collect(Collectors.toList());
     }
 
-    private List<Integer> getChannelIds(Integer contentGroupId, boolean subscribed) {
+    private List<Integer> getChannelIds(List<Integer> contentGroupId, boolean subscribed) {
         QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
 
-        queryWrapper.eq("content_group_id", contentGroupId);
+        queryWrapper.in("content_group_id", contentGroupId);
         queryWrapper.eq("is_subscribed", subscribed);
 
         return getChannelIds(this.list(queryWrapper));
@@ -112,6 +113,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     private List<Integer> getChannelIds(List<ContentGroupChannelSubscription> subscribes) {
         return subscribes.stream()
             .map(ContentGroupChannelSubscription::getChannelId)
+            .distinct()
             .collect(Collectors.toList());
     }
 

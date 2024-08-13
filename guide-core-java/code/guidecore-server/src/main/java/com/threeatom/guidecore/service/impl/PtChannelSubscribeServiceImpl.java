@@ -53,14 +53,14 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
                 .map(GcAccess::getId)
                 .collect(Collectors.toList());
 
-            List<Integer> contentGroupSubscribed =
-                contentGroupChannelSubscriptionService.getSubscribedChannelIdsExceptOwned(contentGroupIds, user.getId());
+            List<Integer> contentGroupSubscribedChannelIds =
+                contentGroupChannelSubscriptionService.getSubscribedChannelIds(contentGroupIds);
 
-            List<Integer> channels = getAllByUser(user).stream()
+            List<Integer> userFollowedChannelIds = getAllByUser(user).stream()
                 .map(PtChannelSubscribe::getChannelId)
                 .collect(Collectors.toList());
 
-            saveBatch(getAutoSubscribeChannels(user, contentGroupSubscribed, channels));
+            saveBatch(getAutoSubscribeChannels(user, contentGroupSubscribedChannelIds, userFollowedChannelIds));
         } catch (Exception e) {
             log.error("Channel auto-subscription failed for user " + user.getId(), e);
         }
@@ -97,11 +97,10 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
         return list(queryWrapper);
     }
 
-    private List<PtChannelSubscribe> getAutoSubscribeChannels(GcUser user, List<Integer> contentGroupSubscribed,
-                                                              List<Integer> allChannels) {
-        return contentGroupSubscribed.stream()
-            .filter(channelId -> !allChannels.contains(channelId))
-            .distinct()
+    private List<PtChannelSubscribe> getAutoSubscribeChannels(
+        GcUser user, List<Integer> contentGroupSubscribedChannelIds, List<Integer> userFollowedChannelIds) {
+        return contentGroupSubscribedChannelIds.stream()
+            .filter(channelId -> !userFollowedChannelIds.contains(channelId))
             .map(channelId -> createChannelSubscribe(user, channelId, false))
             .collect(Collectors.toList());
     }

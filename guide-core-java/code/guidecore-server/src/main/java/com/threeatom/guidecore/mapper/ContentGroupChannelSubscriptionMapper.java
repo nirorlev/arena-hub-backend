@@ -11,8 +11,4 @@ public interface ContentGroupChannelSubscriptionMapper
     List<ContentGroupChannelSubscription> findByContentGroupId(
         @Param("contentGroupId") Integer contentGroupId,
         @Param("isSubscribed") Boolean isSubscribed);
-
-    List<ContentGroupChannelSubscription> getByContentGroupIds(
-        @Param("contentGroupIds") List<Integer> contentGroupIds,
-        @Param("ownerId") Integer ownerId);
 }
