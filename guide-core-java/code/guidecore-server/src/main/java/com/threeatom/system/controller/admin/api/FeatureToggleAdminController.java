@@ -5,9 +5,11 @@ import com.threeatom.guidecore.dto.response.FeatureToggleDto;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class FeatureToggleAdminController {
 
     private final FeatureToggleService featureToggleService;
+
+    @GetMapping
+    @ApiOperation(value = "Get all feature toggles", response = FeatureToggleDto.class, httpMethod = "GET")
+    public ResponseEntity<List<FeatureToggleValueDto>> getAllFeatureToggles() {
+        return ResponseEntity.ok().body(featureToggleService.getAllFeatureToggles());
+    }
 
     @PutMapping
     @ApiOperation(value = "Update feature toggle", response = FeatureToggleDto.class, httpMethod = "PUT")

@@ -29,7 +29,7 @@ public class FeatureToggleController {
     public ResponseEntity<FeatureToggleDto> getAllFeatureToggles(HttpServletRequest request) {
         Optional<Integer> masterIdOptional = RequestUtil.getMasterId(request);
 
-        return masterIdOptional.map(masterId -> ResponseEntity.ok().body(featureToggleService.getAllFeatures(masterId)))
+        return masterIdOptional.map(masterId -> ResponseEntity.ok().body(featureToggleService.getAllFeatureToggles(masterId)))
             .orElseGet(() -> ResponseEntity.ok().body(featureToggleService.getAllDefaultFeatures()));
     }
 }

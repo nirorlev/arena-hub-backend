@@ -40,8 +40,16 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     @Transactional(readOnly = true)
-    public FeatureToggleDto getAllFeatures(Integer masterId) {
+    public FeatureToggleDto getAllFeatureToggles(Integer masterId) {
         return createFeatureToggleDto(getFeatureTogglesForMasterId(masterId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FeatureToggleValueDto> getAllFeatureToggles() {
+        return list().stream()
+            .map(featureToggleMapping::map)
+            .collect(Collectors.toList());
     }
 
     @Override
