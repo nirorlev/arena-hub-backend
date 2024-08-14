@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,6 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     private static final String MASTER_ID_COLUMN = "master_id";
 
     private final FeatureToggleMapping featureToggleMapping;
-    private final SqlSession sqlSession;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,8 +40,16 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     @Transactional(readOnly = true)
-    public FeatureToggleDto getAllFeatures(Integer masterId) {
+    public FeatureToggleDto getAllFeatureToggles(Integer masterId) {
         return createFeatureToggleDto(getFeatureTogglesForMasterId(masterId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FeatureToggleValueDto> getAllFeatureToggles() {
+        return list().stream()
+            .map(featureToggleMapping::map)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -85,26 +91,24 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     }
 
     @Override
-    public FeatureToggleDto updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
+    public void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
         if (featureToggleValueDto.getMasterId() == null) {
             FeatureToggle featureToggle = getByName(featureToggleValueDto.getName());
             featureToggle.setValue(featureToggleValueDto.getValue());
             updateById(featureToggle);
-            sqlSession.flushStatements();
-            return getAllDefaultFeatures();
+            return;
         }
 
-        FeatureToggle featureToggle =
+        FeatureToggle featureToggleByMaterId =
             getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
-        if (featureToggle == null) {
+        if (featureToggleByMaterId == null) {
             throw new ResourceNotFoundException(
                 String.format("Feature toggle not found: %s. Master id: %s", featureToggleValueDto.getName(),
                     featureToggleValueDto.getMasterId()));
         }
 
-        featureToggle.setValue(featureToggleValueDto.getValue());
-        updateById(featureToggle);
-        return getAllFeatures(featureToggleValueDto.getMasterId());
+        featureToggleByMaterId.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggleByMaterId);
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
