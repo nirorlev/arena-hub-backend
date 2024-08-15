@@ -34,6 +34,7 @@ public class GroupsType {
                     this.add(groupMember);
                     this.add(orgMember);
                     this.add(limitedMember);
+                    this.add(member);
                 }
             };
 
