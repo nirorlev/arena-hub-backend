@@ -8,6 +8,7 @@ public class GroupsType {
     public static final String orgAdmin = "orgAdmin";
 
     public static final String orgMember = "orgMember";
+    public static final String limitedMember = "limitedMember";
 
     public static final String teamAdmin = "teamAdmin";
 
@@ -32,6 +33,7 @@ public class GroupsType {
                     this.add(teamGuest);
                     this.add(groupMember);
                     this.add(orgMember);
+                    this.add(limitedMember);
                 }
             };
 
