@@ -55,6 +55,10 @@ public class JwtUtil {
         }
     }
 
+    public static Integer getUserIdByToken(String token) {
+        return Integer.valueOf(JWT.decode(token).getClaim("uid").asString());
+    }
+
     public static String getValueByToken(String token, String field) {
         return JWT.decode(token).getClaim(field).asString();
     }

@@ -69,6 +69,8 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<GcSubject> getLevel0SubLis(Integer masterId);
 
+    List<Integer> getCourseIds(Integer masterId);
+
     List<GcSubject> getSubjectChild(Integer subId);
 
     List<GcSubject> getSubListWithImgByIds(

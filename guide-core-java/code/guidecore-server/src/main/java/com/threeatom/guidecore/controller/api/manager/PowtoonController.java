@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.controller.api.manager;
 
+import static com.threeatom.utils.ToolUtil.parseToJsonArray;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -11,6 +13,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.GroupDto;
 import com.threeatom.client.dto.ManagedGroupDto;
+import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
@@ -158,6 +161,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -1434,7 +1438,7 @@ public class PowtoonController extends GuideCoreController {
 		List<Integer> idList = JSONArray.parseArray(idListString).toJavaList(Integer.class);
 		GcAccess access = accessService.getById(accessId);
 		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(access.getId(),masterId);
-		List<Integer> userIds = userAccessList.stream().map(GcUserAccess::getUserId).collect(Collectors.toList());
+		List<Integer> userIds = getUserIds(userAccessList);
 		List<Integer> userAccessIds = userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.selectUserAccessPermissions(userAccessIds);
 		for (Integer integer : idList) {
@@ -1823,304 +1827,383 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@GetMapping("/getToken")
-	public Message getToken(String code,HttpServletRequest response,HttpServletRequest request) throws IOException, ClientException, PermitApiError, PermitContextError {
-		Message message = new Message();
-		Optional<Integer> masterIdOptional = RequestUtil.getMasterId(request);
+	public Message getToken(@RequestParam(required = false) String code, HttpServletRequest response, HttpServletRequest request)
+		throws IOException, ClientException, PermitApiError, PermitContextError {
+		GcMaster master = getMaster(request);
+		Integer masterId = master.getId();
+		PtLoginConfig loginConfig = ptLoginConfigService.getByMasterId(masterId);
+		loginConfig = getPtConfig(loginConfig);
+
 		initPermit();
 
-		GcMaster master = null;
-		if (masterIdOptional.isEmpty()) {
-			master = gcMasterService.getMaster("Powtoon");
-		} else {
-			master = gcMasterService.getMasterById(masterIdOptional.get());
-		}
-		Integer masterId = master.getId();
-		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
-		loginConfigQueryWrapper.eq("master_id",masterId);
-		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-		ptLoginConfig = getPtConfig(ptLoginConfig);
-		String tokens = RequestUtil.getRequestAuthHeader(response);
-		GcUser user = null;
-		String token = null;
-		String accessToken = null;
-		String refreshToken=null;
-		if (null==code){
-			if (null != tokens && !tokens.isEmpty() && !tokens.equals("undefined")){
-				Integer uid = Integer.parseInt(JwtUtil.getValueByToken(tokens, "uid"));
-				user = userService.getUserByIdCache(uid);
-				try {
-					JwtUtil.verifyToken(tokens, user.getPassword());
-				}catch (AuthenticationException e){
-					return new Message().error(401, "Login has expired!");
-				}
-			}
+		GcUser user;
+		try {
+			user = processAuthorization(code, loginConfig, master, response);
+		} catch (AuthenticationException e) {
+			return new Message().error(401, e.getMessage());
 		}
 
-		List<Integer> subjectIdList = gcSubjectService.getLevel0SubLis(master.getId()).stream().map(GcSubject::getId).collect(Collectors.toList());
-		GcAccess studentAccess = getGcAccess(master, subjectIdList);
+		updateUserData(response, user);
 
-		// Temporarily return pt field
-		String thumbUrl = "null";
-		String ptEmail = "null";
-		String ptId = "null";
+		UserRead userRoles = permit.api.users.get(user.getUsername());
+		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(), masterId);
+		boolean isOrgAdmin = isOrgAdmin(userRoles);
+		boolean isTeamAdmin = isTeamAdmin(userRoles);
 
-		String redirectUri = response.getHeader("redirectUri");
-		if (null!=code){
-			Map<String, String> body = new HashMap<>();
-			body.put("client_id",ptLoginConfig.getClientId());
-			body.put("grant_type","authorization_code");
-			body.put("redirect_uri",redirectUri);
-			body.put("code",code);
-			log.info("getTokenUrl:"+ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken());
-			log.info("code::"+code);
+		updateUserAccessLoginTime(user, masterId);
 
-			String JsonRequest = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken(),body);
-			if (null==JsonRequest){
-				throw new SystemException("Powtoon Token is null");
-			}
+		return new Message().ok()
+			.addData("user", user)
+			.addData("token", userService.getUserNativeToken(user, masterId))
+			.addData("accessToken", redisOperator.get("access_token_userid" + user.getId()))
+			.addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
+			.addData("roleMenus", getSysMenus(userRoles.roles, user, masterId, isGroupAdmin, isOrgAdmin, isTeamAdmin))
+			.addData("isGroupAdmin", isGroupAdmin)
+			.addData("isOrgAdmin", isOrgAdmin)
+			.addData("logoUrl", getLogoUrl(response, master))
+			.addData("ptRootUrl", loginConfig.getPtRootUrl());
+	}
 
-			JSONObject requestJson = JSONObject.parseObject(JsonRequest);
-			if (null==requestJson){
-				throw new SystemException("Powtoon tokenReturn is null");
-			}
-
-			log.info("token return:"+requestJson.toJSONString());
-			if (null==requestJson.getString("access_token")){
-				throw new SystemException("Powtoon accessToken is null");
-			}
-
-			accessToken = requestJson.getString("access_token");
-			refreshToken = requestJson.getString("refresh_token");
-			// Get user information
-			// Get the group the user belongs to
-			JSONObject groupObject = HttpUtil.doGetAuthorization(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getGroups(),"Bearer "+accessToken);
-			PtGroupsVo ptGroupsVo = groupObject.toJavaObject(PtGroupsVo.class);
-			log.info("PtGroups interface returns:"+groupObject);
-			Map<String,Groups> groupsMap = ptGroupsVo.getResults().stream().collect(Collectors.toMap(Groups::getId, (p) -> p));
-			PowtoonUserDto userInfo
-				= powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), "Bearer " + accessToken);
-
-			user = userService.getUserByUserName(userInfo.getProfile().getEmail());
-			// Add permission table data
-			List<GcAccess> gcAccessesList = new ArrayList<>();
-			List<GcAccess> gcAccessLists = new ArrayList<>();
-			List<GcUserAccess> userAccessList = new ArrayList<>();
-			List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-			List<String> roleLists = getRoleLists(userInfo);
-
-			if (null==user){
-                user = createGcUser(userInfo, master, studentAccess, masterId);
-			}else {
-				// Update name
-				user.setPtUser(TableConstant.COMMON_ONE);
-				userService.updateById(user);
-				GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
-				gcUserInfo.setFirstName(userInfo.getProfile().getFirstName());
-				gcUserInfo.setLastName(userInfo.getProfile().getLastName());
-
-				if (null!=gcUserInfo.getAvatarFileId()){
-					SysFile file = sysFileService.getById(gcUserInfo.getAvatarFileId());
-					file.setFileUrl(userInfo.getProfile().getThumbUrl());
-					sysFileService.saveOrUpdate(file);
-				}else {
-					SysFile file = getSysFile(user, userInfo, masterId);
-					sysFileService.saveOrUpdate(file);
-					gcUserInfo.setAvatarFileId(file.getId());
-				}
-
-				infoService.updateById(gcUserInfo);
-				user = userService.getUserByIdCache(user.getId());
-			}
-			userLicenseService.update(user.getId(), userInfo, masterId);
-
-			List<String> idList = userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
-			// Add managed_groups
-			List<String> managedList = userInfo.getPermissions().getManagedGroups().stream().map(ManagedGroupDto::getId).collect(Collectors.toList());
-			idList.addAll(managedList);
-			// Query all groups
-			List<GcAccess> accessLists = accessService.selectAccessByCodeAndMasterId(idList,masterId);
-			ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, accessLists);
-
-			Map<String,GcAccess> gcAccessMap = accessLists.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity(), (key1, key2) -> key2));
-			for (GroupDto group : userInfo.getPermissions().getGroups()) {
-				GcAccess access = new GcAccess();
-				if (null!=gcAccessMap.get(group.getId())){
-					access = gcAccessMap.get(group.getId());
-					access.setGroupName(group.getTitle());
-                } else {
-					access.setMasterId(masterId);
-					access.setCode(group.getId());
-					access.setGroupName(group.getTitle());
-					access.setRoleType(TableConstant.COMMON_ONE);
-					access.setCodeType(TableConstant.COMMON_ZERO);
-					access.setSubjectJson(new JSONArray());
-					access.setSubscribeJson(new JSONArray());
-                }
-                access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
-                if (null!=group.getRoleId()&&group.getRoleId().equals(GroupsType.orgAdmin)){
-                    access.getRoleJson().add(GroupsType.orgAdmin);
-                }
-                gcAccessesList.add(access);
-			}
-			List<String> gcAccessesListCodes = gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList());
-
-			for (ManagedGroupDto managerGroup : userInfo.getPermissions().getManagedGroups()) {
-				GcAccess access = gcAccessMap.get(managerGroup.getId());
-				if(null!=access){
-					access.setGroupName(managerGroup.getTitle());
-					if (null!=access.getRoleJson()){
-						access.getRoleJson().addAll(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
-					}else {
-						access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
-					}
-				}else {
-					access = new GcAccess();
-					access.setMasterId(masterId);
-					access.setCode(managerGroup.getId());
-					access.setGroupName(managerGroup.getTitle());
-					access.setRoleType(TableConstant.COMMON_ONE);
-					access.setCodeType(TableConstant.COMMON_ZERO);
-					access.setSubjectJson(new JSONArray());
-					access.setChannelJson(new JSONArray());
-					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
-				}
-				gcAccessLists.add(access);
-				if (!gcAccessesListCodes.contains(access.getCode())){
-					gcAccessesList.add(access);
-				}
-			}
-			if(!gcAccessLists.isEmpty()){
-				accessService.insertOrUpdateList(gcAccessLists);
-			}
-			List<GcAccess> accessList = accessService.selectAccessByCodeAndMasterId(gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList()),masterId);
-			Map<String,GcAccess> accessHashMap = gcAccessesList.stream().collect(Collectors.toMap(GcAccess::getCode, (p) -> p));
-			// superAdmin user
-			List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(user.getId(),masterId);
-			for (GcAccess access : accessList) {
-				GcUserAccess userAccess = new GcUserAccess();
-				userAccess.setUserId(user.getId());
-				userAccess.setMasterId(masterId);
-				userAccess.setAccessId(access.getId());
-				if (null != accessHashMap.get(access.getCode())){
-					userAccess.setRoleJson(accessHashMap.get(access.getCode()).getRoleJson());
-				}
-				if (gcUserAccessList.contains(access.getId())){
-					userAccess.getRoleJson().add(GroupsType.superAdmin);
-					roleLists.add(GroupsType.superAdmin);
-				}
-				//组权限
-				if(null!=groupsMap.get(access.getCode())){
-					userAccess.setParentCode(groupsMap.get(access.getCode()).getParent_group_id());
-				}
-				userAccess.setAccess(access);
-				userAccessList.add(userAccess);
-			}
-			if(!userAccessList.isEmpty()) {
-				gcUserAccessService.insertUserAccessList(userAccessList);
-			}
-			List<GcUserAccess> userAccesses = gcUserAccessService.getUserAccessListByMasterIdAndUserId(userAccessList.stream()
-				.map(GcUserAccess::getUserId)
-				.collect(Collectors.toList()),masterId);
-
-			updateUserPermissions(userAccesses, userAccessPermissions);
-			if (null!=userInfo.getProfile().getThumbUrl()){
-				thumbUrl = userInfo.getProfile().getThumbUrl();
-			}
-			if (null!=userInfo.getProfile().getEmail()){
-				ptEmail = userInfo.getProfile().getEmail();
-			}
-			if (null!=userInfo.getProfile().getId()){
-				ptId = userInfo.getProfile().getId().toString();
-			}
-			List<Integer> codeIdList = new ArrayList<>();
-			accessLists = gcAccessService.list();
-			for (GcAccess access : accessLists) {
-				if (!idList.contains(access.getCode())){
-					codeIdList.add(access.getId());
-				}
-			}
-			if(!codeIdList.isEmpty()){
-				gcUserAccessService.deleteUserAccess(user.getId(),masterId,codeIdList);
-			}
-			// Sync to permit
-			assignUser(user,roleLists,userInfo,masterId);
-			redisOperator.set("PT:"+user.getUsername(),accessToken);
-			redisOperator.set("PT_refresh_token:"+user.getUsername(),refreshToken);
-			//access_token存入redis
-			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
+	private GcUser processAuthorization(String authCode, PtLoginConfig loginConfig, GcMaster master,
+										HttpServletRequest response) throws IOException, ClientException {
+		if (authCode != null) {
+			return authorizeWithCode(authCode, loginConfig, master, response.getHeader("redirectUri"));
 		}
-		if(code==null){
-			if(null==redisOperator.get("PT:"+user.getUsername())
-				|| null==redisOperator.get("access_token_userid"+user.getId())){
-				return message.error(401, "Login has expired!");
-			}
 
-			Map<String, String> body = new HashMap<>();
-			body.put("client_id",ptLoginConfig.getClientId());
-			body.put("grant_type","refresh_token");
-			body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:"+user.getUsername()));
-			String JsonRequest = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ptLoginConfig.getOauthToken(),body);
-			JSONObject requestJson = JSONObject.parseObject(JsonRequest);
-			accessToken = requestJson.getString("access_token");
-			redisOperator.set("access_token_userid"+user.getId(),"Bearer "+accessToken,requestJson.getLong("expires_in"));
-			redisOperator.set("PT_refresh_token:"+user.getUsername(),requestJson.getString("refresh_token"));
-		}
-		token = userService.getUserNativeToken(user, master);
+		GcUser user = getUserFromToken(RequestUtil.getRequestAuthHeader(response));
+		verifyToken(user, loginConfig);
+		return user;
+	}
+
+	private void updateUserData(HttpServletRequest response, GcUser user) {
 		user.setFirstName(user.getInfo().getFirstName());
 		user.setLastName(user.getInfo().getLastName());
 		sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), response);
+	}
 
-		user.setThumbUrl(thumbUrl);
-		user.setPtEmail(ptEmail);
-		user.setPtId(ptId);
-
-		//getToken returns logo url
-		if(Objects.nonNull(master.getLogoId())){
-			SysFile sysFile = sysFileService.getById(master.getLogoId());
-			String logoUrl = sysFileService.getResFullUrl(sysFile,response);
-			message.ok().addData("logoUrl",logoUrl);
+	private void verifyToken(GcUser user, PtLoginConfig ptLoginConfig) {
+		if (null == redisOperator.get("PT:" + user.getUsername())
+			|| null == redisOperator.get("access_token_userid" + user.getId())) {
+			throw new AuthenticationException("Login has expired!");
 		}
 
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		List<UserRole> roleList = userRoles.roles;
+		Map<String, String> body = getTokenRequestBody(user, ptLoginConfig.getClientId());
+		String authResponse =
+			HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
+		PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
+		updateAuthInRedis(user, authInfo);
+	}
 
-		boolean isOrgAdmin = false;
-		boolean isTeamAdmin = false;
-		if (null!=userRoles.attributes){
-			if (null!=userRoles.attributes.get("isOrgAdmin")){
-				isOrgAdmin = (boolean) userRoles.attributes.get("isOrgAdmin");
+	private GcUser authorizeWithCode(String code, PtLoginConfig ptLoginConfig, GcMaster master, String redirectUri) throws IOException, ClientException {
+		List<Integer> courseIds = gcSubjectService.getCourseIds(master.getId());
+		GcAccess courseContentGroups = accessService.getTeacherStudentContentGroup(master, courseIds);
+		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
+
+		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
+
+		log.info("getTokenUrl:" + ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken());
+		log.info("code::" + code);
+		log.info("token return:" + authInfo);
+
+		String accessToken = authInfo.getAccessToken();
+		if (accessToken == null) {
+			throw new SystemException("Powtoon accessToken is null");
+		}
+
+		String bearerToken = "Bearer " + accessToken;
+		PtGroupsVo groups =
+			powtoonClient.getGroups(
+				URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
+
+		log.info("PtGroups interface returns:" + groups);
+		Map<String, Groups> groupsMap =
+			groups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
+
+		PowtoonUserDto userInfo = powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
+		GcUser user = userService.getUserByUserName(userInfo.getProfile().getEmail());
+
+		// Add permission table data
+		List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
+		List<String> roleLists = getRoleLists(userInfo);
+
+		user = saveOrUpdateUser(user, userInfo, master, courseContentGroups);
+		List<String> managedGroups = getManagedGroupCodes(userInfo);
+		List<String> memberGroups = getMemberGroupCodes(userInfo);
+		memberGroups.addAll(managedGroups);
+
+		// Query all groups
+		Integer masterId = master.getId();
+		List<GcAccess> contentGroups = accessService.selectAccessByCodeAndMasterId(memberGroups, masterId);
+		ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, contentGroups);
+		Map<String, GcAccess> codeToContentGroup = getCodeToContentGroup(contentGroups);
+		List<GcAccess> userMemberGroups = createOrUpdateMemberGroups(codeToContentGroup, masterId, userInfo.getPermissions().getGroups());
+
+		saveOrUpdateManagedContentGroups(codeToContentGroup, masterId, userMemberGroups, userInfo.getPermissions().getManagedGroups());
+		Map<String, GcAccess> memberContentGroupCodeToContentGroup =
+			userMemberGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
+
+		// superAdmin user
+		List<GcAccess> dbMemberContentGroups = accessService.selectAccessByCodeAndMasterId(getContentGroupCodes(userMemberGroups),
+			masterId);
+		List<Integer> superAdminContentGroups = gcUserAccessService.getAccessListBySuperAdmin(user.getId(), masterId);
+		List<GcUserAccess> userAccessList =
+			saveOrUpdateUserAccess(dbMemberContentGroups, user, masterId, memberContentGroupCodeToContentGroup,
+				superAdminContentGroups, roleLists, groupsMap);
+
+		List<GcUserAccess> userAccesses =
+			gcUserAccessService.getUserAccessListByMasterIdAndUserId(getUserIds(userAccessList), masterId);
+
+		updateUserPermissions(userAccesses, userAccessPermissions);
+		updateUser(userInfo, user);
+		removeContentGroupsMissingInDb(memberGroups, user, masterId);
+		syncUserWithPermit(user, roleLists, userInfo, masterId);
+		createAuthInRedis(user, authInfo);
+		return user;
+	}
+
+	private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, Map<String, String> parameters) {
+		String powtoonAuthResponse = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ ptLoginConfig.getOauthToken(),
+			parameters);
+		PowtoonAuthDto authInfo = JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
+		if (powtoonAuthResponse == null){
+			throw new SystemException("Powtoon Token is null");
+		}
+
+		return authInfo;
+	}
+
+	private Map<String, String> getTokenRequestBody(String code, String redirectUri, String clientId) {
+		Map<String, String> parameters = new HashMap<>();
+
+		parameters.put("client_id", clientId);
+		parameters.put("grant_type","authorization_code");
+		parameters.put("redirect_uri", redirectUri);
+		parameters.put("code", code);
+
+		return parameters;
+	}
+
+	private Map<String, String> getTokenRequestBody(GcUser user, String clientId) {
+		Map<String, String> body = new HashMap<>();
+		body.put("client_id", clientId);
+		body.put("grant_type", "refresh_token");
+		body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
+		return body;
+	}
+
+	private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
+		return userAccessList.stream()
+			.map(GcUserAccess::getUserId)
+			.collect(Collectors.toList());
+	}
+
+	private List<GcUserAccess> saveOrUpdateUserAccess(List<GcAccess> dbMemberContentGroups, GcUser user,
+														Integer masterId,
+														Map<String, GcAccess> memberContentGroupCodeToContenGroup,
+														List<Integer> superAdminContentGroups, List<String> roleLists,
+														Map<String, Groups> groupsMap) {
+		List<GcUserAccess> userAccessList = new ArrayList<>();
+		for (GcAccess contentGroup : dbMemberContentGroups) {
+			GcUserAccess userAccess = new GcUserAccess();
+			userAccess.setUserId(user.getId());
+			userAccess.setMasterId(masterId);
+			userAccess.setAccessId(contentGroup.getId());
+
+			if (null != memberContentGroupCodeToContenGroup.get(contentGroup.getCode())) {
+				userAccess.setRoleJson(memberContentGroupCodeToContenGroup.get(contentGroup.getCode()).getRoleJson());
 			}
-			if (null!=userRoles.attributes.get("managedGroups")){
-				JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(userRoles.attributes.get("managedGroups")));
-				List<String> integers = jsonArray.toJavaList(String.class);
-				if (!integers.isEmpty()){
-					isTeamAdmin = true;
+			if (superAdminContentGroups.contains(contentGroup.getId())) {
+				userAccess.getRoleJson().add(GroupsType.superAdmin);
+				roleLists.add(GroupsType.superAdmin);
+			}
+
+			if (null != groupsMap.get(contentGroup.getCode())) {
+				userAccess.setParentCode(groupsMap.get(contentGroup.getCode()).getParent_group_id());
+			}
+			userAccess.setAccess(contentGroup);
+			userAccessList.add(userAccess);
+		}
+		if (!userAccessList.isEmpty()) {
+			gcUserAccessService.insertUserAccessList(userAccessList);
+		}
+
+		return userAccessList;
+	}
+
+	private void saveOrUpdateManagedContentGroups(Map<String, GcAccess> codeToContentGroup, Integer masterId, List<GcAccess> userMemberContentGroups, List<ManagedGroupDto> managedGroups) {
+		List<GcAccess> managedContentGroups = new ArrayList<>();
+		List<String> memberContentGroupCodes = getContentGroupCodes(userMemberContentGroups);
+
+		for (ManagedGroupDto managedGroup : managedGroups) {
+			GcAccess access = codeToContentGroup.get(managedGroup.getId());
+			if (null != access) {
+				access.setGroupName(managedGroup.getTitle());
+				if (null != access.getRoleJson()) {
+					access.getRoleJson()
+						.addAll(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
+				} else {
+					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
 				}
+			} else {
+				access = createManagerContentGroup(masterId, managedGroup);
+			}
+
+			managedContentGroups.add(access);
+			if (!memberContentGroupCodes.contains(access.getCode())) {
+				userMemberContentGroups.add(access);
 			}
 		}
+		if (!managedContentGroups.isEmpty()) {
+			accessService.insertOrUpdateList(managedContentGroups);
+		}
+	}
 
-		List<String> getRoleList = new ArrayList<>();
+	private GcAccess createManagerContentGroup(Integer masterId, ManagedGroupDto managedGroup) {
+		GcAccess access;
+		access = new GcAccess();
+		access.setMasterId(masterId);
+		access.setCode(managedGroup.getId());
+		access.setGroupName(managedGroup.getTitle());
+		access.setRoleType(TableConstant.COMMON_ONE);
+		access.setCodeType(TableConstant.COMMON_ZERO);
+		access.setSubjectJson(new JSONArray());
+		access.setChannelJson(new JSONArray());
+		access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
+		return access;
+	}
 
-		for (UserRole userRole : roleList) {
-			getRoleList.add(userRole.role);
+	private List<GcAccess> createOrUpdateMemberGroups(Map<String, GcAccess> codeToContentGroup, Integer masterId, List<GroupDto> powtoonGroups) {
+		List<GcAccess> gcAccessesList = new ArrayList<>();
+
+		for (GroupDto group : powtoonGroups) {
+			GcAccess contentGroup;
+			if (null != codeToContentGroup.get(group.getId())) {
+				contentGroup = codeToContentGroup.get(group.getId());
+				contentGroup.setGroupName(group.getTitle());
+			} else {
+				contentGroup = createContentGroup(masterId, group);
+			}
+
+			contentGroup.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
+			if (null != group.getRoleId() && group.getRoleId().equals(GroupsType.orgAdmin)) {
+				contentGroup.getRoleJson().add(GroupsType.orgAdmin);
+			}
+			gcAccessesList.add(contentGroup);
 		}
-		List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(user.getId(),masterId);
-		if (null!=gcUserAccessList&& !gcUserAccessList.isEmpty()){
-			getRoleList.add(GroupsType.superAdmin);
+
+		return gcAccessesList;
+	}
+
+	private GcAccess createContentGroup(Integer masterId, GroupDto group) {
+		GcAccess contentGroup = new GcAccess();
+		contentGroup.setMasterId(masterId);
+		contentGroup.setCode(group.getId());
+		contentGroup.setGroupName(group.getTitle());
+		contentGroup.setRoleType(TableConstant.COMMON_ONE);
+		contentGroup.setCodeType(TableConstant.COMMON_ZERO);
+		contentGroup.setSubjectJson(new JSONArray());
+		contentGroup.setSubscribeJson(new JSONArray());
+		return contentGroup;
+	}
+
+	private Map<String, GcAccess> getCodeToContentGroup(List<GcAccess> contentGroupIds) {
+		return contentGroupIds.stream()
+			.collect(Collectors.toMap(GcAccess::getCode, Function.identity(), (key1, key2) -> key2));
+	}
+
+	private List<String> getManagedGroupCodes(PowtoonUserDto userInfo) {
+		return userInfo.getPermissions().getManagedGroups().stream().map(ManagedGroupDto::getId)
+			.collect(Collectors.toList());
+	}
+
+	private List<String> getMemberGroupCodes(PowtoonUserDto userInfo) {
+		return userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
+	}
+
+	private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto userInfo, GcMaster master, GcAccess studentAccess)
+		throws ClientException, IOException {
+		Integer masterId = master.getId();
+
+		if (null == user) {
+			return createGcUser(userInfo, master, studentAccess, masterId);
 		}
-		if (isOrgAdmin){
-			getRoleList.add(GroupsType.admin);
+		user.setPtUser(TableConstant.COMMON_ONE);
+		userService.updateById(user);
+
+		GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
+		gcUserInfo.setFirstName(userInfo.getProfile().getFirstName());
+		gcUserInfo.setLastName(userInfo.getProfile().getLastName());
+
+		if (null != gcUserInfo.getAvatarFileId()) {
+			SysFile file = sysFileService.getById(gcUserInfo.getAvatarFileId());
+			file.setFileUrl(userInfo.getProfile().getThumbUrl());
+			sysFileService.saveOrUpdate(file);
+		} else {
+			SysFile file = getSysFile(user, userInfo, masterId);
+			sysFileService.saveOrUpdate(file);
+			gcUserInfo.setAvatarFileId(file.getId());
 		}
-		if (isTeamAdmin){
-			getRoleList.add(GroupsType.teamAdmin);
+
+		infoService.updateById(gcUserInfo);
+		return userService.getUserByIdCache(user.getId());
+	}
+
+	private List<String> getContentGroupCodes(List<GcAccess> gcAccessesList) {
+		return gcAccessesList.stream().map(GcAccess::getCode).collect(Collectors.toList());
+	}
+
+	private void updateUser(PowtoonUserDto userInfo, GcUser user) {
+		if (null != userInfo.getProfile().getThumbUrl()) {
+			user.setThumbUrl(userInfo.getProfile().getThumbUrl());
 		}
+		if (null != userInfo.getProfile().getEmail()) {
+			user.setPtEmail(userInfo.getProfile().getEmail());
+		}
+		if (null != userInfo.getProfile().getId()) {
+			user.setPtId(userInfo.getProfile().getId().toString());
+		}
+	}
+
+	private void removeContentGroupsMissingInDb(List<String> memberGroups, GcUser user, Integer masterId) {
+		List<Integer> contentGroupIdsToRemove = gcAccessService.list().stream()
+			.filter(access -> !memberGroups.contains(access.getCode()))
+			.map(GcAccess::getId)
+			.collect(Collectors.toList());
+
+		if (!contentGroupIdsToRemove.isEmpty()) {
+			gcUserAccessService.deleteUserAccess(user.getId(), masterId, contentGroupIdsToRemove);
+		}
+	}
+
+	private void createAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {
+		redisOperator.set("PT:" + user.getUsername(), authInfo.getAccessToken());
+		updateAuthInRedis(user, authInfo);
+	}
+
+	private void updateAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {
+		redisOperator.set("access_token_userid" + user.getId(), authInfo.getAccessToken(),
+			authInfo.getExpiresIn());
+		redisOperator.set("PT_refresh_token:" + user.getUsername(), authInfo.getRefreshToken());
+	}
+
+	private String getLogoUrl(HttpServletRequest response, GcMaster master) {
+		if (Objects.nonNull(master.getLogoId())) {
+			SysFile sysFile = sysFileService.getById(master.getLogoId());
+			return sysFileService.getResFullUrl(sysFile, response);
+		}
+
+		return null;
+	}
+
+	private List<SysMenu> getSysMenus(List<UserRole> permitRoles, GcUser user, Integer masterId, Integer isGroupAdmin,
+									  boolean isOrgAdmin, boolean isTeamAdmin) {
+		List<String> roles = getRoles(permitRoles, masterId, isOrgAdmin, isTeamAdmin, user.getId());
 		List<SysMenu> roleMenus = new ArrayList<>();
-		if (!getRoleList.isEmpty()){
-			roleMenus = sysMenuService.getMenuByRoles(getRoleList, user, masterId);
+		if (!roles.isEmpty()) {
+			roleMenus.addAll(sysMenuService.getMenuByRoles(roles, user, masterId));
 		}
 
-		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(),masterId);
-		if (TableConstant.COMMON_ZERO!=isGroupAdmin||isOrgAdmin){
+		if (TableConstant.COMMON_ZERO != isGroupAdmin || isOrgAdmin) {
 			SysMenu sysMenu = new SysMenu();
 			sysMenu.setName("courses-groupAdmin");
 			sysMenu.setKey("courses-groupAdmin");
@@ -2130,17 +2213,71 @@ public class PowtoonController extends GuideCoreController {
 			roleMenus.add(sysMenu);
 		}
 
-		updateUserAccessLoginTime(user, masterId);
+		return roleMenus;
+	}
 
-		return message.ok()
-			.addData("user",user)
-			.addData("token",token)
-			.addData("accessToken",accessToken)
-			.addData("logoutUrl",ptLoginConfig.getPtRootUrl()+ptLoginConfig.getLogOutUrl())
-			.addData("roleMenus",roleMenus)
-			.addData("isGroupAdmin",isGroupAdmin)
-			.addData("isOrgAdmin",isOrgAdmin)
-			.addData("ptRootUrl",ptLoginConfig.getPtRootUrl());
+	private List<String> getRoles(List<UserRole> permitRoles, Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin, Integer userId) {
+		List<String> getRoleList = new ArrayList<>();
+
+		for (UserRole userRole : permitRoles) {
+			getRoleList.add(userRole.role);
+		}
+
+		List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(userId, masterId);
+		if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
+			getRoleList.add(GroupsType.superAdmin);
+		}
+		if (isOrgAdmin) {
+			getRoleList.add(GroupsType.admin);
+		}
+		if (isTeamAdmin) {
+			getRoleList.add(GroupsType.teamAdmin);
+		}
+
+		return getRoleList;
+	}
+
+	private boolean isTeamAdmin(UserRead userRoles) {
+		if (userRoles.attributes.get("managedGroups") == null) {
+			return false;
+		}
+
+		JSONArray jsonArray =
+			JSONArray.parseArray(JSON.toJSONString(userRoles.attributes.get("managedGroups")));
+		List<String> integers = jsonArray.toJavaList(String.class);
+		return !integers.isEmpty();
+	}
+
+	private boolean isOrgAdmin(UserRead userRoles) {
+		if (userRoles == null) {
+			return false;
+		}
+
+		if (null != userRoles.attributes.get("isOrgAdmin")) {
+			return (boolean) userRoles.attributes.get("isOrgAdmin");
+		}
+
+		return false;
+	}
+
+	private GcUser getUserFromToken(String tokens) {
+		if (!"undefined".equals(tokens)) {
+			Integer userId = JwtUtil.getUserIdByToken(tokens);
+			GcUser user = userService.getUserByIdCache(userId);
+			JwtUtil.verifyToken(tokens, user.getPassword());
+			return user;
+		}
+
+		throw new AuthenticationException("Token has not found!");
+	}
+
+	private GcMaster getMaster(HttpServletRequest request) {
+		Optional<Integer> masterIdOptional = RequestUtil.getMasterId(request);
+		if (masterIdOptional.isEmpty()) {
+			return gcMasterService.getMaster("Powtoon");
+		}
+
+		return gcMasterService.getMasterById(masterIdOptional.get());
 	}
 
 	private void updateUserAccessLoginTime(GcUser user, Integer masterId) {
@@ -2179,10 +2316,6 @@ public class PowtoonController extends GuideCoreController {
 		if(!userAccessPermissions.isEmpty()) {
 			gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
 		}
-	}
-
-	private JSONArray parseToJsonArray(List<Integer> integerList) {
-		return JSONArray.parseArray(JSON.toJSONString(integerList));
 	}
 
 	private SysFile getSysFile(GcUser user, PowtoonUserDto userInfo, Integer masterId) {
@@ -2258,56 +2391,6 @@ public class PowtoonController extends GuideCoreController {
 		return roleLists;
 	}
 
-	private GcAccess getGcAccess(GcMaster master, List<Integer> subjectIdList) {
-		QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("code","teacherPT");
-		queryWrapper.eq("role_type",TableConstant.COMMON_ZERO);
-		queryWrapper.eq("master_id", master.getId());
-		GcAccess gcAccess = accessService.getOne(queryWrapper);
-
-		queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("code","studentPT");
-		queryWrapper.eq("role_type",1);
-		queryWrapper.eq("master_id", master.getId());
-		GcAccess studentAccess = accessService.getOne(queryWrapper);
-
-		if (null == gcAccess || null == studentAccess) {
-			if (null == gcAccess){
-				gcAccess = new GcAccess();
-				gcAccess.setMasterId(master.getId());
-				gcAccess.setRoleType(TableConstant.COMMON_ZERO);
-				gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
-				gcAccess.setCodeType(TableConstant.COMMON_ZERO);
-				gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
-				gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
-				gcAccess.setCode("teacherPT");
-				accessService.addAccess(gcAccess);
-			}
-			if (null==studentAccess){
-				studentAccess = new GcAccess();
-				studentAccess.setMasterId(master.getId());
-				studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
-				studentAccess.setCode("studentPT");
-				studentAccess.setCodeType(TableConstant.COMMON_ZERO);
-				studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
-				studentAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
-				studentAccess.setRoleType(TableConstant.COMMON_ONE);
-				studentAccess.setAdminId(gcAccess.getId());
-				studentAccess.setId(null);
-				accessService.addAccess(studentAccess);
-			}else if(null == studentAccess.getAdminId()){
-				studentAccess.setAdminId(gcAccess.getId());
-				accessService.updateById(studentAccess);
-			}
-		}else {
-			gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
-			studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
-			accessService.updateById(gcAccess);
-			accessService.updateById(studentAccess);
-		}
-		return studentAccess;
-	}
-
 	private void initPermit() {
 		permit =  new Permit(
 				new PermitConfig.Builder(permitConfiguration.getApiKey())
@@ -2324,7 +2407,7 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	//同步用户
-	public void assignUser(GcUser user,List<String> roleList,PowtoonUserDto userInfo,Integer masterId){
+	public void syncUserWithPermit(GcUser user, List<String> roleList, PowtoonUserDto userInfo, Integer masterId){
 		GcMaster master = masterService.getMasterById(masterId);
 		TenantRead tenant = null;
 		try {
@@ -2503,9 +2586,9 @@ public class PowtoonController extends GuideCoreController {
 			List<String> accessListMay = new ArrayList<>();
 			if(null!=sub.getAllPublished()&&sub.getAllPublished()==TableConstant.COMMON_ZERO){
 				if (user.getIsOrgAdmin()){
-					accessListMay = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					accessListMay = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
 				}else {
-					accessListMay = gcAccessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					accessListMay = getContentGroupCodes(gcAccessService.listAccess(null, masterId, user.getId()));
 				}
 				if (accessListMay.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(accessListMay);
@@ -2513,9 +2596,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 			if (null!=sub.getAllPublishedMay()&&sub.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)){
 				if (user.getIsOrgAdmin()){
-					mustAccessList = gcAccessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					mustAccessList = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
 				}else {
-					mustAccessList = gcAccessService.listAccess(null,masterId,user.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
+					mustAccessList = getContentGroupCodes(gcAccessService.listAccess(null, masterId, user.getId()));
 				}
 				if (mustAccessList.size()!=TableConstant.COMMON_ZERO){
 					ids.addAll(mustAccessList);
@@ -2523,10 +2606,10 @@ public class PowtoonController extends GuideCoreController {
 			}
 
 			if (null!=sub.getAccessIds()&&sub.getAccessIds().size()!=TableConstant.COMMON_ZERO&&null==sub.getAllPublishedMay()){
-				ids.addAll(gcAccessService.listByIds(sub.getAccessIds()).stream().map(GcAccess::getCode).collect(Collectors.toList()));
+				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(sub.getAccessIds())));
 			}
 			if (null!=sub.getMustAccessIds()&&sub.getMustAccessIds().size()!=TableConstant.COMMON_ZERO&&null==sub.getAllPublished()){
-				ids.addAll(gcAccessService.listByIds(sub.getMustAccessIds()).stream().map(GcAccess::getCode).collect(Collectors.toList()));
+				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(sub.getMustAccessIds())));
 			}
 			if (!oldSubject.getState().equals(sub.getState())&&null==sub.getFid()){
 				if (!isOrgAdmin&&sub.getAvailableType().equals(TableConstant.COMMON_ONE)){

@@ -29,7 +29,7 @@ public interface GcUserService extends IService<GcUser> {
     Integer getAllUserNums(Integer masterId, Integer type);
 
     // 获取app端用户token
-    String getUserNativeToken(GcUser user, GcMaster master);
+    String getUserNativeToken(GcUser user, Integer masterId);
 
     // 根据用户名查询用户
     GcUser getUserByUserName(String userName);
