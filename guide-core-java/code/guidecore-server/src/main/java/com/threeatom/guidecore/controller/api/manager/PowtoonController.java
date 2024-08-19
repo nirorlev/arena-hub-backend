@@ -1855,7 +1855,6 @@ public class PowtoonController extends GuideCoreController {
 		return new Message().ok()
 			.addData("user", user)
 			.addData("token", userService.getUserNativeToken(user, masterId))
-			.addData("accessToken", redisOperator.get("access_token_userid" + user.getId()))
 			.addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
 			.addData("roleMenus", getSysMenus(userRoles.roles, user, masterId, isGroupAdmin, isOrgAdmin, isTeamAdmin))
 			.addData("isGroupAdmin", isGroupAdmin)
