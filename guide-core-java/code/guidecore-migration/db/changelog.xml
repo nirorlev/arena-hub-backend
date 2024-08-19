@@ -484,4 +484,34 @@
         </insert>
     </changeSet>
 
+    <changeSet id="create-portal-user-table" author="vprokh">
+        <createTable tableName="portal_user" schemaName="arena_hub">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="master_id" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="role" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_date" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="portal_user" baseColumnNames="user_id"
+                                 constraintName="portal_user_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="portal_user" baseColumnNames="master_id"
+                                 constraintName="portal_user_gc_master_id_fk"
+                                 referencedTableName="gc_master"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>
