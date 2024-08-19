@@ -250,18 +250,18 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Transactional
     @Override
-    public GcAccess getTeacherStudentContentGroup(GcMaster master, List<Integer> courseIds) {
+    public GcAccess getTeacherStudentContentGroup(List<Integer> courseIds, Integer masterId) {
         GcAccess teacherContentGroup =
-            createTeacherContentGroup("teacherPT", TableConstant.COMMON_ZERO, master.getId());
-        GcAccess studentAccess = createTeacherContentGroup("studentPT", TableConstant.COMMON_ONE, master.getId());
+            createTeacherContentGroup("teacherPT", TableConstant.COMMON_ZERO, masterId);
+        GcAccess studentAccess = createTeacherContentGroup("studentPT", TableConstant.COMMON_ONE, masterId);
 
         if (teacherContentGroup == null || studentAccess == null) {
             if (teacherContentGroup == null) {
-                teacherContentGroup = createContentGroup(master, courseIds);
+                teacherContentGroup = createContentGroup(courseIds, masterId);
                 addAccess(teacherContentGroup);
             }
             if (studentAccess == null) {
-                studentAccess = createStudentContentGroup(master, courseIds, teacherContentGroup);
+                studentAccess = createStudentContentGroup(courseIds, teacherContentGroup, masterId);
                 addAccess(studentAccess);
             } else if (studentAccess.getAdminId() == null) {
                 studentAccess.setAdminId(teacherContentGroup.getId());
@@ -278,9 +278,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return studentAccess;
     }
 
-    private GcAccess createStudentContentGroup(GcMaster master, List<Integer> subjectIdList, GcAccess gcAccess) {
+    private GcAccess createStudentContentGroup(List<Integer> subjectIdList, GcAccess gcAccess, Integer masterId) {
         GcAccess studentAccess = new GcAccess();
-        studentAccess.setMasterId(master.getId());
+        studentAccess.setMasterId(masterId);
         studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         studentAccess.setCode("studentPT");
         studentAccess.setCodeType(TableConstant.COMMON_ZERO);
@@ -292,9 +292,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return studentAccess;
     }
 
-    private GcAccess createContentGroup(GcMaster master, List<Integer> subjectIdList) {
+    private GcAccess createContentGroup(List<Integer> subjectIdList, Integer masterId) {
         GcAccess gcAccess = new GcAccess();
-        gcAccess.setMasterId(master.getId());
+        gcAccess.setMasterId(masterId);
         gcAccess.setRoleType(TableConstant.COMMON_ZERO);
         gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         gcAccess.setCodeType(TableConstant.COMMON_ZERO);

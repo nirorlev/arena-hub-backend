@@ -115,7 +115,8 @@ public class PermitServiceImpl implements PermitService {
         return readTenant(gcMaster.getContext());
     }
 
-    private UserRead readUser(String username) throws PermitContextError, PermitApiError, IOException {
+    @Override
+    public UserRead readUser(String username) throws PermitContextError, PermitApiError, IOException {
         return permit.api.users.get(username);
     }
 }

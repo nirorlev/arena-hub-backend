@@ -44,7 +44,7 @@ public interface GcAccessService extends IService<GcAccess> {
             List<Integer> subIds);
 
     @Transactional
-    GcAccess getTeacherStudentContentGroup(GcMaster master, List<Integer> courseIds);
+    GcAccess getTeacherStudentContentGroup(List<Integer> courseIds, Integer masterId);
 
     List<GcAccess> listAllAccess(Map<String, Object> params, HttpServletRequest request);
 

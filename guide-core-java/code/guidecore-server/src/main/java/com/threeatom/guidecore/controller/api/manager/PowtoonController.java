@@ -19,13 +19,11 @@ import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.PermitException;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
-import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.ActionsType;
 import com.threeatom.guidecore.constant.EnvType;
@@ -64,6 +62,7 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -76,17 +75,13 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessExtService;
 import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
-import com.threeatom.guidecore.service.GcUserAnswerService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
-import com.threeatom.guidecore.service.GcUserFabulousService;
 import com.threeatom.guidecore.service.GcUserInfoService;
-import com.threeatom.guidecore.service.GcUserNoteCommentService;
 import com.threeatom.guidecore.service.GcUserSaveContentFollowService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
-import com.threeatom.guidecore.service.GcUserVideoPlaysNodeService;
 import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
@@ -99,8 +94,8 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
-import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
+import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -118,7 +113,6 @@ import io.permit.sdk.openapi.models.RoleAssignmentRead;
 import io.permit.sdk.openapi.models.TenantCreate;
 import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
-import io.permit.sdk.openapi.models.UserRole;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -145,7 +139,6 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 import lombok.SneakyThrows;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
@@ -180,15 +173,6 @@ public class PowtoonController extends GuideCoreController {
 
 
 	@Autowired
-	private NewUiGcSubjectService newUiGcSubjectService;
-
-	@Autowired
-	private GcUserVideoPlaysNodeService gcUserVideoPlaysNodeService;
-
-	@Autowired
-	private GcUserNoteCommentService gcUserNoteCommentService;
-
-	@Autowired
 	private GcSubjectService gcSubjectService;
 
 	@Autowired
@@ -196,9 +180,6 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private GcUserAccessService gcUserAccessService;
-
-	@Autowired
-	private GcUserFabulousService gcUserFabulousService;
 
 	@Autowired
 	private SysFileService sysFileService;
@@ -234,9 +215,6 @@ public class PowtoonController extends GuideCoreController {
 	private GvgMasterService gvgMasterService;
 
 	@Autowired
-	private DataSource dataSource;
-
-	@Autowired
 	private GcUserService userService;
 
 	@Autowired
@@ -253,9 +231,6 @@ public class PowtoonController extends GuideCoreController {
 
 	@Autowired
 	private GcEventService eventService;
-
-	@Autowired
-	private GcUserAnswerService userAnswerService;
 
 	@Autowired
 	private Environment env;
@@ -304,9 +279,6 @@ public class PowtoonController extends GuideCoreController {
 	private SysMenuService sysMenuService;
 	@Autowired
 	private GcVideoCommentService videoCommentService;
-
-	@Autowired
-	private GcUserVideoActionService UserVideoActionService;
 
 	@Autowired
 	private PtViewSubjectService viewSubjectService;
@@ -1023,19 +995,19 @@ public class PowtoonController extends GuideCoreController {
 			ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
 			ptLoginConfig.setGroups(env.getProperty("groups"));
 		}else {
-			if (null==ptLoginConfig.getOauthToken()||ptLoginConfig.getOauthToken().equals("")){
+			if (null==ptLoginConfig.getOauthToken()|| ptLoginConfig.getOauthToken().isEmpty()){
 				ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
 			}
-			if (null==ptLoginConfig.getUserUrl()||ptLoginConfig.getUserUrl().equals("")){
+			if (null==ptLoginConfig.getUserUrl()|| ptLoginConfig.getUserUrl().isEmpty()){
 				ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
 			}
-			if (null==ptLoginConfig.getLogOut()||ptLoginConfig.getLogOut().equals("")){
+			if (null==ptLoginConfig.getLogOut()|| ptLoginConfig.getLogOut().isEmpty()){
 				ptLoginConfig.setLogOut(env.getProperty("logOut"));
 			}
-			if (null==ptLoginConfig.getLogOutUrl()||ptLoginConfig.getLogOutUrl().equals("")){
+			if (null==ptLoginConfig.getLogOutUrl()|| ptLoginConfig.getLogOutUrl().isEmpty()){
 				ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
 			}
-			if (null==ptLoginConfig.getGroups()||ptLoginConfig.getGroups().equals("")){
+			if (null==ptLoginConfig.getGroups()|| ptLoginConfig.getGroups().isEmpty()){
 				ptLoginConfig.setGroups(env.getProperty("groups"));
 			}
 		}
@@ -1828,74 +1800,28 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@GetMapping("/getToken")
 	public Message getToken(@RequestParam(required = false) String code, HttpServletRequest response, HttpServletRequest request)
-		throws IOException, ClientException, PermitApiError, PermitContextError {
-		GcMaster master = getMaster(request);
-		Integer masterId = master.getId();
+		throws IOException, ClientException {
+		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getByMasterId(masterId);
 		loginConfig = getPtConfig(loginConfig);
 
-		initPermit();
-
-		GcUser user;
 		try {
-			user = processAuthorization(code, loginConfig, master, response);
+			if (code != null) {
+				GcUser user = authorizeWithCode(code, loginConfig, response.getHeader("redirectUri"), masterId);
+				updateUserAccessLoginTime(user, masterId);
+				return new Message().ok()
+					.addData("token", userService.getUserNativeToken(user, masterId));
+			}
 		} catch (AuthenticationException e) {
 			return new Message().error(401, e.getMessage());
 		}
 
-		updateUserData(response, user);
-
-		UserRead userRoles = permit.api.users.get(user.getUsername());
-		Integer isGroupAdmin = gcUserAccessService.getGroupAdmin(user.getId(), masterId);
-		boolean isOrgAdmin = isOrgAdmin(userRoles);
-		boolean isTeamAdmin = isTeamAdmin(userRoles);
-
-		updateUserAccessLoginTime(user, masterId);
-
-		return new Message().ok()
-			.addData("user", user)
-			.addData("token", userService.getUserNativeToken(user, masterId))
-			.addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
-			.addData("roleMenus", getSysMenus(userRoles.roles, user, masterId, isGroupAdmin, isOrgAdmin, isTeamAdmin))
-			.addData("isGroupAdmin", isGroupAdmin)
-			.addData("isOrgAdmin", isOrgAdmin)
-			.addData("logoUrl", getLogoUrl(response, master))
-			.addData("ptRootUrl", loginConfig.getPtRootUrl());
+		return new Message().error(400, "Invalid code");
 	}
 
-	private GcUser processAuthorization(String authCode, PtLoginConfig loginConfig, GcMaster master,
-										HttpServletRequest response) throws IOException, ClientException {
-		if (authCode != null) {
-			return authorizeWithCode(authCode, loginConfig, master, response.getHeader("redirectUri"));
-		}
-
-		GcUser user = getUserFromToken(RequestUtil.getRequestAuthHeader(response));
-		verifyToken(user, loginConfig);
-		return user;
-	}
-
-	private void updateUserData(HttpServletRequest response, GcUser user) {
-		user.setFirstName(user.getInfo().getFirstName());
-		user.setLastName(user.getInfo().getLastName());
-		sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), response);
-	}
-
-	private void verifyToken(GcUser user, PtLoginConfig ptLoginConfig) {
-		if (null == redisOperator.get("PT:" + user.getUsername())
-			|| null == redisOperator.get("access_token_userid" + user.getId())) {
-			throw new AuthenticationException("Login has expired!");
-		}
-
-		Map<String, String> body = getTokenRequestBody(user, ptLoginConfig.getClientId());
-		String authResponse =
-			HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
-		PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
-		updateAuthInRedis(user, authInfo);
-	}
-
-	private GcUser authorizeWithCode(String code, PtLoginConfig ptLoginConfig, GcMaster master, String redirectUri) throws IOException, ClientException {
-		List<Integer> courseIds = gcSubjectService.getCourseIds(master.getId());
-		GcAccess courseContentGroups = accessService.getTeacherStudentContentGroup(master, courseIds);
+	private GcUser authorizeWithCode(String code, PtLoginConfig ptLoginConfig, String redirectUri, Integer masterId) throws IOException, ClientException {
+		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
+		GcAccess courseContentGroups = accessService.getTeacherStudentContentGroup(courseIds, masterId);
 		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
 
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
@@ -1925,13 +1851,12 @@ public class PowtoonController extends GuideCoreController {
 		List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
 		List<String> roleLists = getRoleLists(userInfo);
 
-		user = saveOrUpdateUser(user, userInfo, master, courseContentGroups);
+		user = saveOrUpdateUser(user, userInfo, courseContentGroups, masterId);
 		List<String> managedGroups = getManagedGroupCodes(userInfo);
 		List<String> memberGroups = getMemberGroupCodes(userInfo);
 		memberGroups.addAll(managedGroups);
 
 		// Query all groups
-		Integer masterId = master.getId();
 		List<GcAccess> contentGroups = accessService.selectAccessByCodeAndMasterId(memberGroups, masterId);
 		ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, contentGroups);
 		Map<String, GcAccess> codeToContentGroup = getCodeToContentGroup(contentGroups);
@@ -1980,14 +1905,6 @@ public class PowtoonController extends GuideCoreController {
 		parameters.put("code", code);
 
 		return parameters;
-	}
-
-	private Map<String, String> getTokenRequestBody(GcUser user, String clientId) {
-		Map<String, String> body = new HashMap<>();
-		body.put("client_id", clientId);
-		body.put("grant_type", "refresh_token");
-		body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
-		return body;
 	}
 
 	private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
@@ -2119,12 +2036,10 @@ public class PowtoonController extends GuideCoreController {
 		return userInfo.getPermissions().getGroups().stream().map(GroupDto::getId).collect(Collectors.toList());
 	}
 
-	private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto userInfo, GcMaster master, GcAccess studentAccess)
+	private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto userInfo, GcAccess studentAccess, Integer masterId)
 		throws ClientException, IOException {
-		Integer masterId = master.getId();
-
 		if (null == user) {
-			return createGcUser(userInfo, master, studentAccess, masterId);
+			return createGcUser(userInfo, studentAccess, masterId);
 		}
 		user.setPtUser(TableConstant.COMMON_ONE);
 		userService.updateById(user);
@@ -2176,98 +2091,9 @@ public class PowtoonController extends GuideCoreController {
 
 	private void createAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {
 		redisOperator.set("PT:" + user.getUsername(), authInfo.getAccessToken());
-		updateAuthInRedis(user, authInfo);
-	}
-
-	private void updateAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {
 		redisOperator.set("access_token_userid" + user.getId(), authInfo.getAccessToken(),
 			authInfo.getExpiresIn());
 		redisOperator.set("PT_refresh_token:" + user.getUsername(), authInfo.getRefreshToken());
-	}
-
-	private String getLogoUrl(HttpServletRequest response, GcMaster master) {
-		if (Objects.nonNull(master.getLogoId())) {
-			SysFile sysFile = sysFileService.getById(master.getLogoId());
-			return sysFileService.getResFullUrl(sysFile, response);
-		}
-
-		return null;
-	}
-
-	private List<SysMenu> getSysMenus(List<UserRole> permitRoles, GcUser user, Integer masterId, Integer isGroupAdmin,
-									  boolean isOrgAdmin, boolean isTeamAdmin) {
-		List<String> roles = getRoles(permitRoles, masterId, isOrgAdmin, isTeamAdmin, user.getId());
-		List<SysMenu> roleMenus = new ArrayList<>();
-		if (!roles.isEmpty()) {
-			roleMenus.addAll(sysMenuService.getMenuByRoles(roles, user, masterId));
-		}
-
-		if (TableConstant.COMMON_ZERO != isGroupAdmin || isOrgAdmin) {
-			SysMenu sysMenu = new SysMenu();
-			sysMenu.setName("courses-groupAdmin");
-			sysMenu.setKey("courses-groupAdmin");
-			sysMenu.setState(TableConstant.COMMON_ZERO);
-			sysMenu.setLevel(1);
-			sysMenu.setRemarks("groupAdmin");
-			roleMenus.add(sysMenu);
-		}
-
-		return roleMenus;
-	}
-
-	private List<String> getRoles(List<UserRole> permitRoles, Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin, Integer userId) {
-		List<String> getRoleList = new ArrayList<>();
-
-		for (UserRole userRole : permitRoles) {
-			getRoleList.add(userRole.role);
-		}
-
-		List<Integer> gcUserAccessList = gcUserAccessService.getAccessListBySuperAdmin(userId, masterId);
-		if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
-			getRoleList.add(GroupsType.superAdmin);
-		}
-		if (isOrgAdmin) {
-			getRoleList.add(GroupsType.admin);
-		}
-		if (isTeamAdmin) {
-			getRoleList.add(GroupsType.teamAdmin);
-		}
-
-		return getRoleList;
-	}
-
-	private boolean isTeamAdmin(UserRead userRoles) {
-		if (userRoles.attributes.get("managedGroups") == null) {
-			return false;
-		}
-
-		JSONArray jsonArray =
-			JSONArray.parseArray(JSON.toJSONString(userRoles.attributes.get("managedGroups")));
-		List<String> integers = jsonArray.toJavaList(String.class);
-		return !integers.isEmpty();
-	}
-
-	private boolean isOrgAdmin(UserRead userRoles) {
-		if (userRoles == null) {
-			return false;
-		}
-
-		if (null != userRoles.attributes.get("isOrgAdmin")) {
-			return (boolean) userRoles.attributes.get("isOrgAdmin");
-		}
-
-		return false;
-	}
-
-	private GcUser getUserFromToken(String tokens) {
-		if (!"undefined".equals(tokens)) {
-			Integer userId = JwtUtil.getUserIdByToken(tokens);
-			GcUser user = userService.getUserByIdCache(userId);
-			JwtUtil.verifyToken(tokens, user.getPassword());
-			return user;
-		}
-
-		throw new AuthenticationException("Token has not found!");
 	}
 
 	private GcMaster getMaster(HttpServletRequest request) {
@@ -2332,19 +2158,19 @@ public class PowtoonController extends GuideCoreController {
 		return file;
 	}
 
-	private GcUser createGcUser(PowtoonUserDto userInfo, GcMaster master, GcAccess studentAccess, Integer masterId)
+	private GcUser createGcUser(PowtoonUserDto userInfo, GcAccess studentAccess, Integer masterId)
 		throws ClientException, IOException {
-		GcUser user1 = userService.createGcUser(2, userInfo.getProfile().getEmail(), get8UUID(),
+		GcUser user = userService.createGcUser(2, userInfo.getProfile().getEmail(), get8UUID(),
 			userInfo.getProfile().getFirstName(), userInfo.getProfile().getLastName());
-		user1.setInfo(infoService.getById(user1.getInfoId()));
-		accessService.checkUserAccess(master.getId(), user1.getId(), studentAccess.getCode(), null, null, null);
-		user1.setPtUser(TableConstant.COMMON_ONE);
-		user1.setFirstName(userInfo.getProfile().getFirstName());
-		user1.setLastName(userInfo.getProfile().getLastName());
+		user.setInfo(infoService.getById(user.getInfoId()));
+		accessService.checkUserAccess(masterId, user.getId(), studentAccess.getCode(), null, null, null);
+		user.setPtUser(TableConstant.COMMON_ONE);
+		user.setFirstName(userInfo.getProfile().getFirstName());
+		user.setLastName(userInfo.getProfile().getLastName());
 
 		SysFile file = new SysFile();
 		file.setSysId(TableConstant.COMMON_TWO);
-		file.setUploadUid(user1.getId());
+		file.setUploadUid(user.getId());
 		file.setName(userInfo.getProfile().getThumbUrl());
 		file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
 		file.setFileType(TableConstant.sysFile_fileType_resLink);
@@ -2354,10 +2180,10 @@ public class PowtoonController extends GuideCoreController {
 		file.setFileRemark(new JSONArray());
 
 		sysFileService.saveOrUpdate(file);
-		user1.getInfo().setAvatarFileId(file.getId());
+		user.getInfo().setAvatarFileId(file.getId());
 
-		gcUserInfoService.saveOrUpdate(user1.getInfo());
-		userService.updateById(user1);
+		gcUserInfoService.saveOrUpdate(user.getInfo());
+		userService.updateById(user);
 
 		try {
 			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
@@ -2370,7 +2196,7 @@ public class PowtoonController extends GuideCoreController {
 		} catch (Exception e) {
 			log.error("Error when creating user", e);
 		}
-		return user1;
+		return user;
 	}
 
 	private List<String> getRoleLists(PowtoonUserDto permissions) {
