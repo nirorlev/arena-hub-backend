@@ -28,4 +28,6 @@ public interface ContentGroupChannelSubscriptionService
 
     List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
                                                                           HttpServletRequest request);
+
+    List<Integer> getContentGroupIds(Integer originChannelId);
 }

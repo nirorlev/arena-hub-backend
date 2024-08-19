@@ -41,7 +41,7 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
     List<Integer> getIdsListAccessIds(
             @Param("accessIds") List<Integer> ids, @Param("masterId") Integer masterId);
 
-    Integer selectUserAccessesByMasterId(
+    List<GcUserAccess> selectUserAccessesByMasterIdAndRole(
             @Param("userId") Integer userId,
             @Param("masterId") Integer masterId,
             @Param("role") String role);

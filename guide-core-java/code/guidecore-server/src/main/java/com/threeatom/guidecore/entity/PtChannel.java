@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
+import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
@@ -177,5 +178,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     public Boolean getIsPrivate() {
         return visibleFlag != null && visibleFlag == 0;
+    }
+
+    public boolean isPublic() {
+        return ChannelVisibilityFlag.PUBLIC.getValue().equals(getVisibleFlag());
     }
 }

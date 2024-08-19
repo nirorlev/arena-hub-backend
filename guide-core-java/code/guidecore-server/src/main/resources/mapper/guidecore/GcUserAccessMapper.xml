@@ -127,7 +127,7 @@
     </resultMap>
 
     <sql id="baseColumn">
-        ua.id , ua.master_id, ua.user_id, ua.access_id, ua.state,ua.update_time, ua.create_time
+        ua.id, ua.master_id, ua.user_id, ua.access_id, ua.state,ua.update_time, ua.create_time
     </sql>
 
     <sql id="gcAccessbaseColumn">
@@ -285,10 +285,15 @@
             ua.master_id = #{masterId}
     </select>
 
-    <select id="selectUserAccessesByMasterId" resultType="Integer">
-        select count(id) from gc_user_access where master_id=#{masterId}
-        and user_id=#{userId}
-        and role_json::text like concat('%',#{role},'%')
+    <select id="selectUserAccessesByMasterIdAndRole" resultMap="baseResultMap">
+        select
+            <include refid="baseColumn" />
+            <include refid="gcAccessbaseColumn" />
+        from gc_user_access ua
+            JOIN gc_access a on ua.access_id = a.id
+        where ua.master_id=#{masterId}
+          and ua.user_id=#{userId}
+          and ua.role_json::text like concat('%',#{role},'%')
     </select>
 
     <select id="getAllUserInThisMaster" resultType="map">

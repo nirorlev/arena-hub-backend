@@ -31,7 +31,7 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<Integer> selectGetUserAccessIdListUserIds(Integer masterId, List<Integer> accessIds);
 
-    Integer selectUserAccessesByMasterId(Integer userId, Integer masterId, String role);
+    Integer countUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role);
 
     List<GcUserAccess> getStudentsAccessByTeacherId(
             Integer userId, Integer masterId, Integer page, Integer pageNum);
@@ -92,4 +92,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     Integer getGroupAdmin(Integer userId, Integer masterId);
 
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
+
+    List<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
 }

@@ -292,7 +292,7 @@ public class GuideCoreController extends BaseController{
 					.build();
 
 		 permitted = permit.check(User.fromString(user.getKey()), action, resource,context);
-		}catch (Exception | PermitApiError e){
+		}catch (Exception e){
 			e.printStackTrace();
 			throw new PermitException(e.getMessage());
 		}

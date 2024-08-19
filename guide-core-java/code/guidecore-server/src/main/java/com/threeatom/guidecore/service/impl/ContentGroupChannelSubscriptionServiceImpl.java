@@ -90,6 +90,16 @@ public class ContentGroupChannelSubscriptionServiceImpl
             .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Integer> getContentGroupIds(Integer originChannelId) {
+        QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("channel_id", originChannelId);
+
+        return this.list(queryWrapper).stream()
+            .map(ContentGroupChannelSubscription::getContentGroupId)
+            .collect(Collectors.toList());
+    }
+
     private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription, HttpServletRequest request) {
         fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);
         return contentGroupChannelSubscription;

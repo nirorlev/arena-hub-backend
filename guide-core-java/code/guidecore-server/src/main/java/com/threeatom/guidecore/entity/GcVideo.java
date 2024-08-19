@@ -215,4 +215,18 @@ public class GcVideo implements Serializable {
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray courseTags = new JSONArray();
+
+    // considered as public if everybody in the organization can access it
+    public boolean isPublic() {
+        if (originChannel != null) {
+            return originChannel.isPublic();
+        }
+
+        return originCourse.getIsPublic() != null && originCourse.getIsPublic() == 1;
+    }
+
+    // considered as private if owner can access it
+    public boolean isPrivate() {
+        return videoFile.getIsPrivate();
+    }
 }

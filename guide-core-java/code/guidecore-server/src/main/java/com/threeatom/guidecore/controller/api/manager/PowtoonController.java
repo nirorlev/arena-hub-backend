@@ -420,7 +420,7 @@ public class PowtoonController extends GuideCoreController {
 				//createdByTeams
 				if (null==selectType||selectType.equals("createdByTeamsSubject")){
 					//判断是orgAdmin还是teamAdmin
-					Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
+					Integer adminFlag =  gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 					List<GcSubject> createdByTeamsSubject = new ArrayList<>();
 					Integer orderType = null;
 					if (null!=requestParams.get("orderType")){
@@ -1010,7 +1010,7 @@ public class PowtoonController extends GuideCoreController {
 	public Message getTeamAccessSubjectNumList(String name,HttpServletRequest request){
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
+		Integer adminFlag =  gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 		PageInfo<GcAccess> accessList = null;
 		if (null!=adminFlag&&!adminFlag.equals(TableConstant.COMMON_ZERO)){
 			List<Integer> availableTypeFour = subService.getUserPublicSubject(masterId,user.getId());
@@ -1217,7 +1217,7 @@ public class PowtoonController extends GuideCoreController {
 		List<Integer> idList = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessId);
 		GcUser user = this.getGcUser();
 		List<GcSubject> subjects = new ArrayList<>();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,UserGroupRole.ORG_ADMIN.getRole());
+		Integer adminFlag =  gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(),masterId,UserGroupRole.ORG_ADMIN.getRole());
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
@@ -1463,7 +1463,7 @@ public class PowtoonController extends GuideCoreController {
 			new ArrayList<>(contentGroupChannelSubscriptionService.getSubscribedChannelIds(access.getId()));
 
 		GcUser user = this.getGcUser();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
+		Integer adminFlag =  gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 		List<PtChannel> channels;
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
@@ -2220,7 +2220,7 @@ public class PowtoonController extends GuideCoreController {
 		TenantRead tenant = null;
 		try {
 			tenant = permit.api.tenants.get(master.getContext());
-		}catch (Exception | PermitApiError e){
+		}catch (Exception e){
 
 		}
 		try{
@@ -2230,7 +2230,7 @@ public class PowtoonController extends GuideCoreController {
 						new TenantCreate(master.getContext(), master.getContext())
 				);
 			}
-		}catch (Exception |PermitApiError e){
+		}catch (Exception e){
 
 		}
 		//attributes数据
@@ -2281,7 +2281,7 @@ public class PowtoonController extends GuideCoreController {
 					permit.api.users.assignRole(response.getResult().key, s, tenant.key);
 				}
 			}
-		}catch (Exception | PermitApiError e){
+		}catch (Exception e){
 			e.printStackTrace();
 		}
 	}

@@ -3,13 +3,28 @@ package com.threeatom.common.permit.service.impl;
 import static java.lang.String.format;
 
 import com.threeatom.common.exception.PermitException;
+import com.threeatom.common.permit.dto.PermitChannel;
+import com.threeatom.common.permit.dto.PermitContentGroup;
+import com.threeatom.common.permit.dto.PermitCourse;
+import com.threeatom.common.permit.dto.PermitItem;
+import com.threeatom.common.permit.dto.PermitUser;
+import com.threeatom.common.permit.dto.PermitVideoItem;
 import com.threeatom.common.permit.enums.PermitAction;
 import com.threeatom.common.permit.enums.PermitResource;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.config.PermitConfiguration;
+import com.threeatom.guidecore.constant.GroupsType;
+import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcUserAccessService;
 import io.permit.sdk.Permit;
 import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
@@ -20,6 +35,8 @@ import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +56,10 @@ public class PermitServiceImpl implements PermitService {
 
     private final PermitConfiguration permitConfiguration;
     private final GcMasterService gcMasterService;
+    private final GcContentGroupCourseAssignmentService courseAssignmentService;
+    private final ContentGroupChannelSubscriptionService channelSubscriptionService;
+    private final GcUserAccessService userAccessService;
+
     private Permit permit;
 
     @PostConstruct
@@ -53,7 +74,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean isUserOrgAdmin(String username) {
-        UserRead userRoles = null;
+        UserRead userRoles;
         try {
             userRoles = readUser(username);
 
@@ -64,10 +85,6 @@ public class PermitServiceImpl implements PermitService {
         } catch (Exception e) {
             log.error("Exception when checking if user '{}' is org admin", username, e);
             throw new PermitException(500, format("Error checking if user '%s' is org admin", username), e);
-        } catch (PermitApiError e) {
-            log.error("Permit error when checking if user '{}' is org admin", username, e);
-            throw new PermitException(
-                format("Permit error occurred when checking user %s is org admin. ", username) + e.getMessage());
         }
 
         return false;
@@ -80,6 +97,127 @@ public class PermitServiceImpl implements PermitService {
         }
 
         return checkPermit(resource, action, user.getUsername(), masterId);
+    }
+
+    @Override
+    public boolean checkPermit(GcVideo video, String action, PortalUser portalUser) {
+        PermitVideoItem permitVideoItem = createVideoItem(video);
+        PermitUser permitUser = createUser(portalUser);
+
+        return checkPermit(permitVideoItem, action, permitUser);
+    }
+
+    @Override
+    public boolean checkPermit(GcAccess contentGroup, String action, PortalUser portalUser) {
+        PermitContentGroup permitContentGroup = createContentGroup(contentGroup);
+        PermitUser permitUser = createUser(portalUser);
+
+        return checkPermit(permitContentGroup, action, permitUser);
+    }
+
+    @Override
+    public boolean checkPermit(PtChannel channel, String action, PortalUser portalUser) {
+        PermitChannel permitChannel = createChannel(channel);
+        PermitUser permitUser = createUser(portalUser);
+
+        return checkPermit(permitChannel, action, permitUser);
+    }
+
+    @Override
+    public boolean checkPermit(GcSubject course, String action, PortalUser portalUser) {
+        PermitCourse permitCourse = createCourse(course);
+        PermitUser permitUser = createUser(portalUser);
+
+        return checkPermit(permitCourse, action, permitUser);
+    }
+
+    private PermitCourse createCourse(GcSubject course) {
+        PermitCourse permitCourse = new PermitCourse();
+        permitCourse.setId(String.valueOf(course.getId()));
+        permitCourse.setPublic(course.getIsPublic() != null && course.getIsPublic() == 1);
+        permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
+        permitCourse.setOwnerId(String.valueOf(course.getUserId()));
+        return permitCourse;
+    }
+
+    private PermitContentGroup createContentGroup(GcAccess contentGroup) {
+        PermitContentGroup permitContentGroup = new PermitContentGroup();
+        permitContentGroup.setId(String.valueOf(contentGroup.getId()));
+        return permitContentGroup;
+    }
+
+    private PermitChannel createChannel(PtChannel channel) {
+        PermitChannel permitChannel = new PermitChannel();
+        if (channel.getId() == null) {
+            return permitChannel;
+        }
+
+        permitChannel.setId(channel.getId().toString());
+        permitChannel.setPublic(channel.isPublic());
+        permitChannel.setContentGroupIds(convert(channelSubscriptionService.getContentGroupIds(channel.getId())));
+        permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
+        return permitChannel;
+    }
+
+    public boolean checkPermit(PermitItem permitItem, String action, PermitUser permitUser) {
+        try {
+            return permit.check(buildUser(permitUser), action, buildResource(permitItem));
+        } catch (IOException | PermitApiError e) {
+            log.info("Error checking permission for user '{}', item type '{}' with id '{}' and action '{}'",
+                permitUser.getId(), permitItem.getType(), permitItem.getId(), action, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Resource buildResource(PermitItem permitItem) {
+        return new Resource.Builder(permitItem.getType())
+            .withAttributes(permitItem.getAttributes())
+            .build();
+    }
+
+    private User buildUser(PermitUser permitUser) {
+        return new User.Builder(permitUser.getId())
+            .withAttributes(permitUser.getAttributes())
+            .build();
+    }
+
+    private PermitUser createUser(PortalUser portalUser) {
+        PermitUser permitUser = new PermitUser();
+        permitUser.setId(portalUser.getId().toString());
+        permitUser.setOrgAdmin(portalUser.isOrgAdmin());
+
+        permitUser.setContentGroupIds(convert(
+            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
+                GroupsType.orgMember)));
+        permitUser.setManagedContentGroupIds(convert(
+            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
+                GroupsType.groupAdmin)));
+
+        return permitUser;
+    }
+
+    private PermitVideoItem createVideoItem(GcVideo video) {
+        PermitVideoItem permitVideoItem = new PermitVideoItem();
+
+        permitVideoItem.setId(video.getId().toString());
+        permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
+        permitVideoItem.setPublic(video.isPublic());
+        permitVideoItem.setPrivate(video.isPrivate());
+        permitVideoItem.setContentGroupIds(convert(getVideoContentGroupIds(video)));
+        return permitVideoItem;
+    }
+
+    private List<Integer> getVideoContentGroupIds(GcVideo video) {
+        Integer originCourseId = video.getOriginCourseId();
+        if (originCourseId != null) {
+            return courseAssignmentService.getContentGroupIds(originCourseId);
+        }
+
+        return channelSubscriptionService.getContentGroupIds(video.getOriginChannelId());
+    }
+
+    public List<String> convert(List<Integer> ids) {
+        return ids.stream().map(String::valueOf).collect(Collectors.toList());
     }
 
     private boolean checkPermit(PermitResource resource, PermitAction action, String username, Integer masterId) {
@@ -96,8 +234,6 @@ public class PermitServiceImpl implements PermitService {
             throw new PermitException(
                 format("Error checking permission '%s' for resource '%s' and user '%s' from permit", resource, action,
                     username), e);
-        } catch (PermitApiError e) {
-            throw new PermitException(e.getMessage());
         }
     }
 

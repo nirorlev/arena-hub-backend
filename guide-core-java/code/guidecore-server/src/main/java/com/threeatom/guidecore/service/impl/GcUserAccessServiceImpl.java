@@ -10,7 +10,6 @@ import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
-import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessMapper;
@@ -120,8 +119,12 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public Integer selectUserAccessesByMasterId(Integer userId, Integer masterId, String role) {
-        return this.baseMapper.selectUserAccessesByMasterId(userId, masterId, role);
+    public Integer countUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role) {
+        return selectUserAccessesByMasterIdAndRole(userId, masterId, role).size();
+    }
+
+    private List<GcUserAccess> selectUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role) {
+        return this.baseMapper.selectUserAccessesByMasterIdAndRole(userId, masterId, role);
     }
 
     @Override
@@ -482,5 +485,14 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         queryWrapper.eq("master_id", masterId);
         queryWrapper.in("access_id", accessId);
         return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<Integer> getContentGroupIds(Integer userId, Integer masterId, String role) {
+        return selectUserAccessesByMasterIdAndRole(userId, masterId, role)
+                .stream()
+                .map(GcUserAccess::getAccess)
+                .map(GcAccess::getId)
+                .collect(Collectors.toList());
     }
 }
