@@ -35,6 +35,7 @@ import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
+import com.threeatom.guidecore.dto.request.AuthTokenDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
 import com.threeatom.guidecore.entity.GcEvent;
@@ -1798,14 +1799,16 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@ApiOperation(value = "getToken", httpMethod = "GET")
-	@GetMapping("/getToken")
-	public Message getToken(@RequestParam(required = false) String code, HttpServletRequest response, HttpServletRequest request)
+	@PostMapping("/getToken")
+	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto, HttpServletRequest response, HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getByMasterId(masterId);
 		loginConfig = getPtConfig(loginConfig);
 
 		try {
+			final String code = authTokenDto.getCode();
+
 			if (code != null) {
 				GcUser user = authorizeWithCode(code, loginConfig, response.getHeader("redirectUri"), masterId);
 				updateUserAccessLoginTime(user, masterId);
