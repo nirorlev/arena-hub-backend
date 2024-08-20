@@ -7,6 +7,7 @@ import com.threeatom.common.permit.dto.PermitChannel;
 import com.threeatom.common.permit.dto.PermitContentGroup;
 import com.threeatom.common.permit.dto.PermitCourse;
 import com.threeatom.common.permit.dto.PermitItem;
+import com.threeatom.common.permit.dto.PermitPlaylist;
 import com.threeatom.common.permit.dto.PermitUser;
 import com.threeatom.common.permit.dto.PermitVideoItem;
 import com.threeatom.common.permit.enums.PermitAction;
@@ -18,6 +19,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
@@ -131,6 +133,23 @@ public class PermitServiceImpl implements PermitService {
         return checkPermit(permitCourse, action, permitUser);
     }
 
+    @Override
+    public boolean checkPermit(GcUserSaveFolder playlist, String action, PortalUser portalUser) {
+        PermitPlaylist permitPlaylist = createPlaylist(playlist);
+        PermitUser permitUser = createUser(portalUser);
+
+        return checkPermit(permitPlaylist, action, permitUser);
+    }
+
+    private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
+        PermitPlaylist permitPlaylist = new PermitPlaylist();
+        permitPlaylist.setId(String.valueOf(playlist.getId()));
+        permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
+        permitPlaylist.setPublic(!playlist.getIsPrivate());
+        permitPlaylist.setContentGroupIds(List.of());
+        return permitPlaylist;
+    }
+
     private PermitCourse createCourse(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
         permitCourse.setId(String.valueOf(course.getId()));
@@ -159,7 +178,7 @@ public class PermitServiceImpl implements PermitService {
         return permitChannel;
     }
 
-    public boolean checkPermit(PermitItem permitItem, String action, PermitUser permitUser) {
+    private boolean checkPermit(PermitItem permitItem, String action, PermitUser permitUser) {
         try {
             return permit.check(buildUser(permitUser), action, buildResource(permitItem));
         } catch (IOException | PermitApiError e) {

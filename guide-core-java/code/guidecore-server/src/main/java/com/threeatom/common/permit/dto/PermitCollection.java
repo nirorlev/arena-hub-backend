@@ -12,8 +12,6 @@ public abstract class PermitCollection extends PermitItem {
     private String ownerId;
     private boolean isPublic;
     private List<String> contentGroupIds;
-//    private List<String> adminContentGroupIds;
-
 
     @Override
     public HashMap<String, Object> getAttributes() {
