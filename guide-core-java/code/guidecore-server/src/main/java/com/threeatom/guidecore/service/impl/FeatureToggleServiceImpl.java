@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.FeatureToggleValueDto;
 import com.threeatom.guidecore.dto.response.FeatureToggleDto;
 import com.threeatom.guidecore.entity.FeatureToggle;
@@ -14,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     private static final String MASTER_ID_COLUMN = "master_id";
 
     private final FeatureToggleMapping featureToggleMapping;
+    private final SqlSession sqlSession;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,9 +48,19 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     public FeatureToggleValueDto getFeatureToggle(String featureName) {
-        QueryWrapper<FeatureToggle> query = new QueryWrapper<FeatureToggle>()
+        return featureToggleMapping.map(getByName(featureName));
+    }
+
+    private FeatureToggle getByName(String featureName) {
+        QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<FeatureToggle>()
             .eq(FEATURE_NAME_COLUMN, featureName);
-        return featureToggleMapping.map(getOne(query));
+        FeatureToggle featureToggle = getOne(queryWrapper);
+
+        if (featureToggle == null) {
+            throw new ResourceNotFoundException("Feature toggle not found: " + featureName);
+        }
+
+        return featureToggle;
     }
 
     @Override
@@ -56,16 +69,42 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
             return getFeatureToggle(featureName);
         }
 
-        QueryWrapper<FeatureToggle> query = new QueryWrapper<FeatureToggle>()
-            .eq(FEATURE_NAME_COLUMN, featureName)
-            .eq(MASTER_ID_COLUMN, masterId);
-
-        FeatureToggle featureToggle = getOne(query);
+        FeatureToggle featureToggle = getByNameAndMasterId(featureName, masterId);
         if (featureToggle == null) {
             return getFeatureToggle(featureName);
         }
 
         return featureToggleMapping.map(featureToggle);
+    }
+
+    private FeatureToggle getByNameAndMasterId(String featureName, Integer masterId) {
+        QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<FeatureToggle>()
+            .eq(FEATURE_NAME_COLUMN, featureName)
+            .eq(MASTER_ID_COLUMN, masterId);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public FeatureToggleDto updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
+        if (featureToggleValueDto.getMasterId() == null) {
+            FeatureToggle featureToggle = getByName(featureToggleValueDto.getName());
+            featureToggle.setValue(featureToggleValueDto.getValue());
+            updateById(featureToggle);
+            sqlSession.flushStatements();
+            return getAllDefaultFeatures();
+        }
+
+        FeatureToggle featureToggle =
+            getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
+        if (featureToggle == null) {
+            throw new ResourceNotFoundException(
+                String.format("Feature toggle not found: %s. Master id: %s", featureToggleValueDto.getName(),
+                    featureToggleValueDto.getMasterId()));
+        }
+
+        featureToggle.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggle);
+        return getAllFeatures(featureToggleValueDto.getMasterId());
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
@@ -99,9 +138,11 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
             .collect(Collectors.toList());
     }
 
-    private Optional<FeatureToggle> getMasterFeatureToggle(List<FeatureToggle> featureToggles, Integer masterId, String featureName) {
+    private Optional<FeatureToggle> getMasterFeatureToggle(List<FeatureToggle> featureToggles, Integer masterId,
+                                                           String featureName) {
         return featureToggles.stream()
-            .filter(featureToggle -> featureToggle.getName().equals(featureName) && Objects.equals(featureToggle.getMasterId(), (masterId)))
+            .filter(featureToggle -> featureToggle.getName().equals(featureName) &&
+                Objects.equals(featureToggle.getMasterId(), (masterId)))
             .findFirst();
     }
 

@@ -3,19 +3,26 @@ package com.threeatom.guidecore.service.impl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.system.entity.SysFile;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UnavailableVideoServiceImpl implements UnavailableVideoService {
+
+    private static final String FEATURE_NAME = "unavailableVideoRandomEnabled";
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
+
+    private final FeatureToggleService featureToggleService;
 
     @PostConstruct
     public void init() {
@@ -51,6 +58,10 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             });
     }
 
+    private boolean featureIsEnabled() {
+        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
+    }
+
     @Override
     public void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent) {
         playlistContent.stream()
@@ -74,6 +85,6 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     private boolean isVideoUnavailable(SysFile videoFile) {
         Integer videoId = videoFile.getVideoId();
-        return videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
+        return featureIsEnabled() && videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
     }
 }

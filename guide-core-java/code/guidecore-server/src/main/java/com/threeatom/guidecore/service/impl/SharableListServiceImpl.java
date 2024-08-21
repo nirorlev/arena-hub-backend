@@ -50,14 +50,13 @@ public class SharableListServiceImpl implements SharableListService {
 
     @Override
     public GroupAccessDto getSharableListByChannelId(Integer channelId, GcUser user) {
-        PtChannel channel = getChannel(channelId);
-
+        PtChannel channel = channelService.findById(channelId);
         Integer visibleFlag = channel.getVisibleFlag();
 
         AccessSourceDto accessSourceDto =
             getAccessSourceDto(channelId, user, channel.getCreateUserId(), SourceType.CHANNEL);
         accessSourceDto.setSlug(channel.getChannelSlug());
-        if (isChannelPrivate(visibleFlag)) {
+        if (channel.getIsPrivate()) {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
@@ -67,22 +66,6 @@ public class SharableListServiceImpl implements SharableListService {
 
         List<AccessGroupDetailsDto> groups = getChannelSharableGroups(channelId, channel.getMasterId(), user);
         return getGroupAccessDto(false, false, groups, accessSourceDto);
-    }
-
-    private PtChannel getChannel(Integer channelId) {
-        PtChannel channel = channelService.getById(channelId);
-
-        if (channel == null) {
-            log.error("Channel with id {} not found", channelId);
-            throw new IllegalArgumentException("Channel not found");
-        }
-
-        // channel is the section so get the original channel
-        if (channel.getFid() != null) {
-            return channelService.getById(channel.getFid());
-        }
-
-        return channel;
     }
 
     @Override
@@ -121,10 +104,6 @@ public class SharableListServiceImpl implements SharableListService {
 
     private boolean isChannelPublic(Integer visibleFlag) {
         return visibleFlag == 1;
-    }
-
-    private boolean isChannelPrivate(Integer visibleFlag) {
-        return visibleFlag == 0;
     }
 
     private GroupAccessDto getGroupAccessDto(boolean isPublic, boolean isPrivate, List<AccessGroupDetailsDto> groups) {

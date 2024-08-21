@@ -25,16 +25,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel>
         implements PtChannelService {
+
+    private static final int PRIVATE_VISIBLE_FLAG = 0;
+    private static final int PUBLIC_VISIBLE_FLAG = 1;
+    private static final int TEAM_ASSIGNED_VISIBLE_FLAG = 2;
 
     private final SysFileService sysFileService;
     private final PtTagsService tagsService;
@@ -632,6 +638,42 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return this.getOne(queryWrapper);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PtChannel findById(Integer id) {
+        PtChannel channel = this.getById(id);
+
+        if (channel == null) {
+            log.info("Failed to find channel with id {}", id);
+            throw new IllegalArgumentException(String.format("Channel with id %s not found", id));
+        }
+
+        if (channel.getFid() != null) {
+            channel = this.getById(channel.getFid());
+        }
+
+        return channel;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer countUserPrivateChannels(Integer userId, Integer masterId) {
+        return countChannels(userId, masterId, List.of(PRIVATE_VISIBLE_FLAG));
+    }
+
+    @Override
+    public Integer countUserPublicChannels(Integer userId, Integer masterId) {
+        return countChannels(userId, masterId, List.of(PUBLIC_VISIBLE_FLAG, TEAM_ASSIGNED_VISIBLE_FLAG));
+    }
+
+    private int countChannels(Integer userId, Integer masterId, List<Integer> privacyCodes) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("create_user_id", userId);
+        queryWrapper.eq("master_id", masterId);
+        queryWrapper.in("visible_flag", privacyCodes);
+
+        return this.count(queryWrapper);
+    }
 
     private List<ChannelDto> convert(List<PtChannel> channels) {
         return channels.stream()

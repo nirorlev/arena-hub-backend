@@ -40,4 +40,8 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
     GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId);
 
     List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    Integer countUserPrivatePlaylists(Integer userId, Integer masterId);
+
+    Integer countUserPublicPlaylists(Integer userId, Integer masterId);
 }

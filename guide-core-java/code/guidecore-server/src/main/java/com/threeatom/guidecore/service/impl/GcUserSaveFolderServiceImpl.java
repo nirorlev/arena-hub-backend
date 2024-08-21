@@ -197,4 +197,23 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     public List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getPlaylistCountAnalytics(filter, masterId);
     }
+
+    @Override
+    public Integer countUserPrivatePlaylists(Integer userId, Integer masterId) {
+        return countPlaylists(userId, masterId, true);
+    }
+
+    @Override
+    public Integer countUserPublicPlaylists(Integer userId, Integer masterId) {
+        return countPlaylists(userId, masterId, false);
+    }
+
+    private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {
+        QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("master_id", masterId);
+        queryWrapper.eq("is_private", isPrivate);
+
+        return this.count(queryWrapper);
+    }
 }

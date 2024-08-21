@@ -20,11 +20,12 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 
-    List<Integer> getSubscribedChannelIdsExceptOwned(List<Integer> contentGroupIds, Integer ownerId);
+    List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
 
     List<Integer> getPublicChannelIds(Integer contentGroupId);
 
     void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel);
 
-    List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId, HttpServletRequest request);
+    List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
+                                                                          HttpServletRequest request);
 }
