@@ -973,7 +973,7 @@ public class HomeInfoController extends GuideCoreController {
 					"  <link rel=\"apple-touch-icon\" href=\""+hubUrl+"/apple-touch-icon.png\" />\n" +
 					"  <link rel=\"manifest\" href=\""+hubUrl+"/manifest.json\" />\n" +
 					"  <link rel=\"icon\" href=\""+hubUrl+"/favicon.ico\">\n" +
-					"  <script defer=\"defer\" src=\""+hubUrl+"/dynamicEntry.js\" onload=\"dynamicEntryInject(this)\"></script>\n" +
+					"  <script type=\"module\" src=\""+hubUrl+"/arena.js\"></script>\n" +
 					"  <script src=\""+hubUrl+"/globalConfig.js\"></script>\n" +
 					"</head>\n" +
 					"\n" +
