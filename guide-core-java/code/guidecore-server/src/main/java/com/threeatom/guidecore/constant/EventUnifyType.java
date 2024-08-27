@@ -16,67 +16,57 @@ public class EventUnifyType {
     public static final int TENCENT_VIDEO = 7; // 腾讯视频链接
     public static final int RES_FILE_LINK = 8; // 视频添加资源的文件的链接，如：google doc文档
     public static final int RES_FILE = 9; // 视频添加资源的文件，含word，PDF，MP3等
-    public static final int SCHEDULE10 = 10; // 视频添加资源的文件，含word，PDF，MP3等
-    public static final int event_link = 11; // 视频事件关联链接
     public static final int SRT_12 = 12; // 字幕文件
     public static final int YOUTUBE_13 = 13;
-    public static final int vimeoFileTypeIndex = 14;
-    public static final int wistiaFileTypeIndex = 15;
-    public static final int powtoonKalturaFileTypeIndex = 16;
-    public static final int googleDriveFileTypeIndex = 18;
-    public static final int powtoonMuxFileTypeIndex = 20;
-    public static final String video_links_JSON_STR = "[6,7,8,11,13,14,15,16]";
+    public static final int VIMEO_FILE_TYPE_INDEX = 14;
+    public static final int WISTIA_FILE_TYPE_INDEX = 15;
+    public static final int POWTOON_KALTURA_FILE_TYPE_INDEX = 16;
+    public static final int GOOGLE_DRIVE_FILE_TYPE_INDEX = 18;
+    public static final int POWTOON_MUX_FILE_TYPE_INDEX = 20;
 
     public static final String JSON_STR012346 = "[0,1,2,3,4,6]";
     public static final String JSON_STR012345 = "[0,1,2,3,4,5]";
-    public static final String notQuestion012346 = "0,1,2,3,4,6";
+    public static final String NOT_QUESTION_012346 = "0,1,2,3,4,6";
 
     public static final List<Integer> powtoonVideoFileTypes = List.of(
-        powtoonKalturaFileTypeIndex, powtoonMuxFileTypeIndex);
+        POWTOON_KALTURA_FILE_TYPE_INDEX, POWTOON_MUX_FILE_TYPE_INDEX);
 
-    public static final List<Integer> screenRocks =
-            new ArrayList<Integer>() {
-                {
-                    this.add(SCREENROCK_6);
-                }
-            };
+    public static final List<Integer> VIDEO_TYPES =
+        new ArrayList<Integer>() {
+            {
+                this.add(VIDEO_2);
+                this.add(SCREENROCK_6);
+                this.add(TENCENT_VIDEO);
+                this.add(YOUTUBE_13);
+                this.add(VIMEO_FILE_TYPE_INDEX);
+                this.add(WISTIA_FILE_TYPE_INDEX);
+                this.add(POWTOON_KALTURA_FILE_TYPE_INDEX);
+                this.add(POWTOON_MUX_FILE_TYPE_INDEX);
+                this.add(GOOGLE_DRIVE_FILE_TYPE_INDEX);
+            }
+        };
 
-    public static final List<Integer> videoTypes =
-            new ArrayList<Integer>() {
-                {
-                    this.add(VIDEO_2);
-                    this.add(SCREENROCK_6);
-                    this.add(TENCENT_VIDEO);
-                    this.add(YOUTUBE_13);
-                    this.add(vimeoFileTypeIndex);
-                    this.add(wistiaFileTypeIndex);
-                    this.add(powtoonKalturaFileTypeIndex);
-                    this.add(powtoonMuxFileTypeIndex);
-                    this.add(googleDriveFileTypeIndex);
-                }
-            };
+    public static final List<Integer> RES_TYPES =
+        new ArrayList<Integer>() {
+            {
+                this.add(RES_FILE_LINK);
+                this.add(RES_FILE);
+            }
+        };
 
-    public static final List<Integer> resTypes =
-            new ArrayList<Integer>() {
-                {
-                    this.add(RES_FILE_LINK);
-                    this.add(RES_FILE);
-                }
-            };
-
-    public static final List<Integer> powtoonResTypes =
-            new ArrayList<Integer>() {
-                {
-                    this.add(RES_FILE_LINK);
-                    this.add(RES_FILE);
-                    this.add(VIDEO_2);
-                    this.add(SCREENROCK_6);
-                    this.add(YOUTUBE_13);
-                    this.add(vimeoFileTypeIndex);
-                    this.add(wistiaFileTypeIndex);
-                    this.add(powtoonKalturaFileTypeIndex);
-                    this.add(powtoonMuxFileTypeIndex);
-                    this.add(googleDriveFileTypeIndex);
-                }
-            };
+    public static final List<Integer> POWTOON_RES_TYPES =
+        new ArrayList<Integer>() {
+            {
+                this.add(RES_FILE_LINK);
+                this.add(RES_FILE);
+                this.add(VIDEO_2);
+                this.add(SCREENROCK_6);
+                this.add(YOUTUBE_13);
+                this.add(VIMEO_FILE_TYPE_INDEX);
+                this.add(WISTIA_FILE_TYPE_INDEX);
+                this.add(POWTOON_KALTURA_FILE_TYPE_INDEX);
+                this.add(POWTOON_MUX_FILE_TYPE_INDEX);
+                this.add(GOOGLE_DRIVE_FILE_TYPE_INDEX);
+            }
+        };
 }

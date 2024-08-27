@@ -50,7 +50,7 @@ public class ResourceManagerGuidecoreController extends GuideCoreController {
             master.setId(masterId);
         }
         PageInfo<SysFile> page =
-                gvgMasterService.getSysFile(jsonParams, EventUnifyType.videoTypes, request, master, null);
+                gvgMasterService.getSysFile(jsonParams, EventUnifyType.VIDEO_TYPES, request, master, null);
         return new Message().ok().addData("page", page);
     }
 
@@ -64,7 +64,7 @@ public class ResourceManagerGuidecoreController extends GuideCoreController {
             master.setId(masterId);
         }
         PageInfo<SysFile> page =
-                gvgMasterService.getSysFile(jsonParams, EventUnifyType.resTypes, request, master, null);
+                gvgMasterService.getSysFile(jsonParams, EventUnifyType.RES_TYPES, request, master, null);
         return new Message().ok().addData("page", page);
     }
 
