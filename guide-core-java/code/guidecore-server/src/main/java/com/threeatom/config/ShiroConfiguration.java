@@ -2,9 +2,11 @@ package com.threeatom.config;
 
 import com.threeatom.common.redis.ShiroRedisCacheManager;
 import com.threeatom.common.shiro.filter.AdminJwtFilter;
+import com.threeatom.common.shiro.filter.BearerTokenAuthenticatingFilter;
 import com.threeatom.common.shiro.filter.WeappJwtFilter;
 import com.threeatom.common.shiro.mudular.UserModularRealmAuthenticator;
 import com.threeatom.common.shiro.realm.AdminUserRealm;
+import com.threeatom.common.shiro.realm.BearerTokenRealm;
 import com.threeatom.guidecore.shiro.GuideCoreJwtFilter;
 import com.threeatom.guidecore.shiro.GuideCoreUserRealm;
 import java.util.ArrayList;
@@ -50,6 +52,14 @@ public class ShiroConfiguration {
         return realm;
     }
 
+    @Bean
+    @DependsOn("lifecycleBeanPostProcessor")
+    public BearerTokenRealm bearerTokenRealm() {
+        BearerTokenRealm bearerTokenRealm = new BearerTokenRealm();
+        bearerTokenRealm.setName("adminBearer");
+        return bearerTokenRealm;
+    }
+
     private ShiroRedisCacheManager cacheManager(RedisTemplate<String, Object> template) {
         return new ShiroRedisCacheManager(template);
     }
@@ -68,6 +78,8 @@ public class ShiroConfiguration {
         filterMap.put("weappjwt", new WeappJwtFilter());
         filterMap.put("adminjwt", new AdminJwtFilter());
         filterMap.put("guidecorejwt", new GuideCoreJwtFilter());
+        filterMap.put("adminBearer", new BearerTokenAuthenticatingFilter());
+
         shiroFilterFactoryBean.setFilters(filterMap);
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/*/weapp/runCheck", "anon");
@@ -140,20 +152,23 @@ public class ShiroConfiguration {
 
         filterChainDefinitionMap.put("/api/v2/app-config", "anon");
 
+        filterChainDefinitionMap.put("/api/v2/admin/**", "adminBearer");
         filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/*/weapp/**", "weappjwt");
         filterChainDefinitionMap.put("/api/*/admin/**", "adminjwt");
-        filterChainDefinitionMap.put("/api/v1/powtoon/home/videoDetailPt", "anon");
+        filterChainDefinitionMap.put("/OKapi/v1/powtoon/home/videoDetailPt", "anon");
 
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilterFactoryBean;
     }
 
     @Bean("realms")
-    public List<Realm> realms(AdminUserRealm adminUserRealm, GuideCoreUserRealm guideCoreUserRealm) {
+    public List<Realm> realms(
+        AdminUserRealm adminUserRealm, GuideCoreUserRealm guideCoreUserRealm, BearerTokenRealm bearerTokenRealm) {
         List<Realm> realms = new ArrayList<>();
         realms.add(adminUserRealm);
+        realms.add(bearerTokenRealm);
         realms.add(guideCoreUserRealm);
         return realms;
     }

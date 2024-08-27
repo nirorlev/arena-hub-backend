@@ -3,8 +3,6 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.guidecore.enums.VideoFileProvider;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,11 +33,11 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
         String snapshotUrl = sysFile.getSnapshotUrl();
 
         if (!StringUtils.isEmpty(snapshotUrl)) {
-            return encodeUrl(getThumbNailFromSnapshotUrl(snapshotUrl, videoType));
+            return getThumbNailFromSnapshotUrl(snapshotUrl, videoType);
         }
 
         String videoUrl = StringUtils.isEmpty(sysFile.getFileUrl()) ? sysFile.getFullFileUrl() : sysFile.getFileUrl();
-        return encodeUrl(getFullVideoUrl(videoUrl, videoType));
+        return getFullVideoUrl(videoUrl, videoType);
     }
 
     private String getFullVideoUrl(String videoUrl, VideoFileProvider videoType) {
@@ -79,9 +77,5 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
         Matcher matcher = VIDEO_TYPE_TO_URL_ID_REGEXP_MAPPING.get(videoType)
             .matcher(videoUrl);
         return matcher.find() ? matcher.group(1) : "";
-    }
-
-    private String encodeUrl(String url) {
-        return URLEncoder.encode(url, StandardCharsets.UTF_8);
     }
 }
