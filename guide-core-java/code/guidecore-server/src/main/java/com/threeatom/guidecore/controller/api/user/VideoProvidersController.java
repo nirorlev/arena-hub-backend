@@ -29,13 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/guidecore/user/youtube")
-public class YoutubeGuideCoreController extends GuideCoreController{
-
-	private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
-
-	public YoutubeGuideCoreController() throws IOException {
-	}
+@RequestMapping("/api/v1/guidecore/video-providers")
+public class VideoProvidersController extends GuideCoreController{
 
 	@Value("${youtubeApiKey}")
 	private String youtubeApiKey;
@@ -55,14 +50,12 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	@Autowired
 	private Environment env;
 
-	@ApiOperation(value = "统一下单，并组装所需支付参数")
-	@PostMapping("/getYoutubeUrl")
-	public Message getYoutubeVideos(@RequestBody JSONObject params) throws IOException {
+	@GetMapping("/youtube/video-data")
+	public Message getYoutubeVideos(@RequestParam String url) throws IOException {
 
 			Message message = new Message();
 			List<Map<String,Object>> youtubeList = new ArrayList<>();
 
-			String url = params.getString("url");
 			String listId = new String();
 			//合辑
 			if (url.contains("list") ) {
@@ -404,24 +397,25 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 		return result;
 	}
 
-	@PostMapping("/getKalturaVideos")
-	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest re) {
+	@GetMapping("/powtoon/video-data")
+	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest request) {
 		Message message = new Message();
-		try {	
-			videoUrl = videoUrl.replaceAll(" ","%2B");
+
+		try {
+			videoUrl = videoUrl.replaceAll(" ", "%2B");
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
 			JSONObject formattedData = formatKalturaVideoData(videoData);
 			return message.ok().setJsonData(formattedData);
-		} catch (Exception e){
-			e.printStackTrace();
-			String extractedInfo=e.getMessage();
-			if(e.getMessage().contains("detail")){
+		} catch (Exception e) {
+			String extractedInfo = e.getMessage();
+			if (e.getMessage().contains("detail")) {
 				int startIndex = e.getMessage().indexOf("detail\":\"") + "detail\":\"".length();
 				int endIndex = e.getMessage().indexOf("\"", startIndex);
 				extractedInfo = e.getMessage().substring(startIndex, endIndex);
-				return message.error(extractedInfo+"\n"+"API:"+re.getServerName());
+				return message.error(extractedInfo + "\n" + "API:" + request.getServerName());
 			}
+
 			return message.error(extractedInfo);
 		}
 	}

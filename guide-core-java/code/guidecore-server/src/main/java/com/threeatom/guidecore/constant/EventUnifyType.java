@@ -22,13 +22,17 @@ public class EventUnifyType {
     public static final int YOUTUBE_13 = 13;
     public static final int vimeoFileTypeIndex = 14;
     public static final int wistiaFileTypeIndex = 15;
-    public static final int powtoonFileTypeIndex = 16;
+    public static final int powtoonKalturaFileTypeIndex = 16;
     public static final int googleDriveFileTypeIndex = 18;
+    public static final int powtoonMuxFileTypeIndex = 20;
     public static final String video_links_JSON_STR = "[6,7,8,11,13,14,15,16]";
 
     public static final String JSON_STR012346 = "[0,1,2,3,4,6]";
     public static final String JSON_STR012345 = "[0,1,2,3,4,5]";
     public static final String notQuestion012346 = "0,1,2,3,4,6";
+
+    public static final List<Integer> powtoonVideoFileTypes = List.of(
+        powtoonKalturaFileTypeIndex, powtoonMuxFileTypeIndex);
 
     public static final List<Integer> screenRocks =
             new ArrayList<Integer>() {
@@ -46,7 +50,8 @@ public class EventUnifyType {
                     this.add(YOUTUBE_13);
                     this.add(vimeoFileTypeIndex);
                     this.add(wistiaFileTypeIndex);
-                    this.add(powtoonFileTypeIndex);
+                    this.add(powtoonKalturaFileTypeIndex);
+                    this.add(powtoonMuxFileTypeIndex);
                     this.add(googleDriveFileTypeIndex);
                 }
             };
@@ -69,7 +74,8 @@ public class EventUnifyType {
                     this.add(YOUTUBE_13);
                     this.add(vimeoFileTypeIndex);
                     this.add(wistiaFileTypeIndex);
-                    this.add(powtoonFileTypeIndex);
+                    this.add(powtoonKalturaFileTypeIndex);
+                    this.add(powtoonMuxFileTypeIndex);
                     this.add(googleDriveFileTypeIndex);
                 }
             };

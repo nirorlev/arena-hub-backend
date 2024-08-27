@@ -21,7 +21,6 @@ import io.swagger.annotations.ApiOperation;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,13 +72,13 @@ public class SysFIleController extends GuideCoreController {
         SysSystem sys = this.getSystem();
         sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
         sysFile.setSysId(sys.getId());
-        if (sysFile.getFileTypeIndex() == EventUnifyType.powtoonFileTypeIndex) {
+        if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
             String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
             sysFile.setThumbNailUrl(fileKey);
         }
 
         if (sysFileService.saveOrUpdate(sysFile)) {
-            if (sysFile.getFileTypeIndex() == EventUnifyType.powtoonFileTypeIndex) {
+            if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
                 powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
             }
             sysFileService.getVideoSnapshotUrl(sysFile);
