@@ -7,13 +7,9 @@ import com.threeatom.common.redis.RedisOperator;
 
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
-import io.swagger.annotations.ApiOperation;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -386,7 +382,7 @@ public class VideoProvidersController extends GuideCoreController{
 		    return message.ok().addData("yotubeList",youtubeList);
 	}
 
-	private JSONObject formatKalturaVideoData (JSONObject videoData) {
+	private JSONObject formatPowtoonVideoData(JSONObject videoData) {
 		JSONObject result = new JSONObject();
 		result.put("url", videoData.getString("playerUrl"));
 		result.put("thumbNail", videoData.getString("thumbnailUrl"));
@@ -394,18 +390,19 @@ public class VideoProvidersController extends GuideCoreController{
 		result.put("description", videoData.getString("description"));
 		result.put("duration", videoData.getFloat("duration"));
 		result.put("source", videoData.getJSONObject("source"));
+		result.put("hostingProvider", videoData.getString("hostingProvider"));
 		return result;
 	}
 
 	@GetMapping("/powtoon/video-data")
-	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest request) {
+	public Message getPowtoonVideoData(@RequestBody String videoUrl, HttpServletRequest request) {
 		Message message = new Message();
 
 		try {
 			videoUrl = videoUrl.replaceAll(" ", "%2B");
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
-			JSONObject formattedData = formatKalturaVideoData(videoData);
+			JSONObject formattedData = formatPowtoonVideoData(videoData);
 			return message.ok().setJsonData(formattedData);
 		} catch (Exception e) {
 			String extractedInfo = e.getMessage();
