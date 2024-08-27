@@ -660,11 +660,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return;
 		}
 
-		if (video.getOriginCourse() != null) {
-			videoFile.setIsPrivate(video.getOriginCourse().getIsPrivate());
-		} else if (video.getOriginChannel() != null) {
-			videoFile.setIsPrivate(video.getOriginChannel().getIsPrivate());
-		}
+		videoFile.setIsPrivate(video.isPrivate());
 	}
 
 	@Override

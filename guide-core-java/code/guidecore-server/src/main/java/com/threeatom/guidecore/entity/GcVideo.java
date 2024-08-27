@@ -225,8 +225,12 @@ public class GcVideo implements Serializable {
         return originCourse.getIsPublic() != null && originCourse.getIsPublic() == 1;
     }
 
-    // considered as private if owner can access it
+    // considered as private if only owner can access it
     public boolean isPrivate() {
-        return videoFile.getIsPrivate();
+        if (originChannel != null) {
+            return originChannel.getIsPrivate();
+        }
+
+        return originCourse.getIsPrivate();
     }
 }
