@@ -1,12 +1,14 @@
 package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import lombok.Data;
+import org.apache.ibatis.type.EnumTypeHandler;
 
 @Data
 @TableName(value = "portal_user", autoResultMap = true)
@@ -19,12 +21,13 @@ public class PortalUser implements Serializable {
 
     private Integer userId;
     private Integer masterId;
-    private String role;
+    @TableField(value = "role", typeHandler = EnumTypeHandler.class)
+    private UserOrgRole role;
 
     private OffsetDateTime createdDate;
     private OffsetDateTime modifiedDate;
 
     public boolean isOrgAdmin() {
-        return UserOrgRole.ORG_ADMIN.getRole().equals(role);
+        return UserOrgRole.ORG_ADMIN.equals(role);
     }
 }
