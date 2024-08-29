@@ -28,13 +28,11 @@ public class PtLoginConfigServiceImpl extends ServiceImpl<PtLoginConfigMapper, P
     }
 
     @Override
-    public PtLoginConfig populatePtLoginConfig(PtLoginConfig ptLoginConfig) {
-        if (ptLoginConfig == null) {
-            return createNewLoginConfig();
-        }
-
-        updateWithEnvironmentVariables(ptLoginConfig);
-        return ptLoginConfig;
+    @Transactional(readOnly = true)
+    public PtLoginConfig getPopulatedPtLoginConfig(Integer masterId) {
+        PtLoginConfig loginConfig = getByMasterId(masterId);
+        updateWithEnvironmentVariables(loginConfig);
+        return loginConfig;
     }
 
     private void updateWithEnvironmentVariables(PtLoginConfig ptLoginConfig) {
@@ -53,16 +51,5 @@ public class PtLoginConfigServiceImpl extends ServiceImpl<PtLoginConfigMapper, P
         if (null == ptLoginConfig.getGroups() || ptLoginConfig.getGroups().isEmpty()) {
             ptLoginConfig.setGroups(env.getProperty("groups"));
         }
-    }
-
-    private PtLoginConfig createNewLoginConfig() {
-        PtLoginConfig ptLoginConfig;
-        ptLoginConfig = new PtLoginConfig();
-        ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
-        ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
-        ptLoginConfig.setLogOut(env.getProperty("logOut"));
-        ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-        ptLoginConfig.setGroups(env.getProperty("groups"));
-        return ptLoginConfig;
     }
 }

@@ -5,13 +5,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface GcAccessService extends IService<GcAccess> {
 
@@ -43,8 +41,7 @@ public interface GcAccessService extends IService<GcAccess> {
             List<Integer> availableTypeOneAndThree,
             List<Integer> subIds);
 
-    @Transactional
-    GcAccess getTeacherStudentContentGroup(List<Integer> courseIds, Integer masterId);
+    GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId);
 
     List<GcAccess> listAllAccess(Map<String, Object> params, HttpServletRequest request);
 

@@ -7,5 +7,5 @@ public interface PtLoginConfigService extends IService<PtLoginConfig> {
 
     PtLoginConfig getByMasterId(Integer masterId);
 
-    PtLoginConfig populatePtLoginConfig(PtLoginConfig ptLoginConfig);
+    PtLoginConfig getPopulatedPtLoginConfig(Integer masterId);
 }

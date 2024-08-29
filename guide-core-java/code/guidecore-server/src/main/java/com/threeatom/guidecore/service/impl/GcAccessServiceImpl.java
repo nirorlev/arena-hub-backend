@@ -227,10 +227,10 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return gcAccessList;
     }
 
-    private GcAccess createTeacherContentGroup(String code, int roleType, Integer masterId) {
+    private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("code","teacherPT");
-        queryWrapper.eq("role_type",TableConstant.COMMON_ZERO);
+        queryWrapper.eq("code",code);
+        queryWrapper.eq("role_type",roleType);
         queryWrapper.eq("master_id", masterId);
         return getOne(queryWrapper);
     }
@@ -250,14 +250,14 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Transactional
     @Override
-    public GcAccess getTeacherStudentContentGroup(List<Integer> courseIds, Integer masterId) {
+    public GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId) {
         GcAccess teacherContentGroup =
-            createTeacherContentGroup("teacherPT", TableConstant.COMMON_ZERO, masterId);
-        GcAccess studentAccess = createTeacherContentGroup("studentPT", TableConstant.COMMON_ONE, masterId);
+            getContentGroup("teacherPT", TableConstant.COMMON_ZERO, masterId);
+        GcAccess studentAccess = getContentGroup("studentPT", TableConstant.COMMON_ONE, masterId);
 
         if (teacherContentGroup == null || studentAccess == null) {
             if (teacherContentGroup == null) {
-                teacherContentGroup = createContentGroup(courseIds, masterId);
+                teacherContentGroup = createTeacherContentGroup(courseIds, masterId);
                 addAccess(teacherContentGroup);
             }
             if (studentAccess == null) {
@@ -292,7 +292,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return studentAccess;
     }
 
-    private GcAccess createContentGroup(List<Integer> subjectIdList, Integer masterId) {
+    private GcAccess createTeacherContentGroup(List<Integer> subjectIdList, Integer masterId) {
         GcAccess gcAccess = new GcAccess();
         gcAccess.setMasterId(masterId);
         gcAccess.setRoleType(TableConstant.COMMON_ZERO);

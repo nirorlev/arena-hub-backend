@@ -155,7 +155,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -951,13 +950,8 @@ public class PowtoonController extends GuideCoreController {
 		String accessToken = (String) redisOperator.get("PT:"+user.getUsername());
 		Map<String, String> body = new HashMap<>();
 
-		Integer masterId = getHeaderMasterId(request);
-		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
-		loginConfigQueryWrapper.eq("master_id",masterId);
-		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-
 		if (null!=accessToken){
-			ptLoginConfig = getPtConfig(ptLoginConfig);
+			PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
 			body.put("token",accessToken);
 			body.put("client_id",ptLoginConfig.getClientId());
 			try {
@@ -975,45 +969,12 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "getPtMessage", httpMethod = "GET")
 	@GetMapping("/getPtMessage")
 	public Message getPtMessage(HttpServletRequest request){
-		Integer masterId = getHeaderMasterId(request);
-		QueryWrapper<PtLoginConfig> loginConfigQueryWrapper = new QueryWrapper<>();
-		loginConfigQueryWrapper.eq("master_id",masterId);
-		PtLoginConfig ptLoginConfig = ptLoginConfigService.getOne(loginConfigQueryWrapper);
-		ptLoginConfig = getPtConfig(ptLoginConfig);
+		PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
 		return new Message().ok().addData("clientId",ptLoginConfig.getClientId())
 				.addData("ptRootURL",ptLoginConfig.getPtRootUrl())
 				.addData("test1027","updated2022-10-27")
 				.addData("ptLoginConfig",ptLoginConfig)
 				.addData("测试",new Date());
-	}
-
-	public PtLoginConfig getPtConfig(PtLoginConfig ptLoginConfig){
-		if (null==ptLoginConfig){
-			ptLoginConfig = new PtLoginConfig();
-			ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
-			ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
-			ptLoginConfig.setLogOut(env.getProperty("logOut"));
-			ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			ptLoginConfig.setGroups(env.getProperty("groups"));
-		}else {
-			if (null==ptLoginConfig.getOauthToken()|| ptLoginConfig.getOauthToken().isEmpty()){
-				ptLoginConfig.setOauthToken(env.getProperty("oauthToken"));
-			}
-			if (null==ptLoginConfig.getUserUrl()|| ptLoginConfig.getUserUrl().isEmpty()){
-				ptLoginConfig.setUserUrl(env.getProperty("userUrl"));
-			}
-			if (null==ptLoginConfig.getLogOut()|| ptLoginConfig.getLogOut().isEmpty()){
-				ptLoginConfig.setLogOut(env.getProperty("logOut"));
-			}
-			if (null==ptLoginConfig.getLogOutUrl()|| ptLoginConfig.getLogOutUrl().isEmpty()){
-				ptLoginConfig.setLogOutUrl(env.getProperty("logoutUrl"));
-			}
-			if (null==ptLoginConfig.getGroups()|| ptLoginConfig.getGroups().isEmpty()){
-				ptLoginConfig.setGroups(env.getProperty("groups"));
-			}
-		}
-		log.info("JSON.toJSONString(ptLoginConfig)::"+JSON.toJSONString(ptLoginConfig));
-		return ptLoginConfig;
 	}
 
 	@ApiOperation(value = "getNewAccessList", httpMethod = "GET")
@@ -1803,8 +1764,7 @@ public class PowtoonController extends GuideCoreController {
 	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto, HttpServletRequest response, HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
-		PtLoginConfig loginConfig = ptLoginConfigService.getByMasterId(masterId);
-		loginConfig = getPtConfig(loginConfig);
+		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
 
 		try {
 			final String code = authTokenDto.getCode();
@@ -1823,8 +1783,6 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	private GcUser authorizeWithCode(String code, PtLoginConfig ptLoginConfig, String redirectUri, Integer masterId) throws IOException, ClientException {
-		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
-		GcAccess courseContentGroups = accessService.getTeacherStudentContentGroup(courseIds, masterId);
 		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
 
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
@@ -1853,8 +1811,10 @@ public class PowtoonController extends GuideCoreController {
 		// Add permission table data
 		List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
 		List<String> roleLists = getRoleLists(userInfo);
+		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
+		GcAccess studentContentGroup = accessService.getStudentContentGroup(courseIds, masterId);
 
-		user = saveOrUpdateUser(user, userInfo, courseContentGroups, masterId);
+		user = saveOrUpdateUser(user, userInfo, studentContentGroup, masterId);
 		List<String> managedGroups = getManagedGroupCodes(userInfo);
 		List<String> memberGroups = getMemberGroupCodes(userInfo);
 		memberGroups.addAll(managedGroups);
@@ -1891,12 +1851,11 @@ public class PowtoonController extends GuideCoreController {
 	private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, Map<String, String> parameters) {
 		String powtoonAuthResponse = HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl()+ ptLoginConfig.getOauthToken(),
 			parameters);
-		PowtoonAuthDto authInfo = JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
 		if (powtoonAuthResponse == null){
 			throw new SystemException("Powtoon Token is null");
 		}
 
-		return authInfo;
+        return JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
 	}
 
 	private Map<String, String> getTokenRequestBody(String code, String redirectUri, String clientId) {

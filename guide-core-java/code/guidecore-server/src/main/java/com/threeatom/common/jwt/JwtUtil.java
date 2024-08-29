@@ -56,7 +56,7 @@ public class JwtUtil {
     }
 
     public static Integer getUserIdByToken(String token) {
-        return Integer.valueOf(JWT.decode(token).getClaim("uid").asString());
+        return Integer.valueOf(getValueByToken(token, "uid"));
     }
 
     public static String getValueByToken(String token, String field) {

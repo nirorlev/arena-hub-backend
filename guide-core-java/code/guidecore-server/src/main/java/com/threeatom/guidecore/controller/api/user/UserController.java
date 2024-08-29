@@ -82,8 +82,7 @@ public class UserController {
     public Message getUser(HttpServletRequest request) throws PermitContextError, PermitApiError, IOException {
         GcMaster master = getMaster(request);
         Integer masterId = master.getId();
-        PtLoginConfig loginConfig = ptLoginConfigService.getByMasterId(masterId);
-        loginConfig = ptLoginConfigService.populatePtLoginConfig(loginConfig);
+        PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
 
         GcUser user;
         try {

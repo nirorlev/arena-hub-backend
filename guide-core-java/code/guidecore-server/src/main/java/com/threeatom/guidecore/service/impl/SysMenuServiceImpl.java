@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.permit.enums.PermitAction;
 import com.threeatom.common.permit.enums.PermitResource;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -149,7 +149,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         }
 
         List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(userId, masterId);
-        if (com.baomidou.mybatisplus.core.toolkit.CollectionUtils.isNotEmpty(gcUserAccessList)) {
+        if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
             getRoleList.add(GroupsType.superAdmin);
         }
         if (isOrgAdmin) {
