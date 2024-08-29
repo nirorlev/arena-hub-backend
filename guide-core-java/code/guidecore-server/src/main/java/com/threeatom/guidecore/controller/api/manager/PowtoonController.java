@@ -2667,7 +2667,7 @@ public class PowtoonController extends GuideCoreController {
 			master = new GcMaster();
 			master.setId(masterId);
 		}
-		return new Message().ok().addData("eventList",gvgMasterService.getSysFile(jsonParams, EventUnifyType.powtoonResTypes,request,master,user.getId()));
+		return new Message().ok().addData("eventList",gvgMasterService.getSysFile(jsonParams, EventUnifyType.POWTOON_RES_TYPES,request,master,user.getId()));
 	}
 
 	@PostMapping("/delSub")

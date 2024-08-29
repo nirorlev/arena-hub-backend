@@ -22,5 +22,5 @@ public class MessageEventType {
 
     public static final String JSON_STR = EventUnifyType.JSON_STR012345;
     // 除5外
-    public static final String notQuestion = EventUnifyType.notQuestion012346;
+    public static final String notQuestion = EventUnifyType.NOT_QUESTION_012346;
 }
