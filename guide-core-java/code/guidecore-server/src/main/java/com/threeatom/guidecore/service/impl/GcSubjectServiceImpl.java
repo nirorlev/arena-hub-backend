@@ -820,10 +820,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
          queryWrapper.eq("level", 0);
          queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
          queryWrapper.orderByAsc("\"order\"");
-         List<GcSubject> list = this.list(queryWrapper);
-         return list;
+        return this.list(queryWrapper);
     }
-    
+
+    @Override
+    public List<Integer> getCourseIds(Integer masterId){
+        List<GcSubject> courses = getLevel0SubLis(masterId);
+        return courses.stream().map(GcSubject::getId).collect(Collectors.toList());
+    }
+
     @Override
     public List<GcSubject> getSubListWithHidden(Integer masterId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();

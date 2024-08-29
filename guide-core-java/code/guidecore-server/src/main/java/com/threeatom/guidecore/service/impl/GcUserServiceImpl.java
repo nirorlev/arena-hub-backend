@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
@@ -149,12 +148,12 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     }
 
     @Override
-    public String getUserNativeToken(GcUser user, GcMaster master) {
+    public String getUserNativeToken(GcUser user, Integer masterId) {
         Map<String, String> params = new HashMap<>();
         params.put("sysId", "2");
         params.put("role", "user");
         params.put("client", "native");
-        params.put("masterId", master.getId().toString());
+        params.put("masterId", masterId.toString());
 
         return createTokenByUser(user.getId().toString(), params, user.getPassword());
     }

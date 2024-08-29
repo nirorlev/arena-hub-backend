@@ -1,7 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
+import static com.threeatom.utils.ToolUtil.parseToJsonArray;
+
 import com.alibaba.fastjson.JSONObject;
-import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
@@ -16,7 +17,6 @@ import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.NewUiGcSubjectMapper;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,20 +123,19 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     @Transactional
     public boolean addAccess(GcAccess access) {
-        // 清缓存
         userAccessService.clearCacheAll();
         this.saveOrUpdate(access);
 
-        // 会影响支付包购买的权限
         if (access.getId() != null) {
 
-            QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
+            QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("access_id", access.getId());
             List<GcUserAccess> list = userAccessService.list(queryWrapper);
             List<Integer> userAccessIds =
                     list.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-            if (userAccessIds.size() > 0)
+            if (!userAccessIds.isEmpty()) {
                 userAccessService.updateUserAccessPermission(userAccessIds, access);
+            }
         }
 
         return true;
@@ -228,6 +227,14 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return gcAccessList;
     }
 
+    private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("code",code);
+        queryWrapper.eq("role_type",roleType);
+        queryWrapper.eq("master_id", masterId);
+        return getOne(queryWrapper);
+    }
+
     private List<GcAccess> listToTree(List<GcAccess> gcAccessList) {
         List<GcAccess> newAccessList = new ArrayList<>();
         Map<String, GcAccess> gcAccessMap =
@@ -239,6 +246,62 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             }
         }
         return newAccessList;
+    }
+
+    @Transactional
+    @Override
+    public GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId) {
+        GcAccess teacherContentGroup =
+            getContentGroup("teacherPT", TableConstant.COMMON_ZERO, masterId);
+        GcAccess studentAccess = getContentGroup("studentPT", TableConstant.COMMON_ONE, masterId);
+
+        if (teacherContentGroup == null || studentAccess == null) {
+            if (teacherContentGroup == null) {
+                teacherContentGroup = createTeacherContentGroup(courseIds, masterId);
+                addAccess(teacherContentGroup);
+            }
+            if (studentAccess == null) {
+                studentAccess = createStudentContentGroup(courseIds, teacherContentGroup, masterId);
+                addAccess(studentAccess);
+            } else if (studentAccess.getAdminId() == null) {
+                studentAccess.setAdminId(teacherContentGroup.getId());
+                updateById(studentAccess);
+            }
+
+            return studentAccess;
+        }
+
+        teacherContentGroup.setSubjectJson(parseToJsonArray(courseIds));
+        studentAccess.setSubjectJson(parseToJsonArray(courseIds));
+        updateById(teacherContentGroup);
+        updateById(studentAccess);
+        return studentAccess;
+    }
+
+    private GcAccess createStudentContentGroup(List<Integer> subjectIdList, GcAccess gcAccess, Integer masterId) {
+        GcAccess studentAccess = new GcAccess();
+        studentAccess.setMasterId(masterId);
+        studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
+        studentAccess.setCode("studentPT");
+        studentAccess.setCodeType(TableConstant.COMMON_ZERO);
+        studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
+        studentAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
+        studentAccess.setRoleType(TableConstant.COMMON_ONE);
+        studentAccess.setAdminId(gcAccess.getId());
+        studentAccess.setId(null);
+        return studentAccess;
+    }
+
+    private GcAccess createTeacherContentGroup(List<Integer> subjectIdList, Integer masterId) {
+        GcAccess gcAccess = new GcAccess();
+        gcAccess.setMasterId(masterId);
+        gcAccess.setRoleType(TableConstant.COMMON_ZERO);
+        gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
+        gcAccess.setCodeType(TableConstant.COMMON_ZERO);
+        gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
+        gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
+        gcAccess.setCode("teacherPT");
+        return gcAccess;
     }
 
     private GcAccess accessTree(GcAccess gcAccess, List<GcAccess> gcAccessList) {
