@@ -1770,8 +1770,11 @@ public class PowtoonController extends GuideCoreController {
 			final String code = authTokenDto.getCode();
 
 			if (code != null) {
-				GcUser user = authorizeWithCode(code, loginConfig, response.getHeader("redirectUri"), masterId);
+				PowtoonAuthDto authInfo = getAuth(code, response.getHeader("redirectUri"), loginConfig);
+				GcUser user = syncPowtoonUser(authInfo.getAccessToken(), loginConfig, masterId);
+				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
+
 				return new Message().ok()
 					.addData("token", userService.getUserNativeToken(user, masterId));
 			}
@@ -1781,10 +1784,9 @@ public class PowtoonController extends GuideCoreController {
 
 		return new Message().error(400, "Invalid code");
 	}
-
-	private GcUser authorizeWithCode(String code, PtLoginConfig ptLoginConfig, String redirectUri, Integer masterId) throws IOException, ClientException {
+	
+	private PowtoonAuthDto getAuth(String code, String redirectUri, PtLoginConfig ptLoginConfig) {
 		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
-
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
 
 		log.info("getTokenUrl:" + ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken());
@@ -1796,7 +1798,11 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException("Powtoon accessToken is null");
 		}
 
-		String bearerToken = "Bearer " + accessToken;
+		return authInfo;
+	}
+
+	private GcUser syncPowtoonUser(String accessToken, PtLoginConfig ptLoginConfig, Integer masterId) throws IOException, ClientException {
+		final String bearerToken = "Bearer " + accessToken;
 		PtGroupsVo groups =
 			powtoonClient.getGroups(
 				URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
@@ -1807,7 +1813,6 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = userService.getUserByUserName(userInfo.getProfile().getEmail());
 
 		// Add permission table data
-		List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
 		List<String> roleLists = getRoleLists(userInfo);
 		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
 		GcAccess studentContentGroup = accessService.getStudentContentGroup(courseIds, masterId);
@@ -1832,11 +1837,10 @@ public class PowtoonController extends GuideCoreController {
 		List<GcUserAccess> userAccesses =
 			gcUserAccessService.getUserAccessListByMasterIdAndUserId(getUserIds(userAccessList), masterId);
 
-		updateUserPermissions(userAccesses, userAccessPermissions);
+		updateUserPermissions(userAccesses);
 		updateUser(userInfo, user);
 		removeContentGroupsMissingInDb(allGroups, user, masterId);
 		syncUserWithPermit(user, roleLists, userInfo, masterId);
-		createAuthInRedis(user, authInfo);
 		return user;
 	}
 
@@ -2096,7 +2100,9 @@ public class PowtoonController extends GuideCoreController {
 		gcUserAccessExtService.saveBatch(extList);
 	}
 
-	private void updateUserPermissions(List<GcUserAccess> userAccesses, List<GcUserAccessPermission> userAccessPermissions) {
+	private void updateUserPermissions(List<GcUserAccess> userAccesses) {
+		List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
+
 		for (GcUserAccess gcUserAccess : userAccesses) {
 			GcUserAccessPermission permission = new GcUserAccessPermission();
 			GcAccess access = gcUserAccess.getAccess();
