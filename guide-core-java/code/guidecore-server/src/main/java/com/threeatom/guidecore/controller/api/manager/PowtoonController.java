@@ -1802,8 +1802,6 @@ public class PowtoonController extends GuideCoreController {
 				URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
 
 		log.info("PtGroups interface returns:" + groups);
-		Map<String, Groups> groupsMap =
-			groups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
 
 		PowtoonUserDto userInfo = powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
 		GcUser user = userService.getUserByUserName(userInfo.getProfile().getEmail());
@@ -1817,35 +1815,42 @@ public class PowtoonController extends GuideCoreController {
 		user = saveOrUpdateUser(user, userInfo, studentContentGroup, masterId);
 		List<String> managedGroups = getManagedGroupCodes(userInfo);
 		List<String> memberGroups = getMemberGroupCodes(userInfo);
-		memberGroups.addAll(managedGroups);
+		List<String> allGroups = new ArrayList<>(memberGroups);
+		allGroups.addAll(managedGroups);
 
 		// Query all groups
-		List<GcAccess> contentGroups = accessService.selectAccessByCodeAndMasterId(memberGroups, masterId);
-		ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, contentGroups);
+		List<GcAccess> contentGroups = accessService.selectAccessByCodeAndMasterId(allGroups, masterId);
 		Map<String, GcAccess> codeToContentGroup = getCodeToContentGroup(contentGroups);
-		List<GcAccess> userMemberGroups = createOrUpdateMemberGroups(codeToContentGroup, masterId, userInfo.getPermissions().getGroups());
+		List<GcAccess> memberContentGroups = createOrUpdateMemberContentGroups(codeToContentGroup, masterId, userInfo.getPermissions().getGroups());
+		List<GcAccess> managedContentGroups = saveOrUpdateManagedContentGroups(codeToContentGroup, masterId,
+			userInfo.getPermissions().getManagedGroups());
+		List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups);
 
-		saveOrUpdateManagedContentGroups(codeToContentGroup, masterId, userMemberGroups, userInfo.getPermissions().getManagedGroups());
-		Map<String, GcAccess> memberContentGroupCodeToContentGroup =
-			userMemberGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
-
-		// superAdmin user
-		List<GcAccess> dbMemberContentGroups = accessService.selectAccessByCodeAndMasterId(getContentGroupCodes(userMemberGroups),
-			masterId);
-		List<Integer> superAdminContentGroups = gcUserAccessService.getAccessListBySuperAdmin(user.getId(), masterId);
+		ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, memberContentGroups);
 		List<GcUserAccess> userAccessList =
-			saveOrUpdateUserAccess(dbMemberContentGroups, user, masterId, memberContentGroupCodeToContentGroup,
-				superAdminContentGroups, roleLists, groupsMap);
-
+			saveOrUpdateUserAccess(user, masterId, allContentGroups, roleLists, groups);
 		List<GcUserAccess> userAccesses =
 			gcUserAccessService.getUserAccessListByMasterIdAndUserId(getUserIds(userAccessList), masterId);
 
 		updateUserPermissions(userAccesses, userAccessPermissions);
 		updateUser(userInfo, user);
-		removeContentGroupsMissingInDb(memberGroups, user, masterId);
+		removeContentGroupsMissingInDb(allGroups, user, masterId);
 		syncUserWithPermit(user, roleLists, userInfo, masterId);
 		createAuthInRedis(user, authInfo);
 		return user;
+	}
+
+	private List<GcAccess> getAllContentGroups(List<GcAccess> memberContentGroups, List<GcAccess> managedContentGroups) {
+		List<GcAccess> allContentGroups = new ArrayList<>(memberContentGroups);
+		List<String> memberContentGroupCodes = getContentGroupCodes(memberContentGroups);
+
+		managedContentGroups.forEach(managedContentGroup -> {
+			if (!memberContentGroupCodes.contains(managedContentGroup.getCode())) {
+				allContentGroups.add(managedContentGroup);
+			}
+		});
+
+		return allContentGroups;
 	}
 
 	private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, Map<String, String> parameters) {
@@ -1875,20 +1880,27 @@ public class PowtoonController extends GuideCoreController {
 			.collect(Collectors.toList());
 	}
 
-	private List<GcUserAccess> saveOrUpdateUserAccess(List<GcAccess> dbMemberContentGroups, GcUser user,
-														Integer masterId,
-														Map<String, GcAccess> memberContentGroupCodeToContenGroup,
-														List<Integer> superAdminContentGroups, List<String> roleLists,
-														Map<String, Groups> groupsMap) {
+	private List<GcUserAccess> saveOrUpdateUserAccess(GcUser user,
+													  Integer masterId,
+													  List<GcAccess> allContentGroups, List<String> roleLists,
+													  PtGroupsVo groups) {
 		List<GcUserAccess> userAccessList = new ArrayList<>();
-		for (GcAccess contentGroup : dbMemberContentGroups) {
+		Map<String, Groups> groupsMap =
+			groups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
+		Map<String, GcAccess> allContentGroupCodeToContentGroup =
+			allContentGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
+		List<GcAccess> adbAllContentGroups = accessService.selectAccessByCodeAndMasterId(
+			getContentGroupCodes(new ArrayList<>(allContentGroups)), masterId);
+		List<Integer> superAdminContentGroups = gcUserAccessService.getAccessListBySuperAdmin(user.getId(), masterId);
+
+		for (GcAccess contentGroup : adbAllContentGroups) {
 			GcUserAccess userAccess = new GcUserAccess();
 			userAccess.setUserId(user.getId());
 			userAccess.setMasterId(masterId);
 			userAccess.setAccessId(contentGroup.getId());
 
-			if (null != memberContentGroupCodeToContenGroup.get(contentGroup.getCode())) {
-				userAccess.setRoleJson(memberContentGroupCodeToContenGroup.get(contentGroup.getCode()).getRoleJson());
+			if (null != allContentGroupCodeToContentGroup.get(contentGroup.getCode())) {
+				userAccess.setRoleJson(allContentGroupCodeToContentGroup.get(contentGroup.getCode()).getRoleJson());
 			}
 			if (superAdminContentGroups.contains(contentGroup.getId())) {
 				userAccess.getRoleJson().add(GroupsType.superAdmin);
@@ -1901,6 +1913,7 @@ public class PowtoonController extends GuideCoreController {
 			userAccess.setAccess(contentGroup);
 			userAccessList.add(userAccess);
 		}
+
 		if (!userAccessList.isEmpty()) {
 			gcUserAccessService.insertUserAccessList(userAccessList);
 		}
@@ -1908,9 +1921,8 @@ public class PowtoonController extends GuideCoreController {
 		return userAccessList;
 	}
 
-	private void saveOrUpdateManagedContentGroups(Map<String, GcAccess> codeToContentGroup, Integer masterId, List<GcAccess> userMemberContentGroups, List<ManagedGroupDto> managedGroups) {
+	private List<GcAccess> saveOrUpdateManagedContentGroups(Map<String, GcAccess> codeToContentGroup, Integer masterId, List<ManagedGroupDto> managedGroups) {
 		List<GcAccess> managedContentGroups = new ArrayList<>();
-		List<String> memberContentGroupCodes = getContentGroupCodes(userMemberContentGroups);
 
 		for (ManagedGroupDto managedGroup : managedGroups) {
 			GcAccess access = codeToContentGroup.get(managedGroup.getId());
@@ -1927,13 +1939,13 @@ public class PowtoonController extends GuideCoreController {
 			}
 
 			managedContentGroups.add(access);
-			if (!memberContentGroupCodes.contains(access.getCode())) {
-				userMemberContentGroups.add(access);
-			}
 		}
+
 		if (!managedContentGroups.isEmpty()) {
 			accessService.insertOrUpdateList(managedContentGroups);
 		}
+
+		return managedContentGroups;
 	}
 
 	private GcAccess createManagerContentGroup(Integer masterId, ManagedGroupDto managedGroup) {
@@ -1950,8 +1962,9 @@ public class PowtoonController extends GuideCoreController {
 		return access;
 	}
 
-	private List<GcAccess> createOrUpdateMemberGroups(Map<String, GcAccess> codeToContentGroup, Integer masterId, List<GroupDto> powtoonGroups) {
-		List<GcAccess> gcAccessesList = new ArrayList<>();
+	private List<GcAccess> createOrUpdateMemberContentGroups(
+		Map<String, GcAccess> codeToContentGroup, Integer masterId, List<GroupDto> powtoonGroups) {
+		List<GcAccess> memberContentGroups = new ArrayList<>();
 
 		for (GroupDto group : powtoonGroups) {
 			GcAccess contentGroup;
@@ -1966,10 +1979,13 @@ public class PowtoonController extends GuideCoreController {
 			if (null != group.getRoleId() && group.getRoleId().equals(GroupsType.orgAdmin)) {
 				contentGroup.getRoleJson().add(GroupsType.orgAdmin);
 			}
-			gcAccessesList.add(contentGroup);
+			memberContentGroups.add(contentGroup);
+		}
+		if (!memberContentGroups.isEmpty()) {
+			accessService.insertOrUpdateList(memberContentGroups);
 		}
 
-		return gcAccessesList;
+		return memberContentGroups;
 	}
 
 	private GcAccess createContentGroup(Integer masterId, GroupDto group) {
