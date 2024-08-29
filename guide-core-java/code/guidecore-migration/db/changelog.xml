@@ -476,4 +476,12 @@
         </insert>
     </changeSet>
 
+    <changeSet id="create-comment-attachments-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="commentAttachmentsEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling comment attachments"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>

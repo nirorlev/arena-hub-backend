@@ -389,9 +389,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "超级管理员获取用户端token", httpMethod = "POST")
     @PostMapping("/superAdminGetUserToken")
-    public Message superAdminGetUserToken(@RequestBody GcMaster filterMaster, HttpServletRequest request) {
+    public Message superAdminGetUserToken(@RequestBody GcMaster filterMaster) {
         GcUser gcUser = userService.getById(filterMaster.getUserId());
-        String token = userService.getUserNativeToken(gcUser, filterMaster);
+        String token = userService.getUserNativeToken(gcUser, filterMaster.getId());
         return new Message().ok().addData("token",token);
     }
 

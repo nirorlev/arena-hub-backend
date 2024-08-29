@@ -2,6 +2,7 @@ package com.threeatom.client;
 
 
 import com.threeatom.client.dto.PowtoonUserDto;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import java.net.URI;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,4 +14,6 @@ public interface PowtoonClient {
     @GetMapping("/api/v1.0/integrations/hub/users/me")
     PowtoonUserDto getUserInfo(URI baseUrl, @RequestHeader("Authorization") String token);
 
+    @GetMapping
+    PtGroupsVo getGroups(URI baseUrl, @RequestHeader("Authorization") String token);
 }

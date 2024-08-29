@@ -222,7 +222,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
             sysFile.setFullFileUrl(fullFileUrl);
             return fullFileUrl;
-        
     }
 
     public String getS3Url(String S3ObjectKey) {

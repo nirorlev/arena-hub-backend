@@ -41,6 +41,8 @@ public interface GcAccessService extends IService<GcAccess> {
             List<Integer> availableTypeOneAndThree,
             List<Integer> subIds);
 
+    GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId);
+
     List<GcAccess> listAllAccess(Map<String, Object> params, HttpServletRequest request);
 
     Integer deleteAccess(Integer id);
