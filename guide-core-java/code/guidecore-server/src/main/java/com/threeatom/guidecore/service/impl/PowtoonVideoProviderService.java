@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.guidecore.constant.EventUnifyType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +9,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -23,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 import com.threeatom.guidecore.service.ExternalVideoProviderService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PowtoonVideoProviderService implements ExternalVideoProviderService {
@@ -34,6 +39,11 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
     private static final String MUX_PLAYER_URL_TEMPLATE = "https://stream.mux.com/%s.m3u8";
     private static final Integer PLAYER_PAGE_TYPE_INDEX = 1;
     private static final Integer VIDEO_ID_INDEX = 2;
+
+    private static final Map<String, Integer> HOSTING_PROVIDER_TO_FILE_TYPE_INDEX = Map.of(
+        "kaltura", EventUnifyType.POWTOON_KALTURA_FILE_TYPE_INDEX,
+        "mux", EventUnifyType.POWTOON_MUX_FILE_TYPE_INDEX
+    );
 
 	private final PtApiClient ptApiClient;
     private final PtLoginConfigService ptLoginConfigService;
@@ -129,9 +139,16 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         videoData.put("description", playerPageData.getString("description"));
         videoData.put("duration", playerPageData.getFloat("video_duration"));
         videoData.put("thumbnailUrl", playerPageData.getString("thumb_url"));
-        videoData.put("hostingProvider", provider);
+        videoData.put("hostingProvider", getHostingProviderIndexType(provider));
 
         return videoData;
+    }
+
+    private Integer getHostingProviderIndexType(String provider) {
+        return Optional.ofNullable(HOSTING_PROVIDER_TO_FILE_TYPE_INDEX.get(provider)).orElseThrow(() -> {
+            log.error("Unsupported hosting provider received: {}", provider);
+            return new SystemException("Unsupported hosting provider");
+        });
     }
 
     private JSONObject buildSourceData (String powtoonId, String origin, String publicToken, JSONObject playerPageData) {
