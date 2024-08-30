@@ -15,10 +15,7 @@ public class PortalUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "user_id")
     private Integer userId;
-
-    @TableId(value = "master_id")
     private Integer masterId;
 
     @TableField(value = "role", typeHandler = EnumTypeHandler.class)
