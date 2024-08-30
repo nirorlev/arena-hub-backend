@@ -36,8 +36,10 @@ import io.permit.sdk.enforcement.User;
 import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -149,7 +151,7 @@ public class PermitServiceImpl implements PermitService {
         permitPlaylist.setPrivate(playlist.getIsPrivate());
 
         // playlist does not have content group ids
-        permitPlaylist.setContentGroupIds(List.of());
+        permitPlaylist.setContentGroupIds(Set.of());
         return permitPlaylist;
     }
 
@@ -231,7 +233,7 @@ public class PermitServiceImpl implements PermitService {
         return permitVideoItem;
     }
 
-    private List<Integer> getVideoContentGroupIds(GcVideo video) {
+    private Set<Integer> getVideoContentGroupIds(GcVideo video) {
         Integer originCourseId = video.getOriginCourseId();
         if (originCourseId != null) {
             return courseAssignmentService.getContentGroupIds(originCourseId);
@@ -240,8 +242,8 @@ public class PermitServiceImpl implements PermitService {
         return channelSubscriptionService.getContentGroupIds(video.getOriginChannelId());
     }
 
-    public List<String> convert(List<Integer> ids) {
-        return ids.stream().map(String::valueOf).collect(Collectors.toList());
+    public Set<String> convert(Set<Integer> ids) {
+        return ids.stream().map(String::valueOf).collect(Collectors.toSet());
     }
 
     private boolean checkPermit(PermitResource resource, PermitAction action, String username, Integer masterId) {

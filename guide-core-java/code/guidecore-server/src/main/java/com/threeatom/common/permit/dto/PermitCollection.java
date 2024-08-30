@@ -3,6 +3,7 @@ package com.threeatom.common.permit.dto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ public abstract class PermitCollection extends PermitItem {
     private String ownerId;
     private boolean isPublic;
     private boolean isPrivate;
-    private List<String> contentGroupIds;
+    private Set<String> contentGroupIds;
 
     @Override
     public HashMap<String, Object> getAttributes() {

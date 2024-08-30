@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.service.bll.GcUserAccessServiceBll;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface GcUserAccessService extends GcUserAccessServiceBll {
@@ -93,5 +94,5 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
 
-    List<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
+    Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
 }

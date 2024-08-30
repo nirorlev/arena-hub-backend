@@ -1,6 +1,7 @@
 package com.threeatom.common.permit.dto;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,5 +12,5 @@ public abstract class PermitContentItem extends PermitItem {
     private String ownerId;
     private boolean isPublic;
     private boolean isPrivate;
-    private List<String> contentGroupIds;
+    private Set<String> contentGroupIds;
 }

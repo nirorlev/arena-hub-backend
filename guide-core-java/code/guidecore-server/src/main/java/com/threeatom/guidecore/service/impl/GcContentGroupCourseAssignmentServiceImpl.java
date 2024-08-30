@@ -16,6 +16,7 @@ import com.threeatom.system.service.SysFileService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -164,7 +165,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public List<Integer> getContentGroupIds(Integer courseId) {
+    public Set<Integer> getContentGroupIds(Integer courseId) {
         QueryWrapper<GcContentGroupCourseAssignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", courseId);
 
@@ -172,7 +173,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
         return assignments.stream()
             .map(GcContentGroupCourseAssignment::getContentGroupId)
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(

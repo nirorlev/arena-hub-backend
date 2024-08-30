@@ -1,7 +1,7 @@
 package com.threeatom.common.permit.dto;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +10,8 @@ import lombok.Setter;
 public class PermitUser {
     private String id;
     private boolean isOrgAdmin;
-    private List<String> contentGroupIds;
-    private List<String> managedContentGroupIds;
+    private Set<String> contentGroupIds;
+    private Set<String> managedContentGroupIds;
 
     public HashMap<String, Object> getAttributes() {
         HashMap<String, Object> attributes = new HashMap<>();

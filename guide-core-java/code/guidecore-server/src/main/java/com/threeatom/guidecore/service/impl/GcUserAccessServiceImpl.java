@@ -488,11 +488,11 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public List<Integer> getContentGroupIds(Integer userId, Integer masterId, String role) {
+    public Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role) {
         return selectUserAccessesByMasterIdAndRole(userId, masterId, role)
                 .stream()
                 .map(GcUserAccess::getAccess)
                 .map(GcAccess::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }
