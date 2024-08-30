@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -16,16 +15,17 @@ public class PortalUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
-
+    @TableId(value = "user_id")
     private Integer userId;
+
+    @TableId(value = "master_id")
     private Integer masterId;
+
     @TableField(value = "role", typeHandler = EnumTypeHandler.class)
     private UserOrgRole role;
 
-    private OffsetDateTime createdDate;
-    private OffsetDateTime modifiedDate;
+    private OffsetDateTime createdDate = OffsetDateTime.now();
+    private OffsetDateTime syncedDate = OffsetDateTime.now();
 
     public boolean isOrgAdmin() {
         return UserOrgRole.ORG_ADMIN.equals(role);

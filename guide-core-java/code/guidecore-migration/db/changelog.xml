@@ -486,9 +486,6 @@
 
     <changeSet id="create-portal-user-table" author="vprokh">
         <createTable tableName="portal_user" schemaName="arena_hub">
-            <column name="id" type="bigserial">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
             <column name="user_id" type="integer">
                 <constraints nullable="false" />
             </column>
@@ -501,7 +498,7 @@
             <column name="created_date" type="timestamp with time zone" defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
-            <column name="modified_date" type="timestamp with time zone" defaultValueComputed="now()">
+            <column name="synced_date" type="timestamp with time zone" defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -513,5 +510,8 @@
                                  constraintName="portal_user_gc_master_id_fk"
                                  referencedTableName="gc_master"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addPrimaryKey constraintName="portal_user_pk" columnNames="user_id, master_id"
+                       tableName="portal_user"/>
     </changeSet>
 </databaseChangeLog>

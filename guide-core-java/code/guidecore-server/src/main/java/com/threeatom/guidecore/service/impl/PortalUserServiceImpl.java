@@ -31,7 +31,7 @@ public class PortalUserServiceImpl extends ServiceImpl<PortalUserMapper, PortalU
 
     private void updatePortalUser(UserOrgRole role, PortalUser portalUser) {
         portalUser.setRole(role);
-        portalUser.setModifiedDate(OffsetDateTime.now());
+        portalUser.setSyncedDate(OffsetDateTime.now());
     }
 
     @Override
