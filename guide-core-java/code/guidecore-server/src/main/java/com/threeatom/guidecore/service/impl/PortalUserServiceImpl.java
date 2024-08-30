@@ -23,10 +23,8 @@ public class PortalUserServiceImpl extends ServiceImpl<PortalUserMapper, PortalU
             return;
         }
 
-        if (!portalUser.getRole().equals(role)) {
-            updatePortalUser(role, portalUser);
-            updateById(portalUser);
-        }
+        updatePortalUser(role, portalUser);
+        updateById(portalUser);
     }
 
     private void updatePortalUser(UserOrgRole role, PortalUser portalUser) {
