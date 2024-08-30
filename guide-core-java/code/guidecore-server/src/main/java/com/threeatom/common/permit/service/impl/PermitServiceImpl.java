@@ -145,6 +145,10 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
         PermitPlaylist permitPlaylist = new PermitPlaylist();
+        if (playlist.getId() == null) {
+            return permitPlaylist;
+        }
+
         permitPlaylist.setId(String.valueOf(playlist.getId()));
         permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
         permitPlaylist.setPublic(!playlist.getIsPrivate());
@@ -157,6 +161,10 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitCourse createCourse(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
+        if (course.getId() == null) {
+            return permitCourse;
+        }
+
         permitCourse.setId(String.valueOf(course.getId()));
         permitCourse.setPublic(!course.getIsPrivate());
         permitCourse.setPrivate(course.getIsPrivate());
@@ -224,6 +232,9 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitVideoItem createVideoItem(GcVideo video) {
         PermitVideoItem permitVideoItem = new PermitVideoItem();
+        if (video.getId() == null) {
+            return permitVideoItem;
+        }
 
         permitVideoItem.setId(video.getId().toString());
         permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
