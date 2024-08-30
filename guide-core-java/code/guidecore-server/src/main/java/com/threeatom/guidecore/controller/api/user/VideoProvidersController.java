@@ -395,7 +395,7 @@ public class VideoProvidersController extends GuideCoreController{
 	}
 
 	@GetMapping("/powtoon/video-data")
-	public Message getPowtoonVideoData(@RequestBody String videoUrl, HttpServletRequest request) {
+	public Message getPowtoonVideoData(@RequestParam("url") String videoUrl, HttpServletRequest request) {
 		Message message = new Message();
 
 		try {
