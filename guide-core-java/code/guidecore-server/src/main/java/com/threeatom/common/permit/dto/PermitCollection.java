@@ -11,6 +11,7 @@ import lombok.Setter;
 public abstract class PermitCollection extends PermitItem {
     private String ownerId;
     private boolean isPublic;
+    private boolean isPrivate;
     private List<String> contentGroupIds;
 
     @Override
@@ -18,6 +19,7 @@ public abstract class PermitCollection extends PermitItem {
         HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("ownerId", ownerId);
         attributes.put("isPublic", isPublic);
+        attributes.put("isPrivate", isPrivate);
         attributes.put("contentGroupIds", contentGroupIds);
         return attributes;
     }

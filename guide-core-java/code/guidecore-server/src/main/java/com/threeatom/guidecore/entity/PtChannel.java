@@ -177,7 +177,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     private List<GcAccess> accessList;
 
     public Boolean getIsPrivate() {
-        return visibleFlag != null && visibleFlag == 0;
+        return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);
     }
 
     public boolean isPublic() {

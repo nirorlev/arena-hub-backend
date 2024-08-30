@@ -146,6 +146,9 @@ public class PermitServiceImpl implements PermitService {
         permitPlaylist.setId(String.valueOf(playlist.getId()));
         permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
         permitPlaylist.setPublic(!playlist.getIsPrivate());
+        permitPlaylist.setPrivate(playlist.getIsPrivate());
+
+        // playlist does not have content group ids
         permitPlaylist.setContentGroupIds(List.of());
         return permitPlaylist;
     }
@@ -153,7 +156,8 @@ public class PermitServiceImpl implements PermitService {
     private PermitCourse createCourse(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
         permitCourse.setId(String.valueOf(course.getId()));
-        permitCourse.setPublic(course.getIsPublic() != null && course.getIsPublic() == 1);
+        permitCourse.setPublic(!course.getIsPrivate());
+        permitCourse.setPrivate(course.getIsPrivate());
         permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
         permitCourse.setOwnerId(String.valueOf(course.getUserId()));
         return permitCourse;
@@ -173,6 +177,7 @@ public class PermitServiceImpl implements PermitService {
 
         permitChannel.setId(channel.getId().toString());
         permitChannel.setPublic(channel.isPublic());
+        permitChannel.setPrivate(channel.getIsPrivate());
         permitChannel.setContentGroupIds(convert(channelSubscriptionService.getContentGroupIds(channel.getId())));
         permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
         return permitChannel;
@@ -202,7 +207,7 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitUser createUser(PortalUser portalUser) {
         PermitUser permitUser = new PermitUser();
-        permitUser.setId(portalUser.getId().toString());
+        permitUser.setId(portalUser.getUserId().toString());
         permitUser.setOrgAdmin(portalUser.isOrgAdmin());
 
         permitUser.setContentGroupIds(convert(

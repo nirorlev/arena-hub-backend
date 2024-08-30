@@ -12,6 +12,4 @@ public abstract class PermitContentItem extends PermitItem {
     private boolean isPublic;
     private boolean isPrivate;
     private List<String> contentGroupIds;
-
-    //    private List<String> adminContentGroupIds;
 }
