@@ -46,6 +46,11 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
             @Param("masterId") Integer masterId,
             @Param("role") String role);
 
+    Integer countUserAccessesByMasterIdAndRole(
+            @Param("userId") Integer userId,
+            @Param("masterId") Integer masterId,
+            @Param("role") String role);
+
     /***
      * 获取当前空间用户集合的最后一次登录时间
      * @param masterId

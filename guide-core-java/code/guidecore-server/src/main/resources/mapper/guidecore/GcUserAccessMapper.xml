@@ -296,6 +296,14 @@
           and ua.role_json::text like concat('%',#{role},'%')
     </select>
 
+    <select id="countUserAccessesByMasterIdAndRole" resultType="Integer">
+        select count(ua.id)
+        from gc_user_access ua
+        where ua.master_id=#{masterId}
+          and ua.user_id=#{userId}
+          and ua.role_json::text like concat('%',#{role},'%')
+    </select>
+
     <select id="getAllUserInThisMaster" resultType="map">
         SELECT
         ua.user_id,

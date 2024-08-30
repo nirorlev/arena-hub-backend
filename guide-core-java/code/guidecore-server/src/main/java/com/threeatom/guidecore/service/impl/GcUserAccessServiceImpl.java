@@ -120,7 +120,7 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public Integer countUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role) {
-        return selectUserAccessesByMasterIdAndRole(userId, masterId, role).size();
+        return baseMapper.countUserAccessesByMasterIdAndRole(userId, masterId, role);
     }
 
     private List<GcUserAccess> selectUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role) {
