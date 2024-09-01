@@ -58,10 +58,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     }
 
     private FeatureToggle getByName(String featureName) {
-        QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<FeatureToggle>()
-            .eq(FEATURE_NAME_COLUMN, featureName);
-        FeatureToggle featureToggle = getOne(queryWrapper);
-
+        FeatureToggle featureToggle = getByNameAndMasterId(featureName, null);
         if (featureToggle == null) {
             throw new ResourceNotFoundException("Feature toggle not found: " + featureName);
         }
