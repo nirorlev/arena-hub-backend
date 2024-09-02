@@ -563,7 +563,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     @Override
     public List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getChannelCountAnalytics(filter, masterId);
+        return baseMapper.getChannelsCountAnalytics(filter, masterId);
     }
 
     @Override
@@ -664,6 +664,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public Integer countUserPublicChannels(Integer userId, Integer masterId) {
         return countChannels(userId, masterId, List.of(PUBLIC_VISIBLE_FLAG, TEAM_ASSIGNED_VISIBLE_FLAG));
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getTrendChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendChannelsCountAnalytics(filter, masterId);
     }
 
     private int countChannels(Integer userId, Integer masterId, List<Integer> privacyCodes) {

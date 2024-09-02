@@ -276,25 +276,25 @@
 	</select>
 
 	<select id="getPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT DISTINCT time_bucket, COUNT(gusf.id) OVER (ORDER BY time_bucket) AS value
+		SELECT time_bucket, COUNT(gusf.id) OVER (ORDER BY time_bucket) AS value
 			FROM gc_user_save_folder gusf
-			JOIN gc_user_save_folder filter  ON gusf.id = filter.id AND filter.master_id = #{masterId}
-			RIGHT JOIN
-				<choose>
-					<when test="filter.step == 0">
-						(
-						SELECT #{filter.start}::timestamp with time zone AS time_bucket
-						UNION
-						SELECT #{filter.end}::timestamp with time zone
-						) AS time_bucket
-						    ON gusf.create_time &lt;= time_bucket
-					</when>
-					<otherwise>
-						generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-						ON gusf.create_time >= time_bucket AND gusf.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-					</otherwise>
-				</choose>
+				JOIN gc_user_save_folder filter ON gusf.id = filter.id AND filter.master_id = #{masterId}
+				RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+					ON gusf.create_time >= time_bucket AND gusf.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
 		GROUP BY time_bucket, gusf.id
+		ORDER BY time_bucket;
+	</select>
+
+	<select id="getTrendPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+		SELECT time_bucket, COUNT(gusf.id) AS value
+			FROM gc_user_save_folder gusf
+			RIGHT JOIN
+						(
+							SELECT #{filter.start}::timestamp with time zone AS time_bucket
+							UNION
+							SELECT #{filter.end}::timestamp with time zone
+						) AS time_bucket ON gusf.create_time &lt;= time_bucket AND gusf.master_id = #{masterId}
+		GROUP BY time_bucket
 		ORDER BY time_bucket;
 	</select>
 

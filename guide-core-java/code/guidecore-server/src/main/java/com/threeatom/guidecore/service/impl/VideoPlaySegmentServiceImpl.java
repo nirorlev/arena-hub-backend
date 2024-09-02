@@ -53,6 +53,11 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
+    public List<DbAnalyticsResultDto> getTrendVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendVideoWatchingTimeAnalytics(filter, masterId);
+    }
+
+    @Override
     public List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(AnalyticsFilterDto filter,
                                                                                   Integer masterId) {
         return baseMapper.getVideoWatchingTimeByVideoAnalytics(filter, masterId);
@@ -64,13 +69,28 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
+    public List<DbAnalyticsResultDto> getTrendAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendAverageVideoWatchingTimeAnalytics(filter, masterId);
+    }
+
+    @Override
     public List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getTrendDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
     }
 
     @Override
     public List<DbAnalyticsResultDto> getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getEngagementRateAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getTrendEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendEngagementRateAnalytics(filter, masterId);
     }
 
     @Override
