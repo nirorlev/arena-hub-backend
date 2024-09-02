@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -196,6 +194,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Override
     public List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getPlaylistCountAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getTrendPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendPlaylistCountAnalytics(filter, masterId);
     }
 
     @Override

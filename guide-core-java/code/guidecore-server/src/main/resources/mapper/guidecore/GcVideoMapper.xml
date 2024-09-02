@@ -729,39 +729,56 @@
     </select>
 
     <select id="getVideoCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT DISTINCT time_bucket, COUNT(v.id) OVER (ORDER BY time_bucket) AS value
+        SELECT time_bucket, COUNT(v.id) OVER (ORDER BY time_bucket) AS value
         FROM (
-            SELECT course_video.content_id
-            FROM course_content course_video
-                JOIN gc_subject s ON course_video.course_id = s.id AND s.master_id = #{masterId}
+            SELECT course_video.id
+            FROM gc_video course_video
+                JOIN gc_subject course ON course_video.origin_course_id = course.id AND course.master_id = #{masterId}
             UNION
-            SELECT channel_video.content_id
-            FROM pt_channel_content channel_video
-            JOIN pt_channel pc ON channel_video.channel_id = pc.id AND pc.master_id = #{masterId}
+            SELECT channel_video.id
+            FROM gc_video channel_video
+                JOIN pt_channel channel ON channel_video.origin_channel_id = channel.id AND channel.master_id = #{masterId}
         ) AS video_conent
-            JOIN gc_video v ON v.id = video_conent.content_id
+            JOIN gc_video v ON v.id = video_conent.id
                 <if test="!filter.videoIds.empty">
                     AND v.id IN
                     <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
                         #{videoId}
                     </foreach>
                 </if>
-            RIGHT JOIN
-                <choose>
-                    <when test="filter.step == 0">
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON v.create_time &lt;= time_bucket
-                    </when>
-                    <otherwise>
-                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON v.create_time >= time_bucket AND v.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                    </otherwise>
-                </choose>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON v.create_time >= time_bucket AND v.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
         GROUP BY time_bucket, v.id
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendVideoCountAnalytics" parameterType="map"
+            resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, COUNT(v.id) AS value
+        FROM (
+            SELECT course_video.id
+            FROM gc_video course_video
+                JOIN gc_subject course ON course_video.origin_course_id = course.id AND course.master_id = #{masterId}
+            UNION
+            SELECT channel_video.id
+            FROM gc_video channel_video
+                JOIN pt_channel channel ON channel_video.origin_channel_id = channel.id AND channel.master_id = #{masterId}
+        ) AS video_conent
+            JOIN gc_video v ON v.id = video_conent.id
+            <if test="!filter.videoIds.empty">
+                AND v.id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+            </if>
+            RIGHT JOIN
+            (
+                SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                UNION
+                SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+                ON v.create_time &lt;= time_bucket
+        GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
 

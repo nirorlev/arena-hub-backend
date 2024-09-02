@@ -803,6 +803,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public List<DbAnalyticsResultDto> getTrendVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+		return this.baseMapper.getTrendVideoCountAnalytics(filter, masterId);
+	}
+
+	@Override
 	public List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList) {
 		return this.baseMapper.getSysFileByIdsOrVideos(fileList,videoList);
 	}

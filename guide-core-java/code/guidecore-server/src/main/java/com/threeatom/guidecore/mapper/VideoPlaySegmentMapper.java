@@ -16,6 +16,10 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
+    List<DbAnalyticsResultDto> getTrendVideoWatchingTimeAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
     List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
@@ -24,12 +28,25 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
+    List<DbAnalyticsResultDto> getTrendAverageVideoWatchingTimeAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
     List<DbAnalyticsResultDto> getDropOffRateAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId,
         @Param("dropOffThreshold") double dropOffThreshold);
 
+    List<DbAnalyticsResultDto> getTrendDropOffRateAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId,
+        @Param("dropOffThreshold") double dropOffThreshold);
+
     List<DbAnalyticsResultDto> getEngagementRateAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultDto> getTrendEngagementRateAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 

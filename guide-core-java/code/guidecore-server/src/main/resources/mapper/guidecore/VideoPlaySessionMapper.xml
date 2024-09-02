@@ -12,21 +12,29 @@
                         #{videoId}
                     </foreach>
                 </if>
+        RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+            ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, COUNT(play_session.id) AS value
+        FROM video_play_session play_session
+            JOIN video_play_session filter ON play_session.id = filter.id AND filter.master_id = #{masterId}
+                <if test="!filter.videoIds.empty">
+                    AND filter.video_id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
         RIGHT JOIN
-            <choose>
-                <when test="filter.step == 0">
-                    (
-                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                    UNION
-                    SELECT #{filter.end}::timestamp with time zone
-                    ) AS time_bucket
-                    ON play_session.create_time &lt;= time_bucket
-                </when>
-                <otherwise>
-                    generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                    ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                </otherwise>
-            </choose>
+            (
+                SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                UNION
+                SELECT #{filter.end}::timestamp with time zone
+            ) AS time_bucket
+            ON play_session.create_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -57,21 +65,29 @@
                         #{videoId}
                     </foreach>
                 </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendViewersCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, COUNT(DISTINCT play_session.user_id) AS value
+        FROM video_play_session play_session
+            JOIN video_play_session filter ON play_session.id = filter.id AND filter.master_id = #{masterId}
+                <if test="!filter.videoIds.empty">
+                    AND filter.video_id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
             RIGHT JOIN
-                <choose>
-                    <when test="filter.step == 0">
-                        (
-                        SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                        UNION
-                        SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON play_session.create_time &lt;= time_bucket
-                    </when>
-                    <otherwise>
-                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                    </otherwise>
-                </choose>
+                (
+                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                    UNION
+                    SELECT #{filter.end}::timestamp with time zone
+                ) AS time_bucket
+                    ON play_session.create_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
