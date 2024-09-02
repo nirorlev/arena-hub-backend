@@ -222,7 +222,7 @@ public class PermitServiceImpl implements PermitService {
 
         permitUser.setContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                GroupsType.orgMember)));
+                GroupsType.groupMember)));
         permitUser.setManagedContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
                 GroupsType.groupAdmin)));
