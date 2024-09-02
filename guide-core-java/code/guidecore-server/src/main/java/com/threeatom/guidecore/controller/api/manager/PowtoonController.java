@@ -1769,6 +1769,8 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
 
+		initPermit();
+
 		try {
 			final String code = authTokenDto.getCode();
 
