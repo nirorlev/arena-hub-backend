@@ -279,7 +279,6 @@ public class VideoGuideCoreController extends GuideCoreController {
             }
         }
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
-        unavailableVideoService.nullifyVideoComments(videoCommentPageInfo, vid);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return new Message()
                 .ok()
