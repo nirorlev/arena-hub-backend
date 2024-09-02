@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.guidecore.constant.EventUnifyType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +9,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -22,16 +27,23 @@ import lombok.RequiredArgsConstructor;
 
 import com.threeatom.guidecore.service.ExternalVideoProviderService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PowtoonVideoProviderService implements ExternalVideoProviderService {
 
-    private static final List<String> PLAIN_ID_URL_PREFIXES = Arrays.asList("online-presentation", "ws", "c");
+    private static final List<String> PLAIN_ID_URL_PREFIXES = List.of("online-presentation", "ws", "c");
     private static final String PUBLIC_TOKEN_PARAMETER = "public_link_token";
-    private static final List<String> VALID_POWTOON_ROOT_DOMAINS = Arrays.asList("powtoon.com");
-    private static final String PLAYER_URL_TEMPLATE = "https://www.kaltura.com/index.php/extwidget/preview/partner_id/%s/uiconf_id/%s/entry_id/%s/embed/dynamic?";
+    private static final List<String> VALID_POWTOON_ROOT_DOMAINS = List.of("powtoon.com");
+    private static final String KALTURA_PLAYER_URL_TEMPLATE = "https://www.kaltura.com/index.php/extwidget/preview/partner_id/%s/uiconf_id/%s/entry_id/%s/embed/dynamic?";
+    private static final String MUX_PLAYER_URL_TEMPLATE = "https://stream.mux.com/%s.m3u8";
     private static final Integer PLAYER_PAGE_TYPE_INDEX = 1;
     private static final Integer VIDEO_ID_INDEX = 2;
+
+    private static final Map<String, Integer> HOSTING_PROVIDER_TO_FILE_TYPE_INDEX = Map.of(
+        "kaltura", EventUnifyType.POWTOON_KALTURA_FILE_TYPE_INDEX,
+        "mux", EventUnifyType.POWTOON_MUX_FILE_TYPE_INDEX
+    );
 
 	private final PtApiClient ptApiClient;
     private final PtLoginConfigService ptLoginConfigService;
@@ -69,7 +81,7 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
-            String chunk = null;
+            String chunk;
             String videoId = null;
             while ((chunk = bufferedReader.readLine()) != null) {
                 System.out.println(chunk + "<---------------->");
@@ -102,21 +114,41 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         return getPowtoonIdFromLoadedPage(url);
     }
 
-    private String buildPlayerUrl (String partnerId, String uiConfId, String entryId) {
-        return String.format(PLAYER_URL_TEMPLATE, partnerId, uiConfId, entryId);
+    private String buildKalturaPlayerUrl(String partnerId, String uiConfId, String entryId) {
+        return String.format(KALTURA_PLAYER_URL_TEMPLATE, partnerId, uiConfId, entryId);
+    }
+
+    private String buildMuxPlayerUrl(String entryId) {
+        return String.format(MUX_PLAYER_URL_TEMPLATE, entryId);
     }
 
     private JSONObject buildVideoData (JSONObject playerPageData, JSONObject videoHosting) {
+        String provider = (String) videoHosting.get("provider");
         JSONObject videoData = new JSONObject();
-        String partnerId = videoHosting.getString("partner_id");
-        String uiConfId = videoHosting.getString("ui_conf_id");
         String entryId = videoHosting.getString("id");
+
+        if (Objects.equals(provider, "kaltura")) {
+            String partnerId = videoHosting.getString("partner_id");
+            String uiConfId = videoHosting.getString("ui_conf_id");
+            videoData.put("playerUrl", buildKalturaPlayerUrl(partnerId, uiConfId, entryId));
+        } else if (Objects.equals(provider, "mux")) {
+            videoData.put("playerUrl", buildMuxPlayerUrl(entryId));
+        }
+
         videoData.put("title", playerPageData.getString("title"));
         videoData.put("description", playerPageData.getString("description"));
         videoData.put("duration", playerPageData.getFloat("video_duration"));
         videoData.put("thumbnailUrl", playerPageData.getString("thumb_url"));
-        videoData.put("playerUrl", buildPlayerUrl(partnerId, uiConfId, entryId));
+        videoData.put("hostingProvider", getHostingProviderIndexType(provider));
+
         return videoData;
+    }
+
+    private Integer getHostingProviderIndexType(String provider) {
+        return Optional.ofNullable(HOSTING_PROVIDER_TO_FILE_TYPE_INDEX.get(provider)).orElseThrow(() -> {
+            log.error("Unsupported hosting provider received: {}", provider);
+            return new SystemException("Unsupported hosting provider");
+        });
     }
 
     private JSONObject buildSourceData (String powtoonId, String origin, String publicToken, JSONObject playerPageData) {

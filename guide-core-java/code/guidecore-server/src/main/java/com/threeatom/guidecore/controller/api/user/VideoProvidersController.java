@@ -7,13 +7,9 @@ import com.threeatom.common.redis.RedisOperator;
 
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.controller.api.manager.NewUiGcVideoController;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
-import io.swagger.annotations.ApiOperation;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -29,13 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/guidecore/user/youtube")
-public class YoutubeGuideCoreController extends GuideCoreController{
-
-	private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
-
-	public YoutubeGuideCoreController() throws IOException {
-	}
+@RequestMapping("/api/v1/guidecore/video-providers")
+public class VideoProvidersController extends GuideCoreController{
 
 	@Value("${youtubeApiKey}")
 	private String youtubeApiKey;
@@ -55,14 +46,12 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 	@Autowired
 	private Environment env;
 
-	@ApiOperation(value = "统一下单，并组装所需支付参数")
-	@PostMapping("/getYoutubeUrl")
-	public Message getYoutubeVideos(@RequestBody JSONObject params) throws IOException {
+	@GetMapping("/youtube/video-data")
+	public Message getYoutubeVideos(@RequestParam String url) throws IOException {
 
 			Message message = new Message();
 			List<Map<String,Object>> youtubeList = new ArrayList<>();
 
-			String url = params.getString("url");
 			String listId = new String();
 			//合辑
 			if (url.contains("list") ) {
@@ -393,7 +382,7 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 		    return message.ok().addData("yotubeList",youtubeList);
 	}
 
-	private JSONObject formatKalturaVideoData (JSONObject videoData) {
+	private JSONObject formatPowtoonVideoData(JSONObject videoData) {
 		JSONObject result = new JSONObject();
 		result.put("url", videoData.getString("playerUrl"));
 		result.put("thumbNail", videoData.getString("thumbnailUrl"));
@@ -401,27 +390,29 @@ public class YoutubeGuideCoreController extends GuideCoreController{
 		result.put("description", videoData.getString("description"));
 		result.put("duration", videoData.getFloat("duration"));
 		result.put("source", videoData.getJSONObject("source"));
+		result.put("hostingProvider", videoData.getString("hostingProvider"));
 		return result;
 	}
 
-	@PostMapping("/getKalturaVideos")
-	public Message getKalturaVideos(@RequestBody String videoUrl, HttpServletRequest re) {
+	@GetMapping("/powtoon/video-data")
+	public Message getPowtoonVideoData(@RequestParam("url") String videoUrl, HttpServletRequest request) {
 		Message message = new Message();
-		try {	
-			videoUrl = videoUrl.replaceAll(" ","%2B");
+
+		try {
+			videoUrl = videoUrl.replaceAll(" ", "%2B");
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
-			JSONObject formattedData = formatKalturaVideoData(videoData);
+			JSONObject formattedData = formatPowtoonVideoData(videoData);
 			return message.ok().setJsonData(formattedData);
-		} catch (Exception e){
-			e.printStackTrace();
-			String extractedInfo=e.getMessage();
-			if(e.getMessage().contains("detail")){
+		} catch (Exception e) {
+			String extractedInfo = e.getMessage();
+			if (e.getMessage().contains("detail")) {
 				int startIndex = e.getMessage().indexOf("detail\":\"") + "detail\":\"".length();
 				int endIndex = e.getMessage().indexOf("\"", startIndex);
 				extractedInfo = e.getMessage().substring(startIndex, endIndex);
-				return message.error(extractedInfo+"\n"+"API:"+re.getServerName());
+				return message.error(extractedInfo + "\n" + "API:" + request.getServerName());
 			}
+
 			return message.error(extractedInfo);
 		}
 	}
