@@ -54,11 +54,15 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     public FeatureToggleValueDto getFeatureToggle(String featureName) {
-        return featureToggleMapping.map(getByName(featureName));
+        return featureToggleMapping.map(getDefaultByName(featureName));
     }
 
-    private FeatureToggle getByName(String featureName) {
-        FeatureToggle featureToggle = getByNameAndMasterId(featureName, null);
+    private FeatureToggle getDefaultByName(String featureName) {
+        QueryWrapper<FeatureToggle> queryWrapper = new QueryWrapper<FeatureToggle>()
+            .eq(FEATURE_NAME_COLUMN, featureName)
+            .isNull(MASTER_ID_COLUMN);
+
+        FeatureToggle featureToggle = getOne(queryWrapper);
         if (featureToggle == null) {
             throw new ResourceNotFoundException("Feature toggle not found: " + featureName);
         }
@@ -90,7 +94,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     @Override
     public void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
         if (featureToggleValueDto.getMasterId() == null) {
-            FeatureToggle featureToggle = getByName(featureToggleValueDto.getName());
+            FeatureToggle featureToggle = getDefaultByName(featureToggleValueDto.getName());
             featureToggle.setValue(featureToggleValueDto.getValue());
             updateById(featureToggle);
             return;
