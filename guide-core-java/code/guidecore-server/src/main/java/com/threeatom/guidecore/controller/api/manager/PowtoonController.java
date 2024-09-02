@@ -87,6 +87,7 @@ import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtChannelSubscribeService;
@@ -303,6 +304,8 @@ public class PowtoonController extends GuideCoreController {
 	private UserLicenseService userLicenseService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
+	@Autowired
+	private PortalUserService portalUserService;
 
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
@@ -1766,6 +1769,8 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
 
+		initPermit();
+
 		try {
 			final String code = authTokenDto.getCode();
 
@@ -1784,7 +1789,7 @@ public class PowtoonController extends GuideCoreController {
 
 		return new Message().error(400, "Invalid code");
 	}
-	
+
 	private PowtoonAuthDto getAuth(String code, String redirectUri, PtLoginConfig ptLoginConfig) {
 		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
@@ -1841,6 +1846,9 @@ public class PowtoonController extends GuideCoreController {
 		updateUser(userInfo, user);
 		removeContentGroupsMissingInDb(allGroups, user, masterId);
 		syncUserWithPermit(user, roleLists, userInfo, masterId);
+
+		portalUserService.saveOrUpdate(user.getId(), masterId, userInfo.getPermissions().getOrg().getRoleId());
+		userLicenseService.update(user.getId(), userInfo, masterId);
 		return user;
 	}
 
