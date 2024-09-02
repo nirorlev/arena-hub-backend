@@ -2796,15 +2796,15 @@ public class PowtoonController extends GuideCoreController {
 						List<String> tagList = ptChannel.getTags().toJavaList(String.class);
 						List<PtTags> newTagList = new ArrayList<>();
 						int finalMasterId = masterId;
-						tagList.forEach(i -> {
+						for (String tag: tagList) {
 							PtTags newTags = new PtTags();
 							newTags.setMasterId(finalMasterId);
-							newTags.setTagText(i);
+							newTags.setTagText(tag);
 							newTags.setChannelId(ptChannel.getId());
 							newTags.setType(TableConstant.COMMON_ONE);
 							newTags.setOrder(TableConstant.COMMON_ZERO);
 							newTagList.add(newTags);
-						});
+						}
 						QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 						queryWrapper2.in("master_id", masterId);
 						queryWrapper2.in("channel_id", ptChannel.getId());
@@ -2896,6 +2896,7 @@ public class PowtoonController extends GuideCoreController {
 							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 						}
 					}
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				}
 			} else if (ptChannel.getVisibleFlag() == 1) {
@@ -2953,16 +2954,19 @@ public class PowtoonController extends GuideCoreController {
 					gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 				}
 
+				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 				message.addData("channel", ptChannel);
 			} else if (ptChannel.getVisibleFlag() == 0) {
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
 				}
 			//公共
-			}else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
+			} else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
@@ -2972,6 +2976,7 @@ public class PowtoonController extends GuideCoreController {
 			userLicenseService.addChannelCount(ptChannel, user.getId());
 		} else {
 			if (ptChannelService.saveOrUpdate(ptChannel)) {
+				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 				message.addData("channel", ptChannel);
 			} else {
 				return message.error();
