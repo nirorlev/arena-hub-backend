@@ -64,6 +64,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -2195,16 +2196,15 @@ public class PowtoonController extends GuideCoreController {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		if (GroupsType.MEMBERS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
-		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		} else if (GroupsType.ADMINS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.admin);
-		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.superAdmin);
 		}
-		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRoleId())) {
+		if (UserOrgRole.ORG_ADMIN.equals(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
 		}
+
 		return roleLists;
 	}
 
