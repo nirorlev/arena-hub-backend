@@ -2186,13 +2186,14 @@ public class PowtoonController extends GuideCoreController {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.MEMBERS.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		UserOrgRole orgRole = permissions.getPermissions().getOrg().getRoleId();
+		if (GroupsType.MEMBERS.contains(orgRole)) {
 			roleLists.add(UserOrgRole.MEMBER.getRole());
-		} else if (GroupsType.ADMINS.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		} else if (GroupsType.ADMINS.contains(orgRole)) {
 			roleLists.add(UserOrgRole.ADMIN.getRole());
 		}
-		if (UserOrgRole.ORG_ADMIN.equals(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(UserOrgRole.MEMBER.getRole());
+		if (UserOrgRole.ORG_ADMIN.equals(orgRole)) {
+			roleLists.add(UserOrgRole.ORG_ADMIN.getRole());
 		}
 
 		return roleLists;
