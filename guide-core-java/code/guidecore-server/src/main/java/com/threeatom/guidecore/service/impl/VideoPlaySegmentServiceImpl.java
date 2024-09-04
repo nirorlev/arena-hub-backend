@@ -80,7 +80,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     public List<DbAnalyticsResultDto> getTrendDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+        return baseMapper.getTrendDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
     }
 
     @Override

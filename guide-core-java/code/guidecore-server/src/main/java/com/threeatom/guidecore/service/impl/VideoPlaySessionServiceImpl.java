@@ -44,7 +44,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
 
     @Override
     public List<DbAnalyticsResultDto> getTrendVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getVideoViewCountAnalytics(filter, masterId);
+        return baseMapper.getTrendVideoViewCountAnalytics(filter, masterId);
     }
 
     @Override
