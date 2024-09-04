@@ -2178,17 +2178,6 @@ public class PowtoonController extends GuideCoreController {
 		gcUserInfoService.saveOrUpdate(user.getInfo());
 		userService.updateById(user);
 
-		try {
-			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
-			if (!GroupsType.groupList.contains(userInfo.getPermissions().getOrg().getRoleId())) {
-				throw new Exception("xxx”!Please create the role xxx in Permit first.");
-			}
-
-		} catch (PermitContextError | IOException permitContextError) {
-			log.error("Permit error when creating user", permitContextError);
-		} catch (Exception e) {
-			log.error("Error when creating user", e);
-		}
 		return user;
 	}
 

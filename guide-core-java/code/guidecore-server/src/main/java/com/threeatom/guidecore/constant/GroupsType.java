@@ -8,7 +8,6 @@ public class GroupsType {
 
     public static final String orgAdmin = "orgAdmin";
 
-    public static final String orgMember = "orgMember";
     public static final String limitedMember = "limitedMember";
 
     public static final String teamAdmin = "teamAdmin";
@@ -41,14 +40,6 @@ public class GroupsType {
             new ArrayList<String>() {
                 {
                     this.add(superAdmin);
-                }
-            };
-
-    public static final List<String> groupList =
-            new ArrayList<String>() {
-                {
-                    this.add(orgAdmin);
-                    this.add(orgMember);
                 }
             };
 }
