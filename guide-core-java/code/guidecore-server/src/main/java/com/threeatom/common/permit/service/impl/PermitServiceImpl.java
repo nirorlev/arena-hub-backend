@@ -34,6 +34,9 @@ public class PermitServiceImpl implements PermitService {
 
     private static final String IS_ORG_ADMIN_ATTRIBUTE = "isOrgAdmin";
 
+    private static final String PERMIT_DEV_WIP_ENV_API_KEY =
+        "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
+
     private final PermitConfiguration permitConfiguration;
     private final GcMasterService gcMasterService;
     private Permit permit;
@@ -41,7 +44,7 @@ public class PermitServiceImpl implements PermitService {
     @PostConstruct
     public void init() {
         permit = new Permit(
-            new PermitConfig.Builder(permitConfiguration.getApiKey())
+            new PermitConfig.Builder(PERMIT_DEV_WIP_ENV_API_KEY)
                 .withPdpAddress(permitConfiguration.getPdpAddress())
                 .withDebugMode(true)
                 .build()
