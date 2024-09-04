@@ -41,6 +41,8 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
+    List<DbAnalyticsResultDto> getTrendPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
     Integer countUserPrivatePlaylists(Integer userId, Integer masterId);
 
     Integer countUserPublicPlaylists(Integer userId, Integer masterId);

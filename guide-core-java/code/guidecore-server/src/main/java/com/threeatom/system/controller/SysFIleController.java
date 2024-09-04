@@ -72,13 +72,14 @@ public class SysFIleController extends GuideCoreController {
         SysSystem sys = this.getSystem();
         sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
         sysFile.setSysId(sys.getId());
-        if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+        Integer fileTypeIndex = sysFile.getFileTypeIndex();
+        if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
             String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
             sysFile.setThumbNailUrl(fileKey);
         }
 
         if (sysFileService.saveOrUpdate(sysFile)) {
-            if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+            if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
                 powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
             }
             sysFileService.getVideoSnapshotUrl(sysFile);

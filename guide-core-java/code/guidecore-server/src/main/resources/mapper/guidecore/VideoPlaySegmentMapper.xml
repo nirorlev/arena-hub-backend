@@ -30,21 +30,30 @@
                             #{videoId}
                         </foreach>
                     </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, SUM(upper(segment) - lower(segment)) AS value
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session
+                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                    <if test="!filter.videoIds.empty">
+                        AND play_session.video_id IN
+                        <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                            #{videoId}
+                        </foreach>
+                    </if>
             RIGHT JOIN
-                <choose>
-                    <when test="filter.step == 0">
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON play_segment.update_time &lt;= time_bucket
-                    </when>
-                    <otherwise>
-                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                    </otherwise>
-                </choose>
+                (
+                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                    UNION
+                    SELECT #{filter.end}::timestamp with time zone
+                ) AS time_bucket
+                ON play_segment.update_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -77,21 +86,30 @@
                             #{videoId}
                         </foreach>
                     </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(DISTINCT play_session.user_id)::double precision AS value
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session
+                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                    <if test="!filter.videoIds.empty">
+                        AND play_session.video_id IN
+                        <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                            #{videoId}
+                        </foreach>
+                    </if>
             RIGHT JOIN
-                <choose>
-                    <when test="filter.step == 0">
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON play_segment.update_time &lt;= time_bucket
-                    </when>
-                    <otherwise>
-                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                    </otherwise>
-                </choose>
+                (
+                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                    UNION
+                    SELECT #{filter.end}::timestamp with time zone
+                ) AS time_bucket
+                ON play_segment.update_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -117,21 +135,44 @@
                                 #{videoId}
                             </foreach>
                         </if>
+                    RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                        ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                GROUP BY time_bucket, play_segment.session_id
+                ORDER BY time_bucket
+            ) AS engagement
+        ) AS drop_off
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendDropOffRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket, AVG(ratio) AS value
+        FROM (
+            SELECT time_bucket,
+                CASE
+                    WHEN COUNT(engagement_rate) OVER (PARTITION BY time_bucket) = 0 THEN 0
+                    ELSE COUNT(engagement_rate) FILTER (WHERE engagement_rate &lt; #{dropOffThreshold} AND engagement_rate != 0.0) OVER (PARTITION BY time_bucket) / COUNT(engagement_rate) OVER (PARTITION BY time_bucket)::double precision
+                END AS ratio
+            FROM (
+                SELECT time_bucket,
+                    SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS engagement_rate
+                FROM video_play_segment play_segment
+                    JOIN video_play_session play_session
+                        ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+                    JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
+                        <if test="!filter.videoIds.empty">
+                            AND video.id IN
+                            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                                #{videoId}
+                            </foreach>
+                        </if>
                     RIGHT JOIN
-                        <choose>
-                            <when test="filter.step == 0">
-                                (
-                                SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                                UNION
-                                SELECT #{filter.end}::timestamp with time zone
-                                ) AS time_bucket
-                                ON play_segment.update_time &lt;= time_bucket
-                            </when>
-                            <otherwise>
-                                generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                                ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                            </otherwise>
-                        </choose>
+                        (
+                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                            UNION
+                            SELECT #{filter.end}::timestamp with time zone
+                        ) AS time_bucket
+                        ON play_segment.update_time &lt;= time_bucket
                 GROUP BY time_bucket, play_segment.session_id
                 ORDER BY time_bucket
             ) AS engagement
@@ -183,21 +224,32 @@
                         #{videoId}
                     </foreach>
                 </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
+        ORDER BY time_bucket;
+    </select>
+
+    <select id="getTrendEngagementRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
+        SELECT time_bucket,
+            SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS value
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session
+                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
+            JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
+                <if test="!filter.videoIds.empty">
+                    AND video.id IN
+                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                        #{videoId}
+                    </foreach>
+                </if>
             RIGHT JOIN
-                <choose>
-                    <when test="filter.step == 0">
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON play_segment.update_time &lt;= time_bucket
-                    </when>
-                    <otherwise>
-                        generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                    </otherwise>
-                </choose>
+                (
+                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
+                    UNION
+                    SELECT #{filter.end}::timestamp with time zone
+                ) AS time_bucket
+                ON play_segment.update_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>

@@ -31,4 +31,8 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
     List<DbAnalyticsResultDto> getPlaylistCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultDto> getTrendPlaylistCountAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
 }

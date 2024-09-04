@@ -43,6 +43,11 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     @Override
+    public List<DbAnalyticsResultDto> getTrendVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendVideoViewCountAnalytics(filter, masterId);
+    }
+
+    @Override
     public List<DbAnalyticsResultVideoIdDto> getVideoViewCountByVideoAnalytics(AnalyticsFilterDto filter,
                                                                                Integer masterId) {
         return baseMapper.getVideoViewCountByVideoAnalytics(filter, masterId);
@@ -51,6 +56,11 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     @Override
     public List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getViewersCountAnalytics(filter, masterId);
+    }
+
+    @Override
+    public List<DbAnalyticsResultDto> getTrendViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+        return baseMapper.getTrendViewersCountAnalytics(filter, masterId);
     }
 
     @Override

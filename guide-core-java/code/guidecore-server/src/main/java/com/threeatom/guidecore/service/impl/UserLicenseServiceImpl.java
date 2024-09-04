@@ -8,6 +8,7 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.UserLicense;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.mapper.UserLicenseMapper;
 import com.threeatom.guidecore.mapping.UserLicenseMapping;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -27,8 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserLicense>
     implements UserLicenseService {
-
-    private static final String LIMITED_MEMBER = "limitedMember";
 
     private final PtChannelService channelService;
     private final GcUserSaveFolderService playlistService;
@@ -156,7 +155,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
     }
 
     private boolean shouldLicenseBeActive(PowtoonUserDto powtoonUserDto) {
-        return LIMITED_MEMBER.equals(powtoonUserDto.getPermissions().getOrg().getRoleId());
+        return UserOrgRole.LIMITED_MEMBER.equals(powtoonUserDto.getPermissions().getOrg().getRoleId());
     }
 
     private void updateLimits(UserLicense userLicense, boolean active, Integer masterId) {

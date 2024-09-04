@@ -64,6 +64,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -87,6 +88,7 @@ import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtChannelSubscribeService;
@@ -303,6 +305,8 @@ public class PowtoonController extends GuideCoreController {
 	private UserLicenseService userLicenseService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
+	@Autowired
+	private PortalUserService portalUserService;
 
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
@@ -1766,6 +1770,8 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
 
+		initPermit();
+
 		try {
 			final String code = authTokenDto.getCode();
 
@@ -1784,7 +1790,7 @@ public class PowtoonController extends GuideCoreController {
 
 		return new Message().error(400, "Invalid code");
 	}
-	
+
 	private PowtoonAuthDto getAuth(String code, String redirectUri, PtLoginConfig ptLoginConfig) {
 		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
@@ -1841,6 +1847,9 @@ public class PowtoonController extends GuideCoreController {
 		updateUser(userInfo, user);
 		removeContentGroupsMissingInDb(allGroups, user, masterId);
 		syncUserWithPermit(user, roleLists, userInfo, masterId);
+
+		portalUserService.saveOrUpdate(user.getId(), masterId, userInfo.getPermissions().getOrg().getRoleId());
+		userLicenseService.update(user.getId(), userInfo, masterId);
 		return user;
 	}
 
@@ -2169,17 +2178,6 @@ public class PowtoonController extends GuideCoreController {
 		gcUserInfoService.saveOrUpdate(user.getInfo());
 		userService.updateById(user);
 
-		try {
-			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
-			if (!GroupsType.groupList.contains(userInfo.getPermissions().getOrg().getRoleId())) {
-				throw new Exception("xxx”!Please create the role xxx in Permit first.");
-			}
-
-		} catch (PermitContextError | IOException permitContextError) {
-			log.error("Permit error when creating user", permitContextError);
-		} catch (Exception e) {
-			log.error("Error when creating user", e);
-		}
 		return user;
 	}
 
@@ -2187,16 +2185,15 @@ public class PowtoonController extends GuideCoreController {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		if (GroupsType.MEMBERS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
-		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		} else if (GroupsType.ADMINS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.admin);
-		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.superAdmin);
 		}
-		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRoleId())) {
+		if (UserOrgRole.ORG_ADMIN.equals(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
 		}
+
 		return roleLists;
 	}
 
@@ -2796,15 +2793,15 @@ public class PowtoonController extends GuideCoreController {
 						List<String> tagList = ptChannel.getTags().toJavaList(String.class);
 						List<PtTags> newTagList = new ArrayList<>();
 						int finalMasterId = masterId;
-						tagList.forEach(i -> {
+						for (String tag: tagList) {
 							PtTags newTags = new PtTags();
 							newTags.setMasterId(finalMasterId);
-							newTags.setTagText(i);
+							newTags.setTagText(tag);
 							newTags.setChannelId(ptChannel.getId());
 							newTags.setType(TableConstant.COMMON_ONE);
 							newTags.setOrder(TableConstant.COMMON_ZERO);
 							newTagList.add(newTags);
-						});
+						}
 						QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 						queryWrapper2.in("master_id", masterId);
 						queryWrapper2.in("channel_id", ptChannel.getId());
@@ -2896,6 +2893,7 @@ public class PowtoonController extends GuideCoreController {
 							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 						}
 					}
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				}
 			} else if (ptChannel.getVisibleFlag() == 1) {
@@ -2953,16 +2951,19 @@ public class PowtoonController extends GuideCoreController {
 					gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 				}
 
+				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 				message.addData("channel", ptChannel);
 			} else if (ptChannel.getVisibleFlag() == 0) {
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
 				}
 			//公共
-			}else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
+			} else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(ptChannel)) {
+					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 					message.addData("channel", ptChannel);
 				} else {
 					return message.error();
@@ -2972,6 +2973,7 @@ public class PowtoonController extends GuideCoreController {
 			userLicenseService.addChannelCount(ptChannel, user.getId());
 		} else {
 			if (ptChannelService.saveOrUpdate(ptChannel)) {
+				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
 				message.addData("channel", ptChannel);
 			} else {
 				return message.error();
