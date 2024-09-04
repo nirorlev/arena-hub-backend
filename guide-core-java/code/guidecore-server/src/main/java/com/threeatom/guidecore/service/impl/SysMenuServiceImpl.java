@@ -10,6 +10,7 @@ import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.mapper.SysMenuMapper;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -153,10 +154,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             getRoleList.add(GroupsType.superAdmin);
         }
         if (isOrgAdmin) {
-            getRoleList.add(GroupsType.admin);
+            getRoleList.add(UserOrgRole.ORG_ADMIN.getRole());
         }
         if (isTeamAdmin) {
-            getRoleList.add(GroupsType.teamAdmin);
+            getRoleList.add(UserOrgRole.ADMIN.getRole());
         }
 
         return getRoleList;
