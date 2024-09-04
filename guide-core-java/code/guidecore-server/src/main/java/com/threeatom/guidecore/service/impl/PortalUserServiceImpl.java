@@ -24,12 +24,19 @@ public class PortalUserServiceImpl extends ServiceImpl<PortalUserMapper, PortalU
         }
 
         updatePortalUser(role, portalUser);
-        updateById(portalUser);
+        update(portalUser);
     }
 
     private void updatePortalUser(UserOrgRole role, PortalUser portalUser) {
         portalUser.setRole(role);
         portalUser.setSyncedDate(OffsetDateTime.now());
+    }
+
+    private void update(PortalUser portalUser) {
+        QueryWrapper<PortalUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", portalUser.getUserId());
+        queryWrapper.eq("master_id", portalUser.getMasterId());
+        update(portalUser, queryWrapper);
     }
 
     @Override

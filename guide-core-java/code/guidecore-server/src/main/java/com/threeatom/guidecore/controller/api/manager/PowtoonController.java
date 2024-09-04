@@ -64,6 +64,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -2177,17 +2178,6 @@ public class PowtoonController extends GuideCoreController {
 		gcUserInfoService.saveOrUpdate(user.getInfo());
 		userService.updateById(user);
 
-		try {
-			// Determine whether there is a global role (based on role (portal global): SuperAdmin, Admin, Member)
-			if (!GroupsType.groupList.contains(userInfo.getPermissions().getOrg().getRoleId())) {
-				throw new Exception("xxx”!Please create the role xxx in Permit first.");
-			}
-
-		} catch (PermitContextError | IOException permitContextError) {
-			log.error("Permit error when creating user", permitContextError);
-		} catch (Exception e) {
-			log.error("Error when creating user", e);
-		}
 		return user;
 	}
 
@@ -2195,16 +2185,15 @@ public class PowtoonController extends GuideCoreController {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.memberList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		if (GroupsType.MEMBERS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
-		} else if (GroupsType.adminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
+		} else if (GroupsType.ADMINS.contains(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.admin);
-		} else if (GroupsType.superAdminList.contains(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.superAdmin);
 		}
-		if (GroupsType.orgAdmin.equals(permissions.getPermissions().getOrg().getRoleId())) {
+		if (UserOrgRole.ORG_ADMIN.equals(permissions.getPermissions().getOrg().getRoleId())) {
 			roleLists.add(GroupsType.member);
 		}
+
 		return roleLists;
 	}
 
