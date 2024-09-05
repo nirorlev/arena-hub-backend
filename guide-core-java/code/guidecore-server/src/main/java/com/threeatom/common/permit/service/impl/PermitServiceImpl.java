@@ -23,6 +23,7 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterService;
@@ -222,10 +223,10 @@ public class PermitServiceImpl implements PermitService {
 
         permitUser.setContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                GroupsType.groupMember)));
+                UserGroupRole.GROUP_MEMBER.getRole())));
         permitUser.setManagedContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                GroupsType.groupAdmin)));
+                UserGroupRole.GROUP_ADMIN.getRole())));
 
         return permitUser;
     }
