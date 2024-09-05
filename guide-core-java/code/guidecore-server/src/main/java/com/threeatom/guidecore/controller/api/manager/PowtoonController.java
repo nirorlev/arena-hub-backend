@@ -64,6 +64,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
@@ -419,7 +420,7 @@ public class PowtoonController extends GuideCoreController {
 				//createdByTeams
 				if (null==selectType||selectType.equals("createdByTeamsSubject")){
 					//判断是orgAdmin还是teamAdmin
-					Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
+					Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 					List<GcSubject> createdByTeamsSubject = new ArrayList<>();
 					Integer orderType = null;
 					if (null!=requestParams.get("orderType")){
@@ -1009,7 +1010,7 @@ public class PowtoonController extends GuideCoreController {
 	public Message getTeamAccessSubjectNumList(String name,HttpServletRequest request){
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
+		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 		PageInfo<GcAccess> accessList = null;
 		if (null!=adminFlag&&!adminFlag.equals(TableConstant.COMMON_ZERO)){
 			List<Integer> availableTypeFour = subService.getUserPublicSubject(masterId,user.getId());
@@ -1216,7 +1217,7 @@ public class PowtoonController extends GuideCoreController {
 		List<Integer> idList = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessId);
 		GcUser user = this.getGcUser();
 		List<GcSubject> subjects = new ArrayList<>();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
+		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,UserGroupRole.ORG_ADMIN.getRole());
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
@@ -1462,7 +1463,7 @@ public class PowtoonController extends GuideCoreController {
 			new ArrayList<>(contentGroupChannelSubscriptionService.getSubscribedChannelIds(access.getId()));
 
 		GcUser user = this.getGcUser();
-		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId,GroupsType.orgAdmin);
+		Integer adminFlag =  gcUserAccessService.selectUserAccessesByMasterId(user.getId(),masterId, UserGroupRole.ORG_ADMIN.getRole());
 		List<PtChannel> channels;
 		PageParam pageParam = new PageParam(request);
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
@@ -1943,9 +1944,9 @@ public class PowtoonController extends GuideCoreController {
 				access.setGroupName(managedGroup.getTitle());
 				if (null != access.getRoleJson()) {
 					access.getRoleJson()
-						.addAll(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
+						.addAll(JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
 				} else {
-					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
+					access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
 				}
 			} else {
 				access = createManagerContentGroup(masterId, managedGroup);
@@ -1971,7 +1972,7 @@ public class PowtoonController extends GuideCoreController {
 		access.setCodeType(TableConstant.COMMON_ZERO);
 		access.setSubjectJson(new JSONArray());
 		access.setChannelJson(new JSONArray());
-		access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupAdmin) + "]"));
+		access.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
 		return access;
 	}
 
@@ -1988,9 +1989,9 @@ public class PowtoonController extends GuideCoreController {
 				contentGroup = createContentGroup(masterId, group);
 			}
 
-			contentGroup.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(GroupsType.groupMember) + "]"));
-			if (null != group.getRoleId() && group.getRoleId().equals(GroupsType.orgAdmin)) {
-				contentGroup.getRoleJson().add(GroupsType.orgAdmin);
+			contentGroup.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_MEMBER.getRole()) + "]"));
+			if (null != group.getRoleId() && group.getRoleId().equals(UserGroupRole.ORG_ADMIN.getRole())) {
+				contentGroup.getRoleJson().add(UserGroupRole.ORG_ADMIN.getRole());
 			}
 			memberContentGroups.add(contentGroup);
 		}
@@ -2185,13 +2186,14 @@ public class PowtoonController extends GuideCoreController {
 		List<String> roleLists = new ArrayList<>();
 
 		// Determine whether the role is member type or admin type
-		if (GroupsType.MEMBERS.contains(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.member);
-		} else if (GroupsType.ADMINS.contains(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.admin);
+		UserOrgRole orgRole = permissions.getPermissions().getOrg().getRoleId();
+		if (GroupsType.MEMBERS.contains(orgRole)) {
+			roleLists.add(UserOrgRole.MEMBER.getRole());
+		} else if (GroupsType.ADMINS.contains(orgRole)) {
+			roleLists.add(UserOrgRole.ADMIN.getRole());
 		}
-		if (UserOrgRole.ORG_ADMIN.equals(permissions.getPermissions().getOrg().getRoleId())) {
-			roleLists.add(GroupsType.member);
+		if (UserOrgRole.ORG_ADMIN.equals(orgRole)) {
+			roleLists.add(UserOrgRole.ORG_ADMIN.getRole());
 		}
 
 		return roleLists;
@@ -2243,9 +2245,9 @@ public class PowtoonController extends GuideCoreController {
 			adminGroups.add(adminGroup.getId());
 		}
 
-		if (roleList.contains(GroupsType.admin)){
+		if (roleList.contains(UserOrgRole.ADMIN.getRole())){
 			userAttributes.put("isOrgAdmin",Boolean.TRUE);
-			roleList.remove(GroupsType.admin);
+			roleList.remove(UserOrgRole.ADMIN.getRole());
 		}
 		System.out.println("adminGroups::"+adminGroups.toString());
 		//用户属性
@@ -2305,7 +2307,7 @@ public class PowtoonController extends GuideCoreController {
 	public Message getCoursesInfo(HttpServletRequest request){
 		GcUser user = this.getGcUser();
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.getGroupMemberPermissionByUidList(user.getId(),master.getId(),GroupsType.groupMember);
+		List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.getGroupMemberPermissionByUidList(user.getId(),master.getId(), UserGroupRole.GROUP_MEMBER.getRole());
 		JSONArray jsonArray = new JSONArray();
 		for (GcUserAccessPermission permission : userAccessPermissionList) {
 			if (null!=permission.getMustSubjectJson()){

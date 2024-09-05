@@ -514,4 +514,22 @@
         <addPrimaryKey constraintName="portal_user_pk" columnNames="user_id, master_id"
                        tableName="portal_user"/>
     </changeSet>
+    <changeSet id="update-sys-role-mapping" author="vprokh">
+        <update tableName="sys_role">
+            <column name="role_key" value="orgAdmin"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'admin'</where>
+        </update>
+        <update tableName="sys_role">
+            <column name="role_key" value="admin"/>
+            <column name="role_name" value="admin"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'teamAdmin'</where>
+        </update>
+        <update tableName="sys_role">
+            <column name="role_name" value="member"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'member'</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
