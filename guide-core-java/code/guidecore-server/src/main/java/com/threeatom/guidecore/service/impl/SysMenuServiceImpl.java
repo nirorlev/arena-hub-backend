@@ -119,17 +119,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer masterId, Integer isGroupAdmin) {
-        boolean isOrgAdmin = portalUser.isOrgAdmin();
-        boolean isTeamAdmin = portalUser.isTeamAdmin();
-
-        List<String> roles = getRoles(masterId, isOrgAdmin, isTeamAdmin, user.getId());
+    public List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer isGroupAdmin) {
+        List<String> roles = getRoles(portalUser);
         List<SysMenu> roleMenus = new ArrayList<>();
         if (!roles.isEmpty()) {
-            roleMenus.addAll(getMenuByRoles(roles, user, masterId));
+            roleMenus.addAll(getMenuByRoles(roles, user, portalUser.getMasterId()));
         }
 
-        if (TableConstant.COMMON_ZERO != isGroupAdmin || isOrgAdmin) {
+        if (TableConstant.COMMON_ZERO != isGroupAdmin || portalUser.isOrgAdmin()) {
             roleMenus.add(getNewGroupAdminSysMenu());
         }
 
@@ -146,19 +143,25 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         return sysMenu;
     }
 
-    private List<String> getRoles(Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin, Integer userId) {
-        List<String> getRoleList = new ArrayList<>();
-        List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(userId, masterId);
+    private List<String> getRoles(PortalUser portalUser) {
+        List<String> roles = new ArrayList<>();
+        UserOrgRole role = portalUser.getRole();
+        List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(
+            portalUser.getUserId(), portalUser.getMasterId());
+
         if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
-            getRoleList.add(GroupsType.superAdmin);
+            roles.add(GroupsType.superAdmin);
         }
-        if (isOrgAdmin) {
-            getRoleList.add(UserOrgRole.ORG_ADMIN.getRole());
+        if (role.isMember()) {
+            roles.add(UserOrgRole.MEMBER.getRole());
         }
-        if (isTeamAdmin) {
-            getRoleList.add(UserOrgRole.ADMIN.getRole());
+        if (role.isAdmin()) {
+            roles.add(UserOrgRole.ADMIN.getRole());
+        }
+        if (portalUser.isOrgAdmin()) {
+            roles.add(UserOrgRole.ORG_ADMIN.getRole());
         }
 
-        return getRoleList;
+        return roles;
     }
 }

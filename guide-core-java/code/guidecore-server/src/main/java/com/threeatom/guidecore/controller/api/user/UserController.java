@@ -1,12 +1,9 @@
 package com.threeatom.guidecore.controller.api.user;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
-import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.dto.response.LicenseUsageDto;
@@ -28,12 +25,10 @@ import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.HttpUtil;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
-import io.permit.sdk.openapi.models.UserRead;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,7 +52,6 @@ public class UserController {
     private final UserLicenseService userLicenseService;
     private final OrgLicenseLimitService orgLicenseLimitService;
     private final GcUserService userService;
-    private final PermitService permitService;
     private final GcMasterService gcMasterService;
     private final PtLoginConfigService ptLoginConfigService;
     private final RedisOperator redisOperator;
@@ -103,7 +97,7 @@ public class UserController {
         return new Message().ok()
             .addData("user", user)
             .addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
-            .addData("roleMenus", sysMenuService.getSysMenus(user, portalUser, masterId, isGroupAdmin))
+            .addData("roleMenus", sysMenuService.getSysMenus(user, portalUser, isGroupAdmin))
             .addData("isGroupAdmin", isGroupAdmin)
             .addData("isOrgAdmin", portalUser.isOrgAdmin())
             .addData("logoUrl", getLogoUrl(request, master))
@@ -149,29 +143,6 @@ public class UserController {
         body.put("grant_type", "refresh_token");
         body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
         return body;
-    }
-
-    private boolean isOrgAdmin(UserRead userRoles) {
-        if (userRoles == null) {
-            return false;
-        }
-
-        if (null != userRoles.attributes.get("isOrgAdmin")) {
-            return (boolean) userRoles.attributes.get("isOrgAdmin");
-        }
-
-        return false;
-    }
-
-    private boolean isTeamAdmin(UserRead userRoles) {
-        if (userRoles.attributes.get("managedGroups") == null) {
-            return false;
-        }
-
-        JSONArray jsonArray =
-            JSONArray.parseArray(JSON.toJSONString(userRoles.attributes.get("managedGroups")));
-        List<String> integers = jsonArray.toJavaList(String.class);
-        return !integers.isEmpty();
     }
 
     private void updateAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {

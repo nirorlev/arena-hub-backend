@@ -65,7 +65,6 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
-import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
@@ -111,10 +110,6 @@ import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.HttpUtil;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
-import io.permit.sdk.api.models.CreateOrUpdateResult;
-import io.permit.sdk.openapi.models.RoleAssignmentRead;
-import io.permit.sdk.openapi.models.TenantRead;
-import io.permit.sdk.openapi.models.UserRead;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -1824,7 +1819,6 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = userService.getUserByUserName(userInfo.getProfile().getEmail());
 
 		// Add permission table data
-		List<String> roleLists = getRoleLists(userInfo);
 		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
 		GcAccess studentContentGroup = accessService.getStudentContentGroup(courseIds, masterId);
 
@@ -1844,7 +1838,7 @@ public class PowtoonController extends GuideCoreController {
 
 		ptChannelSubscribeService.autoSubscribeToContentGroupChannels(user, memberContentGroups);
 		List<GcUserAccess> userAccessList =
-			saveOrUpdateUserAccess(user, masterId, allContentGroups, roleLists, groups);
+			saveOrUpdateUserAccess(user, masterId, allContentGroups, groups);
 		List<GcUserAccess> userAccesses =
 			gcUserAccessService.getUserAccessListByMasterIdAndUserId(getUserIds(userAccessList), masterId);
 
@@ -1897,10 +1891,8 @@ public class PowtoonController extends GuideCoreController {
 			.collect(Collectors.toList());
 	}
 
-	private List<GcUserAccess> saveOrUpdateUserAccess(GcUser user,
-													  Integer masterId,
-													  List<GcAccess> allContentGroups, List<String> roleLists,
-													  PtGroupsVo groups) {
+	private List<GcUserAccess> saveOrUpdateUserAccess(
+		GcUser user, Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo groups) {
 		List<GcUserAccess> userAccessList = new ArrayList<>();
 		Map<String, Groups> groupsMap =
 			groups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
@@ -1921,7 +1913,6 @@ public class PowtoonController extends GuideCoreController {
 			}
 			if (superAdminContentGroups.contains(contentGroup.getId())) {
 				userAccess.getRoleJson().add(GroupsType.superAdmin);
-				roleLists.add(GroupsType.superAdmin);
 			}
 
 			if (null != groupsMap.get(contentGroup.getCode())) {
@@ -2183,23 +2174,6 @@ public class PowtoonController extends GuideCoreController {
 		userService.updateById(user);
 
 		return user;
-	}
-
-	private List<String> getRoleLists(PowtoonUserDto permissions) {
-		List<String> roleLists = new ArrayList<>();
-
-		// Determine whether the role is member type or admin type
-		UserOrgRole orgRole = permissions.getPermissions().getOrg().getRoleId();
-		if (GroupsType.MEMBERS.contains(orgRole)) {
-			roleLists.add(UserOrgRole.MEMBER.getRole());
-		} else if (GroupsType.ADMINS.contains(orgRole)) {
-			roleLists.add(UserOrgRole.ADMIN.getRole());
-		}
-		if (UserOrgRole.ORG_ADMIN.equals(orgRole)) {
-			roleLists.add(UserOrgRole.ORG_ADMIN.getRole());
-		}
-
-		return roleLists;
 	}
 
 	public String get8UUID(){
