@@ -1470,7 +1470,7 @@ public class PowtoonController extends GuideCoreController {
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
-		if (null!= adminFlag&&adminFlag==TableConstant.COMMON_ONE){
+		if (null != adminFlag&&adminFlag > TableConstant.COMMON_ZERO){
 				channels = ptChannelService.selectChannelsByIdAndName(subscribedChannelIds, name, null,masterId);
 		}else {
 			// All channels of the current user are checked, regardless of whether they are manageable or viewable.
