@@ -22,10 +22,8 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     private final UserLicenseMapping userLicenseMapping;
     private final SqlSession sqlSession;
 
-    @Value("${publish.channel.limit.default}")
-    private int publishChannelLimit;
-    @Value("${publish.playlist.limit.default}")
-    private int publishPlaylistLimit;
+    private static final int PUBLISH_CHANNEL_LIMIT_DEFAULT = 1;
+    private static final int PUBLISH_PLAYLIST_LIMIT_DEFAULT = 1;
 
     @Override
     public void save(Integer masterId) {
@@ -53,8 +51,8 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     private OrgLicenseLimit createNewOrgLimit(Integer masterId) {
         OrgLicenseLimit orgLicenseLimit = new OrgLicenseLimit();
         orgLicenseLimit.setMasterId(masterId);
-        orgLicenseLimit.setPublishedChannelLimit(publishChannelLimit);
-        orgLicenseLimit.setPublishedPlaylistLimit(publishPlaylistLimit);
+        orgLicenseLimit.setPublishedChannelLimit(PUBLISH_CHANNEL_LIMIT_DEFAULT);
+        orgLicenseLimit.setPublishedPlaylistLimit(PUBLISH_PLAYLIST_LIMIT_DEFAULT);
         return orgLicenseLimit;
     }
 }

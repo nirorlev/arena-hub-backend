@@ -83,14 +83,6 @@ permit:
   permitSwitch: 0
 registercode: ${REGISTER_CODE}
 
-publish:
-  channel:
-    limit:
-      default: 1
-  playlist:
-    limit:
-      default: 1
-
 metaurl:
   course: "course"
   courseStatics: "course-statics"
