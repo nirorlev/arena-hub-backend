@@ -532,10 +532,15 @@
             <where>role_key = 'member'</where>
         </update>
     </changeSet>
+
     <changeSet id="update-course-private-availability-type" author="vprokkh">
         <update tableName="gc_subject">
             <column name="available_type" value="0"/>
             <where>available_type = 4</where>
         </update>
+    </changeSet>
+
+    <changeSet id="remove-user-license-table" author="vprokh">
+        <dropTable tableName="user_license" />
     </changeSet>
 </databaseChangeLog>
