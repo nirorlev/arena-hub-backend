@@ -3,8 +3,6 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.common.permit.enums.PermitAction;
-import com.threeatom.common.permit.enums.PermitResource;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -27,10 +25,6 @@ import org.springframework.stereotype.Service;
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     implements SysMenuService {
 
-    private static final Map<String, PermitResource> PERMIT_CHECK_MENU_RESOURCE_MAPPING =
-        Map.of("Insights", PermitResource.PORTAL);
-    private static final Map<String, PermitAction> PERMIT_CHECK_MENU_ACTION_MAPPING =
-        Map.of("Insights", PermitAction.ACCESS_ANALYTICS);
     private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
         Map.of(
             "Insights", "analyticsEnabled",
@@ -94,8 +88,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             return sysMenus;
         }
 
-        sysMenus.removeIf(sysMenu -> isFeatureToggleDisabled(masterId, sysMenu)
-            || isDisabledOnPermit(user, masterId, sysMenu));
+        sysMenus.removeIf(sysMenu -> isFeatureToggleDisabled(masterId, sysMenu));
 
         return sysMenus;
     }
@@ -107,15 +100,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
 
         String featureName = MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING.get(sysMenu.getKey());
         return !Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName, masterId).getValue());
-    }
-
-    private boolean isDisabledOnPermit(GcUser user, Integer masterId, SysMenu sysMenu) {
-        if (PERMIT_CHECK_MENU_RESOURCE_MAPPING.containsKey(sysMenu.getKey())) {
-            return !permitService.checkPermit(PERMIT_CHECK_MENU_RESOURCE_MAPPING.get(sysMenu.getKey()),
-                PERMIT_CHECK_MENU_ACTION_MAPPING.get(sysMenu.getKey()), user, masterId);
-        }
-
-        return false;
     }
 
     @Override

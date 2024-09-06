@@ -1,8 +1,5 @@
 package com.threeatom.common.permit.service.impl;
 
-import static java.lang.String.format;
-
-import com.threeatom.common.exception.PermitException;
 import com.threeatom.common.permit.dto.PermitChannel;
 import com.threeatom.common.permit.dto.PermitContentGroup;
 import com.threeatom.common.permit.dto.PermitCourse;
@@ -10,15 +7,10 @@ import com.threeatom.common.permit.dto.PermitItem;
 import com.threeatom.common.permit.dto.PermitPlaylist;
 import com.threeatom.common.permit.dto.PermitUser;
 import com.threeatom.common.permit.dto.PermitVideoItem;
-import com.threeatom.common.permit.enums.PermitAction;
-import com.threeatom.common.permit.enums.PermitResource;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.config.PermitConfiguration;
-import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcSubject;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -26,25 +18,19 @@ import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
-import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import io.permit.sdk.Permit;
 import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
-import io.permit.sdk.api.PermitContextError;
 import io.permit.sdk.enforcement.Resource;
 import io.permit.sdk.enforcement.User;
-import io.permit.sdk.openapi.models.TenantRead;
-import io.permit.sdk.openapi.models.UserRead;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -55,7 +41,6 @@ public class PermitServiceImpl implements PermitService {
         "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
 
     private final PermitConfiguration permitConfiguration;
-    private final GcMasterService gcMasterService;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
     private final ContentGroupChannelSubscriptionService channelSubscriptionService;
     private final GcUserAccessService userAccessService;
@@ -70,15 +55,6 @@ public class PermitServiceImpl implements PermitService {
                 .withDebugMode(true)
                 .build()
         );
-    }
-
-    @Override
-    public boolean checkPermit(PermitResource resource, PermitAction action, GcUser user, Integer masterId) {
-        if (user == null || masterId == null) {
-            return false;
-        }
-
-        return checkPermit(resource, action, user.getUsername(), masterId);
     }
 
     @Override
@@ -119,10 +95,6 @@ public class PermitServiceImpl implements PermitService {
         PermitUser permitUser = createUser(portalUser);
 
         return checkPermit(permitPlaylist, action, permitUser);
-    }
-
-    private UserRead readUser(String username) throws PermitContextError, PermitApiError, IOException {
-        return permit.api.users.get(username);
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
@@ -237,39 +209,5 @@ public class PermitServiceImpl implements PermitService {
 
     public Set<String> convert(Set<Integer> ids) {
         return ids.stream().map(String::valueOf).collect(Collectors.toSet());
-    }
-
-    private boolean checkPermit(PermitResource resource, PermitAction action, String username, Integer masterId) {
-        if (StringUtils.isEmpty(username)) {
-            return false;
-        }
-
-        try {
-            UserRead permitUser = readUser(username);
-            Resource permitResource = getResource(resource, masterId);
-
-            return permit.check(User.fromString(permitUser.key), action.getPermitAction(), permitResource);
-        } catch (Exception e) {
-            throw new PermitException(
-                format("Error checking permission '%s' for resource '%s' and user '%s' from permit", resource, action,
-                    username), e);
-        }
-    }
-
-    private Resource getResource(PermitResource resource, Integer masterId)
-        throws PermitContextError, PermitApiError, IOException {
-        return new Resource.Builder(resource.getPermitValue())
-            .withTenant(readTenant(masterId).key)
-            .withAttributes(new HashMap<>())
-            .build();
-    }
-
-    private TenantRead readTenant(Integer masterId) throws PermitContextError, PermitApiError, IOException {
-        GcMaster gcMaster = gcMasterService.getMasterById(masterId);
-        return readTenant(gcMaster.getContext());
-    }
-
-    private TenantRead readTenant(String key) throws PermitContextError, PermitApiError, IOException {
-        return permit.api.tenants.get(key);
     }
 }
