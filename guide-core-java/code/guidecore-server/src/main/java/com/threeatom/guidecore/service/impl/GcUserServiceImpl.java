@@ -2,40 +2,62 @@ package com.threeatom.guidecore.service.impl;
 
 import static com.threeatom.common.jwt.JwtUtil.createTokenByUser;
 
+import com.alibaba.fastjson.JSONArray;
+import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.client.PowtoonClient;
+import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
+import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
+import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
+import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.mapper.GcUserMapper;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.PtChannelSubscribeService;
+import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.PasswordSecretUtil;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> implements GcUserService {
 
     private final GcUserAccessService userAccessService;
-    private final SysFileService sysFileService;
+    private final SysFileService fileService;
     private final GcUserInfoService infoService;
+    private final PowtoonClient powtoonClient;
+    private final GcAccessService accessService;
+    private final GcSubjectService gcSubjectService;
+    private final PortalUserService portalUserService;
+    private final UserLicenseService userLicenseService;
 
     @Override
     public GcUser getUserInfo(Integer userId) {
@@ -44,7 +66,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         user.setInfo(info);
 
         if (info.getAvatarFileId() != null) {
-            SysFile file = sysFileService.getById(info.getAvatarFileId());
+            SysFile file = fileService.getById(info.getAvatarFileId());
             info.setAvatarFile(file);
         }
 
@@ -81,7 +103,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     }
 
     @Override
-    @Transactional
     public GcUser createGcUser(
         Integer sysId, String username, String password, String firstName, String lastName) {
         if (countUsers(sysId, username) > 0) {
@@ -183,5 +204,116 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         }
 
         return null;
+    }
+
+    @Override
+    public GcUser syncPowtoonUser(String accessToken, PtLoginConfig ptLoginConfig, Integer masterId)
+        throws IOException, ClientException {
+        final String bearerToken = "Bearer " + accessToken;
+        PtGroupsVo groups =
+            powtoonClient.getGroups(
+                URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
+        log.info("PtGroups interface returns:" + groups);
+
+        PowtoonUserDto powtoonUserInfo = powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
+        GcUser user = getUserByUsername(powtoonUserInfo.getProfile().getEmail());
+
+        List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
+        GcAccess studentContentGroup = accessService.getStudentContentGroup(courseIds, masterId);
+
+        user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);
+
+        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, masterId, user.getId());
+        portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
+        userLicenseService.update(user.getId(), powtoonUserInfo, masterId);
+
+        return user;
+    }
+
+    private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto powtoonUserInfo, GcAccess studentAccess, Integer masterId)
+        throws ClientException, IOException {
+        if (null == user) {
+            return createGcUser(powtoonUserInfo, studentAccess, masterId);
+        }
+        user.setPtUser(TableConstant.COMMON_ONE);
+        updateById(user);
+
+        GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
+        gcUserInfo.setFirstName(powtoonUserInfo.getProfile().getFirstName());
+        gcUserInfo.setLastName(powtoonUserInfo.getProfile().getLastName());
+
+        if (null != gcUserInfo.getAvatarFileId()) {
+            SysFile file = fileService.getById(gcUserInfo.getAvatarFileId());
+            file.setFileUrl(powtoonUserInfo.getProfile().getThumbUrl());
+            fileService.saveOrUpdate(file);
+        } else {
+            SysFile file = createAvatarFile(user.getId(), masterId, powtoonUserInfo.getProfile().getThumbUrl());
+            fileService.saveOrUpdate(file);
+            gcUserInfo.setAvatarFileId(file.getId());
+        }
+
+        infoService.updateById(gcUserInfo);
+        return updateUser(powtoonUserInfo, getUserByIdCache(user.getId()));
+    }
+
+    private GcUser createGcUser(PowtoonUserDto userInfo, GcAccess studentAccess, Integer masterId)
+        throws ClientException, IOException {
+        GcUser user = createGcUser(2, userInfo.getProfile().getEmail(), get8UUID(),
+            userInfo.getProfile().getFirstName(), userInfo.getProfile().getLastName());
+        user.setInfo(infoService.getById(user.getInfoId()));
+        accessService.checkUserAccess(masterId, user.getId(), studentAccess.getCode(), null, null, null);
+        user.setPtUser(TableConstant.COMMON_ONE);
+        user.setFirstName(userInfo.getProfile().getFirstName());
+        user.setLastName(userInfo.getProfile().getLastName());
+
+        SysFile file = createAvatarFile(user.getId(), userInfo.getProfile().getThumbUrl(), masterId);
+
+        fileService.saveOrUpdate(file);
+        user.getInfo().setAvatarFileId(file.getId());
+
+        infoService.saveOrUpdate(user.getInfo());
+        updateById(user);
+
+        return user;
+    }
+
+    private SysFile createAvatarFile(Integer uploadUserId, String thumbUrl, Integer masterId) {
+        SysFile file = new SysFile();
+        file.setSysId(TableConstant.COMMON_TWO);
+        file.setUploadUid(uploadUserId);
+        file.setName(thumbUrl);
+        file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
+        file.setFileType(TableConstant.sysFile_fileType_resLink);
+        file.setFileTypeIndex(TableConstant.COMMON_ONE);
+        file.setMasterId(masterId);
+        file.setSaveType(TableConstant.COMMON_THREE);
+        file.setFileRemark(new JSONArray());
+        return file;
+    }
+
+    private SysFile createAvatarFile(Integer uploadUserId, Integer masterId, String thumbUrl) {
+        SysFile file = createAvatarFile(uploadUserId, thumbUrl, masterId);
+        file.setFileUrl(thumbUrl);
+        return file;
+    }
+
+    private GcUser updateUser(PowtoonUserDto userInfo, GcUser user) {
+        if (null != userInfo.getProfile().getThumbUrl()) {
+            user.setThumbUrl(userInfo.getProfile().getThumbUrl());
+        }
+        if (null != userInfo.getProfile().getEmail()) {
+            user.setPtEmail(userInfo.getProfile().getEmail());
+        }
+        if (null != userInfo.getProfile().getId()) {
+            user.setPtId(userInfo.getProfile().getId().toString());
+        }
+
+        return user;
+    }
+
+    public String get8UUID() {
+        UUID id = UUID.randomUUID();
+        String[] idd = id.toString().split("-");
+        return idd[0];
     }
 }

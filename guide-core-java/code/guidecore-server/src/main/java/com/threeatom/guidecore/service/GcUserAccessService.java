@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUserAccess;
@@ -95,4 +96,10 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
 
     Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
+
+    void syncUserAccessWithPowtoonGroups(
+        Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo groups, Integer userId);
+
+    void removeContentGroupsMissingInDb(
+        List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId);
 }

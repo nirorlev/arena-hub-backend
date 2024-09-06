@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
+import static com.threeatom.utils.ToolUtil.parseToJsonArray;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -8,22 +10,28 @@ import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
+import com.threeatom.guidecore.constant.GroupsType;
+import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
+import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
 import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -56,8 +64,9 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Lazy @Autowired private GcSubjectService gcSubjectService;
 
     @Autowired private SysFileService sysFileService;
-    @Autowired
-    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    @Autowired private ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
+    @Autowired private GcUserAccessPermissionService gcUserAccessPermissionService;
 
     @Override
     public GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId) {
@@ -494,5 +503,93 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
                 .map(GcUserAccess::getAccess)
                 .map(GcAccess::getId)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void syncUserAccessWithPowtoonGroups(
+        Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo powtoonGroups, Integer userId) {
+
+        List<GcUserAccess> userContentGroups = new ArrayList<>();
+        Map<String, Groups> codeToPowtoonGroups =
+            powtoonGroups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
+        Map<String, GcAccess> allContentGroupCodeToContentGroup =
+            allContentGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
+
+        List<Integer> superAdminContentGroups = getAccessListBySuperAdmin(userId, masterId);
+        for (GcAccess contentGroup : allContentGroups) {
+            GcUserAccess userAccess = new GcUserAccess();
+            userAccess.setUserId(userId);
+            userAccess.setMasterId(masterId);
+            userAccess.setAccessId(contentGroup.getId());
+
+            if (null != allContentGroupCodeToContentGroup.get(contentGroup.getCode())) {
+                userAccess.setRoleJson(allContentGroupCodeToContentGroup.get(contentGroup.getCode()).getRoleJson());
+            }
+            if (superAdminContentGroups.contains(contentGroup.getId())) {
+                userAccess.getRoleJson().add(GroupsType.superAdmin);
+            }
+
+            if (null != codeToPowtoonGroups.get(contentGroup.getCode())) {
+                userAccess.setParentCode(codeToPowtoonGroups.get(contentGroup.getCode()).getParent_group_id());
+            }
+            userAccess.setAccess(contentGroup);
+            userContentGroups.add(userAccess);
+        }
+
+        if (!userContentGroups.isEmpty()) {
+            insertUserAccessList(userContentGroups);
+        }
+
+        updateUserPermissions(getUserAccessListByMasterIdAndUserId(getUserIds(userContentGroups), masterId));
+    }
+
+    @Override
+    public void removeContentGroupsMissingInDb(
+        List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId) {
+
+        List<Integer> contentGroupIdsToRemove = allContentGroups.stream()
+            .filter(contentGroup -> !newGroupCodes.contains(contentGroup.getCode()))
+            .map(GcAccess::getId)
+            .collect(Collectors.toList());
+
+        if (!contentGroupIdsToRemove.isEmpty()) {
+            deleteUserAccess(userId, masterId, contentGroupIdsToRemove);
+        }
+    }
+
+    private void updateUserPermissions(List<GcUserAccess> userAccesses) {
+        List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
+
+        for (GcUserAccess gcUserAccess : userAccesses) {
+            GcUserAccessPermission permission = new GcUserAccessPermission();
+            GcAccess access = gcUserAccess.getAccess();
+            List<Integer> assignedCourses =
+                contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
+            List<Integer> mustAssignedCourses =
+                contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses =
+                contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> unsubscribedChannelIds =
+                contentGroupChannelSubscriptionService.getPublicChannelIds(access.getId());
+            List<Integer> subscribedChannelIds =
+                contentGroupChannelSubscriptionService.getSubscribedChannelIds(access.getId());
+
+            permission.setUserAccessId(gcUserAccess.getId());
+            permission.setSubPermission(parseToJsonArray(assignedCourses));
+            permission.setChannelPermission(parseToJsonArray(unsubscribedChannelIds));
+            permission.setSubscribePermission(parseToJsonArray(subscribedChannelIds));
+            permission.setMaySubjectJson(parseToJsonArray(optionalAssignedCourses));
+            permission.setMustSubjectJson(parseToJsonArray(mustAssignedCourses));
+            userAccessPermissions.add(permission);
+        }
+        if (!userAccessPermissions.isEmpty()) {
+            gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
+        }
+    }
+
+    private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
+        return userAccessList.stream()
+            .map(GcUserAccess::getUserId)
+            .collect(Collectors.toList());
     }
 }

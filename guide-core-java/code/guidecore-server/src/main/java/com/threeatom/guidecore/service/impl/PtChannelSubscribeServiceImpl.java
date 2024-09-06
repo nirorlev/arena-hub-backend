@@ -38,7 +38,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
         PtChannelSubscribe channelSubscribe = getChannelSubscribe(user, channelId, false);
 
         if (channelSubscribe == null) {
-            save(createChannelSubscribe(user, channelId, true));
+            save(createChannelSubscribe(user.getId(), channelId, true));
             return;
         }
 
@@ -47,22 +47,22 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
 
     @Override
     @Transactional
-    public void autoSubscribeToContentGroupChannels(GcUser user, List<GcAccess> accessLists) {
+    public void autoSubscribeToContentGroupChannels(List<GcAccess> contentGroups, Integer userId) {
         try {
-            List<Integer> contentGroupIds = accessLists.stream()
+            List<Integer> contentGroupIds = contentGroups.stream()
                 .map(GcAccess::getId)
                 .collect(Collectors.toList());
 
             List<Integer> contentGroupSubscribedChannelIds =
                 contentGroupChannelSubscriptionService.getSubscribedChannelIds(contentGroupIds);
 
-            List<Integer> userFollowedChannelIds = getAllByUser(user).stream()
+            List<Integer> userFollowedChannelIds = getAllByUser(userId).stream()
                 .map(PtChannelSubscribe::getChannelId)
                 .collect(Collectors.toList());
 
-            saveBatch(getAutoSubscribeChannels(user, contentGroupSubscribedChannelIds, userFollowedChannelIds));
+            saveBatch(getAutoSubscribeChannels(contentGroupSubscribedChannelIds, userFollowedChannelIds, userId));
         } catch (Exception e) {
-            log.error("Channel auto-subscription failed for user " + user.getId(), e);
+            log.error("Channel auto-subscription failed for user " + userId, e);
         }
     }
 
@@ -76,7 +76,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
             return;
         }
 
-        save(createChannelSubscribe(user, channelId, false));
+        save(createChannelSubscribe(user.getId(), channelId, false));
     }
 
     private PtChannelSubscribe getChannelSubscribe(GcUser user, Integer channelId, boolean isDeleted) {
@@ -89,25 +89,25 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
         return getOne(queryWrapper);
     }
 
-    private List<PtChannelSubscribe> getAllByUser(GcUser user) {
+    private List<PtChannelSubscribe> getAllByUser(Integer userId) {
         QueryWrapper<PtChannelSubscribe> queryWrapper = new QueryWrapper<>();
 
-        queryWrapper.eq("user_id", user.getId());
+        queryWrapper.eq("user_id", userId);
 
         return list(queryWrapper);
     }
 
     private List<PtChannelSubscribe> getAutoSubscribeChannels(
-        GcUser user, List<Integer> contentGroupSubscribedChannelIds, List<Integer> userFollowedChannelIds) {
+        List<Integer> contentGroupSubscribedChannelIds, List<Integer> userFollowedChannelIds, Integer userId) {
         return contentGroupSubscribedChannelIds.stream()
             .filter(channelId -> !userFollowedChannelIds.contains(channelId))
-            .map(channelId -> createChannelSubscribe(user, channelId, false))
+            .map(channelId -> createChannelSubscribe(userId, channelId, false))
             .collect(Collectors.toList());
     }
 
-    private PtChannelSubscribe createChannelSubscribe(GcUser user, Integer channelId, boolean isDeleted) {
+    private PtChannelSubscribe createChannelSubscribe(Integer userId, Integer channelId, boolean isDeleted) {
         PtChannelSubscribe channelSubscribe = new PtChannelSubscribe();
-        channelSubscribe.setUserId(user.getId());
+        channelSubscribe.setUserId(userId);
         channelSubscribe.setChannelId(channelId);
         channelSubscribe.setDeleted(isDeleted);
         channelSubscribe.setCreateTime(new Date());
