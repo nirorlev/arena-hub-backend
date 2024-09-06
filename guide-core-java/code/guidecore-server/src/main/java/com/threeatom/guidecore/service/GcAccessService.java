@@ -37,7 +37,7 @@ public interface GcAccessService extends IService<GcAccess> {
             String name,
             Integer masterId,
             Integer userId,
-            List<Integer> availableTypeFour,
+            List<Integer> privateCourseIds,
             List<Integer> publicCourseIds,
             List<Integer> subIds);
 

@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum CourseAvailabilityType {
+    PRIVATE(0),
     PUBLIC(1),
-    CERTAIN_TEAMS(2),
-    PRIVATE(4);
+    CERTAIN_TEAMS(2);
 
     private final Integer value;
 }

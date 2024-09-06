@@ -2354,7 +2354,7 @@
 		1 = 1
 		AND (u.id = #{userId}
 		AND ua.master_id = #{masterId}
-		AND s.available_type != 4
+		AND s.available_type != 0
 		<if test="groupCodeList!=null and groupCodeList.size !=0">
 			AND ac.code IN
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
@@ -2416,7 +2416,7 @@
 	<select id="getUserPublicSubject" resultType="java.lang.Integer">
 		select s.id from gc_subject s
 		where
-		s.available_type = 4
+		s.available_type = 0
 		  and s."level" = 0
 		  and s.state = 1
 		  and s.master_id = #{masterId}
