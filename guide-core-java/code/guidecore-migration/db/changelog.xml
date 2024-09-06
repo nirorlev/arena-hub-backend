@@ -543,4 +543,18 @@
     <changeSet id="remove-user-license-table" author="vprokh">
         <dropTable tableName="user_license" />
     </changeSet>
+
+    <changeSet id="populate-org-license-limit-table" author="vprokh">
+        <delete tableName="org_license_limit" />
+
+        <sql>
+            INSERT INTO org_license_limit (master_id, published_channel_limit, published_playlist_limit)
+            SELECT id, 1, 1
+            FROM gc_master;
+        </sql>
+    </changeSet>
+
+    <changeSet id="remove-user-license-table" author="vprokh">
+        <dropTable tableName="user_license" />
+    </changeSet>
 </databaseChangeLog>
