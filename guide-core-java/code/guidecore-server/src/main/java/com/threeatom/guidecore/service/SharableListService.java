@@ -2,14 +2,15 @@ package com.threeatom.guidecore.service;
 
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 
 public interface SharableListService {
 
-    GroupAccessDto getSharableListByContentId(Integer contentId, GcUser user);
+    GroupAccessDto getSharableListByContentId(Integer contentId, PortalUser portalUser);
 
-    GroupAccessDto getSharableListByChannelId(Integer id, GcUser user);
+    GroupAccessDto getSharableListByChannelId(Integer channelId, PortalUser portalUser);
 
-    GroupAccessDto getSharableListByCourseId(Integer id, GcUser user);
+    GroupAccessDto getSharableListByCourseId(Integer id, PortalUser portalUser);
 
-    GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user);
+    GroupAccessDto getSharableListByPlaylistId(Integer id, Integer userId);
 }

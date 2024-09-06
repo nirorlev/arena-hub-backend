@@ -661,7 +661,7 @@ public class PowtoonController extends GuideCoreController {
 				throw new PermitException("No permission for this!");
 			}
 
-			user.setIsOrgAdmin(permitService.isUserOrgAdmin(user.getUsername()));
+			user.setIsOrgAdmin(portalUser.isOrgAdmin());
 
 			return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
 		}
@@ -1851,7 +1851,6 @@ public class PowtoonController extends GuideCoreController {
 		updateUserPermissions(userAccesses);
 		updateUser(userInfo, user);
 		removeContentGroupsMissingInDb(allGroups, user, masterId);
-		syncUserWithPermit(user, roleLists, userInfo, masterId);
 
 		portalUserService.saveOrUpdate(user.getId(), masterId, userInfo.getPermissions().getOrg().getRoleId());
 		userLicenseService.update(user.getId(), userInfo, masterId);
@@ -2209,67 +2208,6 @@ public class PowtoonController extends GuideCoreController {
 		return idd[0];
 	}
 
-	//同步用户
-	public void syncUserWithPermit(GcUser user, List<String> roleList, PowtoonUserDto userInfo, Integer masterId){
-		GcMaster master = masterService.getMasterById(masterId);
-		TenantRead tenant = null;
-		try {
-			tenant = permitService.readTenant(master.getContext());
-		} catch (Exception e){
-		}
-		try{
-			//判断租户是否存在,不存在则新建
-			if (null==tenant){
-				tenant = permitService.createTenant(master.getContext(), master.getContext());
-			}
-		}catch (Exception e){
-
-		}
-		//attributes数据
-		HashMap<String, Object> userAttributes = new HashMap<>();
-		JSONArray adminGroups = new JSONArray();
-		JSONArray memberGroups = new JSONArray();
-		//判断memberGroups和adminGroups
-		for (GroupDto memberGroup : userInfo.getPermissions().getGroups()) {
-			memberGroups.add(memberGroup.getId());
-		}
-		for (ManagedGroupDto adminGroup : userInfo.getPermissions().getManagedGroups()) {
-			adminGroups.add(adminGroup.getId());
-		}
-
-		if (roleList.contains(UserOrgRole.ADMIN.getRole())){
-			userAttributes.put("isOrgAdmin",Boolean.TRUE);
-			roleList.remove(UserOrgRole.ADMIN.getRole());
-		}
-		System.out.println("adminGroups::"+adminGroups.toString());
-		//用户属性
-		userAttributes.put("managedGroups",adminGroups);
-		userAttributes.put("groups",memberGroups);
-		//同步用户信息
-		try {
-			CreateOrUpdateResult<UserRead> response = permitService.syncUser(user, userAttributes);
-			//同步用户角色
-			String userKey = response.getResult().key;
-			List<RoleAssignmentRead> assignedRoles = permitService.getAssignedRoles(userKey, tenant.key, 1, 50);
-			List<String> oldRoleList = new ArrayList<>();
-			for (RoleAssignmentRead assignedRole : assignedRoles) {
-				oldRoleList.add(assignedRole.role);
-			}
-			for (String oldRole : oldRoleList) {
-				if (!roleList.contains(oldRole)){
-					permitService.unassignRole(userKey, oldRole, tenant.key);
-				}
-			}
-			for (String role : roleList) {
-				if (!oldRoleList.contains(role)){
-					permitService.assignRole(userKey, role, tenant.key);
-				}
-            }
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-	}
-
 	@GetMapping("/updateData")
 	public Message updateData(@Param("masterId")Integer masterId,@Param("userId")Integer userId){
 		gcUserAccessPermissionService.updatePermissionData(masterId,userId);
@@ -2359,8 +2297,6 @@ public class PowtoonController extends GuideCoreController {
 		GcMaster master = this.getMaster();
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
-		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
-		user.setIsOrgAdmin(isOrgAdmin);
 
 		if (null==master&&null!=request.getHeader("masterId")){
 			masterId = Integer.parseInt(request.getHeader("masterId"));
@@ -2371,6 +2307,7 @@ public class PowtoonController extends GuideCoreController {
 		boolean isFlag = false;
 		List<String> ids = new ArrayList<>();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+		user.setIsOrgAdmin(portalUser.isOrgAdmin());
 
 		if (null!=course.getId()&&null==course.getMoveDrafts()){
 			GcSubject oldSubject = gcSubjectService.getById(course.getId());
@@ -2404,7 +2341,7 @@ public class PowtoonController extends GuideCoreController {
 				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getMustAccessIds())));
 			}
 			if (!oldSubject.getState().equals(course.getState())&&null==course.getFid()){
-				if (!isOrgAdmin && CourseAvailabilityType.PUBLIC.getValue().equals(course.getAvailableType())){
+				if (!portalUser.isOrgAdmin() && CourseAvailabilityType.PUBLIC.getValue().equals(course.getAvailableType())){
 					throw new PermitException("No permission for this!");
 				}
 				//发布
@@ -2727,7 +2664,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
 		if (null!=channel.getVisibleFlag()&&channel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
-			isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
+			isOrgAdmin = portalUser.isOrgAdmin();
 		}
 
 		boolean isAllowed = false;
@@ -3283,8 +3220,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error(400, "Channel ID is required");
 		}
 
-		if (!permitService.checkPermit(channel, ActionsType.edit, portalUser)
-			&& !permitService.isUserOrgAdmin(user.getUsername())) {
+		if (!permitService.checkPermit(channel, ActionsType.edit, portalUser) && !portalUser.isOrgAdmin()) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -3344,8 +3280,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		PtChannel channel = ptChannelService.getById(ptChannelContent.getChannelId());
 
-		if (!permitService.isUserOrgAdmin(user.getUsername())
-			&& !permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
+		if (!portalUser.isOrgAdmin() && !permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		if (ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId())) {

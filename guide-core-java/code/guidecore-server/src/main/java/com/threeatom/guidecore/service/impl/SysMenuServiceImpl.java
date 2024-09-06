@@ -9,13 +9,13 @@ import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.mapper.SysMenuMapper;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.SysMenuService;
-import io.permit.sdk.openapi.models.UserRole;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -119,36 +119,35 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenus(List<UserRole> permitRoles, GcUser user, Integer masterId, Integer isGroupAdmin,
-                                     boolean isOrgAdmin, boolean isTeamAdmin) {
-        List<String> roles = getRoles(permitRoles, masterId, isOrgAdmin, isTeamAdmin, user.getId());
+    public List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer masterId, Integer isGroupAdmin) {
+        boolean isOrgAdmin = portalUser.isOrgAdmin();
+        boolean isTeamAdmin = portalUser.isTeamAdmin();
+
+        List<String> roles = getRoles(masterId, isOrgAdmin, isTeamAdmin, user.getId());
         List<SysMenu> roleMenus = new ArrayList<>();
         if (!roles.isEmpty()) {
             roleMenus.addAll(getMenuByRoles(roles, user, masterId));
         }
 
         if (TableConstant.COMMON_ZERO != isGroupAdmin || isOrgAdmin) {
-            SysMenu sysMenu = new SysMenu();
-            sysMenu.setName("courses-groupAdmin");
-            sysMenu.setKey("courses-groupAdmin");
-            sysMenu.setState(TableConstant.COMMON_ZERO);
-            sysMenu.setLevel(1);
-            sysMenu.setRemarks("groupAdmin");
-            roleMenus.add(sysMenu);
+            roleMenus.add(getNewGroupAdminSysMenu());
         }
 
         return roleMenus;
     }
 
+    private SysMenu getNewGroupAdminSysMenu() {
+        SysMenu sysMenu = new SysMenu();
+        sysMenu.setName("courses-groupAdmin");
+        sysMenu.setKey("courses-groupAdmin");
+        sysMenu.setState(TableConstant.COMMON_ZERO);
+        sysMenu.setLevel(1);
+        sysMenu.setRemarks("groupAdmin");
+        return sysMenu;
+    }
 
-    private List<String> getRoles(List<UserRole> permitRoles, Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin,
-                                  Integer userId) {
+    private List<String> getRoles(Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin, Integer userId) {
         List<String> getRoleList = new ArrayList<>();
-
-        for (UserRole userRole : permitRoles) {
-            getRoleList.add(userRole.role);
-        }
-
         List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(userId, masterId);
         if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
             getRoleList.add(GroupsType.superAdmin);

@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SysMenu;
 import io.permit.sdk.openapi.models.UserRole;
 import java.util.List;
@@ -24,6 +25,5 @@ public interface SysMenuService extends IService<SysMenu> {
 
     List<SysMenu> getMenuByRoles(List<String> roles, GcUser user, Integer masterId);
 
-    List<SysMenu> getSysMenus(List<UserRole> permitRoles, GcUser user, Integer masterId, Integer isGroupAdmin,
-                              boolean isOrgAdmin, boolean isTeamAdmin);
+    List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer masterId, Integer isGroupAdmin);
 }

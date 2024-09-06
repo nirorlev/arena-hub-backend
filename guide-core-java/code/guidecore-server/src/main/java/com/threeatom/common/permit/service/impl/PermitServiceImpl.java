@@ -32,33 +32,24 @@ import io.permit.sdk.Permit;
 import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
-import io.permit.sdk.api.models.CreateOrUpdateResult;
 import io.permit.sdk.enforcement.Resource;
 import io.permit.sdk.enforcement.User;
-import io.permit.sdk.openapi.models.RoleAssignmentRead;
-import io.permit.sdk.openapi.models.TenantCreate;
 import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PermitServiceImpl implements PermitService {
-
-    private static final String IS_ORG_ADMIN_ATTRIBUTE = "isOrgAdmin";
 
     private static final String PERMIT_DEV_WIP_ENV_API_KEY =
         "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
@@ -79,24 +70,6 @@ public class PermitServiceImpl implements PermitService {
                 .withDebugMode(true)
                 .build()
         );
-    }
-
-    @Override
-    public boolean isUserOrgAdmin(String username) {
-        UserRead userRoles;
-        try {
-            userRoles = readUser(username);
-
-            if (!CollectionUtils.isEmpty(userRoles.attributes)
-                && userRoles.attributes.get(IS_ORG_ADMIN_ATTRIBUTE) != null) {
-                return (boolean) userRoles.attributes.get(IS_ORG_ADMIN_ATTRIBUTE);
-            }
-        } catch (Exception e) {
-            log.error("Exception when checking if user '{}' is org admin", username, e);
-            throw new PermitException(500, format("Error checking if user '%s' is org admin", username), e);
-        }
-
-        return false;
     }
 
     @Override
@@ -148,52 +121,8 @@ public class PermitServiceImpl implements PermitService {
         return checkPermit(permitPlaylist, action, permitUser);
     }
 
-    @Override
-    public UserRead readUser(String username) throws PermitContextError, PermitApiError, IOException {
+    private UserRead readUser(String username) throws PermitContextError, PermitApiError, IOException {
         return permit.api.users.get(username);
-    }
-
-    @Override
-    public TenantRead readTenant(String key) throws PermitContextError, PermitApiError, IOException {
-        return permit.api.tenants.get(key);
-    }
-
-    @Override
-    public TenantRead createTenant(String key, String name) throws PermitContextError, PermitApiError, IOException {
-        return permit.api.tenants.create(new TenantCreate(key, name));
-    }
-
-    @Override
-    public CreateOrUpdateResult<UserRead> syncUser(GcUser user, Map<String, Object> userAttributes)
-        throws PermitContextError, PermitApiError, IOException {
-        return permit.api.users.sync(buildSyncUser(user, userAttributes));
-    }
-
-    @Override
-    public List<RoleAssignmentRead> getAssignedRoles(String userKey, String tenantKey, int page, int size)
-        throws PermitContextError, PermitApiError, IOException {
-        return Arrays.asList(permit.api.users.getAssignedRoles(userKey, tenantKey, page, size));
-    }
-
-    @Override
-    public void unassignRole(String userKey, String oldRole, String tenantKey)
-        throws PermitContextError, PermitApiError, IOException {
-        permit.api.users.unassignRole(userKey, oldRole, tenantKey);
-    }
-
-    @Override
-    public void assignRole(String userKey, String role, String tenantKey)
-        throws PermitContextError, PermitApiError, IOException {
-        permit.api.users.assignRole(userKey, role, tenantKey);
-    }
-
-    private User buildSyncUser(GcUser user, Map<String, Object> userAttributes) {
-        return new User.Builder(user.getUsername())
-            .withEmail(user.getUsername())
-            .withFirstName(user.getFirstName())
-            .withLastName(user.getLastName())
-            .withAttributes(new HashMap<>(userAttributes))
-            .build();
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
@@ -338,5 +267,9 @@ public class PermitServiceImpl implements PermitService {
     private TenantRead readTenant(Integer masterId) throws PermitContextError, PermitApiError, IOException {
         GcMaster gcMaster = gcMasterService.getMasterById(masterId);
         return readTenant(gcMaster.getContext());
+    }
+
+    private TenantRead readTenant(String key) throws PermitContextError, PermitApiError, IOException {
+        return permit.api.tenants.get(key);
     }
 }

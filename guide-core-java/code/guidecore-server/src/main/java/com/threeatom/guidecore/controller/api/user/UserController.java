@@ -12,11 +12,13 @@ import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.dto.response.LicenseUsageDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.OrgLicenseLimitService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.service.UserLicenseService;
@@ -62,6 +64,7 @@ public class UserController {
     private final SysFileService sysFileService;
     private final GcUserAccessService accessService;
     private final SysMenuService sysMenuService;
+    private final PortalUserService portalUserService;
 
     @ApiOperation(value = "Get publish permissions of the current user according to org license limits")
     @GetMapping("/me/permissions")
@@ -94,17 +97,15 @@ public class UserController {
 
         updateUserData(request, user);
 
-        UserRead userRoles = permitService.readUser(user.getUsername());
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         Integer isGroupAdmin = accessService.getGroupAdmin(user.getId(), masterId);
-        boolean isOrgAdmin = isOrgAdmin(userRoles);
-        boolean isTeamAdmin = isTeamAdmin(userRoles);
 
         return new Message().ok()
             .addData("user", user)
             .addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
-            .addData("roleMenus", sysMenuService.getSysMenus(userRoles.roles, user, masterId, isGroupAdmin, isOrgAdmin, isTeamAdmin))
+            .addData("roleMenus", sysMenuService.getSysMenus(user, portalUser, masterId, isGroupAdmin))
             .addData("isGroupAdmin", isGroupAdmin)
-            .addData("isOrgAdmin", isOrgAdmin)
+            .addData("isOrgAdmin", portalUser.isOrgAdmin())
             .addData("logoUrl", getLogoUrl(request, master))
             .addData("ptRootUrl", loginConfig.getPtRootUrl());
     }
