@@ -31,7 +31,6 @@ import com.threeatom.guidecore.constant.ActionsType;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.GroupsType;
-import com.threeatom.guidecore.constant.ResourceType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.Groups;
@@ -110,14 +109,10 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.HttpUtil;
-import io.permit.sdk.Permit;
-import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
 import io.permit.sdk.api.models.CreateOrUpdateResult;
-import io.permit.sdk.enforcement.User;
 import io.permit.sdk.openapi.models.RoleAssignmentRead;
-import io.permit.sdk.openapi.models.TenantCreate;
 import io.permit.sdk.openapi.models.TenantRead;
 import io.permit.sdk.openapi.models.UserRead;
 import io.swagger.annotations.Api;
@@ -2219,16 +2214,13 @@ public class PowtoonController extends GuideCoreController {
 		GcMaster master = masterService.getMasterById(masterId);
 		TenantRead tenant = null;
 		try {
-			tenant = permit.api.tenants.get(master.getContext());
-		}catch (Exception e){
-
+			tenant = permitService.readTenant(master.getContext());
+		} catch (Exception e){
 		}
 		try{
 			//判断租户是否存在,不存在则新建
 			if (null==tenant){
-				tenant = permit.api.tenants.create(
-						new TenantCreate(master.getContext(), master.getContext())
-				);
+				tenant = permitService.createTenant(master.getContext(), master.getContext());
 			}
 		}catch (Exception e){
 
@@ -2255,32 +2247,24 @@ public class PowtoonController extends GuideCoreController {
 		userAttributes.put("groups",memberGroups);
 		//同步用户信息
 		try {
-			CreateOrUpdateResult<UserRead> response = permit.api.users.sync(
-					(new User.Builder(user.getUsername()))
-							.withEmail(user.getUsername()) // optional
-							.withFirstName(user.getFirstName()) // optional
-							.withLastName(user.getLastName()) // optional
-							.withAttributes(userAttributes) // optional, used for ABAC permission checks
-							.build()
-			);
+			CreateOrUpdateResult<UserRead> response = permitService.syncUser(user, userAttributes);
 			//同步用户角色
-			RoleAssignmentRead[] assignedRoles = permit.api.users.getAssignedRoles(response.getResult().key,tenant.key,1,50);
+			String userKey = response.getResult().key;
+			List<RoleAssignmentRead> assignedRoles = permitService.getAssignedRoles(userKey, tenant.key, 1, 50);
 			List<String> oldRoleList = new ArrayList<>();
 			for (RoleAssignmentRead assignedRole : assignedRoles) {
 				oldRoleList.add(assignedRole.role);
 			}
-			for (String s : oldRoleList) {
-				if (!roleList.contains(s)){
-					permit.api.users.unassignRole(response.getResult().key, s, tenant.key);
+			for (String oldRole : oldRoleList) {
+				if (!roleList.contains(oldRole)){
+					permitService.unassignRole(userKey, oldRole, tenant.key);
 				}
 			}
-			for (String s : roleList) {
-				if (!oldRoleList.contains(s)){
-					permit.api.users.assignRole(response.getResult().key, s, tenant.key);
-				}else if (0==oldRoleList.size()){
-					permit.api.users.assignRole(response.getResult().key, s, tenant.key);
+			for (String role : roleList) {
+				if (!oldRoleList.contains(role)){
+					permitService.assignRole(userKey, role, tenant.key);
 				}
-			}
+            }
 		}catch (Exception e){
 			e.printStackTrace();
 		}

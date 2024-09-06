@@ -19,13 +19,12 @@ import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.I18NUtil;
-import io.permit.sdk.Permit;
 import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class GuideCoreController extends BaseController{
+public class GuideCoreController extends BaseController {
 
 	@Autowired
 	GcManagerService managerService;
@@ -43,8 +42,6 @@ public class GuideCoreController extends BaseController{
 	GcSubjectService subjectService;
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-
-	public static Permit permit = null;
 
 	public GcManager getManager() {
 		if(checkRole("manager")) {
@@ -65,10 +62,6 @@ public class GuideCoreController extends BaseController{
 			return masterService.getMasterByUidCache(uid);
 		}
 		return null;
-	}
-
-	public GcMaster getMasterByid(int uid) {
-		return masterService.getMasterByUidCache(uid);
 	}
 
 	public GcUser getGcUser() {
@@ -103,13 +96,6 @@ public class GuideCoreController extends BaseController{
 		if(!userAccess.getAccess().getRoleType().equals(AccessRoleType.STUDENT))
 			throw new SystemException(I18NUtil.get("guidecore.master.noPortalStudentAccess"));
 	}
-	public boolean whetherUserIsStudent(Integer masterId) {
-		GcUserAccess userAccess=this.getUserAccess(masterId);
-		if(userAccess==null)return false;
-		if(Objects.nonNull(userAccess.getAccess().getRoleType()) && !userAccess.getAccess().getRoleType().equals(AccessRoleType.STUDENT))return false;
-		return true;
-	}
-
 
 	public void assertResourceLimit(HttpServletRequest request,Integer id,int type) {
 		Integer masterId=Integer.parseInt(request.getHeader("masterId"));
