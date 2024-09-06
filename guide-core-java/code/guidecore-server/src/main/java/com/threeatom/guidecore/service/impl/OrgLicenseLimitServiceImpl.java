@@ -4,12 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.entity.OrgLicenseLimit;
-import com.threeatom.guidecore.entity.UserLicense;
-import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.mapper.OrgLicenseLimitMapper;
 import com.threeatom.guidecore.mapping.UserLicenseMapping;
 import com.threeatom.guidecore.service.OrgLicenseLimitService;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,63 +28,26 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     private int publishPlaylistLimit;
 
     @Override
-    public OrgLicenseLimit getDefaultLicenseLimit(Integer masterId) {
-        Optional<OrgLicenseLimit> orgLicenseLimit = getByMasterId(masterId);
-        if (orgLicenseLimit.isPresent()) {
-            return orgLicenseLimit.get();
+    public void save(Integer masterId) {
+        OrgLicenseLimit orgLicenseLimit = getByMasterId(masterId);
+        if (orgLicenseLimit != null) {
+            return;
         }
 
         this.save(createNewOrgLimit(masterId));
-        sqlSession.flushStatements();
-        return getByMasterId(masterId).orElseThrow();
-    }
-
-    @Override
-    public void checkChannelLimit(UserLicense dbUserLicense, int expectedChannelCount) {
-        if (!dbUserLicense.isActive()) {
-            return;
-        }
-
-        OrgLicenseLimit orgLicenseLimit = findById(dbUserLicense.getOrgLicenseLimitId());
-
-        if (orgLicenseLimit.getPublishedChannelLimit() < expectedChannelCount) {
-            throw new LicenseLimitExceededException("Channel limit exceeded");
-        }
-    }
-
-    @Override
-    public void checkPlaylistLimit(UserLicense dbUserLicense, int expectedPlaylistCount) {
-        if (!dbUserLicense.isActive()) {
-            return;
-        }
-
-        OrgLicenseLimit orgLicenseLimit = findById(dbUserLicense.getOrgLicenseLimitId());
-
-        if (orgLicenseLimit.getPublishedPlaylistLimit() < expectedPlaylistCount) {
-            throw new LicenseLimitExceededException("Playlist limit exceeded");
-        }
     }
 
     @Override
     public LicensePermissionsDto getPermissions(Integer masterId) {
-        return userLicenseMapping.map(getByMasterId(masterId).orElseThrow());
+        return userLicenseMapping.map(getByMasterId(masterId));
     }
 
     @Transactional(readOnly = true)
-    public OrgLicenseLimit findById(Integer orgLicenseId) {
-        OrgLicenseLimit orgLicenseLimit = this.getById(orgLicenseId);
-        if (orgLicenseLimit == null) {
-            throw new IllegalArgumentException(String.format("Org license limit with id %s not found", orgLicenseId));
-        }
-
-        return orgLicenseLimit;
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<OrgLicenseLimit> getByMasterId(Integer masterId) {
+    @Override
+    public OrgLicenseLimit getByMasterId(Integer masterId) {
         QueryWrapper<OrgLicenseLimit> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
-        return Optional.ofNullable(this.getOne(queryWrapper));
+        return this.getOne(queryWrapper);
     }
 
     private OrgLicenseLimit createNewOrgLimit(Integer masterId) {

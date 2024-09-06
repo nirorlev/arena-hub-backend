@@ -10,16 +10,33 @@ import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.entity.GcMasterHomeInfo;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.GcUserSaveContentFollow;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.service.GcMasterHomeInfoService;
+import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcUserInfoService;
+import com.threeatom.guidecore.service.GcUserSaveContentFollowService;
+import com.threeatom.guidecore.service.GcUserSaveContentService;
+import com.threeatom.guidecore.service.GcUserSaveFolderService;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +71,7 @@ public class NewUISaveContentController extends GuideCoreController {
     @Autowired private GcMasterService gcMasterService;
     @Autowired private GcMasterHomeInfoService iGcMasterHomeInfoService;
     @Autowired private UserLicenseService userLicenseService;
+    @Autowired private PortalUserService portalUserService;
 
     @ApiOperation(value = "获取已有保存课程/视频的文件夹列表", httpMethod = "GET")
     @GetMapping("/contentFolderList")
@@ -214,10 +232,13 @@ public class NewUISaveContentController extends GuideCoreController {
         gcUserSaveFolder.setUserId(this.getGcUser().getId());
         gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
         GcUser user = this.getGcUser();
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
         try {
+            userLicenseService.checkPlaylistLimit(gcUserSaveFolder, portalUser);
             if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
-                userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
                 return new Message().ok("保存成功").addData("folder", gcUserSaveFolder);
             } else {
                 return new Message().ok("保存是吧");

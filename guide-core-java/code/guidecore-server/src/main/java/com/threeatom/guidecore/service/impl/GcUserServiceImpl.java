@@ -225,7 +225,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
         accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, masterId, user.getId());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
-        userLicenseService.update(user.getId(), powtoonUserInfo, masterId);
 
         return user;
     }

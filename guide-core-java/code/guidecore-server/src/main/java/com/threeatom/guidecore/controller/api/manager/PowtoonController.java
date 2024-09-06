@@ -81,6 +81,7 @@ import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
+import com.threeatom.guidecore.service.OrgLicenseLimitService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -276,6 +277,8 @@ public class PowtoonController extends GuideCoreController {
 	private PermitService permitService;
 	@Autowired
 	private UserLicenseService userLicenseService;
+	@Autowired
+	private OrgLicenseLimitService orgLicenseLimitService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
@@ -2114,8 +2117,8 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		try {
+			userLicenseService.checkPlaylistLimit(gcUserSaveFolder, portalUser);
 			if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
-				userLicenseService.addPlaylistCount(gcUserSaveFolder, user.getId());
 				return new Message().ok("Saved successfully")
 					.addData("folder", gcUserSaveFolder);
 			}
@@ -2349,6 +2352,8 @@ public class PowtoonController extends GuideCoreController {
 
 		if(Objects.nonNull(channel.getVisibleFlag())) {
 			if (channel.getVisibleFlag() == 2) {
+				userLicenseService.checkChannelLimit(channel, portalUser);
+
 				if (ptChannelService.saveOrUpdate(channel)) {
 					if (null!=channel.getTags()){
 						PtTags ptTags = new PtTags();
@@ -2461,6 +2466,7 @@ public class PowtoonController extends GuideCoreController {
 					message.addData("channel", channel);
 				}
 			} else if (channel.getVisibleFlag() == 1) {
+				userLicenseService.checkChannelLimit(channel, portalUser);
 
 				List<Integer> subscribePermissionUserIds = new ArrayList<>();
 				List <Integer> subscribeAccessList = new ArrayList<>();
@@ -2533,8 +2539,6 @@ public class PowtoonController extends GuideCoreController {
 					return message.error();
 				}
 			}
-
-			userLicenseService.addChannelCount(channel, user.getId());
 		} else {
 			if (ptChannelService.saveOrUpdate(channel)) {
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
@@ -2566,7 +2570,6 @@ public class PowtoonController extends GuideCoreController {
 			throw new PermitException("No permission for this!");
 		}
 
-		userLicenseService.decreaseChannelCount(user.getId(), channel.getId());
 		if (ptChannelService.removeById(channel.getId())) {
 			return message.ok("success");
 		}
@@ -3060,7 +3063,6 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error("The user folderId does not exist");
 		}
 
-		userLicenseService.decreasePlaylistCount(userId, folderId);
 		if (gcUserSaveFolderService.removeById(folderId)) {
 			return new Message().ok("Successfully deleted");
 		}

@@ -68,7 +68,9 @@ public class UserController {
     @GetMapping("/me/usage")
     public ResponseEntity<LicenseUsageDto> getUsage(HttpServletRequest request) {
         GcUser currentUser = userService.getCurrentUser(request);
-        return ResponseEntity.ok().body(userLicenseService.getPermissions(currentUser.getId()));
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        return ResponseEntity.ok().body(userLicenseService.getLicenseUsage(currentUser.getId(), masterId));
     }
 
     @ApiOperation(value = "Verify user token, authentication and return user info")
