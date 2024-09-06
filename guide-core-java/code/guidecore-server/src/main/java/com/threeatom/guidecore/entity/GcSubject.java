@@ -443,12 +443,16 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer isToDo;
 
+    public Boolean getIsPrivate() {
+        return CourseState.DRAFT.getValue().equals(state);
+    }
+
     public boolean isPublic() {
         return CourseState.PUBLISHED.getValue().equals(state)
             && CourseAvailabilityType.PUBLIC.getValue().equals(availableType);
     }
 
-    public Boolean getIsPrivate() {
-        return CourseState.DRAFT.getValue().equals(state);
+    public boolean isPrivate() {
+        return getIsPrivate();
     }
 }

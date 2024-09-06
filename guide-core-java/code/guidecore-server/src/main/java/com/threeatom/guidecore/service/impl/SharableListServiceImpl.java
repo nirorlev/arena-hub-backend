@@ -56,7 +56,7 @@ public class SharableListServiceImpl implements SharableListService {
         AccessSourceDto accessSourceDto =
             getAccessSourceDto(channelId, user, channel.getCreateUserId(), SourceType.CHANNEL);
         accessSourceDto.setSlug(channel.getChannelSlug());
-        if (channel.getIsPrivate()) {
+        if (channel.isPrivate()) {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 

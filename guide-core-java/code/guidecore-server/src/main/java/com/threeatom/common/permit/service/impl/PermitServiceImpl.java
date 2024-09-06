@@ -168,7 +168,7 @@ public class PermitServiceImpl implements PermitService {
 
         permitCourse.setId(String.valueOf(course.getId()));
         permitCourse.setPublic(course.isPublic());
-        permitCourse.setPrivate(course.getIsPrivate());
+        permitCourse.setPrivate(course.isPrivate());
         permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
         permitCourse.setOwnerId(String.valueOf(course.getUserId()));
         return permitCourse;
@@ -188,7 +188,7 @@ public class PermitServiceImpl implements PermitService {
 
         permitChannel.setId(channel.getId().toString());
         permitChannel.setPublic(channel.isPublic());
-        permitChannel.setPrivate(channel.getIsPrivate());
+        permitChannel.setPrivate(channel.isPrivate());
         permitChannel.setContentGroupIds(convert(channelSubscriptionService.getContentGroupIds(channel.getId())));
         permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
         return permitChannel;

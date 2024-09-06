@@ -180,6 +180,10 @@ public class PtChannel implements Serializable, TreeNodeEntity {
         return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);
     }
 
+    public boolean isPrivate() {
+        return getIsPrivate();
+    }
+
     public boolean isPublic() {
         return ChannelVisibilityFlag.PUBLIC.getValue().equals(getVisibleFlag());
     }

@@ -90,7 +90,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
             return;
         }
 
-        if (channel.getIsPrivate()) {
+        if (channel.isPrivate()) {
             updateCount(
                 userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() - 1),
                 getByUserId(userId).orElseThrow());
@@ -109,7 +109,7 @@ public class UserLicenseServiceImpl extends ServiceImpl<UserLicenseMapper, UserL
         }
 
         UserLicense dbUserLicense = getByUserId(userId).orElseThrow();
-        if (ptChannel.getIsPrivate()) {
+        if (ptChannel.isPrivate()) {
             updateCount(
                 userLicense -> userLicense.setPrivateChannelCount(userLicense.getPrivateChannelCount() + 1),
                 dbUserLicense);
