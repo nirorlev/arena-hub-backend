@@ -391,7 +391,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @PostMapping("/superAdminGetUserToken")
     public Message superAdminGetUserToken(@RequestBody GcMaster filterMaster) {
         GcUser gcUser = userService.getById(filterMaster.getUserId());
-        String token = userService.getUserNativeToken(gcUser, filterMaster.getId());
+        String token = userService.generateJwtToken(gcUser, filterMaster.getId());
         return new Message().ok().addData("token",token);
     }
 

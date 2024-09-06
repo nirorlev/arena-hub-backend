@@ -66,7 +66,6 @@ import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.UserGroupRole;
-import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -1782,7 +1781,7 @@ public class PowtoonController extends GuideCoreController {
 				updateUserAccessLoginTime(user, masterId);
 
 				return new Message().ok()
-					.addData("token", userService.getUserNativeToken(user, masterId));
+					.addData("token", userService.generateJwtToken(user, masterId));
 			}
 		} catch (AuthenticationException e) {
 			return new Message().error(401, e.getMessage());
@@ -1816,7 +1815,7 @@ public class PowtoonController extends GuideCoreController {
 		log.info("PtGroups interface returns:" + groups);
 
 		PowtoonUserDto userInfo = powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
-		GcUser user = userService.getUserByUserName(userInfo.getProfile().getEmail());
+		GcUser user = userService.getUserByUsername(userInfo.getProfile().getEmail());
 
 		// Add permission table data
 		List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);

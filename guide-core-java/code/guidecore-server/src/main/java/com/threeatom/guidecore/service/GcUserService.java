@@ -1,9 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.system.entity.SysSystem;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -14,29 +12,24 @@ public interface GcUserService extends IService<GcUser> {
 
     GcUser getUserInfo(Integer id);
 
-    GcUser checkGcUser(String username, String password);
+    void checkGcUser(String username, String password);
+
+    GcUser getUserByUsername(String username);
 
     GcUser createGcUser(
-            Integer sysId, String username, String password, String firstName, String lastName);
+        Integer sysId, String username, String password, String firstName, String lastName);
 
     List<Integer> getTalkerIds(Integer userId, Integer masterId);
 
-    List<GcUser> getTalkerByUserIds(List<Integer> userIds, HttpServletRequest request, SysSystem sys);
-
     List<GcUser> getUserByUserAccessIds(List<Integer> userAccessIds);
 
-    @Deprecated
-    Integer getAllUserNums(Integer masterId, Integer type);
+    String generateJwtToken(GcUser user, Integer masterId);
 
-    // 获取app端用户token
-    String getUserNativeToken(GcUser user, Integer masterId);
-
-    // 根据用户名查询用户
-    GcUser getUserByUserName(String userName);
+    void verifyUsernameNotExists(String userName, String errorMessage);
 
     Map<Integer, GcUser> getWatchedUserNum(List<Integer> subjectIds, Integer masterId);
 
-    int deleteById(Integer id);
+    void deleteById(Integer id);
 
     List<GcUser> getTeamUser(Map<String, Object> params, HttpServletRequest request);
 

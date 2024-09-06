@@ -8,4 +8,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GcUserInfoServiceImpl extends ServiceImpl<GcUserInfoMapper, GcUserInfo>
-        implements GcUserInfoService {}
+    implements GcUserInfoService {
+
+    @Override
+    public GcUserInfo createNew(String firstName, String lastName) {
+        GcUserInfo userInfo = create(firstName, lastName);
+        save(userInfo);
+
+        return userInfo;
+    }
+
+    private GcUserInfo create(String firstName, String lastName) {
+        GcUserInfo userInfo = new GcUserInfo();
+        userInfo.setFirstName(firstName);
+        userInfo.setLastName(lastName);
+        return userInfo;
+    }
+}
