@@ -20,7 +20,6 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
     implements OrgLicenseLimitService {
 
     private final UserLicenseMapping userLicenseMapping;
-    private final SqlSession sqlSession;
 
     private static final int PUBLISH_CHANNEL_LIMIT_DEFAULT = 1;
     private static final int PUBLISH_PLAYLIST_LIMIT_DEFAULT = 1;
