@@ -24,6 +24,8 @@ import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.PermitConfiguration;
+import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.ActionsType;
 import com.threeatom.guidecore.constant.EnvType;
@@ -654,15 +656,15 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 		SysSystem system = this.getSystem();String token = request.getHeader("Authorization");
-		if (null != token && !"".equals(token) && !"undefined".equals(token)) {
+		if (!"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
 
-			boolean isFlag = this.permitCheck(user,ActionsType.view,Integer.parseInt(masterId),ResourceType.course,Integer.parseInt(fid.toString()),null,null);
-			if (!isFlag){
+			GcSubject course = gcSubjectService.getById(Integer.parseInt(fid.toString()));
+			PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), Integer.valueOf(masterId));
+
+			if (!permitService.checkPermit(course, ActionsType.view, portalUser)){
 				throw new PermitException("No permission for this!");
 			}
-
-			initPermit();
 
 			user.setIsOrgAdmin(permitService.isUserOrgAdmin(user.getUsername()));
 
@@ -751,8 +753,10 @@ public class PowtoonController extends GuideCoreController {
 		if (!"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
 			GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
-			boolean isFlag = this.permitCheck(user,ActionsType.view,master.getId(),ResourceType.videoItem,videoId,null,null);
-			if (!isFlag){
+			GcVideo video = gcVideoService.getById(videoId);
+			PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+
+			if (!permitService.checkPermit(video, ActionsType.view, portalUser)){
 				throw new PermitException("No permission for this!");
 			}
 			return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.PT.getCode());
@@ -1039,14 +1043,13 @@ public class PowtoonController extends GuideCoreController {
 	public Message getAccessList(String name, HttpServletRequest request) {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcUser user = this.getGcUser();
-		PageInfo<GcAccess> accessList;
-		initPermit();
-
 		PageParam pageParam = new PageParam(request);
+
 		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 		}
-		accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId()));
+
+		PageInfo<GcAccess> accessList = new PageInfo<>(accessService.listAccess(name, masterId, user.getId()));
 
 		return new Message().ok().addData("accessList", accessList);
 	}
@@ -1070,7 +1073,6 @@ public class PowtoonController extends GuideCoreController {
 	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) {
 		GcUser user = this.getGcUser();
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-		initPermit();
 
 		params.put("masterId",masterId);
 		List<GcAccess> gcAccessList = accessService.listAllAccess(params, request);
@@ -1100,10 +1102,12 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		GcAccess access = accessService.getById(id);
 		List<Integer> idList = new ArrayList<>();
-		PageInfo<GcSubject> pageInfo = new PageInfo<>();
+		PageInfo<GcSubject> pageInfo;
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.manageContent,masterId,ResourceType.contentGroup,access.getId(),null,null);
-		if (!isFlag){
+
+		GcAccess contentGroup = accessService.getAccessById(access.getId());
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		if (!permitService.checkPermit(contentGroup, ActionsType.manageContent, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -1169,8 +1173,10 @@ public class PowtoonController extends GuideCoreController {
 		GcAccess access = accessService.getById(accessId);
         GcUser user = this.getGcUser();
 
-		boolean isFlag = this.permitCheck(user,ActionsType.manageContent,masterId,ResourceType.contentGroup,access.getId(),null,null);
-		if (!isFlag){
+		GcAccess contentGroup = accessService.getAccessById(access.getId());
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (!permitService.checkPermit(contentGroup, ActionsType.manageContent, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -1303,38 +1309,40 @@ public class PowtoonController extends GuideCoreController {
 		List<Integer> idList = (List<Integer>) params.get("idList");
 		GcUser user = this.getGcUser();
 
-		boolean isFlag = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.contentGroup,accessId,null,null);
-		if (!isFlag){
+		GcAccess contentGroup = accessService.getById(accessId);
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (!permitService.checkPermit(contentGroup, ActionsType.addContent, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
-		GcAccess access = accessService.getById(accessId);
-		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(access.getId(),masterId);
+
+		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(contentGroup.getId(),masterId);
 		List<Integer> userAccessIds = userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.selectUserAccessPermissions(userAccessIds);
 
-		if(null!=access.getSubjectJson()){
-			List<Integer> subjectList = access.getSubjectJson().toJavaList(Integer.class);
+		if(null!=contentGroup.getSubjectJson()){
+			List<Integer> subjectList = contentGroup.getSubjectJson().toJavaList(Integer.class);
 			subjectList.addAll(idList);
-			access.setSubjectJson(parseToJsonArray(subjectList));
+			contentGroup.setSubjectJson(parseToJsonArray(subjectList));
 		}
 		if (type==TableConstant.COMMON_ZERO){
-			if(null!=access.getMustSubjectJson()){
-				List<Integer> mustSubjectList = access.getMustSubjectJson().toJavaList(Integer.class);
+			if(null!=contentGroup.getMustSubjectJson()){
+				List<Integer> mustSubjectList = contentGroup.getMustSubjectJson().toJavaList(Integer.class);
 				mustSubjectList.addAll(idList);
-				access.setMustSubjectJson(parseToJsonArray(mustSubjectList));
+				contentGroup.setMustSubjectJson(parseToJsonArray(mustSubjectList));
 			}else {
-				access.setMustSubjectJson(parseToJsonArray(idList));
+				contentGroup.setMustSubjectJson(parseToJsonArray(idList));
 			}
 		}else {
-			if(null!=access.getMaySubjectJson()){
-				List<Integer> maySubjectList = access.getMaySubjectJson().toJavaList(Integer.class);
+			if(null!=contentGroup.getMaySubjectJson()){
+				List<Integer> maySubjectList = contentGroup.getMaySubjectJson().toJavaList(Integer.class);
 				maySubjectList.addAll(idList);
-				access.setMaySubjectJson(parseToJsonArray(maySubjectList));
+				contentGroup.setMaySubjectJson(parseToJsonArray(maySubjectList));
 			}else {
-				access.setMaySubjectJson(parseToJsonArray(idList));
+				contentGroup.setMaySubjectJson(parseToJsonArray(idList));
 			}
 		}
-		gcAccessService.saveOrUpdate(access);
+		gcAccessService.saveOrUpdate(contentGroup);
 
 		for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
 			if(null!=userAccessPermission.getSubPermission()){
@@ -1500,17 +1508,18 @@ public class PowtoonController extends GuideCoreController {
 	public Message setPtChannel(@RequestBody Map<String, Object> params,HttpServletRequest request) throws IOException {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		Integer accessId = Integer.parseInt(params.get("accessId").toString());
-		GcAccess access = accessService.getById(accessId);
+		GcAccess contentGroup = accessService.getById(accessId);
 		List<Integer> channelIds = (List<Integer>) params.get("channelIds");
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.contentGroup,accessId,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (!permitService.checkPermit(contentGroup, ActionsType.addContent, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
-		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(access.getId(),masterId);
+		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(contentGroup.getId(),masterId);
 		List<Integer> userAccessIds = userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.selectUserAccessPermissions(userAccessIds);
-		contentGroupChannelSubscriptionService.subscribeChannels(access, channelIds, user);
+		contentGroupChannelSubscriptionService.subscribeChannels(contentGroup, channelIds, user);
 
 		for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
 			if (userAccessPermission.getSubscribePermission()!=null){
@@ -1544,14 +1553,15 @@ public class PowtoonController extends GuideCoreController {
 	public Message removePtChannel(@RequestBody Map<String, Object> params,HttpServletRequest request) throws IOException {
 		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
 		Integer accessId = Integer.parseInt(params.get("accessId").toString());
-		GcAccess access = accessService.getById(accessId);
+		GcAccess contentGroup = accessService.getById(accessId);
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.manageContent,masterId,ResourceType.contentGroup,accessId,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (!permitService.checkPermit(contentGroup, ActionsType.manageContent, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<Integer> channelIds = (List<Integer>) params.get("channelIds");
-		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(access.getId(),masterId);
+		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(contentGroup.getId(),masterId);
 		List<Integer> userAccessIds = userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.selectUserAccessPermissions(userAccessIds);
 
@@ -1771,8 +1781,6 @@ public class PowtoonController extends GuideCoreController {
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
-
-		initPermit();
 
 		try {
 			final String code = authTokenDto.getCode();
@@ -2200,15 +2208,6 @@ public class PowtoonController extends GuideCoreController {
 		return roleLists;
 	}
 
-	private void initPermit() {
-		permit =  new Permit(
-				new PermitConfig.Builder(permitConfiguration.getApiKey())
-						.withPdpAddress(permitConfiguration.getPdpAddress())
-						.withDebugMode(true)
-						.build()
-		);
-	}
-
 	public String get8UUID(){
 		UUID id=UUID.randomUUID();
 		String[] idd=id.toString().split("-");
@@ -2372,12 +2371,10 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
 	@PostMapping("/saveSub")
-	public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject sub, HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
+	public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject course, HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
 		GcMaster master = this.getMaster();
 		Integer masterId = null;
 		GcUser user = this.getGcUser();
-		initPermit();
-
 		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		user.setIsOrgAdmin(isOrgAdmin);
 
@@ -2389,11 +2386,13 @@ public class PowtoonController extends GuideCoreController {
 		master = masterService.getById(masterId);
 		boolean isFlag = false;
 		List<String> ids = new ArrayList<>();
-		if (null!=sub.getId()&&null==sub.getMoveDrafts()){
-			GcSubject oldSubject = gcSubjectService.getById(sub.getId());
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+
+		if (null!=course.getId()&&null==course.getMoveDrafts()){
+			GcSubject oldSubject = gcSubjectService.getById(course.getId());
 			List<String> mustAccessList = new ArrayList<>();
 			List<String> accessListMay = new ArrayList<>();
-			if(null!=sub.getAllPublished()&&sub.getAllPublished()==TableConstant.COMMON_ZERO){
+			if(null!=course.getAllPublished()&&course.getAllPublished()==TableConstant.COMMON_ZERO){
 				if (user.getIsOrgAdmin()){
 					accessListMay = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
 				}else {
@@ -2403,7 +2402,7 @@ public class PowtoonController extends GuideCoreController {
 					ids.addAll(accessListMay);
 				}
 			}
-			if (null!=sub.getAllPublishedMay()&&sub.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)){
+			if (null!=course.getAllPublishedMay()&&course.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)){
 				if (user.getIsOrgAdmin()){
 					mustAccessList = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
 				}else {
@@ -2414,58 +2413,58 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 
-			if (null!=sub.getAccessIds()&&sub.getAccessIds().size()!=TableConstant.COMMON_ZERO&&null==sub.getAllPublishedMay()){
-				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(sub.getAccessIds())));
+			if (null!=course.getAccessIds()&&course.getAccessIds().size()!=TableConstant.COMMON_ZERO&&null==course.getAllPublishedMay()){
+				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getAccessIds())));
 			}
-			if (null!=sub.getMustAccessIds()&&sub.getMustAccessIds().size()!=TableConstant.COMMON_ZERO&&null==sub.getAllPublished()){
-				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(sub.getMustAccessIds())));
+			if (null!=course.getMustAccessIds()&&course.getMustAccessIds().size()!=TableConstant.COMMON_ZERO&&null==course.getAllPublished()){
+				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getMustAccessIds())));
 			}
-			if (!oldSubject.getState().equals(sub.getState())&&null==sub.getFid()){
-				if (!isOrgAdmin && CourseAvailabilityType.PUBLIC.getValue().equals(sub.getAvailableType())){
+			if (!oldSubject.getState().equals(course.getState())&&null==course.getFid()){
+				if (!isOrgAdmin && CourseAvailabilityType.PUBLIC.getValue().equals(course.getAvailableType())){
 					throw new PermitException("No permission for this!");
 				}
 				//发布
-				isFlag = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.contentGroup,sub.getId(),ids,null);
-				if (null==oldSubject.getPublishedTime()&&sub.getState().equals(TableConstant.COMMON_ONE)){
-					sub.setPublishedTime(new Date());
-					sub.setPublishedUserId(user.getId());
+				isFlag = permitService.checkPermit(course, ActionsType.addContent, portalUser);
+				if (null==oldSubject.getPublishedTime()&&course.getState().equals(TableConstant.COMMON_ONE)){
+					course.setPublishedTime(new Date());
+					course.setPublishedUserId(user.getId());
 				}
 			}else {
 				//修改
-				isFlag = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.course,sub.getId(),null,null);
+				isFlag = permitService.checkPermit(course, ActionsType.edit, portalUser);
 			}
-		}else if(null!=sub.getMoveDrafts()){
+		}else if(null!=course.getMoveDrafts()){
 			//移动回发布前
-			GcSubject subject = gcSubjectService.getById(sub.getId());
-			if ((user.getIsOrgAdmin()&&null!=sub.getMoveDrafts())||(user.getId().equals(subject.getCreateUser()))){
+			GcSubject subject = gcSubjectService.getById(course.getId());
+			if ((user.getIsOrgAdmin()&&null!=course.getMoveDrafts())||(user.getId().equals(subject.getCreateUser()))){
 				isFlag = true;
 			}
 		} else {
 			//创建
-			isFlag = this.permitCheck(user,ActionsType.createCourse,masterId,ResourceType.portal,null,null,null);
+			isFlag = permitService.checkPermit(course, ActionsType.addContent, portalUser);
 		}
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
-		if(null!=sub.getMoveDrafts()&&sub.getMoveDrafts().equals(TableConstant.COMMON_ZERO)){
-			sub = gcSubjectService.getById(sub.getId());
-			sub.setState(TableConstant.COMMON_ZERO);
-			gcAccessService.deleteSubIdAccess(masterId,sub.getId());
-			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,sub.getId());
-			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, sub.getId());
+		if(null!=course.getMoveDrafts()&&course.getMoveDrafts().equals(TableConstant.COMMON_ZERO)){
+			course = gcSubjectService.getById(course.getId());
+			course.setState(TableConstant.COMMON_ZERO);
+			gcAccessService.deleteSubIdAccess(masterId,course.getId());
+			gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId,course.getId());
+			contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, course.getId());
 		}
-		if (sub.getState() != null && sub.getState() == TableConstant.COMMON_ONE) {
-			contentGroupCourseAssignmentService.save(user, sub, CourseType.MANDATORY);
-			contentGroupCourseAssignmentService.save(user, sub, CourseType.OPTIONAL);
+		if (course.getState() != null && course.getState() == TableConstant.COMMON_ONE) {
+			contentGroupCourseAssignmentService.save(user, course, CourseType.MANDATORY);
+			contentGroupCourseAssignmentService.save(user, course, CourseType.OPTIONAL);
 		}
-		gcSubjectService.saveSubInfo(sub,null,master,user,request);
+		gcSubjectService.saveSubInfo(course,null,master,user,request);
 
 		List<GcUserAccessPermission> permission = gcUserAccessPermissionService.getPermissionByUidList(user.getId(),masterId);
-		if (null==sub.getIsMyView()||sub.getIsMyView().equals(TableConstant.COMMON_ONE)){
+		if (null==course.getIsMyView()||course.getIsMyView().equals(TableConstant.COMMON_ONE)){
 			for (GcUserAccessPermission userAccessPermission : permission) {
 				if (null!=userAccessPermission.getMustSubjectJson()){
-					while (userAccessPermission.getMustSubjectJson().contains(sub.getId())){
-						userAccessPermission.getMustSubjectJson().remove(sub.getId());
+					while (userAccessPermission.getMustSubjectJson().contains(course.getId())){
+						userAccessPermission.getMustSubjectJson().remove(course.getId());
 					}
 				}
 			}
@@ -2474,33 +2473,36 @@ public class PowtoonController extends GuideCoreController {
 			for (GcUserAccessPermission userAccessPermission : permission) {
 				if (null==userAccessPermission.getMustSubjectJson()){
 					JSONArray jsonArray = new JSONArray();
-					jsonArray.add(sub.getId());
+					jsonArray.add(course.getId());
 					userAccessPermission.setMustSubjectJson(jsonArray);
 				}else {
-					userAccessPermission.getMustSubjectJson().add(sub.getId());
+					userAccessPermission.getMustSubjectJson().add(course.getId());
 				}
 			}
 			gcUserAccessPermissionService.updateBatchById(permission);
 		}
 
-		return new Message().ok("添加成功！").addData("sync", sub);
+		return new Message().ok("添加成功！").addData("sync", course);
 	}
 
 	@ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
 	@DeleteMapping("/delSub/{id}")
-	public Message deleteSub(@PathVariable("id") Integer subId,HttpServletRequest request) throws IOException {
+	public Message deleteSub(@PathVariable("id") Integer subId, HttpServletRequest request) throws IOException {
 		GcMaster master = this.getMaster();
 		Integer masterId = request.getIntHeader("masterId");
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.delete,masterId,ResourceType.course,subId,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		GcAccess course = gcAccessService.getById(subId);
+
+		if (!permitService.checkPermit(course, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
-		if (Objects.isNull(master)&&Objects.nonNull(masterId)){
+
+		if (Objects.isNull(master)) {
 			master = new GcMaster();
 			master.setId(masterId);
 		}
-		return gvgMasterService.deleteSub(subId,EnvType.GC.getCode(),master,null);
+		return gvgMasterService.deleteSub(subId, EnvType.GC.getCode(), master, null);
 	}
 
 	@PostMapping("/videoComment")
@@ -2511,8 +2513,10 @@ public class PowtoonController extends GuideCoreController {
 		Integer fileId = jsonRequest.getInteger("fileId");
 		ApiAssert.notNull(vid, "参数vid缺失");
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.comment,masterId,ResourceType.videoItem,vid,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		GcVideo video = gcVideoService.getById(vid);
+
+		if (!permitService.checkPermit(video, ActionsType.comment, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		GcVideoComment videoComment = new GcVideoComment();
@@ -2542,9 +2546,9 @@ public class PowtoonController extends GuideCoreController {
 		gcUserSaveFolder.setUserId(user.getId());
 		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		boolean isFlag =
-			this.permitCheck(user, ActionsType.createPlayList, master.getId(), ResourceType.portal, null, null, null);
-		if (!isFlag) {
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+
+		if (!permitService.checkPermit(gcUserSaveFolder, ActionsType.create, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2671,7 +2675,7 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@PostMapping("/delSub")
-	public Message deleteSub(@RequestBody GcSubject subject,HttpServletRequest request) throws IOException {
+	public Message deleteSub(@RequestBody GcSubject course,HttpServletRequest request) throws IOException {
 		Integer masterId = request.getIntHeader("masterId");
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
@@ -2682,44 +2686,43 @@ public class PowtoonController extends GuideCoreController {
 			master.setId(masterId);
 		}
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.delete,masterId,ResourceType.course,subject.getId(),null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+
+		if (!permitService.checkPermit(course, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
-		if(Objects.nonNull(subject.getFid())){
-			GcSubject gcSubject = subService.getById(subject.getId());
-			GcSubject gcSubject0 = subService.getById(subject.getFid());
+		if(Objects.nonNull(course.getFid())){
+			GcSubject gcSubject = subService.getById(course.getId());
+			GcSubject gcSubject0 = subService.getById(course.getFid());
 			gcSubject.setMasterId(gcSubject0.getMasterId());
-			gcSubject.setSubId(subject.getFid());
-			gcSubject.setFid(subject.getFid());
+			gcSubject.setSubId(course.getFid());
+			gcSubject.setFid(course.getFid());
 			if(subService.saveOrUpdate(gcSubject))return new Message().ok();
 		}else {
-			return gvgMasterService.deleteSub(subject.getId(),EnvType.PT.getCode(),master,this.getGcUser().getId());
+			return gvgMasterService.deleteSub(course.getId(),EnvType.PT.getCode(),master,this.getGcUser().getId());
 
 		}
 		return new Message().error();
 	}
 
-	@ApiOperation(value = "删除视频", httpMethod = "DELETE")
 	@DeleteMapping("/delVideo/{id}")
-	public Message deleteVideo(@PathVariable("id") Integer vid,HttpServletRequest request) throws IOException {
+	public Message deleteVideo(@PathVariable("id") Integer vid, HttpServletRequest request) throws IOException {
 		GcMaster master = this.getMaster();
 		Integer masterId = request.getIntHeader("masterId");
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-		}
-		if (Objects.isNull(master)&&Objects.nonNull(masterId)){
+		if (Objects.isNull(master)) {
 			master = new GcMaster();
 			master.setId(masterId);
 		}
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user,ActionsType.delete,masterId,ResourceType.videoItem,vid,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+		GcVideo video = gcVideoService.getById(vid);
+
+		if (!permitService.checkPermit(video, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
-		return gvgMasterService.deleteVideoPt(vid,EnvType.PT.getCode(),this.getGcUser().getId(),master.getId(),request);
+		return gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
+			request);
 	}
-
 
 	@GetMapping("/getBySlug")
 	public Message getBySlug(String channelSlug, HttpServletRequest request){
@@ -2730,137 +2733,134 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "channel新增修改")
 	@PostMapping("/saveOrUpdateChannel")
-	public Message saveOrUpdateChannel(@RequestBody PtChannel ptChannel,HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
+	public Message saveOrUpdateChannel(@RequestBody PtChannel channel,HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
 		Message message = new Message();
 		Integer masterId = request.getIntHeader("masterId");
 		GcMaster master = masterService.getById(masterId);
-		if(Objects.isNull(masterId)){
-			throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
-		}
 
-		initPermit();
 		boolean isOrgAdmin = false;
 		GcUser user = this.getGcUser();
-		if (null!=ptChannel.getVisibleFlag()&&ptChannel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (null!=channel.getVisibleFlag()&&channel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
 			isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
 		}
 
 		boolean isAllowed = false;
-		if (null!=ptChannel.getVisibleFlag()) {
-			isAllowed = this.permitCheck(user, ActionsType.publish, masterId, ResourceType.channel, ptChannel.getId(), null, null);
-			if (!isAllowed){
+		if (null!=channel.getVisibleFlag()) {
+			if (!permitService.checkPermit(channel, ActionsType.publish, portalUser)){
 				throw new PermitException("No permission to change channel visibility!");
 			}
 		}
 
-		if (null!=ptChannel.getId()){
-			isAllowed = this.permitCheck(user,ActionsType.edit,masterId,ResourceType.channel,ptChannel.getId(),null,null);
-		}else if (null!=ptChannel.getFid()){
-			isAllowed = this.permitCheck(user,ActionsType.addContent,masterId,ResourceType.channel,ptChannel.getFid(),null,null);
+		if (null!=channel.getId()){
+			isAllowed = permitService.checkPermit(channel, ActionsType.edit, portalUser);
+		}else if (null!=channel.getFid()){
+			isAllowed = permitService.checkPermit(channel, ActionsType.addContent, portalUser);
 		}else {
-			isAllowed = this.permitCheck(user,ActionsType.createChannel,masterId,ResourceType.portal,null,null,null);
+			isAllowed = permitService.checkPermit(channel, ActionsType.createChannel, portalUser);
 		}
 
 		if (!isAllowed){
 			throw new PermitException("No permission for this!");
 		}
 
-		ptChannel.setMasterId(masterId);
-		if (null==ptChannel.getId()){
-			ptChannel.setCreateUserId(user.getId());
+		channel.setMasterId(masterId);
+		if (null==channel.getId()){
+			channel.setCreateUserId(user.getId());
 		}
 		if (Objects.isNull(master)){
 			master = new GcMaster();
 			master.setId(masterId);
 		}
-		if(Objects.nonNull(ptChannel.getChannelImgFileId())) {
-			SysFile sysFile = sysFileService.getById(ptChannel.getChannelImgFileId());
+		if(Objects.nonNull(channel.getChannelImgFileId())) {
+			SysFile sysFile = sysFileService.getById(channel.getChannelImgFileId());
 			String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-			ptChannel.setImgFullFileUrl(imgFullFileUrl);
+			channel.setImgFullFileUrl(imgFullFileUrl);
 		}
-		if(Objects.nonNull(ptChannel.getChannelAvatarFileId())) {
-			SysFile avatarFile = sysFileService.getById(ptChannel.getChannelAvatarFileId());
+		if(Objects.nonNull(channel.getChannelAvatarFileId())) {
+			SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
 			String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
 			avatarFile.setFullFileUrl(avatarFullFileUrl);
-			ptChannel.setAvatarFile(avatarFile);
+			channel.setAvatarFile(avatarFile);
 		}
 		try {
 
-		if(Objects.nonNull(ptChannel.getVisibleFlag())) {
-			if (ptChannel.getVisibleFlag() == 2) {
-				if (ptChannelService.saveOrUpdate(ptChannel)) {
-					if (null!=ptChannel.getTags()){
+		if(Objects.nonNull(channel.getVisibleFlag())) {
+			if (channel.getVisibleFlag() == 2) {
+				if (ptChannelService.saveOrUpdate(channel)) {
+					if (null!=channel.getTags()){
 						PtTags ptTags = new PtTags();
-						ptTags.setChannelId(ptChannel.getId());
+						ptTags.setChannelId(channel.getId());
 						ptTags.setMasterId(masterId);
-						List<String> tagList = ptChannel.getTags().toJavaList(String.class);
+						List<String> tagList = channel.getTags().toJavaList(String.class);
 						List<PtTags> newTagList = new ArrayList<>();
 						int finalMasterId = masterId;
 						for (String tag: tagList) {
 							PtTags newTags = new PtTags();
 							newTags.setMasterId(finalMasterId);
 							newTags.setTagText(tag);
-							newTags.setChannelId(ptChannel.getId());
+							newTags.setChannelId(channel.getId());
 							newTags.setType(TableConstant.COMMON_ONE);
 							newTags.setOrder(TableConstant.COMMON_ZERO);
 							newTagList.add(newTags);
 						}
 						QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
 						queryWrapper2.in("master_id", masterId);
-						queryWrapper2.in("channel_id", ptChannel.getId());
+						queryWrapper2.in("channel_id", channel.getId());
 						queryWrapper2.in("type", TableConstant.COMMON_ONE);
 						ptTagsService.remove(queryWrapper2);
 						ptTagsService.saveOrUpdateBatch(newTagList);
-						ptChannel.setAllTags(tagList);
+						channel.setAllTags(tagList);
 					}
 
 					List <Integer> subscribeAccessList;
-					if ((null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO))||(null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))){
+					if ((null!=channel.getIsAllSubscribe()&&channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO))||(null!=channel.getIsAllChoose()&&channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))){
 						if (isOrgAdmin){
 							subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}else {
 							subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 						}
-						ptChannel.setAccessIdList(new ArrayList<>());
-						ptChannel.setSubscribeAccessIdList(new ArrayList<>());
-						if (null!=ptChannel.getIsAllChoose()&&ptChannel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)){
-							ptChannel.getAccessIdList().addAll(subscribeAccessList);
+						channel.setAccessIdList(new ArrayList<>());
+						channel.setSubscribeAccessIdList(new ArrayList<>());
+						if (null!=channel.getIsAllChoose()&&channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)){
+							channel.getAccessIdList().addAll(subscribeAccessList);
 						}else {
-							ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
+							channel.getSubscribeAccessIdList().addAll(subscribeAccessList);
 						}
 					}
 
-					List<GcAccess> accessList = gcAccessService.getAccessByChannelId(masterId, ptChannel.getId());
-					contentGroupChannelSubscriptionService.removeChannelFromContentGroups(accessList, ptChannel);
+					List<GcAccess> accessList = gcAccessService.getAccessByChannelId(masterId, channel.getId());
+					contentGroupChannelSubscriptionService.removeChannelFromContentGroups(accessList, channel);
 
-					List<GcUserAccessPermission> permissionList = gcUserAccessPermissionService.getContainsAccessPermissionList(ptChannel.getId().toString(),masterId);
+					List<GcUserAccessPermission> permissionList = gcUserAccessPermissionService.getContainsAccessPermissionList(channel.getId().toString(),masterId);
 					if (null!=permissionList && !permissionList.isEmpty()){
 						for (GcUserAccessPermission permission : permissionList) {
 							if (null!=permission.getChannelPermission()){
-								permission.getChannelPermission().remove(ptChannel.getId());
+								permission.getChannelPermission().remove(channel.getId());
 							}
 							if (null!=permission.getSubscribePermission()){
-								permission.getSubscribePermission().remove(ptChannel.getId());
+								permission.getSubscribePermission().remove(channel.getId());
 							}
 						}
 						gcUserAccessPermissionService.updateGcUserAccessPermissionsChannel(permissionList);
 					}
 					// Publish channel to team
-					if (CollectionUtils.isNotEmpty(ptChannel.getAccessIdList()) && !ptChannel.getAccessIdList().isEmpty()) {
-						contentGroupChannelSubscriptionService.savePublicChannels(ptChannel.getAccessIdList(), ptChannel.getId(), user);
+					if (CollectionUtils.isNotEmpty(channel.getAccessIdList()) && !channel.getAccessIdList().isEmpty()) {
+						contentGroupChannelSubscriptionService.savePublicChannels(channel.getAccessIdList(), channel.getId(), user);
 
-						List<Integer> permissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getAccessIdList());
+						List<Integer> permissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, channel.getAccessIdList());
 						if (CollectionUtils.isNotEmpty(permissionUserIds)) {
 							List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(permissionUserIds);
 							for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
 								JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
 								if (Objects.isNull(jsonArray)) {
 									JSONArray array = new JSONArray();
-									array.add(ptChannel.getId());
+									array.add(channel.getId());
 									gcUserAccessPermission.setChannelPermission(array);
 								} else {
-									if (!jsonArray.contains(ptChannel.getId())) {
-										jsonArray.add(ptChannel.getId());
+									if (!jsonArray.contains(channel.getId())) {
+										jsonArray.add(channel.getId());
 									}
 									gcUserAccessPermission.setChannelPermission(jsonArray);
 								}
@@ -2870,12 +2870,12 @@ public class PowtoonController extends GuideCoreController {
 						}
 					}
 
-					if (CollectionUtils.isNotEmpty(ptChannel.getSubscribeAccessIdList()) && !ptChannel.getSubscribeAccessIdList().isEmpty()) {
-						contentGroupChannelSubscriptionService.saveChannelSubscription(ptChannel.getSubscribeAccessIdList(), ptChannel.getId(), user);
+					if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList()) && !channel.getSubscribeAccessIdList().isEmpty()) {
+						contentGroupChannelSubscriptionService.saveChannelSubscription(channel.getSubscribeAccessIdList(), channel.getId(), user);
 
 						List<Integer> subscribePermissionUserIds = new ArrayList<>();
-						if (null!=ptChannel.getSubscribeAccessIdList() && !ptChannel.getSubscribeAccessIdList().isEmpty()){
-							subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getSubscribeAccessIdList());
+						if (null!=channel.getSubscribeAccessIdList() && !channel.getSubscribeAccessIdList().isEmpty()){
+							subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, channel.getSubscribeAccessIdList());
 						}
 						if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
 							List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
@@ -2883,11 +2883,11 @@ public class PowtoonController extends GuideCoreController {
 								JSONArray jsonArray = gcUserAccessPermission.getSubscribePermission();
 								if (Objects.isNull(jsonArray)) {
 									JSONArray array = new JSONArray();
-									array.add(ptChannel.getId());
+									array.add(channel.getId());
 									gcUserAccessPermission.setSubscribePermission(array);
 								} else {
-									if (!jsonArray.contains(ptChannel.getId())) {
-										jsonArray.add(ptChannel.getId());
+									if (!jsonArray.contains(channel.getId())) {
+										jsonArray.add(channel.getId());
 									}
 									gcUserAccessPermission.setSubscribePermission(jsonArray);
 								}
@@ -2896,43 +2896,43 @@ public class PowtoonController extends GuideCoreController {
 							gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 						}
 					}
-					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
-					message.addData("channel", ptChannel);
+					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					message.addData("channel", channel);
 				}
-			} else if (ptChannel.getVisibleFlag() == 1) {
+			} else if (channel.getVisibleFlag() == 1) {
 
 				List<Integer> subscribePermissionUserIds = new ArrayList<>();
 				List <Integer> subscribeAccessList = new ArrayList<>();
-				if (null!=ptChannel.getIsAllSubscribe()&&ptChannel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)){
+				if (null!=channel.getIsAllSubscribe()&&channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)){
 					if (isOrgAdmin){
 						subscribeAccessList = accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}else {
 						subscribeAccessList = accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId).collect(Collectors.toList());
 					}
-					ptChannel.getSubscribeAccessIdList().addAll(subscribeAccessList);
+					channel.getSubscribeAccessIdList().addAll(subscribeAccessList);
 				}
-				ptChannelService.saveOrUpdate(ptChannel);
+				ptChannelService.saveOrUpdate(channel);
 
 				List<GcUserAccessPermission> userAccessPermissionList = gcUserAccessPermissionService.selectAllUsersInPortal(masterId);
 				for (GcUserAccessPermission gcUserAccessPermission : userAccessPermissionList) {
 					JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
 					if (Objects.isNull(jsonArray)) {
 						JSONArray array = new JSONArray();
-						array.add(ptChannel.getId());
+						array.add(channel.getId());
 						gcUserAccessPermission.setChannelPermission(array);
 					} else {
-						if (!jsonArray.contains(ptChannel.getId())) {
-							jsonArray.add(ptChannel.getId());
+						if (!jsonArray.contains(channel.getId())) {
+							jsonArray.add(channel.getId());
 						}
 						gcUserAccessPermission.setChannelPermission(jsonArray);
 					}
 				}
 				gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissionList);
 
-				if (null!=ptChannel.getSubscribeAccessIdList()){
+				if (null!=channel.getSubscribeAccessIdList()){
 					List<GcUserAccessPermission> gcUserAccessPermissionList = new ArrayList<>();
-					if (null!=ptChannel.getSubscribeAccessIdList()&&ptChannel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO){
-						subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, ptChannel.getSubscribeAccessIdList());
+					if (null!=channel.getSubscribeAccessIdList()&&channel.getSubscribeAccessIdList().size()!=TableConstant.COMMON_ZERO){
+						subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId, channel.getSubscribeAccessIdList());
 					}
 					if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
 //						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
@@ -2940,12 +2940,12 @@ public class PowtoonController extends GuideCoreController {
 						for (GcUserAccessPermission permission : gcUserAccessPermissionList) {
 							JSONArray array = new JSONArray();
 							if (null==permission.getSubscribePermission()){
-									array.add(ptChannel.getId());
+									array.add(channel.getId());
 									permission.setSubscribePermission(array);
 							}else {
 								array = permission.getSubPermission();
-								array.add(ptChannel.getId());
-								if (!permission.getSubscribePermission().contains(ptChannel.getId())){
+								array.add(channel.getId());
+								if (!permission.getSubscribePermission().contains(channel.getId())){
 									permission.setSubscribePermission(array);
 								}
 							}
@@ -2954,30 +2954,30 @@ public class PowtoonController extends GuideCoreController {
 					gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
 				}
 
-				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
-				message.addData("channel", ptChannel);
-			} else if (ptChannel.getVisibleFlag() == 0) {
-				if (ptChannelService.saveOrUpdate(ptChannel)) {
-					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
-					message.addData("channel", ptChannel);
+				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+				message.addData("channel", channel);
+			} else if (channel.getVisibleFlag() == 0) {
+				if (ptChannelService.saveOrUpdate(channel)) {
+					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					message.addData("channel", channel);
 				} else {
 					return message.error();
 				}
 			//公共
-			} else if (ptChannel.getVisibleFlag() == TableConstant.COMMON_THREE){
-				if (ptChannelService.saveOrUpdate(ptChannel)) {
-					ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
-					message.addData("channel", ptChannel);
+			} else if (channel.getVisibleFlag() == TableConstant.COMMON_THREE){
+				if (ptChannelService.saveOrUpdate(channel)) {
+					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					message.addData("channel", channel);
 				} else {
 					return message.error();
 				}
 			}
 
-			userLicenseService.addChannelCount(ptChannel, user.getId());
+			userLicenseService.addChannelCount(channel, user.getId());
 		} else {
-			if (ptChannelService.saveOrUpdate(ptChannel)) {
-				ptChannel = ptChannelService.selectChannelDetail(ptChannel.getId(),null, request, null, masterId);
-				message.addData("channel", ptChannel);
+			if (ptChannelService.saveOrUpdate(channel)) {
+				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+				message.addData("channel", channel);
 			} else {
 				return message.error();
 			}
@@ -2992,22 +2992,21 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@PostMapping("/deleteChannelSection")
-	public Message deleteChannelSection(@RequestBody PtChannel ptChannel, HttpServletRequest request) {
+	public Message deleteChannelSection(@RequestBody PtChannel channel, HttpServletRequest request) {
 		Message message = new Message();
-		if (Objects.isNull(ptChannel.getId())) {
+		if (Objects.isNull(channel.getId())) {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelId"));
 		}
 		GcUser user = this.getGcUser();
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-		boolean isFlag =
-			this.permitCheck(user, ActionsType.delete, master.getId(), ResourceType.channel, ptChannel.getId(), null,
-				null);
-		if (!isFlag) {
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+
+		if (!permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
-		userLicenseService.decreaseChannelCount(user.getId(), ptChannel.getId());
-		if (ptChannelService.removeById(ptChannel.getId())) {
+		userLicenseService.decreaseChannelCount(user.getId(), channel.getId());
+		if (ptChannelService.removeById(channel.getId())) {
 			return message.ok("success");
 		}
 
@@ -3072,17 +3071,17 @@ public class PowtoonController extends GuideCoreController {
 	public Message selectChannelDetail(@RequestBody PtChannel ptChannel,HttpServletRequest request) throws IOException {
 		Message message = new Message();
 		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-
         Integer ptChannelId = null;
 		if (null!=ptChannel.getId()){
 			ptChannelId = ptChannel.getId();
 		}else if (null!=ptChannel.getChannelSlug()){
 			ptChannelId = ptChannelService.findBySlugAndMasterId(ptChannel.getChannelSlug(), masterId).getId();
 		}
+		ptChannel.setId(ptChannelId);
 
 		GcUser user = this.getGcUser();
-		boolean isFlag = this.permitCheck(user, ActionsType.view, masterId, ResourceType.channel, ptChannelId,null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		if (!permitService.checkPermit(ptChannel, ActionsType.view, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -3138,19 +3137,18 @@ public class PowtoonController extends GuideCoreController {
 	public Message saveVideo(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体") GcVideo video, HttpServletRequest request) throws IOException {
 		SysSystem sys = this.getSystem();
 		GcMaster master = this.getMaster();
-		Integer masterId = null;
-		if (null==master&&null!=request.getHeader("masterId")){
-			masterId = Integer.parseInt(request.getHeader("masterId"));
-		}else {
-			masterId = master.getId().intValue();
-		}
+		int masterId = RequestUtil.getMasterId(request).orElseGet(master::getId);
+
 		GcUser user = this.getGcUser();
-		boolean isFlag = false;
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		boolean isFlag;
 		if (null!=video.getId()){
-			isFlag = this.permitCheck(user, ActionsType.edit, masterId, ResourceType.videoItem, video.getId(),null,null);
+			isFlag = permitService.checkPermit(video, ActionsType.edit, portalUser);
 		}else {
-			isFlag = this.permitCheck(user, ActionsType.createVideoItem, masterId, ResourceType.portal, null,null,null);
+			isFlag = permitService.checkPermit(video, ActionsType.create, portalUser);
 		}
+
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
 		}
@@ -3159,7 +3157,8 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=video.getSubId()) {
 			video.setSubId0(gcSubjectService.getById(video.getSubId()).getFid());
 		}
-		return new Message().ok("添加成功！").addData("sync", video);
+		return new Message().ok("Success")
+			.addData("sync", video);
 	}
 
 	@ApiOperation(value = "查询section中的视频list")
@@ -3206,10 +3205,13 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.subscribe, masterId, ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
-		if (!isFlag){
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		PtChannel channel = ptChannelService.getById(ptChannelSubscribe.getChannelId());
+
+		if (!permitService.checkPermit(channel, ActionsType.subscribe, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
+
 		List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);
 		List<Integer> gcUserAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
 		List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionService.selectUserAccessPermissions(gcUserAccessIds);
@@ -3241,8 +3243,10 @@ public class PowtoonController extends GuideCoreController {
 		Message message = new Message();
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		boolean isFlag = this.permitCheck(user, ActionsType.unsubscribe, Integer.parseInt(request.getHeader("masterId")), ResourceType.channel, ptChannelSubscribe.getChannelId(),null,null);
-		if (!isFlag){
+		PtChannel channel = ptChannelService.getById(ptChannelSubscribe.getChannelId());
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+
+		if (!permitService.checkPermit(channel, ActionsType.unsubscribe, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);
@@ -3251,9 +3255,7 @@ public class PowtoonController extends GuideCoreController {
 		for(GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList){
 			JSONArray jsonArray  = new JSONArray();
 			if(CollectionUtils.isNotEmpty(gcUserAccessPermission.getSubscribePermission()) && gcUserAccessPermission.getSubscribePermission()!=null){
-				if(gcUserAccessPermission.getSubscribePermission().contains(ptChannelSubscribe.getChannelId())){
-					gcUserAccessPermission.getSubscribePermission().remove(ptChannelSubscribe.getChannelId());
-				}
+				gcUserAccessPermission.getSubscribePermission().remove(ptChannelSubscribe.getChannelId());
 			}
 			if (CollectionUtils.isEmpty(gcUserAccessPermission.getChannelPermission()) || gcUserAccessPermission.getChannelPermission() == null) {
 				jsonArray.add(ptChannelSubscribe.getChannelId());
@@ -3280,19 +3282,25 @@ public class PowtoonController extends GuideCoreController {
 		}
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		Integer channelFid = null;
-		if (null!=ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId()){
+		PtChannel channel;
+
+		if (null != ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId()) {
 			Integer channelId = ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId();
-			if (null!=ptChannelService.getById(channelId).getFid()){
-				channelFid = this.ptChannelService.getById(channelId).getFid();
-			}else {
+			channel = ptChannelService.getById(channelId);
+			if (null != channel.getFid()) {
+				channel = ptChannelService.getById(channel.getFid());
+				channelFid = channel.getFid();
+			} else {
 				channelFid = channelId;
 			}
+		} else {
+			return new Message().error(400, "Channel ID is required");
 		}
-		initPermit();
-		boolean isOrgAdmin = permitService.isUserOrgAdmin(user.getUsername());
-		boolean isFlag = this.permitCheck(user, ActionsType.edit, masterId, ResourceType.channel, channelFid,null,null);
-		if (!isFlag && !isOrgAdmin) {
+
+		if (!permitService.checkPermit(channel, ActionsType.edit, portalUser)
+			&& !permitService.isUserOrgAdmin(user.getUsername())) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -3342,25 +3350,25 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "channelContent删除内容")
 	@PostMapping("/deleteChannelContent")
-	public Message deleteChannelContent(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) throws IOException, PermitContextError, PermitApiError {
-		Message message = new Message();
-		if(Objects.isNull(ptChannelContent)){
+	public Message deleteChannelContent(@RequestBody PtChannelContent ptChannelContent, HttpServletRequest request) {
+		if (Objects.isNull(ptChannelContent)) {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
 		}
+
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
-		initPermit();
-		if (!permitService.isUserOrgAdmin(user.getUsername())) {
-			boolean isFlag = this.permitCheck(user, ActionsType.delete, masterId, ResourceType.channel, ptChannelContent.getChannelId(),null,null);
-			if (!isFlag){
-				throw new PermitException("No permission for this!");
-			}
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		PtChannel channel = ptChannelService.getById(ptChannelContent.getChannelId());
+
+		if (!permitService.isUserOrgAdmin(user.getUsername())
+			&& !permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
+			throw new PermitException("No permission for this!");
 		}
-		if(ptChannelContentService.deleteContent(ptChannelContent.getFileId(),ptChannelContent.getChannelId())){
-			return message.ok("success");
-		}else {
-			return message.error();
+		if (ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId())) {
+			return new Message().ok("success");
 		}
+
+		return new Message().error();
 	}
 
 	@ApiOperation(value = "channelContent修改视频顺序")
