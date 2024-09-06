@@ -63,6 +63,7 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.enums.UserOrgRole;
@@ -1014,13 +1015,13 @@ public class PowtoonController extends GuideCoreController {
 		PageInfo<GcAccess> accessList = null;
 		if (null!=adminFlag&&!adminFlag.equals(TableConstant.COMMON_ZERO)){
 			List<Integer> availableTypeFour = subService.getUserPublicSubject(masterId,user.getId());
-			List<Integer> availableTypeOneAndThree = subService.getUserCreateSubjectAdmin(masterId,user.getId());
+			List<Integer> publicCourseIds = subService.getUserCreateSubjectAdmin(masterId,user.getId());
 			List<Integer> subIds = subService.getUserCreateSubject(masterId,user.getId());
 			PageParam pageParam = new PageParam(request);
 			if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
 				PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
 			}
-			accessList = new PageInfo<>(accessService.getTeamAccessSubjectNumAdminList(name,masterId,user.getId(),availableTypeFour,availableTypeOneAndThree,subIds));
+			accessList = new PageInfo<>(accessService.getTeamAccessSubjectNumAdminList(name,masterId,user.getId(),availableTypeFour,publicCourseIds,subIds));
 		}else {
 			List<Integer> subIds = subService.getUserCreateSubject(user.getId(),masterId);
 			PageParam pageParam = new PageParam(request);
@@ -2420,7 +2421,7 @@ public class PowtoonController extends GuideCoreController {
 				ids.addAll(getContentGroupCodes(gcAccessService.listByIds(sub.getMustAccessIds())));
 			}
 			if (!oldSubject.getState().equals(sub.getState())&&null==sub.getFid()){
-				if (!isOrgAdmin&&sub.getAvailableType().equals(TableConstant.COMMON_ONE)){
+				if (!isOrgAdmin && CourseAvailabilityType.PUBLIC.getValue().equals(sub.getAvailableType())){
 					throw new PermitException("No permission for this!");
 				}
 				//发布

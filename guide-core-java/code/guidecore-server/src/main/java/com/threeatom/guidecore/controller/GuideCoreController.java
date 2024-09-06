@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller;
 
+import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,6 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
 import io.permit.sdk.Permit;
 import io.permit.sdk.PermitConfig;
-import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.enforcement.Resource;
 import io.permit.sdk.enforcement.User;
 import io.permit.sdk.openapi.models.TenantRead;
@@ -204,7 +204,7 @@ public class GuideCoreController extends BaseController{
 							gcUser = userService.getById(createUserId);
 						}
 						accessList = accessService.getAccessBySubjectId(masterId,resourceTypeUserId).stream().map(GcAccess::getCode).collect(Collectors.toList());
-						if (null!=subject.getAvailableType()&&(subject.getAvailableType().equals(TableConstant.COMMON_ONE)||subject.getAvailableType().equals(TableConstant.COMMON_THREE))){
+						if (CourseAvailabilityType.PUBLIC.getValue().equals(subject.getAvailableType())){
 							accessList = accessCodes;
 						}
 						break;
@@ -218,7 +218,7 @@ public class GuideCoreController extends BaseController{
 							if (null!=subject1&&null!=subject1.getCreateUser()){
 								createUser = subject1.getCreateUser();
 								accessList = accessService.getAccessBySubjectId(masterId,subject1.getId()).stream().map(GcAccess::getCode).collect(Collectors.toList());
-								if (null!=subject1.getAvailableType()&&(subject1.getAvailableType().equals(TableConstant.COMMON_ONE)||subject1.getAvailableType().equals(TableConstant.COMMON_THREE))){
+								if (CourseAvailabilityType.PUBLIC.getValue().equals(subject1.getAvailableType())){
 									accessList = accessCodes;
 								}
 							}

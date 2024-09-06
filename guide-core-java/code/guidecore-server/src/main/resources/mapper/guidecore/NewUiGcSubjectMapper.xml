@@ -178,7 +178,7 @@
 				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
 				</foreach>
-				or s.available_type = 3)
+				or s.available_type = 1)
 			</if>
 			<if test="subjectName != null and subjectName != ''">
 				AND (S.name LIKE CONCAT( CONCAT( '%', #{subjectName}), '%' )

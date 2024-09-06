@@ -167,7 +167,7 @@ public class PermitServiceImpl implements PermitService {
         }
 
         permitCourse.setId(String.valueOf(course.getId()));
-        permitCourse.setPublic(!course.getIsPrivate());
+        permitCourse.setPublic(course.isPublic());
         permitCourse.setPrivate(course.getIsPrivate());
         permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
         permitCourse.setOwnerId(String.valueOf(course.getUserId()));

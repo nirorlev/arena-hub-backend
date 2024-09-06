@@ -13,7 +13,6 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
 import lombok.Data;
 
@@ -222,7 +221,7 @@ public class GcVideo implements Serializable {
             return originChannel.isPublic();
         }
 
-        return !originCourse.getIsPrivate();
+        return originCourse.isPublic();
     }
 
     // considered as private if only owner can access it

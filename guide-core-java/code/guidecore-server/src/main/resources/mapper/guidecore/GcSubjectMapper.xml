@@ -590,7 +590,7 @@
 			or (s.create_user = #{userId} and s.master_id = #{masterId} and s.state = #{state})
 		</if>
 		<if test="type == 4 ">
-			or ((s.available_type = 3 or s.available_type = 1 )
+			or s.available_type = 1
 			<if test="subIdList != null and subIdList.size !=0">
 				and
 				s.id not in
@@ -712,9 +712,7 @@
 		</if>
 		<if test="type == 4">
 			and s.master_id = #{masterId}
-			or ((s.available_type = 3 or s.available_type = 1 )
-			and s.available_type != 4 and s.master_id = #{masterId})
-
+			or ( s.available_type = 1 and s.master_id = #{masterId})
 		</if>
 		<if test="createUser!=null">
 			and s.create_user = #{createUser}
@@ -1458,7 +1456,7 @@
 								   AND s.state = 1
 								   AND ua.master_id = #{masterId}
 								   AND u.id = #{userId}
-									OR ( s.available_type = 3 OR s.available_type = 1 )
+									OR s.available_type = 1
 								 GROUP BY s.id
 							 )  a
 	</select>
@@ -1466,7 +1464,6 @@
 	<select id="getPublicSubjectIds" resultType="java.lang.Integer">
 		select id from gc_subject
 		where available_type = 1
-		   or available_type = 3
 	</select>
 
 	<select id="selectNotNullVideoList" resultType="java.lang.Integer">
@@ -2005,9 +2002,7 @@
 		1 = 1
 		AND s.LEVEL = 0
 		AND s.master_id = #{masterId}
-		OR ((s.available_type = 3 OR s.available_type = 1)
-		AND s.available_type != 4
-		AND s.master_id = #{masterId})
+		OR (s.available_type = 1 AND s.master_id = #{masterId})
 		<if test="progress != null and progress == 0">
 			and (eu.anNums !=0 or s.nums !=0)
 			and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
@@ -2136,7 +2131,7 @@
 		AND u.id = #{userId}
 		AND ua.master_id = #{masterId}
 		AND ua.role_json::jsonb @> to_jsonb('groupMember'::text)
-		OR ((s.available_type = 1 OR s.available_type = 3) AND s.master_id = #{masterId} AND s.state = 1)
+		OR (s.available_type = 1 AND s.master_id = #{masterId} AND s.state = 1)
 		AND s.state = 1
 		AND s.level = 0
 		AND (co.subject_state != 1 OR co.id IS NULL)
@@ -2158,7 +2153,7 @@
 		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMaySubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
-		((s.available_type = 1 OR s.available_type = 3) AND s.master_id = #{masterId}) DESC,
+		(s.available_type = 1 AND s.master_id = #{masterId}) DESC,
 		s.published_time DESC
 	</select>
 
@@ -2261,7 +2256,7 @@
 		LEFT JOIN sys_file f2 ON f2.id = v.file_id
 		LEFT JOIN gc_user_video_action ac ON ac.content_id = v.id AND ac.type = 1
 		WHERE s.level = 0
-		AND (s.available_type = 1 OR s.available_type = 3)
+		AND s.available_type = 1
 		AND s.master_id = #{masterId}
 		AND s.state = 1
 		AND (co.subject_state != 1 OR co.id IS NULL)
@@ -2366,7 +2361,7 @@
 				#{ids}
 			</foreach>
 		</if>
-		OR ((s.available_type = 1 OR s.available_type = 3) AND s.master_id = #{masterId}))
+		OR (s.available_type = 1 AND s.master_id = #{masterId}))
 		AND s.level = 0
 		AND s.state = 1
 		<if test="name!=null and name !=''">
@@ -2412,7 +2407,7 @@
 
 	<select id="getUserCreateSubjectAdmin" resultType="java.lang.Integer">
 		select s.id from gc_subject s
-		where (s.available_type = 1 or s.available_type = 3)
+		where s.available_type = 1
 		and s.master_id = #{masterId}
 		and s.state = 1
 		and s.level = 0

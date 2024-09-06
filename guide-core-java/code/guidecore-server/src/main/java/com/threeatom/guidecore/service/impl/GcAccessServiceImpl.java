@@ -182,7 +182,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             Integer masterId,
             Integer userId,
             List<Integer> availableTypeFour,
-            List<Integer> availableTypeOneAndThree,
+            List<Integer> publicCourseIds,
             List<Integer> subIds) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name, masterId, userId);
 
@@ -190,8 +190,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
             List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
 
-            int coursesNum = access.getSubjectNum() + availableTypeOneAndThree.size();
-            long coursesCountToExclude = Stream.concat(availableTypeFour.stream(), availableTypeOneAndThree.stream())
+            int coursesNum = access.getSubjectNum() + publicCourseIds.size();
+            long coursesCountToExclude = Stream.concat(availableTypeFour.stream(), publicCourseIds.stream())
                 .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
                 .count();
 

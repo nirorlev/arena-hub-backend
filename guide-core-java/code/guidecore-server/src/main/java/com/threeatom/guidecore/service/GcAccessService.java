@@ -38,7 +38,7 @@ public interface GcAccessService extends IService<GcAccess> {
             Integer masterId,
             Integer userId,
             List<Integer> availableTypeFour,
-            List<Integer> availableTypeOneAndThree,
+            List<Integer> publicCourseIds,
             List<Integer> subIds);
 
     GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId);
