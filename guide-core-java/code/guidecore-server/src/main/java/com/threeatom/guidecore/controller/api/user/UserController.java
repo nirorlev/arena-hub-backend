@@ -14,7 +14,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserService;
-import com.threeatom.guidecore.service.OrgLicenseLimitService;
+import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.SysMenuService;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserLicenseService userLicenseService;
-    private final OrgLicenseLimitService orgLicenseLimitService;
+    private final OrgLicenseLimitationService orgLicenseLimitationService;
     private final GcUserService userService;
     private final GcMasterService gcMasterService;
     private final PtLoginConfigService ptLoginConfigService;
@@ -61,7 +61,7 @@ public class UserController {
     @GetMapping("/me/permissions")
     public ResponseEntity<LicensePermissionsDto> getPermissions(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok().body(orgLicenseLimitService.getPermissions(masterId));
+        return ResponseEntity.ok().body(orgLicenseLimitationService.getPermissions(masterId));
     }
 
     @ApiOperation(value = "Get usage of the current user according to org license limits")

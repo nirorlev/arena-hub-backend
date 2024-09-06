@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @TableName(value = "org_license_limit", autoResultMap = true)
-public class OrgLicenseLimit implements Serializable {
+public class OrgLicenseLimitation implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)

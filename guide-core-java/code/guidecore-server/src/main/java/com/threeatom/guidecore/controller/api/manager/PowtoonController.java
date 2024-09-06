@@ -81,7 +81,7 @@ import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
-import com.threeatom.guidecore.service.OrgLicenseLimitService;
+import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -278,7 +278,7 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private UserLicenseService userLicenseService;
 	@Autowired
-	private OrgLicenseLimitService orgLicenseLimitService;
+	private OrgLicenseLimitationService orgLicenseLimitationService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired

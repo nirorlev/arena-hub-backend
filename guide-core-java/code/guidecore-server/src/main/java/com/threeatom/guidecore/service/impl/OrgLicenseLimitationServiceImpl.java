@@ -3,21 +3,19 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
-import com.threeatom.guidecore.entity.OrgLicenseLimit;
-import com.threeatom.guidecore.mapper.OrgLicenseLimitMapper;
+import com.threeatom.guidecore.entity.OrgLicenseLimitation;
+import com.threeatom.guidecore.mapper.OrgLicenseLimitationMapper;
 import com.threeatom.guidecore.mapping.UserLicenseMapping;
-import com.threeatom.guidecore.service.OrgLicenseLimitService;
+import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.session.SqlSession;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMapper, OrgLicenseLimit>
-    implements OrgLicenseLimitService {
+public class OrgLicenseLimitationServiceImpl extends ServiceImpl<OrgLicenseLimitationMapper, OrgLicenseLimitation>
+    implements OrgLicenseLimitationService {
 
     private final UserLicenseMapping userLicenseMapping;
 
@@ -26,8 +24,8 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
 
     @Override
     public void save(Integer masterId) {
-        OrgLicenseLimit orgLicenseLimit = getByMasterId(masterId);
-        if (orgLicenseLimit != null) {
+        OrgLicenseLimitation orgLicenseLimitation = getByMasterId(masterId);
+        if (orgLicenseLimitation != null) {
             return;
         }
 
@@ -41,17 +39,17 @@ public class OrgLicenseLimitServiceImpl extends ServiceImpl<OrgLicenseLimitMappe
 
     @Transactional(readOnly = true)
     @Override
-    public OrgLicenseLimit getByMasterId(Integer masterId) {
-        QueryWrapper<OrgLicenseLimit> queryWrapper = new QueryWrapper<>();
+    public OrgLicenseLimitation getByMasterId(Integer masterId) {
+        QueryWrapper<OrgLicenseLimitation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
         return this.getOne(queryWrapper);
     }
 
-    private OrgLicenseLimit createNewOrgLimit(Integer masterId) {
-        OrgLicenseLimit orgLicenseLimit = new OrgLicenseLimit();
-        orgLicenseLimit.setMasterId(masterId);
-        orgLicenseLimit.setPublishedChannelLimit(PUBLISH_CHANNEL_LIMIT_DEFAULT);
-        orgLicenseLimit.setPublishedPlaylistLimit(PUBLISH_PLAYLIST_LIMIT_DEFAULT);
-        return orgLicenseLimit;
+    private OrgLicenseLimitation createNewOrgLimit(Integer masterId) {
+        OrgLicenseLimitation orgLicenseLimitation = new OrgLicenseLimitation();
+        orgLicenseLimitation.setMasterId(masterId);
+        orgLicenseLimitation.setPublishedChannelLimit(PUBLISH_CHANNEL_LIMIT_DEFAULT);
+        orgLicenseLimitation.setPublishedPlaylistLimit(PUBLISH_PLAYLIST_LIMIT_DEFAULT);
+        return orgLicenseLimitation;
     }
 }

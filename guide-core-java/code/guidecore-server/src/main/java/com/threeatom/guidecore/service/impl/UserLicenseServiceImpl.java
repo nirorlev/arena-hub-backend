@@ -2,13 +2,13 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.response.LicenseUsageDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
-import com.threeatom.guidecore.entity.OrgLicenseLimit;
+import com.threeatom.guidecore.entity.OrgLicenseLimitation;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
-import com.threeatom.guidecore.service.OrgLicenseLimitService;
+import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +22,18 @@ public class UserLicenseServiceImpl implements UserLicenseService {
 
     private final PtChannelService channelService;
     private final GcUserSaveFolderService playlistService;
-    private final OrgLicenseLimitService orgLicenseLimitService;
+    private final OrgLicenseLimitationService orgLicenseLimitationService;
 
     @Override
     public void checkPlaylistLimit(GcUserSaveFolder playlist, PortalUser portalUser) {
-        if (shouldLicenseBeActive(portalUser.getRole()) || playlist.getIsPrivate()) {
+        if (!isLimitedMember(portalUser.getRole()) || playlist.getIsPrivate()) {
             return;
         }
 
         Integer publicPlaylistsCount =
             playlistService.countUserPublicPlaylists(portalUser.getUserId(), portalUser.getMasterId());
-        OrgLicenseLimit orgLicenseLimit = orgLicenseLimitService.getByMasterId(portalUser.getMasterId());
-        Integer publishedPlaylistLimit = orgLicenseLimit.getPublishedPlaylistLimit();
+        OrgLicenseLimitation orgLicenseLimitation = orgLicenseLimitationService.getByMasterId(portalUser.getMasterId());
+        Integer publishedPlaylistLimit = orgLicenseLimitation.getPublishedPlaylistLimit();
 
         if (publicPlaylistsCount + 1 >= publishedPlaylistLimit) {
             log.info("User with id {} has reached the limit of public playlists ({})", portalUser.getUserId(),
@@ -44,14 +44,14 @@ public class UserLicenseServiceImpl implements UserLicenseService {
 
     @Override
     public void checkChannelLimit(PtChannel channel, PortalUser portalUser) {
-        if (shouldLicenseBeActive(portalUser.getRole()) || channel.getIsPrivate() || channel.getFid() != null) {
+        if (!isLimitedMember(portalUser.getRole()) || channel.getIsPrivate() || channel.getFid() != null) {
             return;
         }
 
         Integer publicChannelCount =
             channelService.countUserPublicChannels(portalUser.getUserId(), portalUser.getMasterId());
-        OrgLicenseLimit orgLicenseLimit = orgLicenseLimitService.getByMasterId(portalUser.getMasterId());
-        Integer publishedChannelLimit = orgLicenseLimit.getPublishedChannelLimit();
+        OrgLicenseLimitation orgLicenseLimitation = orgLicenseLimitationService.getByMasterId(portalUser.getMasterId());
+        Integer publishedChannelLimit = orgLicenseLimitation.getPublishedChannelLimit();
 
         if (publicChannelCount + 1 >= publishedChannelLimit) {
             log.info("User with id {} has reached the limit of public channels ({})", portalUser.getUserId(),
@@ -73,7 +73,7 @@ public class UserLicenseServiceImpl implements UserLicenseService {
         return licenseUsage;
     }
 
-    private boolean shouldLicenseBeActive(UserOrgRole role) {
-        return UserOrgRole.LIMITED_MEMBER.equals(role);
+    private boolean isLimitedMember(UserOrgRole orgRole) {
+        return UserOrgRole.LIMITED_MEMBER.equals(orgRole);
     }
 }
