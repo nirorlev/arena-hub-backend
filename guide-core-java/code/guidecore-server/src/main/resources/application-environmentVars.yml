@@ -86,10 +86,10 @@ registercode: ${REGISTER_CODE}
 publish:
   channel:
     limit:
-      default: 3
+      default: 1
   playlist:
     limit:
-      default: 3
+      default: 1
 
 metaurl:
   course: "course"
