@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.controller.api.user;
 
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.exceptions.ClientException;
 import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
@@ -23,8 +24,6 @@ import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.utils.HttpUtil;
-import io.permit.sdk.api.PermitApiError;
-import io.permit.sdk.api.PermitContextError;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -76,7 +75,7 @@ public class UserController {
 
     @ApiOperation(value = "Verify user token, authentication and return user info")
     @GetMapping("/me")
-    public Message getUser(HttpServletRequest request) throws PermitContextError, PermitApiError, IOException {
+    public Message getUser(HttpServletRequest request) {
         GcMaster master = getMaster(request);
         Integer masterId = master.getId();
         PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -84,8 +83,8 @@ public class UserController {
         GcUser user;
         try {
             user = getUserFromToken(RequestUtil.getRequestAuthHeader(request));
-            verifyToken(user, loginConfig);
-        } catch (AuthenticationException e) {
+            refreshFromPowtoon(user, loginConfig, masterId);
+        } catch (AuthenticationException | IOException | ClientException e) {
             return new Message().error(401, e.getMessage());
         }
 
@@ -124,17 +123,20 @@ public class UserController {
         throw new AuthenticationException("Token has not found!");
     }
 
-    private void verifyToken(GcUser user, PtLoginConfig ptLoginConfig) {
-        if (null == redisOperator.get("PT:" + user.getUsername())
-            || null == redisOperator.get("access_token_userid" + user.getId())) {
-            throw new AuthenticationException("Login has expired!");
+    private void refreshFromPowtoon(GcUser user, PtLoginConfig ptLoginConfig, Integer masterId)
+        throws IOException, ClientException {
+        if (null != redisOperator.get("PT:" + user.getUsername())
+            && null != redisOperator.get("access_token_userid" + user.getId())) {
+            return;
         }
 
         Map<String, String> body = getTokenRequestBody(user, ptLoginConfig.getClientId());
         String authResponse =
             HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
         PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
+
         updateAuthInRedis(user, authInfo);
+        userService.syncPowtoonUser(authInfo.getAccessToken(), ptLoginConfig, masterId);
     }
 
     private Map<String, String> getTokenRequestBody(GcUser user, String clientId) {
@@ -151,16 +153,16 @@ public class UserController {
         redisOperator.set("PT_refresh_token:" + user.getUsername(), authInfo.getRefreshToken());
     }
 
-    private void updateUserData(HttpServletRequest response, GcUser user) {
+    private void updateUserData(HttpServletRequest request, GcUser user) {
         user.setFirstName(user.getInfo().getFirstName());
         user.setLastName(user.getInfo().getLastName());
-        sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), response);
+        sysFileService.getResFullUrl(user.getInfo().getAvatarFile(), request);
     }
 
-    private String getLogoUrl(HttpServletRequest response, GcMaster master) {
+    private String getLogoUrl(HttpServletRequest request, GcMaster master) {
         if (Objects.nonNull(master.getLogoId())) {
             SysFile sysFile = sysFileService.getById(master.getLogoId());
-            return sysFileService.getResFullUrl(sysFile, response);
+            return sysFileService.getResFullUrl(sysFile, request);
         }
 
         return null;
