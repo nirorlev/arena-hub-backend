@@ -1,17 +1,15 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SysMenu;
-import io.permit.sdk.openapi.models.UserRole;
 import java.util.List;
 
 public interface SysMenuService extends IService<SysMenu> {
 
-    List<SysMenu> getSysMenuList(Integer masterId, GcUser user);
+    List<SysMenu> getSysMenuList(PortalUser portalUser);
 
-    List<SysMenu> getLevel3List(Integer masterId, GcUser user);
+    List<SysMenu> getLevel3List(PortalUser portalUser);
 
     List<SysMenu> getByMaster(Integer masterId);
 
@@ -19,11 +17,11 @@ public interface SysMenuService extends IService<SysMenu> {
 
     List<SysMenu> getChildLevelList(Integer masterId);
 
-    List<SysMenu> getSysMenuListByMasterId(Integer masterId, GcUser currentUser);
+    List<SysMenu> getSysMenuListByMasterId(PortalUser portalUser);
 
-    List<SysMenu> getLevel3ListByMasterId(Integer masterId, GcUser currentUser);
+    List<SysMenu> getLevel3ListByMasterId(PortalUser portalUser);
 
-    List<SysMenu> getMenuByRoles(List<String> roles, GcUser user, Integer masterId);
+    List<SysMenu> getMenuByRoles(List<String> roles, PortalUser portalUser);
 
-    List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer isGroupAdmin);
+    List<SysMenu> getSysMenus(PortalUser portalUser, Integer isGroupAdmin);
 }

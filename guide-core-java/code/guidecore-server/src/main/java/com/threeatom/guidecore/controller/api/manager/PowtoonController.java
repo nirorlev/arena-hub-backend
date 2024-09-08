@@ -1637,12 +1637,13 @@ public class PowtoonController extends GuideCoreController {
 		queryWrapper.eq("level",TableConstant.COMMON_TWO);
 
 		Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(masterId, currentUser);
-		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(masterId, currentUser);
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(portalUser);
+		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(portalUser);
 
 		if (sysMenuList.isEmpty() || homePageSections.isEmpty()){
-			sysMenuList=sysMenuService.getSysMenuList(masterId, currentUser);
-			homePageSections=sysMenuService.getLevel3List(masterId, currentUser);
+			sysMenuList=sysMenuService.getSysMenuList(portalUser);
+			homePageSections=sysMenuService.getLevel3List(portalUser);
 		}
 
 		// Preheat the interface and optimize the first startup

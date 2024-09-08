@@ -96,7 +96,7 @@ public class UserController {
         return new Message().ok()
             .addData("user", user)
             .addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
-            .addData("roleMenus", sysMenuService.getSysMenus(user, portalUser, isGroupAdmin))
+            .addData("roleMenus", sysMenuService.getSysMenus(portalUser, isGroupAdmin))
             .addData("isGroupAdmin", isGroupAdmin)
             .addData("isOrgAdmin", portalUser.isOrgAdmin())
             .addData("logoUrl", getLogoUrl(request, master))

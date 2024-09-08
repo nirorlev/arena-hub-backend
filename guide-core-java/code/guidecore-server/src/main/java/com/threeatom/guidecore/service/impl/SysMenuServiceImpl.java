@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.UserOrgRole;
@@ -37,15 +36,19 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     private final GcUserAccessService userAccessService;
 
     @Override
-    public List<SysMenu> getSysMenuList(Integer masterId, GcUser user) {
+    public List<SysMenu> getSysMenuList(PortalUser portalUser) {
         List<SysMenu> sysMenus = this.baseMapper.getSysMenuList();
-        return updateMenuItems(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
-    public List<SysMenu> getLevel3List(Integer masterId, GcUser user) {
+    public List<SysMenu> getLevel3List(PortalUser portalUser) {
         List<SysMenu> sysMenus = this.baseMapper.getLevel3List();
-        return updateMenuItems(sysMenus, user, masterId);
+        if (portalUser == null) {
+            return sysMenus;
+        }
+
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
@@ -66,29 +69,34 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenuListByMasterId(Integer masterId, GcUser user) {
-        List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(masterId);
-        return updateMenuItems(sysMenus, user, masterId);
+    public List<SysMenu> getSysMenuListByMasterId(PortalUser portalUser) {
+        List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(portalUser.getMasterId());
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
-    public List<SysMenu> getLevel3ListByMasterId(Integer masterId, GcUser user) {
-        List<SysMenu> sysMenus = this.baseMapper.getLevel3ListByMasterId(masterId);
-        return updateMenuItems(sysMenus, user, masterId);
+    public List<SysMenu> getLevel3ListByMasterId(PortalUser portalUser) {
+        List<SysMenu> sysMenus = this.baseMapper.getLevel3ListByMasterId(portalUser.getMasterId());
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
-    public List<SysMenu> getMenuByRoles(List<String> roles, GcUser user, Integer masterId) {
+    public List<SysMenu> getMenuByRoles(List<String> roles, PortalUser portalUser) {
         List<SysMenu> menuByRoles = this.baseMapper.getMenuByRoles(roles);
-        return updateMenuItems(menuByRoles, user, masterId);
+        return updateMenuItems(menuByRoles, portalUser);
     }
 
-    private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, GcUser user, Integer masterId) {
+    private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, PortalUser portalUser) {
         if (CollectionUtils.isEmpty(sysMenus)) {
             return sysMenus;
         }
 
-        sysMenus.removeIf(sysMenu -> isFeatureToggleDisabled(masterId, sysMenu));
+        sysMenus.removeIf(sysMenu -> {
+            if (isFeatureToggleDisabled(portalUser.getMasterId(), sysMenu)) {
+                return true;
+            }
+            return !permitService.checkMenuItem(sysMenu.getKey(), portalUser);
+        });
 
         return sysMenus;
     }
@@ -103,11 +111,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenus(GcUser user, PortalUser portalUser, Integer isGroupAdmin) {
+    public List<SysMenu> getSysMenus(PortalUser portalUser, Integer isGroupAdmin) {
         List<String> roles = getRoles(portalUser);
         List<SysMenu> roleMenus = new ArrayList<>();
         if (!roles.isEmpty()) {
-            roleMenus.addAll(getMenuByRoles(roles, user, portalUser.getMasterId()));
+            roleMenus.addAll(getMenuByRoles(roles, portalUser));
         }
 
         if (TableConstant.COMMON_ZERO != isGroupAdmin || portalUser.isOrgAdmin()) {

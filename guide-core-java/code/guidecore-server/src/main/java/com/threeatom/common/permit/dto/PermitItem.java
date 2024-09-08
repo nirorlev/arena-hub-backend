@@ -10,5 +10,6 @@ public abstract class PermitItem {
     private String id;
 
     abstract public String getType();
+
     abstract public HashMap<String, Object> getAttributes();
 }

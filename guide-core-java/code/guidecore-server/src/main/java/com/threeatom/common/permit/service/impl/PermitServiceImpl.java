@@ -5,6 +5,7 @@ import com.threeatom.common.permit.dto.PermitContentGroup;
 import com.threeatom.common.permit.dto.PermitCourse;
 import com.threeatom.common.permit.dto.PermitItem;
 import com.threeatom.common.permit.dto.PermitPlaylist;
+import com.threeatom.common.permit.dto.PermitPortal;
 import com.threeatom.common.permit.dto.PermitUser;
 import com.threeatom.common.permit.dto.PermitVideoItem;
 import com.threeatom.common.permit.service.PermitService;
@@ -25,6 +26,7 @@ import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.enforcement.Resource;
 import io.permit.sdk.enforcement.User;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -39,6 +41,8 @@ public class PermitServiceImpl implements PermitService {
 
     private static final String PERMIT_DEV_WIP_ENV_API_KEY =
         "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
+
+    private static final Map<String, String> MENU_ITEM_TO_PERMIT_ACTION = Map.of("Insights", "accessAnalytics");
 
     private final PermitConfiguration permitConfiguration;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
@@ -95,6 +99,15 @@ public class PermitServiceImpl implements PermitService {
         PermitUser permitUser = createUser(portalUser);
 
         return checkPermit(permitPlaylist, action, permitUser);
+    }
+
+    @Override
+    public boolean checkMenuItem(String menuItemKey, PortalUser portalUser) {
+        if (!MENU_ITEM_TO_PERMIT_ACTION.containsKey(menuItemKey)) {
+            return true;
+        }
+
+        return checkPermit(new PermitPortal(), MENU_ITEM_TO_PERMIT_ACTION.get(menuItemKey), createUser(portalUser));
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
