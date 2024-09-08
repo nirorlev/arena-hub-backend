@@ -2860,7 +2860,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error(400, "Channel ID is required");
 		}
 
-		if (!permitService.checkPermit(channel, ActionsType.edit, portalUser) && !portalUser.isOrgAdmin()) {
+		if (!permitService.checkPermit(channel, ActionsType.edit, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2920,7 +2920,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		PtChannel channel = ptChannelService.getById(ptChannelContent.getChannelId());
 
-		if (!portalUser.isOrgAdmin() && !permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
+		if (!permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		if (ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId())) {

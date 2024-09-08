@@ -10,7 +10,7 @@ public interface SharableListService {
 
     GroupAccessDto getSharableListByChannelId(Integer channelId, PortalUser portalUser);
 
-    GroupAccessDto getSharableListByCourseId(Integer id, PortalUser portalUser);
+    GroupAccessDto getSharableListByCourseId(Integer courseId, PortalUser portalUser);
 
-    GroupAccessDto getSharableListByPlaylistId(Integer id, Integer userId);
+    GroupAccessDto getSharableListByPlaylistId(Integer playlistId, Integer userId);
 }

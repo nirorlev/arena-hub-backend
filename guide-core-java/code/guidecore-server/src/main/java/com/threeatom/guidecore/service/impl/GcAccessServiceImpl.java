@@ -256,8 +256,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         List<GcAccess> memberContentGroups = createOrUpdateMemberContentGroups(allGroupCodes, masterId, memberGroups);
         List<GcAccess> managedContentGroups = saveOrUpdateManagedContentGroups(allGroupCodes, masterId, managedGroups);
         List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups, masterId);
+        List<GcAccess> dbContentGroups = this.list();
 
-        userAccessService.removeContentGroupsMissingInDb(list(), allGroupCodes, userId, masterId);
+        userAccessService.removeContentGroupsMissingInDb(dbContentGroups, allGroupCodes, userId, masterId);
         ptChannelSubscribeService.autoSubscribeToContentGroupChannels(memberContentGroups, userId);
         userAccessService.syncUserAccessWithPowtoonGroups(masterId, allContentGroups, groups, userId);
     }

@@ -41,25 +41,29 @@ public class SharableLinkController {
     }
 
     @GetMapping("/courses/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByCourseId(@PathVariable("id") Integer id,
+    public ResponseEntity<GroupAccessDto> getGroupsByCourseId(@PathVariable("id") Integer courseId,
                                                               HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
 
-        return ResponseEntity.ok(sharableListService.getSharableListByCourseId(id, portalUser));
+        return ResponseEntity.ok(sharableListService.getSharableListByCourseId(courseId, portalUser));
     }
 
     @GetMapping("/playlists/{id}/access")
-    public ResponseEntity<GroupAccessDto> getGroupsByPlaylistId(@PathVariable("id") Integer id,
+    public ResponseEntity<GroupAccessDto> getGroupsByPlaylistId(@PathVariable("id") Integer playlistId,
                                                                 HttpServletRequest request) {
-        Integer userId = JwtUtil.getUserIdByToken(RequestUtil.getRequestAuthHeader(request));
+        Integer userId = getUserId(request);
 
-        return ResponseEntity.ok(sharableListService.getSharableListByPlaylistId(id, userId));
+        return ResponseEntity.ok(sharableListService.getSharableListByPlaylistId(playlistId, userId));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 
         return portalUserService.getByUserAndMasterId(
-            JwtUtil.getUserIdByToken(RequestUtil.getRequestAuthHeader(request)), masterId);
+            getUserId(request), masterId);
+    }
+
+    private Integer getUserId(HttpServletRequest request) {
+        return JwtUtil.getUserIdByToken(RequestUtil.getRequestAuthHeader(request));
     }
 }
