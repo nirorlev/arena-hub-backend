@@ -28,6 +28,7 @@ import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +61,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcMasterMessageService masterMessageService;
     @Autowired
     private GcUserAnswerService userAnswerService;
+
+    @Lazy
     @Autowired
     private GcUserEventResourceService userEventResourceService;
     @Autowired
@@ -92,6 +95,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private PtTagsService ptTagsService;
     @Autowired
     private RedisOperator redisOperator;
+    @Lazy
     @Autowired
     private GcUserService gcUserService;//用户服务类--统计参与人数
     @Autowired

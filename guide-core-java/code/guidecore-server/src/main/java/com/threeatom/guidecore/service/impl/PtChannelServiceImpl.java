@@ -47,7 +47,10 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final ChannelMapping channelMapping;
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
-    private final GcUserService userService;
+
+    @Lazy
+    @Autowired
+    private GcUserService userService;
 
     @Lazy
     @Autowired
