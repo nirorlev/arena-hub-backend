@@ -35,7 +35,7 @@ public class UserLicenseServiceImpl implements UserLicenseService {
         OrgLicenseLimitation orgLicenseLimitation = orgLicenseLimitationService.getByMasterId(portalUser.getMasterId());
         Integer publishedPlaylistLimit = orgLicenseLimitation.getPublishedPlaylistLimit();
 
-        if (publicPlaylistsCount + 1 >= publishedPlaylistLimit) {
+        if (publicPlaylistsCount + 1 > publishedPlaylistLimit) {
             log.info("User with id {} has reached the limit of public playlists ({})", portalUser.getUserId(),
                 publishedPlaylistLimit);
             throw new LicenseLimitExceededException("User has reached the limit of public playlists");
@@ -44,16 +44,16 @@ public class UserLicenseServiceImpl implements UserLicenseService {
 
     @Override
     public void checkChannelLimit(PtChannel channel, PortalUser portalUser) {
-        if (!isLimitedMember(portalUser.getRole()) || channel.getIsPrivate() || channel.getFid() != null) {
+        if (!isLimitedMember(portalUser.getRole()) || channel.getIsPrivate() || channel.isSection()) {
             return;
         }
 
         Integer publicChannelCount =
-            channelService.countUserPublicChannels(portalUser.getUserId(), portalUser.getMasterId());
+            channelService.countUserPublishedChannels(portalUser.getUserId(), portalUser.getMasterId());
         OrgLicenseLimitation orgLicenseLimitation = orgLicenseLimitationService.getByMasterId(portalUser.getMasterId());
         Integer publishedChannelLimit = orgLicenseLimitation.getPublishedChannelLimit();
 
-        if (publicChannelCount + 1 >= publishedChannelLimit) {
+        if (publicChannelCount + 1 > publishedChannelLimit) {
             log.info("User with id {} has reached the limit of public channels ({})", portalUser.getUserId(),
                 publishedChannelLimit);
             throw new LicenseLimitExceededException("User has reached the limit of public channels");
@@ -67,7 +67,7 @@ public class UserLicenseServiceImpl implements UserLicenseService {
         licenseUsage.setPrivateChannelCount(channelService.countUserPrivateChannels(userId, masterId));
         licenseUsage.setPrivatePlaylistCount(playlistService.countUserPrivatePlaylists(userId, masterId));
 
-        licenseUsage.setPublishedChannelCount(channelService.countUserPublicChannels(userId, masterId));
+        licenseUsage.setPublishedChannelCount(channelService.countUserPublishedChannels(userId, masterId));
         licenseUsage.setPublishedPlaylistCount(playlistService.countUserPublicPlaylists(userId, masterId));
 
         return licenseUsage;

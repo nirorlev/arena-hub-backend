@@ -651,7 +651,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             throw new IllegalArgumentException(String.format("Channel with id %s not found", id));
         }
 
-        if (channel.getFid() != null) {
+        if (channel.isSection()) {
             channel = this.getById(channel.getFid());
         }
 
@@ -665,7 +665,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public Integer countUserPublicChannels(Integer userId, Integer masterId) {
+    public Integer countUserPublishedChannels(Integer userId, Integer masterId) {
         return countChannels(userId, masterId, List.of(PUBLIC, CERTAIN_TEAMS));
     }
 

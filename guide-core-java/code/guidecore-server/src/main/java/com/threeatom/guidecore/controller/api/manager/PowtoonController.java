@@ -2319,7 +2319,7 @@ public class PowtoonController extends GuideCoreController {
 
 		if (null!=channel.getId()){
 			isAllowed = permitService.checkPermit(channel, ActionsType.edit, portalUser);
-		}else if (null!=channel.getFid()){
+		}else if (channel.isSection()){
 			isAllowed = permitService.checkPermit(channel, ActionsType.addContent, portalUser);
 		}else {
 			isAllowed = permitService.checkPermit(channel, ActionsType.createChannel, portalUser);
@@ -2853,7 +2853,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null != ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId()) {
 			Integer channelId = ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId();
 			channel = ptChannelService.getById(channelId);
-			if (null != channel.getFid()) {
+			if (channel.isSection()) {
 				channel = ptChannelService.getById(channel.getFid());
 				channelFid = channel.getFid();
 			} else {
@@ -2982,7 +2982,7 @@ public class PowtoonController extends GuideCoreController {
 			ptChannel.setImgFullFileUrl(channelSnapShotUrl);
 		}
 		ptChannel.setCreateUser(user);
-		if (null!=ptchannel.getFid()){
+		if (ptChannel.isSection()){
 			PtChannel channel = ptChannelService.getById(ptchannel.getFid());
 			ptChannel.setChannelSlug(channel.getChannelSlug());
 		}
