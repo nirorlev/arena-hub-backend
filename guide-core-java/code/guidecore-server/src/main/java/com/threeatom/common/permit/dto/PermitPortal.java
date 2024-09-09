@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PermitPortal extends PermitItem {
+public class PermitPortal extends PermitResource {
 
     @Override
     public String getType() {

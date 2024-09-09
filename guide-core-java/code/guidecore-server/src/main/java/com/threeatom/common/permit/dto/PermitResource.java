@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class PermitItem {
+public abstract class PermitResource {
     private String id;
 
     abstract public String getType();

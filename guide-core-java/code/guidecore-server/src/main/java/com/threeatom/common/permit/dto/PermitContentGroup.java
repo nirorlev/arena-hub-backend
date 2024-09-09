@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PermitContentGroup extends PermitItem {
+public class PermitContentGroup extends PermitResource {
     @Override
     public String getType() {
         return ResourceType.contentGroup;

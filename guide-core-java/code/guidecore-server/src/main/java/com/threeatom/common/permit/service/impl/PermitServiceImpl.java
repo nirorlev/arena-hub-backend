@@ -3,7 +3,7 @@ package com.threeatom.common.permit.service.impl;
 import com.threeatom.common.permit.dto.PermitChannel;
 import com.threeatom.common.permit.dto.PermitContentGroup;
 import com.threeatom.common.permit.dto.PermitCourse;
-import com.threeatom.common.permit.dto.PermitItem;
+import com.threeatom.common.permit.dto.PermitResource;
 import com.threeatom.common.permit.dto.PermitPlaylist;
 import com.threeatom.common.permit.dto.PermitPortal;
 import com.threeatom.common.permit.dto.PermitUser;
@@ -160,19 +160,19 @@ public class PermitServiceImpl implements PermitService {
         return permitChannel;
     }
 
-    private boolean checkPermit(PermitItem permitItem, String action, PermitUser permitUser) {
+    private boolean checkPermit(PermitResource permitResource, String action, PermitUser permitUser) {
         try {
-            return permit.check(buildUser(permitUser), action, buildResource(permitItem));
+            return permit.check(buildUser(permitUser), action, buildResource(permitResource));
         } catch (IOException | PermitApiError e) {
             log.info("Error checking permission for user '{}', item type '{}' with id '{}' and action '{}'",
-                permitUser.getId(), permitItem.getType(), permitItem.getId(), action, e);
+                permitUser.getId(), permitResource.getType(), permitResource.getId(), action, e);
             throw new RuntimeException(e);
         }
     }
 
-    private Resource buildResource(PermitItem permitItem) {
-        return new Resource.Builder(permitItem.getType())
-            .withAttributes(permitItem.getAttributes())
+    private Resource buildResource(PermitResource permitResource) {
+        return new Resource.Builder(permitResource.getType())
+            .withAttributes(permitResource.getAttributes())
             .build();
     }
 
