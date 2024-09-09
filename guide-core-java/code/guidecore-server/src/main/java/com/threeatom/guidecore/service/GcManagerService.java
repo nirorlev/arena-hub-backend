@@ -7,7 +7,7 @@ public interface GcManagerService extends IService<GcManager> {
 
     GcManager getManagerByIdCache(Integer id);
 
-    boolean createManager(
+    void createManager(
         Integer sysId, String code, String email, String password, String fName, String lName);
 
     String loginGetToken(String email, String password);

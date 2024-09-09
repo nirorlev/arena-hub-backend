@@ -52,10 +52,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired RedisOperator redisOperator;
     @Autowired private Environment env;
     @Autowired private GcTeacherDataService teacherDataService;
-    @Autowired private NewUiGcSubjectService newUiGcSubjectService;
     @Autowired private GcProblemService gcProblemService;
-    @Autowired private GcManagerService gcManagerService;
-    @Autowired private GcUserService gcUserService;
     @Autowired private GcAccessService gcAccessService;
 
     @PostMapping("/saveHomeVideo")
@@ -295,8 +292,8 @@ public class HomeGuideCoreController extends GuideCoreController {
                 }
             }
         }
-        managerService.createManager(sysList.get(0).getId(), email, password, fName, lName, code);
 
+        managerService.createManager(sysList.get(0).getId(), email, password, fName, lName, code);
         return new Message().ok(I18NUtil.get("guidecore.master.register.success"));
     }
 
