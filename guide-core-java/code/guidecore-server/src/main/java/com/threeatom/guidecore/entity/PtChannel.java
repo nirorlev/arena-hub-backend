@@ -187,4 +187,8 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     public boolean isPublic() {
         return ChannelVisibilityFlag.PUBLIC.getValue().equals(visibleFlag);
     }
+
+    public boolean isCertainTeams() {
+        return ChannelVisibilityFlag.CERTAIN_TEAMS.getValue().equals(visibleFlag);
+    }
 }

@@ -1,5 +1,9 @@
 package com.threeatom.guidecore.service.impl;
 
+import static com.threeatom.guidecore.enums.ChannelVisibilityFlag.CERTAIN_TEAMS;
+import static com.threeatom.guidecore.enums.ChannelVisibilityFlag.PRIVATE;
+import static com.threeatom.guidecore.enums.ChannelVisibilityFlag.PUBLIC;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,6 +15,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.GcUserService;
@@ -35,12 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel>
-        implements PtChannelService {
-
-    private static final int PRIVATE_VISIBLE_FLAG = 0;
-    private static final int PUBLIC_VISIBLE_FLAG = 1;
-    private static final int TEAM_ASSIGNED_VISIBLE_FLAG = 2;
+public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel> implements PtChannelService {
 
     private final SysFileService sysFileService;
     private final PtTagsService tagsService;
@@ -661,12 +661,12 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     @Transactional(readOnly = true)
     public Integer countUserPrivateChannels(Integer userId, Integer masterId) {
-        return countChannels(userId, masterId, List.of(PRIVATE_VISIBLE_FLAG));
+        return countChannels(userId, masterId, List.of(PRIVATE));
     }
 
     @Override
     public Integer countUserPublicChannels(Integer userId, Integer masterId) {
-        return countChannels(userId, masterId, List.of(PUBLIC_VISIBLE_FLAG, TEAM_ASSIGNED_VISIBLE_FLAG));
+        return countChannels(userId, masterId, List.of(PUBLIC, CERTAIN_TEAMS));
     }
 
     @Override
@@ -674,13 +674,17 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return baseMapper.getTrendChannelsCountAnalytics(filter, masterId);
     }
 
-    private int countChannels(Integer userId, Integer masterId, List<Integer> privacyCodes) {
+    private int countChannels(Integer userId, Integer masterId, List<ChannelVisibilityFlag> channelVisibilityFlags) {
         QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("create_user_id", userId);
         queryWrapper.eq("master_id", masterId);
-        queryWrapper.in("visible_flag", privacyCodes);
+        queryWrapper.in("visible_flag", getVisibilityValues(channelVisibilityFlags));
 
         return this.count(queryWrapper);
+    }
+
+    private List<Integer> getVisibilityValues(List<ChannelVisibilityFlag> channelVisibilityFlags) {
+        return channelVisibilityFlags.stream().map(ChannelVisibilityFlag::getValue).collect(Collectors.toList());
     }
 
     private List<ChannelDto> convert(List<PtChannel> channels) {

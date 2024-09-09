@@ -2306,7 +2306,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (null!=channel.getVisibleFlag()&&channel.getVisibleFlag().equals(TableConstant.COMMON_ONE)){
+		if (channel.isPublic()){
 			isOrgAdmin = portalUser.isOrgAdmin();
 		}
 
@@ -2351,7 +2351,7 @@ public class PowtoonController extends GuideCoreController {
 		try {
 
 		if(Objects.nonNull(channel.getVisibleFlag())) {
-			if (channel.getVisibleFlag() == 2) {
+			if (channel.isCertainTeams()) {
 				userLicenseService.checkChannelLimit(channel, portalUser);
 
 				if (ptChannelService.saveOrUpdate(channel)) {
@@ -2465,7 +2465,7 @@ public class PowtoonController extends GuideCoreController {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
 					message.addData("channel", channel);
 				}
-			} else if (channel.getVisibleFlag() == 1) {
+			} else if (channel.isPublic()) {
 				userLicenseService.checkChannelLimit(channel, portalUser);
 
 				List<Integer> subscribePermissionUserIds = new ArrayList<>();
@@ -2523,7 +2523,7 @@ public class PowtoonController extends GuideCoreController {
 
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
 				message.addData("channel", channel);
-			} else if (channel.getVisibleFlag() == 0) {
+			} else if (channel.isPrivate()) {
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
 					message.addData("channel", channel);

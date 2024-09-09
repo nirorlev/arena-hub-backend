@@ -49,7 +49,6 @@ public class SharableListServiceImpl implements SharableListService {
     @Override
     public GroupAccessDto getSharableListByChannelId(Integer channelId, PortalUser portalUser) {
         PtChannel channel = channelService.findById(channelId);
-        Integer visibleFlag = channel.getVisibleFlag();
 
         AccessSourceDto accessSourceDto =
             getAccessSourceDto(channelId, channel.getCreateUserId(), SourceType.CHANNEL, portalUser.getUserId());
@@ -58,7 +57,7 @@ public class SharableListServiceImpl implements SharableListService {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
-        if (isChannelPublic(visibleFlag)) {
+        if (channel.isPublic()) {
             return getGroupAccessDto(true, false, Collections.emptyList(), accessSourceDto);
         }
 
@@ -101,10 +100,6 @@ public class SharableListServiceImpl implements SharableListService {
         }
 
         return getAccessGroupDetailsDtos(accessService.listAccess(null, masterId, portalUser.getUserId()));
-    }
-
-    private boolean isChannelPublic(Integer visibleFlag) {
-        return visibleFlag == 1;
     }
 
     private GroupAccessDto getGroupAccessDto(boolean isPublic, boolean isPrivate, List<AccessGroupDetailsDto> groups) {
