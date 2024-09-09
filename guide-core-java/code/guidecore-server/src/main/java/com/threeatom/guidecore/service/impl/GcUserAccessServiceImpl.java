@@ -484,11 +484,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public Integer getGroupAdmin(Integer userId, Integer masterId) {
-        return this.baseMapper.getGroupAdmin(userId, masterId);
-    }
-
-    @Override
     public List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId) {
         QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
         queryWrapper.eq("master_id", masterId);

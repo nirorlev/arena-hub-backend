@@ -111,14 +111,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenus(PortalUser portalUser, Integer isGroupAdmin) {
+    public List<SysMenu> getSysMenus(PortalUser portalUser) {
         List<String> roles = getRoles(portalUser);
         List<SysMenu> roleMenus = new ArrayList<>();
         if (!roles.isEmpty()) {
             roleMenus.addAll(getMenuByRoles(roles, portalUser));
         }
 
-        if (TableConstant.COMMON_ZERO != isGroupAdmin || portalUser.isOrgAdmin()) {
+        if (portalUser.isOrgAdmin() || portalUser.isGroupAdmin()) {
             roleMenus.add(getNewGroupAdminSysMenu());
         }
 

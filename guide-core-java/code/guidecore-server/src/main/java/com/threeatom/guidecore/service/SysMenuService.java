@@ -23,5 +23,5 @@ public interface SysMenuService extends IService<SysMenu> {
 
     List<SysMenu> getMenuByRoles(List<String> roles, PortalUser portalUser);
 
-    List<SysMenu> getSysMenus(PortalUser portalUser, Integer isGroupAdmin);
+    List<SysMenu> getSysMenus(PortalUser portalUser);
 }

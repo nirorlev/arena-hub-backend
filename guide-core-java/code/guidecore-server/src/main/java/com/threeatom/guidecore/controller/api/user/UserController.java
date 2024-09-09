@@ -13,7 +13,6 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.service.GcMasterService;
-import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.OrgLicenseLimitService;
 import com.threeatom.guidecore.service.PortalUserService;
@@ -55,7 +54,6 @@ public class UserController {
     private final PtLoginConfigService ptLoginConfigService;
     private final RedisOperator redisOperator;
     private final SysFileService sysFileService;
-    private final GcUserAccessService accessService;
     private final SysMenuService sysMenuService;
     private final PortalUserService portalUserService;
 
@@ -91,13 +89,12 @@ public class UserController {
         updateUserData(request, user);
 
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-        Integer isGroupAdmin = accessService.getGroupAdmin(user.getId(), masterId);
 
         return new Message().ok()
             .addData("user", user)
             .addData("logoutUrl", loginConfig.getPtRootUrl() + loginConfig.getLogOutUrl())
-            .addData("roleMenus", sysMenuService.getSysMenus(portalUser, isGroupAdmin))
-            .addData("isGroupAdmin", isGroupAdmin)
+            .addData("roleMenus", sysMenuService.getSysMenus(portalUser))
+            .addData("isGroupAdmin", portalUser.isGroupAdmin())
             .addData("isOrgAdmin", portalUser.isOrgAdmin())
             .addData("logoUrl", getLogoUrl(request, master))
             .addData("ptRootUrl", loginConfig.getPtRootUrl());

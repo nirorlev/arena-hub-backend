@@ -91,8 +91,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     void deleteUserAccess(Integer userId, Integer masterId, List<Integer> accessId);
 
-    Integer getGroupAdmin(Integer userId, Integer masterId);
-
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
 
     Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);

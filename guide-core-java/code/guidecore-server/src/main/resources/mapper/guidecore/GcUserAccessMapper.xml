@@ -522,13 +522,6 @@
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 
-    <select id="getGroupAdmin" resultType="java.lang.Integer">
-        select count(1) from gc_user_access
-        where user_id = #{userId}
-        and master_id = #{masterId}
-        and role_json::text like concat('%','groupAdmin','%')
-    </select>
-
     <select id="getAccessListBySuperAdmin" resultType="java.lang.Integer">
         select access_id from gc_user_access
         where 1=1

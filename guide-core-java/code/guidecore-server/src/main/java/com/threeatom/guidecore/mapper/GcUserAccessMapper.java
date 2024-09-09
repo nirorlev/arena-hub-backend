@@ -91,6 +91,4 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
     List<GcUserAccess> countUsersInPortal();
 
     void insertUserAccessList(List<GcUserAccess> list);
-
-    Integer getGroupAdmin(@Param("userId") Integer userid, @Param("masterId") Integer masterId);
 }
