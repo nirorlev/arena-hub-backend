@@ -2,16 +2,18 @@ package com.threeatom.guidecore.service;
 
 import com.github.pagehelper.PageInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
 
 public interface UnavailableVideoService {
-    void nullifyVideoData(List<SysFile> files);
+    void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos, List<SysFile> videoFiles);
 
-    void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent);
+    void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent);
 
-    void nullifyVideoData(SysFile file);
+    void nullifyVideoData(PortalUser portalUser, GcVideo video);
 
-    void nullifyVideoComments(PageInfo<GcVideoComment> comments, Integer videoId);
+    void nullifyVideoComments(PortalUser portalUser, GcVideo video, PageInfo<GcVideoComment> comments);
 }

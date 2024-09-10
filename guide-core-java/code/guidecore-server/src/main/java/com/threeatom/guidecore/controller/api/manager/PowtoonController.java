@@ -856,12 +856,15 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
 		}
 		Message message = new Message();
-		SysFile file = sysFileService.getById(videoId);
-		GcUser myUser =this.getGcUser();
+		GcVideo video = gcVideoService.getVideoById(videoId);
+		SysFile file = video.getVideoFile();
+		GcUser myUser = this.getGcUser();
+		Integer masterId = getHeaderMasterId(request);
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(myUser.getId(), masterId);
 
 		List<Integer> playListIds = new ArrayList<>();
 		playListIds.add(playListId);
-		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderAllVideo(null, getHeaderMasterId(request),playListIds,request,null);
+		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderAllVideo(null, masterId,playListIds,request,null);
 		GcUser gcUser = gcUserService.getById(list.get(0).getUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
 		gcUser.setInfo(gcUserInfo);
@@ -876,7 +879,8 @@ public class PowtoonController extends GuideCoreController {
 		List<GcUserSaveContentFollow> gcUserSaveContentFollowList = gcUserSaveContentFollowService.selectFollowListByPlayListId(listIds);
 		Map<Integer,List<GcUserSaveContentFollow>> map = gcUserSaveContentFollowList.stream().collect(Collectors.groupingBy(GcUserSaveContentFollow::getFolderId));
 
-		List<Integer> gcUserSaveContentFollowIdList = gcUserSaveContentFollowService.selectFollowPlayList(this.getGcUser().getId(),getHeaderMasterId(request));
+		List<Integer> gcUserSaveContentFollowIdList = gcUserSaveContentFollowService.selectFollowPlayList(this.getGcUser().getId(),
+			masterId);
 		if(gcUserSaveContentFollowIdList.contains(playListId)){
 			message.ok().addData("followFlag",TableConstant.COMMON_ONE);
 		}
@@ -905,8 +909,9 @@ public class PowtoonController extends GuideCoreController {
 		populateVideoContent(request, file, myUser.getId());
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		unavailableVideoService.nullifyVideoData(file);
-		unavailableVideoService.nullifyPlaylistContent(list.get(0).getSaveContentList());
+
+		unavailableVideoService.nullifyVideoData(portalUser, video);
+		unavailableVideoService.nullifyPlaylistContent(portalUser, list.get(0).getSaveContentList());
 		return message.ok().addData("thisVideo",file)
 				.addData("playListDetail",list.get(0))
 				.addData("systemTime",df.format(new Date()));
