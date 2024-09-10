@@ -6,6 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,25 +55,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class NewUISaveContentController extends GuideCoreController {
 
     @Autowired private GcUserSaveFolderService gcUserSaveFolderService;
-
     @Autowired private GcUserSaveContentService gcUserSaveContentService;
-
     @Autowired private SysFileService sysFileService;
-
-    @Autowired private NewUiGcSubjectService subjectService;
-
-    @Autowired private GcVideoService gcVideoService;
-
     @Autowired private GcUserSaveContentFollowService gcUserSaveContentFollowService;
-
-    @Autowired private GcUserService gcUserService;
-
-    @Autowired private GcUserInfoService gcUserInfoService;
-
     @Autowired private GcMasterService gcMasterService;
     @Autowired private GcMasterHomeInfoService iGcMasterHomeInfoService;
     @Autowired private UserLicenseService userLicenseService;
     @Autowired private PortalUserService portalUserService;
+    @Autowired private PermitService permitService;
 
     @ApiOperation(value = "获取已有保存课程/视频的文件夹列表", httpMethod = "GET")
     @GetMapping("/contentFolderList")
@@ -102,103 +93,119 @@ public class NewUISaveContentController extends GuideCoreController {
     @ApiOperation(value = "pt-playlist", httpMethod = "GET")
     @GetMapping("/" + "ptContentFolderList")
     public Message ptContentFolderList(HttpServletRequest request) {
-        Message m = new Message();
-        // myplaylist
-        List<GcUserSaveFolder> list =
+        Message message = new Message();
+        Integer userId = this.getGcUser().getId();
+        Integer masterId = getHeaderMasterId(request);
+        List<GcUserSaveFolder> playlists =
                 gcUserSaveFolderService.selectFolderForUserMaster(
-                        this.getGcUser().getId(), getHeaderMasterId(request), null, request, null);
-        List<Integer> listIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(listIds)) {
-            List<GcUserSaveContentFollow> gcUserSaveContentFollowList =
-                    gcUserSaveContentFollowService.selectFollowListByPlayListId(listIds);
-            Map<Integer, List<GcUserSaveContentFollow>> map =
-                    gcUserSaveContentFollowList.stream()
-                            .collect(Collectors.groupingBy(GcUserSaveContentFollow::getFolderId));
-            for (GcUserSaveFolder folder : list) {
-                if (Objects.nonNull(folder.getFirstVideoFileId())) {
-                    SysFile sysFile = sysFileService.getById(folder.getFirstVideoFileId());
-                    String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
-                    folder.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
-                    folder.setSnapshotUrl(fullfileurl);
-                }
-                List<GcUserSaveContentFollow> list1 = map.get(folder.getId());
-                if (CollectionUtils.isNotEmpty(list1)) {
-                    folder.setFollowNum(list1.size());
-                }
-                for (GcUserSaveContent content : folder.getSaveContentList()) {
-                    if (content.getVideoFile() != null)
-                        sysFileService.getVideoSnapshotUrl(content.getVideo());
-                    if (content.getSubject() != null)
-                        sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
-                }
-            }
-        }
-        PageInfo<GcUserSaveFolder> pageInfo = new PageInfo<>(list);
-        m.ok().addData("myPlayList", pageInfo);
+                    userId, masterId, null, request, null);
+        List<Integer> playlistIds = playlists.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
 
-        // followedplaylist
-        List<Integer> gcUserSaveContentFollowIdList =
-                gcUserSaveContentFollowService.selectFollowPlayList(
-                        this.getGcUser().getId(), getHeaderMasterId(request));
-        if (CollectionUtils.isNotEmpty(gcUserSaveContentFollowIdList)) {
-            List<GcUserSaveFolder> followedplaylist =
-                    gcUserSaveFolderService.selectFolderForUserMaster(
-                            null, getHeaderMasterId(request), gcUserSaveContentFollowIdList, request, null);
-            for (GcUserSaveFolder gcUserSaveFolder : followedplaylist) {
-                // playlist下的视频数量
-                List<GcUserSaveContent> contents = gcUserSaveFolder.getSaveContentList();
-                List<GcUserSaveContent> videoContents =
-                        contents.stream().filter(e -> e.getFileId() != null).collect(Collectors.toList());
-                gcUserSaveFolder.setVideoNum(videoContents.size());
-                if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-                    SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-                    gcUserSaveFolder.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-                    gcUserSaveFolder.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
-                }
-                gcUserSaveFolder.setFollowFlag(TableConstant.COMMON_ONE);
-            }
-            PageInfo<GcUserSaveFolder> followedplaylistPageInfo = new PageInfo<>(followedplaylist);
-            m.ok().addData("followedplaylist", followedplaylistPageInfo);
-        } else {
-            m.ok().addData("followedplaylist", new PageInfo<>());
-        }
-        // recommenplaylist
-        List<GcUserSaveFolder> recommentPlayList =
-                gcUserSaveFolderService.selectFolderInMaster(getHeaderMasterId(request));
-        List<Integer> recommenFolderIds =
-                recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-        List<GcUserSaveFolder> recommenFolderList =
-                gcUserSaveFolderService.selectFolderForUserMaster(
-                        null, getHeaderMasterId(request), recommenFolderIds, request, listIds);
-        for (GcUserSaveFolder gcUserSaveFolder : recommenFolderList) {
-            if (gcUserSaveContentFollowIdList.contains(gcUserSaveFolder.getId())) {
-                gcUserSaveFolder.setFollowFlag(TableConstant.COMMON_ONE);
-            }
-            // playlist下的视频数量
-            List<GcUserSaveContent> contents = gcUserSaveFolder.getSaveContentList();
-            List<GcUserSaveContent> videoContents =
-                    contents.stream().filter(e -> e.getFileId() != null).collect(Collectors.toList());
-            gcUserSaveFolder.setVideoNum(videoContents.size());
-            System.out.println("????::::::" + gcUserSaveFolder);
-            // 缩略图
-            //			if(CollectionUtils.isNotEmpty(gcUserSaveFolder.getSaveContentList())) {
-            if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-                SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-                String fullfileurl = sysFileService.getResFullUrl(sysFile, request);
-                gcUserSaveFolder.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-                gcUserSaveFolder.setFullFileUrl(fullfileurl);
-            }
-        }
-        PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-        m.ok().addData("recommenFolderList", recommenFolderListPageInfo);
+        populateUserPlaylists(request, playlistIds, playlists, portalUser, message);
+        List<Integer> followedPlaylistIds = populateFollowedPlaylists(request, portalUser, message);
+        populateRecommendedPlaylists(request, playlistIds, followedPlaylistIds, portalUser, message);
+
         List<GcMasterHomeInfo> allHomeInfos =
                 iGcMasterHomeInfoService.getGcMasterHomeInfoList(
                         request.getIntHeader("masterId"),
                         TableConstant.gcMasterHomeInfo_name_homepage_list,
                         getSystem(),
                         request);
-        m.ok().addData("homeInfos", allHomeInfos);
-        return m;
+        message.ok().addData("homeInfos", allHomeInfos);
+        return message;
+    }
+
+    private void populateRecommendedPlaylists(HttpServletRequest request, List<Integer> playlistIds,
+                           List<Integer> followedPlaylistIds, PortalUser portalUser, Message message) {
+        List<GcUserSaveFolder> recommendedPlaylists =
+                gcUserSaveFolderService.selectFolderInMaster(portalUser.getMasterId());
+        List<Integer> recommendedPlaylistIds =
+                recommendedPlaylists.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
+        List<GcUserSaveFolder> recommenFolderList =
+                gcUserSaveFolderService.selectFolderForUserMaster(
+                        null, portalUser.getMasterId(), recommendedPlaylistIds, request, playlistIds);
+
+        for (GcUserSaveFolder recommendedPlaylist : recommenFolderList) {
+            if (followedPlaylistIds.contains(recommendedPlaylist.getId())) {
+                recommendedPlaylist.setFollowFlag(TableConstant.COMMON_ONE);
+            }
+
+            List<GcUserSaveContent> contents = recommendedPlaylist.getSaveContentList();
+            List<GcUserSaveContent> videoContents =
+                    contents.stream().filter(e -> e.getFileId() != null).collect(Collectors.toList());
+            recommendedPlaylist.setVideoNum(videoContents.size());
+
+            if (Objects.nonNull(recommendedPlaylist.getFirstVideoFileId())) {
+                SysFile sysFile = sysFileService.getById(recommendedPlaylist.getFirstVideoFileId());
+                String fullfileurl = sysFileService.getResFullUrl(sysFile, request);
+                recommendedPlaylist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
+                recommendedPlaylist.setFullFileUrl(fullfileurl);
+            }
+            permitService.populatePermissions(recommendedPlaylist, portalUser);
+        }
+        message.ok().addData("recommenFolderList", new PageInfo<>(recommenFolderList));
+    }
+
+    private List<Integer> populateFollowedPlaylists(HttpServletRequest request, PortalUser portalUser, Message message) {
+        List<Integer> followedPlaylistIds =
+                gcUserSaveContentFollowService.selectFollowPlayList(portalUser.getUserId(), portalUser.getMasterId());
+        if (CollectionUtils.isNotEmpty(followedPlaylistIds)) {
+            List<GcUserSaveFolder> followedPlaylist =
+                    gcUserSaveFolderService.selectFolderForUserMaster(
+                            null, portalUser.getMasterId(), followedPlaylistIds, request, null);
+
+            for (GcUserSaveFolder playlist : followedPlaylist) {
+                List<GcUserSaveContent> contents = playlist.getSaveContentList();
+                List<GcUserSaveContent> videoContents =
+                        contents.stream().filter(e -> e.getFileId() != null).collect(Collectors.toList());
+                playlist.setVideoNum(videoContents.size());
+                if (Objects.nonNull(playlist.getFirstVideoFileId())) {
+                    SysFile sysFile = sysFileService.getById(playlist.getFirstVideoFileId());
+                    playlist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
+                    playlist.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
+                }
+                playlist.setFollowFlag(TableConstant.COMMON_ONE);
+                permitService.populatePermissions(playlist, portalUser);
+            }
+
+            message.ok().addData("followedplaylist", new PageInfo<>(followedPlaylist));
+        } else {
+            message.ok().addData("followedplaylist", new PageInfo<>());
+        }
+
+        return followedPlaylistIds;
+    }
+
+    private void populateUserPlaylists(HttpServletRequest request, List<Integer> playlistIds, List<GcUserSaveFolder> playlists,
+                           PortalUser portalUser, Message message) {
+        if (CollectionUtils.isNotEmpty(playlistIds)) {
+            List<GcUserSaveContentFollow> gcUserSaveContentFollowList =
+                    gcUserSaveContentFollowService.selectFollowListByPlayListId(playlistIds);
+            Map<Integer, List<GcUserSaveContentFollow>> map =
+                    gcUserSaveContentFollowList.stream()
+                            .collect(Collectors.groupingBy(GcUserSaveContentFollow::getFolderId));
+            for (GcUserSaveFolder playlist : playlists) {
+                if (Objects.nonNull(playlist.getFirstVideoFileId())) {
+                    SysFile sysFile = sysFileService.getById(playlist.getFirstVideoFileId());
+                    String fullfileurl = sysFileService.getVideoSnapshotUrl(sysFile);
+                    playlist.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
+                    playlist.setSnapshotUrl(fullfileurl);
+                }
+                List<GcUserSaveContentFollow> list1 = map.get(playlist.getId());
+                if (CollectionUtils.isNotEmpty(list1)) {
+                    playlist.setFollowNum(list1.size());
+                }
+                for (GcUserSaveContent content : playlist.getSaveContentList()) {
+                    if (content.getVideoFile() != null)
+                        sysFileService.getVideoSnapshotUrl(content.getVideo());
+                    if (content.getSubject() != null)
+                        sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
+                }
+                permitService.populatePermissions(playlist, portalUser);
+            }
+        }
+        message.ok().addData("myPlayList", new PageInfo<>(playlists));
     }
 
     @PostMapping("/saveDeletePlayListFollow")

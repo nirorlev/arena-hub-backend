@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.*;
@@ -55,6 +56,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired private UnavailableVideoService unavailableVideoService;
     @Autowired private PortalUserService portalUserService;
+    @Autowired private PermitService permitService;
 
     private static final String CACHE_TAG = "GcMaster";
 
@@ -121,13 +123,14 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Override
     public Message getContentFromOneFolder(
-            @RequestBody GcUserSaveFolder gcUserSaveFolder,
+            @RequestBody GcUserSaveFolder playlist,
             GcUser user,
             HttpServletRequest request,
             Integer envFlag) {
         Message m = new Message();
         Map<String, Object> params = new HashMap<>();
         List<GcSubject> twoList = new ArrayList<>();
+        int masterId = request.getIntHeader("masterId");
 
         try {
             Integer userId = null;
@@ -135,21 +138,25 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 userId = user.getId();
                 params.put("userId", userId);
             }
-            gcUserSaveFolder = gcUserSaveFolderService.getById(gcUserSaveFolder.getId());
+
+            PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
+            playlist = gcUserSaveFolderService.getById(playlist.getId());
+            permitService.populatePermissions(playlist, portalUser);
+
             GcUserSaveContent content = new GcUserSaveContent();
             if (Objects.nonNull(user)) {
                 content =
                         new GcUserSaveContent(
-                                user.getId(), gcUserSaveFolder.getMasterId(), gcUserSaveFolder.getId());
+                                user.getId(), playlist.getMasterId(), playlist.getId());
             } else {
                 content =
-                        new GcUserSaveContent(null, gcUserSaveFolder.getMasterId(), gcUserSaveFolder.getId());
+                        new GcUserSaveContent(null, playlist.getMasterId(), playlist.getId());
             }
-            m.addData("gcUserSaveFolder", gcUserSaveFolder);
-            m.addData("id", gcUserSaveFolder.getId());
-            m.addData("name", gcUserSaveFolder.getName());
+            m.addData("gcUserSaveFolder", playlist);
+            m.addData("id", playlist.getId());
+            m.addData("name", playlist.getName());
             if (envFlag.equals(EnvType.PT.getCode())) {
-                GcUserSaveFolder saveFolder = gcUserSaveFolderService.getById(gcUserSaveFolder.getId());
+                GcUserSaveFolder saveFolder = gcUserSaveFolderService.getById(playlist.getId());
                 GcUser folderUser = gcUserService.getById(saveFolder.getUserId());
                 GcUserInfo gcUserInfo = gcUserInfoService.getById(folderUser.getInfoId());
                 gcUserInfo.setUserId(folderUser.getId());
@@ -206,13 +213,12 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 m.addData("videoNum", list.size());
             }
 
-            int masterId = request.getIntHeader("masterId");
             if (Objects.nonNull(user)) {
                 List<Integer> follows =
                         gcUserSaveContentFollowService.selectFollowPlayList(
                                 user.getId(), masterId);
                 if (CollectionUtils.isNotEmpty(follows)) {
-                    if (follows.contains(gcUserSaveFolder.getId())) {
+                    if (follows.contains(playlist.getId())) {
                         followFlag = TableConstant.COMMON_ONE;
                     } else {
                         followFlag = TableConstant.COMMON_ZERO;
@@ -233,7 +239,6 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 }
             }
             PageInfo<SysFile> pageInfo = new PageInfo<>(videoFiles);
-            PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
             unavailableVideoService.nullifyVideoData(portalUser, videos);
             m.addData("videoList", pageInfo);
         } catch (Exception e) {

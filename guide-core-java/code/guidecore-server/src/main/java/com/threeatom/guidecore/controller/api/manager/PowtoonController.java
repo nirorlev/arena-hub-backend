@@ -454,13 +454,16 @@ public class PowtoonController extends GuideCoreController {
 	public Message newPtIndexHome(@RequestBody JSONObject requestParams, HttpServletRequest request){
 		SysSystem system = this.getSystem();
 		String portalId = requestParams.getString("portalId");
+
 		if(Objects.isNull(portalId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 		String token = request.getHeader("Authorization");
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(this.getGcUser().getId(), getHeaderMasterId(request));
+
 		if (!"undefined".equals(token)){
 			GcUser user = this.getGcUser();
-			return gvgMasterService.newPtIndexHome(requestParams,request,system,user).addData("times",new Date());
+			return gvgMasterService.newPtIndexHome(requestParams,request,system, portalUser).addData("times",new Date());
 		}
 		return gvgMasterService.newPtIndexHome(requestParams,request,system,null).addData("times",new Date());
 	}
@@ -864,8 +867,8 @@ public class PowtoonController extends GuideCoreController {
 
 		List<Integer> playListIds = new ArrayList<>();
 		playListIds.add(playListId);
-		List<GcUserSaveFolder> list = gcUserSaveFolderService.selectFolderAllVideo(null, masterId,playListIds,request,null);
-		GcUser gcUser = gcUserService.getById(list.get(0).getUserId());
+		List<GcUserSaveFolder> playlists = gcUserSaveFolderService.selectFolderAllVideo(null, masterId,playListIds,request,null);
+		GcUser gcUser = gcUserService.getById(playlists.get(0).getUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
 		gcUser.setInfo(gcUserInfo);
 		if (null!=gcUserInfo.getAvatarFileId()){
@@ -874,9 +877,9 @@ public class PowtoonController extends GuideCoreController {
 			gcUser.getInfo().setAvatarFile(sysFile);
 		}
 
-		list.get(0).setUser(gcUser);
-		List<Integer> listIds = list.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-		List<GcUserSaveContentFollow> gcUserSaveContentFollowList = gcUserSaveContentFollowService.selectFollowListByPlayListId(listIds);
+		playlists.get(0).setUser(gcUser);
+		List<Integer> playlistIds = playlists.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
+		List<GcUserSaveContentFollow> gcUserSaveContentFollowList = gcUserSaveContentFollowService.selectFollowListByPlayListId(playlistIds);
 		Map<Integer,List<GcUserSaveContentFollow>> map = gcUserSaveContentFollowList.stream().collect(Collectors.groupingBy(GcUserSaveContentFollow::getFolderId));
 
 		List<Integer> gcUserSaveContentFollowIdList = gcUserSaveContentFollowService.selectFollowPlayList(this.getGcUser().getId(),
@@ -885,18 +888,18 @@ public class PowtoonController extends GuideCoreController {
 			message.ok().addData("followFlag",TableConstant.COMMON_ONE);
 		}
 
-		for(GcUserSaveFolder folder: list) {
-			if(Objects.nonNull(folder.getFileId())){
-				SysFile sysFile = sysFileService.getById(folder.getFileId());
+		for(GcUserSaveFolder playlist: playlists) {
+			if(Objects.nonNull(playlist.getFileId())){
+				SysFile sysFile = sysFileService.getById(playlist.getFileId());
 				String fullfileurl = sysFileService.getResFullUrl(sysFile,request);
-				folder.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-				folder.setFullFileUrl(fullfileurl);
+				playlist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
+				playlist.setFullFileUrl(fullfileurl);
 			}
-			List<GcUserSaveContentFollow> list1 = map.get(folder.getId());
+			List<GcUserSaveContentFollow> list1 = map.get(playlist.getId());
 			if(CollectionUtils.isNotEmpty(list1)) {
-				folder.setFollowNum(list1.size());
+				playlist.setFollowNum(list1.size());
 			}
-			for(GcUserSaveContent content: folder.getSaveContentList()) {
+			for(GcUserSaveContent content: playlist.getSaveContentList()) {
 				SysFile videoFile = content.getVideoFile();
 				if(videoFile != null) {
 					SysFile videoFileById = sysFileService.getById(videoFile.getId());
@@ -904,6 +907,8 @@ public class PowtoonController extends GuideCoreController {
 					populateVideoContent(request, videoFileById, myUser.getId());
 				}
 			}
+
+			permitService.populatePermissions(playlist, portalUser);
 		}
 
 		populateVideoContent(request, file, myUser.getId());
@@ -911,9 +916,9 @@ public class PowtoonController extends GuideCoreController {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		unavailableVideoService.nullifyVideoData(portalUser, video);
-		unavailableVideoService.nullifyPlaylistContent(portalUser, list.get(0).getSaveContentList());
+		unavailableVideoService.nullifyPlaylistContent(portalUser, playlists.get(0).getSaveContentList());
 		return message.ok().addData("thisVideo",file)
-				.addData("playListDetail",list.get(0))
+				.addData("playListDetail",playlists.get(0))
 				.addData("systemTime",df.format(new Date()));
 	}
 
@@ -2162,17 +2167,19 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")
 	@PostMapping("/getContentFromOneFolder")
 	public Message getContentFromOneFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
-        if(Objects.isNull(gcUserSaveFolder.getId())){
+		if (Objects.isNull(gcUserSaveFolder.getId())) {
 			throw new SystemException(I18NUtil.get("powtoon.folder.error"));
 		}
 		String token = request.getHeader("Authorization");
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		if (!"undefined".equals(token)) {
 			GcUser gcUser = getGcUser();
-			return gcMasterService.getContentFromOneFolder(gcUserSaveFolder,gcUser,request,EnvType.PT.getCode()).addData("systemTime",df.format(new Date()));
+			return gcMasterService.getContentFromOneFolder(gcUserSaveFolder, gcUser, request, EnvType.PT.getCode())
+				.addData("systemTime", df.format(new Date()));
 		}
 
-		return gcMasterService.getContentFromOneFolder(gcUserSaveFolder,null,request,EnvType.PT.getCode()).addData("systemTime",df.format(new Date()));
+		return gcMasterService.getContentFromOneFolder(gcUserSaveFolder, null, request, EnvType.PT.getCode())
+			.addData("systemTime", df.format(new Date()));
 	}
 
 	@ApiOperation(value = "查询自己创建的所有二级课程")

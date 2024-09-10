@@ -105,6 +105,22 @@ public class PermitServiceImpl implements PermitService {
     }
 
     @Override
+    public void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
+        playlist.setPermissions(playlistPermissions(playlist, portalUser));
+    }
+
+    private Map<String, Boolean> playlistPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
+        return Map.of(
+            "canShare", checkPermit(playlist, "share", portalUser)
+            , "canEdit", checkPermit(playlist, "edit", portalUser)
+            , "canDelete", checkPermit(playlist, "delete", portalUser)
+            , "canSubscribe", checkPermit(playlist, "subscribe", portalUser)
+            , "canUnsubscribe", checkPermit(playlist, "unsubscribe", portalUser)
+            , "canManageContent", checkPermit(playlist, "manageContent", portalUser)
+        );
+    }
+
+    @Override
     public boolean checkMenuItem(String menuItemKey, PortalUser portalUser) {
         if (!MENU_ITEM_TO_PERMIT_ACTION.containsKey(menuItemKey)) {
             return true;

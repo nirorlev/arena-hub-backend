@@ -19,6 +19,8 @@ public interface PermitService {
 
     boolean checkPermit(GcUserSaveFolder playlist, String action, PortalUser portalUser);
 
+    void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser);
+
     boolean checkMenuItem(String menuItemKey, PortalUser portalUser);
 
 }

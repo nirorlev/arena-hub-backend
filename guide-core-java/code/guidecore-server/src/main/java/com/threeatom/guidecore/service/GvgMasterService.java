@@ -24,7 +24,7 @@ public interface GvgMasterService extends IService<GcMaster> {
             Integer envFlag);
 
     Message newPtIndexHome(
-            JSONObject requestParams, HttpServletRequest request, SysSystem system, GcUser user);
+            JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser);
 
     Message search(
             Map<String, Object> params,

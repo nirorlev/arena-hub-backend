@@ -13,6 +13,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.config.ChannelConfiguration;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.EnvType;
@@ -37,6 +38,7 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.PtTags;
@@ -198,17 +200,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcAccessService gcAccessService;
 
 	@Autowired
-	private ChannelConfiguration channelConfiguration;
-
-	@Autowired
 	private GcUserSaveFolderService gcUserSaveFolderService;
 
 	@Autowired
 	private GcSubjectCompleteService subjectCompleteService;
 
-
-	private static final String CACHE_TAG = "GcMaster";
-	private static final String KEY_TAG_ENTITY = "'entity:uid-'+";
 	@Autowired
 	private GcSubjectService gcSubjectService;
 
@@ -219,19 +215,16 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcVideoService videoService;
 
 	@Autowired
-	private SysFileService iSysFileService;
-
-	@Autowired
 	private PtTagsService ptTagsService;
 
 	@Autowired
 	private GcUserVideoPlayService gcUserVideoPlayService;
 
 	@Autowired
-	private GcUserAnswerService gcUserAnswerService;
+	private GcSubjectCompleteService completeService;
 
 	@Autowired
-	private GcSubjectCompleteService completeService;
+	private PermitService permitService;
 
 	@Autowired
 	private SysMenuService sysMenuService;
@@ -242,20 +235,20 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
 
-	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system,GcUser user) {
+	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Message message  = new Message();
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
-		if (null!=user){
+		if (null!=portalUser){
 		ExecutorService executor = Executors.newFixedThreadPool(3);//做3个线程
 		executor.submit(() -> {
-			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),user.getId(),new PageParam(request));
+			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 			PageParam pageParam = new PageParam(request);
 			if (subjectList.size()>=pageParam.getPageSize()){
 				subjectList =subjectList.subList(TableConstant.COMMON_ZERO,pageParam.getPageSize());
 			}
-			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),user.getId(),new PageParam(request));
+			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 
 			//两个课程都要进度等详细信息,放一起查询,避免两次查
 			List<GcSubject> subjectInfo = new ArrayList<>();
@@ -268,7 +261,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
 			List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
 
-			videoList = gcVideoService.buildVideoInfo(user.getId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
+			videoList = gcVideoService.buildVideoInfo(portalUser.getUserId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
 			Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
 
 			List<SysFile> sysFileList = new ArrayList<>();
@@ -320,11 +313,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
 					}
-					if (null!=user) {
+					if (null!=portalUser) {
 						if (null!=groupBySubId.get(li.getId())){
 							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, gcMaster.getId(), EnvType.PT.getCode());
+							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId(), EnvType.PT.getCode());
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
@@ -386,11 +379,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
 					}
-					if (null!=user) {
+					if (null!=portalUser) {
 						if (null!=groupBySubId.get(li.getId())){
 							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, gcMaster.getId(), EnvType.PT.getCode());
+							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId(), EnvType.PT.getCode());
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
@@ -418,7 +411,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			message.addData("discoverCourses",myMaySubjectPage);
 
 			//已订阅的channel视频,自己上传的不显示
-			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(user.getId(),request,gcMaster.getId());
+			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(portalUser.getUserId(),request,gcMaster.getId());
 			PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channelPage);
 			message.addData("channelVideoPage",channelPageInfo);
 
@@ -426,15 +419,15 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 			executor.submit(() -> {
 				//My subscriptions-channel 我已订阅的(不含我创建的)；订阅时间排序
-				List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(user.getId(),request,gcMaster.getId());
+				List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(portalUser.getUserId(),request,gcMaster.getId());
 				PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
 				message.addData("subscriptionsChannel",pageInfo);
 				//playlist
 				List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
 				List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-				List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtNewHomePlayList(user.getId(), gcMaster.getId(),recommenFolderIds,request);
+				List<GcUserSaveFolder> recomendedPlaylists = gcUserSaveFolderService.getPtNewHomePlayList(portalUser.getUserId(), gcMaster.getId(),recommenFolderIds,request);
 
-				List<Integer> firstVideos = recommenFolderList.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
+				List<Integer> firstVideos = recomendedPlaylists.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
 
 				if (CollectionUtils.isNotEmpty(firstVideos)) {
 					List<SysFile> fileList = sysFileService.listByIds(firstVideos);
@@ -442,31 +435,31 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					Map<Integer, SysFile> firstVideoMap =
 						fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
 
-					for (GcUserSaveFolder gcUserSaveFolder : recommenFolderList) {
+					for (GcUserSaveFolder playlist : recomendedPlaylists) {
 						//缩略图
-						if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId()) &&
-							null != firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
-							SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
-							if (null != gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)) {
-								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)
+						if (Objects.nonNull(playlist.getFirstVideoFileId()) &&
+							null != firstVideoMap.get(playlist.getFirstVideoFileId())) {
+							SysFile sysFile = firstVideoMap.get(playlist.getFirstVideoFileId());
+							if (null != playlist.getSaveContentList().get(TableConstant.COMMON_ZERO)) {
+								playlist.getSaveContentList().get(TableConstant.COMMON_ZERO)
 									.setVideoFile(sysFile);
-								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile()
+								playlist.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile()
 									.setSnapshotUrl(sysFile.getSnapshotUrl());
 							}
-							gcUserSaveFolder.setSnapshotUrl(sysFile.getSnapshotUrl());
+							playlist.setSnapshotUrl(sysFile.getSnapshotUrl());
 						}
+						permitService.populatePermissions(playlist, portalUser);
 					}
 				}
 
-				String playlistJson = JSON.toJSONString(recommenFolderList,SerializerFeature.DisableCircularReferenceDetect);
-				recommenFolderList =JSONArray.parseArray(playlistJson,GcUserSaveFolder.class);
-				PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-				message.addData("playList",recommenFolderListPageInfo);
+				String playlistJson = JSON.toJSONString(recomendedPlaylists,SerializerFeature.DisableCircularReferenceDetect);
+				recomendedPlaylists =JSONArray.parseArray(playlistJson,GcUserSaveFolder.class);
+				message.addData("playList", new PageInfo<>(recomendedPlaylists));
 			});
 
 		executor.submit(()->{
 			//Trending Now-channel视频： 最多赞+最多观看的channel视频 （含自己的）
-			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(user.getId(),request,gcMaster.getId());
+			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(portalUser.getUserId(),request,gcMaster.getId());
 			PageInfo<PtChannel> nowChannelPage = new PageInfo<>(nowChannel);
 			message.addData("nowChannel",nowChannelPage);
 		});
