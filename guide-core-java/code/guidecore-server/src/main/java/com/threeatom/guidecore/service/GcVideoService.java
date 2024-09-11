@@ -120,6 +120,8 @@ public interface GcVideoService extends GcVideoServiceBll {
         List<Integer> permissionList,
         HttpServletRequest request);
 
+    GcVideo findByVideoId(Integer videoId);
+
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<DbAnalyticsResultDto> getTrendVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);

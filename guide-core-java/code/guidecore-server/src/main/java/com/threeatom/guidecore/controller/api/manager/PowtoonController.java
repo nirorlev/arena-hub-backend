@@ -727,7 +727,7 @@ public class PowtoonController extends GuideCoreController {
 		if (!"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
 			GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
-			GcVideo video = gcVideoService.getById(videoId);
+			GcVideo video = gcVideoService.findByVideoId(videoId);
 			PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
 			if (!permitService.checkPermit(video, ActionsType.view, portalUser)){
@@ -1962,6 +1962,7 @@ public class PowtoonController extends GuideCoreController {
 		List<String> ids = new ArrayList<>();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 		user.setIsOrgAdmin(portalUser.isOrgAdmin());
+		gcSubjectService.populateUserId(course, user);
 
 		if (null!=course.getId()&&null==course.getMoveDrafts()){
 			GcSubject oldSubject = gcSubjectService.getById(course.getId());
@@ -2089,7 +2090,7 @@ public class PowtoonController extends GuideCoreController {
 		ApiAssert.notNull(vid, "参数vid缺失");
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-		GcVideo video = gcVideoService.getById(vid);
+		GcVideo video = gcVideoService.findByVideoId(vid);
 
 		if (!permitService.checkPermit(video, ActionsType.comment, portalUser)) {
 			throw new PermitException("No permission for this!");
@@ -2115,23 +2116,24 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@PostMapping("/newContentFolder")
-	public Message newContentFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
-		ApiAssert.notNull(gcUserSaveFolder.getName(), "The folder name cannot be empty!");
+	public Message newContentFolder(@RequestBody GcUserSaveFolder playlist, HttpServletRequest request) {
+		ApiAssert.notNull(playlist.getName(), "The folder name cannot be empty!");
 		GcUser user = this.getGcUser();
-		gcUserSaveFolder.setUserId(user.getId());
-		gcUserSaveFolder.setMasterId(getHeaderMasterId(request));
+		playlist.setUserId(user.getId());
+		playlist.setMasterId(getHeaderMasterId(request));
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
-		if (!permitService.checkPermit(gcUserSaveFolder, ActionsType.create, portalUser)) {
+		playlist.setUserId(user.getId());
+		if (!permitService.checkPermit(playlist, ActionsType.create, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
 		try {
-			userLicenseService.checkPlaylistLimit(gcUserSaveFolder, portalUser);
-			if (gcUserSaveFolderService.saveOrUpdate(gcUserSaveFolder)) {
+			userLicenseService.checkPlaylistLimit(playlist, portalUser);
+			if (gcUserSaveFolderService.saveOrUpdate(playlist)) {
 				return new Message().ok("Saved successfully")
-					.addData("folder", gcUserSaveFolder);
+					.addData("folder", playlist);
 			}
 		} catch (LicenseLimitExceededException e) {
 			return new Message().error(HttpStatus.FORBIDDEN.value(), e.getMessage());
@@ -2264,6 +2266,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+		gcSubjectService.populateUserId(course, user);
 
 		if (!permitService.checkPermit(course, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
@@ -2292,7 +2295,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-		GcVideo video = gcVideoService.getById(vid);
+		GcVideo video = gcVideoService.findByVideoId(vid);
 
 		if (!permitService.checkPermit(video, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
@@ -2323,7 +2326,8 @@ public class PowtoonController extends GuideCoreController {
 			isOrgAdmin = portalUser.isOrgAdmin();
 		}
 
-		boolean isAllowed = false;
+		ptChannelService.populateCreatedUserId(channel, user);
+		boolean isAllowed;
 		if (null!=channel.getVisibleFlag()) {
 			if (!permitService.checkPermit(channel, ActionsType.publish, portalUser)){
 				throw new PermitException("No permission to change channel visibility!");
@@ -2335,6 +2339,7 @@ public class PowtoonController extends GuideCoreController {
 		}else if (channel.isSection()){
 			isAllowed = permitService.checkPermit(channel, ActionsType.addContent, portalUser);
 		}else {
+			channel.setCreateUserId(user.getId());
 			isAllowed = permitService.checkPermit(channel, ActionsType.createChannel, portalUser);
 		}
 
@@ -2579,6 +2584,7 @@ public class PowtoonController extends GuideCoreController {
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
+		ptChannelService.populateCreatedUserId(channel, user);
 		if (!permitService.checkPermit(channel, ActionsType.delete, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
@@ -2657,6 +2663,8 @@ public class PowtoonController extends GuideCoreController {
 		ptChannel.setId(ptChannelId);
 
 		GcUser user = this.getGcUser();
+		ptChannelService.populateCreatedUserId(ptChannel, user);
+
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		if (!permitService.checkPermit(ptChannel, ActionsType.view, portalUser)) {
 			throw new PermitException("No permission for this!");
@@ -2721,8 +2729,10 @@ public class PowtoonController extends GuideCoreController {
 
 		boolean isFlag;
 		if (null!=video.getId()){
-			isFlag = permitService.checkPermit(video, ActionsType.edit, portalUser);
+			GcVideo existingVideo = gcVideoService.findByVideoId(video.getId());
+			isFlag = permitService.checkPermit(existingVideo, ActionsType.edit, portalUser);
 		}else {
+			video.setUserId(user.getId());
 			isFlag = permitService.checkPermit(video, ActionsType.create, portalUser);
 		}
 

@@ -737,6 +737,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return this.baseMapper.findByVideoIds(videoIds);
 	}
 
+	@Override
+	public GcVideo findByVideoId(Integer videoId) {
+		return this.baseMapper.findByVideoIds(List.of(videoId)).get(0);
+	}
+
 	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
 		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
 		queryWrapper.in("video_id", videoIds);

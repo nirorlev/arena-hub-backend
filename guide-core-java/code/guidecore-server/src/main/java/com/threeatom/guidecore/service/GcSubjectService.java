@@ -211,4 +211,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<Integer> getUserCreateSubjectAdmin(Integer masterId, Integer userId);
 
     List<Integer> getUserPublicSubject(Integer masterId, Integer userId);
+
+    void populateUserId(GcSubject course, GcUser user);
 }

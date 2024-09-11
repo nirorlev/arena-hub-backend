@@ -9,10 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import com.google.gson.JsonArray;
 import com.threeatom.common.ApiAssert;
-import com.threeatom.common.controller.Message;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
@@ -24,16 +21,13 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.mapper.SysFileMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -1617,5 +1611,21 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> getCompletedTwoCourse(Map<String,Object> paramMap){
         return this.baseMapper.getCompletedTwoCourse(paramMap);
+    }
+
+    @Override
+    public void populateUserId(GcSubject course, GcUser user) {
+        if (course.getId() == null) {
+            course.setUserId(user.getId());
+            return;
+        }
+        GcSubject existingCourse = this.getById(course.getId());
+        if (existingCourse.isTopic()) {
+            existingCourse = this.getById(course.getFid());
+            course.setUserId(existingCourse.getUserId());
+            return;
+        }
+
+        course.setUserId(existingCourse.getUserId());
     }
 }

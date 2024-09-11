@@ -689,6 +689,23 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return baseMapper.getTrendChannelsCountAnalytics(filter, masterId);
     }
 
+    @Override
+    public void populateCreatedUserId(PtChannel channel, GcUser user) {
+        if (channel.getId() == null) {
+            channel.setCreateUserId(user.getId());
+            return;
+        }
+
+        PtChannel existingChannel = this.getById(channel.getId());
+        if (existingChannel.isSection()) {
+            existingChannel = this.getById(existingChannel.getFid());
+            channel.setCreateUserId(existingChannel.getCreateUserId());
+            return;
+        }
+
+        channel.setCreateUserId(existingChannel.getCreateUserId());
+    }
+
     private int countChannels(Integer userId, Integer masterId, List<ChannelVisibilityFlag> channelVisibilityFlags) {
         QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("create_user_id", userId);
