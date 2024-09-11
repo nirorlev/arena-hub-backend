@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -175,6 +176,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @TableField(exist = false)
     private List<GcAccess> accessList;
+
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
 
     public Boolean getIsPrivate() {
         return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);

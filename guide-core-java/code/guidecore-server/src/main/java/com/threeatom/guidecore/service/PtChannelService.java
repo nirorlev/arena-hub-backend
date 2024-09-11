@@ -5,7 +5,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
-import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
@@ -40,8 +40,7 @@ public interface PtChannelService extends IService<PtChannel> {
     List<PtChannel> indexSearchChannels(
             Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
-    List<PtChannel> newIndexHomeChannels(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request);
 
     List<PtChannel> searchChannelsBySysFile(
             Integer userId, HttpServletRequest request, Integer masterId);
@@ -56,11 +55,11 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 

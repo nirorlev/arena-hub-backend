@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
@@ -21,6 +22,7 @@ import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
@@ -47,6 +49,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final ChannelMapping channelMapping;
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
+    private final PermitService permitService;
 
     @Lazy
     @Autowired
@@ -301,8 +304,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<PtChannel> newIndexHomeChannels(
-            Integer userId, HttpServletRequest request, Integer masterId) {
+    public List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -310,13 +312,13 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             PageHelper.startPage(pageNum, pageSize);
         }
 
-        List<PtChannel> channels = this.baseMapper.selectNewIndexHomeChannels(userId, masterId);
+        List<PtChannel> channels = this.baseMapper.selectNewIndexHomeChannels(portalUser.getUserId(), portalUser.getMasterId());
 
         Map<Integer, List<PtTags>> tagMap = new HashMap<>();
-        if (channels.size() != TableConstant.COMMON_ZERO) {
+        if (!channels.isEmpty()) {
             List<PtTags> tagsList =
                     tagsService.selectPtChannelTagByIds(
-                            channels.stream().map(PtChannel::getId).collect(Collectors.toList()), masterId);
+                            channels.stream().map(PtChannel::getId).collect(Collectors.toList()), portalUser.getMasterId());
             tagMap = tagsList.stream().collect(Collectors.groupingBy(PtTags::getChannelId));
         }
 
@@ -333,12 +335,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                         .collect(Collectors.toList());
         channelsFiles.addAll(imageFiles);
         Map<Integer, SysFile> sysFileMap = new HashMap<>();
-        if (TableConstant.COMMON_ZERO != channelsFiles.size()) {
+        if (!channelsFiles.isEmpty()) {
             List<SysFile> fileList = sysFileService.listByIds(channelsFiles);
-            fileList.forEach(
-                    i -> {
-                        i.setFullFileUrl(sysFileService.getResFullUrl(i, request));
-                    });
+            fileList.forEach(file -> file.setFullFileUrl(sysFileService.getResFullUrl(file, request)));
             sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
         }
 
@@ -361,6 +360,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 // SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
                 channel.setImgFullFileUrl(sysFileMap.get(channel.getChannelImgFileId()).getFullFileUrl());
             }
+            permitService.populatePermissions(channel, portalUser);
         }
         return channels;
     }
@@ -570,23 +570,32 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request) {
-        List<PtChannel> channels = baseMapper.selectOwnChannels(user.getId(), masterId);
-        channels.forEach(channel -> updateUrls(request, channel));
+    public List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
+        channels.forEach(channel -> {
+            updateUrls(request, channel);
+            permitService.populatePermissions(channel, portalUser);
+        });
         return convert(channels);
     }
 
     @Override
-    public List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
-        List<PtChannel> channels = baseMapper.selectSubscribedChannels(currentUser.getId(), masterId);
-        channels.forEach(channel -> updateUrls(request, channel));
+    public List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
+        channels.forEach(channel -> {
+            updateUrls(request, channel);
+            permitService.populatePermissions(channel, portalUser);
+        });
         return convert(channels);
     }
 
     @Override
-    public List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request) {
-        List<PtChannel> channels = baseMapper.selectDiscoverableChannels(currentUser.getId(), masterId);
-        channels.forEach(channel -> updateUrls(request, channel));
+    public List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
+        List<PtChannel> channels = baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
+        channels.forEach(channel -> {
+            updateUrls(request, channel);
+            permitService.populatePermissions(channel, portalUser);
+        });
         return convert(channels);
     }
 

@@ -2971,6 +2971,9 @@ public class PowtoonController extends GuideCoreController {
 		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
 		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
 		GcUser user = userService.getById(ptchannel.getCreateUserId());
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(user.getInfoId());
 		if (null!=gcUserInfo.getAvatarFileId()) {
 			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
@@ -2997,16 +3000,15 @@ public class PowtoonController extends GuideCoreController {
 		if (ptChannel.isSection()){
 			PtChannel channel = ptChannelService.getById(ptchannel.getFid());
 			ptChannel.setChannelSlug(channel.getChannelSlug());
+			permitService.populatePermissions(ptChannel, portalUser);
 		}
 		message.ok().addData("channel",ptChannel);
 		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
 		for(SysFile sysFile : videofiles){
 			populateVideoContent(request, sysFile, currentUser.getId());
 		}
-		PageInfo videoFiles = new PageInfo<>(videofiles);
-		message.ok().addData("videoList",videoFiles);
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return message.ok().addData("systemTime",df.format(new Date()));
+		message.ok().addData("videoList", new PageInfo<>(videofiles));
+		return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 	}
 
 	@ApiOperation(value = "视频点赞")

@@ -412,16 +412,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 			//已订阅的channel视频,自己上传的不显示
 			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(portalUser.getUserId(),request,gcMaster.getId());
-			PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channelPage);
-			message.addData("channelVideoPage",channelPageInfo);
+			message.addData("channelVideoPage", new PageInfo<>(channelPage));
 
 		});
 
 			executor.submit(() -> {
 				//My subscriptions-channel 我已订阅的(不含我创建的)；订阅时间排序
-				List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(portalUser.getUserId(),request,gcMaster.getId());
-				PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
-				message.addData("subscriptionsChannel",pageInfo);
+				List<PtChannel> channels = ptChannelService.newIndexHomeChannels(portalUser, request);
+				message.addData("subscriptionsChannel", new PageInfo<>(channels));
 				//playlist
 				List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
 				List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
