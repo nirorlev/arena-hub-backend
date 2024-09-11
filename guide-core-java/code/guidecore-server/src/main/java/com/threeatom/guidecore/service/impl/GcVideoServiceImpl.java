@@ -10,6 +10,7 @@ import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.enums.SortOrder;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.mapping.VideoMapping;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import java.util.*;
 import java.util.List;
@@ -1074,48 +1075,43 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public PageInfo<GcVideo> page(Map<String, Object> params,SysSystem sys, HttpServletRequest request) {
+	public PageInfo<GcVideo> page(Map<String, Object> searchParameters, SysSystem system, HttpServletRequest request) {
 		int pageNum = 1;
 		int pageSize = 10;
+
 		try {
-			pageNum = Integer.parseInt(params.get("pageNum") == null ? "1": params.get("pageNum").toString());
-			pageSize = Integer.parseInt(params.get("pageSize") == null ? "10": params.get("pageSize").toString());
+			pageNum = Integer.parseInt(searchParameters.get("pageNum") == null ? "1": searchParameters.get("pageNum").toString());
+			pageSize = Integer.parseInt(searchParameters.get("pageSize") == null ? "10": searchParameters.get("pageSize").toString());
 		} catch (Exception ignored) {}
 
-		String masterId = request.getHeader("masterId");
-		if (Objects.isNull(masterId)) {
-			throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
-		}
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow(() -> new SystemException(I18NUtil.get("powtoon.portal.id.notfound")));
+		searchParameters.put("masterId", masterId);
 
-		params.put("masterId", masterId);
 		Page<GcVideo> page = PageHelper.startPage(pageNum, pageSize, true);
-		this.baseMapper.pageVideo(params);
+		this.baseMapper.searchVideo(searchParameters);
 
 		PageInfo<GcVideo> pageInfo = new PageInfo<>(page);
-		List<GcVideo> gcVideos = pageInfo.getList();
-		List<Integer> ids = gcVideos.stream().map(GcVideo::getFileId).collect(Collectors.toList());
+		List<GcVideo> videos = pageInfo.getList();
+		List<Integer> videoFileIds = videos.stream().map(GcVideo::getFileId).collect(Collectors.toList());
 
-		if (CollectionUtils.isNotEmpty(ids)) {
-			Map<Integer, SysFile> fileMap = fileService.getFilesUploadByFileIds(ids);
+		if (CollectionUtils.isNotEmpty(videoFileIds)) {
+			Map<Integer, SysFile> idToVideoFile = fileService.getFilesUploadByFileIds(videoFileIds);
 
-			for (GcVideo gcVideo : gcVideos) {
-				if (null != fileMap) {
-					SysFile file = fileMap.get(gcVideo.getVideoFile().getId());
-					if (null != file) {
-						gcVideo.getVideoFile().setGcUser(file.getGcUser());
-					}
-				}
-			}
+			for (GcVideo gcVideo : videos) {
+                if (idToVideoFile == null) {
+                    continue;
+                }
+
+                SysFile videoFile = idToVideoFile.get(gcVideo.getVideoFile().getId());
+                if (videoFile != null) {
+                    gcVideo.getVideoFile().setGcUser(videoFile.getGcUser());
+                }
+            }
 		}
 
-		Integer userId = (Integer) params.get("userId");
-		pageInfo.setList(this.buildVideoInfo(userId, sys, gcVideos,Integer.parseInt(masterId),request,EnvType.GC.getCode()));
+		Integer userId = (Integer) searchParameters.get("userId");
+		pageInfo.setList(this.buildVideoInfo(userId, system, videos, masterId, request, EnvType.GC.getCode()));
 		return pageInfo;
-	}
-
-	public List<GcVideo> buildInfo(List<GcVideo> gcVideoss){
-
-		return new ArrayList<>();
 	}
 
 	@Override

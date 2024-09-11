@@ -481,7 +481,7 @@
     </select>
 
 
-    <select id="pageVideo" parameterType="java.util.Map" resultMap="baseResultMap">
+    <select id="searchVideo" parameterType="java.util.Map" resultMap="baseResultMap">
         select DISTINCT ON (v.id)
         <include refid="baseColumn" />
         <include refid="fileBaseColumn" />
@@ -493,27 +493,16 @@
         LEFT JOIN gc_user_access_permission uap  on uap.sub_permission::jsonb @> to_jsonb(s.fid::integer)
         LEFT JOIN gc_user_access ua on ua.id=uap.user_access_id
         <where>
-            <if test="null != videoNum">
-                <if test="videoName != null and videoName != ''">
-                    and v.video_name like concat('%',#{videoName},'%')
-                </if>
+            <if test="videoName != null and videoName != ''">
+                and v.video_name like concat('%',#{videoName},'%')
             </if>
-            <if test="state !=null">
-                and s1.state = #{state}
-            </if>
-            <if test="subId != null and subId != ''">
-                and v.sub_id =#{subId}
-            </if>
+                and s1.state = 1
             <if test="userId != null ">
                 and ua.user_id = #{userId}
             </if>
-            <if test="masterId != null ">
                 and ua.master_id = #{masterId}
-            </if>
         </where>
-        <if test="null != videoNum">
-            order by v.id desc, v.create_time desc
-        </if>
+        order by v.id desc, v.create_time desc
     </select>
 
     <select id="countVideosBySubId" resultType="java.lang.Integer">

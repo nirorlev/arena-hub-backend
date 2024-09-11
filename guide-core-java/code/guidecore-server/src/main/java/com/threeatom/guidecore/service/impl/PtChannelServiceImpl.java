@@ -28,6 +28,7 @@ import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -368,59 +369,54 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<PtChannel> searchChannelsBySysFile(
-            Integer userId, HttpServletRequest request, Integer masterId) {
-        List<PtChannel> channels = new ArrayList<>();
-        if (null != request.getAttribute("searchName")) {
-            channels =
-                    this.baseMapper.searchChannelsBySysFile(
-                            request.getAttribute("searchName").toString(), userId, masterId);
+    public List<PtChannel> searchChannelsBySysFile(Integer userId, HttpServletRequest request, Integer masterId) {
+        List<PtChannel> channels;
+        if (request.getAttribute("searchName") != null) {
+            channels = this.baseMapper.searchChannelsBySysFile(
+                request.getAttribute("searchName").toString(), userId, masterId);
         } else {
             channels = this.baseMapper.searchChannelsBySysFile(null, userId, masterId);
         }
-        List<Integer> idList = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
-        if (idList.isEmpty()) {
+
+        List<Integer> channelFileId = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
+        if (channelFileId.isEmpty()) {
             return new ArrayList<>();
         }
-        List<SysFile> fileList = sysFileService.listByIds(idList);
 
-        Map<Integer, SysFile> createFileMap = new HashMap<>();
-        List<GcUser> createUserFile =
+        List<SysFile> channelFiles = sysFileService.listByIds(channelFileId);
+        Map<Integer, SysFile> idToChannelOwnerAvatarFile = new HashMap<>();
+        List<GcUser> channelOwners =
                 channels.stream().map(PtChannel::getCreateUser).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(createUserFile)) {
-            if (userAvatarFileExists(createUserFile)) {
-                List<SysFile> createFile =
-                        sysFileService.listByIds(
-                                createUserFile.stream()
-                                        .filter(users -> null != users && null != users.getAvatarFileId())
-                                        .map(GcUser::getAvatarFileId)
-                                        .collect(Collectors.toList()));
-                createFileMap =
-                        createFile.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
-            }
+        if (CollectionUtils.isNotEmpty(channelOwners) && userAvatarFileExists(channelOwners)) {
+            List<Integer> channelOwnerAvatarIds = channelOwners.stream()
+                .filter(user -> null != user && null != user.getAvatarFileId())
+                .map(GcUser::getAvatarFileId)
+                .collect(Collectors.toList());
+            List<SysFile> channelOwnerAvatarFiles = sysFileService.listByIds(channelOwnerAvatarIds);
+            idToChannelOwnerAvatarFile =
+                channelOwnerAvatarFiles.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
         }
 
-        Map<Integer, SysFile> fileMap =
-                fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
+        Map<Integer, SysFile> idToChannelFiles =
+                channelFiles.stream().collect(Collectors.toMap(SysFile::getId, Function.identity()));
         for (PtChannel channel : channels) {
-            SysFile videoFile = fileMap.get(channel.fileId);
-
-            if (videoFile != null) {
-                channel.setVideoFile(videoFile);
-                videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
-                videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
-                videoService.getVideoContent(videoFile.getId())
-                    .ifPresent(videoContent -> videoFile.setVideoId(videoContent.getId()));
+            SysFile channelVideoFile = idToChannelFiles.get(channel.getFileId());
+            if (channelVideoFile != null) {
+                channel.setVideoFile(channelVideoFile);
+                channelVideoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(channelVideoFile));
+                channelVideoFile.setFullFileUrl(sysFileService.getResFullUrl(channelVideoFile, request));
+                videoService.getVideoContent(channelVideoFile.getId())
+                    .ifPresent(videoContent -> channelVideoFile.setVideoId(videoContent.getId()));
             }
-            if (null != channel.getCreateUser() && null != channel.getCreateUser().getAvatarFileId()) {
-                if (null != createFileMap.get(channel.getCreateUser().getAvatarFileId())) {
-                    channel
-                            .getCreateUser()
-                            .setAvatarFullFileUrl(
-                                    createFileMap.get(channel.getCreateUser().getAvatarFileId()).getFileUrl());
+
+            if (channel.getCreateUser() != null && channel.getCreateUser().getAvatarFileId() != null) {
+                if (idToChannelOwnerAvatarFile.get(channel.getCreateUser().getAvatarFileId()) != null) {
+                    channel.getCreateUser().setAvatarFullFileUrl(
+                        idToChannelOwnerAvatarFile.get(channel.getCreateUser().getAvatarFileId()).getFileUrl());
                 }
             }
         }
+
         return channels;
     }
 

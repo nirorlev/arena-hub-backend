@@ -91,8 +91,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
 		}
-		List<GcSubject> gcSubjects = this.baseMapper.findSubjects(params);
-		return new PageInfo<>(gcSubjects);
+		return new PageInfo<>(this.baseMapper.findSubjects(params));
 	}
 
 	private PageInfo<GcSubject> listByFid(Map<String, Object> params, HttpServletRequest request) {

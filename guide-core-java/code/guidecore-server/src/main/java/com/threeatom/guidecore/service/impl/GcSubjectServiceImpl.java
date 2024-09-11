@@ -191,7 +191,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
     
     @Override
-    public List<GcSubject> getLevel0SubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request, PageParam pageParam,List<Integer> channelIds){
+    public List<GcSubject> getLevel0SubListWithImg(Integer masterId, HttpServletRequest request, List<Integer> channelIds){
+        PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
 
@@ -203,61 +204,62 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         if (null!=request.getAttribute("createUser")){
             createUser = Integer.parseInt(request.getAttribute("createUser").toString());
         }
-        String subjectName = null;
+        String courseName = null;
         if (null!=request.getAttribute("subjectName")){
-            subjectName = request.getAttribute("subjectName").toString();
+            courseName = request.getAttribute("subjectName").toString();
         }
-        List<GcSubject> list = new ArrayList<>();
+        List<GcSubject> courses;
+
         if (null!=request.getAttribute("isPt")){
             if (null==request.getAttribute("type")){
                 if (null==request.getAttribute("userId")){
                     if (pageNum > 0 && pageSize > 0) {
                         PageHelper.startPage(pageNum, pageSize);
                     }
-                    list =this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
+                    courses = this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
                 }else {
-                    //自己创建的课程
+                    // self created course
                     Integer userId = Integer.parseInt(request.getAttribute("userId").toString());
                     List<Integer> idLists = this.baseMapper.selectSubjectByCreateUser(masterId,userId);
 
                     if (pageNum > 0 && pageSize > 0) {
                         PageHelper.startPage(pageNum, pageSize);
                     }
-                    list = this.baseMapper.selectSubjectPt(subjectName,null,state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
+                    courses = this.baseMapper.selectSubjectPt(courseName,null,state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
                 }
             }else {
-                List<Integer> idLists = new ArrayList<>();
+                List<Integer> publicCourseIds = new ArrayList<>();
                 Integer type = Integer.parseInt(request.getAttribute("type").toString());
                 if(type.equals(TableConstant.COMMON_FOUR)){
                     List<GcUserAccessPermission> permissionList =  gcUserAccessPermissionService.getGroupMemberByUidList(Integer.parseInt(request.getAttribute("userId").toString()),masterId);
                     for (GcUserAccessPermission permission : permissionList) {
                         if(null!=permission.getMustSubjectJson()){
-                            idLists.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
+                            publicCourseIds.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
                         }
 
                     }
                 }else if (type.equals(TableConstant.COMMON_ZERO)||type.equals(TableConstant.COMMON_TWO)){
-                    idLists = baseMapper.getPublicSubjectIds(masterId);
+                    publicCourseIds = baseMapper.getPublicSubjectIds(masterId);
                 }
 
                 if (pageNum > 0 && pageSize > 0) {
                     PageHelper.startPage(pageNum, pageSize);
                 }
-                list = this.baseMapper.selectSubjectPt(subjectName,Integer.parseInt(request.getAttribute("type").toString()),state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
+                courses = this.baseMapper.selectSubjectPt(courseName,Integer.parseInt(request.getAttribute("type").toString()),state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,publicCourseIds);
             }
         }else {
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
             }
-            list =this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
+            courses = this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
         }
-          if(list != null && list.size() > 0){
-              for(GcSubject li:list) {
-                  sysFileService.getResFullUrl(li.getSubImgFile(), request);
+          if(CollectionUtils.isNotEmpty(courses)){
+              for(GcSubject course: courses) {
+                  sysFileService.getResFullUrl(course.getSubImgFile(), request);
               }
           }
 
-    	 return list;
+    	 return courses;
     }
 
     @Override

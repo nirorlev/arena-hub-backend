@@ -732,12 +732,11 @@
         left join gc_user us2 on us2.id = channel.create_user_id
         left join gc_user_info info on info.id = us2.info_id
         left join gc_user_video_action vac on vac.content_id = video_content.id and vac."type" = 1
-        where 1=1
-        and (userAccess.user_id = #{userId}
+        where userAccess.user_id = #{userId}
         and us.id = #{userId}
         and userAccess.master_id = #{masterId}
         OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
-        and pcc.id is not null)
+        and pcc.id is not null
         <if test=" searchName!= null and searchName != ''">
             and video_content.video_name like concat('%',#{searchName},'%')
         </if>

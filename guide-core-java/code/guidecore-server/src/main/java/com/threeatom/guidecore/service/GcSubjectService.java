@@ -61,11 +61,7 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<GcSubject> listSubByIdsAndName(List<Integer> subIds, String name);
 
     List<GcSubject> getLevel0SubListWithImg(
-            Integer masterId,
-            SysSystem sys,
-            HttpServletRequest request,
-            PageParam pageParam,
-            List<Integer> channelIds);
+            Integer masterId, HttpServletRequest request, List<Integer> channelIds);
 
     List<GcSubject> getLevel0SubLis(Integer masterId);
 

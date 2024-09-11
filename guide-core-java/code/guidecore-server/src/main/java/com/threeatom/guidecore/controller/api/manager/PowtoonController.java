@@ -27,6 +27,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.AuthTokenDto;
+import com.threeatom.guidecore.dto.request.SearchDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
 import com.threeatom.guidecore.entity.GcEvent;
@@ -124,6 +125,7 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import lombok.SneakyThrows;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
@@ -284,7 +286,7 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
-	public Message searchVideo(@RequestBody Map<String, Object> params, HttpServletRequest request) {
+	public Message searchVideo(@RequestBody @Valid SearchDto searchDto, HttpServletRequest request) {
 		RequestUtil.getMasterId(request)
 			.orElseThrow(() -> new SystemException(I18NUtil.get("guidecore.unlogin.error")));
 
@@ -293,11 +295,11 @@ public class PowtoonController extends GuideCoreController {
 
 		if (!"undefined".equals(token)) {
 			GcUser gcUser = this.getGcUser();
-			return gvgMasterService.searchResultPt(params, request, gcUser, system, EnvType.PT.getCode())
+			return gvgMasterService.search(searchDto, request, gcUser, system)
 				.addData("date:::", new Date());
 		}
 
-		return gvgMasterService.searchResultPt(params, request, null, system, EnvType.PT.getCode());
+		return gvgMasterService.search(searchDto, request, null, system);
 	}
 
 	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
