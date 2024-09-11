@@ -731,6 +731,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return this.baseMapper.getLikesByVideoAnalytics(filter, masterId);
 	}
 
+	@Override
+	public List<GcVideo> findByVideoIds(List<Integer> videoIds) {
+		return this.baseMapper.findByVideoIds(videoIds);
+	}
+
 	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
 		QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
 		queryWrapper.in("video_id", videoIds);

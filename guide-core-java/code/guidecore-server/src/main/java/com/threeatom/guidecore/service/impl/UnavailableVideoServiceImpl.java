@@ -10,10 +10,7 @@ import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,14 +53,11 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     }
 
     @Override
-    public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos, List<SysFile> files) {
-        Map<Integer, SysFile> videoIdToVideoFile = files.stream()
-            .collect(Collectors.toMap(SysFile::getVideoId, Function.identity()));
-
+    public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos) {
         videos.stream()
             .filter(video -> isVideoUnavailable(portalUser, video))
             .forEach(video -> {
-                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(videoIdToVideoFile.get(video.getId())));
+                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
             });
     }
 
@@ -81,10 +75,9 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             });
     }
 
-
     @Override
     public void nullifyVideoData(PortalUser portalUser, GcVideo video) {
-        nullifyVideoData(portalUser, List.of(video), List.of(video.getVideoFile()));
+        nullifyVideoData(portalUser, List.of(video));
     }
 
     @Override

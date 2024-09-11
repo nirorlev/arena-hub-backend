@@ -124,4 +124,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
         @Param("filter") AnalyticsFilterDto filter, @Param("masterId") Integer masterId);
 
     GcVideo getVideoContentByFileId(@Param("fileId") Integer fileId);
+
+    List<GcVideo> findByVideoIds(@Param("videoIds") List<Integer> videoIds);
 }

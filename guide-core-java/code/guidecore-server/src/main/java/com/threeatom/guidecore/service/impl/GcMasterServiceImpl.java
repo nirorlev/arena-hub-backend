@@ -185,14 +185,11 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             List<GcUserSaveContent> list =
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
             List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
-            List<GcVideo> videos = gcVideoService.listByIds(contentIds);
-            List<Integer> fileIds = videos.stream()
-                .map(GcVideo::getFileId)
-                .collect(Collectors.toList());
-            List <SysFile> fileList = sysFileService.listByIds(fileIds);
+            List<GcVideo> videos = gcVideoService.findByVideoIds(contentIds);
+            List<SysFile> videoFiles = videos.stream().map(GcVideo::getVideoFile).collect(Collectors.toList());
 
             for (GcUserSaveContent userSaveContent : list) {
-                for (SysFile file : fileList) {
+                for (SysFile file : videoFiles) {
                     if (userSaveContent.getFileId().equals(file.getId())) {
                         file.setContentId(userSaveContent.getId());
                         file.setVideoId(userSaveContent.getContentId());
@@ -225,7 +222,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             }
             if (CollectionUtils.isNotEmpty(list)) {
                 List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(contentIds);
-                for (SysFile file : fileList) {
+                for (SysFile file : videoFiles) {
                     for (GcUserVideoAction gcUserVideoAction : gcVideos) {
                         if (file.getId().equals(gcUserVideoAction.getContentId())) {
                             file.setLikeNum(gcUserVideoAction.getVideoLikeNum());
@@ -235,9 +232,9 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
                 }
             }
-            PageInfo<SysFile> pageInfo = new PageInfo<>(fileList);
+            PageInfo<SysFile> pageInfo = new PageInfo<>(videoFiles);
             PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-            unavailableVideoService.nullifyVideoData(portalUser, videos, fileList);
+            unavailableVideoService.nullifyVideoData(portalUser, videos);
             m.addData("videoList", pageInfo);
         } catch (Exception e) {
             e.printStackTrace();

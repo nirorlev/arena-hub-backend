@@ -9,7 +9,7 @@ import com.threeatom.system.entity.SysFile;
 import java.util.List;
 
 public interface UnavailableVideoService {
-    void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos, List<SysFile> videoFiles);
+    void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos);
 
     void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent);
 
