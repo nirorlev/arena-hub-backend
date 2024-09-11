@@ -82,6 +82,10 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoComments(PortalUser portalUser, GcVideo video, PageInfo<GcVideoComment> comments) {
+        if (!isVideoUnavailable(portalUser, video)) {
+            return;
+        }
+
         comments.getList().clear();
     }
 
