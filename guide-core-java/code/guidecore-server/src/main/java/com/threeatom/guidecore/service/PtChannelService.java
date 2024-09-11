@@ -23,11 +23,11 @@ public interface PtChannelService extends IService<PtChannel> {
             Integer fid, String slug, HttpServletRequest request, Integer masterId);
 
     List<SysFile> selectVideosInSection(
-            Integer sectionId,
-            String order,
-            HttpServletRequest request,
-            String searchName,
-            Integer level);
+        Integer sectionId,
+        String order,
+        HttpServletRequest request,
+        String searchName,
+        Integer level, PortalUser portalUser);
 
     List<PtChannel> selectChannelsByTeam(
             Integer accessId, Integer masterId, Integer userId, HttpServletRequest request);
@@ -45,11 +45,9 @@ public interface PtChannelService extends IService<PtChannel> {
     List<PtChannel> searchChannelsBySysFile(
             Integer userId, HttpServletRequest request, Integer masterId);
 
-    List<PtChannel> searchChannelsBySysFileNew(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> searchChannelsBySysFileNew(PortalUser portalUser, HttpServletRequest request);
 
-    List<PtChannel> getPtChannelVideoNow(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> getPtChannelVideoNow(PortalUser portalUser, HttpServletRequest request);
 
     PtChannel getbyChannelSlug(String channelName);
 

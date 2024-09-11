@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -210,6 +211,9 @@ public class GcVideo implements Serializable {
 
     @TableField(exist = false)
     private GcSubject originCourse;
+
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
 
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)

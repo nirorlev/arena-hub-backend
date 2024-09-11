@@ -10,10 +10,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
-import com.threeatom.guidecore.entity.GcSubject;
-import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;
-import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
@@ -143,7 +140,9 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
-    void updateVideoFilePrivacy(SysFile videoFile);
+    GcVideo getVideoContentByFileId(Integer fileId);
+
+    void updateVideoFilePrivacy(SysFile videoFile, GcVideo video);
 
     VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
 

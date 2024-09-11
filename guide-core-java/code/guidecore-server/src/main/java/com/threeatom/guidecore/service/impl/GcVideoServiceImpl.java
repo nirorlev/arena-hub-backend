@@ -650,12 +650,13 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public void updateVideoFilePrivacy(SysFile videoFile) {
-		GcVideo video = baseMapper.getVideoContentByFileId(videoFile.getId());
-		updatePrivacy(videoFile, video);
+	public GcVideo getVideoContentByFileId(Integer fileId) {
+		return baseMapper.getVideoContentByFileId(fileId);
 	}
 
-	private void updatePrivacy(SysFile videoFile, GcVideo video) {
+
+	@Override
+	public void updateVideoFilePrivacy(SysFile videoFile, GcVideo video) {
 		if (video == null) {
 			return;
 		}

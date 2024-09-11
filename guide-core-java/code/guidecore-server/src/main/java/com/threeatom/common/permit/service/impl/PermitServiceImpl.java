@@ -114,6 +114,24 @@ public class PermitServiceImpl implements PermitService {
         channel.setPermissions(channelPermissions(channel, portalUser));
     }
 
+    @Override
+    public void populatePermissions(GcVideo video, PortalUser portalUser) {
+        Map<String, Boolean> permissions = videoPermissions(video, portalUser);
+
+        video.setPermissions(permissions);
+        video.getVideoFile().setPermissions(permissions);
+    }
+
+    private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {
+        return Map.of(
+            "canShare", checkPermit(video, "share", portalUser)
+            , "canEdit", checkPermit(video, "edit", portalUser)
+            , "canDelete", checkPermit(video, "delete", portalUser)
+            , "canComment", checkPermit(video, "comment", portalUser)
+            , "canView", checkPermit(video, "view", portalUser)
+        );
+    }
+
     private Map<String, Boolean> channelPermissions(PtChannel channel, PortalUser portalUser) {
         return Map.of(
             "canShare", checkPermit(channel, "share", portalUser)

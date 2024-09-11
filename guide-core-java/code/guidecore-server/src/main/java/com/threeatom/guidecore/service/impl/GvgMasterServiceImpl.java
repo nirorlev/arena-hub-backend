@@ -411,7 +411,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			message.addData("discoverCourses",myMaySubjectPage);
 
 			//已订阅的channel视频,自己上传的不显示
-			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(portalUser.getUserId(),request,gcMaster.getId());
+			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(portalUser, request);
 			message.addData("channelVideoPage", new PageInfo<>(channelPage));
 
 		});
@@ -457,9 +457,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		executor.submit(()->{
 			//Trending Now-channel视频： 最多赞+最多观看的channel视频 （含自己的）
-			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(portalUser.getUserId(),request,gcMaster.getId());
-			PageInfo<PtChannel> nowChannelPage = new PageInfo<>(nowChannel);
-			message.addData("nowChannel",nowChannelPage);
+			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(portalUser, request);
+			message.addData("nowChannel", new PageInfo<>(nowChannel));
 		});
 
 			executor.shutdown();

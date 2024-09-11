@@ -17,6 +17,7 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -193,6 +194,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
             List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
             List<GcVideo> videos = gcVideoService.findByVideoIds(contentIds);
+            Map<Integer, GcVideo> fileIdToVideo = videos.stream().collect(Collectors.toMap(GcVideo::getFileId, Function.identity()));
             List<SysFile> videoFiles = videos.stream().map(GcVideo::getVideoFile).collect(Collectors.toList());
 
             for (GcUserSaveContent userSaveContent : list) {
@@ -202,7 +204,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                         file.setVideoId(userSaveContent.getContentId());
                         file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
                         file.setLikeNum(gcUserVideoActionService.countLikeForVideo(userSaveContent.getContentId()));
-                        gcVideoService.updateVideoFilePrivacy(file);
+                        gcVideoService.updateVideoFilePrivacy(file, fileIdToVideo.get(file.getId()));
                     }
                 }
             }
@@ -238,9 +240,10 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
                 }
             }
-            PageInfo<SysFile> pageInfo = new PageInfo<>(videoFiles);
+
             unavailableVideoService.nullifyVideoData(portalUser, videos);
-            m.addData("videoList", pageInfo);
+            videos.forEach(video -> permitService.populatePermissions(video, portalUser));
+            m.addData("videoList", new PageInfo<>(videoFiles));
         } catch (Exception e) {
             e.printStackTrace();
             return new Message().error(e.getMessage());

@@ -22,7 +22,6 @@ import com.threeatom.guidecore.mapping.ChannelMapping;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoService;
-import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
@@ -152,11 +151,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     public List<SysFile> selectVideosInSection(
-            Integer sectionId,
-            String order,
-            HttpServletRequest request,
-            String searchName,
-            Integer level) {
+        Integer sectionId,
+        String order,
+        HttpServletRequest request,
+        String searchName,
+        Integer level, PortalUser portalUser) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -183,7 +182,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
                 sysFile.setIsLiked(isLikedByUser(sysFile.getVideoId(), userId));
-                videoService.updateVideoFilePrivacy(sysFile);
+                GcVideo video = videoService.getVideoContentByFileId(sysFile.getId());
+                videoService.updateVideoFilePrivacy(sysFile, video);
+                permitService.populatePermissions(video, portalUser);
 
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
@@ -431,15 +432,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<PtChannel> searchChannelsBySysFileNew(
-            Integer userId, HttpServletRequest request, Integer masterId) {
+    public List<PtChannel> searchChannelsBySysFileNew(PortalUser portalUser, HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<PtChannel> channels = this.baseMapper.indexSubscribeChannel(userId, masterId);
+        List<PtChannel> channels = this.baseMapper.indexSubscribeChannel(portalUser.getUserId(), portalUser.getMasterId());
         List<Integer> idList = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
         idList.addAll(
                 channels.stream().map(PtChannel::getChannelAvatarFileId).collect(Collectors.toList()));
@@ -456,6 +456,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
 
         List<SysFile> fileList = sysFileService.listByIds(idList);
+        List<GcVideo> videos = videoService.findByVideoIds(idList);
 
         Map<Integer, SysFile> fileMap =
                 fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
@@ -466,9 +467,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
                 videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
                 videoService.getVideoContent(videoFile.getId()).ifPresent(videoContent -> {
+                    videoContent.setVideoFile(videoFile);
                     videoFile.setVideoId(videoContent.getId());
-                    channel.setIsLiked(userVideoActionService.isLikedByUser(videoContent.getId(), userId) ? 1 : 0);
+                    channel.setIsLiked(userVideoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
                     channel.setLikeNum(userVideoActionService.countLikeForVideo(videoContent.getId()));
+                    permitService.populatePermissions(videoContent, portalUser);
                 });
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {
@@ -488,19 +491,18 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<PtChannel> getPtChannelVideoNow(
-            Integer userId, HttpServletRequest request, Integer masterId) {
+    public List<PtChannel> getPtChannelVideoNow(PortalUser portalUser, HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<PtChannel> channels = this.baseMapper.indexVideoNowChannel(userId, masterId);
+        List<PtChannel> channels = this.baseMapper.indexVideoNowChannel(portalUser.getUserId(), portalUser.getMasterId());
         List<Integer> idList = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
         idList.addAll(
                 channels.stream().map(PtChannel::getChannelAvatarFileId).collect(Collectors.toList()));
-        if (TableConstant.COMMON_ZERO == idList.size()) {
+        if (idList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -509,13 +511,17 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         for (SysFile file : fileList) {
             file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
             file.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
-            videoService.getVideoContent(file.getId()).ifPresent(videoContent -> file.setVideoId(videoContent.getId()));
+            videoService.getVideoContent(file.getId()).ifPresent(videoContent -> {
+                videoContent.setVideoFile(file);
+                file.setVideoId(videoContent.getId());
+                permitService.populatePermissions(videoContent, portalUser);
+            });
         }
 
         Map<Integer, SysFile> createFileMap = new HashMap<>();
         List<GcUser> createUserFile =
                 channels.stream().map(PtChannel::getCreateUser).collect(Collectors.toList());
-        if (null != createUserFile && createUserFile.size() != TableConstant.COMMON_ZERO) {
+        if (null != createUserFile && !createUserFile.isEmpty()) {
             if (userAvatarFileExists(createUserFile)) {
                 List<SysFile> createFile =
                         sysFileService.listByIds(
@@ -537,7 +543,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 channel.setVideoFile(videoFile);
                 channel.getVideoFile().setSnapshotUrl(videoFile.getSnapshotUrl());
                 channel.getVideoFile().setFullFileUrl(videoFile.getFullFileUrl());
-                channel.setIsLiked(userVideoActionService.isLikedByUser(videoFile.getVideoId(), userId) ? 1 : 0);
+                channel.setIsLiked(userVideoActionService.isLikedByUser(videoFile.getVideoId(), portalUser.getUserId()) ? 1 : 0);
                 channel.setLikeNum(userVideoActionService.countLikeForVideo(videoFile.getVideoId()));
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {

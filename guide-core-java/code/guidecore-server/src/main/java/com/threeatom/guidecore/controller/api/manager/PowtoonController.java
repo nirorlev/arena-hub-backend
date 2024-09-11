@@ -459,10 +459,9 @@ public class PowtoonController extends GuideCoreController {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
 		String token = request.getHeader("Authorization");
-		PortalUser portalUser = portalUserService.getByUserAndMasterId(this.getGcUser().getId(), getHeaderMasterId(request));
 
 		if (!"undefined".equals(token)){
-			GcUser user = this.getGcUser();
+			PortalUser portalUser = portalUserService.getByUserAndMasterId(this.getGcUser().getId(), getHeaderMasterId(request));
 			return gvgMasterService.newPtIndexHome(requestParams,request,system, portalUser).addData("times",new Date());
 		}
 		return gvgMasterService.newPtIndexHome(requestParams,request,system,null).addData("times",new Date());
@@ -904,14 +903,14 @@ public class PowtoonController extends GuideCoreController {
 				if(videoFile != null) {
 					SysFile videoFileById = sysFileService.getById(videoFile.getId());
 					content.setVideoFile(videoFileById);
-					populateVideoContent(request, videoFileById, myUser.getId());
+					populateVideoContent(request, videoFileById, portalUser);
 				}
 			}
 
 			permitService.populatePermissions(playlist, portalUser);
 		}
 
-		populateVideoContent(request, file, myUser.getId());
+		populateVideoContent(request, file, portalUser);
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -922,17 +921,19 @@ public class PowtoonController extends GuideCoreController {
 				.addData("systemTime",df.format(new Date()));
 	}
 
-	private void populateVideoContent(HttpServletRequest request, SysFile videoFile, Integer userId) {
+	private void populateVideoContent(HttpServletRequest request, SysFile videoFile, PortalUser portalUser) {
 		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
 		videoFile.setFullFileUrl(sysFileService.getResFullUrl(videoFile, request));
 		gcVideoService.getVideoContent(videoFile.getId()).ifPresent(videoContent -> {
+			videoContent.setVideoFile(videoFile);
 			videoFile.setVideoId(videoContent.getId());
 			videoFile.setLikeNum(videoActionService.countLikeForVideo(videoContent.getId()));
 			videoFile.setIsLiked(
-				videoActionService.isLikedByUser(videoContent.getId(), userId) ? 1 : 0);
+				videoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
+			permitService.populatePermissions(videoContent, portalUser);
+			gcVideoService.updateVideoFilePrivacy(videoFile, videoContent);
 		});
 
-		gcVideoService.updateVideoFilePrivacy(videoFile);
 	}
 
 	@ApiOperation(value = "logout", httpMethod = "GET")
@@ -2644,7 +2645,7 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@PostMapping("/selectChannelDetail")
-	public Message selectChannelDetail(@RequestBody PtChannel ptChannel,HttpServletRequest request) throws IOException {
+	public Message selectChannelDetail(@RequestBody PtChannel ptChannel,HttpServletRequest request) {
 		Message message = new Message();
 		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         Integer ptChannelId = null;
@@ -2744,15 +2745,17 @@ public class PowtoonController extends GuideCoreController {
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
-
+		GcUser user = userService.getCurrentUser(request);
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		Message message = new Message();
 		PtChannel channel = ptChannelService.getById(ptChannel.getId());
 		String order = request.getHeader("order");
+
 		List<SysFile> videoList;
 		if(Objects.isNull(ptChannel.getSearchName())) {
-			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), null);
+			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), null, portalUser);
 		}else {
-			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), channel.getLevel());
+			videoList = ptChannelService.selectVideosInSection(ptChannel.getId(), order, request, ptChannel.getSearchName(), channel.getLevel(), portalUser);
 		}
 		if (null!=videoList&& !videoList.isEmpty()){
 			QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
@@ -2982,7 +2985,7 @@ public class PowtoonController extends GuideCoreController {
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
 		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
-		SysFile videoFile = getFile(request, channelVideoContent, currentUser.getId());
+		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);
 		}else {
@@ -3005,7 +3008,7 @@ public class PowtoonController extends GuideCoreController {
 		message.ok().addData("channel",ptChannel);
 		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
 		for(SysFile sysFile : videofiles){
-			populateVideoContent(request, sysFile, currentUser.getId());
+			populateVideoContent(request, sysFile, portalUser);
 		}
 		message.ok().addData("videoList", new PageInfo<>(videofiles));
 		return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
@@ -3098,18 +3101,19 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error("删除失败");
 	}
 
-	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, Integer userId) {
+	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser) {
 		Integer contentId = channelVideoContent.getId();
 		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		channelVideoContent.setVideoFile(videoFile);
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
 		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
 		videoFile.setFullFileUrl(fullFileUrl);
 		videoFile.setSnapshotUrl(snapShotUrl);
 		videoFile.setVideoId(contentId);
-		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, userId) ? 1 : 0);
+		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
 		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
-		gcVideoService.updateVideoFilePrivacy(videoFile);
-
+		gcVideoService.updateVideoFilePrivacy(videoFile, channelVideoContent);
+		permitService.populatePermissions(channelVideoContent, portalUser);
 		return videoFile;
 	}
 }

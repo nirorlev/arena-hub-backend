@@ -23,6 +23,8 @@ public interface PermitService {
 
     void populatePermissions(PtChannel channel, PortalUser portalUser);
 
+    void populatePermissions(GcVideo video, PortalUser portalUser);
+
     boolean checkMenuItem(String menuItemKey, PortalUser portalUser);
 
 }
