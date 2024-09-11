@@ -42,7 +42,10 @@ public class PermitServiceImpl implements PermitService {
     private static final String PERMIT_DEV_WIP_ENV_API_KEY =
         "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
 
-    private static final Map<String, String> MENU_ITEM_TO_PERMIT_ACTION = Map.of("Insights", "accessanalytics");
+    private static final Map<String, String> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
+        "Insights", "accessanalytics"
+        , "ContentGroups", "accessteams"
+    );
 
     private final PermitConfiguration permitConfiguration;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
