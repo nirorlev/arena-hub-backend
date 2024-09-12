@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.controller.api.manager;
 
+import com.threeatom.common.exception.PermitException;
+import com.threeatom.common.permit.service.PermitService;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,8 +81,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @Autowired
     private GcUserAccessService userAccessService;
     @Autowired
-    private SysFileService iSysFileService;
-    @Autowired
     private RedisOperator redisOperator;
     @Autowired
     private GcSubjectAssociationService gcSubjectAssociationService;
@@ -99,8 +99,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @Autowired
     private GcUserService gcUserService;
     @Autowired
-    private GcManagerService gcManagerService;
-    @Autowired
     private GcUserService userService;
     @Autowired
     private PtLoginConfigService ptLoginConfigService;
@@ -110,9 +108,10 @@ public class ManagerGuideCoreController extends GuideCoreController {
     private GvgMasterService gvgMasterService;
     @Autowired
     private CourseContentService courseContentService;
-
     @Autowired
-    private GcSubjectCompleteService subjectCompleteService;
+    private PermitService permitService;
+    @Autowired
+    private PortalUserService portalUserService;
 
     @GetMapping("/getFuzzyNameVideoInMaster/{videoName}")
     public Message getFuzzyNameVideoInMaster(@PathVariable("videoName") String videoName, HttpServletRequest request) {
@@ -635,18 +634,25 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     }
 
-    @ApiOperation(value = "File id add video course", httpMethod = "POST")
+    @ApiOperation(value = "Update course video", httpMethod = "POST")
     @PostMapping("/saveVideo")
-    public Message saveVideo(@RequestBody @ApiParam(name = "Save Video", value = "Video entity") GcVideo video, HttpServletRequest request) {
-        SysSystem sys = this.getSystem();
+    public Message saveVideo(@RequestBody @ApiParam(name = "Update video", value = "Video entity") GcVideo video, HttpServletRequest request) {
+        SysSystem system = this.getSystem();
         GcMaster master = this.getMaster();
+        GcUser user = gcUserService.getCurrentUser(request);
         Integer masterId;
         if (null == master && null != request.getHeader("masterId")) {
             masterId = Integer.parseInt(request.getHeader("masterId"));
         } else {
             masterId = master.getId();
         }
-        boolean successful = gcVideoService.saveVideoInfo(sys, video, masterId, request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+        GcVideo existingVideo = videoService.findByVideoId(video.getId());
+        if (!permitService.checkPermit(existingVideo, ActionsType.edit, portalUser)) {
+            throw new PermitException("No permission for this!");
+        }
+
+        boolean successful = gcVideoService.saveVideoInfo(system, video, masterId, request);
 
         if (successful) {
             video.setSubId0(subService.getById(video.getSubId()).getFid());

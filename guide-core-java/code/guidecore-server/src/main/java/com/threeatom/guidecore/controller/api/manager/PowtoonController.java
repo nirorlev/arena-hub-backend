@@ -278,8 +278,6 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private UserLicenseService userLicenseService;
 	@Autowired
-	private OrgLicenseLimitationService orgLicenseLimitationService;
-	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
 	private PortalUserService portalUserService;
@@ -2715,37 +2713,6 @@ public class PowtoonController extends GuideCoreController {
 		message.ok().addData("channel",channel);
 
 		return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-	}
-
-	@ApiOperation(value = "文件id添加视频课程", httpMethod = "POST")
-	@PostMapping("/saveVideo")
-	public Message saveVideo(@RequestBody @ApiParam(name = "创建保存视频", value = "视频实体") GcVideo video, HttpServletRequest request) throws IOException {
-		SysSystem sys = this.getSystem();
-		GcMaster master = this.getMaster();
-		int masterId = RequestUtil.getMasterId(request).orElseGet(master::getId);
-
-		GcUser user = this.getGcUser();
-		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-
-		boolean isFlag;
-		if (null!=video.getId()){
-			GcVideo existingVideo = gcVideoService.findByVideoId(video.getId());
-			isFlag = permitService.checkPermit(existingVideo, ActionsType.edit, portalUser);
-		}else {
-			video.setUserId(user.getId());
-			isFlag = permitService.checkPermit(video, ActionsType.create, portalUser);
-		}
-
-		if (!isFlag){
-			throw new PermitException("No permission for this!");
-		}
-		gcVideoService.saveVideoInfo(sys,video,masterId,request);
-
-		if (null!=video.getSubId()) {
-			video.setSubId0(gcSubjectService.getById(video.getSubId()).getFid());
-		}
-		return new Message().ok("Success")
-			.addData("sync", video);
 	}
 
 	@ApiOperation(value = "查询section中的视频list")
