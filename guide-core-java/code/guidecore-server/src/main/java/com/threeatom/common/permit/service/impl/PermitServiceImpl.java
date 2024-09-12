@@ -173,13 +173,13 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
         PermitPlaylist permitPlaylist = new PermitPlaylist();
+        permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
+
         if (playlist.getId() == null) {
-            permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
             return permitPlaylist;
         }
 
         permitPlaylist.setId(String.valueOf(playlist.getId()));
-        permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
         permitPlaylist.setPublic(!playlist.getIsPrivate());
         permitPlaylist.setPrivate(playlist.getIsPrivate());
 
@@ -190,8 +190,8 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitCourse createCourse(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
+        permitCourse.setOwnerId(String.valueOf(course.getUserId()));
         if (course.getId() == null) {
-            permitCourse.setOwnerId(String.valueOf(course.getUserId()));
             return permitCourse;
         }
 
@@ -199,7 +199,6 @@ public class PermitServiceImpl implements PermitService {
         permitCourse.setPublic(course.isPublic());
         permitCourse.setPrivate(course.isPrivate());
         permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
-        permitCourse.setOwnerId(String.valueOf(course.getUserId()));
         return permitCourse;
     }
 
@@ -211,8 +210,8 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitChannel createChannel(PtChannel channel) {
         PermitChannel permitChannel = new PermitChannel();
+        permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
         if (channel.getId() == null) {
-            permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
             return permitChannel;
         }
 
@@ -220,7 +219,6 @@ public class PermitServiceImpl implements PermitService {
         permitChannel.setPublic(channel.isPublic());
         permitChannel.setPrivate(channel.isPrivate());
         permitChannel.setContentGroupIds(convert(channelSubscriptionService.getContentGroupIds(channel.getId())));
-        permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
         return permitChannel;
     }
 
@@ -272,12 +270,12 @@ public class PermitServiceImpl implements PermitService {
 
     private PermitVideoItem createVideoItem(GcVideo video) {
         PermitVideoItem permitVideoItem = new PermitVideoItem();
+        permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
         if (video.getId() == null) {
             return permitVideoItem;
         }
 
         permitVideoItem.setId(video.getId().toString());
-        permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
         permitVideoItem.setPublic(video.isPublic());
         permitVideoItem.setPrivate(video.isPrivate());
         permitVideoItem.setContentGroupIds(convert(getVideoContentGroupIds(video)));

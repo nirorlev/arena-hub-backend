@@ -2117,12 +2117,12 @@ public class PowtoonController extends GuideCoreController {
 	public Message newContentFolder(@RequestBody GcUserSaveFolder playlist, HttpServletRequest request) {
 		ApiAssert.notNull(playlist.getName(), "The folder name cannot be empty!");
 		GcUser user = this.getGcUser();
-		playlist.setUserId(user.getId());
-		playlist.setMasterId(getHeaderMasterId(request));
 		GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
 		playlist.setUserId(user.getId());
+		playlist.setMasterId(getHeaderMasterId(request));
+
 		if (!permitService.checkPermit(playlist, ActionsType.create, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
@@ -2337,7 +2337,6 @@ public class PowtoonController extends GuideCoreController {
 		}else if (channel.isSection()){
 			isAllowed = permitService.checkPermit(channel, ActionsType.addContent, portalUser);
 		}else {
-			channel.setCreateUserId(user.getId());
 			isAllowed = permitService.checkPermit(channel, ActionsType.createChannel, portalUser);
 		}
 
@@ -2346,9 +2345,6 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		channel.setMasterId(masterId);
-		if (null==channel.getId()){
-			channel.setCreateUserId(user.getId());
-		}
 		if (Objects.isNull(master)){
 			master = new GcMaster();
 			master.setId(masterId);
