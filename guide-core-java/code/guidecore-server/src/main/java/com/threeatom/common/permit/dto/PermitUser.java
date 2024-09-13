@@ -15,7 +15,7 @@ public class PermitUser {
 
     public HashMap<String, Object> getAttributes() {
         HashMap<String, Object> attributes = new HashMap<>();
-        attributes.put("id", id);
+        attributes.put("key", id);
         attributes.put("isOrgAdmin", isOrgAdmin);
         attributes.put("contentGroupIds", contentGroupIds);
         attributes.put("managedContentGroupIds", managedContentGroupIds);
