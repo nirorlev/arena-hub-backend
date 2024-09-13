@@ -648,7 +648,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         }
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         GcVideo existingVideo = videoService.findByVideoId(video.getId());
-        if (!permitService.checkPermit(existingVideo, ActionsType.edit, portalUser)) {
+        if (!permitService.checkPermit(existingVideo, PermitAction.EDIT, portalUser)) {
             throw new PermitException("No permission for this!");
         }
 
