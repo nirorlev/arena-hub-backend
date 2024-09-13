@@ -57,15 +57,6 @@ pipelines:
         script:
           - .ci/deploy.sh --env develop
 
-    feature/VCP-16115-arena-permissions:
-    - step: *build_and_push
-    - step:
-        name: Deploy to develop
-        image: atlassian/default-image:4
-        deployment: develop
-        script:
-          - .ci/deploy.sh --env develop
-
     # For feature/** branches: automatically compile. Optionally build container image, push it to ECR,
     # deploy an image to one of develop, staging-ec environments
     '{feature/**,bugfix/**}':
