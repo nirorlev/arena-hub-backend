@@ -61,9 +61,15 @@ public class UserLicenseServiceImpl implements UserLicenseService {
     }
 
     @Override
-    public LicenseUsageDto getLicenseUsage(Integer userId, Integer masterId) {
+    public LicenseUsageDto getLicenseUsage(PortalUser portalUser) {
         LicenseUsageDto licenseUsage = new LicenseUsageDto();
 
+        if (!isLimitedMember(portalUser.getRole())) {
+            return licenseUsage;
+        }
+
+        Integer userId = portalUser.getUserId();
+        Integer masterId = portalUser.getMasterId();
         licenseUsage.setPrivateChannelCount(channelService.countUserPrivateChannels(userId, masterId));
         licenseUsage.setPrivatePlaylistCount(playlistService.countUserPrivatePlaylists(userId, masterId));
 
