@@ -2337,7 +2337,7 @@ public class PowtoonController extends GuideCoreController {
 		}else if (channel.isSection()){
 			isAllowed = permitService.checkPermit(channel, ActionsType.addContent, portalUser);
 		}else {
-			isAllowed = permitService.checkPermit(channel, ActionsType.createChannel, portalUser);
+			isAllowed = permitService.checkPermit(channel, ActionsType.create, portalUser);
 		}
 
 		if (!isAllowed){
@@ -2798,7 +2798,7 @@ public class PowtoonController extends GuideCoreController {
 		PtChannel channel = ptChannelService.getById(ptChannelSubscribe.getChannelId());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(channel, ActionsType.unsubscribe, portalUser)){
+		if (!permitService.checkPermit(channel, ActionsType.subscribe, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);

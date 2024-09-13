@@ -10,6 +10,7 @@ import com.threeatom.common.permit.dto.PermitUser;
 import com.threeatom.common.permit.dto.PermitVideoItem;
 import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.config.PermitConfiguration;
+import com.threeatom.guidecore.constant.ActionsType;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -45,8 +46,8 @@ public class PermitServiceImpl implements PermitService {
         "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
 
     private static final Map<String, String> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
-        "Insights", "accessanalytics"
-        , "ContentGroups", "accessteams"
+        "Insights", ActionsType.accessanAlytics
+        , "ContentGroups", ActionsType.accessTeams
     );
 
     private final PermitConfiguration permitConfiguration;
@@ -145,19 +146,19 @@ public class PermitServiceImpl implements PermitService {
     }
 
     private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {
-        List<String> permissionsToCheck = List.of("share", "edit", "delete", "comment", "view");
+        List<String> permissionsToCheck = List.of(ActionsType.share, ActionsType.edit, ActionsType.delete, ActionsType.comment, ActionsType.view);
         return checkPermit(video, permissionsToCheck, portalUser);
     }
 
     private Map<String, Boolean> channelPermissions(PtChannel channel, PortalUser portalUser) {
         List<String> permissionsToCheck =
-            List.of("share", "edit", "delete", "subscribe", "unsubscribe", "manageContent");
+            List.of(ActionsType.share, ActionsType.edit, ActionsType.delete, ActionsType.subscribe, ActionsType.manageContent);
         return checkPermit(channel, permissionsToCheck, portalUser);
     }
 
     private Map<String, Boolean> playlistPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
         List<String> permissionsToCheck =
-            List.of("share", "edit", "delete", "subscribe", "unsubscribe", "manageContent");
+            List.of(ActionsType.share, ActionsType.edit, ActionsType.delete, ActionsType.subscribe, ActionsType.manageContent);
         return checkPermit(playlist, permissionsToCheck, portalUser);
     }
 
