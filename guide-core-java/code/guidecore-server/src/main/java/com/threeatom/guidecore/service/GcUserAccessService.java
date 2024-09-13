@@ -98,6 +98,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     void syncUserAccessWithPowtoonGroups(
         Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo groups, Integer userId);
 
-    void removeContentGroupsMissingInDb(
+    void removeOutdatedContentGroupAccess(
         List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId);
 }

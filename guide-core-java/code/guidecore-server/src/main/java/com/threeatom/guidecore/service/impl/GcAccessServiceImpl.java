@@ -242,6 +242,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
+    @Transactional
     public void syncContentGroupsWithPowtoonGroups(
         PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId) {
         List<GroupDto> memberGroups = powtoonUser.getPermissions().getGroups();
@@ -258,9 +259,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups, masterId);
         List<GcAccess> dbContentGroups = this.list();
 
-        userAccessService.removeContentGroupsMissingInDb(dbContentGroups, allGroupCodes, userId, masterId);
         ptChannelSubscribeService.autoSubscribeToContentGroupChannels(memberContentGroups, userId);
         userAccessService.syncUserAccessWithPowtoonGroups(masterId, allContentGroups, groups, userId);
+        userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, allGroupCodes, userId, masterId);
     }
 
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {

@@ -501,10 +501,11 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
+    @Transactional
     public void syncUserAccessWithPowtoonGroups(
         Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo powtoonGroups, Integer userId) {
 
-        List<GcUserAccess> userContentGroups = new ArrayList<>();
+        List<GcUserAccess> userAccesses = new ArrayList<>();
         Map<String, Groups> codeToPowtoonGroups =
             powtoonGroups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
         Map<String, GcAccess> allContentGroupCodeToContentGroup =
@@ -528,18 +529,19 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
                 userAccess.setParentCode(codeToPowtoonGroups.get(contentGroup.getCode()).getParent_group_id());
             }
             userAccess.setAccess(contentGroup);
-            userContentGroups.add(userAccess);
+            userAccesses.add(userAccess);
         }
 
-        if (!userContentGroups.isEmpty()) {
-            insertUserAccessList(userContentGroups);
+        if (!userAccesses.isEmpty()) {
+            insertUserAccessList(userAccesses);
         }
 
-        updateUserPermissions(getUserAccessListByMasterIdAndUserId(getUserIds(userContentGroups), masterId));
+        updateUserPermissions(getUserAccessListByMasterIdAndUserId(getUserIds(userAccesses), masterId));
     }
 
     @Override
-    public void removeContentGroupsMissingInDb(
+    @Transactional
+    public void removeOutdatedContentGroupAccess(
         List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId) {
 
         List<Integer> contentGroupIdsToRemove = allContentGroups.stream()
