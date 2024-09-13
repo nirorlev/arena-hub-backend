@@ -9,23 +9,9 @@
         order by "order"
     </select>
 
-    <select id="getLevel3List" resultType="com.threeatom.guidecore.entity.SysMenu">
-        select * from sys_menu
-        where "level" = 3
-        and master_id is null
-        order by "order"
-    </select>
-
     <select id="getSysMenuListByMasterId" resultType="com.threeatom.guidecore.entity.SysMenu">
         select * from sys_menu
         where "level" = 2
-        and master_id=#{masterId}
-        order by "order"
-    </select>
-
-    <select id="getLevel3ListByMasterId" resultType="com.threeatom.guidecore.entity.SysMenu">
-        select * from sys_menu
-        where "level" = 3
         and master_id=#{masterId}
         order by "order"
     </select>

@@ -9,8 +9,6 @@ public interface SysMenuService extends IService<SysMenu> {
 
     List<SysMenu> getSysMenuList(PortalUser portalUser);
 
-    List<SysMenu> getLevel3List(PortalUser portalUser);
-
     List<SysMenu> getByMaster(Integer masterId);
 
     List<Integer> getParentIdList(Integer masterId);
@@ -18,8 +16,6 @@ public interface SysMenuService extends IService<SysMenu> {
     List<SysMenu> getChildLevelList(Integer masterId);
 
     List<SysMenu> getSysMenuListByMasterId(PortalUser portalUser);
-
-    List<SysMenu> getLevel3ListByMasterId(PortalUser portalUser);
 
     List<SysMenu> getMenuByRoles(List<String> roles, PortalUser portalUser);
 
