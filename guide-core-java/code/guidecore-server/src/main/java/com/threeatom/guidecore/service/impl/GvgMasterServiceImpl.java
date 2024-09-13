@@ -475,14 +475,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	}
 
 	@Override
-	public Message portalInfosUnlogin(JSONObject requestParams,HttpServletRequest request,SysSystem system,GcUser user,Integer envFlag) {
+	public Message portalInfosUnlogin(JSONObject requestParams, GcUser user, HttpServletRequest request) {
 		if (null!=requestParams.get("state")){
 			request.setAttribute("state",requestParams.get("state").toString());
 		}
-		if (null!=requestParams.get("user")){
-			if (null!=user){
-				request.setAttribute("createUser",user.getId());
-			}
+		if (null!=requestParams.get("user") && user != null){
+			request.setAttribute("createUser",user.getId());
 		}
 		if (null!=requestParams.get("type")&&null!=user){
 			request.setAttribute("type",requestParams.get("type"));
@@ -494,12 +492,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		if(null!=user){
 			request.setAttribute("userId",user.getId());
 		}
-		if (envFlag.equals(EnvType.PT.getCode())){
-			request.setAttribute("isPt",TableConstant.COMMON_ZERO);
-		}
+		request.setAttribute("isPt",TableConstant.COMMON_ZERO);
 		Message message = new Message();
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
+
 		if(Objects.nonNull(gcMaster.getFaviconLogoFileId())){
 			SysFile sysFile = sysFileService.getById(gcMaster.getFaviconLogoFileId());
 			String faviconUrl = sysFileService.getResFullUrl(sysFile,request);
@@ -515,10 +512,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
 			gcMaster.setLogoFullUrl(fullFileUrl);
 		}
-		if(gcMaster==null) {
-			return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-		}
-		SysFile logofile = sysFileService.selectByLogoId(gcMaster.getLogoId());
+        SysFile logofile = sysFileService.selectByLogoId(gcMaster.getLogoId());
 		String logoFullUrl = sysFileService.getResFullUrl(logofile,request);
 		if(null != gcMaster.getProfilePhotoId()){
 			SysFile profileFile = sysFileService.getById(gcMaster.getProfilePhotoId());
@@ -527,34 +521,33 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-			//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
-			//taglist
-			List<String> subWithTagList = new ArrayList<>();
-			String token = request.getHeader("Authorization");
-			if (null != token && !"".equals(token) && !"undefined".equals(token)){
-				if (Objects.nonNull(user)){
-					subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),user.getId());
-				}
-			}else {
-				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
+		//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
+		//taglist
+		List<String> subWithTagList = new ArrayList<>();
+		String token = request.getHeader("Authorization");
+		if (!"undefined".equals(token)){
+			if (Objects.nonNull(user)){
+				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),user.getId());
 			}
+		}else {
+			subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
+		}
 
-			List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
-			if (null!=user&&envFlag.equals(EnvType.PT.getCode())){
-				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-				queryWrapper.in("master_id",gcMaster.getId());
-				queryWrapper.in("type",TableConstant.COMMON_ONE);
-				subWithTagList = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-				//去重
-				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
-			}
+		List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
+		if (null!=user){
+			QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
+			queryWrapper.in("master_id",gcMaster.getId());
+			queryWrapper.in("type",TableConstant.COMMON_ONE);
+			subWithTagList = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
+			//去重
+			subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
+		}
 
-			List<SysMenu> menuList = sysMenuService.getLevel3List(null);
-			message.ok().addData("allTags",subWithTagList);
-			message.ok().addData("homeInfo",infoList);
-			message.ok().addData("homeInfoIndex",menuList);
-			message.ok().addData("master",gcMaster);
-		return message.ok();
+		return message.ok()
+			.addData("allTags",subWithTagList)
+			.addData("homeInfo",infoList)
+			.addData("homeInfoIndex", sysMenuService.getLevel3List(null))
+			.addData("master",gcMaster);
 	}
 
 	@Override

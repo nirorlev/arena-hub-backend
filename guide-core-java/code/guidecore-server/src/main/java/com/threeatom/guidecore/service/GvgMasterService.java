@@ -18,11 +18,8 @@ public interface GvgMasterService extends IService<GcMaster> {
     // 复用 gc的接口
 
     Message portalInfosUnlogin(
-            JSONObject requestParams,
-            HttpServletRequest request,
-            SysSystem system,
-            GcUser user,
-            Integer envFlag);
+        JSONObject requestParams,
+        GcUser user, HttpServletRequest request);
 
     Message newPtIndexHome(
             JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser);
