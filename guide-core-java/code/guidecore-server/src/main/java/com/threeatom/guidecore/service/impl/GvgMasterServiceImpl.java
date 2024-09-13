@@ -472,56 +472,57 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Override
 	public Message portalInfosUnlogin(JSONObject requestParams, GcUser user, HttpServletRequest request) {
-		if (null!=requestParams.get("state")){
-			request.setAttribute("state",requestParams.get("state").toString());
+		if (requestParams.get("state") != null) {
+			request.setAttribute("state", requestParams.get("state").toString());
 		}
-		if (null!=requestParams.get("user") && user != null){
-			request.setAttribute("createUser",user.getId());
+		if (requestParams.get("user") != null && user != null) {
+			request.setAttribute("createUser", user.getId());
 		}
-		if (null!=requestParams.get("type")&&null!=user){
-			request.setAttribute("type",requestParams.get("type"));
+		if (requestParams.get("type") != null && user != null) {
+			request.setAttribute("type", requestParams.get("type"));
 		}
-		if (null!=requestParams.get("subjectName")){
-			request.setAttribute("subjectName",requestParams.get("subjectName"));
+		if (requestParams.get("subjectName") != null) {
+			request.setAttribute("subjectName", requestParams.get("subjectName"));
+		}
+		if (user != null) {
+			request.setAttribute("userId", user.getId());
 		}
 
-		if(null!=user){
-			request.setAttribute("userId",user.getId());
-		}
-		request.setAttribute("isPt",TableConstant.COMMON_ZERO);
-		Message message = new Message();
+		request.setAttribute("isPt", TableConstant.COMMON_ZERO);
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
 
-		if(Objects.nonNull(gcMaster.getFaviconLogoFileId())){
+		if (Objects.nonNull(gcMaster.getFaviconLogoFileId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getFaviconLogoFileId());
-			String faviconUrl = sysFileService.getResFullUrl(sysFile,request);
+			String faviconUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setFaviconFullFileUrl(faviconUrl);
 		}
 		//查询此门户下是否有免费code
 		GcAccess gcAccess = gcAccessService.selectFreeCodeByMaster(gcMaster.getId());
-		if(Objects.nonNull(gcAccess)){
+		if (Objects.nonNull(gcAccess)) {
 			gcMaster.setFreeAccessCode(gcAccess);
 		}
-		if(Objects.nonNull(gcMaster.getLogoId())){
+		if (Objects.nonNull(gcMaster.getLogoId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getLogoId());
-			String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+			String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setLogoFullUrl(fullFileUrl);
 		}
-        SysFile logofile = sysFileService.selectByLogoId(gcMaster.getLogoId());
-		String logoFullUrl = sysFileService.getResFullUrl(logofile,request);
-		if(null != gcMaster.getProfilePhotoId()){
+		SysFile logoFile = sysFileService.selectByLogoId(gcMaster.getLogoId());
+		String logoFullUrl = sysFileService.getResFullUrl(logoFile, request);
+		if (gcMaster.getProfilePhotoId() != null) {
 			SysFile profileFile = sysFileService.getById(gcMaster.getProfilePhotoId());
-			String profileUrl = sysFileService.getResFullUrl(profileFile,request);
+			String profileUrl = sysFileService.getResFullUrl(profileFile, request);
 			gcMaster.setProfilePhotoFullFileUrl(profileUrl);
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-		List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
+		List<GcMasterHomeInfo> infoList =
+			iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(), TableConstant.gcMasterHomeInfo_name_page,
+				null, request);
 
-		return message.ok()
-			.addData("homeInfo",infoList)
-			.addData("master",gcMaster);
+		return new Message().ok()
+			.addData("homeInfo", infoList)
+			.addData("master", gcMaster);
 	}
 
 	@Override
