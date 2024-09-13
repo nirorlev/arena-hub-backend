@@ -51,9 +51,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PermitServiceImpl implements PermitService {
 
-    private static final String PERMIT_DEV_WIP_ENV_API_KEY =
-        "permit_key_fJPWdxjlpLthYKoy8pKs7w9s6GgA1uSJgbo2IwktCYtbN40wz3wMggugaHXkAj6JOt4xp18shjJQrMh1WXVEvA";
-
     private static final Map<String, PermitAction> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
         "Insights", PermitAction.ACCESS_ANALYTICS
         , "ContentGroups", PermitAction.ACCESS_TEAMS
@@ -74,7 +71,7 @@ public class PermitServiceImpl implements PermitService {
     @PostConstruct
     public void init() {
         permit = new Permit(
-            new PermitConfig.Builder(PERMIT_DEV_WIP_ENV_API_KEY)
+            new PermitConfig.Builder(permitConfiguration.getApiKey())
                 .withPdpAddress(permitConfiguration.getPdpAddress())
                 .withDebugMode(true)
                 .build()
