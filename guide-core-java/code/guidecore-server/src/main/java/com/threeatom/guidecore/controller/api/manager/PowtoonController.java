@@ -1650,26 +1650,22 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "systemSettings", httpMethod = "GET")
 	@GetMapping("/systemSettings")
-	public Message systemSettings(HttpServletRequest request){
+	public Message systemSettings(HttpServletRequest request) {
 		GcUser currentUser = this.getGcUser();
 		QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("level",TableConstant.COMMON_TWO);
+		queryWrapper.eq("level", TableConstant.COMMON_TWO);
 
 		Integer masterId = RequestUtil.getMasterId(request).orElse(null);
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(portalUser);
-		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(portalUser);
 
-		if (sysMenuList.isEmpty() || homePageSections.isEmpty()){
-			sysMenuList=sysMenuService.getSysMenuList(portalUser);
-			homePageSections=sysMenuService.getLevel3List(portalUser);
+		if (sysMenuList.isEmpty()) {
+			sysMenuList = sysMenuService.getSysMenuList(portalUser);
 		}
 
-		// Preheat the interface and optimize the first startup
 		gcSubjectService.initJit();
 		return new Message().ok()
-			.addData("sysMenuList",sysMenuList)
-			.addData("homePageSections",homePageSections);
+			.addData("sysMenuList", sysMenuList);
 	}
 
 	@ApiOperation(value = "updateSettings", httpMethod = "POST")

@@ -46,13 +46,15 @@
     </select>
 
     <select id="getMenuByRoles" resultType="com.threeatom.guidecore.entity.SysMenu">
-        select me.id,me.name,me.sort,me.level,me.key from sys_menu me
+        select me.id,me.name,me.sort,me.level,me.key
+        from sys_menu me
         left join sys_role_menu nu on nu.menu_ids::jsonb @> to_jsonb(me.id::integer)
         left join sys_role ro on ro.id = nu.role_id
         where ro.role_key in
         <foreach collection="roles" item="role" index="index" open="(" close=")" separator=",">
             #{role}
         </foreach>
+        AND me.level IN (0, 1)
         GROUP BY me.id
         order by me.sort
     </select>
