@@ -73,7 +73,6 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
-import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -227,9 +226,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private AuthorizationService authorizationService;
-
-	@Autowired
-	private SysMenuService sysMenuService;
 
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
@@ -521,32 +517,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-		//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
-		//taglist
-		List<String> subWithTagList = new ArrayList<>();
-		String token = request.getHeader("Authorization");
-		if (!"undefined".equals(token)){
-			if (Objects.nonNull(user)){
-				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),user.getId());
-			}
-		}else {
-			subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
-		}
-
 		List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
-		if (null!=user){
-			QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-			queryWrapper.in("master_id",gcMaster.getId());
-			queryWrapper.in("type",TableConstant.COMMON_ONE);
-			subWithTagList = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-			//去重
-			subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
-		}
 
 		return message.ok()
-			.addData("allTags",subWithTagList)
 			.addData("homeInfo",infoList)
-			.addData("homeInfoIndex", sysMenuService.getLevel3List(null))
 			.addData("master",gcMaster);
 	}
 
