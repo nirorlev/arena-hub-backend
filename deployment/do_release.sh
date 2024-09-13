@@ -24,7 +24,11 @@ copy_permitio_policies() {
         npm ci
     }
 
-    if [ "${K8S_NAMESPACE}" == "staging-ec" ]; then
+    if [ "${K8S_NAMESPACE}" == "develop" ]; then
+        echo -e "\n########## Copying Permitio policies from dev-wip to dev-stable:\n"
+        install_deps
+        node hub/utils/copy-env.js dev-wip dev-stable
+    elif [ "${K8S_NAMESPACE}" == "staging-ec" ]; then
         echo -e "\n########## Copying Permitio policies from dev to staging:\n"
         install_deps
         node hub/utils/copy-env.js dev-stable staging
