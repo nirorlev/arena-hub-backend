@@ -25,6 +25,7 @@
         <result property="videoTime" column="video_time"/>
         <result property="originCourseId" column="origin_course_id"/>
         <result property="originChannelId" column="origin_channel_id"/>
+        <result property="userId" column="user_id"/>
 
         <result property="resourceNum" column="resourceNum"/>
 
@@ -54,11 +55,16 @@
 
     <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
         <result property="createUserId" column="create_user_id"/>
+        <result property="fid" column="fid"/>
+        <result property="visibleFlag" column="visible_flag"/>
         <association columnPrefix="create_user_" property="createUser" column="createUserId" javaType="GcUser" autoMapping="true" />
     </resultMap>
 
     <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
         <result property="userId" column="user_id"/>
+        <result property="fid" column="fid"/>
+        <result property="availableType" column="available_type"/>
+        <result property="state" column="state"/>
         <association columnPrefix="user_info_" property="userInfo" column="user_id" javaType="GcUser" autoMapping="true" />
     </resultMap>
 
@@ -786,9 +792,12 @@
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
             pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
             pcc.id                        AS channel_channel_content_id,
             channel_owner.id              AS channel_create_user_id,
             channel_owner_info.first_name AS channel_create_user_first_name,
@@ -796,6 +805,9 @@
             channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
+            gs.fid                        AS course_fid,
+            gs.state                      AS course_state,
+            gs.available_type             AS course_available_type,
             course_owner.id               AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
@@ -825,9 +837,12 @@
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
             pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
             pcc.id                        AS channel_channel_content_id,
             channel_owner.id              AS channel_create_user_id,
             channel_owner_info.first_name AS channel_create_user_first_name,
@@ -835,6 +850,9 @@
             channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
+            gs.fid                        AS course_fid,
+            gs.state                      AS course_state,
+            gs.available_type             AS course_available_type,
             course_owner.id               AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
@@ -875,15 +893,21 @@
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
             pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
             channel_owner.id              AS channel_create_user_id,
             channel_owner_info.first_name AS channel_create_user_first_name,
             channel_owner_info.last_name  AS channel_create_user_last_name,
             channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
+            gs.fid                        AS course_fid,
+            gs.state                      AS course_state,
+            gs.available_type             AS course_available_type,
             course_owner.id               AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,

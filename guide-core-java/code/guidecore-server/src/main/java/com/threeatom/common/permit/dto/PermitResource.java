@@ -11,5 +11,12 @@ public abstract class PermitResource {
 
     abstract public String getType();
 
-    abstract public HashMap<String, Object> getAttributes();
+    public HashMap<String, Object> getAttributes() {
+        HashMap<String, Object> attributes = new HashMap<>();
+        attributes.put("key", id);
+        attributes.putAll(getFieldAttributes());
+        return attributes;
+    }
+
+    protected abstract HashMap<String, Object> getFieldAttributes();
 }

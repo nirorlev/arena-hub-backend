@@ -250,7 +250,7 @@ public class VideoGuideCoreController extends GuideCoreController {
 
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-        GcVideo video = videoService.getVideoById(vid);
+        GcVideo video = videoService.findByVideoId(vid);
         unavailableVideoService.nullifyVideoComments(portalUser, video, videoCommentPageInfo);
 
         return new Message()

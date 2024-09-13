@@ -1,10 +1,13 @@
 package com.threeatom.common.permit.service.impl;
 
+import static com.threeatom.guidecore.constant.PermitAction.COMMENT;
 import static com.threeatom.guidecore.constant.PermitAction.DELETE;
 import static com.threeatom.guidecore.constant.PermitAction.EDIT;
 import static com.threeatom.guidecore.constant.PermitAction.MANAGE_CONTENT;
 import static com.threeatom.guidecore.constant.PermitAction.SHARE;
 import static com.threeatom.guidecore.constant.PermitAction.SUBSCRIBE;
+import static com.threeatom.guidecore.constant.PermitAction.UNSUBSCRIBE;
+import static com.threeatom.guidecore.constant.PermitAction.VIEW;
 
 import com.threeatom.common.permit.dto.PermitChannel;
 import com.threeatom.common.permit.dto.PermitContentGroup;
@@ -55,6 +58,11 @@ public class PermitServiceImpl implements PermitService {
         "Insights", PermitAction.ACCESS_ANALYTICS
         , "ContentGroups", PermitAction.ACCESS_TEAMS
     );
+    private static final List<PermitAction> VIDEO_PERMISSIONS_TO_CHECK = List.of(SHARE, EDIT, DELETE, COMMENT, VIEW);
+    private static final List<PermitAction> CHANNEL_PERMISSIONS_TO_CHECK =
+        List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
+    private static final List<PermitAction> PLAYLIST_PERMISSIONS_TO_CHECK =
+        List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
 
     private final PermitConfiguration permitConfiguration;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
@@ -75,7 +83,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean checkPermit(GcVideo video, PermitAction action, PortalUser portalUser) {
-        return checkPermit(video, List.of(action), portalUser).get(action.getValue());
+        return checkPermit(video, List.of(action), portalUser).get(action.getKey());
     }
 
     private Map<String, Boolean> checkPermit(GcVideo video, List<PermitAction> actions, PortalUser portalUser) {
@@ -87,7 +95,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean checkPermit(GcAccess contentGroup, PermitAction action, PortalUser portalUser) {
-        return checkPermit(contentGroup, List.of(action), portalUser).get(action.getValue());
+        return checkPermit(contentGroup, List.of(action), portalUser).get(action.getKey());
     }
 
     private Map<String, Boolean> checkPermit(GcAccess contentGroup, List<PermitAction> actions, PortalUser portalUser) {
@@ -99,7 +107,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean checkPermit(PtChannel channel, PermitAction action, PortalUser portalUser) {
-        return checkPermit(channel, List.of(action), portalUser).get(action.getValue());
+        return checkPermit(channel, List.of(action), portalUser).get(action.getKey());
     }
 
     private Map<String, Boolean> checkPermit(PtChannel channel, List<PermitAction> actions, PortalUser portalUser) {
@@ -111,7 +119,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean checkPermit(GcSubject course, PermitAction action, PortalUser portalUser) {
-        return checkPermit(course, List.of(action), portalUser).get(action.getValue());
+        return checkPermit(course, List.of(action), portalUser).get(action.getKey());
     }
 
     private Map<String, Boolean> checkPermit(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
@@ -123,7 +131,7 @@ public class PermitServiceImpl implements PermitService {
 
     @Override
     public boolean checkPermit(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser) {
-        return checkPermit(playlist, List.of(action), portalUser).get(action.getValue());
+        return checkPermit(playlist, List.of(action), portalUser).get(action.getKey());
     }
 
     private Map<String, Boolean> checkPermit(GcUserSaveFolder playlist, List<PermitAction> actions,
@@ -153,18 +161,15 @@ public class PermitServiceImpl implements PermitService {
     }
 
     private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {
-        List<PermitAction> permissionsToCheck = List.of(SHARE, EDIT, DELETE, PermitAction.COMMENT, PermitAction.VIEW);
-        return checkPermit(video, permissionsToCheck, portalUser);
+        return checkPermit(video, VIDEO_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     private Map<String, Boolean> channelPermissions(PtChannel channel, PortalUser portalUser) {
-        List<PermitAction> permissionsToCheck = List.of(SHARE, EDIT, DELETE, SUBSCRIBE, MANAGE_CONTENT);
-        return checkPermit(channel, permissionsToCheck, portalUser);
+        return checkPermit(channel, CHANNEL_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     private Map<String, Boolean> playlistPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
-        List<PermitAction> permissionsToCheck = List.of(SHARE, EDIT, DELETE, SUBSCRIBE, MANAGE_CONTENT);
-        return checkPermit(playlist, permissionsToCheck, portalUser);
+        return checkPermit(playlist, PLAYLIST_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     @Override
@@ -174,7 +179,7 @@ public class PermitServiceImpl implements PermitService {
         }
 
         PermitAction action = MENU_ITEM_TO_PERMIT_ACTION.get(menuItemKey);
-        return checkPermit(new PermitPortal(), List.of(action), createUser(portalUser)).get(action.getValue());
+        return checkPermit(new PermitPortal(), List.of(action), createUser(portalUser)).get(action.getKey());
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
@@ -236,7 +241,7 @@ public class PermitServiceImpl implements PermitService {
 
         for (PermitAction action : actions) {
             try {
-                result.put(action.getValue(), permit.check(user, action.getValue(), resource));
+                result.put(action.getKey(), permit.check(user, action.getValue(), resource));
             } catch (IOException | PermitApiError e) {
                 log.info("Error checking permission for user '{}', item type '{}' with id '{}' and action '{}'",
                     permitUser.getId(), permitResource.getType(), permitResource.getId(), action, e);

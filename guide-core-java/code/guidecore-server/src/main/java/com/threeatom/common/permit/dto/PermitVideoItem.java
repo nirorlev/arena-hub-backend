@@ -13,9 +13,4 @@ public class PermitVideoItem extends PermitContentItem {
     public String getType() {
         return ResourceType.videoItem;
     }
-
-    @Override
-    public HashMap<String, Object> getAttributes() {
-        return new HashMap<>();
-    }
 }

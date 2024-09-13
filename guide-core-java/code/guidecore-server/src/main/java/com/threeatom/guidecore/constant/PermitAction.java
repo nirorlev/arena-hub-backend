@@ -7,18 +7,20 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum PermitAction {
-    DELETE("delete"),
-    SHARE("share"),
-    CREATE("create"),
-    VIEW("view"),
-    COMMENT("comment"),
-    EDIT("edit"),
-    PUBLISH("publish"),
-    ADD_CONTENT("addcontent"),
-    MANAGE_CONTENT("managecontent"),
-    SUBSCRIBE("subscribe"),
-    ACCESS_ANALYTICS("accessanalytics"),
-    ACCESS_TEAMS("accessteams");
+    DELETE("delete", "delete"),
+    SHARE("share", "share"),
+    CREATE("create", "create"),
+    VIEW("view", "view"),
+    COMMENT("comment", "comment"),
+    EDIT("edit", "edit"),
+    PUBLISH("publish", "publish"),
+    ADD_CONTENT("addcontent", "addContent"),
+    MANAGE_CONTENT("managecontent", "manageContent"),
+    SUBSCRIBE("subscribe", "subscribe"),
+    UNSUBSCRIBE("unsubscribe", "unsubscribe"),
+    ACCESS_ANALYTICS("accessanalytics", "accessAnalytics"),
+    ACCESS_TEAMS("accessteams", "accessTeams");
 
     private final String value;
+    private final String key;
 }

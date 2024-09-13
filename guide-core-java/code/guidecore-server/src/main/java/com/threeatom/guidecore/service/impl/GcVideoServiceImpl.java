@@ -642,11 +642,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<GcVideo> getVideoContent(Integer fileId) {
-		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
-
-		queryWrapper.eq("file_id", fileId);
-
-		return Optional.ofNullable(getOne(queryWrapper));
+		return Optional.ofNullable(baseMapper.getVideoContentByFileId(fileId));
 	}
 
 	@Override

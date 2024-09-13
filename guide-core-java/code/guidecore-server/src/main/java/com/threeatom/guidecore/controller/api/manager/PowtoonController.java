@@ -847,15 +847,15 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@GetMapping("/playListVideoDetailPt")
-	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoId,Integer playListId) {
-        if(Objects.isNull(videoId)){
+	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoFileId,Integer playListId) {
+        if(Objects.isNull(videoFileId)){
 			throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
 		}
 		if(Objects.isNull(playListId)){
 			throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
 		}
 		Message message = new Message();
-		GcVideo video = gcVideoService.getVideoById(videoId);
+		GcVideo video = gcVideoService.getVideoContentByFileId(videoFileId);
 		SysFile file = video.getVideoFile();
 		GcUser myUser = this.getGcUser();
 		Integer masterId = getHeaderMasterId(request);
@@ -2310,7 +2310,7 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "channel新增修改")
 	@PostMapping("/saveOrUpdateChannel")
-	public Message saveOrUpdateChannel(@RequestBody PtChannel channel,HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
+	public Message saveOrUpdateChannel(@RequestBody PtChannel channel,HttpServletRequest request) {
 		Message message = new Message();
 		Integer masterId = request.getIntHeader("masterId");
 		GcMaster master = masterService.getById(masterId);
@@ -2681,6 +2681,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=ptChannel.getId()){
 			channel = ptChannelService.selectChannelDetail(ptChannel.getId(),null,request,order,masterId);
 		}
+		permitService.populatePermissions(channel, portalUser);
 
 		PtChannelSubscribe ptChannelSubscribe;
 		if (null!=ptChannel.getId()){
@@ -2948,7 +2949,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = userService.getById(ptchannel.getCreateUserId());
 		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 
-		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(user.getInfoId());
 		if (null!=gcUserInfo.getAvatarFileId()) {
 			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
@@ -2956,7 +2957,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
-		GcVideo channelVideoContent = gcVideoService.getById(ptChannelContent.getContentId());
+		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
 		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);

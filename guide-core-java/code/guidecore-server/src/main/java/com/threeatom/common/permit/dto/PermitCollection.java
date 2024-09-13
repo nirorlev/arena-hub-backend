@@ -14,7 +14,7 @@ public abstract class PermitCollection extends PermitResource {
     private Set<String> contentGroupIds;
 
     @Override
-    public HashMap<String, Object> getAttributes() {
+    protected HashMap<String, Object> getFieldAttributes() {
         HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("ownerId", ownerId);
         attributes.put("isPublic", isPublic);

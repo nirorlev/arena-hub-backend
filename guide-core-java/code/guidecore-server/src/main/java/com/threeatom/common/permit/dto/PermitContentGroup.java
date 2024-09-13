@@ -14,7 +14,7 @@ public class PermitContentGroup extends PermitResource {
     }
 
     @Override
-    public HashMap<String, Object> getAttributes() {
+    protected HashMap<String, Object> getFieldAttributes() {
         return new HashMap<>();
     }
 }
