@@ -11,5 +11,5 @@ public interface UserLicenseService {
 
     void checkChannelLimit(PtChannel channel, PortalUser portalUser);
 
-    LicenseUsageDto getLicenseUsage(Integer userId, Integer masterId);
+    LicenseUsageDto getLicenseUsage(PortalUser portalUser);
 }
