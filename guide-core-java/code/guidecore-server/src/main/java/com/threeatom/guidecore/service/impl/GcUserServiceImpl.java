@@ -95,12 +95,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     public GcUser getUserByUsername(String username) {
         QueryWrapper<GcUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
-        GcUser user = this.getOne(queryWrapper);
-        if (user == null) {
-            throw new SystemException(706, I18NUtil.get("guidecore.master.login.noUser"));
-        }
-
-        return user;
+        return this.getOne(queryWrapper);
     }
 
     @Override
