@@ -741,7 +741,7 @@
 			and s.create_user = #{createUser}
 		</if>
 		and s.master_id = #{masterId}
-		GROUP BY s.id
+		GROUP BY s.id, f.id
 		ORDER BY s.order ASC,s.create_time desc,s.id
 	</select>
 

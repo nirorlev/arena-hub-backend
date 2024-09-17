@@ -71,7 +71,7 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     Long sumPlayVideoLongByIdUser(
             @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
-    List<GcVideo> pageVideo(Map<String, Object> params);
+    List<GcVideo> searchVideo(Map<String, Object> params);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
             String videoNameIndex, String subNameIndex, Integer masterId);

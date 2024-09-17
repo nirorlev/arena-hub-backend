@@ -83,7 +83,7 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> getVideoListByUserIdAndSubject(
         List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 
-    PageInfo<GcVideo> page(Map<String, Object> params, SysSystem sys, HttpServletRequest request);
+    PageInfo<GcVideo> page(Map<String, Object> searchParameters, SysSystem system, HttpServletRequest request);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
         String videoName, String subName, Integer masterId);
