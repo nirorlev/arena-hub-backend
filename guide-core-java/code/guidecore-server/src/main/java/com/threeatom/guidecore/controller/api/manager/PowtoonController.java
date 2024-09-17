@@ -2476,6 +2476,7 @@ public class PowtoonController extends GuideCoreController {
 						}
 					}
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					permitService.populatePermissions(channel, portalUser);
 					message.addData("channel", channel);
 				}
 			} else if (channel.isPublic()) {
@@ -2535,10 +2536,12 @@ public class PowtoonController extends GuideCoreController {
 				}
 
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+				permitService.populatePermissions(channel, portalUser);
 				message.addData("channel", channel);
 			} else if (channel.isPrivate()) {
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					permitService.populatePermissions(channel, portalUser);
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2547,6 +2550,7 @@ public class PowtoonController extends GuideCoreController {
 			} else if (channel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+					permitService.populatePermissions(channel, portalUser);
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2555,6 +2559,7 @@ public class PowtoonController extends GuideCoreController {
 		} else {
 			if (ptChannelService.saveOrUpdate(channel)) {
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
+				permitService.populatePermissions(channel, portalUser);
 				message.addData("channel", channel);
 			} else {
 				return message.error();
