@@ -818,89 +818,90 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<GcVideo> buildVideoInfo(Integer userId, SysSystem sys, List<GcVideo> gcVideos,Integer masterId,HttpServletRequest request,Integer envFlag) {
-		if(CollectionUtils.isNotEmpty(gcVideos)){
-			List<Integer> videoIds = getVideoIds(gcVideos);
-			Map<String, Object> videoParams = new HashMap<>(3);
-			videoParams.put("contentIds", videoIds);
-			videoParams.put("type", 1);//点赞
-			//查询点赞
-			Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);
-			// 查询评论 根据视频id查询评论 评论列表单独接口
-			List<GcVideoComment> commentVideoIds = gcVideoCommentService.getVideoComments(videoIds,masterId);//查询评论数，不用加userID
-			Map<Integer, List<GcVideoComment>> commentVideoMap = new HashMap<>(commentVideoIds.size());
-			if(CollectionUtils.isNotEmpty(commentVideoIds)){
-				commentVideoMap = commentVideoIds.stream().collect(Collectors.groupingBy(GcVideoComment::getVideoId));
-			}
-			//查询问题 已回答/总问题数
-			List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(videoIds, userId,masterId,envFlag);
-			Map<Integer, List<GcEvent>> eventAnswerMap = new HashMap<>(0);
-			if(CollectionUtils.isNotEmpty(eventAnswers)){
-				eventAnswerMap = eventAnswers.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
-			}
+        if (!CollectionUtils.isNotEmpty(gcVideos)) {
+            return new ArrayList<>();
+        }
 
-			Map<Integer, GcUserVideoPlay> videoPalyStateByVideos = new HashMap<>();
-			if(null!=userId) {
-				videoPalyStateByVideos = userVideoPlayService.findVideoPalyStateByVideos(videoIds, userId, masterId);
-			}
-			Map<Integer,Object> videoPlayCount = userVideoPlayService.getVideoPlayCount(videoIds);
+        List<Integer> videoIds = getVideoIds(gcVideos);
+        Map<String, Object> videoParams = new HashMap<>(3);
+        videoParams.put("contentIds", videoIds);
+        videoParams.put("type", 1);//点赞
+        //查询点赞
+        Map<Integer, List<GcUserVideoAction>> videoMap = videoActionService.getVideoActionBySubject(videoParams);
+        // 查询评论 根据视频id查询评论 评论列表单独接口
+        List<GcVideoComment> commentVideoIds = gcVideoCommentService.getVideoComments(videoIds,masterId);//查询评论数，不用加userID
+        Map<Integer, List<GcVideoComment>> commentVideoMap = new HashMap<>(commentVideoIds.size());
+        if(CollectionUtils.isNotEmpty(commentVideoIds)){
+            commentVideoMap = commentVideoIds.stream().collect(Collectors.groupingBy(GcVideoComment::getVideoId));
+        }
+        //查询问题 已回答/总问题数
+        List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(videoIds, userId,masterId,envFlag);
+        Map<Integer, List<GcEvent>> eventAnswerMap = new HashMap<>(0);
+        if(CollectionUtils.isNotEmpty(eventAnswers)){
+            eventAnswerMap = eventAnswers.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
+        }
 
-			//查询单个视频播放进度
-			List<GcEvent> events = gcEventService.getEventListByVideoIds(videoIds,userId);
-			Map<Integer,List<GcEvent>> eventmap = events.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
-			List<GcVideo> newGcVideos = new ArrayList<>(gcVideos.size());
-			for (GcVideo video : gcVideos){
-				if (Objects.nonNull(videoPlayCount.get(video.getId()))){
-					Map map = (Map)videoPlayCount.get(video.getId());
-					video.setPlayNum(Integer.parseInt(map.get("countnum").toString()));
-				}
+        Map<Integer, GcUserVideoPlay> videoPalyStateByVideos = new HashMap<>();
+        if(null!=userId) {
+            videoPalyStateByVideos = userVideoPlayService.findVideoPalyStateByVideos(videoIds, userId, masterId);
+        }
+        Map<Integer,Object> videoPlayCount = userVideoPlayService.getVideoPlayCount(videoIds);
 
-				List<GcEvent> eventList = eventmap.get(video.getId());
-				Integer id = video.getId();
-				//设置视频点赞数
-				List<GcUserVideoAction> likes = videoMap.get(id);
-				if(CollectionUtils.isNotEmpty(likes)){
-					video.setLikeNum(likes.size());
-				}
-				//设置评论数和评论列表
-				List<GcVideoComment> gcVideoComments = commentVideoMap.get(id);
-				if(CollectionUtils.isNotEmpty(gcVideoComments)){
-					video.setCommentNum(gcVideoComments.size());//评论数量
-				}
-				//设置已回答的问题和问题总数
-				List<GcEvent> answers = eventAnswerMap.get(id);
-				if(CollectionUtils.isNotEmpty(answers)){
-					video.setEventList(answers);
-					List<GcEvent> answereds = answers.stream().filter(a -> StringUtils.isNotEmpty(a.getAnswerJson())).collect(Collectors.toList());
-					if(CollectionUtils.isNotEmpty(answereds)){
-						video.setAnsweredNums(answereds.size());
-					}
-				}
-				if (CollectionUtils.isNotEmpty(eventList)) {
-					video.setAnsweredSumNums(eventList.size());
-					video.setEventNum(eventList.size());
-				}
-				SysFile videoFile = video.getVideoFile();
-				if(videoFile != null){
-					video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
-					video.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(videoFile,request));
-					video.setVideoTime(videoFile.getVideoLong());
-					videoFile.setVideoId(video.getId());
-				}
-				// 改成在外面查出来，在这里set
-				GcUserVideoPlay gcUserVideoPlay = videoPalyStateByVideos.get(id);
-				video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
-				if(gcUserVideoPlay != null){
-					Integer playState = gcUserVideoPlay.getPlayState();
-					video.setPlayState(playState  == null ? null : String.valueOf(playState));//视频播放状态
-					video.setCompleteStatus(buildCompleteStatus(playState,  answers,eventList,request,envFlag));
-				}
+        //查询单个视频播放进度
+        List<GcEvent> events = gcEventService.getEventListByVideoIds(videoIds,userId);
+        Map<Integer,List<GcEvent>> eventmap = events.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
+        List<GcVideo> newGcVideos = new ArrayList<>(gcVideos.size());
+        for (GcVideo video : gcVideos){
+            if (Objects.nonNull(videoPlayCount.get(video.getId()))){
+                Map map = (Map)videoPlayCount.get(video.getId());
+                video.setPlayNum(Integer.parseInt(map.get("countnum").toString()));
+            }
 
-				newGcVideos.add(video);
-			}
-			return newGcVideos;
-		}
-		return new ArrayList<>(0);
-	}
+            List<GcEvent> eventList = eventmap.get(video.getId());
+            Integer id = video.getId();
+            //设置视频点赞数
+            List<GcUserVideoAction> likes = videoMap.get(id);
+            if(CollectionUtils.isNotEmpty(likes)){
+                video.setLikeNum(likes.size());
+            }
+            //设置评论数和评论列表
+            List<GcVideoComment> gcVideoComments = commentVideoMap.get(id);
+            if(CollectionUtils.isNotEmpty(gcVideoComments)){
+                video.setCommentNum(gcVideoComments.size());//评论数量
+            }
+            //设置已回答的问题和问题总数
+            List<GcEvent> answers = eventAnswerMap.get(id);
+            if(CollectionUtils.isNotEmpty(answers)){
+                video.setEventList(answers);
+                List<GcEvent> answereds = answers.stream().filter(a -> StringUtils.isNotEmpty(a.getAnswerJson())).collect(Collectors.toList());
+                if(CollectionUtils.isNotEmpty(answereds)){
+                    video.setAnsweredNums(answereds.size());
+                }
+            }
+            if (CollectionUtils.isNotEmpty(eventList)) {
+                video.setAnsweredSumNums(eventList.size());
+                video.setEventNum(eventList.size());
+            }
+            SysFile videoFile = video.getVideoFile();
+            if(videoFile != null){
+                video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
+                video.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(videoFile,request));
+                video.setVideoTime(videoFile.getVideoLong());
+                videoFile.setVideoId(video.getId());
+            }
+            // 改成在外面查出来，在这里set
+            GcUserVideoPlay gcUserVideoPlay = videoPalyStateByVideos.get(id);
+            video.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
+            if(gcUserVideoPlay != null){
+                Integer playState = gcUserVideoPlay.getPlayState();
+                video.setPlayState(playState  == null ? null : String.valueOf(playState));//视频播放状态
+                video.setCompleteStatus(buildCompleteStatus(playState,  answers,eventList,request,envFlag));
+            }
+
+            newGcVideos.add(video);
+        }
+        return newGcVideos;
+    }
 
 	private short buildCompleteStatus(Integer playState, List<GcEvent> answers,List<GcEvent> eventList,HttpServletRequest request,Integer envFlag) {
 		if(playState == null){//没有播放记录
@@ -1088,10 +1089,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		searchParameters.put("masterId", masterId);
 
 		Page<GcVideo> page = PageHelper.startPage(pageNum, pageSize, true);
-		this.baseMapper.searchVideo(searchParameters);
+		List<GcVideo> videos = this.baseMapper.searchVideo(searchParameters);
 
 		PageInfo<GcVideo> pageInfo = new PageInfo<>(page);
-		List<GcVideo> videos = pageInfo.getList();
+		pageInfo.setList(videos);
 		List<Integer> videoFileIds = videos.stream().map(GcVideo::getFileId).collect(Collectors.toList());
 
 		if (CollectionUtils.isNotEmpty(videoFileIds)) {

@@ -82,11 +82,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 
-
-		String masterId = request.getHeader("masterId");
-		if(Objects.isNull(masterId)){
-		throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
-		}
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 		params.put("masterId", masterId);
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
