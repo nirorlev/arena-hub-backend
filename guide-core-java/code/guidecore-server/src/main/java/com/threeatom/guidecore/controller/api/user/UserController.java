@@ -130,7 +130,7 @@ public class UserController {
             return;
         }
 
-        Map<String, String> body = getTokenRequestBody(user, ptLoginConfig.getClientId());
+        Map<String, String> body = getTokenRequestBody(user, ptLoginConfig);
         String authResponse =
             HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
         PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
@@ -139,9 +139,10 @@ public class UserController {
         userService.syncPowtoonUser(authInfo.getAccessToken(), ptLoginConfig, masterId);
     }
 
-    private Map<String, String> getTokenRequestBody(GcUser user, String clientId) {
+    private Map<String, String> getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
         Map<String, String> body = new HashMap<>();
-        body.put("client_id", clientId);
+        body.put("client_id", loginConfig.getClientId());
+        body.put("client_secret", loginConfig.getClientSecret());
         body.put("grant_type", "refresh_token");
         body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
         return body;

@@ -1785,7 +1785,7 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	private PowtoonAuthDto getAuth(String code, String redirectUri, PtLoginConfig ptLoginConfig) {
-		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig.getClientId());
+		Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig);
 		PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
 
 		log.info("getTokenUrl:" + ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken());
@@ -1811,10 +1811,11 @@ public class PowtoonController extends GuideCoreController {
         return JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
 	}
 
-	private Map<String, String> getTokenRequestBody(String code, String redirectUri, String clientId) {
+	private Map<String, String> getTokenRequestBody(String code, String redirectUri, PtLoginConfig loginConfig) {
 		Map<String, String> parameters = new HashMap<>();
 
-		parameters.put("client_id", clientId);
+		parameters.put("client_id", loginConfig.getClientId());
+		parameters.put("client_secret", loginConfig.getClientSecret());
 		parameters.put("grant_type","authorization_code");
 		parameters.put("redirect_uri", redirectUri);
 		parameters.put("code", code);
