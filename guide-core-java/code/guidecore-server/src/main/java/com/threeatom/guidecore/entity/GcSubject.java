@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -371,6 +372,9 @@ public class GcSubject implements Serializable, TreeNodeEntity {
      */
     @TableField(exist = false)
     private List<Integer> mustAccessIds;
+
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
 
     /**
      * 是否选择全部,0是 1否
