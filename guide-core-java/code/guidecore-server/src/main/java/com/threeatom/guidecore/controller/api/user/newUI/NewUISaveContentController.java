@@ -6,7 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
@@ -20,13 +20,9 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterService;
-import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserSaveContentFollowService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
-import com.threeatom.guidecore.service.GcUserService;
-import com.threeatom.guidecore.service.GcVideoService;
-import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -40,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,7 +57,7 @@ public class NewUISaveContentController extends GuideCoreController {
     @Autowired private GcMasterHomeInfoService iGcMasterHomeInfoService;
     @Autowired private UserLicenseService userLicenseService;
     @Autowired private PortalUserService portalUserService;
-    @Autowired private PermitService permitService;
+    @Autowired private AuthorizationService authorizationService;
 
     @ApiOperation(value = "获取已有保存课程/视频的文件夹列表", httpMethod = "GET")
     @GetMapping("/contentFolderList")
@@ -142,7 +137,7 @@ public class NewUISaveContentController extends GuideCoreController {
                 recommendedPlaylist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
                 recommendedPlaylist.setFullFileUrl(fullfileurl);
             }
-            permitService.populatePermissions(recommendedPlaylist, portalUser);
+            authorizationService.populatePermissions(recommendedPlaylist, portalUser);
         }
         message.ok().addData("recommenFolderList", new PageInfo<>(recommenFolderList));
     }
@@ -166,7 +161,7 @@ public class NewUISaveContentController extends GuideCoreController {
                     playlist.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
                 }
                 playlist.setFollowFlag(TableConstant.COMMON_ONE);
-                permitService.populatePermissions(playlist, portalUser);
+                authorizationService.populatePermissions(playlist, portalUser);
             }
 
             message.ok().addData("followedplaylist", new PageInfo<>(followedPlaylist));
@@ -202,7 +197,7 @@ public class NewUISaveContentController extends GuideCoreController {
                     if (content.getSubject() != null)
                         sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
                 }
-                permitService.populatePermissions(playlist, portalUser);
+                authorizationService.populatePermissions(playlist, portalUser);
             }
         }
         message.ok().addData("myPlayList", new PageInfo<>(playlists));

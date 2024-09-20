@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
@@ -49,7 +49,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final ChannelMapping channelMapping;
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
-    private final PermitService permitService;
+    private final AuthorizationService authorizationService;
 
     @Lazy
     @Autowired
@@ -186,7 +186,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 GcVideo video = videoService.getVideoContentByFileId(sysFile.getId());
                 video.setVideoFile(sysFile);
                 videoService.updateVideoFilePrivacy(sysFile, video);
-                permitService.populatePermissions(video, portalUser);
+                authorizationService.populatePermissions(video, portalUser);
 
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
@@ -363,7 +363,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 // SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
                 channel.setImgFullFileUrl(sysFileMap.get(channel.getChannelImgFileId()).getFullFileUrl());
             }
-            permitService.populatePermissions(channel, portalUser);
+            authorizationService.populatePermissions(channel, portalUser);
         }
         return channels;
     }
@@ -468,7 +468,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                     videoFile.setVideoId(videoContent.getId());
                     channel.setIsLiked(userVideoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
                     channel.setLikeNum(userVideoActionService.countLikeForVideo(videoContent.getId()));
-                    permitService.populatePermissions(videoContent, portalUser);
+                    authorizationService.populatePermissions(videoContent, portalUser);
                 });
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {
@@ -511,7 +511,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             videoService.getVideoContent(file.getId()).ifPresent(videoContent -> {
                 videoContent.setVideoFile(file);
                 file.setVideoId(videoContent.getId());
-                permitService.populatePermissions(videoContent, portalUser);
+                authorizationService.populatePermissions(videoContent, portalUser);
             });
         }
 
@@ -577,7 +577,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            permitService.populatePermissions(channel, portalUser);
+            authorizationService.populatePermissions(channel, portalUser);
         });
         return convert(channels);
     }
@@ -587,7 +587,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            permitService.populatePermissions(channel, portalUser);
+            authorizationService.populatePermissions(channel, portalUser);
         });
         return convert(channels);
     }
@@ -597,7 +597,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            permitService.populatePermissions(channel, portalUser);
+            authorizationService.populatePermissions(channel, portalUser);
         });
         return convert(channels);
     }

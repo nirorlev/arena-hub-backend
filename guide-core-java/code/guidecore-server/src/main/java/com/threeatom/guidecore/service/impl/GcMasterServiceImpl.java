@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.*;
@@ -57,7 +57,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired private UnavailableVideoService unavailableVideoService;
     @Autowired private PortalUserService portalUserService;
-    @Autowired private PermitService permitService;
+    @Autowired private AuthorizationService authorizationService;
 
     private static final String CACHE_TAG = "GcMaster";
 
@@ -142,7 +142,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
             PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
             playlist = gcUserSaveFolderService.getById(playlist.getId());
-            permitService.populatePermissions(playlist, portalUser);
+            authorizationService.populatePermissions(playlist, portalUser);
 
             GcUserSaveContent content = new GcUserSaveContent();
             if (Objects.nonNull(user)) {
@@ -242,7 +242,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             }
 
             unavailableVideoService.nullifyVideoData(portalUser, videos);
-            videos.forEach(video -> permitService.populatePermissions(video, portalUser));
+            videos.forEach(video -> authorizationService.populatePermissions(video, portalUser));
             m.addData("videoList", new PageInfo<>(videoFiles));
         } catch (Exception e) {
             e.printStackTrace();

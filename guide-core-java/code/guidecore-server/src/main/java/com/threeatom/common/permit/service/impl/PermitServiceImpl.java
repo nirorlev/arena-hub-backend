@@ -17,7 +17,7 @@ import com.threeatom.common.permit.dto.PermitPortal;
 import com.threeatom.common.permit.dto.PermitResource;
 import com.threeatom.common.permit.dto.PermitUser;
 import com.threeatom.common.permit.dto.PermitVideoItem;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermitServiceImpl implements PermitService {
+public class PermitServiceImpl implements AuthorizationService {
 
     private static final Map<String, PermitAction> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
         "Insights", PermitAction.ACCESS_ANALYTICS
@@ -79,64 +79,64 @@ public class PermitServiceImpl implements PermitService {
     }
 
     @Override
-    public boolean checkPermit(GcVideo video, PermitAction action, PortalUser portalUser) {
-        return checkPermit(video, List.of(action), portalUser).get(action.getKey());
+    public boolean checkAccess(GcVideo video, PermitAction action, PortalUser portalUser) {
+        return checkAccess(video, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkPermit(GcVideo video, List<PermitAction> actions, PortalUser portalUser) {
+    private Map<String, Boolean> checkAccess(GcVideo video, List<PermitAction> actions, PortalUser portalUser) {
         PermitVideoItem permitVideoItem = createVideoItem(video);
         PermitUser permitUser = createUser(portalUser);
 
-        return checkPermit(permitVideoItem, actions, permitUser);
+        return checkAccess(permitVideoItem, actions, permitUser);
     }
 
     @Override
-    public boolean checkPermit(GcAccess contentGroup, PermitAction action, PortalUser portalUser) {
-        return checkPermit(contentGroup, List.of(action), portalUser).get(action.getKey());
+    public boolean checkAccess(GcAccess contentGroup, PermitAction action, PortalUser portalUser) {
+        return checkAccess(contentGroup, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkPermit(GcAccess contentGroup, List<PermitAction> actions, PortalUser portalUser) {
+    private Map<String, Boolean> checkAccess(GcAccess contentGroup, List<PermitAction> actions, PortalUser portalUser) {
         PermitContentGroup permitContentGroup = createContentGroup(contentGroup);
         PermitUser permitUser = createUser(portalUser);
 
-        return checkPermit(permitContentGroup, actions, permitUser);
+        return checkAccess(permitContentGroup, actions, permitUser);
     }
 
     @Override
-    public boolean checkPermit(PtChannel channel, PermitAction action, PortalUser portalUser) {
-        return checkPermit(channel, List.of(action), portalUser).get(action.getKey());
+    public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
+        return checkAccess(channel, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkPermit(PtChannel channel, List<PermitAction> actions, PortalUser portalUser) {
+    private Map<String, Boolean> checkAccess(PtChannel channel, List<PermitAction> actions, PortalUser portalUser) {
         PermitChannel permitChannel = createChannel(channel);
         PermitUser permitUser = createUser(portalUser);
 
-        return checkPermit(permitChannel, actions, permitUser);
+        return checkAccess(permitChannel, actions, permitUser);
     }
 
     @Override
-    public boolean checkPermit(GcSubject course, PermitAction action, PortalUser portalUser) {
-        return checkPermit(course, List.of(action), portalUser).get(action.getKey());
+    public boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser) {
+        return checkAccess(course, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkPermit(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
+    private Map<String, Boolean> checkAccess(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
         PermitCourse permitCourse = createCourse(course);
         PermitUser permitUser = createUser(portalUser);
 
-        return checkPermit(permitCourse, actions, permitUser);
+        return checkAccess(permitCourse, actions, permitUser);
     }
 
     @Override
-    public boolean checkPermit(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser) {
-        return checkPermit(playlist, List.of(action), portalUser).get(action.getKey());
+    public boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser) {
+        return checkAccess(playlist, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkPermit(GcUserSaveFolder playlist, List<PermitAction> actions,
+    private Map<String, Boolean> checkAccess(GcUserSaveFolder playlist, List<PermitAction> actions,
                                              PortalUser portalUser) {
         PermitPlaylist permitPlaylist = createPlaylist(playlist);
         PermitUser permitUser = createUser(portalUser);
 
-        return checkPermit(permitPlaylist, actions, permitUser);
+        return checkAccess(permitPlaylist, actions, permitUser);
     }
 
     @Override
@@ -158,15 +158,15 @@ public class PermitServiceImpl implements PermitService {
     }
 
     private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {
-        return checkPermit(video, VIDEO_PERMISSIONS_TO_CHECK, portalUser);
+        return checkAccess(video, VIDEO_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     private Map<String, Boolean> channelPermissions(PtChannel channel, PortalUser portalUser) {
-        return checkPermit(channel, CHANNEL_PERMISSIONS_TO_CHECK, portalUser);
+        return checkAccess(channel, CHANNEL_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     private Map<String, Boolean> playlistPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
-        return checkPermit(playlist, PLAYLIST_PERMISSIONS_TO_CHECK, portalUser);
+        return checkAccess(playlist, PLAYLIST_PERMISSIONS_TO_CHECK, portalUser);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class PermitServiceImpl implements PermitService {
         }
 
         PermitAction action = MENU_ITEM_TO_PERMIT_ACTION.get(menuItemKey);
-        return checkPermit(new PermitPortal(), List.of(action), createUser(portalUser)).get(action.getKey());
+        return checkAccess(new PermitPortal(), List.of(action), createUser(portalUser)).get(action.getKey());
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
@@ -230,7 +230,7 @@ public class PermitServiceImpl implements PermitService {
         return permitChannel;
     }
 
-    private Map<String, Boolean> checkPermit(PermitResource permitResource, List<PermitAction> actions,
+    private Map<String, Boolean> checkAccess(PermitResource permitResource, List<PermitAction> actions,
                                              PermitUser permitUser) {
         User user = buildUser(permitUser);
         Resource resource = buildResource(permitResource);

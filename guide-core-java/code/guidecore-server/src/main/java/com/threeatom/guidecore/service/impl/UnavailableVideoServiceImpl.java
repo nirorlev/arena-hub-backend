@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -23,7 +23,7 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     private static final String FEATURE_NAME = "unavailableVideoRandomEnabled";
 
     private final FeatureToggleService featureToggleService;
-    private final PermitService permitService;
+    private final AuthorizationService authorizationService;
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
@@ -91,7 +91,7 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     }
 
     private boolean isVideoUnavailable(PortalUser portalUser, GcVideo video) {
-        boolean isViewAllowed = permitService.checkPermit(video, PermitAction.VIEW, portalUser);
+        boolean isViewAllowed = authorizationService.checkAccess(video, PermitAction.VIEW, portalUser);
         return featureIsEnabled() && !isViewAllowed;
     }
 }

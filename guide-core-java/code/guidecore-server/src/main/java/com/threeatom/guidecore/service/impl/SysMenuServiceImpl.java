@@ -3,7 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permit.service.AuthorizationService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -31,7 +31,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             "Home", "homepageMenuEnabled"
         );
 
-    private final PermitService permitService;
+    private final AuthorizationService authorizationService;
     private final FeatureToggleService featureToggleService;
     private final GcUserAccessService userAccessService;
 
@@ -95,7 +95,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             if (isFeatureToggleDisabled(portalUser.getMasterId(), sysMenu)) {
                 return true;
             }
-            return !permitService.checkMenuItem(sysMenu.getKey(), portalUser);
+            return !authorizationService.checkMenuItem(sysMenu.getKey(), portalUser);
         });
 
         return sysMenus;

@@ -8,17 +8,17 @@ import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 
-public interface PermitService {
+public interface AuthorizationService {
 
-    boolean checkPermit(GcVideo video, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(GcVideo video, PermitAction action, PortalUser portalUser);
 
-    boolean checkPermit(GcAccess contentGroup, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(GcAccess contentGroup, PermitAction action, PortalUser portalUser);
 
-    boolean checkPermit(PtChannel channel, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser);
 
-    boolean checkPermit(GcSubject course, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser);
 
-    boolean checkPermit(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser);
 
     void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser);
 
