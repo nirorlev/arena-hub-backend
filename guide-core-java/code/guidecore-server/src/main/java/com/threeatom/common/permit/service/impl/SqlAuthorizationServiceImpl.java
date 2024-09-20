@@ -11,10 +11,12 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@Primary
 @RequiredArgsConstructor
 public class SqlAuthorizationServiceImpl implements AuthorizationService {
 
