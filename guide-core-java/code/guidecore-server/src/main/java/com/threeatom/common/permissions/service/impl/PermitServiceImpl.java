@@ -17,6 +17,7 @@ import com.threeatom.common.permissions.dto.PermitPortal;
 import com.threeatom.common.permissions.dto.PermitResource;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
+import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.constant.PermitAction;
@@ -26,7 +27,6 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
-import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcUserAccessService;
@@ -65,6 +65,7 @@ public class PermitServiceImpl implements AuthorizationService {
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
     private final ContentGroupChannelSubscriptionService channelSubscriptionService;
     private final GcUserAccessService userAccessService;
+    private final AuthorizationItemService authorizationItemService;
 
     private Permit permit;
 
@@ -85,7 +86,7 @@ public class PermitServiceImpl implements AuthorizationService {
 
     private Map<String, Boolean> checkAccess(GcVideo video, List<PermitAction> actions, PortalUser portalUser) {
         PermitVideoItem permitVideoItem = createVideoItem(video);
-        PermitUser permitUser = createUser(portalUser);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitVideoItem, actions, permitUser);
     }
@@ -97,7 +98,7 @@ public class PermitServiceImpl implements AuthorizationService {
 
     private Map<String, Boolean> checkAccess(GcAccess contentGroup, List<PermitAction> actions, PortalUser portalUser) {
         PermitContentGroup permitContentGroup = createContentGroup(contentGroup);
-        PermitUser permitUser = createUser(portalUser);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitContentGroup, actions, permitUser);
     }
@@ -108,8 +109,8 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     private Map<String, Boolean> checkAccess(PtChannel channel, List<PermitAction> actions, PortalUser portalUser) {
-        PermitChannel permitChannel = createChannel(channel);
-        PermitUser permitUser = createUser(portalUser);
+        PermitChannel permitChannel = authorizationItemService.create(channel);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitChannel, actions, permitUser);
     }
@@ -121,7 +122,7 @@ public class PermitServiceImpl implements AuthorizationService {
 
     private Map<String, Boolean> checkAccess(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
         PermitCourse permitCourse = createCourse(course);
-        PermitUser permitUser = createUser(portalUser);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitCourse, actions, permitUser);
     }
@@ -134,7 +135,7 @@ public class PermitServiceImpl implements AuthorizationService {
     private Map<String, Boolean> checkAccess(GcUserSaveFolder playlist, List<PermitAction> actions,
                                              PortalUser portalUser) {
         PermitPlaylist permitPlaylist = createPlaylist(playlist);
-        PermitUser permitUser = createUser(portalUser);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitPlaylist, actions, permitUser);
     }
@@ -176,7 +177,8 @@ public class PermitServiceImpl implements AuthorizationService {
         }
 
         PermitAction action = MENU_ITEM_TO_PERMIT_ACTION.get(menuItemKey);
-        return checkAccess(new PermitPortal(), List.of(action), createUser(portalUser)).get(action.getKey());
+        return checkAccess(new PermitPortal(), List.of(action), authorizationItemService.create(portalUser)).get(
+            action.getKey());
     }
 
     private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
@@ -216,20 +218,6 @@ public class PermitServiceImpl implements AuthorizationService {
         return permitContentGroup;
     }
 
-    private PermitChannel createChannel(PtChannel channel) {
-        PermitChannel permitChannel = new PermitChannel();
-        permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
-        if (channel.getId() == null) {
-            return permitChannel;
-        }
-
-        permitChannel.setId(channel.getId().toString());
-        permitChannel.setPublic(channel.isPublic());
-        permitChannel.setPrivate(channel.isPrivate());
-        permitChannel.setContentGroupIds(convert(channelSubscriptionService.getContentGroupIds(channel.getId())));
-        return permitChannel;
-    }
-
     private Map<String, Boolean> checkAccess(PermitResource permitResource, List<PermitAction> actions,
                                              PermitUser permitUser) {
         User user = buildUser(permitUser);
@@ -259,21 +247,6 @@ public class PermitServiceImpl implements AuthorizationService {
         return new User.Builder(permitUser.getId())
             .withAttributes(permitUser.getAttributes())
             .build();
-    }
-
-    private PermitUser createUser(PortalUser portalUser) {
-        PermitUser permitUser = new PermitUser();
-        permitUser.setId(portalUser.getUserId().toString());
-        permitUser.setOrgAdmin(portalUser.isOrgAdmin());
-
-        permitUser.setContentGroupIds(convert(
-            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                UserGroupRole.GROUP_MEMBER.getRole())));
-        permitUser.setManagedContentGroupIds(convert(
-            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                UserGroupRole.GROUP_ADMIN.getRole())));
-
-        return permitUser;
     }
 
     private PermitVideoItem createVideoItem(GcVideo video) {
