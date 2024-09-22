@@ -27,9 +27,6 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
-import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
-import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
-import com.threeatom.guidecore.service.GcUserAccessService;
 import io.permit.sdk.Permit;
 import io.permit.sdk.PermitConfig;
 import io.permit.sdk.api.PermitApiError;
@@ -39,8 +36,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,9 +57,6 @@ public class PermitServiceImpl implements AuthorizationService {
         List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
 
     private final PermitConfiguration permitConfiguration;
-    private final GcContentGroupCourseAssignmentService courseAssignmentService;
-    private final ContentGroupChannelSubscriptionService channelSubscriptionService;
-    private final GcUserAccessService userAccessService;
     private final AuthorizationItemService authorizationItemService;
 
     private Permit permit;
@@ -85,7 +77,7 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     private Map<String, Boolean> checkAccess(GcVideo video, List<PermitAction> actions, PortalUser portalUser) {
-        PermitVideoItem permitVideoItem = createVideoItem(video);
+        PermitVideoItem permitVideoItem = authorizationItemService.create(video);
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitVideoItem, actions, permitUser);
@@ -97,7 +89,7 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     private Map<String, Boolean> checkAccess(GcAccess contentGroup, List<PermitAction> actions, PortalUser portalUser) {
-        PermitContentGroup permitContentGroup = createContentGroup(contentGroup);
+        PermitContentGroup permitContentGroup = authorizationItemService.create(contentGroup);
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitContentGroup, actions, permitUser);
@@ -121,7 +113,7 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     private Map<String, Boolean> checkAccess(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
-        PermitCourse permitCourse = createCourse(course);
+        PermitCourse permitCourse = authorizationItemService.create(course);
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitCourse, actions, permitUser);
@@ -134,7 +126,7 @@ public class PermitServiceImpl implements AuthorizationService {
 
     private Map<String, Boolean> checkAccess(GcUserSaveFolder playlist, List<PermitAction> actions,
                                              PortalUser portalUser) {
-        PermitPlaylist permitPlaylist = createPlaylist(playlist);
+        PermitPlaylist permitPlaylist = authorizationItemService.create(playlist);
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return checkAccess(permitPlaylist, actions, permitUser);
@@ -181,43 +173,6 @@ public class PermitServiceImpl implements AuthorizationService {
             action.getKey());
     }
 
-    private PermitPlaylist createPlaylist(GcUserSaveFolder playlist) {
-        PermitPlaylist permitPlaylist = new PermitPlaylist();
-        permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
-
-        if (playlist.getId() == null) {
-            return permitPlaylist;
-        }
-
-        permitPlaylist.setId(String.valueOf(playlist.getId()));
-        permitPlaylist.setPublic(!playlist.getIsPrivate());
-        permitPlaylist.setPrivate(playlist.getIsPrivate());
-
-        // playlist does not have content group ids
-        permitPlaylist.setContentGroupIds(Set.of());
-        return permitPlaylist;
-    }
-
-    private PermitCourse createCourse(GcSubject course) {
-        PermitCourse permitCourse = new PermitCourse();
-        permitCourse.setOwnerId(String.valueOf(course.getUserId()));
-        if (course.getId() == null) {
-            return permitCourse;
-        }
-
-        permitCourse.setId(String.valueOf(course.getId()));
-        permitCourse.setPublic(course.isPublic());
-        permitCourse.setPrivate(course.isPrivate());
-        permitCourse.setContentGroupIds(convert(courseAssignmentService.getContentGroupIds(course.getId())));
-        return permitCourse;
-    }
-
-    private PermitContentGroup createContentGroup(GcAccess contentGroup) {
-        PermitContentGroup permitContentGroup = new PermitContentGroup();
-        permitContentGroup.setId(String.valueOf(contentGroup.getId()));
-        return permitContentGroup;
-    }
-
     private Map<String, Boolean> checkAccess(PermitResource permitResource, List<PermitAction> actions,
                                              PermitUser permitUser) {
         User user = buildUser(permitUser);
@@ -247,32 +202,5 @@ public class PermitServiceImpl implements AuthorizationService {
         return new User.Builder(permitUser.getId())
             .withAttributes(permitUser.getAttributes())
             .build();
-    }
-
-    private PermitVideoItem createVideoItem(GcVideo video) {
-        PermitVideoItem permitVideoItem = new PermitVideoItem();
-        permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
-        if (video.getId() == null) {
-            return permitVideoItem;
-        }
-
-        permitVideoItem.setId(video.getId().toString());
-        permitVideoItem.setPublic(video.isPublic());
-        permitVideoItem.setPrivate(video.isPrivate());
-        permitVideoItem.setContentGroupIds(convert(getVideoContentGroupIds(video)));
-        return permitVideoItem;
-    }
-
-    private Set<Integer> getVideoContentGroupIds(GcVideo video) {
-        Integer originCourseId = video.getOriginCourseId();
-        if (originCourseId != null) {
-            return courseAssignmentService.getContentGroupIds(originCourseId);
-        }
-
-        return channelSubscriptionService.getContentGroupIds(video.getOriginChannelId());
-    }
-
-    public Set<String> convert(Set<Integer> ids) {
-        return ids.stream().map(String::valueOf).collect(Collectors.toSet());
     }
 }
