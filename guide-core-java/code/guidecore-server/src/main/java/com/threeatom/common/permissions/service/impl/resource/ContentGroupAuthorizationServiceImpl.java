@@ -1,4 +1,4 @@
-package com.threeatom.common.permissions.service.impl;
+package com.threeatom.common.permissions.service.impl.resource;
 
 import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import com.threeatom.common.permissions.service.RoleBasedAuthorizationService;

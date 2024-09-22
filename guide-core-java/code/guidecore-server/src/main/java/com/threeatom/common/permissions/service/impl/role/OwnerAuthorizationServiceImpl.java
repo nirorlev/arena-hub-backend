@@ -1,15 +1,15 @@
-package com.threeatom.common.permissions.service.impl;
+package com.threeatom.common.permissions.service.impl.role;
 
 import com.threeatom.common.permissions.service.RoleBasedAuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-@Service("adminAuthorizationService")
-public class AdminAuthorizationServiceImpl extends RoleBasedAuthorizationService {
+@Service("ownerAuthorizationService")
+public class OwnerAuthorizationServiceImpl extends RoleBasedAuthorizationService {
 
-    // TODO: review the permissions for the admin
-    private static final Map<PermitAction, Boolean> ADMIN_PERMISSIONS = Map.of(
+    // TODO: review the permissions for the owner
+    private static final Map<PermitAction, Boolean> OWNER_PERMISSIONS = Map.of(
         PermitAction.VIEW, true,
         PermitAction.EDIT, true,
         PermitAction.DELETE, true
@@ -17,6 +17,6 @@ public class AdminAuthorizationServiceImpl extends RoleBasedAuthorizationService
 
     @Override
     public Map<PermitAction, Boolean> getPermissions() {
-        return ADMIN_PERMISSIONS;
+        return OWNER_PERMISSIONS;
     }
 }
