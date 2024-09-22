@@ -17,7 +17,7 @@ import com.threeatom.common.exception.PermitException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
-import com.threeatom.common.permit.service.AuthorizationService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.PermitAction;

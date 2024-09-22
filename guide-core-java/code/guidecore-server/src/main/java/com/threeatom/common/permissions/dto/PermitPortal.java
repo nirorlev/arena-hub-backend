@@ -1,4 +1,4 @@
-package com.threeatom.common.permit.dto;
+package com.threeatom.common.permissions.dto;
 
 import com.threeatom.guidecore.constant.ResourceType;
 import java.util.HashMap;
@@ -7,10 +7,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PermitContentGroup extends PermitResource {
+public class PermitPortal extends PermitResource {
+
     @Override
     public String getType() {
-        return ResourceType.contentGroup;
+        return ResourceType.portal;
     }
 
     @Override

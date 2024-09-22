@@ -1,4 +1,4 @@
-package com.threeatom.common.permit.service;
+package com.threeatom.common.permissions.service;
 
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.PortalUser;

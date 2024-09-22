@@ -1,4 +1,4 @@
-package com.threeatom.common.permit.dto;
+package com.threeatom.common.permissions.dto;
 
 import java.util.HashMap;
 import lombok.Getter;

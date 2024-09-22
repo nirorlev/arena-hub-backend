@@ -1,7 +1,7 @@
-package com.threeatom.common.permit.service.impl;
+package com.threeatom.common.permissions.service.impl;
 
-import com.threeatom.common.permit.service.AuthorizationService;
-import com.threeatom.common.permit.service.ResourceAuthorizationService;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;

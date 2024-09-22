@@ -6,7 +6,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.permit.service.AuthorizationService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;

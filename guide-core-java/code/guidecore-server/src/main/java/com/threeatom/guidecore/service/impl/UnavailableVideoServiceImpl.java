@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.github.pagehelper.PageInfo;
-import com.threeatom.common.permit.service.AuthorizationService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;

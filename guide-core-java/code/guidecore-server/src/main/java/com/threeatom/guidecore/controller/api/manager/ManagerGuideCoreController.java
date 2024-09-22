@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.controller.api.manager;
 
 import com.threeatom.common.exception.PermitException;
-import com.threeatom.common.permit.service.AuthorizationService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import java.util.*;
 import java.util.stream.Collectors;
 

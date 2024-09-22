@@ -1,4 +1,4 @@
-package com.threeatom.common.permit.service.impl;
+package com.threeatom.common.permissions.service.impl;
 
 import static com.threeatom.guidecore.constant.PermitAction.COMMENT;
 import static com.threeatom.guidecore.constant.PermitAction.DELETE;
@@ -9,15 +9,15 @@ import static com.threeatom.guidecore.constant.PermitAction.SUBSCRIBE;
 import static com.threeatom.guidecore.constant.PermitAction.UNSUBSCRIBE;
 import static com.threeatom.guidecore.constant.PermitAction.VIEW;
 
-import com.threeatom.common.permit.dto.PermitChannel;
-import com.threeatom.common.permit.dto.PermitContentGroup;
-import com.threeatom.common.permit.dto.PermitCourse;
-import com.threeatom.common.permit.dto.PermitPlaylist;
-import com.threeatom.common.permit.dto.PermitPortal;
-import com.threeatom.common.permit.dto.PermitResource;
-import com.threeatom.common.permit.dto.PermitUser;
-import com.threeatom.common.permit.dto.PermitVideoItem;
-import com.threeatom.common.permit.service.AuthorizationService;
+import com.threeatom.common.permissions.dto.PermitChannel;
+import com.threeatom.common.permissions.dto.PermitContentGroup;
+import com.threeatom.common.permissions.dto.PermitCourse;
+import com.threeatom.common.permissions.dto.PermitPlaylist;
+import com.threeatom.common.permissions.dto.PermitPortal;
+import com.threeatom.common.permissions.dto.PermitResource;
+import com.threeatom.common.permissions.dto.PermitUser;
+import com.threeatom.common.permissions.dto.PermitVideoItem;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
