@@ -14,12 +14,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public abstract class PowtoonAuthorizationService implements AuthorizationService {
 
-    private final AuthorizationResourceService authorizationResourceService;
+    private final AuthorizationItemService authorizationItemService;
     private final ChannelAuthorizationService channelAuthorizationService;
 
     public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
-        PermitChannel permitChannel = authorizationResourceService.create(channel);
-        PermitUser permitUser = authorizationResourceService.create(portalUser);
+        PermitChannel permitChannel = authorizationItemService.create(channel);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
         return channelAuthorizationService.checkPermissions(permitUser, ChannelAction.valueOf(action.name()),
             permitChannel);
     }

@@ -2,7 +2,7 @@ package com.threeatom.common.permissions.service.impl.auth;
 
 import com.threeatom.common.permissions.dto.PermitChannel;
 import com.threeatom.common.permissions.dto.PermitUser;
-import com.threeatom.common.permissions.service.AuthorizationResourceService;
+import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.UserGroupRole;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthorizationResourceServiceImpl implements AuthorizationResourceService {
+public class AuthorizationItemServiceImpl implements AuthorizationItemService {
 
     private final ContentGroupChannelSubscriptionService channelSubscriptionService;
     private final GcUserAccessService userAccessService;
