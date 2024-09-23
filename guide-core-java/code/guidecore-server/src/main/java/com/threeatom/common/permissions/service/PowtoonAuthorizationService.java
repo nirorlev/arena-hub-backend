@@ -1,16 +1,20 @@
 package com.threeatom.common.permissions.service;
 
 import com.threeatom.common.permissions.dto.PermitChannel;
+import com.threeatom.common.permissions.dto.PermitContentGroup;
 import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.enums.ChannelAction;
+import com.threeatom.common.permissions.enums.ContentGroupAction;
 import com.threeatom.common.permissions.enums.CourseAction;
 import com.threeatom.common.permissions.enums.VideoItemAction;
 import com.threeatom.common.permissions.service.impl.auth.ChannelAuthorizationService;
+import com.threeatom.common.permissions.service.impl.auth.ContentGroupAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -26,6 +30,7 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
     private final ChannelAuthorizationService channelAuthorizationService;
     private final VideoItemAuthorizationService videoItemAuthorizationService;
     private final CourseAuthorizationService courseAuthorizationService;
+    private final ContentGroupAuthorizationService contentGroupAuthorizationService;
 
     @Override
     public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
@@ -49,5 +54,13 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
         PermitUser permitUser = authorizationItemService.create(portalUser);
         return courseAuthorizationService.checkPermissions(permitUser, CourseAction.valueOf(action.name()),
             permitCourse);
+    }
+
+    @Override
+    public boolean checkAccess(GcAccess contentGroup, PermitAction action, PortalUser portalUser) {
+        PermitContentGroup permitContentGroup = authorizationItemService.create(contentGroup);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        return contentGroupAuthorizationService.checkPermissions(permitUser, ContentGroupAction.valueOf(action.name()),
+            permitContentGroup);
     }
 }
