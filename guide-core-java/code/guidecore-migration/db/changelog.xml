@@ -553,4 +553,12 @@
             FROM gc_master;
         </sql>
     </changeSet>
+
+    <changeSet id="create-tags-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="tagsEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling tags on FE"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
