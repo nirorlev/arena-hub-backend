@@ -100,6 +100,15 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
             convertKeysToString(videoItemAuthorizationService.listPermissions(permitUser, permitVideoItem)));
     }
 
+    @Override
+    public void populatePermissions(PtChannel channel, PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        PermitChannel permitChannel = authorizationItemService.create(channel);
+
+        channel.setPermissions(
+            convertKeysToString(channelAuthorizationService.listPermissions(permitUser, permitChannel)));
+    }
+
     private <T> Map<String, Boolean> convertKeysToString(Map<T, Boolean> permissions) {
         return permissions.entrySet().stream()
             .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
