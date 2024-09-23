@@ -4,17 +4,20 @@ import com.threeatom.common.permissions.dto.PermitChannel;
 import com.threeatom.common.permissions.dto.PermitContentGroup;
 import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
+import com.threeatom.common.permissions.dto.PermitPortal;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.enums.ChannelAction;
 import com.threeatom.common.permissions.enums.ContentGroupAction;
 import com.threeatom.common.permissions.enums.CourseAction;
 import com.threeatom.common.permissions.enums.PlaylistAction;
+import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.enums.VideoItemAction;
 import com.threeatom.common.permissions.service.impl.auth.ChannelAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.ContentGroupAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.PlaylistAuthorizationService;
+import com.threeatom.common.permissions.service.impl.auth.PortalAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -36,6 +39,7 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
     private final CourseAuthorizationService courseAuthorizationService;
     private final ContentGroupAuthorizationService contentGroupAuthorizationService;
     private final PlaylistAuthorizationService playlistAuthorizationService;
+    private final PortalAuthorizationService portalAuthorizationService;
 
     @Override
     public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
@@ -75,5 +79,13 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
         PermitUser permitUser = authorizationItemService.create(portalUser);
         return playlistAuthorizationService.checkPermissions(permitUser, PlaylistAction.valueOf(action.name()),
             permitPlaylist);
+    }
+
+    @Override
+    public boolean checkMenuItem(String menuItemKey, PortalUser portalUser) {
+        PortalAction action = authorizationItemService.getPortalActionByMenuItemKey(menuItemKey);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+
+        return portalAuthorizationService.checkPermissions(permitUser, action, new PermitPortal());
     }
 }
