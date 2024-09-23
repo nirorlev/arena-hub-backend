@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Primary
 @RequiredArgsConstructor
-public abstract class PowtoonAuthorizationService implements AuthorizationService {
+public class AuthorizationServiceImpl implements AuthorizationService {
 
     private final AuthorizationItemService authorizationItemService;
     private final ChannelAuthorizationService channelAuthorizationService;
