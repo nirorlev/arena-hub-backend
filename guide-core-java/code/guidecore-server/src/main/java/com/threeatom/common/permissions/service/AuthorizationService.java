@@ -7,6 +7,7 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
+import java.util.Map;
 
 public interface AuthorizationService {
 
@@ -20,12 +21,12 @@ public interface AuthorizationService {
 
     boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser);
 
+    Map<String, Boolean> listPortalPermissions(PortalUser portalUser);
+
     void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser);
 
     void populatePermissions(PtChannel channel, PortalUser portalUser);
 
     void populatePermissions(GcVideo video, PortalUser portalUser);
-
-    boolean checkMenuItem(String menuItemKey, PortalUser portalUser);
 
 }

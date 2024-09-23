@@ -1,5 +1,9 @@
 package com.threeatom.common.permissions.service.impl;
 
+import static com.threeatom.guidecore.constant.PermitAction.ACCESS_ANALYTICS;
+import static com.threeatom.guidecore.constant.PermitAction.ACCESS_CONFIG;
+import static com.threeatom.guidecore.constant.PermitAction.ACCESS_SETTINGS;
+import static com.threeatom.guidecore.constant.PermitAction.ACCESS_TEAMS;
 import static com.threeatom.guidecore.constant.PermitAction.COMMENT;
 import static com.threeatom.guidecore.constant.PermitAction.DELETE;
 import static com.threeatom.guidecore.constant.PermitAction.EDIT;
@@ -47,14 +51,18 @@ import org.springframework.stereotype.Service;
 public class PermitServiceImpl implements AuthorizationService {
 
     private static final Map<String, PermitAction> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
-        "Insights", PermitAction.ACCESS_ANALYTICS
-        , "ContentGroups", PermitAction.ACCESS_TEAMS
+        "Insights", ACCESS_ANALYTICS
+        , "ContentGroups", ACCESS_TEAMS
     );
     private static final List<PermitAction> VIDEO_PERMISSIONS_TO_CHECK = List.of(SHARE, EDIT, DELETE, COMMENT, VIEW);
     private static final List<PermitAction> CHANNEL_PERMISSIONS_TO_CHECK =
         List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
     private static final List<PermitAction> PLAYLIST_PERMISSIONS_TO_CHECK =
         List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
+    private static final List<PermitAction> PORTAL_PERMISSIONS_TO_CHECK =
+        List.of(
+            ACCESS_ANALYTICS, ACCESS_TEAMS,
+            ACCESS_SETTINGS, ACCESS_CONFIG);
 
     private final PermitConfiguration permitConfiguration;
     private final AuthorizationItemService authorizationItemService;
@@ -163,14 +171,9 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public boolean checkMenuItem(String menuItemKey, PortalUser portalUser) {
-        if (!MENU_ITEM_TO_PERMIT_ACTION.containsKey(menuItemKey)) {
-            return true;
-        }
-
-        PermitAction action = MENU_ITEM_TO_PERMIT_ACTION.get(menuItemKey);
-        return checkAccess(new PermitPortal(), List.of(action), authorizationItemService.create(portalUser)).get(
-            action.getKey());
+    public Map<String, Boolean> listPortalPermissions(PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        return checkAccess(new PermitPortal(), PORTAL_PERMISSIONS_TO_CHECK, permitUser);
     }
 
     private Map<String, Boolean> checkAccess(PermitResource permitResource, List<PermitAction> actions,

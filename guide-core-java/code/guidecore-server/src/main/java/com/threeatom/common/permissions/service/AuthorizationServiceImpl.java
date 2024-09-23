@@ -86,11 +86,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public boolean checkMenuItem(String menuItemKey, PortalUser portalUser) {
-        PortalAction action = authorizationItemService.getPortalActionByMenuItemKey(menuItemKey);
+    public Map<String, Boolean> listPortalPermissions(PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
-
-        return portalAuthorizationService.checkPermissions(permitUser, action, new PermitPortal());
+        return convertKeysToString(portalAuthorizationService.listPermissions(permitUser, new PermitPortal()));
     }
 
     @Override

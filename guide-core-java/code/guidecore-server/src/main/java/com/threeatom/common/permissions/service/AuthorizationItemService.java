@@ -6,7 +6,6 @@ import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
-import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -26,6 +25,4 @@ public interface AuthorizationItemService {
     PermitCourse create(GcSubject course);
 
     PermitContentGroup create(GcAccess contentGroup);
-
-    PortalAction getPortalActionByMenuItemKey(String menuItemKey);
 }

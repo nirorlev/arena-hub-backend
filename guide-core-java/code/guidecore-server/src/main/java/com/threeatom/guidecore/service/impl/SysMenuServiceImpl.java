@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -30,6 +31,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             "admin-course", "coursesEnabled",
             "Home", "homepageMenuEnabled"
         );
+    private static final Map<String, PortalAction> MENU_ITEM_TO_PORTAL_ACTION = Map.of(
+        "Insights", PortalAction.ACCESS_ANALYTICS
+        , "ContentGroups", PortalAction.ACCESS_TEAMS
+    );
 
     private final AuthorizationService authorizationService;
     private final FeatureToggleService featureToggleService;
@@ -91,11 +96,13 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
             return sysMenus;
         }
 
+        Map<String, Boolean> portalPermissions = authorizationService.listPortalPermissions(portalUser);
         sysMenus.removeIf(sysMenu -> {
             if (isFeatureToggleDisabled(portalUser.getMasterId(), sysMenu)) {
                 return true;
             }
-            return !authorizationService.checkMenuItem(sysMenu.getKey(), portalUser);
+            return MENU_ITEM_TO_PORTAL_ACTION.containsKey(sysMenu.getKey())
+                && !portalPermissions.getOrDefault(MENU_ITEM_TO_PORTAL_ACTION.get(sysMenu.getKey()).name(), true);
         });
 
         return sysMenus;

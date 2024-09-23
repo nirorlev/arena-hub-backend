@@ -6,8 +6,6 @@ import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
-import com.threeatom.common.permissions.enums.PlaylistAction;
-import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -19,7 +17,6 @@ import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcUserAccessService;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +26,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthorizationItemServiceImpl implements AuthorizationItemService {
 
-    private static final Map<String, PortalAction> MENU_ITEM_TO_PORTAL_ACTION = Map.of(
-        "Insights", PortalAction.ACCESS_ANALYTICS
-        , "ContentGroups", PortalAction.ACCESS_TEAMS
-    );
 
     private final ContentGroupChannelSubscriptionService channelSubscriptionService;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
@@ -121,11 +114,6 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
         PermitContentGroup permitContentGroup = new PermitContentGroup();
         permitContentGroup.setId(String.valueOf(contentGroup.getId()));
         return permitContentGroup;
-    }
-
-    @Override
-    public PortalAction getPortalActionByMenuItemKey(String menuItemKey) {
-        return MENU_ITEM_TO_PORTAL_ACTION.get(menuItemKey);
     }
 
     private Set<Integer> getVideoContentGroupIds(GcVideo video) {
