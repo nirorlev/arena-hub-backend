@@ -21,14 +21,14 @@ public class ContentGroupAuthorizationService
     private static final Map<ContentGroupRole, Map<ContentGroupAction, Boolean>> ROLE_CONTENT_GROUP_PERMISSIONS =
         Map.of(
             ContentGroupRole.VIEWER, Map.of(
-                ContentGroupAction.VIEW, false,
+                ContentGroupAction.VIEW, true,
                 ContentGroupAction.ADD_CONTENT, false,
                 ContentGroupAction.MANAGE_CONTENT, false
             ),
             ContentGroupRole.ADMIN, Map.of(
-                ContentGroupAction.VIEW, false,
-                ContentGroupAction.ADD_CONTENT, false,
-                ContentGroupAction.MANAGE_CONTENT, false
+                ContentGroupAction.VIEW, true,
+                ContentGroupAction.ADD_CONTENT, true,
+                ContentGroupAction.MANAGE_CONTENT, true
             )
         );
 

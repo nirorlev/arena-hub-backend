@@ -56,19 +56,11 @@ public class PlaylistAuthorizationService
             return PlaylistRole.ADMIN;
         }
 
-        if (playlist.isPublic() || userHasPlaylistInContentGroups(permitUser, playlist)) {
+        if (playlist.isPublic()) {
             return PlaylistRole.VIEWER;
         }
 
         return null;
-    }
-
-    private boolean userHasPlaylistInContentGroups(PermitUser permitUser, PermitPlaylist permitPlaylist) {
-        Set<String> allUserContentGroupIds = permitUser.getContentGroupIds();
-        allUserContentGroupIds.addAll(permitUser.getManagedContentGroupIds());
-
-        return allUserContentGroupIds.stream()
-            .anyMatch(userContentGroupId -> permitPlaylist.getContentGroupIds().contains(userContentGroupId));
     }
 
     @Override

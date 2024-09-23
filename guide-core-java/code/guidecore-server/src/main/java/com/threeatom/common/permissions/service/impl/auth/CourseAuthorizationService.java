@@ -29,24 +29,24 @@ public class CourseAuthorizationService
         CourseRole.VIEWER, Map.of(
             CourseAction.CREATE, false,
             CourseAction.DELETE, false,
-            CourseAction.VIEW, false,
+            CourseAction.VIEW, true,
             CourseAction.EDIT, false,
-            CourseAction.SUBSCRIBE, false,
-            CourseAction.UNSUBSCRIBE, false,
+            CourseAction.SUBSCRIBE, true,
+            CourseAction.UNSUBSCRIBE, true,
             CourseAction.ADD_CONTENT, false,
             CourseAction.MANAGE_CONTENT, false,
             CourseAction.PUBLISH, false
         ),
         CourseRole.ADMIN, Map.of(
-            CourseAction.CREATE, false,
-            CourseAction.DELETE, false,
-            CourseAction.VIEW, false,
-            CourseAction.EDIT, false,
-            CourseAction.SUBSCRIBE, false,
-            CourseAction.UNSUBSCRIBE, false,
-            CourseAction.ADD_CONTENT, false,
-            CourseAction.MANAGE_CONTENT, false,
-            CourseAction.PUBLISH, false
+            CourseAction.CREATE, true,
+            CourseAction.DELETE, true,
+            CourseAction.VIEW, true,
+            CourseAction.EDIT, true,
+            CourseAction.SUBSCRIBE, true,
+            CourseAction.UNSUBSCRIBE, true,
+            CourseAction.ADD_CONTENT, true,
+            CourseAction.MANAGE_CONTENT, true,
+            CourseAction.PUBLISH, true
         )
     );
 

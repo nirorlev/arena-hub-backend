@@ -14,16 +14,23 @@ public class PortalAuthorizationService extends ResourceAuthorizationService<Per
 
     private static final List<PortalAction> PORTAL_ACTIONS = List.of(
         PortalAction.ACCESS_ANALYTICS,
-        PortalAction.ACCESS_TEAMS
+        PortalAction.ACCESS_TEAMS,
+        PortalAction.ACCESS_CONFIG,
+        PortalAction.ACCESS_SETTINGS
     );
+
     private static final Map<PortalRole, Map<PortalAction, Boolean>> ROLE_PORTAL_PERMISSIONS = Map.of(
         PortalRole.ADMIN, Map.of(
             PortalAction.ACCESS_ANALYTICS, false,
-            PortalAction.ACCESS_TEAMS, true
+            PortalAction.ACCESS_TEAMS, true,
+            PortalAction.ACCESS_CONFIG, false,
+            PortalAction.ACCESS_SETTINGS, false
         ),
         PortalRole.ORG_ADMIN, Map.of(
             PortalAction.ACCESS_ANALYTICS, true,
-            PortalAction.ACCESS_TEAMS, true
+            PortalAction.ACCESS_TEAMS, true,
+            PortalAction.ACCESS_CONFIG, false,
+            PortalAction.ACCESS_SETTINGS, true
         )
     );
 
