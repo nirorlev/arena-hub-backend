@@ -50,10 +50,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PermitServiceImpl implements AuthorizationService {
 
-    private static final Map<String, PermitAction> MENU_ITEM_TO_PERMIT_ACTION = Map.of(
-        "Insights", ACCESS_ANALYTICS
-        , "ContentGroups", ACCESS_TEAMS
-    );
     private static final List<PermitAction> VIDEO_PERMISSIONS_TO_CHECK = List.of(SHARE, EDIT, DELETE, COMMENT, VIEW);
     private static final List<PermitAction> CHANNEL_PERMISSIONS_TO_CHECK =
         List.of(SHARE, EDIT, DELETE, SUBSCRIBE, UNSUBSCRIBE, MANAGE_CONTENT);
@@ -141,21 +137,18 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
-        playlist.setPermissions(playlistPermissions(playlist, portalUser));
+    public Map<String, Boolean> listPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
+        return playlistPermissions(playlist, portalUser);
     }
 
     @Override
-    public void populatePermissions(PtChannel channel, PortalUser portalUser) {
-        channel.setPermissions(channelPermissions(channel, portalUser));
+    public Map<String, Boolean> listPermissions(PtChannel channel, PortalUser portalUser) {
+        return channelPermissions(channel, portalUser);
     }
 
     @Override
-    public void populatePermissions(GcVideo video, PortalUser portalUser) {
-        Map<String, Boolean> permissions = videoPermissions(video, portalUser);
-
-        video.setPermissions(permissions);
-        video.getVideoFile().setPermissions(permissions);
+    public Map<String, Boolean> listPermissions(GcVideo video, PortalUser portalUser) {
+        return videoPermissions(video, portalUser);
     }
 
     private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {

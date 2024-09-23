@@ -11,7 +11,6 @@ import com.threeatom.common.permissions.enums.ChannelAction;
 import com.threeatom.common.permissions.enums.ContentGroupAction;
 import com.threeatom.common.permissions.enums.CourseAction;
 import com.threeatom.common.permissions.enums.PlaylistAction;
-import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.enums.VideoItemAction;
 import com.threeatom.common.permissions.service.impl.auth.ChannelAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.ContentGroupAuthorizationService;
@@ -92,30 +91,27 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public void populatePermissions(GcVideo video, PortalUser portalUser) {
+    public Map<String, Boolean> listPermissions(GcVideo video, PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         PermitVideoItem permitVideoItem = authorizationItemService.create(video);
 
-        video.setPermissions(
-            convertKeysToString(videoItemAuthorizationService.listPermissions(permitUser, permitVideoItem)));
+        return convertKeysToString(videoItemAuthorizationService.listPermissions(permitUser, permitVideoItem));
     }
 
     @Override
-    public void populatePermissions(PtChannel channel, PortalUser portalUser) {
+    public Map<String, Boolean> listPermissions(PtChannel channel, PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         PermitChannel permitChannel = authorizationItemService.create(channel);
 
-        channel.setPermissions(
-            convertKeysToString(channelAuthorizationService.listPermissions(permitUser, permitChannel)));
+        return convertKeysToString(channelAuthorizationService.listPermissions(permitUser, permitChannel));
     }
 
     @Override
-    public void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
+    public Map<String, Boolean> listPermissions(GcUserSaveFolder playlist, PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         PermitPlaylist permitPlaylist = authorizationItemService.create(playlist);
 
-        playlist.setPermissions(
-            convertKeysToString(playlistAuthorizationService.listPermissions(permitUser, permitPlaylist)));
+        return convertKeysToString(playlistAuthorizationService.listPermissions(permitUser, permitPlaylist));
     }
 
     private <T> Map<String, Boolean> convertKeysToString(Map<T, Boolean> permissions) {

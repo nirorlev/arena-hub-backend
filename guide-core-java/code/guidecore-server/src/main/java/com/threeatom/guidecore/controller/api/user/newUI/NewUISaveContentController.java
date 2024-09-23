@@ -137,7 +137,7 @@ public class NewUISaveContentController extends GuideCoreController {
                 recommendedPlaylist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
                 recommendedPlaylist.setFullFileUrl(fullfileurl);
             }
-            authorizationService.populatePermissions(recommendedPlaylist, portalUser);
+            recommendedPlaylist.setPermissions(authorizationService.listPermissions(recommendedPlaylist, portalUser));
         }
         message.ok().addData("recommenFolderList", new PageInfo<>(recommenFolderList));
     }
@@ -161,7 +161,7 @@ public class NewUISaveContentController extends GuideCoreController {
                     playlist.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
                 }
                 playlist.setFollowFlag(TableConstant.COMMON_ONE);
-                authorizationService.populatePermissions(playlist, portalUser);
+                playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
             }
 
             message.ok().addData("followedplaylist", new PageInfo<>(followedPlaylist));
@@ -197,7 +197,7 @@ public class NewUISaveContentController extends GuideCoreController {
                     if (content.getSubject() != null)
                         sysFileService.getResFullUrl(content.getSubject().getSubImgFile(), request);
                 }
-                authorizationService.populatePermissions(playlist, portalUser);
+                playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
             }
         }
         message.ok().addData("myPlayList", new PageInfo<>(playlists));

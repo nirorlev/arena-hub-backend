@@ -142,7 +142,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
             PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
             playlist = gcUserSaveFolderService.getById(playlist.getId());
-            authorizationService.populatePermissions(playlist, portalUser);
+            playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 
             GcUserSaveContent content = new GcUserSaveContent();
             if (Objects.nonNull(user)) {
@@ -242,7 +242,11 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             }
 
             unavailableVideoService.nullifyVideoData(portalUser, videos);
-            videos.forEach(video -> authorizationService.populatePermissions(video, portalUser));
+            videos.forEach(video -> {
+                Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
+                video.setPermissions(permissions);
+                video.getVideoFile().setPermissions(permissions);
+            });
             m.addData("videoList", new PageInfo<>(videoFiles));
         } catch (Exception e) {
             e.printStackTrace();

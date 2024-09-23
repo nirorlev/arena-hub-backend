@@ -906,7 +906,7 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 
-			authorizationService.populatePermissions(playlist, portalUser);
+			playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 		}
 
 		populateVideoContent(request, file, portalUser);
@@ -929,7 +929,9 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikeNum(videoActionService.countLikeForVideo(videoContent.getId()));
 			videoFile.setIsLiked(
 				videoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
-			authorizationService.populatePermissions(videoContent, portalUser);
+			Map<String, Boolean> permissions = authorizationService.listPermissions(videoContent, portalUser);
+			videoContent.setPermissions(permissions);
+			videoContent.getVideoFile().setPermissions(permissions);
 			gcVideoService.updateVideoFilePrivacy(videoFile, videoContent);
 		});
 
@@ -2477,7 +2479,7 @@ public class PowtoonController extends GuideCoreController {
 						}
 					}
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					authorizationService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				}
 			} else if (channel.isPublic()) {
@@ -2537,12 +2539,12 @@ public class PowtoonController extends GuideCoreController {
 				}
 
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-				authorizationService.populatePermissions(channel, portalUser);
+				channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 				message.addData("channel", channel);
 			} else if (channel.isPrivate()) {
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					authorizationService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2551,7 +2553,7 @@ public class PowtoonController extends GuideCoreController {
 			} else if (channel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					authorizationService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2560,7 +2562,7 @@ public class PowtoonController extends GuideCoreController {
 		} else {
 			if (ptChannelService.saveOrUpdate(channel)) {
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-				authorizationService.populatePermissions(channel, portalUser);
+				channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 				message.addData("channel", channel);
 			} else {
 				return message.error();
@@ -2689,7 +2691,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=ptChannel.getId()){
 			channel = ptChannelService.selectChannelDetail(ptChannel.getId(),null,request,order,masterId);
 		}
-		authorizationService.populatePermissions(channel, portalUser);
+		channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 
 		PtChannelSubscribe ptChannelSubscribe;
 		if (null!=ptChannel.getId()){
@@ -2984,7 +2986,7 @@ public class PowtoonController extends GuideCoreController {
 		if (ptChannel.isSection()){
 			PtChannel channel = ptChannelService.getById(ptchannel.getFid());
 			ptChannel.setChannelSlug(channel.getChannelSlug());
-			authorizationService.populatePermissions(ptChannel, portalUser);
+			ptChannel.setPermissions(authorizationService.listPermissions(ptChannel, portalUser));
 		}
 		message.ok().addData("channel",ptChannel);
 		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
@@ -3094,7 +3096,9 @@ public class PowtoonController extends GuideCoreController {
 		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
 		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
 		gcVideoService.updateVideoFilePrivacy(videoFile, channelVideoContent);
-		authorizationService.populatePermissions(channelVideoContent, portalUser);
+		Map<String, Boolean> permissions = authorizationService.listPermissions(channelVideoContent, portalUser);
+		channelVideoContent.setPermissions(permissions);
+		channelVideoContent.getVideoFile().setPermissions(permissions);
 		return videoFile;
 	}
 }

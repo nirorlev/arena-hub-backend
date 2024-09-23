@@ -448,7 +448,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							}
 							playlist.setSnapshotUrl(sysFile.getSnapshotUrl());
 						}
-						authorizationService.populatePermissions(playlist, portalUser);
+						playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 					}
 				}
 

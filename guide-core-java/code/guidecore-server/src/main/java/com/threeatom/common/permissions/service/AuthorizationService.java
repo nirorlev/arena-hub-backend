@@ -23,10 +23,9 @@ public interface AuthorizationService {
 
     Map<String, Boolean> listPortalPermissions(PortalUser portalUser);
 
-    void populatePermissions(GcUserSaveFolder playlist, PortalUser portalUser);
+    Map<String, Boolean> listPermissions(GcUserSaveFolder playlist, PortalUser portalUser);
 
-    void populatePermissions(PtChannel channel, PortalUser portalUser);
+    Map<String, Boolean> listPermissions(PtChannel channel, PortalUser portalUser);
 
-    void populatePermissions(GcVideo video, PortalUser portalUser);
-
+    Map<String, Boolean> listPermissions(GcVideo video, PortalUser portalUser);
 }

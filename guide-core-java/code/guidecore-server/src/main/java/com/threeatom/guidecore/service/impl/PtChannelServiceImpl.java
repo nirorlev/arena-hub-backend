@@ -186,7 +186,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 GcVideo video = videoService.getVideoContentByFileId(sysFile.getId());
                 video.setVideoFile(sysFile);
                 videoService.updateVideoFilePrivacy(sysFile, video);
-                authorizationService.populatePermissions(video, portalUser);
+                Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
+                video.setPermissions(permissions);
+                video.getVideoFile().setPermissions(permissions);
 
                 if (null != sysFile.getGcUser().getAvatarFileId()) {
                     if (null != createFileMap.get(sysFile.getGcUser().getAvatarFileId())) {
@@ -363,7 +365,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 // SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
                 channel.setImgFullFileUrl(sysFileMap.get(channel.getChannelImgFileId()).getFullFileUrl());
             }
-            authorizationService.populatePermissions(channel, portalUser);
+            channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         }
         return channels;
     }
@@ -468,7 +470,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                     videoFile.setVideoId(videoContent.getId());
                     channel.setIsLiked(userVideoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
                     channel.setLikeNum(userVideoActionService.countLikeForVideo(videoContent.getId()));
-                    authorizationService.populatePermissions(videoContent, portalUser);
+                    Map<String, Boolean> permissions = authorizationService.listPermissions(videoContent, portalUser);
+                    videoContent.setPermissions(permissions);
+                    videoContent.getVideoFile().setPermissions(permissions);
                 });
             }
             if (null != fileMap.get(channel.getChannelAvatarFileId())) {
@@ -511,7 +515,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             videoService.getVideoContent(file.getId()).ifPresent(videoContent -> {
                 videoContent.setVideoFile(file);
                 file.setVideoId(videoContent.getId());
-                authorizationService.populatePermissions(videoContent, portalUser);
+                Map<String, Boolean> permissions = authorizationService.listPermissions(videoContent, portalUser);
+                videoContent.setPermissions(permissions);
+                videoContent.getVideoFile().setPermissions(permissions);
             });
         }
 
@@ -577,7 +583,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            authorizationService.populatePermissions(channel, portalUser);
+            channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);
     }
@@ -587,7 +593,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            authorizationService.populatePermissions(channel, portalUser);
+            channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);
     }
@@ -597,7 +603,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels = baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
-            authorizationService.populatePermissions(channel, portalUser);
+            channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);
     }
