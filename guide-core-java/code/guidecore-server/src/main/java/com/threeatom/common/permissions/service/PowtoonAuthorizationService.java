@@ -29,9 +29,11 @@ import com.threeatom.guidecore.entity.PtChannel;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public abstract class PowtoonAuthorizationService implements AuthorizationService {
 
