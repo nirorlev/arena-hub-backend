@@ -849,15 +849,15 @@ public class PowtoonController extends GuideCoreController {
 	}
 
 	@GetMapping("/playListVideoDetailPt")
-	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoFileId,Integer playListId) {
-        if(Objects.isNull(videoFileId)){
+	public Message playListVideoDetailPt(HttpServletRequest request,Integer videoId,Integer playListId) {
+        if(Objects.isNull(videoId)){
 			throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
 		}
 		if(Objects.isNull(playListId)){
 			throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
 		}
 		Message message = new Message();
-		GcVideo video = gcVideoService.getVideoContentByFileId(videoFileId);
+		GcVideo video = gcVideoService.getVideoContentByFileId(videoId);
 		SysFile file = video.getVideoFile();
 		GcUser myUser = this.getGcUser();
 		Integer masterId = getHeaderMasterId(request);
