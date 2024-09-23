@@ -10,6 +10,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
@@ -22,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,8 +145,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.selectFolderAllVideo(userId, masterId,folderIdList,myFolderIdList);
-        for(GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders){
+        List<GcUserSaveFolder> playlists =
+            getPlaylistsWithVideos(userId, masterId, folderIdList, myFolderIdList);
+        for(GcUserSaveFolder gcUserSaveFolder : playlists){
             List<GcUserSaveContent> gcUserSaveContents = gcUserSaveFolder.getSaveContentList();
             for(GcUserSaveContent gcUserSaveContent : gcUserSaveContents){
                 if(Objects.nonNull(gcUserSaveContent.getFileId())){
@@ -163,10 +166,22 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             }
 
         }
-        return gcUserSaveFolders;
+        return playlists;
     }
 
-	@Override
+    private List<GcUserSaveFolder> getPlaylistsWithVideos(Integer userId, Integer masterId, List<Integer> folderIdList,
+                                                        List<Integer> myFolderIdList) {
+        List<GcUserSaveFolder> playlists =
+            this.baseMapper.selectFolderAllVideo(userId, masterId, folderIdList, myFolderIdList);
+        List<GcUserSaveContent> playlistContents = playlists.stream()
+            .flatMap(playlist -> playlist.getSaveContentList().stream())
+            .collect(Collectors.toList());
+
+        playlistContents.forEach(content -> content.setVideo(gcVideoService.getVideoContent(content.getFileId()).orElse(null)));
+        return playlists;
+    }
+
+    @Override
     public Integer countFolder(GcUserSaveFolder gcUserSaveFolder) {
         QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", gcUserSaveFolder.getId());
