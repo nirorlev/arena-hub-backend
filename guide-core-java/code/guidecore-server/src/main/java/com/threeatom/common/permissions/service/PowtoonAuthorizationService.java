@@ -1,13 +1,17 @@
 package com.threeatom.common.permissions.service;
 
 import com.threeatom.common.permissions.dto.PermitChannel;
+import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.enums.ChannelAction;
+import com.threeatom.common.permissions.enums.CourseAction;
 import com.threeatom.common.permissions.enums.VideoItemAction;
 import com.threeatom.common.permissions.service.impl.auth.ChannelAuthorizationService;
+import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
@@ -21,6 +25,7 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
     private final AuthorizationItemService authorizationItemService;
     private final ChannelAuthorizationService channelAuthorizationService;
     private final VideoItemAuthorizationService videoItemAuthorizationService;
+    private final CourseAuthorizationService courseAuthorizationService;
 
     @Override
     public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
@@ -36,5 +41,13 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
         PermitUser permitUser = authorizationItemService.create(portalUser);
         return videoItemAuthorizationService.checkPermissions(permitUser, VideoItemAction.valueOf(action.name()),
             permitVideo);
+    }
+
+    @Override
+    public boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser) {
+        PermitCourse permitCourse = authorizationItemService.create(course);
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        return courseAuthorizationService.checkPermissions(permitUser, CourseAction.valueOf(action.name()),
+            permitCourse);
     }
 }
