@@ -26,6 +26,8 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -87,5 +89,19 @@ public abstract class PowtoonAuthorizationService implements AuthorizationServic
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
         return portalAuthorizationService.checkPermissions(permitUser, action, new PermitPortal());
+    }
+
+    @Override
+    public void populatePermissions(GcVideo video, PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        PermitVideoItem permitVideoItem = authorizationItemService.create(video);
+
+        video.setPermissions(
+            convertKeysToString(videoItemAuthorizationService.listPermissions(permitUser, permitVideoItem)));
+    }
+
+    private <T> Map<String, Boolean> convertKeysToString(Map<T, Boolean> permissions) {
+        return permissions.entrySet().stream()
+            .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
     }
 }
