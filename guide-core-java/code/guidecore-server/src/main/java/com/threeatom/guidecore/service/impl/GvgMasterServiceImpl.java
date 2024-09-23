@@ -13,8 +13,7 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.permit.service.PermitService;
-import com.threeatom.config.ChannelConfiguration;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.MessageEventType;
@@ -227,7 +226,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcSubjectCompleteService completeService;
 
 	@Autowired
-	private PermitService permitService;
+	private AuthorizationService authorizationService;
 
 	@Autowired
 	private SysMenuService sysMenuService;
@@ -449,7 +448,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 							}
 							playlist.setSnapshotUrl(sysFile.getSnapshotUrl());
 						}
-						permitService.populatePermissions(playlist, portalUser);
+						playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 					}
 				}
 

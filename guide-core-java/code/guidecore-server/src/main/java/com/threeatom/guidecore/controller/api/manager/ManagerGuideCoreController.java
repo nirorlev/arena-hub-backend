@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.controller.api.manager;
 
 import com.threeatom.common.exception.PermitException;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,7 +109,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @Autowired
     private CourseContentService courseContentService;
     @Autowired
-    private PermitService permitService;
+    private AuthorizationService authorizationService;
     @Autowired
     private PortalUserService portalUserService;
 
@@ -648,7 +648,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         }
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         GcVideo existingVideo = videoService.findByVideoId(video.getId());
-        if (!permitService.checkPermit(existingVideo, PermitAction.EDIT, portalUser)) {
+        if (!authorizationService.checkAccess(existingVideo, PermitAction.EDIT, portalUser)) {
             throw new PermitException("No permission for this!");
         }
 

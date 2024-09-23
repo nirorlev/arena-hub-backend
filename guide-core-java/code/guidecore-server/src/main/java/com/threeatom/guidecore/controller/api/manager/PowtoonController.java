@@ -17,7 +17,7 @@ import com.threeatom.common.exception.PermitException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.pdf.PdfModel;
 import com.threeatom.common.pdf.PdfServicePt;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.PermitAction;
@@ -275,7 +275,7 @@ public class PowtoonController extends GuideCoreController {
 	private VideoThumbnailProvider thumbnailProvider;
 
 	@Autowired
-	private PermitService permitService;
+	private AuthorizationService authorizationService;
 	@Autowired
 	private UserLicenseService userLicenseService;
 	@Autowired
@@ -635,7 +635,7 @@ public class PowtoonController extends GuideCoreController {
 			GcSubject course = gcSubjectService.getById(Integer.parseInt(fid.toString()));
 			PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), Integer.valueOf(masterId));
 
-			if (!permitService.checkPermit(course, PermitAction.VIEW, portalUser)){
+			if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)){
 				throw new PermitException("No permission for this!");
 			}
 
@@ -729,7 +729,7 @@ public class PowtoonController extends GuideCoreController {
 			GcVideo video = gcVideoService.findByVideoId(videoId);
 			PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
-			if (!permitService.checkPermit(video, PermitAction.VIEW, portalUser)){
+			if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)){
 				throw new PermitException("No permission for this!");
 			}
 			return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.PT.getCode());
@@ -906,7 +906,7 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}
 
-			permitService.populatePermissions(playlist, portalUser);
+			playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 		}
 
 		populateVideoContent(request, file, portalUser);
@@ -929,7 +929,9 @@ public class PowtoonController extends GuideCoreController {
 			videoFile.setLikeNum(videoActionService.countLikeForVideo(videoContent.getId()));
 			videoFile.setIsLiked(
 				videoActionService.isLikedByUser(videoContent.getId(), portalUser.getUserId()) ? 1 : 0);
-			permitService.populatePermissions(videoContent, portalUser);
+			Map<String, Boolean> permissions = authorizationService.listPermissions(videoContent, portalUser);
+			videoContent.setPermissions(permissions);
+			videoContent.getVideoFile().setPermissions(permissions);
 			gcVideoService.updateVideoFilePrivacy(videoFile, videoContent);
 		});
 
@@ -1089,7 +1091,7 @@ public class PowtoonController extends GuideCoreController {
 
 		GcAccess contentGroup = accessService.getAccessById(access.getId());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-		if (!permitService.checkPermit(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -1158,7 +1160,7 @@ public class PowtoonController extends GuideCoreController {
 		GcAccess contentGroup = accessService.getAccessById(access.getId());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -1294,7 +1296,7 @@ public class PowtoonController extends GuideCoreController {
 		GcAccess contentGroup = accessService.getById(accessId);
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(contentGroup, PermitAction.ADD_CONTENT, portalUser)){
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.ADD_CONTENT, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -1495,7 +1497,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(contentGroup, PermitAction.ADD_CONTENT, portalUser)){
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.ADD_CONTENT, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(contentGroup.getId(),masterId);
@@ -1539,7 +1541,7 @@ public class PowtoonController extends GuideCoreController {
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<Integer> channelIds = (List<Integer>) params.get("channelIds");
@@ -2000,14 +2002,14 @@ public class PowtoonController extends GuideCoreController {
 					throw new PermitException("No permission for this!");
 				}
 				//发布
-				isFlag = permitService.checkPermit(course, PermitAction.ADD_CONTENT, portalUser);
+				isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
 				if (null==oldSubject.getPublishedTime()&&course.getState().equals(TableConstant.COMMON_ONE)){
 					course.setPublishedTime(new Date());
 					course.setPublishedUserId(user.getId());
 				}
 			}else {
 				//修改
-				isFlag = permitService.checkPermit(course, PermitAction.EDIT, portalUser);
+				isFlag = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
 			}
 		}else if(null!=course.getMoveDrafts()){
 			//移动回发布前
@@ -2017,7 +2019,7 @@ public class PowtoonController extends GuideCoreController {
 			}
 		} else {
 			//创建
-			isFlag = permitService.checkPermit(course, PermitAction.ADD_CONTENT, portalUser);
+			isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
 		}
 		if (!isFlag){
 			throw new PermitException("No permission for this!");
@@ -2070,7 +2072,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		GcAccess course = gcAccessService.getById(subId);
 
-		if (!permitService.checkPermit(course, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(course, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2092,7 +2094,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		GcVideo video = gcVideoService.findByVideoId(vid);
 
-		if (!permitService.checkPermit(video, PermitAction.COMMENT, portalUser)) {
+		if (!authorizationService.checkAccess(video, PermitAction.COMMENT, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		GcVideoComment videoComment = new GcVideoComment();
@@ -2125,7 +2127,7 @@ public class PowtoonController extends GuideCoreController {
 		playlist.setUserId(user.getId());
 		playlist.setMasterId(getHeaderMasterId(request));
 
-		if (!permitService.checkPermit(playlist, PermitAction.CREATE, portalUser)) {
+		if (!authorizationService.checkAccess(playlist, PermitAction.CREATE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2268,7 +2270,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 		gcSubjectService.populateUserId(course, user);
 
-		if (!permitService.checkPermit(course, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(course, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		if(Objects.nonNull(course.getFid())){
@@ -2297,7 +2299,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 		GcVideo video = gcVideoService.findByVideoId(vid);
 
-		if (!permitService.checkPermit(video, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(video, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		return gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
@@ -2329,17 +2331,17 @@ public class PowtoonController extends GuideCoreController {
 		ptChannelService.populateCreatedUserId(channel, user);
 		boolean isAllowed;
 		if (null!=channel.getVisibleFlag()) {
-			if (!permitService.checkPermit(channel, PermitAction.PUBLISH, portalUser)){
+			if (!authorizationService.checkAccess(channel, PermitAction.PUBLISH, portalUser)){
 				throw new PermitException("No permission to change channel visibility!");
 			}
 		}
 
 		if (null!=channel.getId()){
-			isAllowed = permitService.checkPermit(channel, PermitAction.EDIT, portalUser);
+			isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
 		}else if (channel.isSection()){
-			isAllowed = permitService.checkPermit(channel, PermitAction.ADD_CONTENT, portalUser);
+			isAllowed = authorizationService.checkAccess(channel, PermitAction.ADD_CONTENT, portalUser);
 		}else {
-			isAllowed = permitService.checkPermit(channel, PermitAction.CREATE, portalUser);
+			isAllowed = authorizationService.checkAccess(channel, PermitAction.CREATE, portalUser);
 		}
 
 		if (!isAllowed){
@@ -2477,7 +2479,7 @@ public class PowtoonController extends GuideCoreController {
 						}
 					}
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					permitService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				}
 			} else if (channel.isPublic()) {
@@ -2537,12 +2539,12 @@ public class PowtoonController extends GuideCoreController {
 				}
 
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-				permitService.populatePermissions(channel, portalUser);
+				channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 				message.addData("channel", channel);
 			} else if (channel.isPrivate()) {
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					permitService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2551,7 +2553,7 @@ public class PowtoonController extends GuideCoreController {
 			} else if (channel.getVisibleFlag() == TableConstant.COMMON_THREE){
 				if (ptChannelService.saveOrUpdate(channel)) {
 					channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-					permitService.populatePermissions(channel, portalUser);
+					channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 					message.addData("channel", channel);
 				} else {
 					return message.error();
@@ -2560,7 +2562,7 @@ public class PowtoonController extends GuideCoreController {
 		} else {
 			if (ptChannelService.saveOrUpdate(channel)) {
 				channel = ptChannelService.selectChannelDetail(channel.getId(),null, request, null, masterId);
-				permitService.populatePermissions(channel, portalUser);
+				channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 				message.addData("channel", channel);
 			} else {
 				return message.error();
@@ -2586,7 +2588,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
 		ptChannelService.populateCreatedUserId(channel, user);
-		if (!permitService.checkPermit(channel, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(channel, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2667,7 +2669,7 @@ public class PowtoonController extends GuideCoreController {
 		ptChannelService.populateCreatedUserId(ptChannel, user);
 
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-		if (!permitService.checkPermit(ptChannel, PermitAction.VIEW, portalUser)) {
+		if (!authorizationService.checkAccess(ptChannel, PermitAction.VIEW, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2689,7 +2691,7 @@ public class PowtoonController extends GuideCoreController {
 		if (null!=ptChannel.getId()){
 			channel = ptChannelService.selectChannelDetail(ptChannel.getId(),null,request,order,masterId);
 		}
-		permitService.populatePermissions(channel, portalUser);
+		channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
 
 		PtChannelSubscribe ptChannelSubscribe;
 		if (null!=ptChannel.getId()){
@@ -2768,7 +2770,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		PtChannel channel = ptChannelService.getById(ptChannelSubscribe.getChannelId());
 
-		if (!permitService.checkPermit(channel, PermitAction.SUBSCRIBE, portalUser)){
+		if (!authorizationService.checkAccess(channel, PermitAction.SUBSCRIBE, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2806,7 +2808,7 @@ public class PowtoonController extends GuideCoreController {
 		PtChannel channel = ptChannelService.getById(ptChannelSubscribe.getChannelId());
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 
-		if (!permitService.checkPermit(channel, PermitAction.SUBSCRIBE, portalUser)){
+		if (!authorizationService.checkAccess(channel, PermitAction.SUBSCRIBE, portalUser)){
 			throw new PermitException("No permission for this!");
 		}
 		List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUserAndMasterId(user.getId(),masterId);
@@ -2859,7 +2861,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error(400, "Channel ID is required");
 		}
 
-		if (!permitService.checkPermit(channel, PermitAction.EDIT, portalUser)) {
+		if (!authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2919,7 +2921,7 @@ public class PowtoonController extends GuideCoreController {
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
 		PtChannel channel = ptChannelService.getById(ptChannelContent.getChannelId());
 
-		if (!permitService.checkPermit(channel, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(channel, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 		if (ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId())) {
@@ -2984,7 +2986,7 @@ public class PowtoonController extends GuideCoreController {
 		if (ptChannel.isSection()){
 			PtChannel channel = ptChannelService.getById(ptchannel.getFid());
 			ptChannel.setChannelSlug(channel.getChannelSlug());
-			permitService.populatePermissions(ptChannel, portalUser);
+			ptChannel.setPermissions(authorizationService.listPermissions(ptChannel, portalUser));
 		}
 		message.ok().addData("channel",ptChannel);
 		List<SysFile> videofiles = ptChannelContentService.selectVideosInChannel(ptChannel.getId(),null,ptChannelContent.getFileId(),request, currentUser.getId());
@@ -3094,7 +3096,9 @@ public class PowtoonController extends GuideCoreController {
 		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
 		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
 		gcVideoService.updateVideoFilePrivacy(videoFile, channelVideoContent);
-		permitService.populatePermissions(channelVideoContent, portalUser);
+		Map<String, Boolean> permissions = authorizationService.listPermissions(channelVideoContent, portalUser);
+		channelVideoContent.setPermissions(permissions);
+		channelVideoContent.getVideoFile().setPermissions(permissions);
 		return videoFile;
 	}
 }

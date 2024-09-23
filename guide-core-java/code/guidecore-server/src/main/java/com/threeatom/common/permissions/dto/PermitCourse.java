@@ -1,4 +1,4 @@
-package com.threeatom.common.permit.dto;
+package com.threeatom.common.permissions.dto;
 
 import com.threeatom.guidecore.constant.ResourceType;
 import lombok.Getter;
@@ -6,10 +6,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PermitChannel extends PermitCollection {
+public class PermitCourse extends PermitCollection {
 
     @Override
     public String getType() {
-        return ResourceType.channel;
+        return ResourceType.course;
     }
 }

@@ -30,4 +30,8 @@ public class PortalUser implements Serializable {
     public boolean isGroupAdmin() {
         return UserOrgRole.ADMIN.equals(role);
     }
+
+    public boolean isMember() {
+        return !isOrgAdmin() && !isGroupAdmin();
+    }
 }

@@ -1,7 +1,6 @@
-package com.threeatom.common.permit.dto;
+package com.threeatom.common.permissions.dto;
 
 import com.threeatom.guidecore.constant.ResourceType;
-import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
 
