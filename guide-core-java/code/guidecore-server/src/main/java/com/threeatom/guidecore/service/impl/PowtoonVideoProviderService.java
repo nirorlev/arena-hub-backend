@@ -144,7 +144,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         JSONObject videoHosting = playerPageData.getJSONObject("video_hosting");
         if (videoHosting == null) {
             videoData.put("hostingProvider", EventUnifyType.POWTOON_PENDING_FILE_TYPE_INDEX);
-            videoData.put("playerUrl", null);
         } else {
             String providerName = (String) videoHosting.get("provider");
             Integer hostingProvider = getHostingProviderIndexType(providerName);
@@ -152,8 +151,6 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
             Optional<String> playerUrl = buildPlayerUrl(hostingProvider, videoHosting);
             if (playerUrl.isPresent()) {
                 videoData.put("playerUrl", playerUrl.get());
-            } else {
-                videoData.put("playerUrl", null);
             }
         }
 
