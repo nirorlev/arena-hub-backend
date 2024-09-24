@@ -129,6 +129,7 @@ import javax.validation.Valid;
 import lombok.SneakyThrows;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2837,25 +2838,24 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "channelContent保存内容")
 	@PostMapping("/saveOrUpdateChannelContent")
-	public Message saveChannelContent(@RequestBody List<PtChannelContent> ptChannelContent,HttpServletRequest request) throws IOException, PermitContextError, PermitApiError {
+	public Message saveChannelContent(@RequestBody List<PtChannelContent> ptChannelContent, HttpServletRequest request) {
 		Message message = new Message();
-		if(CollectionUtils.isEmpty(ptChannelContent)){
+		if (CollectionUtils.isEmpty(ptChannelContent)) {
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
 		}
 		GcUser user = this.getGcUser();
 		Integer masterId = request.getIntHeader("masterId");
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-		Integer channelFid = null;
+		Integer channelId;
 		PtChannel channel;
 
 		if (null != ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId()) {
-			Integer channelId = ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId();
-			channel = ptChannelService.getById(channelId);
+			channel = ptChannelService.getById(ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId());
 			if (channel.isSection()) {
 				channel = ptChannelService.getById(channel.getFid());
-				channelFid = channel.getFid();
+				channelId = channel.getId();
 			} else {
-				channelFid = channelId;
+				channelId = ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId();
 			}
 		} else {
 			return new Message().error(400, "Channel ID is required");
@@ -2866,47 +2866,53 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		List<Integer> fileIds = ptChannelContent.stream().map(PtChannelContent::getFileId).collect(Collectors.toList());
-		List<PtChannelContent> channelContentList = ptChannelContentService.selectContentExist(ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId());
+		List<PtChannelContent> channelContentList =
+			ptChannelContentService.selectContentExist(ptChannelContent.get(TableConstant.COMMON_ZERO).getChannelId());
 		List<Integer> ids = channelContentList.stream().map(PtChannelContent::getFileId).collect(Collectors.toList());
-		for(PtChannelContent channelContent : ptChannelContent){
-			if(ids.contains(channelContent.getFileId())){
+		for (PtChannelContent channelContent : ptChannelContent) {
+			if (ids.contains(channelContent.getFileId())) {
 				throw new SystemException(I18NUtil.get("powtoon.channel.duplicate.video.error"));
 			}
 		}
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelFid);
+		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelId);
 
-		for(PtChannelContent channelContent : ptChannelContent){
-			channelContent.getCourseTags().forEach(i -> {
-				PtTags newTags = new PtTags();
-				newTags.setMasterId(masterId);
-				newTags.setTagText(i.toString());
-				newTags.setChannelId(channelContent.getChannelId());
-				newTags.setType(TableConstant.COMMON_TWO);
-				newTags.setOrder(TableConstant.COMMON_ZERO);
-				newTags.setFileId(channelContent.getFileId());
-				tagsList.add(newTags);
-			});
-
-			for(SysFile sysFile : sysFileList){
-				if(sysFile.getId().equals(channelContent.getFileId())){
-					String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
-					String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-					sysFile.setFullFileUrl(fullFileUrl);
-					sysFile.setSnapshotUrl(snapShotUrl);
-					sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
-					channelContent.setVideoFile(sysFile);
-				}
-				if (null!=sysFile.getGcUser().getAvatarFileId()){
-					SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
-					sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file,request));
-				}
-			}
+		for (PtChannelContent channelContent : ptChannelContent) {
+			channelContent.getCourseTags().forEach(tag -> tagsList.add(createTag(channelContent, tag, masterId)));
+			updateVideoFileUrls(request, channelContent, sysFileList);
 		}
 		ptTagsService.saveOrUpdateBatch(tagsList);
-		return message.ok("success").addData("contentList",ptChannelContent);
+		return message.ok("success").addData("contentList", ptChannelContent);
+	}
+
+	private PtTags createTag(PtChannelContent channelContent, Object i, Integer masterId) {
+		PtTags newTags = new PtTags();
+		newTags.setMasterId(masterId);
+		newTags.setTagText(i.toString());
+		newTags.setChannelId(channelContent.getChannelId());
+		newTags.setType(TableConstant.COMMON_TWO);
+		newTags.setOrder(TableConstant.COMMON_ZERO);
+		newTags.setFileId(channelContent.getFileId());
+		return newTags;
+	}
+
+	private void updateVideoFileUrls(HttpServletRequest request, PtChannelContent channelContent, List<SysFile> sysFileList) {
+		for (SysFile sysFile : sysFileList) {
+			if (sysFile.getId().equals(channelContent.getFileId())) {
+				String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+				String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+				sysFile.setFullFileUrl(fullFileUrl);
+				sysFile.setSnapshotUrl(snapShotUrl);
+				sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
+				channelContent.setVideoFile(sysFile);
+			}
+			if (null != sysFile.getGcUser().getAvatarFileId()) {
+				SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+				sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
+			}
+		}
 	}
 
 	@ApiOperation(value = "channelContent删除内容")
