@@ -189,17 +189,9 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint constraintName="channel_assignment_pt_channel_id_fk"
-                                 baseTableName="content_group_channel_subscription" baseColumnNames="channel_id"
-                                 referencedTableName="pt_channel" referencedColumnNames="id" onUpdate="CASCADE"
-                                 onDelete="CASCADE"/>
-        <addForeignKeyConstraint constraintName="channel_assignment_gc_user_id_fk"
-                                 baseTableName="content_group_channel_subscription" baseColumnNames="created_by_user_id"
-                                 referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint constraintName="channel_assignment_gc_access_id_fk"
-                                 baseTableName="content_group_channel_subscription" baseColumnNames="content_group_id"
-                                 referencedTableName="gc_access" referencedColumnNames="id" onUpdate="CASCADE"
-                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_pt_channel_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="channel_id" referencedTableName="pt_channel" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_user_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="created_by_user_id" referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_access_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="content_group_id" referencedTableName="gc_access" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
     <changeSet id="migrate-content-group-channels" author="vprokh">
@@ -576,5 +568,17 @@
             <column name="description" value="Feature toggle for enabling or disabling tags on FE"/>
             <column name="value" value="false"/>
         </insert>
+    </changeSet>
+
+    <changeSet id="add-on-delete-constraint-for-channel-content" author="vprokh">
+        <dropForeignKeyConstraint baseTableName="pt_channel_content" constraintName="pt_channel_content_gc_video_id_fk" />
+        <dropForeignKeyConstraint baseTableName="gc_user_save_content" constraintName="gc_user_save_content_gc_video_id_fk" />
+
+        <addForeignKeyConstraint baseTableName="pt_channel_content" baseColumnNames="content_id"
+                                 constraintName="pt_channel_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="gc_user_save_content" baseColumnNames="content_id"
+                                 constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 </databaseChangeLog>
