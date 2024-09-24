@@ -390,7 +390,7 @@ public class VideoProvidersController extends GuideCoreController{
 		result.put("description", videoData.getString("description"));
 		result.put("duration", videoData.getFloat("duration"));
 		result.put("source", videoData.getJSONObject("source"));
-		result.put("hostingProvider", videoData.getString("hostingProvider"));
+		result.put("hostingProvider", videoData.getInteger("hostingProvider"));
 		return result;
 	}
 
