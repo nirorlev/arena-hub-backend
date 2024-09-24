@@ -731,6 +731,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<GcVideo> findByVideoIds(List<Integer> videoIds) {
+		if (CollectionUtils.isEmpty(videoIds)) {
+			return List.of();
+		}
+
 		return this.baseMapper.findByVideoIds(videoIds);
 	}
 
