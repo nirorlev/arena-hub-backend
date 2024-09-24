@@ -2853,7 +2853,7 @@ public class PowtoonController extends GuideCoreController {
 			channel = ptChannelService.getById(channelId);
 			if (channel.isSection()) {
 				channel = ptChannelService.getById(channel.getFid());
-				channelFid = channel.getFid();
+				channelFid = channel.getId();
 			} else {
 				channelFid = channelId;
 			}
