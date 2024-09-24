@@ -21,7 +21,7 @@ public class PortalAuthorizationService extends ResourceAuthorizationService<Per
 
     private static final Map<PortalRole, Map<PortalAction, Boolean>> ROLE_PORTAL_PERMISSIONS = Map.of(
         PortalRole.ADMIN, Map.of(
-            PortalAction.ACCESS_ANALYTICS, false,
+            PortalAction.ACCESS_ANALYTICS, true,
             PortalAction.ACCESS_TEAMS, true,
             PortalAction.ACCESS_CONFIG, false,
             PortalAction.ACCESS_SETTINGS, false
