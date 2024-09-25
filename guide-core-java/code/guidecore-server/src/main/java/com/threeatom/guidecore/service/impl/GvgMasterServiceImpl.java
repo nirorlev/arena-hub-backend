@@ -73,6 +73,7 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -232,6 +233,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
+	@Autowired
+	private SysMenuService sysMenuService;
 
 	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -522,6 +525,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		return new Message().ok()
 			.addData("homeInfo", infoList)
+			.addData("homeInfoIndex", sysMenuService.getLevel3List())
 			.addData("master", gcMaster);
 	}
 

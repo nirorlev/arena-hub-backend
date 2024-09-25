@@ -31,6 +31,13 @@
             master_id=#{masterId} and parent_id is not NULL
     </select>
 
+    <select id="getLevel3List" resultType="com.threeatom.guidecore.entity.SysMenu">
+        select * from sys_menu
+        where "level" = 3
+          and master_id is null
+        order by "order"
+    </select>
+
     <select id="getMenuByRoles" resultType="com.threeatom.guidecore.entity.SysMenu">
         select me.id,me.name,me.sort,me.level,me.key
         from sys_menu me

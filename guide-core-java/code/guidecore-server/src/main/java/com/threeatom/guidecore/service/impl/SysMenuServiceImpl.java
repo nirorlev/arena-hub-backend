@@ -116,6 +116,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         return roleMenus;
     }
 
+    @Override
+    public List<SysMenu> getLevel3List() {
+        return this.baseMapper.getLevel3List();
+    }
+
     private SysMenu getNewGroupAdminSysMenu() {
         SysMenu sysMenu = new SysMenu();
         sysMenu.setName("courses-groupAdmin");
