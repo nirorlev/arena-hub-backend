@@ -147,5 +147,8 @@ public class SysFile implements Serializable {
     public String describe;
 
     @TableField(exist = false)
+    public String originFileName;
+
+    @TableField(exist = false)
     public Map<String, Boolean> permissions;
 }
