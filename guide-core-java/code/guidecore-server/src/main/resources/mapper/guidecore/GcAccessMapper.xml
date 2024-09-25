@@ -274,7 +274,7 @@
 		or ua.role_json::text like concat('%','superadmin','%')
 		)
 		<if test="query.name != null and query.name != ''">
-			and group_name like concat('%',#{query.name},'%')
+			and group_name ilike concat('%',#{query.name},'%')
 		</if>
 		) as content_group_info
 		LEFT JOIN (
