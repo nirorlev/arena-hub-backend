@@ -47,16 +47,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getLevel3List(PortalUser portalUser) {
-        List<SysMenu> sysMenus = this.baseMapper.getLevel3List();
-        if (portalUser == null) {
-            return sysMenus;
-        }
-
-        return updateMenuItems(sysMenus, portalUser);
-    }
-
-    @Override
     public List<SysMenu> getByMaster(Integer masterId) {
         QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
@@ -76,12 +66,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     @Override
     public List<SysMenu> getSysMenuListByMasterId(PortalUser portalUser) {
         List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(portalUser.getMasterId());
-        return updateMenuItems(sysMenus, portalUser);
-    }
-
-    @Override
-    public List<SysMenu> getLevel3ListByMasterId(PortalUser portalUser) {
-        List<SysMenu> sysMenus = this.baseMapper.getLevel3ListByMasterId(portalUser.getMasterId());
         return updateMenuItems(sysMenus, portalUser);
     }
 

@@ -73,7 +73,6 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.service.PtTagsService;
-import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -227,9 +226,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private AuthorizationService authorizationService;
-
-	@Autowired
-	private SysMenuService sysMenuService;
 
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
@@ -475,86 +471,58 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	}
 
 	@Override
-	public Message portalInfosUnlogin(JSONObject requestParams,HttpServletRequest request,SysSystem system,GcUser user,Integer envFlag) {
-		if (null!=requestParams.get("state")){
-			request.setAttribute("state",requestParams.get("state").toString());
+	public Message portalInfosUnlogin(JSONObject requestParams, GcUser user, HttpServletRequest request) {
+		if (requestParams.get("state") != null) {
+			request.setAttribute("state", requestParams.get("state").toString());
 		}
-		if (null!=requestParams.get("user")){
-			if (null!=user){
-				request.setAttribute("createUser",user.getId());
-			}
+		if (requestParams.get("user") != null && user != null) {
+			request.setAttribute("createUser", user.getId());
 		}
-		if (null!=requestParams.get("type")&&null!=user){
-			request.setAttribute("type",requestParams.get("type"));
+		if (requestParams.get("type") != null && user != null) {
+			request.setAttribute("type", requestParams.get("type"));
 		}
-		if (null!=requestParams.get("subjectName")){
-			request.setAttribute("subjectName",requestParams.get("subjectName"));
+		if (requestParams.get("subjectName") != null) {
+			request.setAttribute("subjectName", requestParams.get("subjectName"));
+		}
+		if (user != null) {
+			request.setAttribute("userId", user.getId());
 		}
 
-		if(null!=user){
-			request.setAttribute("userId",user.getId());
-		}
-		if (envFlag.equals(EnvType.PT.getCode())){
-			request.setAttribute("isPt",TableConstant.COMMON_ZERO);
-		}
-		Message message = new Message();
+		request.setAttribute("isPt", TableConstant.COMMON_ZERO);
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
-		if(Objects.nonNull(gcMaster.getFaviconLogoFileId())){
+
+		if (Objects.nonNull(gcMaster.getFaviconLogoFileId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getFaviconLogoFileId());
-			String faviconUrl = sysFileService.getResFullUrl(sysFile,request);
+			String faviconUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setFaviconFullFileUrl(faviconUrl);
 		}
 		//查询此门户下是否有免费code
 		GcAccess gcAccess = gcAccessService.selectFreeCodeByMaster(gcMaster.getId());
-		if(Objects.nonNull(gcAccess)){
+		if (Objects.nonNull(gcAccess)) {
 			gcMaster.setFreeAccessCode(gcAccess);
 		}
-		if(Objects.nonNull(gcMaster.getLogoId())){
+		if (Objects.nonNull(gcMaster.getLogoId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getLogoId());
-			String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+			String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setLogoFullUrl(fullFileUrl);
 		}
-		if(gcMaster==null) {
-			return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-		}
-		SysFile logofile = sysFileService.selectByLogoId(gcMaster.getLogoId());
-		String logoFullUrl = sysFileService.getResFullUrl(logofile,request);
-		if(null != gcMaster.getProfilePhotoId()){
+		SysFile logoFile = sysFileService.selectByLogoId(gcMaster.getLogoId());
+		String logoFullUrl = sysFileService.getResFullUrl(logoFile, request);
+		if (gcMaster.getProfilePhotoId() != null) {
 			SysFile profileFile = sysFileService.getById(gcMaster.getProfilePhotoId());
-			String profileUrl = sysFileService.getResFullUrl(profileFile,request);
+			String profileUrl = sysFileService.getResFullUrl(profileFile, request);
 			gcMaster.setProfilePhotoFullFileUrl(profileUrl);
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-			//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
-			//taglist
-			List<String> subWithTagList = new ArrayList<>();
-			String token = request.getHeader("Authorization");
-			if (null != token && !"".equals(token) && !"undefined".equals(token)){
-				if (Objects.nonNull(user)){
-					subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),user.getId());
-				}
-			}else {
-				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
-			}
+		List<GcMasterHomeInfo> infoList =
+			iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(), TableConstant.gcMasterHomeInfo_name_page,
+				null, request);
 
-			List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
-			if (null!=user&&envFlag.equals(EnvType.PT.getCode())){
-				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-				queryWrapper.in("master_id",gcMaster.getId());
-				queryWrapper.in("type",TableConstant.COMMON_ONE);
-				subWithTagList = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-				//去重
-				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
-			}
-
-			List<SysMenu> menuList = sysMenuService.getLevel3List(null);
-			message.ok().addData("allTags",subWithTagList);
-			message.ok().addData("homeInfo",infoList);
-			message.ok().addData("homeInfoIndex",menuList);
-			message.ok().addData("master",gcMaster);
-		return message.ok();
+		return new Message().ok()
+			.addData("homeInfo", infoList)
+			.addData("master", gcMaster);
 	}
 
 	@Override

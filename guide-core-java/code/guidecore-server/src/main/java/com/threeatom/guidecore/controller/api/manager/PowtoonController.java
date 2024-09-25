@@ -303,21 +303,24 @@ public class PowtoonController extends GuideCoreController {
 		return gvgMasterService.search(searchDto, request, null, system);
 	}
 
-	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
+	@ApiOperation(value = "New UI course homepage - including course name query interface", notes = "New UI Course Home", httpMethod = "POST")
 	@PostMapping("/portalInfosUnlogin")
 	public Message portalInfosUnlogin(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-		//复用
-		SysSystem system = this.getSystem();
 		String portalId = requestParams.getString("portalId");
-		if(Objects.isNull(portalId)){
+
+		if (Objects.isNull(portalId)) {
 			throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
 		}
+
 		String token = request.getHeader("Authorization");
-		if (null != token && !"".equals(token) && !"undefined".equals(token)){
+		if (!"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
-			return gvgMasterService.portalInfosUnlogin(requestParams,request,system,user,EnvType.PT.getCode()).addData("times",new Date());
+			return gvgMasterService.portalInfosUnlogin(requestParams, user, request)
+				.addData("times", new Date());
 		}
-		return gvgMasterService.portalInfosUnlogin(requestParams,request,system,null,EnvType.PT.getCode()).addData("times",new Date());
+
+		return gvgMasterService.portalInfosUnlogin(requestParams, null, request)
+			.addData("times", new Date());
 	}
 
 	@ApiOperation(value="新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
@@ -1647,26 +1650,22 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "systemSettings", httpMethod = "GET")
 	@GetMapping("/systemSettings")
-	public Message systemSettings(HttpServletRequest request){
+	public Message systemSettings(HttpServletRequest request) {
 		GcUser currentUser = this.getGcUser();
 		QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
-		queryWrapper.eq("level",TableConstant.COMMON_TWO);
+		queryWrapper.eq("level", TableConstant.COMMON_TWO);
 
 		Integer masterId = RequestUtil.getMasterId(request).orElse(null);
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 		List<SysMenu> sysMenuList = sysMenuService.getSysMenuListByMasterId(portalUser);
-		List<SysMenu> homePageSections = sysMenuService.getLevel3ListByMasterId(portalUser);
 
-		if (sysMenuList.isEmpty() || homePageSections.isEmpty()){
-			sysMenuList=sysMenuService.getSysMenuList(portalUser);
-			homePageSections=sysMenuService.getLevel3List(portalUser);
+		if (sysMenuList.isEmpty()) {
+			sysMenuList = sysMenuService.getSysMenuList(portalUser);
 		}
 
-		// Preheat the interface and optimize the first startup
 		gcSubjectService.initJit();
 		return new Message().ok()
-			.addData("sysMenuList",sysMenuList)
-			.addData("homePageSections",homePageSections);
+			.addData("sysMenuList", sysMenuList);
 	}
 
 	@ApiOperation(value = "updateSettings", httpMethod = "POST")
