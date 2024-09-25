@@ -1,6 +1,5 @@
 package com.threeatom.system.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
@@ -9,20 +8,18 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.ApiOperation;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/guidecore/sysFile")
 public class SysFIleController extends GuideCoreController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SysFIleController.class);
     @Autowired private SysFileService sysFileService;
 
     @Autowired private PtTagsService tagsService;
@@ -44,73 +40,65 @@ public class SysFIleController extends GuideCoreController {
 
     @Autowired private VideoThumbnailProvider thumbnailProvider;
 
-    @ApiOperation(value = "保存链接到sys_file文件库", httpMethod = "POST")
     @PostMapping("/saveLink")
     public Message saveLink(@RequestBody SysFile sysFile, HttpServletRequest request) {
-        if (null == sysFile.getId()) {
-            ApiAssert.notNull(sysFile.getFileUrl()); // file url不可空
+        if (sysFile.getId() == null) {
+            ApiAssert.notNull(sysFile.getFileUrl());
             ApiAssert.ifStringInList(
-                    sysFile.getFileType(), TableConstant.sysFile_fileType_list, "fileType字段错误，请于后端人员确认");
+                    sysFile.getFileType(), TableConstant.sysFile_fileType_list, "The fileType field is incorrect. Please confirm with the backend staff");
         }
         GcMaster master = this.getMaster();
         GcUser user = this.getGcUser();
-        if (null == master && null != request.getHeader("masterId")) {
+        Optional<Integer> masterId = RequestUtil.getMasterId(request);
+
+        if (master == null && masterId.isPresent()) {
             master = new GcMaster();
-            master.setId(Integer.parseInt(request.getHeader("masterId")));
+            master.setId(masterId.get());
         }
-        if (TableConstant.sysFile_userRole_portal1 == sysFile.getUserRole().intValue()) {
+
+        Integer userRole = sysFile.getUserRole();
+        if (TableConstant.sysFile_userRole_portal1 == userRole) {
             if (null != this.getManager()) {
                 sysFile.setUploadUid(this.getManager().getId());
             }
             sysFile.setMasterId(master.getId());
-        } else if (TableConstant.sysFile_userRole_user2 == sysFile.getUserRole().intValue()) {
+        } else if (TableConstant.sysFile_userRole_user2 == userRole) {
             sysFile.setUploadUid(this.getGcUser().getId());
+            assert master != null;
             sysFile.setMasterId(master.getId());
         } else {
-            throw new SystemException("userRole不存在，请查看通用枚举配置");
+            throw new SystemException(String.format("UserRole '%s' does not exist", userRole));
         }
-        SysSystem sys = this.getSystem();
+
+        SysSystem system = this.getSystem();
         sysFile.setSaveType(TableConstant.sysFile_saveType_link_3);
-        sysFile.setSysId(sys.getId());
+        sysFile.setSysId(system.getId());
+
         Integer fileTypeIndex = sysFile.getFileTypeIndex();
         if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
             String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
             sysFile.setThumbNailUrl(fileKey);
         }
 
-        if (sysFileService.saveOrUpdate(sysFile)) {
-            if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
-                powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
-            }
-            sysFileService.getVideoSnapshotUrl(sysFile);
-            sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
-            sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
-            sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile, request));
-
-            if (null != sysFile.getCourseTags()) {
-                QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("master_id", master.getId());
-                queryWrapper.in("file_id", sysFile.getId());
-                queryWrapper.eq("type", TableConstant.COMMON_TWO);
-                tagsService.remove(queryWrapper);
-                List<String> tagList = sysFile.getCourseTags();
-                List<PtTags> ptTagsList = new ArrayList<>();
-                Integer finalMasterId = master.getId();
-                tagList.forEach(
-                        i -> {
-                            PtTags newTags = new PtTags();
-                            newTags.setMasterId(finalMasterId);
-                            newTags.setTagText(i);
-                            newTags.setFileId(sysFile.getId());
-                            newTags.setType(TableConstant.COMMON_TWO);
-                            newTags.setOrder(TableConstant.COMMON_ZERO);
-                            ptTagsList.add(newTags);
-                        });
-                tagsService.saveOrUpdateBatch(ptTagsList);
-            }
-            return new Message().ok().addData("file", sysFile);
+        if (!sysFileService.saveOrUpdate(sysFile)) {
+            return new Message().error("Save failed");
         }
-        return new Message().error("保存失败");
+
+        if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
+            powtoonExternalVideoService.createExternalVideoForSysFile(sysFile);
+        }
+        sysFileService.getVideoSnapshotUrl(sysFile);
+        updateFileUrls(sysFile, request);
+
+        tagsService.updateTags(master.getId(), sysFile.getId(), sysFile.getCourseTags());
+
+        return new Message().ok().addData("file", sysFile);
+    }
+
+    private void updateFileUrls(SysFile sysFile, HttpServletRequest request) {
+        sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
+        sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
+        sysFile.setFileUrl(sysFileService.getResFullUrl(sysFile, request));
     }
 
     @PostMapping("/saveBatichLink")

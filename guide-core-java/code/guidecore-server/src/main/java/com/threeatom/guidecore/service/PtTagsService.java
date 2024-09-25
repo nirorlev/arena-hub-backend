@@ -12,4 +12,6 @@ public interface PtTagsService extends IService<PtTags> {
     List<PtTags> selectPtChannelTagByIds(List<Integer> ids, Integer masterId);
 
     List<String> selectPtTagList(PtTags ptTags, HttpServletRequest request);
+
+    void updateTags(Integer masterId, Integer fileId, List<String> newTags);
 }
