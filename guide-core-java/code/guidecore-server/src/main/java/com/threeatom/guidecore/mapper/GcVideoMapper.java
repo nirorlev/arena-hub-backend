@@ -71,7 +71,7 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     Long sumPlayVideoLongByIdUser(
             @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
-    List<GcVideo> pageVideo(Map<String, Object> params);
+    List<GcVideo> searchVideo(Map<String, Object> params);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
             String videoNameIndex, String subNameIndex, Integer masterId);
@@ -124,4 +124,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
         @Param("filter") AnalyticsFilterDto filter, @Param("masterId") Integer masterId);
 
     GcVideo getVideoContentByFileId(@Param("fileId") Integer fileId);
+
+    List<GcVideo> findByVideoIds(@Param("videoIds") List<Integer> videoIds);
 }

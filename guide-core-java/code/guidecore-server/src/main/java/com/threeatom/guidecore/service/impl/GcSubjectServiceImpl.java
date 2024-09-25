@@ -9,10 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import com.google.gson.JsonArray;
 import com.threeatom.common.ApiAssert;
-import com.threeatom.common.controller.Message;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
@@ -24,15 +21,13 @@ import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.mapper.SysFileMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -60,6 +55,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcMasterMessageService masterMessageService;
     @Autowired
     private GcUserAnswerService userAnswerService;
+
+    @Lazy
     @Autowired
     private GcUserEventResourceService userEventResourceService;
     @Autowired
@@ -92,6 +89,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private PtTagsService ptTagsService;
     @Autowired
     private RedisOperator redisOperator;
+    @Lazy
     @Autowired
     private GcUserService gcUserService;//用户服务类--统计参与人数
     @Autowired
@@ -193,7 +191,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
     
     @Override
-    public List<GcSubject> getLevel0SubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request, PageParam pageParam,List<Integer> channelIds){
+    public List<GcSubject> getLevel0SubListWithImg(Integer masterId, HttpServletRequest request, List<Integer> channelIds){
+        PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
 
@@ -205,61 +204,62 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         if (null!=request.getAttribute("createUser")){
             createUser = Integer.parseInt(request.getAttribute("createUser").toString());
         }
-        String subjectName = null;
+        String courseName = null;
         if (null!=request.getAttribute("subjectName")){
-            subjectName = request.getAttribute("subjectName").toString();
+            courseName = request.getAttribute("subjectName").toString();
         }
-        List<GcSubject> list = new ArrayList<>();
+        List<GcSubject> courses;
+
         if (null!=request.getAttribute("isPt")){
             if (null==request.getAttribute("type")){
                 if (null==request.getAttribute("userId")){
                     if (pageNum > 0 && pageSize > 0) {
                         PageHelper.startPage(pageNum, pageSize);
                     }
-                    list =this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
+                    courses = this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
                 }else {
-                    //自己创建的课程
+                    // self created course
                     Integer userId = Integer.parseInt(request.getAttribute("userId").toString());
                     List<Integer> idLists = this.baseMapper.selectSubjectByCreateUser(masterId,userId);
 
                     if (pageNum > 0 && pageSize > 0) {
                         PageHelper.startPage(pageNum, pageSize);
                     }
-                    list = this.baseMapper.selectSubjectPt(subjectName,null,state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
+                    courses = this.baseMapper.selectSubjectPt(courseName,null,state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
                 }
             }else {
-                List<Integer> idLists = new ArrayList<>();
+                List<Integer> publicCourseIds = new ArrayList<>();
                 Integer type = Integer.parseInt(request.getAttribute("type").toString());
                 if(type.equals(TableConstant.COMMON_FOUR)){
                     List<GcUserAccessPermission> permissionList =  gcUserAccessPermissionService.getGroupMemberByUidList(Integer.parseInt(request.getAttribute("userId").toString()),masterId);
                     for (GcUserAccessPermission permission : permissionList) {
                         if(null!=permission.getMustSubjectJson()){
-                            idLists.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
+                            publicCourseIds.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
                         }
 
                     }
                 }else if (type.equals(TableConstant.COMMON_ZERO)||type.equals(TableConstant.COMMON_TWO)){
-                    idLists = baseMapper.getPublicSubjectIds(masterId);
+                    publicCourseIds = baseMapper.getPublicSubjectIds(masterId);
                 }
 
                 if (pageNum > 0 && pageSize > 0) {
                     PageHelper.startPage(pageNum, pageSize);
                 }
-                list = this.baseMapper.selectSubjectPt(subjectName,Integer.parseInt(request.getAttribute("type").toString()),state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,idLists);
+                courses = this.baseMapper.selectSubjectPt(courseName,Integer.parseInt(request.getAttribute("type").toString()),state,createUser,masterId,Integer.parseInt(request.getAttribute("userId").toString()),channelIds,publicCourseIds);
             }
         }else {
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
             }
-            list =this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
+            courses = this.baseMapper.getSubjectList(masterId, TableConstant.gcSubject_type_subject0,state,channelIds,createUser);
         }
-          if(list != null && list.size() > 0){
-              for(GcSubject li:list) {
-                  sysFileService.getResFullUrl(li.getSubImgFile(), request);
+          if(CollectionUtils.isNotEmpty(courses)){
+              for(GcSubject course: courses) {
+                  sysFileService.getResFullUrl(course.getSubImgFile(), request);
               }
           }
 
-    	 return list;
+    	 return courses;
     }
 
     @Override
@@ -1613,5 +1613,21 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> getCompletedTwoCourse(Map<String,Object> paramMap){
         return this.baseMapper.getCompletedTwoCourse(paramMap);
+    }
+
+    @Override
+    public void populateUserId(GcSubject course, GcUser user) {
+        if (course.getId() == null) {
+            course.setUserId(user.getId());
+            return;
+        }
+        GcSubject existingCourse = this.getById(course.getId());
+        if (existingCourse.isTopic()) {
+            existingCourse = this.getById(course.getFid());
+            course.setUserId(existingCourse.getUserId());
+            return;
+        }
+
+        course.setUserId(existingCourse.getUserId());
     }
 }

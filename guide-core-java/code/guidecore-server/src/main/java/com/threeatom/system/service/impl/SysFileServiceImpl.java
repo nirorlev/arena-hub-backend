@@ -94,7 +94,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     private Optional<String> getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
-        if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+        if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
             return Optional.empty();
         }
         PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());

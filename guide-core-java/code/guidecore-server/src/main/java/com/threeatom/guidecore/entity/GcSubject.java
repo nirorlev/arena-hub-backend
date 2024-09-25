@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
+import com.threeatom.guidecore.enums.CourseAvailabilityType;
+import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
@@ -18,6 +20,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -370,6 +373,9 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<Integer> mustAccessIds;
 
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
+
     /**
      * 是否选择全部,0是 1否
      */
@@ -441,7 +447,20 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer isToDo;
 
+    public boolean isTopic() {
+        return fid != null;
+    }
+
     public Boolean getIsPrivate() {
-        return state != null && state == 0;
+        return CourseState.DRAFT.getValue().equals(state);
+    }
+
+    public boolean isPublic() {
+        return CourseState.PUBLISHED.getValue().equals(state)
+            && CourseAvailabilityType.PUBLIC.getValue().equals(availableType);
+    }
+
+    public boolean isPrivate() {
+        return getIsPrivate();
     }
 }

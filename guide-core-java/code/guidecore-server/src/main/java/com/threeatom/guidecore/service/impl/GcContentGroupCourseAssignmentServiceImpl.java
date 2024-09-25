@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
@@ -15,6 +16,7 @@ import com.threeatom.system.service.SysFileService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -160,6 +162,18 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
         return filterCourseIdsByPredicate(contentGroupCourseAssignments,
             assignment -> assignment.getMandatory() == OPTIONAL_COURSE_VALUE);
+    }
+
+    @Override
+    public Set<Integer> getContentGroupIds(Integer courseId) {
+        QueryWrapper<GcContentGroupCourseAssignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("course_id", courseId);
+
+        List<GcContentGroupCourseAssignment> assignments = list(queryWrapper);
+
+        return assignments.stream()
+            .map(GcContentGroupCourseAssignment::getContentGroupId)
+            .collect(Collectors.toSet());
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(

@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.guidecore.enums.UserOrgRole;
 import java.io.Serializable;
@@ -26,5 +25,13 @@ public class PortalUser implements Serializable {
 
     public boolean isOrgAdmin() {
         return UserOrgRole.ORG_ADMIN.equals(role);
+    }
+
+    public boolean isGroupAdmin() {
+        return UserOrgRole.ADMIN.equals(role);
+    }
+
+    public boolean isMember() {
+        return !isOrgAdmin() && !isGroupAdmin();
     }
 }

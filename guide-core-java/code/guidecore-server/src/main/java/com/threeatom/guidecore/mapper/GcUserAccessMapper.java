@@ -41,7 +41,12 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
     List<Integer> getIdsListAccessIds(
             @Param("accessIds") List<Integer> ids, @Param("masterId") Integer masterId);
 
-    Integer selectUserAccessesByMasterId(
+    List<GcUserAccess> selectUserAccessesByMasterIdAndRole(
+            @Param("userId") Integer userId,
+            @Param("masterId") Integer masterId,
+            @Param("role") String role);
+
+    Integer countUserAccessesByMasterIdAndRole(
             @Param("userId") Integer userId,
             @Param("masterId") Integer masterId,
             @Param("role") String role);
@@ -86,6 +91,4 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
     List<GcUserAccess> countUsersInPortal();
 
     void insertUserAccessList(List<GcUserAccess> list);
-
-    Integer getGroupAdmin(@Param("userId") Integer userid, @Param("masterId") Integer masterId);
 }

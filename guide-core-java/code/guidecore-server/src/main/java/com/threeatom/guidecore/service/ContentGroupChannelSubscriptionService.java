@@ -7,6 +7,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface ContentGroupChannelSubscriptionService
@@ -28,4 +29,6 @@ public interface ContentGroupChannelSubscriptionService
 
     List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
                                                                           HttpServletRequest request);
+
+    Set<Integer> getContentGroupIds(Integer originChannelId);
 }

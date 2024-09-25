@@ -6,8 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LicenseUsageDto {
-    private Integer privateChannelCount;
-    private Integer privatePlaylistCount;
-    private Integer publishedChannelCount;
-    private Integer publishedPlaylistCount;
+    private Integer privateChannelCount = -1;
+    private Integer privatePlaylistCount = -1;
+    private Integer publishedChannelCount = -1;
+    private Integer publishedPlaylistCount = -1;
 }

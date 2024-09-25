@@ -12,6 +12,7 @@ import com.threeatom.guidecore.mapping.ContentGroupChannelSubscriptionMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.system.service.SysFileService;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,16 @@ public class ContentGroupChannelSubscriptionServiceImpl
             .map(contentGroupChannelSubscription -> updateUrls(contentGroupChannelSubscription, request))
             .map(contentGroupChannelSubscriptionMapping::map)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Set<Integer> getContentGroupIds(Integer originChannelId) {
+        QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("channel_id", originChannelId);
+
+        return this.list(queryWrapper).stream()
+            .map(ContentGroupChannelSubscription::getContentGroupId)
+            .collect(Collectors.toSet());
     }
 
     private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription, HttpServletRequest request) {

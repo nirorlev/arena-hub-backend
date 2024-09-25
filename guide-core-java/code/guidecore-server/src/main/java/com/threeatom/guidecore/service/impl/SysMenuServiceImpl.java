@@ -3,18 +3,17 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.common.permit.enums.PermitAction;
-import com.threeatom.common.permit.enums.PermitResource;
-import com.threeatom.common.permit.service.PermitService;
+import com.threeatom.common.permissions.enums.PortalAction;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.UserOrgRole;
 import com.threeatom.guidecore.mapper.SysMenuMapper;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.SysMenuService;
-import io.permit.sdk.openapi.models.UserRole;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,31 +25,25 @@ import org.springframework.stereotype.Service;
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     implements SysMenuService {
 
-    private static final Map<String, PermitResource> PERMIT_CHECK_MENU_RESOURCE_MAPPING =
-        Map.of("Insights", PermitResource.PORTAL);
-    private static final Map<String, PermitAction> PERMIT_CHECK_MENU_ACTION_MAPPING =
-        Map.of("Insights", PermitAction.ACCESS_ANALYTICS);
     private static final Map<String, String> MENU_ITEM_TO_FEATURE_TOGGLE_MAPPING =
         Map.of(
             "Insights", "analyticsEnabled",
             "admin-course", "coursesEnabled",
             "Home", "homepageMenuEnabled"
         );
+    private static final Map<String, PortalAction> MENU_ITEM_TO_PORTAL_ACTION = Map.of(
+        "Insights", PortalAction.ACCESS_ANALYTICS
+        , "ContentGroups", PortalAction.ACCESS_TEAMS
+    );
 
-    private final PermitService permitService;
+    private final AuthorizationService authorizationService;
     private final FeatureToggleService featureToggleService;
     private final GcUserAccessService userAccessService;
 
     @Override
-    public List<SysMenu> getSysMenuList(Integer masterId, GcUser user) {
+    public List<SysMenu> getSysMenuList(PortalUser portalUser) {
         List<SysMenu> sysMenus = this.baseMapper.getSysMenuList();
-        return updateMenuItems(sysMenus, user, masterId);
-    }
-
-    @Override
-    public List<SysMenu> getLevel3List(Integer masterId, GcUser user) {
-        List<SysMenu> sysMenus = this.baseMapper.getLevel3List();
-        return updateMenuItems(sysMenus, user, masterId);
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
@@ -71,30 +64,30 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> getSysMenuListByMasterId(Integer masterId, GcUser user) {
-        List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(masterId);
-        return updateMenuItems(sysMenus, user, masterId);
+    public List<SysMenu> getSysMenuListByMasterId(PortalUser portalUser) {
+        List<SysMenu> sysMenus = this.baseMapper.getSysMenuListByMasterId(portalUser.getMasterId());
+        return updateMenuItems(sysMenus, portalUser);
     }
 
     @Override
-    public List<SysMenu> getLevel3ListByMasterId(Integer masterId, GcUser user) {
-        List<SysMenu> sysMenus = this.baseMapper.getLevel3ListByMasterId(masterId);
-        return updateMenuItems(sysMenus, user, masterId);
-    }
-
-    @Override
-    public List<SysMenu> getMenuByRoles(List<String> roles, GcUser user, Integer masterId) {
+    public List<SysMenu> getMenuByRoles(List<String> roles, PortalUser portalUser) {
         List<SysMenu> menuByRoles = this.baseMapper.getMenuByRoles(roles);
-        return updateMenuItems(menuByRoles, user, masterId);
+        return updateMenuItems(menuByRoles, portalUser);
     }
 
-    private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, GcUser user, Integer masterId) {
+    private List<SysMenu> updateMenuItems(List<SysMenu> sysMenus, PortalUser portalUser) {
         if (CollectionUtils.isEmpty(sysMenus)) {
             return sysMenus;
         }
 
-        sysMenus.removeIf(sysMenu -> isFeatureToggleDisabled(masterId, sysMenu)
-            || isDisabledOnPermit(user, masterId, sysMenu));
+        Map<String, Boolean> portalPermissions = authorizationService.listPortalPermissions(portalUser);
+        sysMenus.removeIf(sysMenu -> {
+            if (isFeatureToggleDisabled(portalUser.getMasterId(), sysMenu)) {
+                return true;
+            }
+            return MENU_ITEM_TO_PORTAL_ACTION.containsKey(sysMenu.getKey())
+                && !portalPermissions.getOrDefault(MENU_ITEM_TO_PORTAL_ACTION.get(sysMenu.getKey()).name(), true);
+        });
 
         return sysMenus;
     }
@@ -108,57 +101,55 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         return !Boolean.parseBoolean(featureToggleService.getFeatureToggle(featureName, masterId).getValue());
     }
 
-    private boolean isDisabledOnPermit(GcUser user, Integer masterId, SysMenu sysMenu) {
-        if (PERMIT_CHECK_MENU_RESOURCE_MAPPING.containsKey(sysMenu.getKey())) {
-            return !permitService.checkPermit(PERMIT_CHECK_MENU_RESOURCE_MAPPING.get(sysMenu.getKey()),
-                PERMIT_CHECK_MENU_ACTION_MAPPING.get(sysMenu.getKey()), user, masterId);
-        }
-
-        return false;
-    }
-
     @Override
-    public List<SysMenu> getSysMenus(List<UserRole> permitRoles, GcUser user, Integer masterId, Integer isGroupAdmin,
-                                     boolean isOrgAdmin, boolean isTeamAdmin) {
-        List<String> roles = getRoles(permitRoles, masterId, isOrgAdmin, isTeamAdmin, user.getId());
+    public List<SysMenu> getSysMenus(PortalUser portalUser) {
+        List<String> roles = getRoles(portalUser);
         List<SysMenu> roleMenus = new ArrayList<>();
         if (!roles.isEmpty()) {
-            roleMenus.addAll(getMenuByRoles(roles, user, masterId));
+            roleMenus.addAll(getMenuByRoles(roles, portalUser));
         }
 
-        if (TableConstant.COMMON_ZERO != isGroupAdmin || isOrgAdmin) {
-            SysMenu sysMenu = new SysMenu();
-            sysMenu.setName("courses-groupAdmin");
-            sysMenu.setKey("courses-groupAdmin");
-            sysMenu.setState(TableConstant.COMMON_ZERO);
-            sysMenu.setLevel(1);
-            sysMenu.setRemarks("groupAdmin");
-            roleMenus.add(sysMenu);
+        if (portalUser.isOrgAdmin() || portalUser.isGroupAdmin()) {
+            roleMenus.add(getNewGroupAdminSysMenu());
         }
 
         return roleMenus;
     }
 
+    @Override
+    public List<SysMenu> getLevel3List() {
+        return this.baseMapper.getLevel3List();
+    }
 
-    private List<String> getRoles(List<UserRole> permitRoles, Integer masterId, boolean isOrgAdmin, boolean isTeamAdmin,
-                                  Integer userId) {
-        List<String> getRoleList = new ArrayList<>();
+    private SysMenu getNewGroupAdminSysMenu() {
+        SysMenu sysMenu = new SysMenu();
+        sysMenu.setName("courses-groupAdmin");
+        sysMenu.setKey("courses-groupAdmin");
+        sysMenu.setState(TableConstant.COMMON_ZERO);
+        sysMenu.setLevel(1);
+        sysMenu.setRemarks("groupAdmin");
+        return sysMenu;
+    }
 
-        for (UserRole userRole : permitRoles) {
-            getRoleList.add(userRole.role);
-        }
+    private List<String> getRoles(PortalUser portalUser) {
+        List<String> roles = new ArrayList<>();
+        UserOrgRole role = portalUser.getRole();
+        List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(
+            portalUser.getUserId(), portalUser.getMasterId());
 
-        List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(userId, masterId);
         if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
-            getRoleList.add(GroupsType.superAdmin);
+            roles.add(GroupsType.superAdmin);
         }
-        if (isOrgAdmin) {
-            getRoleList.add(GroupsType.admin);
+        if (role.isMember()) {
+            roles.add(UserOrgRole.MEMBER.getRole());
         }
-        if (isTeamAdmin) {
-            getRoleList.add(GroupsType.teamAdmin);
+        if (role.isAdmin()) {
+            roles.add(UserOrgRole.ADMIN.getRole());
+        }
+        if (portalUser.isOrgAdmin()) {
+            roles.add(UserOrgRole.ORG_ADMIN.getRole());
         }
 
-        return getRoleList;
+        return roles;
     }
 }

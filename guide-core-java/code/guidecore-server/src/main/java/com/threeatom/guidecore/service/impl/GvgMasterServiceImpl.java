@@ -13,12 +13,13 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.config.ChannelConfiguration;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.MessageEventType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.request.SearchDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcMaster;
@@ -37,11 +38,13 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -97,6 +100,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.MapUtils;
@@ -198,17 +202,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcAccessService gcAccessService;
 
 	@Autowired
-	private ChannelConfiguration channelConfiguration;
-
-	@Autowired
 	private GcUserSaveFolderService gcUserSaveFolderService;
 
 	@Autowired
 	private GcSubjectCompleteService subjectCompleteService;
 
-
-	private static final String CACHE_TAG = "GcMaster";
-	private static final String KEY_TAG_ENTITY = "'entity:uid-'+";
 	@Autowired
 	private GcSubjectService gcSubjectService;
 
@@ -219,43 +217,39 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcVideoService videoService;
 
 	@Autowired
-	private SysFileService iSysFileService;
-
-	@Autowired
 	private PtTagsService ptTagsService;
 
 	@Autowired
 	private GcUserVideoPlayService gcUserVideoPlayService;
 
 	@Autowired
-	private GcUserAnswerService gcUserAnswerService;
-
-	@Autowired
 	private GcSubjectCompleteService completeService;
 
 	@Autowired
-	private SysMenuService sysMenuService;
+	private AuthorizationService authorizationService;
 
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
+	@Autowired
+	private SysMenuService sysMenuService;
 
-	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system,GcUser user) {
+	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Message message  = new Message();
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
-		if (null!=user){
+		if (null!=portalUser){
 		ExecutorService executor = Executors.newFixedThreadPool(3);//做3个线程
 		executor.submit(() -> {
-			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),user.getId(),new PageParam(request));
+			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 			PageParam pageParam = new PageParam(request);
 			if (subjectList.size()>=pageParam.getPageSize()){
 				subjectList =subjectList.subList(TableConstant.COMMON_ZERO,pageParam.getPageSize());
 			}
-			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),user.getId(),new PageParam(request));
+			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 
 			//两个课程都要进度等详细信息,放一起查询,避免两次查
 			List<GcSubject> subjectInfo = new ArrayList<>();
@@ -268,7 +262,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
 			List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
 
-			videoList = gcVideoService.buildVideoInfo(user.getId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
+			videoList = gcVideoService.buildVideoInfo(portalUser.getUserId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
 			Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
 
 			List<SysFile> sysFileList = new ArrayList<>();
@@ -320,11 +314,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
 					}
-					if (null!=user) {
+					if (null!=portalUser) {
 						if (null!=groupBySubId.get(li.getId())){
 							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, gcMaster.getId(), EnvType.PT.getCode());
+							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId(), EnvType.PT.getCode());
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
@@ -386,11 +380,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
 					}
-					if (null!=user) {
+					if (null!=portalUser) {
 						if (null!=groupBySubId.get(li.getId())){
 							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, gcMaster.getId(), EnvType.PT.getCode());
+							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId(), EnvType.PT.getCode());
 							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
 						}
 					}
@@ -418,23 +412,21 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			message.addData("discoverCourses",myMaySubjectPage);
 
 			//已订阅的channel视频,自己上传的不显示
-			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(user.getId(),request,gcMaster.getId());
-			PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channelPage);
-			message.addData("channelVideoPage",channelPageInfo);
+			List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFileNew(portalUser, request);
+			message.addData("channelVideoPage", new PageInfo<>(channelPage));
 
 		});
 
 			executor.submit(() -> {
 				//My subscriptions-channel 我已订阅的(不含我创建的)；订阅时间排序
-				List<PtChannel> ptChannelList = ptChannelService.newIndexHomeChannels(user.getId(),request,gcMaster.getId());
-				PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
-				message.addData("subscriptionsChannel",pageInfo);
+				List<PtChannel> channels = ptChannelService.newIndexHomeChannels(portalUser, request);
+				message.addData("subscriptionsChannel", new PageInfo<>(channels));
 				//playlist
 				List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(gcMaster.getId());
 				List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-				List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtNewHomePlayList(user.getId(), gcMaster.getId(),recommenFolderIds,request);
+				List<GcUserSaveFolder> recomendedPlaylists = gcUserSaveFolderService.getPtNewHomePlayList(portalUser.getUserId(), gcMaster.getId(),recommenFolderIds,request);
 
-				List<Integer> firstVideos = recommenFolderList.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
+				List<Integer> firstVideos = recomendedPlaylists.stream().filter(e->null!=e.getFirstVideoFileId()).map(GcUserSaveFolder::getFirstVideoFileId).collect(Collectors.toList());
 
 				if (CollectionUtils.isNotEmpty(firstVideos)) {
 					List<SysFile> fileList = sysFileService.listByIds(firstVideos);
@@ -442,33 +434,32 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					Map<Integer, SysFile> firstVideoMap =
 						fileList.stream().collect(Collectors.toMap(SysFile::getId, sysFile -> sysFile));
 
-					for (GcUserSaveFolder gcUserSaveFolder : recommenFolderList) {
+					for (GcUserSaveFolder playlist : recomendedPlaylists) {
 						//缩略图
-						if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId()) &&
-							null != firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId())) {
-							SysFile sysFile = firstVideoMap.get(gcUserSaveFolder.getFirstVideoFileId());
-							if (null != gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)) {
-								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO)
+						if (Objects.nonNull(playlist.getFirstVideoFileId()) &&
+							null != firstVideoMap.get(playlist.getFirstVideoFileId())) {
+							SysFile sysFile = firstVideoMap.get(playlist.getFirstVideoFileId());
+							if (null != playlist.getSaveContentList().get(TableConstant.COMMON_ZERO)) {
+								playlist.getSaveContentList().get(TableConstant.COMMON_ZERO)
 									.setVideoFile(sysFile);
-								gcUserSaveFolder.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile()
+								playlist.getSaveContentList().get(TableConstant.COMMON_ZERO).getVideoFile()
 									.setSnapshotUrl(sysFile.getSnapshotUrl());
 							}
-							gcUserSaveFolder.setSnapshotUrl(sysFile.getSnapshotUrl());
+							playlist.setSnapshotUrl(sysFile.getSnapshotUrl());
 						}
+						playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
 					}
 				}
 
-				String playlistJson = JSON.toJSONString(recommenFolderList,SerializerFeature.DisableCircularReferenceDetect);
-				recommenFolderList =JSONArray.parseArray(playlistJson,GcUserSaveFolder.class);
-				PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-				message.addData("playList",recommenFolderListPageInfo);
+				String playlistJson = JSON.toJSONString(recomendedPlaylists,SerializerFeature.DisableCircularReferenceDetect);
+				recomendedPlaylists =JSONArray.parseArray(playlistJson,GcUserSaveFolder.class);
+				message.addData("playList", new PageInfo<>(recomendedPlaylists));
 			});
 
 		executor.submit(()->{
 			//Trending Now-channel视频： 最多赞+最多观看的channel视频 （含自己的）
-			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(user.getId(),request,gcMaster.getId());
-			PageInfo<PtChannel> nowChannelPage = new PageInfo<>(nowChannel);
-			message.addData("nowChannel",nowChannelPage);
+			List<PtChannel> nowChannel = ptChannelService.getPtChannelVideoNow(portalUser, request);
+			message.addData("nowChannel", new PageInfo<>(nowChannel));
 		});
 
 			executor.shutdown();
@@ -483,460 +474,324 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	}
 
 	@Override
-	public Message portalInfosUnlogin(JSONObject requestParams,HttpServletRequest request,SysSystem system,GcUser user,Integer envFlag) {
-		if (null!=requestParams.get("state")){
-			request.setAttribute("state",requestParams.get("state").toString());
+	public Message portalInfosUnlogin(JSONObject requestParams, GcUser user, HttpServletRequest request) {
+		if (requestParams.get("state") != null) {
+			request.setAttribute("state", requestParams.get("state").toString());
 		}
-		if (null!=requestParams.get("user")){
-			if (null!=user){
-				request.setAttribute("createUser",user.getId());
-			}
+		if (requestParams.get("user") != null && user != null) {
+			request.setAttribute("createUser", user.getId());
 		}
-		if (null!=requestParams.get("type")&&null!=user){
-			request.setAttribute("type",requestParams.get("type"));
+		if (requestParams.get("type") != null && user != null) {
+			request.setAttribute("type", requestParams.get("type"));
 		}
-		if (null!=requestParams.get("subjectName")){
-			request.setAttribute("subjectName",requestParams.get("subjectName"));
+		if (requestParams.get("subjectName") != null) {
+			request.setAttribute("subjectName", requestParams.get("subjectName"));
+		}
+		if (user != null) {
+			request.setAttribute("userId", user.getId());
 		}
 
-		if(null!=user){
-			request.setAttribute("userId",user.getId());
-		}
-		if (envFlag.equals(EnvType.PT.getCode())){
-			request.setAttribute("isPt",TableConstant.COMMON_ZERO);
-		}
-		Message message = new Message();
+		request.setAttribute("isPt", TableConstant.COMMON_ZERO);
 		String portalId = requestParams.getString("portalId");
 		GcMaster gcMaster = gcMasterService.getMaster(portalId);
-		if(Objects.nonNull(gcMaster.getFaviconLogoFileId())){
+
+		if (Objects.nonNull(gcMaster.getFaviconLogoFileId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getFaviconLogoFileId());
-			String faviconUrl = sysFileService.getResFullUrl(sysFile,request);
+			String faviconUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setFaviconFullFileUrl(faviconUrl);
 		}
 		//查询此门户下是否有免费code
 		GcAccess gcAccess = gcAccessService.selectFreeCodeByMaster(gcMaster.getId());
-		if(Objects.nonNull(gcAccess)){
+		if (Objects.nonNull(gcAccess)) {
 			gcMaster.setFreeAccessCode(gcAccess);
 		}
-		if(Objects.nonNull(gcMaster.getLogoId())){
+		if (Objects.nonNull(gcMaster.getLogoId())) {
 			SysFile sysFile = sysFileService.getById(gcMaster.getLogoId());
-			String fullFileUrl = sysFileService.getResFullUrl(sysFile,request);
+			String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
 			gcMaster.setLogoFullUrl(fullFileUrl);
 		}
-		if(gcMaster==null) {
-			return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-		}
-		SysFile logofile = sysFileService.selectByLogoId(gcMaster.getLogoId());
-		String logoFullUrl = sysFileService.getResFullUrl(logofile,request);
-		if(null != gcMaster.getProfilePhotoId()){
+		SysFile logoFile = sysFileService.selectByLogoId(gcMaster.getLogoId());
+		String logoFullUrl = sysFileService.getResFullUrl(logoFile, request);
+		if (gcMaster.getProfilePhotoId() != null) {
 			SysFile profileFile = sysFileService.getById(gcMaster.getProfilePhotoId());
-			String profileUrl = sysFileService.getResFullUrl(profileFile,request);
+			String profileUrl = sysFileService.getResFullUrl(profileFile, request);
 			gcMaster.setProfilePhotoFullFileUrl(profileUrl);
 		}
 		gcMaster.setLogoFullUrl(logoFullUrl);
 
-			//查询用户是否选择过code，如果选择过直接进入首页，没选择过进入code选择列表
-			//taglist
-			List<String> subWithTagList = new ArrayList<>();
-			String token = request.getHeader("Authorization");
-			if (null != token && !"".equals(token) && !"undefined".equals(token)){
-				if (Objects.nonNull(user)){
-					subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),user.getId());
-				}
-			}else {
-				subWithTagList = newUiGcSubjectService.selectAllTag(gcMaster.getId(),null);
-			}
+		List<GcMasterHomeInfo> infoList =
+			iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(), TableConstant.gcMasterHomeInfo_name_page,
+				null, request);
 
-			List<GcMasterHomeInfo> infoList = iGcMasterHomeInfoService.getGcMasterHomeInfoList(gcMaster.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
-			if (null!=user&&envFlag.equals(EnvType.PT.getCode())){
-				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-				queryWrapper.in("master_id",gcMaster.getId());
-				queryWrapper.in("type",TableConstant.COMMON_ONE);
-				subWithTagList = ptTagsService.list(queryWrapper).stream().map(PtTags::getTagText).collect(Collectors.toList());
-				//去重
-				subWithTagList = subWithTagList.stream().distinct().collect(Collectors.toList());
-			}
-
-			List<SysMenu> menuList = sysMenuService.getLevel3List(null,  user);
-			message.ok().addData("allTags",subWithTagList);
-			message.ok().addData("homeInfo",infoList);
-			message.ok().addData("homeInfoIndex",menuList);
-			message.ok().addData("master",gcMaster);
-		return message.ok();
+		return new Message().ok()
+			.addData("homeInfo", infoList)
+			.addData("homeInfoIndex", sysMenuService.getLevel3List())
+			.addData("master", gcMaster);
 	}
 
 	@Override
-	public Message search(Map<String, Object> params, HttpServletRequest request,GcUser user,SysSystem system,Integer envFlag){
+	public Message search(SearchDto searchDto, HttpServletRequest request, GcUser user, SysSystem system) {
 		try {
-			GcUser gcUser = null;
+			SearchType searchType = searchDto.getSearchType();
+			Map<String, Object> searchParameters = new HashMap<>();
+			searchParameters.put("searchName", searchDto.getSearchName());
+			searchParameters.put("returnType", searchDto.getReturnType());
+
 			Integer userId = null;
-			String token = request.getHeader("Authorization");
-			if (null != token && !"".equals(token) && !"undefined".equals(token)){
-				params.put("userId", user.getId());
-			}
-			Integer masterId = request.getIntHeader("masterId");
-			Object returnTypeObj = params.get("returnType");
-			Message msg = new Message().ok();
-			//taglist
-			List<String> subWithTagList = newUiGcSubjectService.selectAllTag(masterId,userId);
-			msg.addData("allTagList",subWithTagList);
-			if(returnTypeObj == null || TableConstant.VIDEO_SEARCH_RETURN_TYPE1.equals(returnTypeObj.toString())) {
-				//加载视频
-				PageInfo<GcVideo> page = service.page(params, system, request);
-				List<GcVideo> gcVideoList = page.getList();
-				List<Integer> videoIdList = gcVideoList.stream().map(GcVideo::getId).collect(Collectors.toList());
-				msg.addData("videoIdList",videoIdList);
-				return msg.addData("videoPage", service.page(params, system, request));
-			}
-			if(TableConstant.VIDEO_SEARCH_RETURN_TYPE2.equals(returnTypeObj.toString()) && Objects.nonNull(params.get("subjectName")) ) {
-				params.put("videoInCourseName",params.get("subjectName"));
-				return msg.addData("subjectPage",newUiGcSubjectService.list(params, system, request,envFlag));
-			}
-			//tag查询
-			if(TableConstant.VIDEO_SEARCH_RETURN_TYPE3.equals(returnTypeObj.toString())){
-				List<Integer> subIds = new ArrayList<>();
-				if (Objects.isNull(userId)){
-					List<GcSubject> level0sublist = subjectService.getLevel0SubListWithImg(masterId, system, request,new PageParam(request),null);
-					subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-				}else {
-					//查询对应有权限的课程
-					GcUserAccessPermission gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUid(userId,masterId);
-					JSONArray subPermission = gcUserAccessPermissions.getSubPermission();
-					if(!subPermission.isEmpty()) {
-						subIds = new ArrayList<>();
-						for (Object obj : subPermission) {
-							subIds.add(Integer.parseInt(obj.toString()));
-						}
-					}
-				}
-				params.put("subIds",subIds);
-				PageInfo<GcSubject> pageInfo = newUiGcSubjectService.list(params, system, request,envFlag);
-				return msg.addData("tagCourse",pageInfo);
-			}
-			return msg;
-		} catch (Exception e) {
-			log.error("", e);
-			return new Message().error(e.getMessage());
-		}
-	}
-
-
-
-	public Message searchResultPt(Map<String, Object> params, HttpServletRequest request,GcUser user,SysSystem system,Integer envFlag){
-		try {
-			Integer userId = null;
-			String token = RequestUtil.getRequestAuthHeader(request);
-			if (!"undefined".equals(token)){
-				params.put("userId", user.getId());
+			if (user != null) {
+				searchParameters.put("userId", user.getId());
 				userId = user.getId();
 			}
 
-			Integer masterId = RequestUtil.getMasterId(request).get();
-			Object returnTypeObj = params.get("returnType");
+			Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 			Message message = new Message().ok();
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			message.addData("systemTime",dateFormat.format(new Date()));
+			message.addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			message.addData("allTagList", newUiGcSubjectService.selectAllTag(masterId, userId));
 
-			// tag list
-			List<String> courseTags = newUiGcSubjectService.selectAllTag(masterId,userId);
-			message.addData("allTagList", courseTags);
-
-			if(returnTypeObj == null || TableConstant.VIDEO_SEARCH_RETURN_TYPE1.equals(returnTypeObj.toString())
-				|| TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())) {
-				params.put("videoName",params.get("searchName"));
-				params.put("pageNum",request.getHeader("pageNum"));
-				params.put("pageSize",request.getHeader("pageSize"));
-				params.put("videoNum",TableConstant.COMMON_ZERO);
-				params.put("state",TableConstant.COMMON_ONE);
-				PageInfo<GcVideo> page = service.page(params, system, request);
-				PageParam pageParam = new PageParam(request);
-				if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-					PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-				}
-
-				PageInfo<PtChannel> channelPageInfo;
-				List<PtChannel> channelPage = ptChannelService.searchChannelsBySysFile(userId,request,masterId);
-				request.setAttribute("searchName",params.get("searchName"));
-				channelPageInfo = new PageInfo<>(channelPage);
-				if (!channelPage.isEmpty()){
-					message.addData("channelVideoPage",channelPageInfo);
-				}
-
-				if (page.getList().isEmpty() &&!TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-					params.remove("videoNum");
-					PageInfo<PtChannel> videoNullPage = new PageInfo<>();
-					PageParam pageParam2 = new PageParam(request);
-					if (pageParam2.getPageNum() > 0 && pageParam2.getPageSize() > 0) {
-						PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-					}
-
-					request.removeAttribute("searchName");
-					channelPage = ptChannelService.searchChannelsBySysFile(userId,request,masterId);
-					videoNullPage = new PageInfo<>(channelPage);
-					return message.addData("videoNullPage", videoNullPage);
-
-				}
-				if (TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-					page.getList().forEach(video -> {
-						video.setVideoName(video.getVideoName().replace("%20", " "));
-					});
-
-					message.addData("videoPage",page);
-					params.remove("videoNum");
-					if (page.getList().isEmpty()){
-						//page = service.page(params, system, request);
-						PageInfo<PtChannel> videoNullPage = new PageInfo<>();
-						PageParam pageParam2 = new PageParam(request);
-						if (pageParam2.getPageNum() > 0 && pageParam2.getPageSize() > 0) {
-							PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-						}
-						request.removeAttribute("searchName");
-						channelPage = ptChannelService.searchChannelsBySysFile(userId,request,masterId);
-						videoNullPage = new PageInfo<>(channelPage);
-						message.addData("videoNullPage", videoNullPage);
-					}
-				}else {
-					page.getList().forEach(video -> {
-						video.setVideoName(video.getVideoName().replace("%20", " "));
-					});
-					return message.addData("videoPage", page);
-				}
-			}
-
-			if(TableConstant.VIDEO_SEARCH_RETURN_TYPE2.equals(returnTypeObj.toString()) && Objects.nonNull(params.get("searchName")) || TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())) {
-				params.remove("videoName");
-				params.put("subjectName",params.get("searchName"));
-				PageInfo<GcSubject> pageInfo = new PageInfo<>();
-				pageInfo = newUiGcSubjectService.list(params,system, request,envFlag);
-				if ((null==pageInfo.getList()|| pageInfo.getList().isEmpty())&&!TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-					PageParam pageParam = new PageParam(request);
-					if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-						PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-					}
-					List<GcSubject> level0sublist = new ArrayList<>();
-					level0sublist = subjectService.getLevel0SubListWithImg(masterId, system, request,new PageParam(request),null);
-					List<Integer> level0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-					List<SysFile> sysFileList = new ArrayList<>();
-					if (!level0subIds.isEmpty()){
-						sysFileList = sysFileService.listByIds(level0subIds);
-					}
-					Map<Integer,SysFile> sysFileMap = sysFileList.stream().collect(Collectors.toMap(SysFile::getId,SysFile -> SysFile, (key1, key2) -> key2, LinkedHashMap::new));
-					if(CollectionUtils.isNotEmpty(level0sublist)){
-						for(GcSubject li:level0sublist) {
-							if(li.getSubImgId()==null ) {
-								continue;
-							}
-							if (null != sysFileMap && sysFileMap.get(li.getSubImgId()) != null) {
-								SysFile file = sysFileMap.get(li.getSubImgId());
-								if(file!=null) {
-									file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
-									li.setSubImgFile(file);
-								}
-							}
-						}
-					}
-					List<Integer> allLevel0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-					Map<Integer, GcUser> subjectUsers = gcUserService.getWatchedUserNum(allLevel0subIds,masterId);
-					List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
-					List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
-					if (null!=user){
-						videoList = gcVideoService.buildVideoInfo(user.getId(),null,videoList,masterId,request,EnvType.PT.getCode());
-					}
-					Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
-
-					for(GcSubject gcSubject : level0sublist){
-						if(CollectionUtils.isNotEmpty(subjectUsers)) {
-							GcUser gcUser2 = subjectUsers.get(gcSubject.getId());
-							if (null != gcUser2) {
-								gcSubject.setSubjectUsers(gcUser2.getSubjectUsers());
-							}else {
-								gcSubject.setSubjectUsers(TableConstant.COMMON_ZERO);
-							}
-						}
-					}
-
-					Map<String, Object> videoParams = new HashMap<>(2);
-					Integer ids = TableConstant.COMMON_ZERO;
-					videoParams.put("ids",ids);
-					videoParams.put("subjectIds", level0subIds);
-					Map<Integer, GcUserVideoAction> subjectUserStar = new HashMap<>();
-					if(envFlag==EnvType.GVG.getCode()){
-						subjectUserStar = videoActionService.gvggetSubjectUserStar(videoParams);
-					}else{
-						subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
-					}
-					GcUserAccessPermission gcUserAccessPermission = null;
-					if (null!=user&&envFlag.equals(EnvType.GVG.getCode())){
-						GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(),masterId);
-						gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
-					}
-					for(GcSubject gcSubject : level0sublist){
-						if(groupBySubId.get(gcSubject.getId())!=null){
-							List<GcVideo> gcVideos = groupBySubId.get(gcSubject.getId());
-							Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
-							gcSubject.setVideosTotalLong(totalSeconds);
-						}
-
-						GcUserVideoAction videoActions = subjectUserStar.get(gcSubject.getId());
-						if(videoActions != null) {
-							//按type 进行分组
-							// 1.2k type=3的平均值 1.2k是打星的总人数
-							gcSubject.setStarValue(videoActions.getSubjectStarAvg());//星级平均值
-							// 打星总人数
-							gcSubject.setStarUsers(videoActions.getSubjectStarUsers());
-						}else {
-							gcSubject.setStarValue(TableConstant.starValue0);//星级平均值
-							gcSubject.setStarUsers(TableConstant.starUsers);
-						}
-						if (null!=gcUserAccessPermission) {
-							if (gcUserAccessPermission.getSubPermission().contains(gcSubject.getId())) {
-								gcSubject.setOwnFlag(TableConstant.COMMON_ONE);
-							} else {
-								gcSubject.setOwnFlag(TableConstant.COMMON_ZERO);
-							}
-						}
-						if (null!=user) {
-							if (null!=groupBySubId.get(gcSubject.getId())){
-								Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(gcSubject.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-								List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-								SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, masterId, envFlag);
-								gcSubject.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-							}
-						}
-					}
-					pageInfo = new PageInfo<>(level0sublist);
-					return message.addData("subjectNullPage", pageInfo);
-				}else {
-					if (null!=pageInfo.getList()&& !pageInfo.getList().isEmpty()){
-						List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(pageInfo.getList().stream().map(GcSubject::getId).collect(Collectors.toList()));
-						List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
-						if (null!=user){
-							videoList = gcVideoService.buildVideoInfo(user.getId(),null,videoList,masterId,request,EnvType.PT.getCode());
-						}
-						Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
-
-						for (GcSubject gcSubject : pageInfo.getList()) {
-							if (null!=user) {
-								if (null!=groupBySubId.get(gcSubject.getId())){
-									Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(gcSubject.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-									List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-									SubjectTotals subjectTotals = calcTotals(twoSubject, user.getId(), true, masterId, envFlag);
-									gcSubject.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-								}
-							}
-						}
-					}
-					if (TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-						message.addData("subjectPage", pageInfo);
-					}else {
-						return message.addData("subjectPage", pageInfo);
-					}
-				}
-			}
-			//tag查询
-			if(TableConstant.VIDEO_SEARCH_RETURN_TYPE3.equals(returnTypeObj.toString())){
-				List<Integer> subIds = new ArrayList<>();
-				if (Objects.isNull(userId)){
-					List<GcSubject> level0sublist = subjectService.getLevel0SubListWithImg(masterId, system, request,new PageParam(request),null);
-					subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-				}else {
-					//查询对应有权限的课程
-					GcUserAccessPermission gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUid(userId,masterId);
-					JSONArray subPermission = gcUserAccessPermissions.getSubPermission();
-					if(!subPermission.isEmpty()) {
-						subIds = new ArrayList<>();
-						for (Object obj : subPermission) {
-							subIds.add(Integer.parseInt(obj.toString()));
-						}
-					}
-				}
-				params.put("subIds",subIds);
-				PageInfo<GcSubject> pageInfo = newUiGcSubjectService.list(params, system, request,envFlag);
-				return message.addData("tagCourse",pageInfo);
-			}
-			if (TableConstant.CHANNEL_SEARCH_RETURN_TYPE5.equals(returnTypeObj.toString())||TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-				PageParam pageParam = new PageParam(request);
-				if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-					PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-				}
-				//查询channel
-				List<PtChannel> ptChannelList = new ArrayList<>();
-				request.setAttribute("searchName",params.get("searchName").toString());
-				ptChannelList = ptChannelService.indexSearchChannels(userId,null,request,masterId);
-				if (ptChannelList.isEmpty() &&!TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-					if(Objects.isNull(user)){
-						ptChannelList = ptChannelService.indexSearchChannels(null,null,request,masterId);
-					}else {
-						List<PtChannel> publicChannels = ptChannelService.indexSearchChannels(user.getId(),TableConstant.COMMON_ZERO,request,masterId);
-						List<PtChannel> mychannels =     ptChannelService.indexSearchChannels(user.getId(),TableConstant.COMMON_ONE,request,masterId);
-						/*channels = ptChannelService.selectPtChannels(user.getId(),TableConstant.COMMON_ONE,request,gcMaster.getId());*/
-						if(!publicChannels.isEmpty() && !mychannels.isEmpty()){
-							publicChannels.addAll(mychannels);//合并我的频道和公共频道
-							ptChannelList = publicChannels;
-						}else if(!publicChannels.isEmpty()){
-							ptChannelList = publicChannels;
-						}else {
-							ptChannelList = mychannels;
-						}
-					}
-					PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
-					return message.addData("channelNullPage",pageInfo);
-				}else {
-					PageInfo<PtChannel> pageInfo = new PageInfo<>(ptChannelList);
-					if (TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-						message.addData("channelPage",pageInfo);
-					}else {
-						return message.addData("channelPage", pageInfo);
-					}
-				}
-			}
-			if (TableConstant.PLAYLIST_SEARCH_RETURN_TYPE6.equals(returnTypeObj.toString())||TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-				request.setAttribute("playListName",params.get("searchName").toString());
-				//recommenplaylist
-				List<GcUserSaveFolder> recommentPlayList = gcUserSaveFolderService.selectFolderInMaster(masterId);
-				List<Integer> recommenFolderIds = recommentPlayList.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-				List<GcUserSaveFolder> recommenFolderList = gcUserSaveFolderService.getPtHomePlayList(userId,masterId,recommenFolderIds,request);
-				for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
-					//缩略图
-					if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-						SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-						String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-						gcUserSaveFolder.setSnapshotUrl(snapshotUrl);
-					}
-				}
-				PageInfo<GcUserSaveFolder> recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-				if (recommenFolderList.isEmpty() &&!TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-					request.removeAttribute("playListName");
-					recommenFolderList = gcUserSaveFolderService.getPtHomePlayList(null,masterId,recommenFolderIds,request);
-					for(GcUserSaveFolder gcUserSaveFolder : recommenFolderList){
-						//缩略图
-						if(Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
-							SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
-							String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-							gcUserSaveFolder.setSnapshotUrl(snapshotUrl);
-						}
-					}
-					recommenFolderListPageInfo = new PageInfo<>(recommenFolderList);
-					return message.addData("recommenFolderListNullPageInfo",recommenFolderListPageInfo);
-				}else {
-					if(TableConstant.RESULTS_SEARCH_RETURN_TYPE7.equals(returnTypeObj.toString())){
-						message.addData("recommenFolderListPageInfo",recommenFolderListPageInfo);
-					}else {
-						return message.addData("recommenFolderListPageInfo",recommenFolderListPageInfo);
-					}
-				}
-			}
-
-			return message;
-		} catch (Exception e) {
+            return switch (searchType) {
+				case ALL -> searchAll(request, user, system, searchParameters, userId, masterId, message);
+                case VIDEO -> searchVideos(request, system, searchParameters, userId, masterId, message);
+                case COURSE -> searchCourses(request, user, system, searchParameters, masterId, message);
+                case CHANNEL -> searchChannels(request, user, searchParameters, userId, masterId, message);
+                case PLAYLIST -> searchPlaylists(request, searchParameters, masterId, userId, message);
+            };
+        } catch (Exception e) {
 			log.error("", e);
 			return new Message().error(e.getMessage());
 		}
 	}
 
-	public Message activeSubject(){
-		//subjectService.
-		return new Message().ok();
+	private Message searchAll(HttpServletRequest request, GcUser user, SysSystem system,
+							  Map<String, Object> searchParameters, Integer userId, Integer masterId,
+							  Message message) {
+		searchVideos(request, system, searchParameters, userId, masterId, message);
+		searchCourses(request, user, system, searchParameters, masterId, message);
+		searchChannels(request, user, searchParameters, userId, masterId, message);
+		searchPlaylists(request, searchParameters, masterId, userId, message);
+		return message;
+	}
+
+	private Message searchPlaylists(HttpServletRequest request, Map<String, Object> searchParameters, Integer masterId,
+									Integer userId, Message message) {
+		request.setAttribute("playListName", searchParameters.get("searchName").toString());
+		List<Integer> recommendedPlaylistIds =
+			gcUserSaveFolderService.selectFolderInMaster(masterId).stream()
+				.map(GcUserSaveFolder::getId)
+				.collect(Collectors.toList());
+		List<GcUserSaveFolder> recommendedPlaylists =
+			gcUserSaveFolderService.getPtHomePlayList(userId, masterId, recommendedPlaylistIds, request);
+		for (GcUserSaveFolder playlist : recommendedPlaylists) {
+			if (Objects.nonNull(playlist.getFirstVideoFileId())) {
+				SysFile sysFile = sysFileService.getById(playlist.getFirstVideoFileId());
+				String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+				playlist.setSnapshotUrl(snapshotUrl);
+			}
+		}
+
+		if (recommendedPlaylists.isEmpty()) {
+			request.removeAttribute("playListName");
+			recommendedPlaylists =
+				gcUserSaveFolderService.getPtHomePlayList(null, masterId, recommendedPlaylistIds, request);
+			for (GcUserSaveFolder gcUserSaveFolder : recommendedPlaylists) {
+				if (Objects.nonNull(gcUserSaveFolder.getFirstVideoFileId())) {
+					SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getFirstVideoFileId());
+					String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+					gcUserSaveFolder.setSnapshotUrl(snapshotUrl);
+				}
+			}
+
+			return message.addData("recommenFolderListNullPageInfo", new PageInfo<>(recommendedPlaylists));
+		}
+
+		return message.addData("recommenFolderListPageInfo", new PageInfo<>(recommendedPlaylists));
+	}
+
+	private Message searchChannels(HttpServletRequest request, GcUser user, Map<String, Object> searchParameters,
+								   Integer userId, Integer masterId, Message message) {
+		PageParam pageParam = new PageParam(request);
+		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
+			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
+		}
+
+		request.setAttribute("searchName", searchParameters.get("searchName").toString());
+		List<PtChannel> channels = ptChannelService.indexSearchChannels(userId, null, request, masterId);
+		if (channels.isEmpty()) {
+			if (Objects.isNull(user)) {
+				channels = ptChannelService.indexSearchChannels(null, null, request, masterId);
+			} else {
+				List<PtChannel> publicChannels =
+					ptChannelService.indexSearchChannels(user.getId(), TableConstant.COMMON_ZERO, request,
+						masterId);
+				List<PtChannel> userChannels =
+					ptChannelService.indexSearchChannels(user.getId(), TableConstant.COMMON_ONE, request,
+						masterId);
+				if (!publicChannels.isEmpty() && !userChannels.isEmpty()) {
+					publicChannels.addAll(userChannels);//合并我的频道和公共频道
+					channels = publicChannels;
+				} else if (!publicChannels.isEmpty()) {
+					channels = publicChannels;
+				} else {
+					channels = userChannels;
+				}
+			}
+
+			return message.addData("channelNullPage", new PageInfo<>(channels));
+		}
+
+		return message.addData("channelPage", new PageInfo<>(channels));
+	}
+
+	private Message searchCourses(HttpServletRequest request, GcUser user, SysSystem system,
+								  Map<String, Object> searchParameters, Integer masterId, Message message) {
+		searchParameters.remove("videoName");
+		searchParameters.put("subjectName", searchParameters.get("searchName"));
+		PageInfo<GcSubject> coursePageInfo =
+			newUiGcSubjectService.list(searchParameters, system, request, EnvType.PT.getCode());
+		if (CollectionUtils.isEmpty(coursePageInfo.getList())) {
+			List<GcSubject> courses =
+				subjectService.getLevel0SubListWithImg(masterId, request, null);
+			List<Integer> courseIds =
+				courses.stream().map(GcSubject::getId).collect(Collectors.toList());
+			List<SysFile> courseFiles = new ArrayList<>();
+			if (!courseIds.isEmpty()) {
+				courseFiles = sysFileService.listByIds(courseIds);
+			}
+
+			Map<Integer, SysFile> idToCourseFile = courseFiles.stream().collect(
+				Collectors.toMap(SysFile::getId, Function.identity(), (key1, key2) -> key2, LinkedHashMap::new));
+
+			if (CollectionUtils.isNotEmpty(courses)) {
+				for (GcSubject course : courses) {
+					if (course.getSubImgId() == null) {
+						continue;
+					}
+
+					if (idToCourseFile.get(course.getSubImgId()) != null) {
+						SysFile file = idToCourseFile.get(course.getSubImgId());
+						if (file != null) {
+							file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
+							course.setSubImgFile(file);
+						}
+					}
+				}
+			}
+
+			Map<Integer, GcUser> courseIdToCourseUsers = gcUserService.getWatchedUserNum(courseIds, masterId);
+			List<Integer> courseVideoIds = gcVideoService.getVideoIdListBySubId(courseIds);
+			List<GcVideo> courseVideos = gcVideoService.getVideoLongListByVideoId(courseVideoIds);
+			if (null != user) {
+				courseVideos = gcVideoService.buildVideoInfo(user.getId(), null, courseVideos, masterId, request,
+					EnvType.PT.getCode());
+			}
+			Map<Integer, List<GcVideo>> courseIdToVideos =
+				courseVideos.stream().filter(e -> null != e.getSubjectSubId())
+					.collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
+
+			for (GcSubject course : courses) {
+				if (CollectionUtils.isNotEmpty(courseIdToCourseUsers)) {
+					GcUser courseUser = courseIdToCourseUsers.get(course.getId());
+					if (null != courseUser) {
+						course.setSubjectUsers(courseUser.getSubjectUsers());
+					} else {
+						course.setSubjectUsers(TableConstant.COMMON_ZERO);
+					}
+				}
+			}
+
+			Map<String, Object> videoParams = new HashMap<>(2);
+			Integer ids = TableConstant.COMMON_ZERO;
+			videoParams.put("ids", ids);
+			videoParams.put("subjectIds", courseIds);
+			Map<Integer, GcUserVideoAction> courseIdToVideoAction = videoActionService.getSubjectUserStar(videoParams);
+			for (GcSubject course : courses) {
+				if (courseIdToVideos.get(course.getId()) != null) {
+					Integer courseTotalSeconds =
+						courseIdToVideos.get(course.getId()).stream()
+							.filter(a -> a.getVideoTime() != null)
+							.mapToInt(GcVideo::getVideoTime)
+							.sum();
+					course.setVideosTotalLong(courseTotalSeconds);
+				}
+
+				GcUserVideoAction videoActions = courseIdToVideoAction.get(course.getId());
+				if (videoActions != null) {
+					course.setStarValue(videoActions.getSubjectStarAvg());
+					course.setStarUsers(videoActions.getSubjectStarUsers());
+				} else {
+					course.setStarValue(TableConstant.starValue0);
+					course.setStarUsers(TableConstant.starUsers);
+				}
+
+				if (null != user) {
+					if (null != courseIdToVideos.get(course.getId())) {
+						Map<Integer, List<GcVideo>> sub1Map = courseIdToVideos.get(course.getId()).stream()
+							.collect(Collectors.groupingBy(GcVideo::getSubId));
+						List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
+						SubjectTotals subjectTotals =
+							calcTotals(twoSubject, user.getId(), true, masterId, EnvType.PT.getCode());
+						course.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
+					}
+				}
+			}
+
+			coursePageInfo = new PageInfo<>(courses);
+			return message.addData("subjectNullPage", coursePageInfo);
+		}
+
+		List<Integer> courseVideoIds = gcVideoService.getVideoIdListBySubId(
+			coursePageInfo.getList().stream().map(GcSubject::getId).collect(Collectors.toList()));
+		List<GcVideo> videos = gcVideoService.getVideoLongListByVideoId(courseVideoIds);
+		if (null != user) {
+			videos = gcVideoService.buildVideoInfo(user.getId(), null, videos, masterId, request,
+				EnvType.PT.getCode());
+		}
+		Map<Integer, List<GcVideo>> courseIdToVideos =
+			videos.stream().filter(e -> null != e.getSubjectSubId())
+				.collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
+
+		if (user != null) {
+			for (GcSubject course : coursePageInfo.getList()) {
+				if (courseIdToVideos.get(course.getId()) == null) {
+					continue;
+				}
+				Map<Integer, List<GcVideo>> sub1Map = courseIdToVideos.get(course.getId()).stream()
+					.collect(Collectors.groupingBy(GcVideo::getSubId));
+				List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
+				SubjectTotals courseTotals =
+					calcTotals(twoSubject, user.getId(), true, masterId, EnvType.PT.getCode());
+				course.setPercents(new BigDecimal(courseTotals.getTotalProgressPercent()));
+			}
+		}
+
+		return message.addData("subjectPage", coursePageInfo);
+	}
+
+	private Message searchVideos(HttpServletRequest request, SysSystem system, Map<String, Object> searchParameters,
+								 Integer userId, Integer masterId, Message message) {
+		searchParameters.put("videoName", searchParameters.get("searchName"));
+		searchParameters.put("pageNum", request.getHeader("pageNum"));
+		searchParameters.put("pageSize", request.getHeader("pageSize"));
+		PageInfo<GcVideo> page = service.page(searchParameters, system, request);
+		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+		request.setAttribute("searchName", searchParameters.get("searchName"));
+		PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channels);
+		if (!channels.isEmpty()) {
+			message.addData("channelVideoPage", channelPageInfo);
+		}
+
+		if (page.getList().isEmpty()) {
+			request.removeAttribute("searchName");
+			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+			return message.addData("videoNullPage", new PageInfo<>(channels));
+		}
+
+		message.addData("videoPage", page);
+		if (page.getList().isEmpty()) {
+			request.removeAttribute("searchName");
+			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+			message.addData("videoNullPage", new PageInfo<>(channels));
+		}
+		return message;
 	}
 
 	@Override

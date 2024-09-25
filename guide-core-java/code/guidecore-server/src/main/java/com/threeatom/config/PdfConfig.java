@@ -2,15 +2,14 @@ package com.threeatom.config;
 
 import com.threeatom.common.pdf.PdfServicePt;
 import com.threeatom.common.pdf.impl.PdfServicePtImpl;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.ByteArrayOutputStream;
+import com.threeatom.utils.FileUtil;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
 @Configuration
 public class PdfConfig {
@@ -23,26 +22,13 @@ public class PdfConfig {
     }
 
     private byte[] inputStream2ByteArray(String filePath) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL url = classLoader.getResource(filePath);
+        URL url = getClass().getClassLoader().getResource(filePath);
         if (url == null) {
-            throw new IllegalArgumentException("");
+            throw new IllegalArgumentException("The file path " + filePath + " could not be found.");
         }
-        InputStream in = new FileInputStream(url.getFile());
-        byte[] data = this.toByteArray(in);
-        in.close();
 
-        return data;
-    }
-
-    private byte[] toByteArray(InputStream in) throws IOException {
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024 * 4];
-        int n = 0;
-        while ((n = in.read(buffer)) != -1) {
-            out.write(buffer, 0, n);
+        try (InputStream in = new FileInputStream(url.getFile())) {
+            return FileUtil.toByteArray(in);
         }
-        return out.toByteArray();
     }
 }

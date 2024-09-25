@@ -1,14 +1,13 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.threeatom.common.permit.service.PermitService;
 import com.threeatom.guidecore.dto.response.AccessGroupDetailsDto;
 import com.threeatom.guidecore.dto.response.AccessSourceDto;
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.SourceType;
 import com.threeatom.guidecore.mapping.SharableListMapping;
@@ -35,41 +34,39 @@ public class SharableListServiceImpl implements SharableListService {
     private final PtChannelService channelService;
     private final GcSubjectService courseService;
     private final SharableListMapping sharableListMapping;
-    private final PermitService permitService;
     private final GcUserSaveFolderService playlistService;
 
     @Override
-    public GroupAccessDto getSharableListByContentId(Integer contentId, GcUser user) {
+    public GroupAccessDto getSharableListByContentId(Integer contentId, PortalUser portalUser) {
         GcVideo content = videoService.getVideoById(contentId);
         if (content.getOriginCourseId() != null) {
-            return getSharableListByCourseId(content.getOriginCourseId(), user);
+            return getSharableListByCourseId(content.getOriginCourseId(), portalUser);
         }
 
-        return getSharableListByChannelId(content.getOriginChannelId(), user);
+        return getSharableListByChannelId(content.getOriginChannelId(), portalUser);
     }
 
     @Override
-    public GroupAccessDto getSharableListByChannelId(Integer channelId, GcUser user) {
+    public GroupAccessDto getSharableListByChannelId(Integer channelId, PortalUser portalUser) {
         PtChannel channel = channelService.findById(channelId);
-        Integer visibleFlag = channel.getVisibleFlag();
 
         AccessSourceDto accessSourceDto =
-            getAccessSourceDto(channelId, user, channel.getCreateUserId(), SourceType.CHANNEL);
+            getAccessSourceDto(channelId, channel.getCreateUserId(), SourceType.CHANNEL, portalUser.getUserId());
         accessSourceDto.setSlug(channel.getChannelSlug());
-        if (channel.getIsPrivate()) {
+        if (channel.isPrivate()) {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
-        if (isChannelPublic(visibleFlag)) {
+        if (channel.isPublic()) {
             return getGroupAccessDto(true, false, Collections.emptyList(), accessSourceDto);
         }
 
-        List<AccessGroupDetailsDto> groups = getChannelSharableGroups(channelId, channel.getMasterId(), user);
+        List<AccessGroupDetailsDto> groups = getChannelSharableGroups(channelId, channel.getMasterId(), portalUser);
         return getGroupAccessDto(false, false, groups, accessSourceDto);
     }
 
     @Override
-    public GroupAccessDto getSharableListByCourseId(Integer courseId, GcUser user) {
+    public GroupAccessDto getSharableListByCourseId(Integer courseId, PortalUser portalUser) {
         GcSubject course = courseService.getById(courseId);
 
         if (course == null) {
@@ -77,33 +74,32 @@ public class SharableListServiceImpl implements SharableListService {
             throw new IllegalArgumentException("Course not found");
         }
 
-        AccessSourceDto accessSourceDto = getAccessSourceDto(courseId, user, course.getCreateUser(), SourceType.COURSE);
+        AccessSourceDto accessSourceDto = getAccessSourceDto(courseId, course.getCreateUser(), SourceType.COURSE,
+            portalUser.getUserId());
         if (isCoursePrivate(course)) {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
-        List<AccessGroupDetailsDto> groups = getCourseSharableGroups(courseId, course.getMasterId(), user);
+        List<AccessGroupDetailsDto> groups = getCourseSharableGroups(courseId, course.getMasterId(), portalUser);
         return getGroupAccessDto(false, false, groups, accessSourceDto);
     }
 
     @Override
-    public GroupAccessDto getSharableListByPlaylistId(Integer id, GcUser user) {
-        GcUserSaveFolder playlist = playlistService.getById(id);
-        AccessSourceDto accessSourceDto = getAccessSourceDto(id, user, playlist.getUserId(), SourceType.PLAYLIST);
+    public GroupAccessDto getSharableListByPlaylistId(Integer playlistId, Integer userId) {
+        GcUserSaveFolder playlist = playlistService.getById(playlistId);
+        AccessSourceDto accessSourceDto =
+            getAccessSourceDto(playlistId, playlist.getUserId(), SourceType.PLAYLIST, userId);
 
         return getGroupAccessDto(!playlist.getIsPrivate(), playlist.getIsPrivate(), null, accessSourceDto);
     }
 
-    private List<AccessGroupDetailsDto> getChannelSharableGroups(Integer channelId, Integer masterId, GcUser user) {
-        if (permitService.isUserOrgAdmin(user.getUsername())) {
+    private List<AccessGroupDetailsDto> getChannelSharableGroups(Integer channelId, Integer masterId,
+                                                                 PortalUser portalUser) {
+        if (portalUser.isOrgAdmin()) {
             return getAccessGroupDetailsDtos(accessService.getAccessByChannelId(masterId, channelId));
         }
 
-        return getAccessGroupDetailsDtos(accessService.listAccess(null, masterId, user.getId()));
-    }
-
-    private boolean isChannelPublic(Integer visibleFlag) {
-        return visibleFlag == 1;
+        return getAccessGroupDetailsDtos(accessService.listAccess(null, masterId, portalUser.getUserId()));
     }
 
     private GroupAccessDto getGroupAccessDto(boolean isPublic, boolean isPrivate, List<AccessGroupDetailsDto> groups) {
@@ -121,21 +117,22 @@ public class SharableListServiceImpl implements SharableListService {
         return groupAccessDto;
     }
 
-    private AccessSourceDto getAccessSourceDto(Integer channelId, GcUser user, Integer createUserId,
-                                               SourceType sourceType) {
+    private AccessSourceDto getAccessSourceDto(Integer channelId, Integer createUserId,
+                                               SourceType sourceType, Integer userId) {
         AccessSourceDto accessSourceDto = new AccessSourceDto();
         accessSourceDto.setId(String.valueOf(channelId));
         accessSourceDto.setType(sourceType.toString());
-        accessSourceDto.setCanPublish(user.getId().equals(createUserId));
+        accessSourceDto.setCanPublish(userId.equals(createUserId));
         return accessSourceDto;
     }
 
-    private List<AccessGroupDetailsDto> getCourseSharableGroups(Integer courseId, Integer masterId, GcUser user) {
-        if (permitService.isUserOrgAdmin(user.getUsername())) {
+    private List<AccessGroupDetailsDto> getCourseSharableGroups(Integer courseId, Integer masterId,
+                                                                PortalUser portalUser) {
+        if (portalUser.isOrgAdmin()) {
             return getAccessGroupDetailsDtos(accessService.getAccessBySubjectId(masterId, courseId));
         }
 
-        return getAccessGroupDetailsDtos(accessService.listAccess(null, masterId, user.getId()));
+        return getAccessGroupDetailsDtos(accessService.listAccess(null, masterId, portalUser.getUserId()));
     }
 
     private List<AccessGroupDetailsDto> getAccessGroupDetailsDtos(List<GcAccess> courseAcccessList) {

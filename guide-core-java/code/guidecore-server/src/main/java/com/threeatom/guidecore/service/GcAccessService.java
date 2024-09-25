@@ -2,8 +2,12 @@ package com.threeatom.guidecore.service;
 
 import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.client.dto.GroupDto;
+import com.threeatom.client.dto.ManagedGroupDto;
+import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import java.io.IOException;
@@ -37,8 +41,8 @@ public interface GcAccessService extends IService<GcAccess> {
             String name,
             Integer masterId,
             Integer userId,
-            List<Integer> availableTypeFour,
-            List<Integer> availableTypeOneAndThree,
+            List<Integer> privateCourseIds,
+            List<Integer> publicCourseIds,
             List<Integer> subIds);
 
     GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId);
@@ -93,4 +97,7 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> getAllAccessByMasterId(Integer masterId);
 
     List<GcAccess> selectAccessLevel0(Integer masterId, Integer userId);
+
+    void syncContentGroupsWithPowtoonGroups(
+        PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId);
 }

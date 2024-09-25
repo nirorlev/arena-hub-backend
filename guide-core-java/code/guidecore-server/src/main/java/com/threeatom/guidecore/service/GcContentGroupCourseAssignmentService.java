@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface GcContentGroupCourseAssignmentService
@@ -41,4 +42,6 @@ public interface GcContentGroupCourseAssignmentService
 
     List<Integer> getMustCoursesContentGroupAssignmentIds(Integer userId, Integer masterId);
     List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer userId, Integer masterId);
+
+    Set<Integer> getContentGroupIds(Integer courseId);
 }

@@ -2,67 +2,74 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.GcAccessMapper">
 
-   <resultMap id="baseResultMap" type="GcAccess">
-   	 <id property="id" column="id"/>
-	 <result property="masterId" column="master_id"  />
-	 <result property="roleType" column="role_type"  />
-	 <result property="adminId" column="admin_id"  />
-	   <result property="parentCode" column="parent_code"/>
-	 <result property="code" column="code"  />
-	   <result property="subjectNum" column="subjectNum"/>
-	   <result property="channelNum" column="channelNum"/>
-	   <result property="subscribeJson" column="subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-	   <result property="roleJson" column="roleJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-	 <result property="subjectJson" column="subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-	   <result property="packageDescription" column="package_description"  />
-	   <result property="packageAdditionalCourseInformation" column="package_additional_course_information"  />
-	   <result property="packageName" column="package_name"  />
-	   <result property="packageShowFlag" column="package_show_flag"  />
-	   <result property="packageVideoFileId" column="package_video_file_id"  />
-	   <result property="packageImgId" column="package_img_id"  />
-	   <result property="packagePricePeriod" column="package_price_period" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-	 <result property="updateTime" column="update_time"  />
-	 <result property="createTime" column="create_time"  />
-	   <result property="packageBadgeFlag" column="package_badge_flag"  />
-	   <result property="packageBadgeContent" column="package_badge_content"  />
-		<result property="mustSubjectJson" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-	   <result property="maySubjectJson" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-	   <result property="channelJson" column="channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
+	<resultMap id="baseResultMap" type="GcAccess">
+		<id property="id" column="id"/>
+		<result property="masterId" column="master_id"/>
+		<result property="roleType" column="role_type"/>
+		<result property="adminId" column="admin_id"/>
+		<result property="parentCode" column="parent_code"/>
+		<result property="code" column="code"/>
+		<result property="subjectNum" column="subjectNum"/>
+		<result property="channelNum" column="channelNum"/>
+		<result property="subscribeJson" column="subscribe_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="roleJson" column="role_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="subjectJson" column="subject_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="packageDescription" column="package_description"/>
+		<result property="packageAdditionalCourseInformation" column="package_additional_course_information"/>
+		<result property="packageName" column="package_name"/>
+		<result property="packageShowFlag" column="package_show_flag"/>
+		<result property="packageVideoFileId" column="package_video_file_id"/>
+		<result property="packageImgId" column="package_img_id"/>
+		<result property="packagePricePeriod" column="package_price_period"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="updateTime" column="update_time"/>
+		<result property="createTime" column="create_time"/>
+		<result property="packageBadgeFlag" column="package_badge_flag"/>
+		<result property="packageBadgeContent" column="package_badge_content"/>
+		<result property="mustSubjectJson" column="must_subject_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="maySubjectJson" column="may_subject_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="channelJson" column="channel_json"
+				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="groupName" column="group_name"/>
-	   <association property="packageImgFile" column="package_img_file" javaType="SysFile">
-		   <id property="id" column="img_id"/>
-		   <result property="name" column="img_name"/>
-		   <result property="fileUrl" column="img_file_url"/>
-		   <result property="saveType" column="img_save_type"/>
-		   <result property="fileTypeIndex" column="img_file_type_index"/>
-		   <result property="fileType" column="fileType"/>
-	   </association>
-	   <association property="packageVideoFile" column="package_video_file_id" javaType="SysFile">
-		   <id property="id" column="video_img_id"/>
-		   <result property="name" column="video_img_name"/>
-		   <result property="fileUrl" column="video_img_file_url"/>
-		   <result property="saveType" column="video_img_save_type"/>
-		   <result property="fileTypeIndex" column="video_img_file_type_index"/>
-		   <result property="fileType" column="video_fileType"/>
-	   </association>
+		<association property="packageImgFile" column="package_img_file" javaType="SysFile">
+			<id property="id" column="img_id"/>
+			<result property="name" column="img_name"/>
+			<result property="fileUrl" column="img_file_url"/>
+			<result property="saveType" column="img_save_type"/>
+			<result property="fileTypeIndex" column="img_file_type_index"/>
+			<result property="fileType" column="fileType"/>
+		</association>
+		<association property="packageVideoFile" column="package_video_file_id" javaType="SysFile">
+			<id property="id" column="video_img_id"/>
+			<result property="name" column="video_img_name"/>
+			<result property="fileUrl" column="video_img_file_url"/>
+			<result property="saveType" column="video_img_save_type"/>
+			<result property="fileTypeIndex" column="video_img_file_type_index"/>
+			<result property="fileType" column="video_fileType"/>
+		</association>
 
-	   <association property="user" column="user_id" javaType="GcUser">
-		   <id property="id" column="u_id"/>
-		   <result property="infoId" column="info_id"/>
-		   <association property="info" column="id" javaType="GcUserInfo">
-			   <id property="id" column="info_id"/>
-			   <result property="lastName" column="lastName"/>
-			   <result property="firstName" column="firstName"/>
-			   <result property="avatarFileId" column="avatarFileId"/>
-			   <association property="avatarFile" column="avatarFile" javaType="SysFile">
-				   <id property="id" column="f_id"/>
-				   <result property="name" column="f_name"/>
-				   <result property="fileUrl" column="f_file_url"/>
-				   <result property="saveType" column="f_save_type"/>
-			   </association>
-		   </association>
-	   </association>
-   </resultMap>
+		<association property="user" column="user_id" javaType="GcUser">
+			<id property="id" column="u_id"/>
+			<result property="infoId" column="info_id"/>
+			<association property="info" column="id" javaType="GcUserInfo">
+				<id property="id" column="info_id"/>
+				<result property="lastName" column="lastName"/>
+				<result property="firstName" column="firstName"/>
+				<result property="avatarFileId" column="avatarFileId"/>
+				<association property="avatarFile" column="avatarFile" javaType="SysFile">
+					<id property="id" column="f_id"/>
+					<result property="name" column="f_name"/>
+					<result property="fileUrl" column="f_file_url"/>
+					<result property="saveType" column="f_save_type"/>
+				</association>
+			</association>
+		</association>
+	</resultMap>
 
 
 	<resultMap id="baseResultVoMap" type="GcAccess">
@@ -128,7 +135,7 @@
 	</resultMap>
 
     <insert id="insertOrUpdateList" useGeneratedKeys="true" keyColumn="id" keyProperty="id" >
-		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,subject_json,must_subject_json,may_subject_json,update_time)
+		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,subject_json,must_subject_json,may_subject_json,role_json,update_time)
 		VALUES
 		<foreach collection="list" index="index" item="item" separator=",">
 		 (
@@ -143,6 +150,7 @@
 		  #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  #{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  #{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
+		  #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  now())
 		</foreach>
 		ON CONFLICT (id) DO UPDATE SET
@@ -154,6 +162,7 @@
 		group_name = excluded.group_name,
 		must_subject_json = excluded.must_subject_json,
 		may_subject_json = excluded.may_subject_json,
+		role_json = excluded.role_json,
 		create_time = now()
 	</insert>
 

@@ -1,12 +1,15 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.github.pagehelper.PageInfo;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.system.entity.SysFile;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
@@ -19,10 +22,11 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     private static final String FEATURE_NAME = "unavailableVideoRandomEnabled";
 
+    private final FeatureToggleService featureToggleService;
+    private final AuthorizationService authorizationService;
+
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
-
-    private final FeatureToggleService featureToggleService;
 
     @PostConstruct
     public void init() {
@@ -50,11 +54,11 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     }
 
     @Override
-    public void nullifyVideoData(List<SysFile> files) {
-        files.stream()
-            .filter(this::isVideoUnavailable)
-            .forEach(file -> {
-                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(file));
+    public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos) {
+        videos.stream()
+            .filter(video -> isVideoUnavailable(portalUser, video))
+            .forEach(video -> {
+                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
             });
     }
 
@@ -63,28 +67,31 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     }
 
     @Override
-    public void nullifyPlaylistContent(List<GcUserSaveContent> playlistContent) {
+    public void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent) {
         playlistContent.stream()
-            .filter(content -> isVideoUnavailable(content.getVideoFile()))
+            .filter(content -> isVideoUnavailable(portalUser, content.getVideo()))
             .forEach(content -> {
                 playlistContentNullifySuppliers.forEach(supplier -> supplier.accept(content));
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(content.getVideoFile()));
             });
     }
 
-
     @Override
-    public void nullifyVideoData(SysFile file) {
-        nullifyVideoData(Collections.singletonList(file));
+    public void nullifyVideoData(PortalUser portalUser, GcVideo video) {
+        nullifyVideoData(portalUser, List.of(video));
     }
 
     @Override
-    public void nullifyVideoComments(PageInfo<GcVideoComment> comments, Integer videoId) {
+    public void nullifyVideoComments(PortalUser portalUser, GcVideo video, PageInfo<GcVideoComment> comments) {
+        if (!isVideoUnavailable(portalUser, video)) {
+            return;
+        }
+
         comments.getList().clear();
     }
 
-    private boolean isVideoUnavailable(SysFile videoFile) {
-        Integer videoId = videoFile.getVideoId();
-        return featureIsEnabled() && videoId != null && (videoId % 10 == 2 || videoId % 10 == 7);
+    private boolean isVideoUnavailable(PortalUser portalUser, GcVideo video) {
+        boolean isViewAllowed = authorizationService.checkAccess(video, PermitAction.VIEW, portalUser);
+        return featureIsEnabled() && !isViewAllowed;
     }
 }

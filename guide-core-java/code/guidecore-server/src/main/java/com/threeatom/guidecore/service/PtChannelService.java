@@ -6,6 +6,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import java.util.List;
@@ -23,11 +24,11 @@ public interface PtChannelService extends IService<PtChannel> {
             Integer fid, String slug, HttpServletRequest request, Integer masterId);
 
     List<SysFile> selectVideosInSection(
-            Integer sectionId,
-            String order,
-            HttpServletRequest request,
-            String searchName,
-            Integer level);
+        Integer sectionId,
+        String order,
+        HttpServletRequest request,
+        String searchName,
+        Integer level, PortalUser portalUser);
 
     List<PtChannel> selectChannelsByTeam(
             Integer accessId, Integer masterId, Integer userId, HttpServletRequest request);
@@ -40,27 +41,24 @@ public interface PtChannelService extends IService<PtChannel> {
     List<PtChannel> indexSearchChannels(
             Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
-    List<PtChannel> newIndexHomeChannels(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request);
 
     List<PtChannel> searchChannelsBySysFile(
             Integer userId, HttpServletRequest request, Integer masterId);
 
-    List<PtChannel> searchChannelsBySysFileNew(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> searchChannelsBySysFileNew(PortalUser portalUser, HttpServletRequest request);
 
-    List<PtChannel> getPtChannelVideoNow(
-            Integer userId, HttpServletRequest request, Integer masterId);
+    List<PtChannel> getPtChannelVideoNow(PortalUser portalUser, HttpServletRequest request);
 
     PtChannel getbyChannelSlug(String channelName);
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<ChannelDto> getOwnerChannels(GcUser user, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getSubscribedChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getDiscoverableChannels(GcUser currentUser, Integer masterId, HttpServletRequest request);
+    List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 
@@ -70,7 +68,9 @@ public interface PtChannelService extends IService<PtChannel> {
 
     Integer countUserPrivateChannels(Integer userId, Integer masterId);
 
-    Integer countUserPublicChannels(Integer userId, Integer masterId);
+    Integer countUserPublishedChannels(Integer userId, Integer masterId);
 
     List<DbAnalyticsResultDto> getTrendChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    void populateCreatedUserId(PtChannel channel, GcUser user);
 }

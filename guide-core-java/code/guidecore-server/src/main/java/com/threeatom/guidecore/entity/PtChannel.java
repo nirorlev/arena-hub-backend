@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
+import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModel;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -175,7 +177,26 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<GcAccess> accessList;
 
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
+
     public Boolean getIsPrivate() {
-        return visibleFlag != null && visibleFlag == 0;
+        return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);
+    }
+
+    public boolean isPrivate() {
+        return getIsPrivate();
+    }
+
+    public boolean isPublic() {
+        return ChannelVisibilityFlag.PUBLIC.getValue().equals(visibleFlag);
+    }
+
+    public boolean isCertainTeams() {
+        return ChannelVisibilityFlag.CERTAIN_TEAMS.getValue().equals(visibleFlag);
+    }
+
+    public boolean isSection() {
+        return fid != null;
     }
 }
