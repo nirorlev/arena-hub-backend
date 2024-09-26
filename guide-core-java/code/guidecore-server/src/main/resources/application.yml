@@ -37,3 +37,8 @@ youtubeApiKey: ${YOUTUBE_API_KEY}
 
 analytics:
     dropOffThreshold: 0.95
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: production
+  release: ${ARENA_VERSION}
