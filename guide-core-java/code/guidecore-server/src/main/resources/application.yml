@@ -41,4 +41,4 @@ analytics:
 sentry:
   dsn: ${SENTRY_DSN}
   environment: production
-  release: ${ARENA_VERSION}
+  release: ${ARENA_BACKEND_VERSION}
