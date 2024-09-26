@@ -1,6 +1,9 @@
 package com.threeatom.common.exception;
 
 import com.threeatom.common.controller.Message;
+
+import io.sentry.Sentry;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shiro.authz.AuthorizationException;
@@ -24,10 +27,15 @@ public class DefaultExceptionHandler {
     public DefaultExceptionHandler() {
     }
 
+    private void sendExceptionToSentry (Exception e) {
+        Sentry.captureException(e);
+    }
+
     @ResponseBody
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({RuntimeException.class})
+    @ExceptionHandler({Exception.class})
     public Message handlerException(Exception e) {
+        sendExceptionToSentry(e);
         return (new Message()).commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
     }
 
