@@ -313,7 +313,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		String token = request.getHeader("Authorization");
-		if (!"undefined".equals(token)) {
+		if (token != null && !"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
 			return gvgMasterService.portalInfosUnlogin(requestParams, user, request)
 				.addData("times", new Date());
