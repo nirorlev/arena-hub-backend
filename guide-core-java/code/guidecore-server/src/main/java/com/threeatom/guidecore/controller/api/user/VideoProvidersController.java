@@ -382,18 +382,6 @@ public class VideoProvidersController extends GuideCoreController{
 		    return message.ok().addData("yotubeList",youtubeList);
 	}
 
-	private JSONObject formatPowtoonVideoData(JSONObject videoData) {
-		JSONObject result = new JSONObject();
-		result.put("url", videoData.getString("playerUrl"));
-		result.put("thumbNail", videoData.getString("thumbnailUrl"));
-		result.put("title", videoData.getString("title"));
-		result.put("description", videoData.getString("description"));
-		result.put("duration", videoData.getFloat("duration"));
-		result.put("source", videoData.getJSONObject("source"));
-		result.put("hostingProvider", videoData.getInteger("hostingProvider"));
-		return result;
-	}
-
 	@GetMapping("/powtoon/video-data")
 	public Message getPowtoonVideoData(@RequestParam("url") String videoUrl, HttpServletRequest request) {
 		Message message = new Message();
@@ -402,8 +390,7 @@ public class VideoProvidersController extends GuideCoreController{
 			videoUrl = videoUrl.replaceAll(" ", "%2B");
 			URL url = new URL(videoUrl);
 			JSONObject videoData = powtoonVideoProviderService.getVideoDataFromUrl(url);
-			JSONObject formattedData = formatPowtoonVideoData(videoData);
-			return message.ok().setJsonData(formattedData);
+			return message.ok().setJsonData(videoData);
 		} catch (Exception e) {
 			String extractedInfo = e.getMessage();
 			if (e.getMessage().contains("detail")) {

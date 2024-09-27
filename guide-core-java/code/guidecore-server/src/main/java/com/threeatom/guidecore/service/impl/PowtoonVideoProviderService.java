@@ -128,7 +128,8 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
             String partnerId = videoHosting.getString("partner_id");
             String uiConfId = videoHosting.getString("ui_conf_id");
             return Optional.of(buildKalturaPlayerUrl(partnerId, uiConfId, entryId));
-        } else if (hostingProvider == EventUnifyType.POWTOON_MUX_FILE_TYPE_INDEX) {
+        }
+        if (hostingProvider == EventUnifyType.POWTOON_MUX_FILE_TYPE_INDEX) {
             return Optional.of(buildMuxPlayerUrl(entryId));
         }
         return Optional.empty();
@@ -144,16 +145,13 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         JSONObject videoHosting = playerPageData.getJSONObject("video_hosting");
         if (videoHosting == null) {
             videoData.put("hostingProvider", EventUnifyType.POWTOON_PENDING_FILE_TYPE_INDEX);
-        } else {
-            String providerName = (String) videoHosting.get("provider");
-            Integer hostingProvider = getHostingProviderIndexType(providerName);
-            videoData.put("hostingProvider", hostingProvider);
-            Optional<String> playerUrl = buildPlayerUrl(hostingProvider, videoHosting);
-            if (playerUrl.isPresent()) {
-                videoData.put("playerUrl", playerUrl.get());
-            }
+            return videoData;
         }
-
+        String providerName = videoHosting.getString("provider");
+        Integer hostingProvider = getHostingProviderIndexType(providerName);
+        videoData.put("hostingProvider", hostingProvider);
+        Optional<String> playerUrl = buildPlayerUrl(hostingProvider, videoHosting);
+        playerUrl.ifPresent(url -> videoData.put("url", url));
         return videoData;
     }
 
