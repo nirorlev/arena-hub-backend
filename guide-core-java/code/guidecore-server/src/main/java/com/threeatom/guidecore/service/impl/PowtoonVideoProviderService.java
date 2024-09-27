@@ -140,7 +140,7 @@ public class PowtoonVideoProviderService implements ExternalVideoProviderService
         videoData.put("title", playerPageData.getString("title"));
         videoData.put("description", playerPageData.getString("description"));
         videoData.put("duration", playerPageData.getFloat("video_duration"));
-        videoData.put("thumbnailUrl", playerPageData.getString("thumb_url"));
+        videoData.put("thumbNail", playerPageData.getString("thumb_url"));
 
         JSONObject videoHosting = playerPageData.getJSONObject("video_hosting");
         if (videoHosting == null) {
