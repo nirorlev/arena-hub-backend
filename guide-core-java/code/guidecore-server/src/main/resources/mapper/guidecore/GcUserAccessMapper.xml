@@ -127,7 +127,7 @@
     </resultMap>
 
     <sql id="baseColumn">
-        ua.id , ua.master_id, ua.user_id, ua.access_id, ua.state,ua.update_time, ua.create_time
+        ua.id, ua.master_id, ua.user_id, ua.access_id, ua.state,ua.update_time, ua.create_time
     </sql>
 
     <sql id="gcAccessbaseColumn">
@@ -285,10 +285,23 @@
             ua.master_id = #{masterId}
     </select>
 
-    <select id="selectUserAccessesByMasterId" resultType="Integer">
-        select count(id) from gc_user_access where master_id=#{masterId}
-        and user_id=#{userId}
-        and role_json::text like concat('%',#{role},'%')
+    <select id="selectUserAccessesByMasterIdAndRole" resultMap="baseResultMap">
+        select
+            <include refid="baseColumn" />
+            <include refid="gcAccessbaseColumn" />
+        from gc_user_access ua
+            JOIN gc_access a on ua.access_id = a.id
+        where ua.master_id=#{masterId}
+          and ua.user_id=#{userId}
+          and ua.role_json::text like concat('%',#{role},'%')
+    </select>
+
+    <select id="countUserAccessesByMasterIdAndRole" resultType="Integer">
+        select count(ua.id)
+        from gc_user_access ua
+        where ua.master_id=#{masterId}
+          and ua.user_id=#{userId}
+          and ua.role_json::text like concat('%',#{role},'%')
     </select>
 
     <select id="getAllUserInThisMaster" resultType="map">
@@ -507,13 +520,6 @@
         left join gc_access a on a.id = ua.access_id
         left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
-    </select>
-
-    <select id="getGroupAdmin" resultType="java.lang.Integer">
-        select count(1) from gc_user_access
-        where user_id = #{userId}
-        and master_id = #{masterId}
-        and role_json::text like concat('%','groupAdmin','%')
     </select>
 
     <select id="getAccessListBySuperAdmin" resultType="java.lang.Integer">

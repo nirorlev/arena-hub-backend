@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUserAccess;
@@ -9,6 +10,7 @@ import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.service.bll.GcUserAccessServiceBll;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface GcUserAccessService extends GcUserAccessServiceBll {
@@ -31,7 +33,7 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<Integer> selectGetUserAccessIdListUserIds(Integer masterId, List<Integer> accessIds);
 
-    Integer selectUserAccessesByMasterId(Integer userId, Integer masterId, String role);
+    Integer countUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role);
 
     List<GcUserAccess> getStudentsAccessByTeacherId(
             Integer userId, Integer masterId, Integer page, Integer pageNum);
@@ -89,7 +91,13 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     void deleteUserAccess(Integer userId, Integer masterId, List<Integer> accessId);
 
-    Integer getGroupAdmin(Integer userId, Integer masterId);
-
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
+
+    Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
+
+    void syncUserAccessWithPowtoonGroups(
+        Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo groups, Integer userId);
+
+    void removeOutdatedContentGroupAccess(
+        List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId);
 }

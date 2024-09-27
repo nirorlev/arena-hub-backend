@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @ApiModel(value = "SysFile对象", description = "")
@@ -144,4 +145,7 @@ public class SysFile implements Serializable {
 
     @TableField(exist = false)
     public String describe;
+
+    @TableField(exist = false)
+    public Map<String, Boolean> permissions;
 }

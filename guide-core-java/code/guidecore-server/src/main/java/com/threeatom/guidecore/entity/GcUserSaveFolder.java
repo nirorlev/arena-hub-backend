@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -64,6 +65,9 @@ public class GcUserSaveFolder implements Serializable {
 
     @TableField(exist = false)
     private Integer videoId;
+
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
 
     @ApiModelProperty(value = "保存内容的list")
     @TableField(exist = false)

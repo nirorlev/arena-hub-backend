@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,49 +47,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class VideoGuideCoreController extends GuideCoreController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VideoGuideCoreController.class);
-
     @Autowired private GcUserVideoActionService videoActionService;
-    @Autowired private NewUiGcSubjectService service;
     @Autowired private GcVideoCommentService videoCommentService;
     @Autowired private GcSubjectService subjectService;
     @Autowired private GcVideoService videoService;
-    @Autowired private GcUserVideoPlayService userVideoPlayService;
-
     @Autowired private GcUserVideoPlaysNodeService videoPlaysNodeService;
-
     @Autowired private GcEventService eventService;
-    @Autowired private GcResourceService resourceService;
-
+    @Autowired private PortalUserService portalUserService;
     @Autowired private SysFileService sysFileService;
     @Autowired private GcUserEventResourceService userEventResourceService;
     @Autowired private GcUserNoteService userNoteService;
     @Autowired private GcMasterMessageService masterMessageService;
-
-    @Autowired private SysSystemService systemService;
-
-    @Autowired private GcEventMapper gcEventMapper;
-
-    @Autowired private Environment env;
-
     @Autowired private GcUserAccessService userAccessService;
-
-    @Autowired private GcUserVideoPlaysNodeService userVideoPlaysNodeService;
-
-    @Autowired private GcGroupService gcGroupService;
-
-    @Autowired private GcTeacherDataService teacherDataService;
-
-    @Autowired private GcUserAccessExtService userAccessExtService;
-    @Autowired private SysFileCaptionService sysFileCaptionService;
-    @Autowired private GcUserVideoPlayService gcUserVideoPlayService;
-    @Autowired private GcUserVideoPlaysNodeService gcUserVideoPlaysNodeService;
-
-    @Autowired private GcVideoService gcVideoService;
-
     @Autowired private GvgMasterService gvgMasterService;
 
-    @Autowired private NewUiGcSubjectService newUiGcSubjectService;
     @Autowired private UnavailableVideoService unavailableVideoService;
 
     @ApiOperation(value = "用户视频点赞的视频列表", httpMethod = "GET", notes = "type操作类型1点赞2收藏")
@@ -251,22 +223,19 @@ public class VideoGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "获取评论详情列表", httpMethod = "GET")
     @GetMapping("/videoAllComment/{vid}")
     public Message videoComment(@PathVariable("vid") Integer vid, HttpServletRequest request) {
-        GcUser user = new GcUser();
         Integer masterId = getHeaderMasterId(request);
-        String token = request.getHeader("Authorization");
-        // List<GcVideoComment> videoAllComment = videoCommentService.getAllCommentByVideoId(vid,null);
-        if (null != token && !"".equals(token) && !"undefined".equals(token)) {
-            user = this.getGcUser();
-        }
+        GcUser user = this.getGcUser();
+
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
+
         List<GcVideoComment> videoAllComment =
                 videoCommentService.getAllCommentByVideoIdAndUserId(vid, user.getId(), masterId);
-        SysSystem sys = this.getSystem();
+
         for (GcVideoComment comment : videoAllComment) {
             SysFile avatarFile = comment.getUserAvatarFile();
             if (avatarFile != null)
@@ -278,12 +247,16 @@ public class VideoGuideCoreController extends GuideCoreController {
                 commentFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(commentFile));
             }
         }
+
         PageInfo<GcVideoComment> videoCommentPageInfo = new PageInfo<>(videoAllComment);
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+        GcVideo video = videoService.findByVideoId(vid);
+        unavailableVideoService.nullifyVideoComments(portalUser, video, videoCommentPageInfo);
+
         return new Message()
                 .ok()
                 .addData("commentList", videoCommentPageInfo)
-                .addData("systemTime", df.format(new Date()));
+                .addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
     }
 
     @ApiOperation(value = "回复评论", httpMethod = "POST")

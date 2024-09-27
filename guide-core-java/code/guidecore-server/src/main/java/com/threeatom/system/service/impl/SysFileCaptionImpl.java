@@ -109,7 +109,7 @@ public class SysFileCaptionImpl extends ServiceImpl<SysFileCaptionMapper, SysFil
             request.setNotifyUrl(callBackUrl + request.getCaptionId());
             request.setResultType("srt");
             //发送请求并返回信息
-            String JsonRequest = HttpUtil.doPost1(subUrl,header, JSONObject.toJSONString(request));
+            String JsonRequest = HttpUtil.doPost(subUrl,header, JSONObject.toJSONString(request));
             JSONObject jsonObject = JSONObject.parseObject(JsonRequest);
             caption.setYmCode(jsonObject.getInteger("code"));
             if (!jsonObject.getInteger("code").equals(TableConstant.COMMON_ZERO)){

@@ -14,7 +14,11 @@ public enum VideoFileProvider {
 
     private final int fileTypeIndex;
 
-    public static VideoFileProvider fromIndex(int index) {
+    public static VideoFileProvider fromIndex(Integer index) {
+        if (index == null) {
+            return OTHER;
+        }
+
         for (VideoFileProvider value : values()) {
             if (value.fileTypeIndex == index) {
                 return value;

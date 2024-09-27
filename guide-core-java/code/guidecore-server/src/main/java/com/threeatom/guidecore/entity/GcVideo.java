@@ -13,8 +13,8 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -212,7 +212,28 @@ public class GcVideo implements Serializable {
     @TableField(exist = false)
     private GcSubject originCourse;
 
+    @TableField(exist = false)
+    private Map<String, Boolean> permissions;
+
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray courseTags = new JSONArray();
+
+    // considered as public if everybody in the organization can access it
+    public boolean isPublic() {
+        if (originChannel != null) {
+            return originChannel.isPublic();
+        }
+
+        return originCourse.isPublic();
+    }
+
+    // considered as private if only owner can access it
+    public boolean isPrivate() {
+        if (originChannel != null) {
+            return originChannel.isPrivate();
+        }
+
+        return originCourse.isPrivate();
+    }
 }

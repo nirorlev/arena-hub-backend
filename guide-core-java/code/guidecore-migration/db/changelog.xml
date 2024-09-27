@@ -201,12 +201,18 @@
 
         <sql>
             INSERT INTO content_group_channel_subscription (channel_id, created_by_user_id, content_group_id, is_subscribed)
-            SELECT content_group_channel.channel_id::integer, user_id, content_group_channel.content_group_id, is_subscribed
-            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id, user_id, gc_access.id as content_group_id, false AS is_subscribed
+            SELECT content_group_channel.channel_id::integer, user_id,
+                   content_group_channel.content_group_id,
+                   is_subscribed
+            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id, user_id,
+                         gc_access.id as content_group_id,
+                         false        AS is_subscribed
                   FROM gc_access
                            JOIN gc_user_access ON gc_access.id = gc_user_access.access_id
                   UNION ALL
-                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id, user_id, gc_access.id, true AS is_subscribed
+                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id, user_id,
+                         gc_access.id,
+                         true AS is_subscribed
                   FROM gc_access
                            JOIN gc_user_access ON gc_access.id = gc_user_access.access_id) AS content_group_channel
                      JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
@@ -259,7 +265,8 @@
                 <constraints nullable="true"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint constraintName="powtoon_external_video_sys_file_id_fk" baseTableName="powtoon_external_video"
+        <addForeignKeyConstraint constraintName="powtoon_external_video_sys_file_id_fk"
+                                 baseTableName="powtoon_external_video"
                                  baseColumnNames="sys_file_id" referencedTableName="sys_file" referencedColumnNames="id"
                                  onUpdate="CASCADE"/>
         <addUniqueConstraint
@@ -278,13 +285,11 @@
             SELECT content_group_channel.channel_id::integer, pc.create_user_id,
                    content_group_channel.content_group_id,
                    is_subscribed
-            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id,
-                          gc_access.id as content_group_id,
-                         false        AS is_subscribed
+            FROM (SELECT json_array_elements_text(channel_json)::integer AS channel_id, gc_access.id as content_group_id,
+                         false AS is_subscribed
                   FROM gc_access
                   UNION
-                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id,
-                          gc_access.id,
+                  SELECT json_array_elements_text(subscribe_json)::integer AS channel_id, gc_access.id,
                          true AS is_subscribed
                   FROM gc_access) AS content_group_channel
                      JOIN pt_channel pc ON content_group_channel.channel_id = pc.id
@@ -353,7 +358,8 @@
             -- delete videos that are not referenced neither from the channel or course
             DELETE
             FROM gc_video
-            WHERE origin_channel_id IS NULL AND origin_course_id IS NULL;
+            WHERE origin_channel_id IS NULL
+              AND origin_course_id IS NULL;
 
             ALTER TABLE gc_video
                 ADD CONSTRAINT chk_origin_channel_id_origin_course_id CHECK ((origin_channel_id IS NULL) &lt;&gt; (origin_course_id IS NULL));
@@ -369,13 +375,14 @@
     <changeSet id="migrate-content-id-for-video-action-table" author="vprokh">
         <sql>
             UPDATE gc_user_video_action
-            SET content_id = gc_video.id
-                FROM gc_video
+            SET content_id = gc_video.id FROM gc_video
             WHERE gc_video.file_id = gc_user_video_action.file_id;
 
             -- delete actions that refer to not-existing videos
-            DELETE FROM gc_user_video_action
-            WHERE content_id IS NULL AND video_id IS NULL;
+            DELETE
+            FROM gc_user_video_action
+            WHERE content_id IS NULL
+              AND video_id IS NULL;
 
             UPDATE gc_user_video_action
             SET content_id = video_id
@@ -389,7 +396,7 @@
     </changeSet>
 
     <changeSet id="update-if-private-name" author="vprokh">
-        <renameColumn tableName="gc_user_save_folder" oldColumnName="if_private" newColumnName="is_private" />
+        <renameColumn tableName="gc_user_save_folder" oldColumnName="if_private" newColumnName="is_private"/>
     </changeSet>
 
     <changeSet id="update-is-private-type" author="vprokh">
@@ -471,7 +478,8 @@
     <changeSet id="create-unavailable-video-random-feature-toggle" author="vprokh">
         <insert tableName="feature_toggle">
             <column name="name" value="unavailableVideoRandomEnabled"/>
-            <column name="description" value="Feature toggle for enabling or disabling randomizing logic for unavailable video"/>
+            <column name="description"
+                    value="Feature toggle for enabling or disabling randomizing logic for unavailable video"/>
             <column name="value" value="false"/>
         </insert>
     </changeSet>
@@ -487,10 +495,10 @@
     <changeSet id="create-portal-user-table" author="vprokh">
         <createTable tableName="portal_user" schemaName="arena_hub">
             <column name="user_id" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="master_id" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="role" type="varchar">
                 <constraints nullable="false"/>
@@ -513,5 +521,64 @@
 
         <addPrimaryKey constraintName="portal_user_pk" columnNames="user_id, master_id"
                        tableName="portal_user"/>
+    </changeSet>
+    <changeSet id="update-sys-role-mapping" author="vprokh">
+        <update tableName="sys_role">
+            <column name="role_key" value="orgAdmin"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'admin'</where>
+        </update>
+        <update tableName="sys_role">
+            <column name="role_key" value="admin"/>
+            <column name="role_name" value="admin"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'teamAdmin'</where>
+        </update>
+        <update tableName="sys_role">
+            <column name="role_name" value="member"/>
+            <column name="update_time" value="now()"/>
+            <where>role_key = 'member'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-course-private-availability-type" author="vprokkh">
+        <update tableName="gc_subject">
+            <column name="available_type" value="0"/>
+            <where>available_type = 4</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="remove-user-license-table" author="vprokh">
+        <dropTable tableName="user_license"/>
+    </changeSet>
+
+    <changeSet id="populate-org-license-limit-table" author="vprokh">
+        <delete tableName="org_license_limit"/>
+
+        <sql>
+            INSERT INTO org_license_limit (master_id, published_channel_limit, published_playlist_limit)
+            SELECT id, 1, 1
+            FROM gc_master;
+        </sql>
+    </changeSet>
+
+    <changeSet id="create-tags-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="tagsEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling tags on FE"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="add-on-delete-constraint-for-channel-content" author="vprokh">
+        <dropForeignKeyConstraint baseTableName="pt_channel_content" constraintName="pt_channel_content_gc_video_id_fk" />
+        <dropForeignKeyConstraint baseTableName="gc_user_save_content" constraintName="gc_user_save_content_gc_video_id_fk" />
+
+        <addForeignKeyConstraint baseTableName="pt_channel_content" baseColumnNames="content_id"
+                                 constraintName="pt_channel_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="gc_user_save_content" baseColumnNames="content_id"
+                                 constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 </databaseChangeLog>

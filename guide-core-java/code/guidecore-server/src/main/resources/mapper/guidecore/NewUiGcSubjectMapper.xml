@@ -136,12 +136,12 @@
 		<if test="userId != null and userId !='' and gvgFlag == null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
-			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		</if>
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
 		left join gc_subject sub1 on sub1.fid = s.id
@@ -178,7 +178,7 @@
 				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
 					#{subjectId}
 				</foreach>
-				or s.available_type = 3)
+				or s.available_type = 1)
 			</if>
 			<if test="subjectName != null and subjectName != ''">
 				AND (S.name LIKE CONCAT( CONCAT( '%', #{subjectName}), '%' )
@@ -280,12 +280,12 @@
 		<if test="userId != null and userId !='' and gvgFlag == null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID and ua.master_id = #{masterId}
-			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		</if>
 		<if test="userId != null and userId !='' and gvgFlag != null">
 			LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 			LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-			LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		</if>
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
 		left join gc_subject sub1 on sub1.fid = s.id
@@ -437,7 +437,7 @@
 		GC_SUBJECT S
 		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+		LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
 		LEFT JOIN gc_subject_tags tags ON tags.subject_id = s.id
 		AND (
@@ -451,7 +451,7 @@
 		and (tagass.close_subject::jsonb @> to_jsonb(s.id::integer)) is not true
 		AND s.state != 0
 		<if test="query.userId!=null">
-			AND "USER".id = #{query.userId}
+			AND "user".id = #{query.userId}
 		</if>
 		and tags."status" = 0
 		and (tagass."status" = 0 or tagass."status" is null)
@@ -569,7 +569,7 @@
 		GC_SUBJECT S
 		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.sub_permission::jsonb @> to_jsonb(S.ID::integer)
 		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_USER "USER" ON "USER".ID = UA.USER_ID
+		LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		LEFT JOIN gc_video v ON v.sub_id= s.id
 		left join sys_file f on v.file_id = f.id
 		<where>

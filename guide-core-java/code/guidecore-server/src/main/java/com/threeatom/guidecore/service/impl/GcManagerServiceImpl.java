@@ -7,18 +7,24 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.LevelType;
-import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcManager;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.GcManagerMapper;
-import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.utils.PasswordSecretUtil;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.mortbay.util.ajax.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,19 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager>
-        implements GcManagerService {
+@RequiredArgsConstructor
+public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager> implements GcManagerService {
 
     private static final String CACHE_TAG = "GcManager";
 
-    @Autowired private GcMasterService masterService;
-
-    @Autowired private GcAccessService accessService;
-
-    @Autowired GcUserAccessService userAccessService;
-    @Autowired GcAccessMapper accessMapper;
-    @Autowired
-    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    private final OrgLicenseLimitationService orgLicenseLimitationService;
+    private final GcUserAccessService userAccessService;
+    private final GcAccessMapper accessMapper;
+    private final GcMasterService masterService;
+    private final GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 
     @Override
     @Cacheable(value = CACHE_TAG, key = "'entity:'+#p0")
@@ -52,12 +55,10 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
 
     @Override
     @Transactional
-    public boolean createManager(
-            Integer sysId, String email, String password, String fName, String lName, String code) {
-        boolean flag;
+    public void createManager(
+        Integer sysId, String email, String password, String fName, String lName, String code) {
         try {
             GcManager manager = new GcManager();
-            GcAccess gcAccess = new GcAccess();
             manager.setSysId(sysId);
             manager.setFirstName(fName);
             manager.setLastName(lName);
@@ -69,9 +70,9 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
             manager.setPassword(pwdHash);
             this.save(manager);
 
-            if (code != null && !code.equals("")) { // 注册码注册方式
+            if (StringUtils.isNotBlank(code)) {
 
-                QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
+                QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("code", code);
                 GcAccess accessCode = accessMapper.selectOne(queryWrapper);
 
@@ -109,12 +110,12 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                 manager.setMasterId(master.getId());
             }
 
-            flag = this.updateById(manager);
+            this.updateById(manager);
+
+            orgLicenseLimitationService.save(manager.getMasterId());
         } catch (DuplicateKeyException ex) {
             throw new SystemException(I18NUtil.get("guidecore.master.register.mulReg"));
         }
-
-        return flag;
     }
 
     @Transactional

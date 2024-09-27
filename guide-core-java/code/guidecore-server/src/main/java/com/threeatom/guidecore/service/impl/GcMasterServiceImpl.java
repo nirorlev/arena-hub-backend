@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.*;
@@ -16,6 +17,7 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +56,8 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
     @Autowired @Lazy private NewUiGcSubjectService newUiGcSubjectService;
 
     @Autowired private UnavailableVideoService unavailableVideoService;
+    @Autowired private PortalUserService portalUserService;
+    @Autowired private AuthorizationService authorizationService;
 
     private static final String CACHE_TAG = "GcMaster";
 
@@ -120,14 +124,14 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Override
     public Message getContentFromOneFolder(
-            @RequestBody GcUserSaveFolder gcUserSaveFolder,
+            @RequestBody GcUserSaveFolder playlist,
             GcUser user,
             HttpServletRequest request,
             Integer envFlag) {
         Message m = new Message();
         Map<String, Object> params = new HashMap<>();
         List<GcSubject> twoList = new ArrayList<>();
-        List<SysFile> fileList = new ArrayList<>();
+        int masterId = request.getIntHeader("masterId");
 
         try {
             Integer userId = null;
@@ -135,21 +139,25 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                 userId = user.getId();
                 params.put("userId", userId);
             }
-            gcUserSaveFolder = gcUserSaveFolderService.getById(gcUserSaveFolder.getId());
+
+            PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
+            playlist = gcUserSaveFolderService.getById(playlist.getId());
+            playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
+
             GcUserSaveContent content = new GcUserSaveContent();
             if (Objects.nonNull(user)) {
                 content =
                         new GcUserSaveContent(
-                                user.getId(), gcUserSaveFolder.getMasterId(), gcUserSaveFolder.getId());
+                                user.getId(), playlist.getMasterId(), playlist.getId());
             } else {
                 content =
-                        new GcUserSaveContent(null, gcUserSaveFolder.getMasterId(), gcUserSaveFolder.getId());
+                        new GcUserSaveContent(null, playlist.getMasterId(), playlist.getId());
             }
-            m.addData("gcUserSaveFolder", gcUserSaveFolder);
-            m.addData("id", gcUserSaveFolder.getId());
-            m.addData("name", gcUserSaveFolder.getName());
+            m.addData("gcUserSaveFolder", playlist);
+            m.addData("id", playlist.getId());
+            m.addData("name", playlist.getName());
             if (envFlag.equals(EnvType.PT.getCode())) {
-                GcUserSaveFolder saveFolder = gcUserSaveFolderService.getById(gcUserSaveFolder.getId());
+                GcUserSaveFolder saveFolder = gcUserSaveFolderService.getById(playlist.getId());
                 GcUser folderUser = gcUserService.getById(saveFolder.getUserId());
                 GcUserInfo gcUserInfo = gcUserInfoService.getById(folderUser.getInfoId());
                 gcUserInfo.setUserId(folderUser.getId());
@@ -185,36 +193,34 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             List<GcUserSaveContent> list =
                     gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
             List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
-            if (CollectionUtils.isNotEmpty(contentIds)) {
-                List<Integer> fileIds = gcVideoService.listByIds(contentIds).stream()
-                    .map(GcVideo::getFileId)
-                    .collect(Collectors.toList());
+            List<GcVideo> videos = gcVideoService.findByVideoIds(contentIds);
+            Map<Integer, GcVideo> fileIdToVideo = videos.stream().collect(Collectors.toMap(GcVideo::getFileId, Function.identity()));
+            List<SysFile> videoFiles = videos.stream().map(GcVideo::getVideoFile).collect(Collectors.toList());
 
-                fileList = sysFileService.listByIds(fileIds);
-
-                for (GcUserSaveContent userSaveContent : list) {
-                    for (SysFile file : fileList) {
-                        if (userSaveContent.getFileId().equals(file.getId())) {
-                            file.setContentId(userSaveContent.getId());
-                            file.setVideoId(userSaveContent.getContentId());
-                            file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
-                            file.setLikeNum(gcUserVideoActionService.countLikeForVideo(userSaveContent.getContentId()));
-                            gcVideoService.updateVideoFilePrivacy(file);
-                        }
+            for (GcUserSaveContent userSaveContent : list) {
+                for (SysFile file : videoFiles) {
+                    if (userSaveContent.getFileId().equals(file.getId())) {
+                        file.setContentId(userSaveContent.getId());
+                        file.setVideoId(userSaveContent.getContentId());
+                        file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
+                        file.setLikeNum(gcUserVideoActionService.countLikeForVideo(userSaveContent.getContentId()));
+                        gcVideoService.updateVideoFilePrivacy(file, fileIdToVideo.get(file.getId()));
                     }
                 }
-                m.addData("firstVideoId", contentIds.stream().findFirst());
             }
+            m.addData("firstVideoId", contentIds.stream().findFirst());
+
             int followFlag = TableConstant.COMMON_ZERO;
             if (CollectionUtils.isNotEmpty(list) && envFlag.equals(EnvType.PT.getCode())) {
                 m.addData("videoNum", list.size());
             }
+
             if (Objects.nonNull(user)) {
                 List<Integer> follows =
                         gcUserSaveContentFollowService.selectFollowPlayList(
-                                user.getId(), request.getIntHeader("masterId"));
+                                user.getId(), masterId);
                 if (CollectionUtils.isNotEmpty(follows)) {
-                    if (follows.contains(gcUserSaveFolder.getId())) {
+                    if (follows.contains(playlist.getId())) {
                         followFlag = TableConstant.COMMON_ONE;
                     } else {
                         followFlag = TableConstant.COMMON_ZERO;
@@ -224,7 +230,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             }
             if (CollectionUtils.isNotEmpty(list)) {
                 List<GcUserVideoAction> gcVideos = gcUserVideoActionService.countLikeForFiles(contentIds);
-                for (SysFile file : fileList) {
+                for (SysFile file : videoFiles) {
                     for (GcUserVideoAction gcUserVideoAction : gcVideos) {
                         if (file.getId().equals(gcUserVideoAction.getContentId())) {
                             file.setLikeNum(gcUserVideoAction.getVideoLikeNum());
@@ -234,9 +240,14 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
                     file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
                 }
             }
-            PageInfo<SysFile> pageInfo = new PageInfo<>(fileList);
-            unavailableVideoService.nullifyVideoData(fileList);
-            m.addData("videoList", pageInfo);
+
+            unavailableVideoService.nullifyVideoData(portalUser, videos);
+            videos.forEach(video -> {
+                Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
+                video.setPermissions(permissions);
+                video.getVideoFile().setPermissions(permissions);
+            });
+            m.addData("videoList", new PageInfo<>(videoFiles));
         } catch (Exception e) {
             e.printStackTrace();
             return new Message().error(e.getMessage());

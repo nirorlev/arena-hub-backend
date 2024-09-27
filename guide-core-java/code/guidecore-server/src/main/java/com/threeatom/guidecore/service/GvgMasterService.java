@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
+import com.threeatom.guidecore.dto.request.SearchDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -17,28 +18,14 @@ public interface GvgMasterService extends IService<GcMaster> {
     // 复用 gc的接口
 
     Message portalInfosUnlogin(
-            JSONObject requestParams,
-            HttpServletRequest request,
-            SysSystem system,
-            GcUser user,
-            Integer envFlag);
+        JSONObject requestParams,
+        GcUser user, HttpServletRequest request);
 
     Message newPtIndexHome(
-            JSONObject requestParams, HttpServletRequest request, SysSystem system, GcUser user);
+            JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser);
 
     Message search(
-            Map<String, Object> params,
-            HttpServletRequest request,
-            GcUser user,
-            SysSystem system,
-            Integer envFlag);
-
-    Message searchResultPt(
-            Map<String, Object> params,
-            HttpServletRequest request,
-            GcUser user,
-            SysSystem system,
-            Integer envFlag);
+        SearchDto searchDto, HttpServletRequest request, GcUser user, SysSystem system);
 
     Message index(
             Map<String, Object> params,

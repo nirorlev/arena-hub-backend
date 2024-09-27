@@ -2,7 +2,10 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
@@ -27,26 +30,36 @@ public class ChannelController {
 
     private final GcUserService userService;
     private final PtChannelService channelService;
+    private final PortalUserService portalUserService;
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
     public List<ChannelDto> getOwned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return channelService.getOwnerChannels(userService.getCurrentUser(request), masterId, request);
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return channelService.getOwnedChannels(portalUser, request);
     }
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of channels subscribed by the current user")
     public List<ChannelDto> getSubscribedChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return channelService.getSubscribedChannels(userService.getCurrentUser(request), masterId, request);
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return channelService.getSubscribedChannels(portalUser, request);
     }
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of channels discoverable by the current user")
     public List<ChannelDto> getDiscoverableChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return channelService.getDiscoverableChannels(userService.getCurrentUser(request), masterId, request);
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return channelService.getDiscoverableChannels(portalUser, request);
     }
 
     @PostMapping("/sections/order")

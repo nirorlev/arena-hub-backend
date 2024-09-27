@@ -309,8 +309,7 @@ public class NewUIUserController extends GuideCoreController {
             throws Exception {
         GcManager gcManager = this.getManager();
         GcMaster master = this.getMaster();
-        GcUser user = userService.getUserByUserName(gcUser.getUsername());
-        if (null != user) throw new SystemException(I18NUtil.get("guidecore.email"));
+        userService.verifyUsernameNotExists(gcUser.getUsername(), I18NUtil.get("guidecore.email"));
         if (TableConstant.COMMON_ONE == gcManager.getSuperAdminFlag()) {
             return new Message()
                     .ok()
@@ -404,9 +403,7 @@ public class NewUIUserController extends GuideCoreController {
     public Message changeUserInfo(@RequestBody GcUserInfo info, HttpServletRequest request) {
         String username = info.getUsername();
         if (username != null) {
-            GcUser existEmailUser = gcUserService.getUserByUserName(username);
-            if (existEmailUser != null)
-                throw new SystemException(I18NUtil.get("guidecore.user.emailExist"));
+            gcUserService.verifyUsernameNotExists(username, I18NUtil.get("guidecore.user.emailExist"));
             GcUser user = this.getGcUser();
             user.setUsername(username);
             gcUserService.updateById(user);
@@ -420,13 +417,11 @@ public class NewUIUserController extends GuideCoreController {
 
     @ApiOperation(value = "在个人中心修改密码", httpMethod = "POST")
     @PostMapping("/changePassword")
-    public Message changePassword(@RequestBody JSONObject requestParams, HttpServletRequest request)
-            throws ClientException {
-        GcManager gcManager = this.getManager();
+    public Message changePassword(@RequestBody JSONObject requestParams) {
         GcUser user = this.getGcUser();
         String oldPassword = requestParams.getString("oldPassword");
         String newPassword = requestParams.getString("newPassword");
-        user = userService.getUserByUserName(user.getUsername());
+        user = userService.getUserByUsername(user.getUsername());
 
         gcUserService.checkGcUser(user.getUsername(), oldPassword);
 
