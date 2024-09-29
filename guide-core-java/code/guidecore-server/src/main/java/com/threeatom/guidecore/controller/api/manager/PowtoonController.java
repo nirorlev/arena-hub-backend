@@ -121,6 +121,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -129,7 +130,6 @@ import javax.validation.Valid;
 import lombok.SneakyThrows;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -313,7 +313,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		String token = request.getHeader("Authorization");
-		if (!"undefined".equals(token)) {
+		if (token != null && !"undefined".equals(token)) {
 			GcUser user = this.getGcUser();
 			return gvgMasterService.portalInfosUnlogin(requestParams, user, request)
 				.addData("times", new Date());
@@ -1058,30 +1058,34 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getAllGroup", httpMethod = "GET")
 	@PostMapping("/getAllGroup")
-	public Message getAllGroup(@RequestBody Map<String, Object> params,HttpServletRequest request) {
-		GcUser user = this.getGcUser();
-		Integer masterId = Integer.parseInt(request.getHeader("masterid"));
+	public Message getAllGroup(@RequestBody Map<String, Object> params, HttpServletRequest request) {
+		GcUser currentUser = this.getGcUser();
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 
-		params.put("masterId",masterId);
-		List<GcAccess> gcAccessList = accessService.listAllAccess(params, request);
-		params.put("userId",user.getId());
-		List<GcAccess> gcAccessList2 = accessService.listAllAccess(params,request);
+		params.put("masterId", masterId);
+		List<GcAccess> contentGroupByMasterId = accessService.listAllAccess(params, request);
+		params.put("userId", currentUser.getId());
+		List<GcAccess> contentGroupsByMasterAndUserId = accessService.listAllAccess(params, request);
 
-		PageInfo<GcAccess> accessList = new PageInfo<>(gcAccessList2);
-		Map<Integer,GcAccess> gcAccessMap = gcAccessList.stream().collect(Collectors.toMap(GcAccess::getId,GcAccess -> GcAccess, (key1, key2) -> key2, LinkedHashMap::new));
+		updateCourseWithUsers(contentGroupByMasterId, contentGroupsByMasterAndUserId, request);
 
-		accessList.getList().forEach(i->{
-			if (null!=gcAccessMap.get(i.getId())){
-				i.setUsers(gcAccessMap.get(i.getId()).getUsers());
+		return new Message().ok().addData("accessList", new PageInfo<>(contentGroupsByMasterAndUserId));
+	}
+
+	private void updateCourseWithUsers(List<GcAccess> contentGroupByMasterId,
+									   List<GcAccess> contentGroupsByMasterAndUserId, HttpServletRequest request) {
+		Map<Integer, GcAccess> idToContentGroupByMasterId = contentGroupByMasterId.stream()
+			.collect(Collectors.toMap(GcAccess::getId, Function.identity(), (key1, key2) -> key2, LinkedHashMap::new));
+
+		contentGroupsByMasterAndUserId.forEach(contentGroup -> {
+			if (idToContentGroupByMasterId.get(contentGroup.getId()) != null) {
+				contentGroup.setUsers(idToContentGroupByMasterId.get(contentGroup.getId()).getUsers());
 			}
-			if (null!=i.getUsers()){
-				i.getUsers().forEach(j->{
-					sysFileService.getResFullUrl(j.getInfo().getAvatarFile(), request);
-				});
+			if (contentGroup.getUsers() != null) {
+				contentGroup.getUsers().forEach(user -> sysFileService.getResFullUrl(user.getInfo().getAvatarFile(),
+					request));
 			}
 		});
-
-		return new Message().ok().addData("accessList",accessList);
 	}
 
 	@ApiOperation(value = "getCodeSubject", httpMethod = "GET")

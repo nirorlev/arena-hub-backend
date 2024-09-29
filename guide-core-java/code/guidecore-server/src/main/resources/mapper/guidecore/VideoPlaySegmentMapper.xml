@@ -37,7 +37,7 @@
     </select>
 
     <select id="getTrendVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) AS value
+        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / (#{filter.daysAmount})::double precision AS value
         FROM video_play_segment play_segment
             JOIN video_play_session play_session
                 ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
@@ -76,7 +76,7 @@
     </select>
 
     <select id="getAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(DISTINCT play_session.user_id)::double precision AS value
+        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(play_session.id)::double precision AS value
         FROM video_play_segment play_segment
             JOIN video_play_session play_session
                 ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
@@ -93,7 +93,7 @@
     </select>
 
     <select id="getTrendAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(DISTINCT play_session.user_id)::double precision AS value
+        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(play_session.id)::double precision AS value
         FROM video_play_segment play_segment
             JOIN video_play_session play_session
                 ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
