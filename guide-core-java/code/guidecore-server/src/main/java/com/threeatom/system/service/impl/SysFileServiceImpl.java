@@ -114,9 +114,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     private void updateVideoHostingStatus(SysFile sysFile, JSONObject videoData) {
         Integer hostingProvider = videoData.getInteger("hostingProvider");
-        if (EventUnifyType.powtoonPendingVideoFileTypes.contains(sysFile.getFileTypeIndex())
-            && EventUnifyType.powtoonReadyVideoFileTypes.contains(hostingProvider)
-        ) {
+        if (hostingProvider != null && hostingProvider != sysFile.getFileTypeIndex()){
             sysFile.setFileTypeIndex(hostingProvider);
             sysFileService.updateById(sysFile);
         }
