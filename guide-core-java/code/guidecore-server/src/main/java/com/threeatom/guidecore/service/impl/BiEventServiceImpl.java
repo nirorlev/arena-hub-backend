@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.dto.request.BiEventDto;
+import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.enums.BiEventAction;
 import com.threeatom.guidecore.service.BiEventService;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +15,14 @@ public class BiEventServiceImpl implements BiEventService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void publishEvent(BiEventAction action, Integer userId) {
-        eventPublisher.publishEvent(biEvent(action, userId));
+    public void publishEvent(BiEventAction action, GcUser user) {
+        eventPublisher.publishEvent(biEvent(action, user));
     }
 
-    private BiEventDto biEvent(BiEventAction action, Integer userId) {
+    private BiEventDto biEvent(BiEventAction action, GcUser user) {
         return BiEventDto.builder()
-            .userId(userId)
+            .userId(user.getId())
+            .value(user.getUsername())
             .action(action)
             .build();
     }

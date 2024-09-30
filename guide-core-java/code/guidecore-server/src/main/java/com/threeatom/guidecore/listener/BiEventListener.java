@@ -22,7 +22,7 @@ public class BiEventListener {
         , "c", biEventDto -> biEventDto.getAction().name()
         , "a", biEventDto -> biEventDto.getAction().name()
         , "l", biEventDto -> biEventDto.getAction().getLabel()
-        , "v", biEventDto -> biEventDto.getAction().name()
+        , "v", BiEventDto::getValue
     );
 
     private final BiServiceClient biServiceClient;

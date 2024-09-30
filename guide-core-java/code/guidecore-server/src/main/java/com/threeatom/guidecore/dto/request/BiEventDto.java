@@ -10,5 +10,6 @@ import lombok.ToString;
 @Getter
 public class BiEventDto {
     private Integer userId;
+    private String value;
     private BiEventAction action;
 }
