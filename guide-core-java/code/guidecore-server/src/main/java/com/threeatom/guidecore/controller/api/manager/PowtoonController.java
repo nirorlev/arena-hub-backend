@@ -62,6 +62,7 @@ import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
+import com.threeatom.guidecore.service.BiEventService;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -287,7 +288,7 @@ public class PowtoonController extends GuideCoreController {
 	@Autowired
 	private PortalUserService portalUserService;
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private BiEventService biEventService;
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
@@ -1784,9 +1785,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
-				eventPublisher.publishEvent(BiEventDto.builder()
-					.action(BiEventAction.LOGIN)
-					.userId(user.getId()).build());
+				biEventService.publishEvent(BiEventAction.LOGIN, user.getId());
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}
