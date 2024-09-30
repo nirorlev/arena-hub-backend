@@ -27,6 +27,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.AuthTokenDto;
+import com.threeatom.guidecore.dto.request.BiEventDto;
 import com.threeatom.guidecore.dto.request.SearchDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
@@ -133,6 +134,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -283,7 +285,8 @@ public class PowtoonController extends GuideCoreController {
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
 	private PortalUserService portalUserService;
-
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
@@ -1780,6 +1783,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
+				eventPublisher.publishEvent(BiEventDto.builder().userId(user.getId()).build());
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}

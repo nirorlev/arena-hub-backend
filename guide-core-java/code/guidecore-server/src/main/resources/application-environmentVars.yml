@@ -90,3 +90,7 @@ metaurl:
   channel: "channel"
   playlist: "playlist"
   playlistVideo: "playlist-video"
+
+bi:
+  service:
+    host: ${BI_EVENT_HOST}

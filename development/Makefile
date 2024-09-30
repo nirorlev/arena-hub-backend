@@ -17,6 +17,7 @@ export AWS_S3_BUCKET=bucket name
 export AWS_S3_REGION=eu-west-2
 export GUIDE_USER_STORE_DOMAIN=stage.store.demoguide.xyz
 export AWS_IAM_ROLE=iam role
+export BI_EVENT_HOST=https://example.com
 
 # Paths
 PROJECT_PATH := ../guide-core-java/code/guidecore-server
