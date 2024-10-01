@@ -17,8 +17,6 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.ApiOperation;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +79,6 @@ public class SysFIleController extends GuideCoreController {
             String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
             sysFile.setThumbNailUrl(fileKey);
         }
-        updateVideoName(sysFile);
 
         if (!sysFileService.saveOrUpdate(sysFile)) {
             return new Message().error("Save failed");
@@ -96,14 +93,6 @@ public class SysFIleController extends GuideCoreController {
         tagsService.updateTags(master.getId(), sysFile.getId(), sysFile.getCourseTags());
 
         return new Message().ok().addData("file", sysFile);
-    }
-
-    private void updateVideoName(SysFile sysFile) {
-        String name = sysFile.getOriginFileName() == null
-                ? URLDecoder.decode(sysFile.getName(), StandardCharsets.UTF_8)
-                : sysFile.getOriginFileName();
-
-        sysFile.setName(name);
     }
 
     private void updateFileUrls(SysFile sysFile, HttpServletRequest request) {
