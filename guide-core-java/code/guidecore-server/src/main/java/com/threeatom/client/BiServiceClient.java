@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@FeignClient(name = "bi-service", url = "${bi.service.host}")
+@FeignClient(name = "bi-service", url = "${bi.tracking.host}")
 public interface BiServiceClient {
 
     @GetMapping("/event.gif")

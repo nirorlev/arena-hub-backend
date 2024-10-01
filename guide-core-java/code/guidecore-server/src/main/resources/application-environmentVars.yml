@@ -92,5 +92,5 @@ metaurl:
   playlistVideo: "playlist-video"
 
 bi:
-  service:
-    host: ${BI_EVENT_HOST}
+  tracking:
+    host: ${BI_TRACKING_HOST}
