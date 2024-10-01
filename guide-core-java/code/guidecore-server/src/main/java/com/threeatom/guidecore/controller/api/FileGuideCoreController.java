@@ -342,7 +342,7 @@ public class FileGuideCoreController extends GuideCoreController {
 
     @SneakyThrows
     @PostMapping("/awsUploadSignUrl")
-    public Message awsUploadSignUrl(@RequestBody JSONObject jsonParams, HttpServletRequest request) {
+    public Message awsUploadSignUrl(@RequestBody JSONObject jsonParams) {
         String key = jsonParams.getString("S3ObjectKey");
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         String signedUrl = awsS3StorageService.generateSignedUrl(key);
