@@ -581,4 +581,7 @@
                                  constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+    <changeSet id="decode-video-name" author="vprokh">
+        <customChange class="com.arena.hub.migration.DecodeVideoNameMigration" />
+    </changeSet>
 </databaseChangeLog>

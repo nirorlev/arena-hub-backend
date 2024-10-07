@@ -28,9 +28,11 @@ import com.threeatom.guidecore.entity.PtChannel;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @Primary
 @RequiredArgsConstructor
@@ -48,40 +50,51 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     public boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser) {
         PermitChannel permitChannel = authorizationItemService.create(channel);
         PermitUser permitUser = authorizationItemService.create(portalUser);
-        return channelAuthorizationService.checkPermissions(permitUser, ChannelAction.valueOf(action.name()),
+        boolean result = channelAuthorizationService.checkPermissions(permitUser, ChannelAction.valueOf(action.name()),
             permitChannel);
+        logPermissionResult(permitChannel.getId(), permitChannel.getType(), permitUser.getId(), action, result);
+        return result;
     }
 
     @Override
     public boolean checkAccess(GcVideo video, PermitAction action, PortalUser portalUser) {
         PermitVideoItem permitVideo = authorizationItemService.create(video);
         PermitUser permitUser = authorizationItemService.create(portalUser);
-        return videoItemAuthorizationService.checkPermissions(permitUser, VideoItemAction.valueOf(action.name()),
-            permitVideo);
+        boolean result = videoItemAuthorizationService.checkPermissions(
+            permitUser, VideoItemAction.valueOf(action.name()), permitVideo);
+        logPermissionResult(permitVideo.getId(), permitVideo.getType(), permitUser.getId(), action, result);
+        return result;
     }
 
     @Override
     public boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser) {
         PermitCourse permitCourse = authorizationItemService.create(course);
         PermitUser permitUser = authorizationItemService.create(portalUser);
-        return courseAuthorizationService.checkPermissions(permitUser, CourseAction.valueOf(action.name()),
-            permitCourse);
+        boolean result = courseAuthorizationService.checkPermissions(
+            permitUser, CourseAction.valueOf(action.name()), permitCourse);
+        logPermissionResult(permitCourse.getId(), permitCourse.getType(), permitUser.getId(), action, result);
+        return result;
     }
 
     @Override
     public boolean checkAccess(GcAccess contentGroup, PermitAction action, PortalUser portalUser) {
         PermitContentGroup permitContentGroup = authorizationItemService.create(contentGroup);
         PermitUser permitUser = authorizationItemService.create(portalUser);
-        return contentGroupAuthorizationService.checkPermissions(permitUser, ContentGroupAction.valueOf(action.name()),
-            permitContentGroup);
+        boolean result = contentGroupAuthorizationService.checkPermissions(
+            permitUser, ContentGroupAction.valueOf(action.name()), permitContentGroup);
+        logPermissionResult(
+            permitContentGroup.getId(), permitContentGroup.getType(), permitUser.getId(), action, result);
+        return result;
     }
 
     @Override
     public boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser) {
         PermitPlaylist permitPlaylist = authorizationItemService.create(playlist);
         PermitUser permitUser = authorizationItemService.create(portalUser);
-        return playlistAuthorizationService.checkPermissions(permitUser, PlaylistAction.valueOf(action.name()),
-            permitPlaylist);
+        boolean result = playlistAuthorizationService.checkPermissions(
+            permitUser, PlaylistAction.valueOf(action.name()), permitPlaylist);
+        logPermissionResult(permitPlaylist.getId(), permitPlaylist.getType(), permitUser.getId(), action, result);
+        return result;
     }
 
     @Override
@@ -117,5 +130,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private <T> Map<String, Boolean> convertKeysToString(Map<T, Boolean> permissions) {
         return permissions.entrySet().stream()
             .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
+    }
+
+    private void logPermissionResult(
+        String resourceId, String resourceType, String permitUserId, PermitAction action, boolean result) {
+
+        String resultFormatted = result ? "ALLOW" : "DENY";
+        log.info("[PERMISSION]: {} {} {}({}) User({})"
+            , resultFormatted, action, resourceType, resourceId, permitUserId);
     }
 }
