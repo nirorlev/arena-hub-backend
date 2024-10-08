@@ -23,12 +23,19 @@ public class EventUnifyType {
     public static final int POWTOON_KALTURA_FILE_TYPE_INDEX = 16;
     public static final int GOOGLE_DRIVE_FILE_TYPE_INDEX = 18;
     public static final int POWTOON_MUX_FILE_TYPE_INDEX = 20;
+    public static final int POWTOON_PENDING_FILE_TYPE_INDEX = 21;
 
     public static final String JSON_STR012346 = "[0,1,2,3,4,6]";
     public static final String JSON_STR012345 = "[0,1,2,3,4,5]";
     public static final String NOT_QUESTION_012346 = "0,1,2,3,4,6";
 
     public static final List<Integer> powtoonVideoFileTypes = List.of(
+        POWTOON_KALTURA_FILE_TYPE_INDEX, POWTOON_MUX_FILE_TYPE_INDEX, POWTOON_PENDING_FILE_TYPE_INDEX);
+
+    public static final List<Integer> powtoonPendingVideoFileTypes = List.of(
+        POWTOON_PENDING_FILE_TYPE_INDEX);
+    
+    public static final List<Integer> powtoonReadyVideoFileTypes = List.of(
         POWTOON_KALTURA_FILE_TYPE_INDEX, POWTOON_MUX_FILE_TYPE_INDEX);
 
     public static final List<Integer> VIDEO_TYPES =
@@ -42,6 +49,7 @@ public class EventUnifyType {
                 this.add(WISTIA_FILE_TYPE_INDEX);
                 this.add(POWTOON_KALTURA_FILE_TYPE_INDEX);
                 this.add(POWTOON_MUX_FILE_TYPE_INDEX);
+                this.add(POWTOON_PENDING_FILE_TYPE_INDEX);
                 this.add(GOOGLE_DRIVE_FILE_TYPE_INDEX);
             }
         };
@@ -66,6 +74,7 @@ public class EventUnifyType {
                 this.add(WISTIA_FILE_TYPE_INDEX);
                 this.add(POWTOON_KALTURA_FILE_TYPE_INDEX);
                 this.add(POWTOON_MUX_FILE_TYPE_INDEX);
+                this.add(POWTOON_PENDING_FILE_TYPE_INDEX);
                 this.add(GOOGLE_DRIVE_FILE_TYPE_INDEX);
             }
         };

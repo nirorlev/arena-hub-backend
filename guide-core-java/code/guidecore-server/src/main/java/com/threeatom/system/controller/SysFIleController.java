@@ -43,7 +43,6 @@ public class SysFIleController extends GuideCoreController {
     @PostMapping("/saveLink")
     public Message saveLink(@RequestBody SysFile sysFile, HttpServletRequest request) {
         if (sysFile.getId() == null) {
-            ApiAssert.notNull(sysFile.getFileUrl());
             ApiAssert.ifStringInList(
                     sysFile.getFileType(), TableConstant.sysFile_fileType_list, "The fileType field is incorrect. Please confirm with the backend staff");
         }
