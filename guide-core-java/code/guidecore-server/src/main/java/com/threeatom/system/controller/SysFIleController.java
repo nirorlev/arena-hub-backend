@@ -75,8 +75,7 @@ public class SysFIleController extends GuideCoreController {
 
         Integer fileTypeIndex = sysFile.getFileTypeIndex();
         if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
-            String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
-            sysFile.setThumbNailUrl(fileKey);
+            sysFileService.uploadThumbnailToS3(sysFile, master.getId(), user.getId());
         }
 
         if (!sysFileService.saveOrUpdate(sysFile)) {

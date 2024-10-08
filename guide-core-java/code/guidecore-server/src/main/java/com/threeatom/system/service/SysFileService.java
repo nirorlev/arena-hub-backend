@@ -97,5 +97,7 @@ public interface SysFileService extends IService<SysFile> {
 
     void updateImageUrls(GcSubject channel, HttpServletRequest request);
 
+    void uploadThumbnailToS3(SysFile sysFile, Integer masterId, Integer userId);
+
     SysFile getVideoFile(GcVideo video, HttpServletRequest request);
 }
