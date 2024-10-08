@@ -77,8 +77,11 @@
 
     <appender name="logzio" class="io.logz.logback.LogzioLogbackAppender">
         <token>${LOGZIO_TOKEN}</token>
-        <logzioUrl>${LOGZIO_URL}</logzioUrl> <!-- Change based on your region -->
+        <logzioUrl>${LOGZIO_URL}</logzioUrl>
         <logzioType>arena</logzioType>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
     </appender>
     
     <!-- 控制台默认全局输出日志级别 -->
