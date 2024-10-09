@@ -22,7 +22,7 @@ definitions:
           - maven
         #   - docker
         script:
-          - export IMAGE_TAG=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
+          - export ARENA_BACKEND_VERSION=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
           - cd ./guide-core-java/code/guidecore-migration
           - mvn package
           - cd ./../guidecore-server
@@ -30,7 +30,7 @@ definitions:
           - cd ../
           - |- 
             echo '{ "backend": "'${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7}'" }' > guidecore-server/target/version.json
-          - docker build -t arena/api:$IMAGE_TAG .
+          - docker build --tag arena/api:$ARENA_BACKEND_VERSION --build-arg ARENA_BACKEND_VERSION=${ARENA_BACKEND_VERSION} .
           # Use the pipe to push the image to AWS ECR
           # https://bitbucket.org/atlassian/aws-ecr-push-image/src/master/
           - pipe: atlassian/aws-ecr-push-image:2.4.2
