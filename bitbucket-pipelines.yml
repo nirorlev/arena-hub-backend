@@ -29,7 +29,7 @@ definitions:
           - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
           - cd ../
           - |- 
-            echo '{ "backend": "'${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7}'" }' > guidecore-server/target/version.json
+            echo '{ "backend": "'${ARENA_BACKEND_VERSION}'" }' > guidecore-server/target/version.json
           - docker build --tag arena/api:$ARENA_BACKEND_VERSION --build-arg ARENA_BACKEND_VERSION=${ARENA_BACKEND_VERSION} .
           # Use the pipe to push the image to AWS ECR
           # https://bitbucket.org/atlassian/aws-ecr-push-image/src/master/
