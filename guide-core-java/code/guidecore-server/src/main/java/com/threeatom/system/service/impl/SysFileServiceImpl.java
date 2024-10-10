@@ -104,10 +104,19 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         try {
             JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
-            return Optional.of(videoData.getString("playerUrl"));
+            updateVideoHostingStatus(sysFile, videoData);
+            return Optional.ofNullable(videoData.getString("url"));
         } catch (SystemException e) {
             LOGGER.error("Failed to get video player URL from external video", e);
             return Optional.empty();
+        }
+    }
+
+    private void updateVideoHostingStatus(SysFile sysFile, JSONObject videoData) {
+        Integer hostingProvider = videoData.getInteger("hostingProvider");
+        if (hostingProvider != null && hostingProvider != sysFile.getFileTypeIndex()){
+            sysFile.setFileTypeIndex(hostingProvider);
+            sysFileService.updateById(sysFile);
         }
     }
 
