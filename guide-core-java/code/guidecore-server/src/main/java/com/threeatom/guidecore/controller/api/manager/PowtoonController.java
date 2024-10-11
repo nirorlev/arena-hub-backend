@@ -56,10 +56,12 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.BiEventAction;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
+import com.threeatom.guidecore.service.BiEventService;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -283,7 +285,8 @@ public class PowtoonController extends GuideCoreController {
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
 	private PortalUserService portalUserService;
-
+	@Autowired
+	private BiEventService biEventService;
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
@@ -1766,7 +1769,8 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@PostMapping("/getToken")
-	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto, HttpServletRequest response, HttpServletRequest request)
+	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
+							HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1775,11 +1779,12 @@ public class PowtoonController extends GuideCoreController {
 			final String code = authTokenDto.getCode();
 
 			if (code != null) {
-				PowtoonAuthDto authInfo = getAuth(code, response.getHeader("redirectUri"), loginConfig);
+				PowtoonAuthDto authInfo = getAuth(code, request.getHeader("redirectUri"), loginConfig);
 				GcUser user = gcUserService.syncPowtoonUser(authInfo.getAccessToken(), loginConfig, masterId);
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
+				biEventService.publishEvent(BiEventAction.LOGIN);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}
