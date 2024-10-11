@@ -96,9 +96,6 @@ public class GcUser implements Serializable {
     private String ptEmail; // pt用户邮箱
 
     @TableField(exist = false)
-    private String ptId; // pt用户Id
-
-    @TableField(exist = false)
     private List<GcAccess> accessList;
 
     @TableField(exist = false)

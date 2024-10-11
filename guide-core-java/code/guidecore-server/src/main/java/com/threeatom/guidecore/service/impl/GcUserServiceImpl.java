@@ -233,7 +233,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         updateUser(user, powtoonUserInfo);
         updateUserInfo(user, powtoonUserInfo, masterId);
 
-        return enrichtUserWithData(powtoonUserInfo, getUserByIdCache(user.getId()));
+        return enrichUserWithData(powtoonUserInfo, getUserByIdCache(user.getId()));
     }
 
     private void updateUserInfo(GcUser user, PowtoonUserDto powtoonUserInfo, Integer masterId) {
@@ -302,15 +302,12 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return file;
     }
 
-    private GcUser enrichtUserWithData(PowtoonUserDto userInfo, GcUser user) {
+    private GcUser enrichUserWithData(PowtoonUserDto userInfo, GcUser user) {
         if (null != userInfo.getProfile().getThumbUrl()) {
             user.setThumbUrl(userInfo.getProfile().getThumbUrl());
         }
         if (null != userInfo.getProfile().getEmail()) {
             user.setPtEmail(userInfo.getProfile().getEmail());
-        }
-        if (null != userInfo.getProfile().getId()) {
-            user.setPtId(userInfo.getProfile().getId().toString());
         }
 
         return user;
