@@ -104,6 +104,7 @@ public class PtChannelContentServiceImpl
             content.setVideoFile(videoFile);
             videoService.getVideoContent(content.getFileId())
                 .ifPresent(videoContent -> {
+                    videoFile.setVideoId(videoContent.getId());
                     content.getVideoFile().setPermissions(authorizationService.listPermissions(videoContent, portalUser));
                     content.setContentId(videoContent.getId());
                 });
