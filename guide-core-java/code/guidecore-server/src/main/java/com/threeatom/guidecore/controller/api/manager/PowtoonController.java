@@ -2884,7 +2884,7 @@ public class PowtoonController extends GuideCoreController {
 
 		for (PtChannelContent channelContent : ptChannelContent) {
 			channelContent.getCourseTags().forEach(tag -> tagsList.add(createTag(channelContent, tag, masterId)));
-			updateVideoFileUrls(request, channelContent, sysFileList);
+			updateVideoFileUrls(request, channelContent);
 		}
 		ptTagsService.saveOrUpdateBatch(tagsList);
 		return message.ok("success").addData("contentList", ptChannelContent);
@@ -2901,20 +2901,18 @@ public class PowtoonController extends GuideCoreController {
 		return newTags;
 	}
 
-	private void updateVideoFileUrls(HttpServletRequest request, PtChannelContent channelContent, List<SysFile> sysFileList) {
-		for (SysFile sysFile : sysFileList) {
-			if (sysFile.getId().equals(channelContent.getFileId())) {
-				String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-				sysFile.setFullFileUrl(fullFileUrl);
-				sysFile.setSnapshotUrl(snapShotUrl);
-				sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
-				channelContent.setVideoFile(sysFile);
-			}
-			if (null != sysFile.getGcUser().getAvatarFileId()) {
-				SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
-				sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
-			}
+	private void updateVideoFileUrls(HttpServletRequest request, PtChannelContent channelContent) {
+		SysFile sysFile = channelContent.getVideoFile();
+		String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+		sysFile.setFullFileUrl(fullFileUrl);
+		sysFile.setSnapshotUrl(snapShotUrl);
+		sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
+		channelContent.setVideoFile(sysFile);
+
+		if (null != sysFile.getGcUser().getAvatarFileId()) {
+			SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+			sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
 		}
 	}
 

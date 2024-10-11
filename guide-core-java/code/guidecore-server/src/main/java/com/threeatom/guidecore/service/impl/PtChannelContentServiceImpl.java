@@ -12,7 +12,10 @@ import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.system.entity.SysFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -90,7 +93,11 @@ public class PtChannelContentServiceImpl
         updateBatchById(existingChannelContents);
         videoService.saveChannelContent(newChannelContent, sysFileList, channelId);
 
+        Map<Integer, SysFile> videoFileIdToFile = sysFileList.stream()
+            .collect(Collectors.toMap(SysFile::getId, Function.identity()));
+
         for (PtChannelContent content : newChannelContent) {
+            content.setVideoFile(videoFileIdToFile.get(content.getFileId()));
             videoService.getVideoContent(content.getFileId())
                 .ifPresent(videoContent -> content.setContentId(videoContent.getId()));
         }
