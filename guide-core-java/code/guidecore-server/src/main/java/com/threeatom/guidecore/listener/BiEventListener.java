@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.listener;
 
+import com.alibaba.fastjson.JSONObject;
 import com.threeatom.client.BiServiceClient;
 import com.threeatom.guidecore.dto.request.BiEventDto;
 import java.util.Map;
@@ -17,12 +18,13 @@ import org.springframework.stereotype.Component;
 public class BiEventListener {
 
     private static final Map<String, Function<BiEventDto, Object>> PAYLOAD = Map.of(
-        "u", BiEventDto::getUserId
-        , "i", BiEventDto::getUserId
-        , "c", biEventDto -> biEventDto.getAction().name()
-        , "a", biEventDto -> biEventDto.getAction().name()
-        , "l", biEventDto -> biEventDto.getAction().getLabel()
-        , "v", BiEventDto::getValue
+        "u", BiEventDto::getPowtoonUserId
+        , "i", BiEventDto::getVisitorId
+        , "c", event -> event.getAction().getCategory().getValue()
+        , "a", event -> event.getAction().getAction()
+        , "l", event -> event.getAction().getLabel()
+        , "v", event -> event.getAction().getValue()
+        , "d", event -> JSONObject.toJSONString(event.getAdditionalData())
     );
 
     private final BiServiceClient biServiceClient;
@@ -41,6 +43,6 @@ public class BiEventListener {
 
     private Map<String, Object> payload(BiEventDto event) {
         return PAYLOAD.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().apply(event)));
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().apply(event)));
     }
 }

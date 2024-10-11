@@ -115,6 +115,7 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -139,6 +140,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -1771,7 +1773,10 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@PostMapping("/getToken")
-	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto, HttpServletRequest response, HttpServletRequest request)
+	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
+							@CookieValue(value = "visitorid", defaultValue = "") String visitorId,
+							HttpServletRequest response,
+							HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1785,7 +1790,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
-				biEventService.publishEvent(BiEventAction.LOGIN, user);
+				biEventService.publishEvent(BiEventAction.LOGIN, user, visitorId);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}

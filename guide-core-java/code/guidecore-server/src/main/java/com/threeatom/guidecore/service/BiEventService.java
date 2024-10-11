@@ -4,5 +4,5 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.enums.BiEventAction;
 
 public interface BiEventService {
-    void publishEvent(BiEventAction action, GcUser user);
+    void publishEvent(BiEventAction action, GcUser user, String visitorId);
 }

@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.dto.request;
 
 import com.threeatom.guidecore.enums.BiEventAction;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -9,7 +10,8 @@ import lombok.ToString;
 @Builder
 @Getter
 public class BiEventDto {
-    private Integer userId;
-    private String value;
+    private Integer powtoonUserId;
+    private String visitorId;
+    private Map<String, String> additionalData;
     private BiEventAction action;
 }
