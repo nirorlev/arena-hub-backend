@@ -1787,7 +1787,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
-				biEventService.publishEvent(BiEvent.LOGIN, user, visitorId);
+				biEventService.publishEvent(BiEvent.LOGIN);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}
