@@ -22,13 +22,18 @@ public class BiEventServiceImpl implements BiEventService {
 
     @Override
     public void publishEvent(BiEventAction event) {
-        Optional<HttpServletRequest> servletRequest = RequestUtil.extractCurrentRequest();
-        servletRequest.ifPresent(request -> {
-            GcUser currentUser = userService.getCurrentUser(request);
-            String visitorId = RequestUtil.getCookieValue(request, "visitorid").orElse(null);
+        Optional<HttpServletRequest> servletRequestOptional = RequestUtil.extractCurrentRequest();
 
-            eventPublisher.publishEvent(biEvent(event, currentUser, visitorId));
-        });
+        if (servletRequestOptional.isEmpty()) {
+            eventPublisher.publishEvent(biEvent(event, null, null));
+            return;
+        }
+
+        HttpServletRequest servletRequest = servletRequestOptional.get();
+        GcUser currentUser = userService.getCurrentUser(servletRequest);
+        String visitorId = RequestUtil.getCookieValue(servletRequest, "visitorid").orElse(null);
+
+        eventPublisher.publishEvent(biEvent(event, currentUser, visitorId));
     }
 
     private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId, Map<String, String> additionalData) {
