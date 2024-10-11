@@ -24,7 +24,6 @@ import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
-import com.threeatom.guidecore.service.PtChannelSubscribeService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -231,9 +230,13 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         if (null == user) {
             return createGcUser(powtoonUserInfo, studentAccess, masterId);
         }
-        user.setPtUser(TableConstant.COMMON_ONE);
-        updateById(user);
+        updateUser(user, powtoonUserInfo);
+        updateUserInfo(user, powtoonUserInfo, masterId);
 
+        return enrichtUserWithData(powtoonUserInfo, getUserByIdCache(user.getId()));
+    }
+
+    private void updateUserInfo(GcUser user, PowtoonUserDto powtoonUserInfo, Integer masterId) {
         GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
         gcUserInfo.setFirstName(powtoonUserInfo.getProfile().getFirstName());
         gcUserInfo.setLastName(powtoonUserInfo.getProfile().getLastName());
@@ -249,7 +252,12 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         }
 
         infoService.updateById(gcUserInfo);
-        return updateUser(powtoonUserInfo, getUserByIdCache(user.getId()));
+    }
+
+    private void updateUser(GcUser user, PowtoonUserDto powtoonUserInfo) {
+        user.setPtUser(TableConstant.COMMON_ONE);
+        user.setPowtoonUserId(powtoonUserInfo.getProfile().getId());
+        updateById(user);
     }
 
     private GcUser createGcUser(PowtoonUserDto userInfo, GcAccess studentAccess, Integer masterId)
@@ -261,6 +269,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         user.setPtUser(TableConstant.COMMON_ONE);
         user.setFirstName(userInfo.getProfile().getFirstName());
         user.setLastName(userInfo.getProfile().getLastName());
+        user.setPowtoonUserId(userInfo.getProfile().getId());
 
         SysFile file = createAvatarFile(user.getId(), userInfo.getProfile().getThumbUrl(), masterId);
 
@@ -293,7 +302,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return file;
     }
 
-    private GcUser updateUser(PowtoonUserDto userInfo, GcUser user) {
+    private GcUser enrichtUserWithData(PowtoonUserDto userInfo, GcUser user) {
         if (null != userInfo.getProfile().getThumbUrl()) {
             user.setThumbUrl(userInfo.getProfile().getThumbUrl());
         }

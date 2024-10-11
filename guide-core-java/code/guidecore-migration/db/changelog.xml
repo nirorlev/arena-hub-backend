@@ -601,4 +601,10 @@
                                  baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id"
                                  onUpdate="CASCADE" onDelete="CASCADE" />
     </changeSet>
+
+    <changeSet id="add-powtoon-user-id" author="vprokh">
+        <addColumn tableName="gc_user" schemaName="arena_hub">
+            <column name="powtoon_user_id" type="integer"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -44,6 +44,8 @@ public class GcUser implements Serializable {
     @ApiModelProperty(value = "用户信息表ID")
     private Integer infoId;
 
+    private Integer powtoonUserId;
+
     @TableField(exist = false)
     private GcUserInfo info;
 

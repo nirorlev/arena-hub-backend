@@ -16,6 +16,7 @@
         <result property="logInTime" column="log_in_time"/>
         <result property="lastName" column="lastName"/>
         <result property="firstName" column="firstName"/>
+        <result property="powtoonUserId" column="powtoon_user_id"/>
 
         <association property="info" column="id" javaType="GcUserInfo">
             <id property="id" column="info_id"/>
@@ -70,7 +71,7 @@
     </resultMap>
 
     <sql id="baseColumn">
-        u.id , u.sys_id,u.pid, u.state, u.username, ui.avatar_file_id as avatarFileId ,u.update_time, u.create_time
+        u.id , u.sys_id,u.pid, u.state, u.username, u.powtoon_user_id, ui.avatar_file_id as avatarFileId ,u.update_time, u.create_time
     </sql>
 
     <sql id="infoBaseColumn">
