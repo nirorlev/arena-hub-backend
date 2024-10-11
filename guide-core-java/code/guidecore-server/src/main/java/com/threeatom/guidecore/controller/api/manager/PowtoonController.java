@@ -27,7 +27,6 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.AuthTokenDto;
-import com.threeatom.guidecore.dto.request.BiEventDto;
 import com.threeatom.guidecore.dto.request.SearchDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
@@ -57,7 +56,7 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
-import com.threeatom.guidecore.enums.BiEventAction;
+import com.threeatom.guidecore.enums.BiEvent;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
@@ -115,7 +114,6 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -137,7 +135,6 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -1790,7 +1787,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
-				biEventService.publishEvent(BiEventAction.LOGIN, user, visitorId);
+				biEventService.publishEvent(BiEvent.LOGIN, user, visitorId);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}
