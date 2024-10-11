@@ -56,7 +56,7 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
-import com.threeatom.guidecore.enums.BiEvent;
+import com.threeatom.guidecore.enums.BiEventAction;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
@@ -1784,7 +1784,7 @@ public class PowtoonController extends GuideCoreController {
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
-				biEventService.publishEvent(BiEvent.LOGIN);
+				biEventService.publishEvent(BiEventAction.LOGIN);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}

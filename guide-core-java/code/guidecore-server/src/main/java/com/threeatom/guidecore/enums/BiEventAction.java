@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum BiEvent {
+public enum BiEventAction {
     LOGIN("login", "account", 290301, BiEventCategory.BACKEND_USER_EVENT);
 
     private final String action;

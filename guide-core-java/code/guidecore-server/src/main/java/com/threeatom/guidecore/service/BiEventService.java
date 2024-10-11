@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.service;
 
-import com.threeatom.guidecore.enums.BiEvent;
+import com.threeatom.guidecore.enums.BiEventAction;
 
 public interface BiEventService {
-    void publishEvent(BiEvent event);
+    void publishEvent(BiEventAction event);
 }

@@ -1,8 +1,8 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.threeatom.guidecore.dto.request.BiEventDto;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.enums.BiEvent;
+import com.threeatom.guidecore.enums.BiEventAction;
+import com.threeatom.guidecore.event.BiEvent;
 import com.threeatom.guidecore.service.BiEventService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -21,7 +21,7 @@ public class BiEventServiceImpl implements BiEventService {
     private final GcUserService userService;
 
     @Override
-    public void publishEvent(BiEvent event) {
+    public void publishEvent(BiEventAction event) {
         Optional<HttpServletRequest> servletRequest = RequestUtil.extractCurrentRequest();
         servletRequest.ifPresent(request -> {
             GcUser currentUser = userService.getCurrentUser(request);
@@ -31,17 +31,15 @@ public class BiEventServiceImpl implements BiEventService {
         });
     }
 
-    private BiEventDto biEvent(BiEvent event, GcUser user, String visitorId,
-                               Map<String, String> additionalData) {
-        return BiEventDto.builder()
-            .powtoonUserId(user.getPowtoonUserId())
-            .visitorId(visitorId)
-            .action(event)
-            .additionalData(additionalData)
-            .build();
+    private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId, Map<String, String> additionalData) {
+        BiEvent biEvent = new BiEvent(this, event);
+        biEvent.setPowtoonUserId(user.getPowtoonUserId());
+        biEvent.setVisitorId(visitorId);
+        biEvent.setAdditionalData(additionalData);
+        return biEvent;
     }
 
-    private BiEventDto biEvent(BiEvent event, GcUser user, String visitorId) {
+    private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId) {
         return biEvent(event, user, visitorId, Map.of());
     }
 }
