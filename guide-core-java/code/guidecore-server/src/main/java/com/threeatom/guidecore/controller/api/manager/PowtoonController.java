@@ -137,7 +137,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -1771,8 +1770,6 @@ public class PowtoonController extends GuideCoreController {
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@PostMapping("/getToken")
 	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
-							@CookieValue(value = "visitorid", defaultValue = "") String visitorId,
-							HttpServletRequest response,
 							HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
@@ -1782,7 +1779,7 @@ public class PowtoonController extends GuideCoreController {
 			final String code = authTokenDto.getCode();
 
 			if (code != null) {
-				PowtoonAuthDto authInfo = getAuth(code, response.getHeader("redirectUri"), loginConfig);
+				PowtoonAuthDto authInfo = getAuth(code, request.getHeader("redirectUri"), loginConfig);
 				GcUser user = gcUserService.syncPowtoonUser(authInfo.getAccessToken(), loginConfig, masterId);
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
