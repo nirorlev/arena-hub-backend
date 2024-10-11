@@ -3,8 +3,10 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.mapper.PtchannelContentMapper;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -29,6 +31,7 @@ public class PtChannelContentServiceImpl
     implements PtChannelContentService {
 
     private final GcVideoService videoService;
+    private final AuthorizationService authorizationService;
 
     public Boolean changeContentOrder(List<Integer> contentIds) {
         List<PtChannelContent> ptChannelContents = new ArrayList<>();
@@ -71,7 +74,7 @@ public class PtChannelContentServiceImpl
     @Override
     @Transactional
     public void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList,
-                                           Integer channelId) {
+                                           Integer channelId, PortalUser portalUser) {
         if (CollectionUtils.isEmpty(ptChannelContent)) {
             log.error("Channel content list cannot be empty");
             throw new IllegalArgumentException("Channel content list cannot be empty");
@@ -97,9 +100,13 @@ public class PtChannelContentServiceImpl
             .collect(Collectors.toMap(SysFile::getId, Function.identity()));
 
         for (PtChannelContent content : newChannelContent) {
-            content.setVideoFile(videoFileIdToFile.get(content.getFileId()));
+            SysFile videoFile = videoFileIdToFile.get(content.getFileId());
+            content.setVideoFile(videoFile);
             videoService.getVideoContent(content.getFileId())
-                .ifPresent(videoContent -> content.setContentId(videoContent.getId()));
+                .ifPresent(videoContent -> {
+                    content.getVideoFile().setPermissions(authorizationService.listPermissions(videoContent, portalUser));
+                    content.setContentId(videoContent.getId());
+                });
         }
 
         this.saveOrUpdateBatch(newChannelContent);

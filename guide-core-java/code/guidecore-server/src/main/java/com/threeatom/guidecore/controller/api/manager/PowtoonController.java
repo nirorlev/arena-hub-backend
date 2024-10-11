@@ -2880,7 +2880,7 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelId);
+		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelId, portalUser);
 
 		for (PtChannelContent channelContent : ptChannelContent) {
 			channelContent.getCourseTags().forEach(tag -> tagsList.add(createTag(channelContent, tag, masterId)));
