@@ -109,12 +109,12 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         }
 
         JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+        sysFile.setFileUrl(videoData.getString("url"));
+
         Integer currentHostingProvider = videoData.getInteger("hostingProvider");
         Integer storedHostingProvider = sysFile.getFileTypeIndex();
         String currentVersion = videoData.getJSONObject("source").getString("version");
         String storedVersion = externalVideo.getVersion();
-        sysFile.setFileUrl(videoData.getString("url"));
-
         if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
             sysFileService.updateById(sysFile);
             return;
@@ -126,8 +126,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
         sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
         uploadThumbnailToS3(sysFile, masterId, userId);
-        sysFileService.updateById(sysFile);
         externalVideo.setVersion(currentVersion);
+
+        sysFileService.updateById(sysFile);
         powtoonExternalVideoService.updateById(externalVideo);
     }
 
