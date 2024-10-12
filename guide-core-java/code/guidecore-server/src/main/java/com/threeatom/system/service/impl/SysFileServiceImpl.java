@@ -97,35 +97,36 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return this.sysFileMapper.selectById(id);
     }
 
-    private String getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
+    @Override
+    public void updateVideoInformation(SysFile sysFile, Integer masterId, Integer userId) {
+        if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+            return;
+        }
+
         PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
         if (externalVideo == null) {
             throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
         }
-        JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
-        updateVideoInformation(sysFile, externalVideo, videoData);
-        return videoData.getString("url");
-    }
 
-    private void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo externalVideo, JSONObject videoData) {
+        JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
         Integer currentHostingProvider = videoData.getInteger("hostingProvider");
         Integer storedHostingProvider = sysFile.getFileTypeIndex();
         String currentVersion = videoData.getJSONObject("source").getString("version");
         String storedVersion = externalVideo.getVersion();
+        sysFile.setFileUrl(videoData.getString("url"));
+
         if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
+            sysFileService.updateById(sysFile);
             return;
         }
-       
+
         sysFile.setFileTypeIndex(currentHostingProvider);
         sysFile.setName(videoData.getString("title"));
         sysFile.setDescription(videoData.getString("description"));
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
         sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
-        Integer masterId = sysFile.getMasterId();
-        Integer userId = sysFile.getGcUser().getId();
         uploadThumbnailToS3(sysFile, masterId, userId);
         sysFileService.updateById(sysFile);
-
         externalVideo.setVersion(currentVersion);
         powtoonExternalVideoService.updateById(externalVideo);
     }
@@ -678,9 +679,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
-        if (EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
-            return getVideoPlayerUrlFromExternalVideo(sysFile);
-        }
         return getResFullUrl(sysFile, request);
     }
 
