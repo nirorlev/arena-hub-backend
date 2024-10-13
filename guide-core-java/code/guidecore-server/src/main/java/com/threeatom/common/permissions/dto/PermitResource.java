@@ -1,6 +1,7 @@
 package com.threeatom.common.permissions.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.threeatom.guidecore.constant.AuthorisationResourceType;
 import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +12,7 @@ public abstract class PermitResource {
     private String id;
 
     @JsonIgnore
-    abstract public String getType();
+    abstract public AuthorisationResourceType getType();
 
     @JsonIgnore
     public HashMap<String, Object> getAttributes() {

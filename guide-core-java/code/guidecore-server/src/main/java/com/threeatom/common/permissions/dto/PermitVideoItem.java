@@ -1,6 +1,6 @@
 package com.threeatom.common.permissions.dto;
 
-import com.threeatom.guidecore.constant.ResourceType;
+import com.threeatom.guidecore.constant.AuthorisationResourceType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +9,7 @@ import lombok.Setter;
 public class PermitVideoItem extends PermitContentItem {
 
     @Override
-    public String getType() {
-        return ResourceType.videoItem;
+    public AuthorisationResourceType getType() {
+        return AuthorisationResourceType.VIDEO_ITEM;
     }
 }
