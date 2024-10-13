@@ -1,7 +1,7 @@
 package com.threeatom.common.permissions.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.threeatom.guidecore.constant.AuthorizationResourceType;
+import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;

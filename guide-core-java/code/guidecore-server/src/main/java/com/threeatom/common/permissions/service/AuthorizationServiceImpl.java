@@ -18,7 +18,7 @@ import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationSer
 import com.threeatom.common.permissions.service.impl.auth.PlaylistAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.PortalAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
-import com.threeatom.guidecore.constant.AuthorizationResourceType;
+import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;

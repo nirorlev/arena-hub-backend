@@ -1,4 +1,4 @@
-package com.threeatom.guidecore.constant;
+package com.threeatom.guidecore.enums;
 
 import lombok.AccessLevel;
 import lombok.Getter;
