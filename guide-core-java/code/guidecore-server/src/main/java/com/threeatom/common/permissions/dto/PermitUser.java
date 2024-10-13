@@ -1,5 +1,6 @@
 package com.threeatom.common.permissions.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Set;
 import lombok.Getter;
@@ -13,6 +14,7 @@ public class PermitUser {
     private Set<String> contentGroupIds;
     private Set<String> managedContentGroupIds;
 
+    @JsonIgnore
     public HashMap<String, Object> getAttributes() {
         HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("key", id);
