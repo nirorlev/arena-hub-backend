@@ -1,6 +1,6 @@
 package com.threeatom.common.permissions.dto;
 
-import com.threeatom.guidecore.constant.AuthorisationResourceType;
+import com.threeatom.guidecore.constant.AuthorizationResourceType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +9,7 @@ import lombok.Setter;
 public class PermitChannel extends PermitCollection {
 
     @Override
-    public AuthorisationResourceType getType() {
-        return AuthorisationResourceType.CHANNEL;
+    public AuthorizationResourceType getType() {
+        return AuthorizationResourceType.CHANNEL;
     }
 }

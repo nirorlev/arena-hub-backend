@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum AuthorisationResourceType {
+public enum AuthorizationResourceType {
     COURSE("Course"),
     VIDEO_ITEM("VideoItem"),
     PORTAL("Portal"),

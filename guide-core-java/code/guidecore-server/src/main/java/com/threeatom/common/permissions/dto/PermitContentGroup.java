@@ -1,6 +1,6 @@
 package com.threeatom.common.permissions.dto;
 
-import com.threeatom.guidecore.constant.AuthorisationResourceType;
+import com.threeatom.guidecore.constant.AuthorizationResourceType;
 import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class PermitContentGroup extends PermitResource {
     @Override
-    public AuthorisationResourceType getType() {
-        return AuthorisationResourceType.CONTENT_GROUP;
+    public AuthorizationResourceType getType() {
+        return AuthorizationResourceType.CONTENT_GROUP;
     }
 
     @Override
