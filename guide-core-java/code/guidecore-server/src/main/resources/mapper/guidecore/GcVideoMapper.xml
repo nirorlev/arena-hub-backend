@@ -920,4 +920,14 @@
             </foreach>
     </select>
 
+    <select id="getVideoIdsByChannelIds" resultType="integer">
+        select video.id
+        from gc_video video
+            join pt_channel_content channel_content on video.id = channel_content.content_id
+        where channel_content.channel_id in
+            <foreach collection="channelIds" item="channelId" separator="," open="(" close=")">
+                #{channelId}
+            </foreach>
+    </select>
+
 </mapper>
