@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EntityUpdatedListener {
+public class CacheEvictionHandler {
 
     private final CacheManager cacheManager;
     private final GcVideoService videoService;
@@ -54,7 +54,7 @@ public class EntityUpdatedListener {
         channelVideoIds.forEach(videoId -> evictCacheEntry(AuthorizationItemCacheName.VIDEO, videoId));
     }
 
-    public void evictCacheEntry(String cacheName, Object key) {
+    private void evictCacheEntry(String cacheName, Object key) {
         Cache cache = cacheManager.getCache(cacheName);
         if (cache != null) {
             cache.evict(key);
