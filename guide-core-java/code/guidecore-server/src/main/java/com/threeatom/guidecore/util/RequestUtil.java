@@ -29,7 +29,12 @@ public class RequestUtil {
     }
 
     public static Optional<String> getCookieValue(HttpServletRequest request, String cookieName) {
-        return Arrays.stream(request.getCookies())
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return Optional.empty();
+        }
+
+        return Arrays.stream(cookies)
             .filter(cookie -> cookie.getName().equals(cookieName))
             .map(Cookie::getValue)
             .findFirst();
