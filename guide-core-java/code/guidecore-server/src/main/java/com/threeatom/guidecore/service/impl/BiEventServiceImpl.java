@@ -4,7 +4,6 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.enums.BiEventAction;
 import com.threeatom.guidecore.event.BiEvent;
 import com.threeatom.guidecore.service.BiEventService;
-import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import java.util.Map;
 import java.util.Optional;
@@ -18,22 +17,20 @@ import org.springframework.stereotype.Service;
 public class BiEventServiceImpl implements BiEventService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final GcUserService userService;
 
     @Override
-    public void publishEvent(BiEventAction event) {
+    public void publishEvent(BiEventAction event, GcUser user) {
         Optional<HttpServletRequest> servletRequestOptional = RequestUtil.extractCurrentRequest();
 
         if (servletRequestOptional.isEmpty()) {
-            eventPublisher.publishEvent(biEvent(event, null, null));
+            eventPublisher.publishEvent(biEvent(event, user, null));
             return;
         }
 
         HttpServletRequest servletRequest = servletRequestOptional.get();
-        GcUser currentUser = userService.getCurrentUser(servletRequest);
         String visitorId = RequestUtil.getCookieValue(servletRequest, "visitorid").orElse(null);
 
-        eventPublisher.publishEvent(biEvent(event, currentUser, visitorId));
+        eventPublisher.publishEvent(biEvent(event, user, visitorId));
     }
 
     private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId, Map<String, String> additionalData) {
