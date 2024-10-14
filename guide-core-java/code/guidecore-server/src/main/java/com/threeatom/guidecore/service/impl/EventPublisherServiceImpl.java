@@ -9,6 +9,7 @@ import com.threeatom.guidecore.event.entity.CourseUpdatedEvent;
 import com.threeatom.guidecore.event.entity.UserUpdatedEvent;
 import com.threeatom.guidecore.event.entity.VideoItemUpdatedEvent;
 import com.threeatom.guidecore.service.EventPublisherService;
+import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import java.util.List;
 import java.util.Map;
@@ -23,20 +24,32 @@ import org.springframework.stereotype.Service;
 public class EventPublisherServiceImpl implements EventPublisherService {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final GcUserService userService;
 
     @Override
-    public void publishBiEvent(BiEventAction event, GcUser user) {
+    public void publishBiEvent(BiEventAction eventAction, GcUser user) {
         Optional<HttpServletRequest> servletRequestOptional = RequestUtil.extractCurrentRequest();
 
         if (servletRequestOptional.isEmpty()) {
-            eventPublisher.publishEvent(biEvent(event, user, null));
+            eventPublisher.publishEvent(biEvent(eventAction, user, null));
             return;
         }
 
-        HttpServletRequest servletRequest = servletRequestOptional.get();
-        String visitorId = RequestUtil.getCookieValue(servletRequest, "visitorid").orElse(null);
+        eventPublisher.publishEvent(biEvent(eventAction, user, getVisitorId(servletRequestOptional.get())));
+    }
 
-        eventPublisher.publishEvent(biEvent(event, user, visitorId));
+    @Override
+    public void publishBiEvent(BiEventAction eventAction) {
+        Optional<HttpServletRequest> servletRequestOptional = RequestUtil.extractCurrentRequest();
+
+        if (servletRequestOptional.isEmpty()) {
+            eventPublisher.publishEvent(biEvent(eventAction, null, null));
+            return;
+        }
+
+        BiEvent event = biEvent(eventAction, userService.getCurrentUser(
+            servletRequestOptional.get()), getVisitorId(servletRequestOptional.get()));
+        eventPublisher.publishEvent(event);
     }
 
     private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId, Map<String, String> additionalData) {
@@ -49,6 +62,10 @@ public class EventPublisherServiceImpl implements EventPublisherService {
 
     private BiEvent biEvent(BiEventAction event, GcUser user, String visitorId) {
         return biEvent(event, user, visitorId, Map.of());
+    }
+
+    private String getVisitorId(HttpServletRequest request) {
+        return RequestUtil.getCookieValue(request, "visitorid").orElse(null);
     }
 
     @Override
