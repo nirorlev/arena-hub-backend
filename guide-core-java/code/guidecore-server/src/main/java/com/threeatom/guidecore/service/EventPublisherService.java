@@ -7,6 +7,8 @@ import java.util.List;
 public interface EventPublisherService {
     void publishBiEvent(BiEventAction action, GcUser user);
 
+    void publishBiEvent(BiEventAction eventAction);
+
     void publishUserUpdated(Integer userId);
 
     void publishUserUpdated(List<Integer> userIds);
