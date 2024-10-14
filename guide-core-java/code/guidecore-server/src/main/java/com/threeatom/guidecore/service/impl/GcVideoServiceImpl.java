@@ -739,6 +739,15 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public List<Integer> getVideoIdsByChannelIds(List<Integer> channelIds) {
+		if (CollectionUtils.isEmpty(channelIds)) {
+			return List.of();
+		}
+
+		return this.baseMapper.getVideoIdsByChannelIds(channelIds);
+	}
+
+	@Override
 	public GcVideo findByVideoId(Integer videoId) {
 		return this.baseMapper.findByVideoIds(List.of(videoId)).get(0);
 	}
@@ -1240,7 +1249,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	public List<Integer> getVideoIdListBySubId(List<Integer> subId) {
-		if (TableConstant.COMMON_ZERO==subId.size()){
+		if (subId.isEmpty()){
 			return new ArrayList<>();
 		}
 		return this.baseMapper.getVideoIdListBySubId(subId);

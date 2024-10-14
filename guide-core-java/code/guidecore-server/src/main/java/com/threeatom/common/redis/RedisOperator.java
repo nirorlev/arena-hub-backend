@@ -1,33 +1,31 @@
 package com.threeatom.common.redis;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 @Component
+@RequiredArgsConstructor
 public class RedisOperator {
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    public RedisOperator() {
-    }
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public void del(String... key) {
         if (key != null && key.length > 0) {
             if (key.length == 1) {
                 this.redisTemplate.delete(key[0]);
             } else {
-                this.redisTemplate.delete(CollectionUtils.arrayToList(key));
+                this.redisTemplate.delete(Arrays.asList(key));
             }
         }
     }
 
     public void del(Set<String> keys) {
-        if (keys != null && keys.size() > 0) {
+        if (!CollectionUtils.isEmpty(keys)) {
             this.redisTemplate.delete(keys);
         }
     }
@@ -65,7 +63,7 @@ public class RedisOperator {
         return this.redisTemplate.opsForHash().get(key, item);
     }
 
-    public Set keys(String pattern) {
+    public Set<String> keys(String pattern) {
         return this.redisTemplate.keys(pattern);
     }
 
