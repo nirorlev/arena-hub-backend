@@ -14,7 +14,7 @@
 	    <result property="order" column="order"/>
 	    <result property="updateTime" column="update_time" />
 	    <result property="createTime" column="create_time" />
-		<result property="commentNums" column="comment_nums"/>
+		<result property="commentNum" column="comment_num"/>
 		<result property="topSubId" column="top_sub_id" />
         <result property="subjectName" column="subjectName" />
         <result property="topicName" column="topicName" />
@@ -828,6 +828,7 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
             pc.channel_slug               AS channel_channel_slug,
@@ -884,6 +885,7 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
             pc.channel_slug               AS channel_channel_slug,

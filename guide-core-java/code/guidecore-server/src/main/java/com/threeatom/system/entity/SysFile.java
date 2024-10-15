@@ -135,6 +135,9 @@ public class SysFile implements Serializable {
     @TableField(exist = false)
     private Boolean isPrivate = false;
 
+    @TableField(exist = false)
+    private Integer commentNumber;
+
     @JSONField(serialize = false)
     public String getIdToString() {
         return this.id.toString();
