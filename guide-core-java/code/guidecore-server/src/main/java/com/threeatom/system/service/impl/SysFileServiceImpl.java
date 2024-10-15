@@ -13,6 +13,7 @@ import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.service.AwsS3StorageService;
@@ -98,7 +99,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
-    public void updateVideoInformation(SysFile sysFile, Integer masterId, Integer userId) {
+    public void updateVideoInformation(SysFile sysFile, PortalUser portalUser) {
         if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
             return;
         }
@@ -125,7 +126,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         sysFile.setDescription(videoData.getString("description"));
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
         sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
-        uploadThumbnailToS3(sysFile, masterId, userId);
+        uploadThumbnailToS3(sysFile, portalUser);
         externalVideo.setVersion(currentVersion);
 
         sysFileService.updateById(sysFile);
@@ -713,8 +714,10 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
-    public void uploadThumbnailToS3 (SysFile sysFile, Integer masterId, Integer userId) {
+    public void uploadThumbnailToS3 (SysFile sysFile, PortalUser portalUser) {
         String thumbnailUrl = sysFile.getThumbNailUrl();
+        Integer masterId = portalUser.getMasterId();
+        Integer userId = portalUser.getUserId();
         String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, masterId, userId);
         sysFile.setThumbNailUrl(fileKey);
     }
