@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.AwsUploadSignUrlConfiguration;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.utils.FileUtil;
 import com.threeatom.utils.RandomUtils;
@@ -158,8 +159,10 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
     }
 
     @Override
-    public String uploadFileToS3(String fileUrl, Integer masterId, Integer userId) throws SystemException {
+    public String uploadFileToS3(String fileUrl, PortalUser portalUser) throws SystemException {
         byte[] fileData = retrieveFileFromUrl(fileUrl);
+        Integer masterId = portalUser.getMasterId();
+        Integer userId = portalUser.getUserId();
         String key = buildFileS3Key(fileUrl, masterId, userId);
         String signedUrl = generateSignedUrl(key);
         uploadFileToSignedUrl(fileData, signedUrl);

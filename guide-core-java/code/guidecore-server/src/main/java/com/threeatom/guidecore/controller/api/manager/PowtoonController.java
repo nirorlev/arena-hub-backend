@@ -3121,6 +3121,7 @@ public class PowtoonController extends GuideCoreController {
 	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser) {
 		Integer contentId = channelVideoContent.getId();
 		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
+		sysFileService.updateVideoInformation(videoFile, portalUser);
 		channelVideoContent.setVideoFile(videoFile);
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
 		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);

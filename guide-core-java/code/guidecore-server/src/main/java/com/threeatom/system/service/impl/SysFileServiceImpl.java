@@ -13,8 +13,10 @@ import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -78,6 +80,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     private AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
 
     @Autowired
+    private AwsS3StorageService awsS3StorageService;
+
+    @Autowired
     private RedisOperator redisOperator;
 
     @Autowired
@@ -93,31 +98,39 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return this.sysFileMapper.selectById(id);
     }
 
-    private Optional<String> getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
+    @Override
+    public void updateVideoInformation(SysFile sysFile, PortalUser portalUser) {
         if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
-            return Optional.empty();
+            return;
         }
+
         PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
         if (externalVideo == null) {
-            return Optional.empty();
+            throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
         }
 
-        try {
-            JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
-            updateVideoHostingStatus(sysFile, videoData);
-            return Optional.ofNullable(videoData.getString("url"));
-        } catch (SystemException e) {
-            LOGGER.error("Failed to get video player URL from external video", e);
-            return Optional.empty();
-        }
-    }
+        JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+        sysFile.setFileUrl(videoData.getString("url"));
 
-    private void updateVideoHostingStatus(SysFile sysFile, JSONObject videoData) {
-        Integer hostingProvider = videoData.getInteger("hostingProvider");
-        if (hostingProvider != null && hostingProvider != sysFile.getFileTypeIndex()){
-            sysFile.setFileTypeIndex(hostingProvider);
+        Integer currentHostingProvider = videoData.getInteger("hostingProvider");
+        Integer storedHostingProvider = sysFile.getFileTypeIndex();
+        String currentVersion = videoData.getJSONObject("source").getString("version");
+        String storedVersion = externalVideo.getVersion();
+        if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
             sysFileService.updateById(sysFile);
+            return;
         }
+
+        sysFile.setFileTypeIndex(currentHostingProvider);
+        sysFile.setName(videoData.getString("title"));
+        sysFile.setDescription(videoData.getString("description"));
+        sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
+        sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
+        uploadThumbnailToS3(sysFile, portalUser);
+        externalVideo.setVersion(currentVersion);
+
+        sysFileService.updateById(sysFile);
+        powtoonExternalVideoService.updateById(externalVideo);
     }
 
     private AliyunOssService getCurrentOssService(SysSystem sys) {
@@ -668,10 +681,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
-        Optional<String> playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
-        if (playerUrl.isPresent()) {
-            return playerUrl.get();
-        }
         return getResFullUrl(sysFile, request);
     }
 
@@ -702,6 +711,13 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         getResFullUrl(courseImage, request);
         getVideoSnapshotUrl(courseImage);
+    }
+
+    @Override
+    public void uploadThumbnailToS3 (SysFile sysFile, PortalUser portalUser) {
+        String thumbnailUrl = sysFile.getThumbNailUrl();
+        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, portalUser);
+        sysFile.setThumbNailUrl(fileKey);
     }
 
     @Override
