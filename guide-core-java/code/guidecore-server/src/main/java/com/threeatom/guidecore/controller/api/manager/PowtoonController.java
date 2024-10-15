@@ -2977,7 +2977,7 @@ public class PowtoonController extends GuideCoreController {
 		user.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(user);
 		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
-		SysFile videoFile = getFile(request, channelVideoContent, portalUser, masterId, user.getId());
+		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);
 		}else {
@@ -3093,7 +3093,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error("删除失败");
 	}
 
-	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser, Integer masterId, Integer userId) {
+	private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser) {
 		Integer contentId = channelVideoContent.getId();
 		SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
 		sysFileService.updateVideoInformation(videoFile, portalUser);
