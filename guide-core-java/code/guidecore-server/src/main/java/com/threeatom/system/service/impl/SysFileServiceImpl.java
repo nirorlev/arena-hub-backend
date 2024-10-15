@@ -716,9 +716,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Override
     public void uploadThumbnailToS3 (SysFile sysFile, PortalUser portalUser) {
         String thumbnailUrl = sysFile.getThumbNailUrl();
-        Integer masterId = portalUser.getMasterId();
-        Integer userId = portalUser.getUserId();
-        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, masterId, userId);
+        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, portalUser);
         sysFile.setThumbNailUrl(fileKey);
     }
 
