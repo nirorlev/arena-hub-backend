@@ -40,5 +40,5 @@ analytics:
 
 sentry:
   dsn: ${SENTRY_DSN}
-  environment: arena
+  environment: ${APP_ENV}
   release: ${ARENA_BACKEND_VERSION}
