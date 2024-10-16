@@ -990,17 +990,15 @@
                sf_pc_avatar.file_url                 as avatar_full_file_url,
                sf_img.file_url                       as img_full_file_url,
                pcs.update_time                       as subscription_time,
-               count(subscribe_pcs.id)               as subscribeNum
+               (SELECT COUNT(id) FROM pt_channel_subscribe WHERE channel_id = pc.id AND is_deleted = false) as subscribeNum
         FROM pt_channel_subscribe pcs
-                 JOIN pt_channel pc ON pc.id = pcs.channel_id AND pc.master_id = #{masterId} AND pc.visible_flag != 0
+                 JOIN pt_channel pc ON pc.id = pcs.channel_id AND pc.master_id = #{masterId}
                  JOIN gc_user gu ON pc.create_user_id = gu.id
                  JOIN gc_user_info gui ON gu.info_id = gui.id
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-                 LEFT JOIN pt_channel_subscribe subscribe_pcs ON pc.id = subscribe_pcs.channel_id AND subscribe_pcs.is_deleted = false
-        WHERE pcs.is_deleted = false AND pcs.user_id = #{userId}
-        GROUP BY pc.id, pcs.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
+        WHERE pcs.is_deleted = false AND pcs.user_id = #{userId} AND (pc.visible_flag IN (1, 2) OR pc.create_user_id = #{userId})
         ORDER BY pcs.update_time DESC;
     </select>
 
@@ -1024,7 +1022,7 @@
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-        WHERE pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
+        WHERE pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL AND pcs.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
     </select>
 </mapper>
