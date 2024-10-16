@@ -607,4 +607,12 @@
             <column name="powtoon_user_id" type="integer"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="create-channel-video-reordering-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="channelVideoReorderingEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling channel video reordering on FE"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
