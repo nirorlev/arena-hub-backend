@@ -484,41 +484,34 @@
 
     <select id="selectVideosInSection" resultMap="baseResultSysFileMap">
         SELECT
-        DISTINCT ON (file.id)
-        file.*,
-        video_content.id as video_id,
-        u.username as channel_create_user_username,
-        u.id as channel_create_uid,
-        info.last_name as createUserLastName,
-        info.first_name as createUserFirstName,
-        info.avatar_file_id as userInfo_avatar_file_id,
-        content.id AS ptChannelContentId
+            file.*,
+            video_content.id as video_id,
+            u.username as channel_create_user_username,
+            u.id as channel_create_uid,
+            info.last_name as createUserLastName,
+            info.first_name as createUserFirstName,
+            info.avatar_file_id as userInfo_avatar_file_id,
+            content.id AS ptChannelContentId
         FROM gc_video video_content
-        JOIN sys_file file ON video_content.file_id = file.id
-        right JOIN pt_channel_content content on content.content_id=video_content.id
-        right JOIN(
-        select channel.* from pt_channel channel
-        LEFT JOIN pt_channel section on section.fid = channel.id
-        where channel.id = #{sectionId}
-        <if test="level==0">
-            union
-            select section.* from pt_channel channel
-            LEFT JOIN pt_channel section on section.fid = channel.id
-            where section.fid = #{sectionId}
-        </if>
-        )channel on channel.id = content.channel_id
-        left join gc_user u on u.id = file.upload_uid
-        left join gc_user_info info on info.id = u.info_id
+            JOIN sys_file file ON video_content.file_id = file.id
+            JOIN pt_channel_content content on content.content_id=video_content.id
+            JOIN(
+                select channel.*
+                from pt_channel channel
+                where channel.id = #{sectionId}
+            ) channel on channel.id = content.channel_id
+            join gc_user u on u.id = file.upload_uid
+            join gc_user_info info on info.id = u.info_id
         WHERE file.id is not null
         <if test="searchName!=null">
             AND video_content.video_name LIKE concat('%',#{searchName},'%')
         </if>
         <choose>
             <when test="order!=null">
-                order by file.id, file.create_time ${order}
+                order by content.content_order ${order}, channel.update_time ${order}
             </when>
             <otherwise>
-                order by file.id asc, content.create_time asc
+                order by content.content_order, channel.update_time desc
             </otherwise>
         </choose>
     </select>
