@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.system.entity.SysFile;
@@ -23,4 +24,6 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
                                     PortalUser portalUser);
 
     Optional<PtChannelContent> getChannelContent(Integer contentId);
+
+    void updateContentOrder(IdsDto ids, Integer channelId, Integer masterId);
 }

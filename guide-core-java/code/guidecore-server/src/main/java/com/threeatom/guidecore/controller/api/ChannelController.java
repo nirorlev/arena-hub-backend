@@ -6,6 +6,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +33,7 @@ public class ChannelController {
     private final GcUserService userService;
     private final PtChannelService channelService;
     private final PortalUserService portalUserService;
+    private final PtChannelContentService channelContentService;
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
@@ -70,4 +73,12 @@ public class ChannelController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{channelId}/content/order")
+    @ApiOperation(value = "Update ordering of channel/section content", httpMethod = "POST")
+    public ResponseEntity<Void> updateContentOrder(
+        @PathVariable("channelId") Integer channelId, @RequestBody @Valid IdsDto contentIds, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        channelContentService.updateContentOrder(contentIds, channelId, masterId);
+        return ResponseEntity.ok().build();
+    }
 }
