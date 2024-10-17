@@ -2356,17 +2356,20 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		ptChannelService.populateCreatedUserId(channel, user);
-		PtChannel existingChannel = ptChannelService.getById(channel.getId());
-		if (channel.getVisibleFlag() != null && existingChannel != null && !channel.getVisibleFlag().equals(existingChannel.getVisibleFlag())) {
-			if (!authorizationService.checkAccess(channel, PermitAction.PUBLISH, portalUser)){
-				throw new PermitException("No permission to change channel visibility!");
-			}
-		}
 
 		boolean isAllowed;
 		if (null!=channel.getId()){
+			PtChannel existingChannel = ptChannelService.getById(channel.getId());
+			if (existingChannel == null) {
+				throw new SystemException("Channel doesn't exist.");
+			}
+			if (channel.getVisibleFlag() != null && !channel.getVisibleFlag().equals(existingChannel.getVisibleFlag())) {
+				if (!authorizationService.checkAccess(existingChannel, PermitAction.PUBLISH, portalUser)){
+					throw new PermitException("No permission to change channel visibility!");
+				}
+			}
+			isAllowed = authorizationService.checkAccess(existingChannel, PermitAction.EDIT, portalUser);
 			eventPublisherService.publishChannelUpdated(channel.getId());
-			isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
 		}else if (channel.isSection()){
 			isAllowed = authorizationService.checkAccess(channel, PermitAction.ADD_CONTENT, portalUser);
 		}else {
