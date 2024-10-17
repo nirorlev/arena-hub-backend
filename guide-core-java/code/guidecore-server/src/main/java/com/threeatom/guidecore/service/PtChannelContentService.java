@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface PtChannelContentService extends IService<PtChannelContent> {
 
-    Boolean changeContentOrder(List<Integer> contentIds);
-
     List<SysFile> selectVideosInChannel(
         Integer channelId, String order, Integer videoFileId, HttpServletRequest request, Integer userId);
 
@@ -20,7 +18,8 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
 
     List<PtChannelContent> selectContentExist(Integer channelId);
 
-    void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId,
+    void saveOrUpdateChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList,
+                                    Integer channelId,
                                     PortalUser portalUser);
 
     Optional<PtChannelContent> getChannelContent(Integer contentId);

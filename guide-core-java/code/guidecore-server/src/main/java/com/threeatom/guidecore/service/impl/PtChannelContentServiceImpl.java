@@ -37,19 +37,6 @@ public class PtChannelContentServiceImpl
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
 
-    public Boolean changeContentOrder(List<Integer> contentIds) {
-        List<PtChannelContent> ptChannelContents = new ArrayList<>();
-        Integer order = 0;
-        for (Integer id : contentIds) {
-            PtChannelContent ptChannelContent = new PtChannelContent();
-            ptChannelContent.setId(id);
-            ptChannelContent.setContentOrder(order);
-            order++;
-            ptChannelContents.add(ptChannelContent);
-        }
-        return this.updateBatchById(ptChannelContents);
-    }
-
     public Boolean deleteContent(Integer fileId, Integer channelId) {
         QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<PtChannelContent>();
         queryWrapper.eq("file_id", fileId);
@@ -109,7 +96,8 @@ public class PtChannelContentServiceImpl
             videoService.getVideoContent(content.getFileId())
                 .ifPresent(videoContent -> {
                     videoFile.setVideoId(videoContent.getId());
-                    content.getVideoFile().setPermissions(authorizationService.listPermissions(videoContent, portalUser));
+                    content.getVideoFile()
+                        .setPermissions(authorizationService.listPermissions(videoContent, portalUser));
                     content.setContentId(videoContent.getId());
                 });
         }
@@ -163,7 +151,8 @@ public class PtChannelContentServiceImpl
             }
 
             // If neither id is in the sortedIds list, compare their contentOrder
-            return Objects.compare(content1.getContentOrder(), content2.getContentOrder(), Comparator.nullsLast(Integer::compareTo));
+            return Objects.compare(content1.getContentOrder(), content2.getContentOrder(),
+                Comparator.nullsLast(Integer::compareTo));
         });
     }
 }
