@@ -184,6 +184,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
                 sysFile.setIsLiked(isLikedByUser(sysFile.getVideoId(), userId));
                 GcVideo video = videoService.getVideoContentByFileId(sysFile.getId());
+                sysFile.setCommentNumber(video.getCommentNum());
                 video.setVideoFile(sysFile);
                 videoService.updateVideoFilePrivacy(sysFile, video);
                 Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
