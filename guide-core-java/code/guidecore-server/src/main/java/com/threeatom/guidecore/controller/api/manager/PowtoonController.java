@@ -2356,13 +2356,14 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		ptChannelService.populateCreatedUserId(channel, user);
-		boolean isAllowed;
-		if (null!=channel.getVisibleFlag()) {
+		PtChannel existingChannel = ptChannelService.getById(channel.getId());
+		if (channel.getVisibleFlag() != null && existingChannel != null && !channel.getVisibleFlag().equals(existingChannel.getVisibleFlag())) {
 			if (!authorizationService.checkAccess(channel, PermitAction.PUBLISH, portalUser)){
 				throw new PermitException("No permission to change channel visibility!");
 			}
 		}
 
+		boolean isAllowed;
 		if (null!=channel.getId()){
 			eventPublisherService.publishChannelUpdated(channel.getId());
 			isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
