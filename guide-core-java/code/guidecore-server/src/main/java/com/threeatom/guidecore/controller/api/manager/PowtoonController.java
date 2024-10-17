@@ -2966,20 +2966,6 @@ public class PowtoonController extends GuideCoreController {
 		return new Message().error();
 	}
 
-	@ApiOperation(value = "channelContent修改视频顺序")
-	@PostMapping("/changeContentOrder")
-	public Message changeContentOrder(@RequestBody List<Integer> contentIds,HttpServletRequest request) {
-		Message message = new Message();
-		if(CollectionUtils.isEmpty(contentIds)){
-			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
-		}
-		if(ptChannelContentService.changeContentOrder(contentIds)){
-			return message.ok("success");
-		}else {
-			return message.error();
-		}
-	}
-
 	@ApiOperation(value = "Video details page")
 	@PostMapping("/contentVideoDetail")
 	public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) {
