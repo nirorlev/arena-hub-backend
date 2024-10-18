@@ -2984,18 +2984,18 @@ public class PowtoonController extends GuideCoreController {
 			throw new PermitException("No permission for this!");
 		}
 
-		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
+		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
 		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
 		GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
 		if (null!=gcUserInfo.getAvatarFileId()) {
 			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
 			sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(),request);
 		}
-
-		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
+		
 		channelCreator.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(channelCreator);
 		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
+		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);
 		}else {
