@@ -2985,14 +2985,14 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
-		GcUserInfo gcUserInfo = gcUserInfoService.getById(creatorUser.getInfoId());
+		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
+		GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
 		if (null!=gcUserInfo.getAvatarFileId()) {
 			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
 			sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(),request);
 		}
 
 		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
-		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
 		channelCreator.setInfo(gcUserInfo);
 		ptchannel.setCreateUser(channelCreator);
 		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
