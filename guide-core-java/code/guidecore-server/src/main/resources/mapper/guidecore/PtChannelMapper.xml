@@ -565,6 +565,7 @@
             and ch.create_user_id = #{userId}
         </if>
         and ch.master_id = #{masterId}
+        and ch.visible_flag != 0
         and ch.level = 0
         group by ch.id, u.id, info.id, tags.id
         order by ch.create_time desc
