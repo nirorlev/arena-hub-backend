@@ -2,8 +2,10 @@ package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
@@ -179,6 +181,21 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return videoViewersDto;
     }
 
+    @Override
+    public AnalyticsResponseDto<Double, Double> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
+                                                                             Integer masterId) {
+        List<DbAnalyticsResultViewPerSecondDto> viewPerSecondAnalytics =
+            videoPlaySegmentService.videoViewsPerSecondAnalytics(filter, masterId);
+
+        AnalyticsResponseDto<Double, Double> analyticsResponseDto = new AnalyticsResponseDto<>();
+        List<MetricValuePairDto<Double, Double>> metricValuePair = viewPerSecondAnalytics.stream()
+            .map(entry -> createMetricValuePairDto(entry.getSecond(), entry.getValue()))
+            .collect(Collectors.toList());
+        analyticsResponseDto.setResult(List.of(createResultDto(metricValuePair, "Video views per second")));
+
+        return analyticsResponseDto;
+    }
+
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults,
                                                          String metricName) {
         AnalyticsResponseDto analyticsResponseDto = new AnalyticsResponseDto();
@@ -198,7 +215,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     private ResultDto<OffsetDateTime, String> createResulDateDto(List<DbAnalyticsResultDto> analyticsCountResults,
                                                                  String metricName) {
         List<MetricValuePairDto<OffsetDateTime, String>> metricValuePair = analyticsCountResults.stream()
-            .map(entry -> createMetricValuePairDto(entry.getTimeBucket(), entry.getValue()))
+            .map(entry -> createMetricValuePairDto(entry.getTimeBucket(), String.valueOf(entry.getValue())))
             .collect(Collectors.toList());
 
         return createResultDto(metricValuePair, metricName);
@@ -207,7 +224,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     private ResultDto<Integer, String> createResultByVideoIdDto(List<DbAnalyticsResultVideoIdDto> analyticsCountResults,
                                                                 String metricName) {
         List<MetricValuePairDto<Integer, String>> metricValuePair = analyticsCountResults.stream()
-            .map(entry -> createMetricValuePairDto(entry.getVideoId(), entry.getValue()))
+            .map(entry -> createMetricValuePairDto(entry.getVideoId(), String.valueOf(entry.getValue())))
             .collect(Collectors.toList());
 
         return createResultDto(metricValuePair, metricName);
@@ -223,10 +240,10 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         return resultDto;
     }
 
-    private <T> MetricValuePairDto<T, String> createMetricValuePairDto(T xValue, double yValue) {
-        MetricValuePairDto<T, String> metricValuePairDto = new MetricValuePairDto<>();
+    private <T, V> MetricValuePairDto<T, V> createMetricValuePairDto(T xValue, V yValue) {
+        MetricValuePairDto<T, V> metricValuePairDto = new MetricValuePairDto<>();
         metricValuePairDto.setX(xValue);
-        metricValuePairDto.setY(String.valueOf(yValue));
+        metricValuePairDto.setY(yValue);
         return metricValuePairDto;
     }
 }

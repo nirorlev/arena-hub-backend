@@ -3,8 +3,10 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import java.util.List;
@@ -25,4 +27,6 @@ public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
     List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter, Integer masterId);
 }

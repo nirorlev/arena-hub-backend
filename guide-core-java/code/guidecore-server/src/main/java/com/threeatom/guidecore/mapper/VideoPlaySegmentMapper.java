@@ -3,7 +3,9 @@ package com.threeatom.guidecore.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
@@ -40,5 +42,9 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
 
     List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(
+        @Param("filter") VideoViewPerSecondDto filter,
         @Param("masterId") Integer masterId);
 }

@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api.analytics;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -91,7 +92,8 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-likes-count")
-    public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+    public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter,
+                                                           HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, masterId));
     }
@@ -102,8 +104,16 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsFacade.videoViewers(filter, masterId));
     }
 
+    @GetMapping("/video-views-per-second")
+    public ResponseEntity<AnalyticsResponseDto<Double, Double>> videoViewsPerSecond(
+        @Valid VideoViewPerSecondDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.videoViewsPerSecondAnalytics(filter, masterId));
+    }
+
     @GetMapping("/video-list")
-    public ResponseEntity<VideoSearchResponseDto> engagementRete(@Valid VideoListFilterDto filter, HttpServletRequest request) {
+    public ResponseEntity<VideoSearchResponseDto> engagementRete(@Valid VideoListFilterDto filter,
+                                                                 HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(videoService.getVideoListByQuery(filter, masterId, request));
     }

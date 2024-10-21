@@ -170,4 +170,29 @@
         GROUP BY video.id;
     </select>
 
+    <select id="videoViewsPerSecondAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto">
+        WITH buckets AS (
+            SELECT
+                generate_series(0, video_time, #{filter.step}::int4) AS bucket_start,
+                LEAST(generate_series(#{filter.step}, video_time + #{filter.step}, #{filter.step}), video_time)::int4 AS bucket_end
+            FROM gc_video
+            WHERE id = #{filter.videoId}
+        )
+        SELECT
+            (b.bucket_start + b.bucket_end) / 2.0 as second,
+            COALESCE(
+                        SUM(LEAST(upper(view_segment.segment), b.bucket_end) - GREATEST(lower(view_segment.segment), b.bucket_start))
+                            / (b.bucket_end - b.bucket_start)::double precision, 0
+            ) AS value
+        FROM buckets b
+            LEFT JOIN video_play_session video_session ON video_session.video_id = #{filter.videoId}
+            LEFT JOIN video_play_segment view_segment ON view_segment.session_id = video_session.id
+                                                             AND int4range(b.bucket_start, b.bucket_end) &amp;&amp; view_segment.segment
+        WHERE b.bucket_start != b.bucket_end
+        GROUP BY
+            b.bucket_start,
+            b.bucket_end
+        ORDER BY
+            b.bucket_start;
+    </select>
 </mapper>
