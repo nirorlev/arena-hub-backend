@@ -186,6 +186,7 @@
             ) AS value
         FROM buckets b
             LEFT JOIN video_play_session video_session ON video_session.video_id = #{filter.videoId}
+                AND video_session.create_time >= #{filter.start} AND video_session.create_time &lt; #{filter.end}
             LEFT JOIN video_play_segment view_segment ON view_segment.session_id = video_session.id
                                                              AND int4range(b.bucket_start, b.bucket_end) &amp;&amp; view_segment.segment
         WHERE b.bucket_start != b.bucket_end
