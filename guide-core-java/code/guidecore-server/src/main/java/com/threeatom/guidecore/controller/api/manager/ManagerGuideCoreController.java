@@ -112,6 +112,8 @@ public class ManagerGuideCoreController extends GuideCoreController {
     private AuthorizationService authorizationService;
     @Autowired
     private PortalUserService portalUserService;
+    @Autowired
+    private EventPublisherService eventPublisherService;
 
     @GetMapping("/getFuzzyNameVideoInMaster/{videoName}")
     public Message getFuzzyNameVideoInMaster(@PathVariable("videoName") String videoName, HttpServletRequest request) {
@@ -646,8 +648,12 @@ public class ManagerGuideCoreController extends GuideCoreController {
         } else {
             masterId = master.getId();
         }
+        if (video.getId() != null) {
+            eventPublisherService.publishVideoUpdated(video.getId());
+        }
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         GcVideo existingVideo = videoService.findByVideoId(video.getId());
+
         if (!authorizationService.checkAccess(existingVideo, PermitAction.EDIT, portalUser)) {
             throw new PermitException("No permission for this!");
         }

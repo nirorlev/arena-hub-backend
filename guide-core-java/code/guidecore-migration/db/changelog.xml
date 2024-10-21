@@ -581,7 +581,30 @@
                                  constraintName="gc_user_save_content_gc_video_id_fk" referencedTableName="gc_video"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+
     <changeSet id="decode-video-name" author="vprokh">
         <customChange class="com.arena.hub.migration.DecodeVideoNameMigration" />
+    </changeSet>
+
+    <changeSet id="add-on-delete-constraint-for-channel-play-video" author="vprokh">
+        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_user_id_fk" />
+        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_master_id_fk" />
+        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_video_id_fk" />
+
+        <addForeignKeyConstraint constraintName="video_play_session_gc_user_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="CASCADE" />
+        <addForeignKeyConstraint constraintName="video_play_session_gc_master_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="master_id" referencedTableName="gc_master" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="CASCADE" />
+        <addForeignKeyConstraint constraintName="video_play_session_gc_video_id_fk" baseTableName="video_play_session"
+                                 baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="CASCADE" />
+    </changeSet>
+
+    <changeSet id="add-powtoon-user-id" author="vprokh">
+        <addColumn tableName="gc_user" schemaName="arena_hub">
+            <column name="powtoon_user_id" type="integer"/>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>

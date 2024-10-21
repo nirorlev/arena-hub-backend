@@ -189,7 +189,7 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     private Resource buildResource(PermitResource permitResource) {
-        return new Resource.Builder(permitResource.getType())
+        return new Resource.Builder(permitResource.getType().getValue())
             .withAttributes(permitResource.getAttributes())
             .build();
     }

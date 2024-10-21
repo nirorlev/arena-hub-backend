@@ -18,6 +18,7 @@ import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationSer
 import com.threeatom.common.permissions.service.impl.auth.PlaylistAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.PortalAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
+import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -132,8 +133,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
     }
 
-    private void logPermissionResult(
-        String resourceId, String resourceType, String permitUserId, PermitAction action, boolean result) {
+    private void logPermissionResult(String resourceId, AuthorizationResourceType resourceType,
+        String permitUserId, PermitAction action, boolean result) {
 
         String resultFormatted = result ? "ALLOW" : "DENY";
         log.info("[PERMISSION]: {} {} {}({}) User({})"

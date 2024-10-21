@@ -1,6 +1,6 @@
 package com.threeatom.common.permissions.dto;
 
-import com.threeatom.guidecore.constant.ResourceType;
+import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +9,7 @@ import lombok.Setter;
 public class PermitCourse extends PermitCollection {
 
     @Override
-    public String getType() {
-        return ResourceType.course;
+    public AuthorizationResourceType getType() {
+        return AuthorizationResourceType.COURSE;
     }
 }

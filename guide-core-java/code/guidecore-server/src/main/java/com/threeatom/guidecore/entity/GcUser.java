@@ -44,6 +44,8 @@ public class GcUser implements Serializable {
     @ApiModelProperty(value = "用户信息表ID")
     private Integer infoId;
 
+    private Integer powtoonUserId;
+
     @TableField(exist = false)
     private GcUserInfo info;
 
@@ -92,9 +94,6 @@ public class GcUser implements Serializable {
 
     @TableField(exist = false)
     private String ptEmail; // pt用户邮箱
-
-    @TableField(exist = false)
-    private String ptId; // pt用户Id
 
     @TableField(exist = false)
     private List<GcAccess> accessList;

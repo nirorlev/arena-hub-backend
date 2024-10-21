@@ -1016,7 +1016,7 @@
         FROM pt_channel pc
                  LEFT JOIN content_group_channel_subscription cgc
                            on cgc.channel_id = pc.id AND cgc.is_subscribed = false AND cgc.created_by_user_id != #{userId}
-                 LEFT JOIN gc_user_access ua on ua.access_id = cgc.content_group_id AND ua.master_id = #{masterId} AND ua.user_id = #{userId}
+                 LEFT JOIN gc_user_access ua on ua.access_id = cgc.content_group_id AND ua.user_id = #{userId}
                  LEFT JOIN pt_channel_subscribe pcs on pc.id = pcs.channel_id AND pcs.is_deleted = true AND pcs.user_id = #{userId}
                  LEFT JOIN pt_channel_subscribe pcs_subscribed on pc.id = pcs_subscribed.channel_id AND pcs_subscribed.is_deleted = false AND pcs_subscribed.user_id = #{userId}
                  LEFT JOIN gc_user gu ON pc.create_user_id = gu.id
@@ -1024,7 +1024,7 @@
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-        WHERE pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
+        WHERE pc.master_id = #{masterId} AND pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
     </select>
 </mapper>

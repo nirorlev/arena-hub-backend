@@ -56,10 +56,12 @@ import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
+import com.threeatom.guidecore.enums.BiEventAction;
 import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
+import com.threeatom.guidecore.service.EventPublisherService;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -283,7 +285,8 @@ public class PowtoonController extends GuideCoreController {
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
 	private PortalUserService portalUserService;
-
+	@Autowired
+	private EventPublisherService eventPublisherService;
 
 	@ApiOperation(value = "Search videos", httpMethod = "POST")
 	@PostMapping("search")
@@ -1366,6 +1369,9 @@ public class PowtoonController extends GuideCoreController {
 
 		contentGroupCourseAssignmentService.save(user, idList, accessId, CourseType.ofType(type));
 		gcUserAccessPermissionService.updateGcUserAccessPermissions(userAccessPermissions);
+		eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
+		eventPublisherService.publishCourseUpdated(idList);
+
 		return new Message().ok();
 	}
 
@@ -1536,6 +1542,8 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
+		eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
+		eventPublisherService.publishChannelUpdated(channelIds);
 		return new Message().ok();
 	}
 
@@ -1580,6 +1588,9 @@ public class PowtoonController extends GuideCoreController {
 			}
 		}
 		gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
+		eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
+		eventPublisherService.publishChannelUpdated(channelIds);
+
 		return new Message().ok();
 	}
 
@@ -1766,7 +1777,8 @@ public class PowtoonController extends GuideCoreController {
 
 	@ApiOperation(value = "getToken", httpMethod = "GET")
 	@PostMapping("/getToken")
-	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto, HttpServletRequest response, HttpServletRequest request)
+	public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
+							HttpServletRequest request)
 		throws IOException, ClientException {
 		Integer masterId = getMaster(request).getId();
 		PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1775,11 +1787,12 @@ public class PowtoonController extends GuideCoreController {
 			final String code = authTokenDto.getCode();
 
 			if (code != null) {
-				PowtoonAuthDto authInfo = getAuth(code, response.getHeader("redirectUri"), loginConfig);
+				PowtoonAuthDto authInfo = getAuth(code, request.getHeader("redirectUri"), loginConfig);
 				GcUser user = gcUserService.syncPowtoonUser(authInfo.getAccessToken(), loginConfig, masterId);
 				createAuthInRedis(user, authInfo);
 				updateUserAccessLoginTime(user, masterId);
 
+				eventPublisherService.publishBiEvent(BiEventAction.LOGIN, user);
 				return new Message().ok()
 					.addData("token", userService.generateJwtToken(user, masterId));
 			}
@@ -2013,6 +2026,7 @@ public class PowtoonController extends GuideCoreController {
 				}
 			}else {
 				//修改
+				eventPublisherService.publishCourseUpdated(course.getId());
 				isFlag = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
 			}
 		}else if(null!=course.getMoveDrafts()){
@@ -2074,9 +2088,9 @@ public class PowtoonController extends GuideCoreController {
 		Integer masterId = request.getIntHeader("masterId");
 		GcUser user = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-		GcAccess course = gcAccessService.getById(subId);
+		GcAccess contentGroup = gcAccessService.getById(subId);
 
-		if (!authorizationService.checkAccess(course, PermitAction.DELETE, portalUser)) {
+		if (!authorizationService.checkAccess(contentGroup, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
 
@@ -2084,6 +2098,8 @@ public class PowtoonController extends GuideCoreController {
 			master = new GcMaster();
 			master.setId(masterId);
 		}
+		eventPublisherService.publishContentGroupUpdated(subId);
+
 		return gvgMasterService.deleteSub(subId, EnvType.GC.getCode(), master, null);
 	}
 
@@ -2277,6 +2293,8 @@ public class PowtoonController extends GuideCoreController {
 		if (!authorizationService.checkAccess(course, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
+		eventPublisherService.publishCourseUpdated(course.getId());
+
 		if(Objects.nonNull(course.getFid())){
 			GcSubject gcSubject = subService.getById(course.getId());
 			GcSubject gcSubject0 = subService.getById(course.getFid());
@@ -2306,8 +2324,13 @@ public class PowtoonController extends GuideCoreController {
 		if (!authorizationService.checkAccess(video, PermitAction.DELETE, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
-		return gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
-			request);
+
+		Message message =
+			gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
+				request);
+		eventPublisherService.publishVideoUpdated(vid);
+
+		return message;
 	}
 
 	@GetMapping("/getBySlug")
@@ -2341,6 +2364,7 @@ public class PowtoonController extends GuideCoreController {
 		}
 
 		if (null!=channel.getId()){
+			eventPublisherService.publishChannelUpdated(channel.getId());
 			isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
 		}else if (channel.isSection()){
 			isAllowed = authorizationService.checkAccess(channel, PermitAction.ADD_CONTENT, portalUser);
@@ -2596,6 +2620,7 @@ public class PowtoonController extends GuideCoreController {
 			throw new PermitException("No permission for this!");
 		}
 
+		eventPublisherService.publishChannelUpdated(channel.getId());
 		if (ptChannelService.removeById(channel.getId())) {
 			return message.ok("success");
 		}
@@ -2864,6 +2889,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().error(400, "Channel ID is required");
 		}
 
+		eventPublisherService.publishChannelUpdated(channel.getId());
 		if (!authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser)) {
 			throw new PermitException("No permission for this!");
 		}
@@ -2880,11 +2906,11 @@ public class PowtoonController extends GuideCoreController {
 		List<PtTags> tagsList = new ArrayList<>();
 
 		List<SysFile> sysFileList = sysFileService.selectBatch(fileIds);
-		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelId);
+		ptChannelContentService.saveOrUpdateChannelContent(ptChannelContent, sysFileList, channelId, portalUser);
 
 		for (PtChannelContent channelContent : ptChannelContent) {
 			channelContent.getCourseTags().forEach(tag -> tagsList.add(createTag(channelContent, tag, masterId)));
-			updateVideoFileUrls(request, channelContent, sysFileList);
+			updateVideoFileUrls(request, channelContent);
 		}
 		ptTagsService.saveOrUpdateBatch(tagsList);
 		return message.ok("success").addData("contentList", ptChannelContent);
@@ -2901,20 +2927,18 @@ public class PowtoonController extends GuideCoreController {
 		return newTags;
 	}
 
-	private void updateVideoFileUrls(HttpServletRequest request, PtChannelContent channelContent, List<SysFile> sysFileList) {
-		for (SysFile sysFile : sysFileList) {
-			if (sysFile.getId().equals(channelContent.getFileId())) {
-				String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-				String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-				sysFile.setFullFileUrl(fullFileUrl);
-				sysFile.setSnapshotUrl(snapShotUrl);
-				sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
-				channelContent.setVideoFile(sysFile);
-			}
-			if (null != sysFile.getGcUser().getAvatarFileId()) {
-				SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
-				sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
-			}
+	private void updateVideoFileUrls(HttpServletRequest request, PtChannelContent channelContent) {
+		SysFile sysFile = channelContent.getVideoFile();
+		String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
+		sysFile.setFullFileUrl(fullFileUrl);
+		sysFile.setSnapshotUrl(snapShotUrl);
+		sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
+		channelContent.setVideoFile(sysFile);
+
+		if (null != sysFile.getGcUser().getAvatarFileId()) {
+			SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
+			sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
 		}
 	}
 
@@ -2937,6 +2961,7 @@ public class PowtoonController extends GuideCoreController {
 			return new Message().ok("success");
 		}
 
+		eventPublisherService.publishChannelUpdated(channel.getId());
 		return new Message().error();
 	}
 

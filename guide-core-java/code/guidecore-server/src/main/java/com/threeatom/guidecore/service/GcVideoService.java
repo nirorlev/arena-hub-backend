@@ -155,4 +155,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<DbAnalyticsResultVideoIdDto> getLikesByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<GcVideo> findByVideoIds(List<Integer> videoIds);
+
+    List<Integer> getVideoIdsByChannelIds(List<Integer> channelIds);
 }
