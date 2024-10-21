@@ -2973,26 +2973,32 @@ public class PowtoonController extends GuideCoreController {
 	@PostMapping("/contentVideoDetail")
 	public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent,HttpServletRequest request) {
 		Message message = new Message();
-		GcUser currentUser = this.getGcUser();
 		if(Objects.isNull(ptChannelContent.getId())){
 			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
 		}
-		ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
-		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
-		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
-		GcUser user = userService.getById(ptchannel.getCreateUserId());
-		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 
+		ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+		GcUser currentUser = this.getGcUser();
 		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
-		GcUserInfo gcUserInfo = gcUserInfoService.getById(user.getInfoId());
+
+		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
+		if (!authorizationService.checkAccess(channelVideoContent, PermitAction.VIEW, portalUser)) {
+			throw new PermitException("No permission for this!");
+		}
+
+		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
+		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
+		GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
 		if (null!=gcUserInfo.getAvatarFileId()) {
 			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
 			sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(),request);
 		}
-		user.setInfo(gcUserInfo);
-		ptchannel.setCreateUser(user);
-		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
+		
+		channelCreator.setInfo(gcUserInfo);
+		ptchannel.setCreateUser(channelCreator);
 		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
+		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
 		if(Objects.nonNull(gcUserVideoAction)){
 			videoFile.setLikedFlag(TableConstant.COMMON_ONE);
 		}else {
@@ -3006,7 +3012,7 @@ public class PowtoonController extends GuideCoreController {
 			String channelSnapShotUrl = sysFileService.getResFullUrl(sysFileService.getById(ptChannel.getChannelImgFileId()),request);
 			ptChannel.setImgFullFileUrl(channelSnapShotUrl);
 		}
-		ptChannel.setCreateUser(user);
+		ptChannel.setCreateUser(channelCreator);
 		if (ptChannel.isSection()){
 			PtChannel channel = ptChannelService.getById(ptchannel.getFid());
 			ptChannel.setChannelSlug(channel.getChannelSlug());

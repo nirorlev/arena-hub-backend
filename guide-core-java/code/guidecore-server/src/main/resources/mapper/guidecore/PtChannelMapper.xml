@@ -565,6 +565,7 @@
             and ch.create_user_id = #{userId}
         </if>
         and ch.master_id = #{masterId}
+        and ch.visible_flag != 0
         and ch.level = 0
         group by ch.id, u.id, info.id, tags.id
         order by ch.create_time desc
@@ -862,6 +863,7 @@
                   left join gc_user us2 on us2.id = channel.create_user_id
                   left join gc_user_info info on info.id = us2.info_id
               where 1=1
+                and channel.visible_flag != 0
                 and userAccess.user_id = #{userId}
                 and us.id = #{userId}
                 and userAccess.master_id = #{masterId}
@@ -908,6 +910,7 @@
                                                           left join gc_user us2 on us2.id = channel.create_user_id
                                                           left join gc_user_info info on info.id = us2.info_id
                                                       where 1=1
+                                                        and channel.visible_flag != 0
                                                         and userAccess.user_id = #{userId}
                                                         and us.id = #{userId}
                                                         and userAccess.master_id = #{masterId}
