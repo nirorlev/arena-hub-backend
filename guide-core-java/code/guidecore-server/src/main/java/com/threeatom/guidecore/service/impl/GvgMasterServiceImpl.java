@@ -46,6 +46,7 @@ import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcEventService;
@@ -233,8 +234,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
+
 	@Autowired
 	private SysMenuService sysMenuService;
+
+	@Autowired
+	private FeatureToggleService featureToggleService;
+
+	private final String COURSE_SEARCH_FEATURE_TOGGLE = "coursesEnabled";
 
 	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -561,13 +568,19 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 	}
 
+	private boolean isCourseSearchEnabled() {
+        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(COURSE_SEARCH_FEATURE_TOGGLE).getValue());
+    }
+
 	private Message searchAll(HttpServletRequest request, GcUser user, SysSystem system,
 							  Map<String, Object> searchParameters, Integer userId, Integer masterId,
 							  Message message) {
 		searchVideos(request, system, searchParameters, userId, masterId, message);
-		searchCourses(request, user, system, searchParameters, masterId, message);
 		searchChannels(request, user, searchParameters, userId, masterId, message);
 		searchPlaylists(request, searchParameters, masterId, userId, message);
+		if (isCourseSearchEnabled()) {
+			searchCourses(request, user, system, searchParameters, masterId, message);
+		}
 		return message;
 	}
 
@@ -643,6 +656,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	private Message searchCourses(HttpServletRequest request, GcUser user, SysSystem system,
 								  Map<String, Object> searchParameters, Integer masterId, Message message) {
+		if (!isCourseSearchEnabled()) {
+			throw new SystemException("Course search is disabled by feature toggle.");
+		}
 		searchParameters.remove("videoName");
 		searchParameters.put("subjectName", searchParameters.get("searchName"));
 		PageInfo<GcSubject> coursePageInfo =
