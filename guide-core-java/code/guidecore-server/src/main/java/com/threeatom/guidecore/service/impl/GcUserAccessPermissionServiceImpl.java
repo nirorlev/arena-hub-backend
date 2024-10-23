@@ -26,16 +26,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
     }
 
     @Override
-    public List<GcUserAccessPermission> selectAllUsersInPortal(Integer masterId) {
-        return this.baseMapper.selectAllUsersInPortal(masterId);
-    }
-
-    @Override
-    public List<GcUserAccessPermission> getContainsAccessPermissionList(String ptId, Integer masterId) {
-        return this.baseMapper.getContainsAccessPermissionList(ptId,masterId);
-    }
-
-    @Override
     public List<GcUserAccessPermission> getContainsSubjectAccessPermissionList(String ptId) {
         return this.baseMapper.getContainsSubjectAccessPermissionList(ptId);
     }

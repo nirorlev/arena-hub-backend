@@ -26,10 +26,6 @@ public interface GcUserAccessPermissionService extends IService<GcUserAccessPerm
     List<GcUserAccessPermission> getGroupMemberPermissionByUidList(
             Integer userId, Integer masterId, String roleName);
 
-    List<GcUserAccessPermission> selectAllUsersInPortal(Integer masterId);
-
-    List<GcUserAccessPermission> getContainsAccessPermissionList(String ptId, Integer masterId);
-
     List<GcUserAccessPermission> getContainsSubjectAccessPermissionList(String ptId);
 
     void deleteSubIdAccessPermissionList(Integer masterId, Integer subId);

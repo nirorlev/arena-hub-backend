@@ -34,17 +34,17 @@ public class ContentGroupChannelSubscriptionServiceImpl
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
         removeUnsubscribedChannels(contentGroup.getId(), channelIds);
 
-        channelIds.forEach(channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user));
+        channelIds.forEach(channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user.getId()));
     }
 
     @Override
-    public void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, GcUser user) {
-        saveChannels(contentGroupIds, channelId, user, true);
+    public void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId) {
+        saveChannels(contentGroupIds, channelId, true, userId);
     }
 
     @Override
-    public void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, GcUser user) {
-        saveChannels(contentGroupIds, channelId, user, false);
+    public void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, Integer userId) {
+        saveChannels(contentGroupIds, channelId, false, userId);
     }
 
     @Override
@@ -138,21 +138,21 @@ public class ContentGroupChannelSubscriptionServiceImpl
         this.remove(queryWrapper);
     }
 
-    private void saveChannels(List<Integer> contentGroupIds, Integer channelId, GcUser user, boolean isSubscribed) {
+    private void saveChannels(List<Integer> contentGroupIds, Integer channelId, boolean isSubscribed, Integer userId) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = contentGroupIds.stream()
-            .map(contentGroupId -> createSubscription(contentGroupId, channelId, user, isSubscribed))
+            .map(contentGroupId -> createSubscription(contentGroupId, channelId, isSubscribed, userId))
             .collect(Collectors.toList());
 
         this.saveBatch(contentGroupChannelSubscriptions);
     }
 
-    private ContentGroupChannelSubscription createSubscription(Integer contentGroupId, Integer channelId, GcUser user,
-                                                               boolean isSubscribed) {
+    private ContentGroupChannelSubscription createSubscription(Integer contentGroupId, Integer channelId,
+                                                               boolean isSubscribed, Integer userId) {
         ContentGroupChannelSubscription subscription = new ContentGroupChannelSubscription();
 
         subscription.setContentGroupId(contentGroupId);
         subscription.setChannelId(channelId);
-        subscription.setCreatedByUserId(user.getId());
+        subscription.setCreatedByUserId(userId);
         subscription.setIsSubscribed(isSubscribed);
 
         return subscription;

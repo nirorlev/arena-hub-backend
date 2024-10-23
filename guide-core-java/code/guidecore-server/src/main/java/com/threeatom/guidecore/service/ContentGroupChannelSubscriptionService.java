@@ -15,9 +15,9 @@ public interface ContentGroupChannelSubscriptionService
 
     void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user);
 
-    void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, GcUser user);
+    void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId);
 
-    void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, GcUser user);
+    void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, Integer userId);
 
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 

@@ -96,6 +96,7 @@ import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
+import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -1547,15 +1548,10 @@ public class PowtoonController extends GuideCoreController {
 
         channels.forEach(channel -> {
             if (Objects.nonNull(channel.getChannelImgFileId())) {
-                SysFile sysFile = sysFileService.getById(channel.getChannelImgFileId());
-                String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-                channel.setImgFullFileUrl(imgFullFileUrl);
+                updateChannelBackgroundImage(channel, request);
             }
             if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-                SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-                String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
-                avatarFile.setFullFileUrl(avatarFullFileUrl);
-                channel.setAvatarFile(avatarFile);
+                updateChannelAvatarImage(channel, request);
             }
         });
 
@@ -2443,17 +2439,135 @@ public class PowtoonController extends GuideCoreController {
     @ApiOperation(value = "channel新增修改")
     @PostMapping("/saveOrUpdateChannel")
     public Message saveOrUpdateChannel(@RequestBody PtChannel channel, HttpServletRequest request) {
+        Message message = new Message();
         Integer masterId = request.getIntHeader("masterId");
-        GcMaster master = masterService.getById(masterId);
-        boolean isOrgAdmin = false;
-        GcUser user = this.getGcUser();
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
+        Integer userId = AuthorizationUtil.getUserUid(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(userId, masterId);
 
-        if (channel.isPublic()) {
-            isOrgAdmin = portalUser.isOrgAdmin();
+        checkChannelPermission(channel, userId, portalUser);
+
+        GcMaster master = masterService.getById(masterId);
+        channel.setMasterId(masterId);
+        if (Objects.isNull(master)) {
+            master = new GcMaster();
+            master.setId(masterId);
         }
 
-        ptChannelService.populateCreatedUserId(channel, user);
+        try {
+            if (Objects.nonNull(channel.getVisibleFlag())) {
+                if (channel.isCertainTeams()) {
+                    saveOrUpdateCertainTeamsChannel(channel, portalUser, masterId, userId);
+                } else if (channel.isPublic()) {
+                    saveOrUpdatePublicChannel(channel, portalUser, masterId, userId);
+                } else if (channel.isPrivate()) {
+                    updateChannel(channel, request, masterId, portalUser);
+                }
+
+                channel = getChannelWithPermissions(channel.getId(), request, masterId, portalUser);
+                message.addData("channel", channel);
+                return message.ok();
+            }
+
+            updateChannel(channel, request, masterId, portalUser);
+            message.addData("channel", channel);
+            return message.ok();
+        } catch (DuplicateKeyException e) {
+            throw new SystemException(I18NUtil.get("userpt.channel.slug"));
+        } catch (LicenseLimitExceededException e) {
+            message.error(HttpStatus.FORBIDDEN.value(), "License limit exceeded");
+            return message;
+        }
+    }
+
+    private void saveOrUpdatePublicChannel(PtChannel channel, PortalUser portalUser, Integer masterId, Integer userId) {
+        userLicenseService.checkChannelLimit(channel, portalUser);
+
+        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
+
+        ptChannelService.saveOrUpdate(channel);
+
+        if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
+            contentGroupChannelSubscriptionService.saveChannelSubscription(
+                channel.getSubscribeAccessIdList(), channel.getId(), userId);
+        }
+    }
+
+    private void saveOrUpdateCertainTeamsChannel(PtChannel channel, PortalUser portalUser, Integer masterId,
+                                                 Integer userId) {
+        userLicenseService.checkChannelLimit(channel, portalUser);
+        ptChannelService.saveOrUpdate(channel);
+
+        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
+
+        List<GcAccess> existingAssignedContentGroups = gcAccessService.getAccessByChannelId(masterId, channel.getId());
+        contentGroupChannelSubscriptionService.removeChannelFromContentGroups(existingAssignedContentGroups, channel);
+
+        // Publish channel to team
+        if (CollectionUtils.isNotEmpty(channel.getAccessIdList())) {
+            contentGroupChannelSubscriptionService.savePublicChannels(
+                channel.getAccessIdList(), channel.getId(), userId);
+        }
+
+        if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
+            contentGroupChannelSubscriptionService.saveChannelSubscription(
+                channel.getSubscribeAccessIdList(), channel.getId(), userId);
+        }
+    }
+
+    private void updateContentGroupIdsToAssign(PtChannel channel, Integer masterId, Integer userId, boolean orgAdmin) {
+        if ((channel.getIsAllSubscribe() == null || !channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)) &&
+            (channel.getIsAllChoose() == null || !channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))) {
+            return;
+        }
+
+        List<Integer> contentGroupIds = getContentGroupsAssignChannelTo(masterId, userId, orgAdmin);
+        if (channel.getIsAllChoose() != null && channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)) {
+            channel.setAccessIdList(contentGroupIds);
+            return;
+        }
+
+        channel.setSubscribeAccessIdList(contentGroupIds);
+    }
+
+    private List<Integer> getContentGroupsAssignChannelTo(Integer masterId, Integer userId, boolean publicOrgAdmin) {
+        if (publicOrgAdmin) {
+            return accessService.findAccessListByMasterId(masterId).stream()
+                .map(GcAccess::getId)
+                .collect(Collectors.toList());
+        }
+
+        return accessService.listAccess(null, masterId, userId).stream()
+            .map(GcAccess::getId)
+            .collect(Collectors.toList());
+    }
+
+    private PtChannel getChannelWithPermissions(Integer channelId, HttpServletRequest request, Integer masterId,
+                                                PortalUser portalUser) {
+        PtChannel channel = ptChannelService.selectChannelDetail(channelId, null, request, null, masterId);
+        channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
+        return channel;
+    }
+
+    private void updateChannel(PtChannel channel, HttpServletRequest request, Integer masterId, PortalUser portalUser) {
+        ptChannelService.saveOrUpdate(channel);
+        getChannelWithPermissions(channel.getId(), request, masterId, portalUser);
+    }
+
+    private void updateChannelAvatarImage(PtChannel channel, HttpServletRequest request) {
+        SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
+        String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
+        avatarFile.setFullFileUrl(avatarFullFileUrl);
+        channel.setAvatarFile(avatarFile);
+    }
+
+    private void updateChannelBackgroundImage(PtChannel channel, HttpServletRequest request) {
+        SysFile sysFile = sysFileService.getById(channel.getChannelImgFileId());
+        String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
+        channel.setImgFullFileUrl(imgFullFileUrl);
+    }
+
+    private void checkChannelPermission(PtChannel channel, Integer userId, PortalUser portalUser) {
+        ptChannelService.populateCreatedUserId(channel, userId);
         boolean isAllowed;
         if (channel.getVisibleFlag() != null) {
             if (!authorizationService.checkAccess(channel, PermitAction.PUBLISH, portalUser)) {
@@ -2461,7 +2575,7 @@ public class PowtoonController extends GuideCoreController {
             }
         }
 
-        if (null != channel.getId()) {
+        if (channel.getId() != null) {
             eventPublisherService.publishChannelUpdated(channel.getId());
             isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
         } else if (channel.isSection()) {
@@ -2473,265 +2587,6 @@ public class PowtoonController extends GuideCoreController {
         if (!isAllowed) {
             throw new PermitException("No permission for this!");
         }
-
-        channel.setMasterId(masterId);
-        if (Objects.isNull(master)) {
-            master = new GcMaster();
-            master.setId(masterId);
-        }
-        if (Objects.nonNull(channel.getChannelImgFileId())) {
-            SysFile sysFile = sysFileService.getById(channel.getChannelImgFileId());
-            String imgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-            channel.setImgFullFileUrl(imgFullFileUrl);
-        }
-        if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-            SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-            String avatarFullFileUrl = sysFileService.getResFullUrl(avatarFile, request);
-            avatarFile.setFullFileUrl(avatarFullFileUrl);
-            channel.setAvatarFile(avatarFile);
-        }
-        try {
-
-            if (Objects.nonNull(channel.getVisibleFlag())) {
-                if (channel.isCertainTeams()) {
-                    userLicenseService.checkChannelLimit(channel, portalUser);
-
-                    if (ptChannelService.saveOrUpdate(channel)) {
-                        if (null != channel.getTags()) {
-                            PtTags ptTags = new PtTags();
-                            ptTags.setChannelId(channel.getId());
-                            ptTags.setMasterId(masterId);
-                            List<String> tagList = channel.getTags().toJavaList(String.class);
-                            List<PtTags> newTagList = new ArrayList<>();
-                            int finalMasterId = masterId;
-                            for (String tag : tagList) {
-                                PtTags newTags = new PtTags();
-                                newTags.setMasterId(finalMasterId);
-                                newTags.setTagText(tag);
-                                newTags.setChannelId(channel.getId());
-                                newTags.setType(TableConstant.COMMON_ONE);
-                                newTags.setOrder(TableConstant.COMMON_ZERO);
-                                newTagList.add(newTags);
-                            }
-                            QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
-                            queryWrapper2.in("master_id", masterId);
-                            queryWrapper2.in("channel_id", channel.getId());
-                            queryWrapper2.in("type", TableConstant.COMMON_ONE);
-                            ptTagsService.remove(queryWrapper2);
-                            ptTagsService.saveOrUpdateBatch(newTagList);
-                            channel.setAllTags(tagList);
-                        }
-
-                        List<Integer> subscribeAccessList;
-                        if ((null != channel.getIsAllSubscribe() &&
-                            channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)) ||
-                            (null != channel.getIsAllChoose() &&
-                                channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))) {
-                            if (isOrgAdmin) {
-                                subscribeAccessList =
-                                    accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId)
-                                        .collect(Collectors.toList());
-                            } else {
-                                subscribeAccessList =
-                                    accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId)
-                                        .collect(Collectors.toList());
-                            }
-                            channel.setAccessIdList(new ArrayList<>());
-                            channel.setSubscribeAccessIdList(new ArrayList<>());
-                            if (null != channel.getIsAllChoose() &&
-                                channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)) {
-                                channel.getAccessIdList().addAll(subscribeAccessList);
-                            } else {
-                                channel.getSubscribeAccessIdList().addAll(subscribeAccessList);
-                            }
-                        }
-
-                        List<GcAccess> accessList = gcAccessService.getAccessByChannelId(masterId, channel.getId());
-                        contentGroupChannelSubscriptionService.removeChannelFromContentGroups(accessList, channel);
-
-                        List<GcUserAccessPermission> permissionList =
-                            gcUserAccessPermissionService.getContainsAccessPermissionList(channel.getId().toString(),
-                                masterId);
-                        if (null != permissionList && !permissionList.isEmpty()) {
-                            for (GcUserAccessPermission permission : permissionList) {
-                                if (null != permission.getChannelPermission()) {
-                                    permission.getChannelPermission().remove(channel.getId());
-                                }
-                                if (null != permission.getSubscribePermission()) {
-                                    permission.getSubscribePermission().remove(channel.getId());
-                                }
-                            }
-                            gcUserAccessPermissionService.updateGcUserAccessPermissionsChannel(permissionList);
-                        }
-                        // Publish channel to team
-                        if (CollectionUtils.isNotEmpty(channel.getAccessIdList()) &&
-                            !channel.getAccessIdList().isEmpty()) {
-                            contentGroupChannelSubscriptionService.savePublicChannels(channel.getAccessIdList(),
-                                channel.getId(), user);
-
-                            List<Integer> permissionUserIds =
-                                gcUserAccessService.selectGetUserAccessIdListUserIds(masterId,
-                                    channel.getAccessIdList());
-                            if (CollectionUtils.isNotEmpty(permissionUserIds)) {
-                                List<GcUserAccessPermission> gcUserAccessPermissionList =
-                                    gcUserAccessPermissionService.selectUserAccessPermissions(permissionUserIds);
-                                for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
-                                    JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
-                                    if (Objects.isNull(jsonArray)) {
-                                        JSONArray array = new JSONArray();
-                                        array.add(channel.getId());
-                                        gcUserAccessPermission.setChannelPermission(array);
-                                    } else {
-                                        if (!jsonArray.contains(channel.getId())) {
-                                            jsonArray.add(channel.getId());
-                                        }
-                                        gcUserAccessPermission.setChannelPermission(jsonArray);
-                                    }
-
-                                }
-                                gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
-                            }
-                        }
-
-                        if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList()) &&
-                            !channel.getSubscribeAccessIdList().isEmpty()) {
-                            contentGroupChannelSubscriptionService.saveChannelSubscription(
-                                channel.getSubscribeAccessIdList(), channel.getId(), user);
-
-                            List<Integer> subscribePermissionUserIds = new ArrayList<>();
-                            if (null != channel.getSubscribeAccessIdList() &&
-                                !channel.getSubscribeAccessIdList().isEmpty()) {
-                                subscribePermissionUserIds =
-                                    gcUserAccessService.selectGetUserAccessIdListUserIds(masterId,
-                                        channel.getSubscribeAccessIdList());
-                            }
-                            if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
-                                List<GcUserAccessPermission> gcUserAccessPermissionList =
-                                    gcUserAccessPermissionService.selectUserAccessPermissions(
-                                        subscribePermissionUserIds);
-                                for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
-                                    JSONArray jsonArray = gcUserAccessPermission.getSubscribePermission();
-                                    if (Objects.isNull(jsonArray)) {
-                                        JSONArray array = new JSONArray();
-                                        array.add(channel.getId());
-                                        gcUserAccessPermission.setSubscribePermission(array);
-                                    } else {
-                                        if (!jsonArray.contains(channel.getId())) {
-                                            jsonArray.add(channel.getId());
-                                        }
-                                        gcUserAccessPermission.setSubscribePermission(jsonArray);
-                                    }
-
-                                }
-                                gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
-                            }
-                        }
-                        channel = ptChannelService.selectChannelDetail(channel.getId(), null, request, null, masterId);
-                        channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
-                        message.addData("channel", channel);
-                    }
-                } else if (channel.isPublic()) {
-                    userLicenseService.checkChannelLimit(channel, portalUser);
-
-                    List<Integer> subscribePermissionUserIds = new ArrayList<>();
-                    List<Integer> subscribeAccessList = new ArrayList<>();
-                    if (null != channel.getIsAllSubscribe() &&
-                        channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)) {
-                        if (isOrgAdmin) {
-                            subscribeAccessList =
-                                accessService.findAccessListByMasterId(masterId).stream().map(GcAccess::getId)
-                                    .collect(Collectors.toList());
-                        } else {
-                            subscribeAccessList =
-                                accessService.listAccess(null, masterId, user.getId()).stream().map(GcAccess::getId)
-                                    .collect(Collectors.toList());
-                        }
-                        channel.getSubscribeAccessIdList().addAll(subscribeAccessList);
-                    }
-                    ptChannelService.saveOrUpdate(channel);
-
-                    List<GcUserAccessPermission> userAccessPermissionList =
-                        gcUserAccessPermissionService.selectAllUsersInPortal(masterId);
-                    for (GcUserAccessPermission gcUserAccessPermission : userAccessPermissionList) {
-                        JSONArray jsonArray = gcUserAccessPermission.getChannelPermission();
-                        if (Objects.isNull(jsonArray)) {
-                            JSONArray array = new JSONArray();
-                            array.add(channel.getId());
-                            gcUserAccessPermission.setChannelPermission(array);
-                        } else {
-                            if (!jsonArray.contains(channel.getId())) {
-                                jsonArray.add(channel.getId());
-                            }
-                            gcUserAccessPermission.setChannelPermission(jsonArray);
-                        }
-                    }
-                    gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissionList);
-
-                    if (null != channel.getSubscribeAccessIdList()) {
-                        List<GcUserAccessPermission> gcUserAccessPermissionList = new ArrayList<>();
-                        if (null != channel.getSubscribeAccessIdList() &&
-                            channel.getSubscribeAccessIdList().size() != TableConstant.COMMON_ZERO) {
-                            subscribePermissionUserIds = gcUserAccessService.selectGetUserAccessIdListUserIds(masterId,
-                                channel.getSubscribeAccessIdList());
-                        }
-                        if (CollectionUtils.isNotEmpty(subscribePermissionUserIds)) {
-//						List<Integer> userAccessIds = gcUserAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-                            gcUserAccessPermissionList =
-                                gcUserAccessPermissionService.selectUserAccessPermissions(subscribePermissionUserIds);
-                            for (GcUserAccessPermission permission : gcUserAccessPermissionList) {
-                                JSONArray array = new JSONArray();
-                                if (null == permission.getSubscribePermission()) {
-                                    array.add(channel.getId());
-                                    permission.setSubscribePermission(array);
-                                } else {
-                                    array = permission.getSubPermission();
-                                    array.add(channel.getId());
-                                    if (!permission.getSubscribePermission().contains(channel.getId())) {
-                                        permission.setSubscribePermission(array);
-                                    }
-                                }
-                            }
-                        }
-                        gcUserAccessPermissionService.saveOrUpdateBatch(gcUserAccessPermissionList);
-                    }
-
-                    channel = ptChannelService.selectChannelDetail(channel.getId(), null, request, null, masterId);
-                    channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
-                    message.addData("channel", channel);
-                } else if (channel.isPrivate()) {
-                    if (ptChannelService.saveOrUpdate(channel)) {
-                        channel = ptChannelService.selectChannelDetail(channel.getId(), null, request, null, masterId);
-                        channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
-                        message.addData("channel", channel);
-                    } else {
-                        return message.error();
-                    }
-                    //公共
-                } else if (channel.getVisibleFlag() == TableConstant.COMMON_THREE) {
-                    if (ptChannelService.saveOrUpdate(channel)) {
-                        channel = ptChannelService.selectChannelDetail(channel.getId(), null, request, null, masterId);
-                        channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
-                        message.addData("channel", channel);
-                    } else {
-                        return message.error();
-                    }
-                }
-            } else {
-                if (ptChannelService.saveOrUpdate(channel)) {
-                    channel = ptChannelService.selectChannelDetail(channel.getId(), null, request, null, masterId);
-                    channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
-                    message.addData("channel", channel);
-                } else {
-                    return message.error();
-                }
-            }
-        } catch (DuplicateKeyException e) {
-            throw new SystemException(I18NUtil.get("userpt.channel.slug"));
-        } catch (LicenseLimitExceededException e) {
-            message.error(HttpStatus.FORBIDDEN.value(), "License limit exceeded");
-        }
-
-        return message.ok();
     }
 
     @PostMapping("/deleteChannelSection")
@@ -2744,7 +2599,7 @@ public class PowtoonController extends GuideCoreController {
         GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
 
-        ptChannelService.populateCreatedUserId(channel, user);
+        ptChannelService.populateCreatedUserId(channel, user.getId());
         if (!authorizationService.checkAccess(channel, PermitAction.DELETE, portalUser)) {
             throw new PermitException("No permission for this!");
         }
@@ -2827,7 +2682,7 @@ public class PowtoonController extends GuideCoreController {
         ptChannel.setId(ptChannelId);
 
         GcUser user = this.getGcUser();
-        ptChannelService.populateCreatedUserId(ptChannel, user);
+        ptChannelService.populateCreatedUserId(ptChannel, user.getId());
 
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         if (!authorizationService.checkAccess(ptChannel, PermitAction.VIEW, portalUser)) {
@@ -2874,9 +2729,7 @@ public class PowtoonController extends GuideCoreController {
         } else {
             channel.setOwnFlag(TableConstant.COMMON_ZERO);
         }
-        SysFile sysFile = sysFileService.getById(channel.getChannelImgFileId());
-        String channelImgFullFileUrl = sysFileService.getResFullUrl(sysFile, request);
-        channel.setImgFullFileUrl(channelImgFullFileUrl);
+        updateChannelBackgroundImage(channel, request);
         message.ok().addData("channel", channel);
 
         return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
