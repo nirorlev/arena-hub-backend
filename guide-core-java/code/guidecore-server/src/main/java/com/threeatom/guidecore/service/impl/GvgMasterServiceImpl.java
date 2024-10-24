@@ -621,11 +621,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	private Message searchChannels(HttpServletRequest request, GcUser user, Map<String, Object> searchParameters,
 								   Integer userId, Integer masterId, Message message) {
-		PageParam pageParam = new PageParam(request);
-		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-		}
-
 		request.setAttribute("searchName", searchParameters.get("searchName").toString());
 		List<PtChannel> channels = ptChannelService.indexSearchChannels(userId, null, request, masterId);
 		if (channels.isEmpty()) {

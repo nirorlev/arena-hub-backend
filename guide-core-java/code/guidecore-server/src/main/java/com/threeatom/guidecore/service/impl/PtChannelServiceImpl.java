@@ -265,12 +265,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public List<PtChannel> indexSearchChannels(
             Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize = pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
         String searchName = "";
         if (null != request.getAttribute("searchName")) {
             searchName = request.getAttribute("searchName").toString();
