@@ -801,9 +801,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
 			return message.addData("videoNullPage", new PageInfo<>(channels));
 		}
-		message.addData("videoPage", page);
-		
-		return message;
+		return message.addData("videoPage", page);
 	}
 
 	@Override
