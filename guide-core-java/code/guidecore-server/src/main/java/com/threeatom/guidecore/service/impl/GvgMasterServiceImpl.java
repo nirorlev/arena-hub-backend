@@ -789,19 +789,27 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		searchParameters.put("pageSize", request.getHeader("pageSize"));
 		request.setAttribute("searchName", searchParameters.get("searchName"));
 
+		Boolean loadVideoSuggestions = true;
+
 		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
-		PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channels);
-		if (!channels.isEmpty()) {
-			message.addData("channelVideoPage", channelPageInfo);
+		PageInfo<PtChannel> channelVideosPage = new PageInfo<>(channels);
+		if (!channelVideosPage.getList().isEmpty()) {
+			message.addData("channelVideoPage", channelVideosPage);
+			loadVideoSuggestions = false;
+		}
+	
+		PageInfo<GcVideo> courseVideosPage = service.page(searchParameters, system, request);
+		if (!courseVideosPage.getList().isEmpty()) {
+			message.addData("videoPage", courseVideosPage);
+			loadVideoSuggestions = false;
 		}
 
-		PageInfo<GcVideo> page = service.page(searchParameters, system, request);
-		if (page.getList().isEmpty()) {
+		if (loadVideoSuggestions) {
 			request.removeAttribute("searchName");
 			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
-			return message.addData("videoNullPage", new PageInfo<>(channels));
+			message.addData("videoNullPage", new PageInfo<>(channels));
 		}
-		return message.addData("videoPage", page);
+		return message;
 	}
 
 	@Override
