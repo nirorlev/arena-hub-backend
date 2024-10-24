@@ -58,12 +58,12 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             PageHelper.startPage(pageNum, pageSize);
         }
         List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.selectFolderForUserMaster(userId, masterId,folderIdList,null,playListName);
-        gcUserSaveFolders.forEach(i->{
-            if (null!=i.getUser().getInfo().getAvatarFileId()){
-                SysFile imgFile = sysFileService.getById(i.getUser().getInfo().getAvatarFileId());
+        gcUserSaveFolders.forEach(playlist->{
+            if (null!=playlist.getUser().getInfo().getAvatarFileId()){
+                SysFile imgFile = sysFileService.getById(playlist.getUser().getInfo().getAvatarFileId());
                 String url = sysFileService.getResFullUrl(imgFile, request);
                 imgFile.setFullFileUrl(url);
-                i.getUser().getInfo().setAvatarFile(imgFile);
+                playlist.getUser().getInfo().setAvatarFile(imgFile);
             }
         });
         return gcUserSaveFolders;
