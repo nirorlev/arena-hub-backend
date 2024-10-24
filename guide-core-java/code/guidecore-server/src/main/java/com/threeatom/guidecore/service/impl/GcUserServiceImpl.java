@@ -2,12 +2,12 @@ package com.threeatom.guidecore.service.impl;
 
 import static com.threeatom.common.jwt.JwtUtil.createTokenByUser;
 
-import com.alibaba.fastjson.JSONArray;
 import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonUserDto;
+import com.threeatom.client.dto.ProfileDto;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -24,7 +24,6 @@ import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
-import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -57,7 +56,6 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private final GcAccessService accessService;
     private final GcSubjectService gcSubjectService;
     private final PortalUserService portalUserService;
-    private final UserLicenseService userLicenseService;
 
     @Override
     public GcUser getUserInfo(Integer userId) {
@@ -211,7 +209,8 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
                 URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
         log.info("PtGroups interface returns:" + groups);
 
-        PowtoonUserDto powtoonUserInfo = powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
+        PowtoonUserDto powtoonUserInfo =
+            powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
         GcUser user = getUserByUsername(powtoonUserInfo.getProfile().getEmail());
 
         List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
@@ -225,9 +224,10 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return user;
     }
 
-    private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto powtoonUserInfo, GcAccess studentAccess, Integer masterId)
+    private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto powtoonUserInfo, GcAccess studentAccess,
+                                    Integer masterId)
         throws ClientException, IOException {
-        if (null == user) {
+        if (user == null) {
             return createGcUser(powtoonUserInfo, studentAccess, masterId);
         }
         updateUser(user, powtoonUserInfo);
@@ -238,16 +238,16 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
     private void updateUserInfo(GcUser user, PowtoonUserDto powtoonUserInfo, Integer masterId) {
         GcUserInfo gcUserInfo = infoService.getById(user.getInfoId());
-        gcUserInfo.setFirstName(powtoonUserInfo.getProfile().getFirstName());
-        gcUserInfo.setLastName(powtoonUserInfo.getProfile().getLastName());
+        ProfileDto profile = powtoonUserInfo.getProfile();
+        gcUserInfo.setFirstName(profile.getFirstName());
+        gcUserInfo.setLastName(profile.getLastName());
 
-        if (null != gcUserInfo.getAvatarFileId()) {
+        if (gcUserInfo.getAvatarFileId() != null) {
             SysFile file = fileService.getById(gcUserInfo.getAvatarFileId());
-            file.setFileUrl(powtoonUserInfo.getProfile().getThumbUrl());
+            file.setFileUrl(profile.getThumbUrl());
             fileService.saveOrUpdate(file);
         } else {
-            SysFile file = createAvatarFile(user.getId(), masterId, powtoonUserInfo.getProfile().getThumbUrl());
-            fileService.saveOrUpdate(file);
+            SysFile file = fileService.createUserAvatarFile(user.getId(), profile.getThumbUrl(), masterId);
             gcUserInfo.setAvatarFileId(file.getId());
         }
 
@@ -271,9 +271,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         user.setLastName(userInfo.getProfile().getLastName());
         user.setPowtoonUserId(userInfo.getProfile().getId());
 
-        SysFile file = createAvatarFile(user.getId(), userInfo.getProfile().getThumbUrl(), masterId);
-
-        fileService.saveOrUpdate(file);
+        SysFile file = fileService.createUserAvatarFile(user.getId(), userInfo.getProfile().getThumbUrl(), masterId);
         user.getInfo().setAvatarFileId(file.getId());
 
         infoService.saveOrUpdate(user.getInfo());
@@ -282,31 +280,11 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         return user;
     }
 
-    private SysFile createAvatarFile(Integer uploadUserId, String thumbUrl, Integer masterId) {
-        SysFile file = new SysFile();
-        file.setSysId(TableConstant.COMMON_TWO);
-        file.setUploadUid(uploadUserId);
-        file.setName(thumbUrl);
-        file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
-        file.setFileType(TableConstant.sysFile_fileType_resLink);
-        file.setFileTypeIndex(TableConstant.COMMON_ONE);
-        file.setMasterId(masterId);
-        file.setSaveType(TableConstant.COMMON_THREE);
-        file.setFileRemark(new JSONArray());
-        return file;
-    }
-
-    private SysFile createAvatarFile(Integer uploadUserId, Integer masterId, String thumbUrl) {
-        SysFile file = createAvatarFile(uploadUserId, thumbUrl, masterId);
-        file.setFileUrl(thumbUrl);
-        return file;
-    }
-
     private GcUser enrichUserWithData(PowtoonUserDto userInfo, GcUser user) {
-        if (null != userInfo.getProfile().getThumbUrl()) {
+        if (userInfo.getProfile().getThumbUrl() != null) {
             user.setThumbUrl(userInfo.getProfile().getThumbUrl());
         }
-        if (null != userInfo.getProfile().getEmail()) {
+        if (userInfo.getProfile().getEmail() != null) {
             user.setPtEmail(userInfo.getProfile().getEmail());
         }
 

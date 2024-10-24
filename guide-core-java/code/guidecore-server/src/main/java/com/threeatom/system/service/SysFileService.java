@@ -108,4 +108,6 @@ public interface SysFileService extends IService<SysFile> {
     void uploadThumbnailToS3(SysFile sysFile, PortalUser portalUser);
 
     SysFile getVideoFile(GcVideo video, HttpServletRequest request);
+
+    SysFile createUserAvatarFile(Integer uploadUserId, String thumbUrl, Integer masterId);
 }

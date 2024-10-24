@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -755,6 +756,26 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         file.setSnapshotUrl(snapshotUrl);
 
         video.setVideoFile(file);
+        return file;
+    }
+
+    @Override
+    @Transactional
+    public SysFile createUserAvatarFile(Integer uploadUserId, String thumbUrl, Integer masterId) {
+        SysFile file = new SysFile();
+        file.setSysId(TableConstant.COMMON_TWO);
+        file.setUploadUid(uploadUserId);
+        file.setName(thumbUrl);
+        file.setFolder(TableConstant.sysFile_folder_guidecoreImages);
+        file.setFileType(TableConstant.sysFile_fileType_resLink);
+        file.setFileTypeIndex(TableConstant.COMMON_ONE);
+        file.setMasterId(masterId);
+        file.setSaveType(TableConstant.COMMON_THREE);
+        file.setFileRemark(new JSONArray());
+        file.setFileUrl(thumbUrl);
+
+        saveOrUpdate(file);
+
         return file;
     }
 
