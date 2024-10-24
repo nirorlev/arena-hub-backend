@@ -782,22 +782,24 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		searchParameters.put("videoName", searchParameters.get("searchName"));
 		searchParameters.put("pageNum", request.getHeader("pageNum"));
 		searchParameters.put("pageSize", request.getHeader("pageSize"));
-		PageInfo<GcVideo> page = service.page(searchParameters, system, request);
-		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
 		request.setAttribute("searchName", searchParameters.get("searchName"));
-		PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channels);
-		if (!channels.isEmpty()) {
-			message.addData("channelVideoPage", channelPageInfo);
+
+		Boolean loadVideoSuggestions = true;
+
+		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+		PageInfo<PtChannel> channelVideosPage = new PageInfo<>(channels);
+		if (!channelVideosPage.getList().isEmpty()) {
+			message.addData("channelVideoPage", channelVideosPage);
+			loadVideoSuggestions = false;
+		}
+	
+		PageInfo<GcVideo> courseVideosPage = service.page(searchParameters, system, request);
+		if (!courseVideosPage.getList().isEmpty()) {
+			message.addData("videoPage", courseVideosPage);
+			loadVideoSuggestions = false;
 		}
 
-		if (page.getList().isEmpty()) {
-			request.removeAttribute("searchName");
-			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
-			return message.addData("videoNullPage", new PageInfo<>(channels));
-		}
-
-		message.addData("videoPage", page);
-		if (page.getList().isEmpty()) {
+		if (loadVideoSuggestions) {
 			request.removeAttribute("searchName");
 			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
 			message.addData("videoNullPage", new PageInfo<>(channels));
