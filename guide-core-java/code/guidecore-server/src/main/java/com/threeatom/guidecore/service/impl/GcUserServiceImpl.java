@@ -24,6 +24,7 @@ import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.UserAvatarService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -56,6 +57,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private final GcAccessService accessService;
     private final GcSubjectService gcSubjectService;
     private final PortalUserService portalUserService;
+    private final UserAvatarService userAvatarService;
 
     @Override
     public GcUser getUserInfo(Integer userId) {
@@ -227,10 +229,16 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto powtoonUserInfo, GcAccess studentAccess,
                                     Integer masterId)
         throws ClientException, IOException {
+        String powtoonProfileUrl = powtoonUserInfo.getProfile().getThumbUrl();
+
         if (user == null) {
-            return createGcUser(powtoonUserInfo, studentAccess, masterId);
+            user = createGcUser(powtoonUserInfo, studentAccess, masterId);
+            userAvatarService.saveUserAvatar(powtoonProfileUrl, user.getId(), masterId);
+            return user;
         }
+
         updateUser(user, powtoonUserInfo);
+        userAvatarService.updateUserAvatar(powtoonProfileUrl, user.getId(), masterId);
         updateUserInfo(user, powtoonUserInfo, masterId);
 
         return enrichUserWithData(powtoonUserInfo, getUserByIdCache(user.getId()));

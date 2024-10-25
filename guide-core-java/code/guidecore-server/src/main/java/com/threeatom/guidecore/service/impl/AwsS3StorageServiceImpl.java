@@ -154,7 +154,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         } catch (ParseException | CloudFrontServiceException e) {
             String errMessage = "Failed to sign AWS S3 URL";
             log.error(errMessage, e);
-            throw new  SystemException(errMessage);
+            throw new SystemException(errMessage);
         }
     }
 
@@ -163,6 +163,15 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         byte[] fileData = retrieveFileFromUrl(fileUrl);
         Integer masterId = portalUser.getMasterId();
         Integer userId = portalUser.getUserId();
+        String key = buildFileS3Key(fileUrl, masterId, userId);
+        String signedUrl = generateSignedUrl(key);
+        uploadFileToSignedUrl(fileData, signedUrl);
+        return key;
+    }
+
+    @Override
+    public String uploadFileToS3(String fileUrl, Integer userId, Integer masterId) throws SystemException {
+        byte[] fileData = retrieveFileFromUrl(fileUrl);
         String key = buildFileS3Key(fileUrl, masterId, userId);
         String signedUrl = generateSignedUrl(key);
         uploadFileToSignedUrl(fileData, signedUrl);
