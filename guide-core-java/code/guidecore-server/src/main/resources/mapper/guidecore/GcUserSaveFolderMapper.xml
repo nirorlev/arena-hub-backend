@@ -298,17 +298,4 @@
 		ORDER BY time_bucket;
 	</select>
 
-	<select id="getTrendPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT time_bucket, COUNT(gusf.id) AS value
-			FROM gc_user_save_folder gusf
-			RIGHT JOIN
-						(
-							SELECT #{filter.start}::timestamp with time zone AS time_bucket
-							UNION
-							SELECT #{filter.end}::timestamp with time zone
-						) AS time_bucket ON gusf.create_time &lt;= time_bucket AND gusf.master_id = #{masterId}
-		GROUP BY time_bucket
-		ORDER BY time_bucket;
-	</select>
-
 </mapper>

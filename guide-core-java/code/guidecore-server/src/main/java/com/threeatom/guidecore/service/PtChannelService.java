@@ -70,7 +70,5 @@ public interface PtChannelService extends IService<PtChannel> {
 
     Integer countUserPublishedChannels(Integer userId, Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
     void populateCreatedUserId(PtChannel channel, GcUser user);
 }

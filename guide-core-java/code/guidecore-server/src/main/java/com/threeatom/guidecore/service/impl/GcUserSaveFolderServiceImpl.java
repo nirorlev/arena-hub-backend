@@ -10,7 +10,6 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
-import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
@@ -23,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -209,11 +207,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Override
     public List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getPlaylistCountAnalytics(filter, masterId);
-    }
-
-    @Override
-    public List<DbAnalyticsResultDto> getTrendPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendPlaylistCountAnalytics(filter, masterId);
     }
 
     @Override

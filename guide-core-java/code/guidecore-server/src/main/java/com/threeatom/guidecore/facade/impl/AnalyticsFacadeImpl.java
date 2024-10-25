@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -63,27 +62,20 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
     @Override
     public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-            () -> channelService.getTrendChannelsCountAnalytics(filter, masterId),
-            () -> channelService.getChannelsCountAnalytics(filter, masterId));
+        List<DbAnalyticsResultDto> analytics = channelService.getChannelsCountAnalytics(filter, masterId);
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.CHANNEL_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-            () -> videoService.getTrendVideoCountAnalytics(filter, masterId),
-            () -> videoService.getVideoCountAnalytics(filter, masterId));
-
+        List<DbAnalyticsResultDto> analytics = videoService.getVideoCountAnalytics(filter, masterId);
         return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_COUNT.getLabel());
     }
 
     @Override
     public AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-            () -> userSaveFolderService.getTrendPlaylistCountAnalytics(filter, masterId),
-            () -> userSaveFolderService.getPlaylistCountAnalytics(filter, masterId));
+        List<DbAnalyticsResultDto> analytics = userSaveFolderService.getPlaylistCountAnalytics(filter, masterId);
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.PLAYLIST_COUNT.getLabel());
     }
@@ -91,9 +83,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-                () -> videoPlaySessionService.getTrendVideoViewCountAnalytics(filter, masterId),
-                () -> videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId));
+            List<DbAnalyticsResultDto> analytics = videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId);
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
         }
@@ -106,9 +96,8 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-                () -> videoPlaySegmentService.getTrendVideoWatchingTimeAnalytics(filter, masterId),
-                () -> videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId));
+            List<DbAnalyticsResultDto> analytics =
+                videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId);
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
         }
@@ -121,9 +110,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-                () -> videoPlaySessionService.getTrendViewersCountAnalytics(filter, masterId),
-                () -> videoPlaySessionService.getViewersCountAnalytics(filter, masterId));
+            List<DbAnalyticsResultDto> analytics = videoPlaySessionService.getViewersCountAnalytics(filter, masterId);
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIEWERS_COUNT.getLabel());
         }
@@ -135,9 +122,8 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
     @Override
     public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-            () -> videoPlaySegmentService.getTrendAverageVideoWatchingTimeAnalytics(filter, masterId),
-            () -> videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId));
+        List<DbAnalyticsResultDto> analytics =
+            videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME.getLabel());
     }
@@ -145,9 +131,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-                () -> videoPlaySegmentService.getTrendDropOffRateAnalytics(filter, masterId),
-                () -> videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId));
+            List<DbAnalyticsResultDto> analytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.DROP_OFF_RATE.getLabel());
         }
@@ -160,9 +144,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     @Override
     public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = getAnalytics(filter.getStep(),
-                () -> videoPlaySegmentService.getTrendEngagementRateAnalytics(filter, masterId),
-                () -> videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId));
+            List<DbAnalyticsResultDto> analytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
         }
@@ -237,18 +219,5 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         metricValuePairDto.setX(xValue);
         metricValuePairDto.setY(String.valueOf(yValue));
         return metricValuePairDto;
-    }
-
-    private boolean isTrend(Long step) {
-        return step == null || step == 0;
-    }
-
-    private List<DbAnalyticsResultDto> getAnalytics(
-        Long step, Supplier<List<DbAnalyticsResultDto>> trendAnalytics, Supplier<List<DbAnalyticsResultDto>> chartAnalytics) {
-        if (isTrend(step)) {
-            return trendAnalytics.get();
-        }
-
-        return chartAnalytics.get();
     }
 }

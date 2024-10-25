@@ -113,10 +113,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendVideoCountAnalytics(
-        @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
-
     List<GcVideo> getVideoListByQuery(
         @Param("filter") VideoListFilterDto filter, @Param("masterId") Integer masterId);
 

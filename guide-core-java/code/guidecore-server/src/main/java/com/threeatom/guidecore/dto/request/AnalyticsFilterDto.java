@@ -4,6 +4,7 @@ import com.threeatom.common.validation.annotation.AggregateByWithStep;
 import com.threeatom.guidecore.enums.AnalyticsAggregation;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 @AggregateByWithStep
 public class AnalyticsFilterDto extends DateRangeDto {
+
     private Long step;
 
     private String aggregateBy = AnalyticsAggregation.DATE.getCode();
