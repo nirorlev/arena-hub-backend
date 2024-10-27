@@ -109,4 +109,5 @@ pipelines:
         trigger: manual
         script:
           - .ci/deploy.sh --env prod-ec
+          - .ci/permitio.sh copy_policies --src=production --dest=prod-backup # Backups production policies 
           - .ci/permitio.sh copy_policies --src=staging --dest=production
