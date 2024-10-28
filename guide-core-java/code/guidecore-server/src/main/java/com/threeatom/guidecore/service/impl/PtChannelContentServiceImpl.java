@@ -70,9 +70,7 @@ public class PtChannelContentServiceImpl
             log.error("Channel content list cannot be empty");
             throw new IllegalArgumentException("Channel content list cannot be empty");
         }
-        Map<Integer, SysFile> videoFileIdToFile = sysFileList.stream()
-            .collect(Collectors.toMap(SysFile::getId, Function.identity()));
-        ptChannelContent.forEach(content -> content.setVideoFile(videoFileIdToFile.get(content.getFileId())));
+        populateVideoFile(ptChannelContent, sysFileList);
 
         List<PtChannelContent> existingChannelContents = new ArrayList<>();
         List<PtChannelContent> newChannelContent = new ArrayList<>();
@@ -88,7 +86,7 @@ public class PtChannelContentServiceImpl
         }
 
         updateBatchById(existingChannelContents);
-        videoService.saveChannelContent(newChannelContent, sysFileList, channelId);
+        videoService.saveChannelContent(newChannelContent, channelId);
 
         for (PtChannelContent content : newChannelContent) {
             videoService.getVideoContent(content.getFileId()).ifPresent(videoContent -> {
@@ -126,6 +124,14 @@ public class PtChannelContentServiceImpl
         }
 
         updateBatchById(content);
+    }
+
+    private void populateVideoFile(List<PtChannelContent> channelContents, List<SysFile> videoFiles) {
+        Map<Integer, SysFile> videoFileIdToFile = videoFiles.stream()
+            .collect(Collectors.toMap(SysFile::getId, Function.identity()));
+
+        channelContents.forEach(channelContent -> channelContent.setVideoFile(
+            videoFileIdToFile.get(channelContent.getFileId())));
     }
 
     private void sortContent(List<PtChannelContent> content, Map<Integer, Integer> idToOrderMap) {
