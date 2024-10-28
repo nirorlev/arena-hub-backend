@@ -2,8 +2,10 @@ package com.threeatom.guidecore.controller.api.analytics;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -14,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -93,6 +94,12 @@ public class AnalyticsController {
     public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, masterId));
+    }
+
+    @GetMapping("/video-viewer-list")
+    public ResponseEntity<VideoViewersDto> videoViewers(@Valid VideoViewerDetailsDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.videoViewers(filter, masterId));
     }
 
     @GetMapping("/video-list")

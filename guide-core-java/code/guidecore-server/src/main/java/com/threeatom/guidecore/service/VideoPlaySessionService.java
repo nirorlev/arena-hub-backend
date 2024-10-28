@@ -5,6 +5,8 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewerDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import java.util.List;
@@ -23,4 +25,6 @@ public interface VideoPlaySessionService extends IService<VideoPlaySession> {
     List<DbAnalyticsResultDto> getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<DbAnalyticsResultVideoIdDto> getViewersCountByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
+
+    List<VideoViewerDto> getVideoViewersAnalytics(VideoViewerDetailsDto filter, Integer masterId);
 }
