@@ -112,7 +112,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
 
     private double calculatePercentageViewed(List<VideoPlaySession> playSessions, int totalVideoTime) {
         int totalTimeViewed = getTotalTimeViewed(mergeSegments(getAllViewSegments(playSessions)));
-        return ((double) totalTimeViewed / totalVideoTime) * 100;
+        return Double.parseDouble(String.format("%.2f", ((double) totalTimeViewed / totalVideoTime) * 100));
     }
 
     private List<VideoPlaySegment> getAllViewSegments(List<VideoPlaySession> playSessions) {
