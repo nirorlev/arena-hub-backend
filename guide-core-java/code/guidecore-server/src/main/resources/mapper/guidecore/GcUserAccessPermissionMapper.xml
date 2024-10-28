@@ -216,14 +216,6 @@
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 
-    <select id="getContainsAccessPermissionList" resultMap="baseResultMap">
-        SELECT a.*
-        FROM gc_user_access_permission a
-                 LEFT JOIN gc_user_access ua ON ua.id = a.user_access_id
-        WHERE ua.master_id = #{masterId} AND
-            (a.channel_permission::jsonb @> to_jsonb(#{ptId}::integer) OR a.subscribe_permission::jsonb @> to_jsonb(#{ptId}::integer))
-    </select>
-
     <select id="getContainsSubjectAccessPermissionList" resultMap="baseResultMap">
         SELECT a.*
         FROM gc_user_access_permission a

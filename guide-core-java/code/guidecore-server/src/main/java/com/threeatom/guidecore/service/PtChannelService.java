@@ -5,7 +5,6 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
@@ -70,5 +69,5 @@ public interface PtChannelService extends IService<PtChannel> {
 
     Integer countUserPublishedChannels(Integer userId, Integer masterId);
 
-    void populateCreatedUserId(PtChannel channel, GcUser user);
+    void populateCreatedUserId(PtChannel channel, Integer userId);
 }
