@@ -90,18 +90,24 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     private Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(List<VideoPlaySession> playSessions) {
-        return playSessions.stream()
-            .collect(Collectors.toMap(VideoPlaySession::getVideoId, entry -> calculateVideoViewerDetails(playSessions,
-                entry.getVideo().getVideoTime())));
+        Map<Integer, List<VideoPlaySession>> videoIdToViewSessions = playSessions.stream()
+            .collect(Collectors.groupingBy(VideoPlaySession::getVideoId));
+
+        return videoIdToViewSessions.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> calculateVideoViewerDetails(entry.getValue())));
     }
 
-    private VideoViewerVideoDetailDto calculateVideoViewerDetails(
-        List<VideoPlaySession> playSessions, Integer videoTime) {
+    private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = new VideoViewerVideoDetailDto();
         videoViewerVideoDetailDto.setTotalViewTime(getTotalTimeViewed(getAllViewSegments(playSessions)));
         videoViewerVideoDetailDto.setViewSessions(playSessions.size());
-        videoViewerVideoDetailDto.setPercentageViewed(calculatePercentageViewed(playSessions, videoTime));
+        videoViewerVideoDetailDto.setPercentageViewed(calculatePercentageViewed(playSessions,
+            getVideoTime(playSessions.get(0))));
         return videoViewerVideoDetailDto;
+    }
+
+    private Integer getVideoTime(VideoPlaySession playSession) {
+        return playSession.getVideo().getVideoTime();
     }
 
     private double calculatePercentageViewed(List<VideoPlaySession> playSessions, int totalVideoTime) {
