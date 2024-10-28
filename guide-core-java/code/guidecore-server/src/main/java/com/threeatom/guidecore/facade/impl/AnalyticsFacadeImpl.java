@@ -3,10 +3,12 @@ package com.threeatom.guidecore.facade.impl;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
 import com.threeatom.guidecore.enums.AnalyticsAggregation;
 import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
@@ -168,6 +170,13 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     public AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         List<DbAnalyticsResultVideoIdDto> likesAnalytics = videoService.getLikesByVideoAnalytics(filter, masterId);
         return getAnalyticsByVideoResponseDto(likesAnalytics, AnalyticsType.LIKES.getLabel());
+    }
+
+    @Override
+    public VideoViewersDto videoViewers(VideoViewerDetailsDto filter, Integer masterId) {
+        VideoViewersDto videoViewersDto = new VideoViewersDto();
+        videoViewersDto.setResults(videoPlaySessionService.getVideoViewersAnalytics(filter, masterId));
+        return videoViewersDto;
     }
 
     private AnalyticsResponseDto getAnalyticsResponseDto(List<DbAnalyticsResultDto> analyticsCountResults,

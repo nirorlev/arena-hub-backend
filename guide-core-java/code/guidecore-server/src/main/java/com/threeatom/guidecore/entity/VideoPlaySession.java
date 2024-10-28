@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 
@@ -24,6 +25,9 @@ public class VideoPlaySession implements Serializable {
 
     @TableField(exist = false)
     private GcVideo video;
+
+    @TableField(exist = false)
+    private List<VideoPlaySegment> viewSegments;
 
     @TableField(exist = false)
     private GcMaster master;

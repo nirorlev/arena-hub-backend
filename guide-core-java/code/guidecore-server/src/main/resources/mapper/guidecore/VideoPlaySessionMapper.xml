@@ -2,6 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.VideoPlaySessionMapper">
 
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.VideoPlaySession">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="videoId" column="video_id" />
+        <result property="masterId" column="master_id" />
+
+        <association property="user" javaType="com.threeatom.guidecore.entity.GcUser" autoMapping="true" />
+        <association property="video" javaType="com.threeatom.guidecore.entity.GcVideo" autoMapping="true" />
+        <collection property="viewSegments" ofType="com.threeatom.guidecore.entity.VideoPlaySegment" autoMapping="true" />
+    </resultMap>
+
     <select id="getVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, COUNT(play_session.id) AS value
         FROM video_play_session play_session
@@ -66,4 +77,19 @@
         GROUP BY video.id;
     </select>
 
+    <select id="getVideoViewSessionsByViewerDetails" resultMap="baseResultMap" parameterType="map" >
+        SELECT video_session.*, play_segment.*, u.id, user_info.first_name, user_info.last_name, user_avatar_file.file_url
+        FROM video_play_session video_session
+                 JOIN video_play_segment play_segment ON video_session.id = play_segment.session_id
+                 JOIN gc_user u ON video_session.user_id = u.id
+                 JOIN gc_user_info user_info ON u.info_id = user_info.id
+                 JOIN gc_video video_viewed ON video_session.video_id = video_viewed.id
+                 RIGHT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+        WHERE video_session.master_id = ${masterId}
+          AND video_session.create_time BETWEEN #{filter.start} AND #{filter.end}
+          AND video_session.video_id IN
+            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+    </select>
 </mapper>
