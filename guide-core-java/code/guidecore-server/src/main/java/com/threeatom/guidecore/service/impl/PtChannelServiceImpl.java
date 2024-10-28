@@ -683,11 +683,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<DbAnalyticsResultDto> getTrendChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendChannelsCountAnalytics(filter, masterId);
-    }
-
-    @Override
     public void populateCreatedUserId(PtChannel channel, GcUser user) {
         if (channel.getId() == null) {
             channel.setCreateUserId(user.getId());

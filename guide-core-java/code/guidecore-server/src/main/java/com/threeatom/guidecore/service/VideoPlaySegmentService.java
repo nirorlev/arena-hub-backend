@@ -14,21 +14,13 @@ public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
 
     List<DbAnalyticsResultDto> getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
     List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
     List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
     List<DbAnalyticsResultDto> getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
-    List<DbAnalyticsResultDto> getTrendEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(AnalyticsFilterDto filter, Integer masterId);
 

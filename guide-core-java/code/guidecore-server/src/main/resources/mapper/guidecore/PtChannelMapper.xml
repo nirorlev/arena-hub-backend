@@ -934,27 +934,16 @@
     </select>
 
     <select id="getChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(pc.id) OVER (ORDER BY time_bucket) AS value
+        WITH counted_channels AS (
+            SELECT time_bucket, COUNT(pc.id) AS value
             FROM pt_channel pc
-            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                ON pc.create_time >= time_bucket
-                       AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                       AND pc.master_id = #{masterId}
-        GROUP BY time_bucket, pc.id
-        ORDER BY time_bucket;
-    </select>
-
-    <select id="getTrendChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(pc.id) AS value
-            FROM pt_channel pc
-                RIGHT JOIN
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                            ON pc.create_time &lt;= time_bucket AND pc.master_id = #{masterId}
-        GROUP BY time_bucket
+                RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    ON pc.create_time >= time_bucket
+                           AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval AND pc.master_id = #{masterId}
+            GROUP BY time_bucket
+        )
+        SELECT time_bucket, value
+        FROM counted_channels
         ORDER BY time_bucket;
     </select>
 

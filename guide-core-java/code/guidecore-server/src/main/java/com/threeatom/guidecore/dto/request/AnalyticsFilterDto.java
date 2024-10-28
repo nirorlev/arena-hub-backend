@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 @AggregateByWithStep
 public class AnalyticsFilterDto extends DateRangeDto {
+
     private Long step;
 
     private String aggregateBy = AnalyticsAggregation.DATE.getCode();

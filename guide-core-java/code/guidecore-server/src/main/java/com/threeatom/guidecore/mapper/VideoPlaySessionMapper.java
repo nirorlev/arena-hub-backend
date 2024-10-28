@@ -13,15 +13,7 @@ public interface VideoPlaySessionMapper extends BaseMapper<VideoPlaySession> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendVideoViewCountAnalytics(
-        @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
-
     List<DbAnalyticsResultDto> getViewersCountAnalytics(
-        @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
-
-    List<DbAnalyticsResultDto> getTrendViewersCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
