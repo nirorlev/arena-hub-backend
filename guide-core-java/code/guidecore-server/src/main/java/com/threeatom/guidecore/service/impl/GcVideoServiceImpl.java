@@ -632,9 +632,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles, Integer originChannelId) {
+	public void saveChannelContent(List<PtChannelContent> ptChannelContent, Integer originChannelId) {
 		List<GcVideo> channelVideoContent = ptChannelContent.stream()
-			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent, originChannelId))
+			.map(channelContent -> createChannelVideoContent(channelContent, originChannelId))
 			.collect(Collectors.toList());
 
 		saveBatch(channelVideoContent);
@@ -787,9 +787,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return response;
 	}
 
-	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent,
-											  Integer originChannelId) {
-		SysFile videoFile = getVideoFile(channelContent.getFileId(), sysFiles);
+	private GcVideo createChannelVideoContent(PtChannelContent channelContent, Integer originChannelId) {
+		SysFile videoFile = channelContent.getVideoFile();
 
 		if (videoFile == null) {
 			return null;
@@ -805,13 +804,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		gcVideo.setOriginChannelId(originChannelId);
 
 		return gcVideo;
-	}
-
-	private SysFile getVideoFile(Integer fileId, List<SysFile> sysFiles) {
-		return sysFiles.stream()
-			.filter(sysFile -> sysFile.getId().equals(fileId))
-			.findFirst()
-			.orElse(null);
 	}
 
 	@Override
