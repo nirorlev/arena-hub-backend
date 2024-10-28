@@ -693,9 +693,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public void populateCreatedUserId(PtChannel channel, GcUser user) {
+    public void populateCreatedUserId(PtChannel channel, Integer userId) {
         if (channel.getId() == null) {
-            channel.setCreateUserId(user.getId());
+            channel.setCreateUserId(userId);
             return;
         }
 
