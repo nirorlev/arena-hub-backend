@@ -517,7 +517,10 @@
     </select>
 
     <select id="selectSectionList" resultType="com.threeatom.guidecore.entity.PtChannel">
-        select * from pt_channel where 1=1
+        select channel.*, count(channel_content.content_id) as content_count
+        from pt_channel channel
+            left join pt_channel_content channel_content ON channel.id = channel_content.channel_id
+        where 1=1
         <if test="slug != null">
             and fid = (select id from pt_channel where channel_slug = #{slug} and master_id = #{masterId})
         </if>
@@ -527,6 +530,7 @@
         <if test="masterId !=null">
             and master_id = #{masterId}
         </if>
+        GROUP BY channel.id
         order by create_time ${order}
     </select>
 
