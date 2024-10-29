@@ -81,7 +81,8 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
 
         return userToViewSessions.entrySet().stream()
             .map(userToViewSessionEntry -> {
-                UserDetailsDto userDetailsDto = ownerMapping.map(userToViewSessionEntry.getKey());
+                GcUser user = userToViewSessionEntry.getKey();
+                UserDetailsDto userDetailsDto = ownerMapping.map(user, user.getInfo());
                 Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails =
                     videoViewerDetails(userToViewSessionEntry.getValue());
                 return createVideoViewerDto(userDetailsDto, videoIdToVideoViewerDetails);
