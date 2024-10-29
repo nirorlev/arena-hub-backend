@@ -83,19 +83,20 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
             .map(userToViewSessionEntry -> {
                 GcUser user = userToViewSessionEntry.getKey();
                 UserDetailsDto userDetailsDto = ownerMapping.map(user, user.getInfo());
-                Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails =
+                Map<String, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails =
                     videoViewerDetails(userToViewSessionEntry.getValue());
                 return createVideoViewerDto(userDetailsDto, videoIdToVideoViewerDetails);
             })
             .collect(Collectors.toList());
     }
 
-    private Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(List<VideoPlaySession> playSessions) {
+    private Map<String, VideoViewerVideoDetailDto> videoViewerDetails(List<VideoPlaySession> playSessions) {
         Map<Integer, List<VideoPlaySession>> videoIdToViewSessions = playSessions.stream()
             .collect(Collectors.groupingBy(VideoPlaySession::getVideoId));
 
         return videoIdToViewSessions.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, entry -> calculateVideoViewerDetails(entry.getValue())));
+            .collect(Collectors.toMap(
+                entry -> String.valueOf(entry.getKey()), entry -> calculateVideoViewerDetails(entry.getValue())));
     }
 
     private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {
@@ -159,7 +160,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     private VideoViewerDto createVideoViewerDto(UserDetailsDto userDetailsDto,
-                                                Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails) {
+                                                Map<String, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails) {
         VideoViewerDto videoViewerDto = new VideoViewerDto();
         videoViewerDto.setUser(userDetailsDto);
         videoViewerDto.setVideos(videoIdToVideoViewerDetails);

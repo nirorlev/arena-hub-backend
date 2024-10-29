@@ -10,5 +10,5 @@ import lombok.Setter;
 @Setter
 public class VideoViewerDto {
     private UserDetailsDto user;
-    private Map<Integer, VideoViewerVideoDetailDto> videos = new HashMap<>();
+    private Map<String, VideoViewerVideoDetailDto> videos = new HashMap<>();
 }
