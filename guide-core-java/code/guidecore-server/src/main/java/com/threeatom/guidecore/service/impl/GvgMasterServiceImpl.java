@@ -792,11 +792,13 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			message.addData("channelVideoPage", channelVideosPage);
 			loadVideoSuggestions = false;
 		}
-	
-		PageInfo<GcVideo> courseVideosPage = service.page(searchParameters, system, request);
-		if (!courseVideosPage.getList().isEmpty()) {
-			message.addData("videoPage", courseVideosPage);
-			loadVideoSuggestions = false;
+
+		if (isCourseSearchEnabled()) {
+			PageInfo<GcVideo> courseVideosPage = service.page(searchParameters, system, request);
+			if (!courseVideosPage.getList().isEmpty()) {
+				message.addData("videoPage", courseVideosPage);
+				loadVideoSuggestions = false;
+			}
 		}
 
 		if (loadVideoSuggestions) {
