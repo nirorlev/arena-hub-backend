@@ -139,6 +139,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -649,10 +650,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @PostMapping("navigation")
-    @ApiOperation(value = "新UI课程首页-课程导航页", notes = "课程导航页", httpMethod = "POST")
-    public Message navigation(@RequestBody(required = false) Map<String, Object> params, HttpServletRequest request)
-        throws IOException, PermitContextError, PermitApiError {
-        //复用
+    public Message navigation(@RequestBody(required = false) Map<String, Object> params, HttpServletRequest request) {
         Object fid = params.get("fid");
         if (Objects.isNull(fid)) {
             throw new SystemException(I18NUtil.get("guidecore.course.navigation.error"));
@@ -677,6 +675,7 @@ public class PowtoonController extends GuideCoreController {
 
             return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
         }
+
         return gvgMasterService.navigation(params, request, system, new GcUser(), EnvType.PT.getCode());
     }
 
