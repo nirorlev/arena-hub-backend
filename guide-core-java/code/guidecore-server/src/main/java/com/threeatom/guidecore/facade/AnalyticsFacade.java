@@ -2,6 +2,7 @@ package com.threeatom.guidecore.facade;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -31,4 +32,6 @@ public interface AnalyticsFacade {
     AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     VideoViewersDto videoViewers(VideoViewerDetailsDto filter, Integer masterId);
+
+    AnalyticsResponseDto<Double, Double> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter, Integer masterId);
 }

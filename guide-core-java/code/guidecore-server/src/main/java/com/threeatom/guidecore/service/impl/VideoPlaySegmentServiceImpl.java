@@ -5,8 +5,10 @@ import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
 import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
@@ -83,6 +85,12 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     public List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(AnalyticsFilterDto filter,
                                                                             Integer masterId) {
         return baseMapper.getDropOffRateByVideoAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+    }
+
+    @Override
+    public List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
+                                                                                Integer masterId) {
+        return baseMapper.videoViewsPerSecondAnalytics(filter, masterId);
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {
