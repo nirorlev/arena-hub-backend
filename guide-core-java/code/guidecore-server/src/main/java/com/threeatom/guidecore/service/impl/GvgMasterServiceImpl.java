@@ -1317,7 +1317,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		List<Integer> subIds = new ArrayList<>();
 		//当前视频
 		GcVideo video = gcVideoService.getById(videoId);
-		GcVideo thisVideo = gcVideoService.getVideoById(videoId);
+		GcVideo thisVideo = gcVideoService.findByVideoId(videoId);
 
 		GcVideo videoPlay = gcVideoService.selectVideoPlayByVideo(thisVideo.getId(),user.getId());
 		if (null!=videoPlay.getPlayState()){

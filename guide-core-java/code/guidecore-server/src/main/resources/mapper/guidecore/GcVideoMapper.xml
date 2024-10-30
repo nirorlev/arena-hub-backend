@@ -894,7 +894,10 @@
             course_owner.id               AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url
+            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url,
+            f.target_lang_json as target_lang_json,
+            gs.id as subId0,
+            gs.name as topicName
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
