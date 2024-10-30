@@ -209,38 +209,46 @@
 
     <select id="selectVideosSubIds" resultMap="baseResultMap" parameterType="list">
         SELECT
-        <include refid="baseColumnSub1" />
-        <include refid="fileBaseColumn" />
-        , S."fid" AS subId0
-        ,s.id as sub_id,
-        count(r.id) as resourceNum
-        FROM GC_VIDEO v
-        LEFT JOIN gc_subject s ON S.ID = V.SUB_ID
-        left join gc_resource r on r.video_id = v.id
-        <include refid="leftJoinSysFile" />
+            <include refid="baseColumnSub1" />
+            <include refid="fileBaseColumn" />,
+            S."fid" AS subId0, s.id as sub_id,
+            S.id                         AS course_id,
+            S.name                       AS course_name,
+            S.fid                        AS course_fid,
+            S.state                      AS course_state,
+            S.available_type             AS course_available_type,
+            count(r.id) as resourceNum
+        FROM gc_subject S
+            JOIN course_content ON course_content.course_id = S.id
+            JOIN gc_video v ON v.id = course_content.content_id
+            left join gc_resource r on r.video_id = v.id
+            <include refid="leftJoinSysFile" />
         WHERE v.sub_id IN
-        <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
-            #{subId}
-        </foreach>
-        and v.id is not null
+            <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+                #{subId}
+            </foreach>
         GROUP BY v.id, f.id, S."fid", s.id
         order by v.order asc,v.create_time asc,v.id
     </select>
 
-
     <select id="getVideoIdListBySubId0" resultMap="baseResultMap" parameterType="list">
         SELECT
-        <include refid="baseColumnSub1" />
-        <include refid="fileBaseColumn" />
-        , S."fid" AS subId0
-        ,s.id as sub_id
-        FROM GC_SUBJECT S
-        LEFT JOIN GC_VIDEO V ON S.ID = V.SUB_ID
-        <include refid="leftJoinSysFile" />
-        WHERE S.FID IN
-        <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
-            #{subId}
-        </foreach>
+            <include refid="baseColumnSub1" />
+            <include refid="fileBaseColumn" />,
+            S."fid" AS subId0, s.id as sub_id,
+            S.id                         AS course_id,
+            S.name                       AS course_name,
+            S.fid                        AS course_fid,
+            S.state                      AS course_state,
+            S.available_type             AS course_available_type
+        FROM course_content
+            JOIN gc_subject s ON s.id = course_content.course_id
+            JOIN gc_video V ON V.ID = course_content.content_id
+            <include refid="leftJoinSysFile" />
+        WHERE course_content.course_id IN
+            <foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
+                #{subId}
+            </foreach>
     </select>
 
 <!--*根据视频id和视频名称查询-->
@@ -265,15 +273,22 @@
 
     <select id="selectVideoListBySubId" resultMap="baseResultMap">
         select
-        <include refid="baseColumn" />
-        <include refid="fileBaseColumn" />
-        ,round(avg(star_value)::numeric,2) as starvalue,
-        v.order
-        from gc_video v 
-         <include refid="leftJoinSysFile" />
-        left join  gc_user_video_action ac on ac.content_id = v.id
-        where v.sub_id=#{subId}
-        group by v.id, f.id
+            <include refid="baseColumn" />
+            <include refid="fileBaseColumn" />,
+            round(avg(star_value)::numeric,2) as starvalue,
+            v.order,
+            course.id                         AS course_id,
+            course.name                       AS course_name,
+            course.fid                        AS course_fid,
+            course.state                      AS course_state,
+            course.available_type             AS course_available_type
+        from course_content
+            join gc_video v on v.id = course_content.content_id
+            join gc_subject course on course.id = course_content.course_id
+             <include refid="leftJoinSysFile" />
+            left join gc_user_video_action ac on ac.content_id = v.id
+        where course_content.course_id=#{subId}
+        group by course.id, v.id, f.id
         order by v."order" asc,v.create_time asc,v.id
     </select>
 

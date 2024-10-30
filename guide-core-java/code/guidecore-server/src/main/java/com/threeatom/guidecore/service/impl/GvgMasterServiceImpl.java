@@ -1017,9 +1017,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 
 			List<GcSubject> orderSubject = page.getList();
-			List<GcSubject> orderTwoSubList = orderSubject;
-			List<Integer> videoIds = new ArrayList<>();
-			List<Integer> orderTwoSubIds = orderTwoSubList.stream().map(GcSubject::getId).collect(Collectors.toList());
+            List<Integer> videoIds = new ArrayList<>();
+			List<Integer> orderTwoSubIds = orderSubject.stream().map(GcSubject::getId).collect(Collectors.toList());
 			if (null!=orderTwoSubIds&&TableConstant.COMMON_ZERO!=orderTwoSubIds.size()){
 				videoIds = videoService.getIdsBySubIds(orderTwoSubIds);
 			}
@@ -1033,7 +1032,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 
 			Map<Integer, List<PtTags>> finalTagListMap = tagListMap;
-			orderTwoSubList.forEach(sub->{
+			orderSubject.forEach(sub->{
 				List<GcVideo> videos = sub.getGcVideos();
 				if(null!=videos && TableConstant.COMMON_ZERO!=videos.size()) {
 					Long videoFinishedNum = videos.stream().filter(e -> null != e.getCompleteStatus()).filter(e -> e.getCompleteStatus() == 2).count();
@@ -1054,7 +1053,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 
 			});
-			page.setList(orderTwoSubList);
+			page.setList(orderSubject);
 			msg.addData("page", page);
 
 
