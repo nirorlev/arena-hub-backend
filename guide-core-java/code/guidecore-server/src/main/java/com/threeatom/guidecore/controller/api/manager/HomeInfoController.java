@@ -75,6 +75,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -83,8 +84,6 @@ import org.dom4j.Element;
 import org.dom4j.QName;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -96,12 +95,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/guidecore/homeInfo")
 @Api(tags = "门户首页数据")
 public class HomeInfoController extends GuideCoreController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HomeInfoController.class);
     @Autowired
     GcMasterService masterService;
     @Autowired
@@ -161,7 +160,7 @@ public class HomeInfoController extends GuideCoreController {
     @ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
     public Message saveOrUpdate(@RequestBody List<GcMasterHomeInfo> list, HttpServletRequest request) {
-        LOGGER.info(JSONObject.toJSONString(list));
+        log.info(JSONObject.toJSONString(list));
         GcMaster master = this.getMaster();
         if (Objects.isNull(master)) {
             master = masterService.getMasterById(request.getIntHeader("masterId"));
@@ -717,7 +716,7 @@ public class HomeInfoController extends GuideCoreController {
         "/html${frontendPath}", "/html${frontendPath}/"})
     public void html(HttpServletRequest request, HttpServletResponse response) {
         String xRequestUri = request.getHeader("x-request-uri");
-        LOGGER.info("[SSR] Method: " + request.getMethod() + ", URI: " + request.getRequestURI() + ", x-request-uri: " +
+        log.info("[SSR] Method: " + request.getMethod() + ", URI: " + request.getRequestURI() + ", x-request-uri: " +
             request.getHeader("x-request-uri"));
         if (xRequestUri != null) {
             if (xRequestUri.endsWith("/")) {
