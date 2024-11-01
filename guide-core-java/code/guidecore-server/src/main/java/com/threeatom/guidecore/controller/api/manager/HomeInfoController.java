@@ -35,13 +35,11 @@ import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcSubjectAssociationService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcUserVideoPlayService;
 import com.threeatom.guidecore.service.GcVideoService;
-import com.threeatom.guidecore.service.GvgMasterService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -58,12 +56,12 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -130,17 +128,11 @@ public class HomeInfoController extends GuideCoreController {
     @Autowired
     private GcMasterService gcMasterService;
     @Autowired
-    private GcUserVideoActionService gcUserVideoActionService;
-    @Autowired
     private NewUiGcSubjectService newUiGcSubjectService;
     @Autowired
     private GcAccessService gcAccessService;
     @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
-    @Autowired
     private GcUserVideoActionService videoActionService;//用户视频操作--查询评论、点赞、星级评价
-    @Autowired
-    private GvgMasterService gvgMasterService;
     @Autowired
     private GcUserAccessService gcUserAccessService;
     @Autowired
@@ -226,47 +218,52 @@ public class HomeInfoController extends GuideCoreController {
 
     @PostMapping("/getSubByLevel0Sub")
     public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-        Message m = new Message();
+        Message message = new Message();
 
         String portalId = requestParams.getString("portalId");
         GcMaster gcMaster = this.getMaster(portalId);
         if (gcMaster == null) {
-            return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
+            return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
         }
-        Integer level0subId = requestParams.getInteger("level0subId");
-        String level0subNameIndex = requestParams.getString("level0subName");
 
+        Integer courseId = requestParams.getInteger("level0subId");
+        String courseNameIndex = requestParams.getString("level0subName");
+        List<GcSubject> courses = subjectService.getLevel0SubLis(gcMaster.getId());
+        SysSystem sys = getSysSystem();
 
-        List<GcSubject> level0sublist = subjectService.getLevel0SubLis(gcMaster.getId());
+        GcSubject newCourse = new GcSubject();
+        newCourse.setId(courseId);
+        newCourse.setNameIndex(courseNameIndex);
+        newCourse.setMasterId(gcMaster.getId());
+        JSONArray response = userVideoPlayService.getSubAndVideoPlayListForHome(newCourse, sys, request);
 
-        String sysIds = env.getProperty("systemId");
-        int sysId = Integer.parseInt(sysIds);
-        SysSystem sys = systemService.getSystemById(sysId);
+        message.addData("gcMaster", gcMaster);
+        message.ok().addData("subjectList", courses);
+        message.ok().addData("topicList", response);
 
-        GcSubject subject = new GcSubject();
-        subject.setId(level0subId);
-        subject.setNameIndex(level0subNameIndex);
-        subject.setMasterId(gcMaster.getId());
-        JSONArray a = userVideoPlayService.getSubAndVideoPlayListForHome(subject, sys, request);
+        return message;
+    }
 
-        m.addData("gcMaster", gcMaster);
-        m.ok().addData("subjectList", level0sublist);
-        m.ok().addData("topicList", a);
+    private SysSystem getSysSystem() {
+        int sysId = 0;
+        String systemId = env.getProperty("systemId");
+        if (systemId != null) {
+            sysId = Integer.parseInt(systemId);
+        }
 
-        return m;
+        return systemService.getSystemById(sysId);
     }
 
     @PostMapping("/getVideoByLevel0SubNameAndVideoName")
-    public Message getVideoByLevel0SubNameAndVideoName(@RequestBody JSONObject requestParams,
-                                                       HttpServletRequest request) {
+    public Message getVideoByLevel0SubNameAndVideoName(@RequestBody JSONObject requestParams) {
         String portalId = requestParams.getString("portalId");
         String videoNameIndex = requestParams.getString("videoName");
         String level0subNameIndex = requestParams.getString("level0subName");
-        Message m = new Message();
+        Message message = new Message();
 
         GcMaster gcMaster = this.getMaster(portalId);
         if (gcMaster == null) {
-            return m.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
+            return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
         }
         GcVideo video = null;
         List<GcVideo> videoList =
@@ -279,37 +276,14 @@ public class HomeInfoController extends GuideCoreController {
             video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
         }
 
-        m.ok().addData("video", video);
-        m.addData("gcMaster", gcMaster);
-        return m;
+        message.ok().addData("video", video);
+        message.addData("gcMaster", gcMaster);
+        return message;
     }
-
-
-    @PostMapping("/ipn5")
-    public void ipn(@RequestBody JSONObject requestParams) {
-
-    }
-
-
-    @PostMapping("/ipn1")
-    public void ipn1(@RequestBody JSONObject requestParams2, HttpServletRequest request) {
-        //获取参数名称
-        Enumeration<String> requestParams = request.getParameterNames();
-        //遍历获取参数
-        while (requestParams.hasMoreElements()) {
-            String param = requestParams.nextElement();
-            String value = request.getParameter(param);
-            System.out.println("ipn回调-----" + param + ":" + value);
-        }
-
-        int a = 1;
-    }
-
 
     @ApiOperation(value = "home页面,package查询", httpMethod = "GET")
     @GetMapping("/packageList")
-    public Message packageList(@RequestParam(required = false) Integer yearlyFlag, HttpServletRequest request)
-        throws StripeException {
+    public Message packageList(@RequestParam(required = false) Integer yearlyFlag, HttpServletRequest request) {
         Message message = new Message();
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(masterId)) {
@@ -423,9 +397,9 @@ public class HomeInfoController extends GuideCoreController {
             //计算平均星级
             List<GcAccess> newPackageList = packageList.stream().map(singlePackage -> {
                 BigDecimal times = new BigDecimal(singlePackage.getTimes() == null ? 0 : singlePackage.getTimes());
-                BigDecimal totalStars = new BigDecimal(singlePackage.getPackageCourseAvgStars());
+                BigDecimal totalStars = BigDecimal.valueOf(singlePackage.getPackageCourseAvgStars());
                 BigDecimal avgStars = times.compareTo(BigDecimal.ZERO) == 0 ? new BigDecimal("0") :
-                    totalStars.divide(times, BigDecimal.ROUND_DOWN);
+                    totalStars.divide(times, RoundingMode.DOWN);
                 singlePackage.setPackageCourseAvgStars(avgStars.doubleValue());
                 return singlePackage;
             }).collect(Collectors.toList());
@@ -523,7 +497,7 @@ public class HomeInfoController extends GuideCoreController {
         if (totalStars != TableConstant.DOUBLE_ZERO && times != TableConstant.COMMON_ZERO) {
             BigDecimal stars = new BigDecimal(totalStars);
             BigDecimal time = new BigDecimal((times));
-            gcAccess.setPackageCourseAvgStars(stars.divide(time, 2).doubleValue());
+            gcAccess.setPackageCourseAvgStars(stars.divide(time, RoundingMode.CEILING).doubleValue());
         }
         //话题list
         Map<String, Object> subjectParams = new HashMap<>();
@@ -742,11 +716,11 @@ public class HomeInfoController extends GuideCoreController {
                 if (xRequestUri.contains(metarielConfig.getCourse()) ||
                     xRequestUri.contains(metarielConfig.getPlaylist())) {
                     subOrVid =
-                        Integer.parseInt(xRequestUri.substring(xRequestUri.lastIndexOf("/") + 1, xRequestUri.length()));
+                        Integer.parseInt(xRequestUri.substring(xRequestUri.lastIndexOf("/") + 1));
                 }
             }
             if (xRequestUri.contains(metarielConfig.getChannel())) {
-                channelUrlId = xRequestUri.substring(xRequestUri.lastIndexOf("/") + 1, xRequestUri.length());
+                channelUrlId = xRequestUri.substring(xRequestUri.lastIndexOf("/") + 1);
                 channelUrlId.trim();
             }
         }
@@ -807,7 +781,6 @@ public class HomeInfoController extends GuideCoreController {
             }
             if (Objects.nonNull(gcMaster.getLogoId())) {
                 SysFile sysFile = sysFileService.getById(gcMaster.getLogoId());
-                fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
             }
             if (Objects.isNull(host)) {
                 host = "";
@@ -864,11 +837,11 @@ public class HomeInfoController extends GuideCoreController {
             GcVideo videoContent = gcVideoService.getById(ptChannelContent.getContentId());
             if (sysFile.getFileTypeIndex().equals(13)) {
                 String fileUrl = sysFile.getFileUrl();
-                String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                 fullFileUrl = "https://i.ytimg.com/vi/" + youtubeId + "/hqdefault.jpg";
             } else if (sysFile.getFileTypeIndex().equals(14)) {
                 String fileUrl = sysFile.getFileUrl();
-                String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                 fullFileUrl = "https://vumbnail.com/" + vimeoId + "/_large.jpg";
             } else {
                 fullFileUrl = sysFileService.getVideoSnapshotUrl(videoContent);
@@ -941,11 +914,11 @@ public class HomeInfoController extends GuideCoreController {
             SysFile sysFile = sysFileService.getById(gcVideo.getFileId());
             if (sysFile.getFileTypeIndex().equals(13)) {
                 String fileUrl = sysFile.getFileUrl();
-                String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                 fullFileUrl = "https://i.ytimg.com/vi/" + youtubeId + "/hqdefault.jpg";
             } else if (sysFile.getFileTypeIndex().equals(14)) {
                 String fileUrl = sysFile.getFileUrl();
-                String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                 fullFileUrl = "https://vumbnail.com/" + vimeoId + "/_large.jpg";
             } else {
                 fullFileUrl = sysFileService.getVideoSnapshotUrl(gcVideo);
@@ -966,7 +939,7 @@ public class HomeInfoController extends GuideCoreController {
             if (host.equals(siteMapConfiguration.getSiteUrl())) {
                 gcMaster = gcMasterService.getMasterById(siteMapConfiguration.getDefaultId());
             } else {
-                Integer contextIndex = host.indexOf(".");
+                int contextIndex = host.indexOf(".");
                 String context = host.substring(0, contextIndex);
                 gcMaster = gcMasterService.getMasterByContext(context);
             }
@@ -974,8 +947,8 @@ public class HomeInfoController extends GuideCoreController {
                 metaHtmlConfig(gcMaster, "coursePageShareTitle", "coursePageShareDesc", "coursePageShareImg", host,
                     request);
         } else if (xRequestUri.contains(metarielConfig.getPlaylist()) && containNumber &&
-            !((hubUrl != "" && split.length == 5 && split[2].trim().equals("playlist"))
-                || !(hubUrl == "" && split.length == 4 && split[1].trim().equals("playlist")))
+            !((!hubUrl.equals("") && split.length == 5 && split[2].trim().equals("playlist"))
+                || !(hubUrl.equals("") && split.length == 4 && split[1].trim().equals("playlist")))
         ) {
             GcUserSaveFolder gcUserSaveFolder = new GcUserSaveFolder();
             gcUserSaveFolder.setId(subOrVid);
@@ -994,11 +967,11 @@ public class HomeInfoController extends GuideCoreController {
                     thumbNail = gcVideos.get(0).getVideoFile().getSnapshotUrl();
                 } else if (gcVideos.get(0).getVideoFile().getFileTypeIndex().equals(13)) {
                     String fileUrl = gcVideos.get(0).getVideoFile().getFileUrl();
-                    String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                    String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                     thumbNail = "https://i.ytimg.com/vi/" + youtubeId + "/hqdefault.jpg";
                 } else if (gcVideos.get(0).getVideoFile().getFileTypeIndex().equals(14)) {
                     String fileUrl = gcVideos.get(0).getVideoFile().getFileUrl();
-                    String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                    String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                     thumbNail = "https://vumbnail.com/" + vimeoId + "/_large.jpg";
                 }
             } else {
@@ -1013,49 +986,57 @@ public class HomeInfoController extends GuideCoreController {
             addMetaContent = metaHtml(titleHtml, descHtml, thumbNail, host, request);
 
         }
-        PrintWriter printWriter = null;
+        PrintWriter printWriter;
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
         try {
             printWriter = response.getWriter();
-            printWriter.write("<!doctype html>\n" +
-                "<html lang=\"en\">\n" +
-                "\n" +
-                "<head>\n" +
-                addMetaContent +
-                "  <meta charset=\"utf-8\" />\n" +
-                "  <meta content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,\" name=\"viewport\" />\n" +
-                "  <meta name=\"theme-color\" content=\"#000000\" />\n" +
-                "  <link rel=\"apple-touch-icon\" href=\"" + hubUrl + "/apple-touch-icon.png\" />\n" +
-                "  <link rel=\"manifest\" href=\"" + hubUrl + "/manifest.json\" />\n" +
-                "  <link rel=\"icon\" href=\"" + hubUrl + "/favicon.ico\">\n" +
-                "  <script type=\"module\" src=\"" + hubUrl + "/arena.js\"></script>\n" +
-                "  <script src=\"" + hubUrl + "/globalConfig.js\"></script>\n" +
-                "</head>\n" +
-                "\n" +
-                "<body><noscript>You need to enable JavaScript to run this app.</noscript>\n" +
-                "  <div id=\"root\"></div>\n" +
-                "  <script>\n" +
-                "    window.onload = function () {\n" +
-                "      var e = 0;\n" +
-                "      document.addEventListener(\"touchstart\", (function (e) {\n" +
-                "        e.touches.length > 1 && e.preventDefault()\n" +
-                "      })), document.addEventListener(\"touchend\", (function (t) {\n" +
-                "        var n = (new Date).getTime();\n" +
-                "        n - e <= 300 && t.preventDefault(), e = n\n" +
-                "      }), !1), document.addEventListener(\"gesturestart\", (function (e) {\n" +
-                "        e.preventDefault()\n" +
-                "      }))\n" +
-                "    }\n" +
-                "  </script>\n" +
-                "</body>\n" +
-                "\n" +
-                "</html>\n" +
-                "<!-- x-request-uri: " + xRequestUri + " -->\n" +
-                "<!-- test1001: " + xRequestUri + " -->\n");
+            printWriter.write(homeInfoContent(addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String homeInfoContent(String addMetaContent, String xRequestUri) {
+        return String.format(
+            """
+                <!doctype html>
+                <html lang="en">
+
+                <head>
+                %s  <meta charset="utf-8" />
+                  <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0," name="viewport" />
+                  <meta name="theme-color" content="#000000" />
+                  <link rel="apple-touch-icon" href="%s/apple-touch-icon.png" />
+                  <link rel="manifest" href="%s/manifest.json" />
+                  <link rel="icon" href="%s/favicon.ico">
+                  <script type="module" src="%s/arena.js"></script>
+                  <script src="%s/globalConfig.js"></script>
+                </head>
+
+                <body><noscript>You need to enable JavaScript to run this app.</noscript>
+                  <div id="root"></div>
+                  <script>
+                    window.onload = function () {
+                      var e = 0;
+                      document.addEventListener("touchstart", (function (e) {
+                        e.touches.length > 1 && e.preventDefault()
+                      })), document.addEventListener("touchend", (function (t) {
+                        var n = (new Date).getTime();
+                        n - e <= 300 && t.preventDefault(), e = n
+                      }), !1), document.addEventListener("gesturestart", (function (e) {
+                        e.preventDefault()
+                      }))
+                    }
+                  </script>
+                </body>
+
+                </html>
+                <!-- x-request-uri: %s -->
+                <!-- test1001: %s -->
+                """,
+            addMetaContent, hubUrl, hubUrl, hubUrl, hubUrl, hubUrl, xRequestUri, xRequestUri
+        );
     }
 
     @GetMapping("/html/robots.txt")
@@ -1143,27 +1124,32 @@ public class HomeInfoController extends GuideCoreController {
                 fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
             }
         }
-        String addMetaContent = metaHtml(title, desc, fullFileUrl, host, request);
-        return addMetaContent;
+        return metaHtml(title, desc, fullFileUrl, host, request);
 
     }
 
     private String metaHtml(String title, String desc, String fullFileUrl, String host, HttpServletRequest request) {
         desc = desc == null ? "" : desc;
 
-        return "  <title>" + title + "</title>\n" +
-            "  <meta name=\"title\" content=\"" + title + "\" />\n" +
-            "  <meta name=\"description\" content=\"" + desc + "\" />\n" +
-            "  <meta property=\"og:image\" content=\"" + fullFileUrl + "\"/>\n" +
-            "  <meta property=\"og:title\" content=\"" + title + "\"/>\n" +
-            "  <meta property=\"og:x-request-uri\" content=\"" + request.getHeader("x-request-uri") + "\"/>\n" +
-            "  <meta property=\"og:description\" content=\"" + desc + "\"/>\n" +
-            "  <meta property=\"og:url\" content=\"" + host + hubUrl + "\">\n" +
-            "  <meta name=\"twitter:card\" content=\"summary_large_image\">\n" +
-            "  <meta name=\"twitter:title\" content=\"" + title + "\">\n" +
-            "  <meta name=\"twitter:description\" content=\"" + desc + "\">\n" +
-            "  <meta name=\"twitter:url\" content=\"" + host + hubUrl + "\">\n" +
-            "  <meta name=\"twitter:image\" content=\"" + fullFileUrl + "\">\n";
+        return String.format(
+            """
+                  <title>%s</title>
+                  <meta name="title" content="%s" />
+                  <meta name="description" content="%s" />
+                  <meta property="og:image" content="%s"/>
+                  <meta property="og:title" content="%s"/>
+                  <meta property="og:x-request-uri" content="%s"/>
+                  <meta property="og:description" content="%s"/>
+                  <meta property="og:url" content="%s%s">
+                  <meta name="twitter:card" content="summary_large_image">
+                  <meta name="twitter:title" content="%s">
+                  <meta name="twitter:description" content="%s">
+                  <meta name="twitter:url" content="%s%s">
+                  <meta name="twitter:image" content="%s">
+                """,
+            title, title, desc, fullFileUrl, title, request.getHeader("x-request-uri"), desc, host, hubUrl, title, desc,
+            host, hubUrl, fullFileUrl
+        );
     }
 
     private String playListMetaConfig(SysFile sysFile, GcUserSaveFolder gcUserSaveFolder, String host,
@@ -1171,11 +1157,11 @@ public class HomeInfoController extends GuideCoreController {
         String fullFileUrl;
         if (sysFile.getFileTypeIndex().equals(13)) {
             String fileUrl = sysFile.getFileUrl();
-            String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+            String youtubeId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             fullFileUrl = "https://i.ytimg.com/vi/" + youtubeId + "/hqdefault.jpg";
         } else if (sysFile.getFileTypeIndex().equals(14)) {
             String fileUrl = sysFile.getFileUrl();
-            String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+            String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             fullFileUrl = "https://vumbnail.com/" + vimeoId + "/_large.jpg";
         } else {
             fullFileUrl = sysFileService.getVideoSnapshotUrl(sysFile);
