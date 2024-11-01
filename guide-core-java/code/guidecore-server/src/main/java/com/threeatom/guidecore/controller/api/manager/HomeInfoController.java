@@ -1087,22 +1087,22 @@ public class HomeInfoController extends GuideCoreController {
 
 	}
 
-	private String metaHtml(String title,String desc,String fullFileUrl,String host,HttpServletRequest request){
-		String addMetaContent =
-				        "  <title>"+title+"</title>\n" +
-						"  <meta name=\"title\" content=\""+title+"\" />\n" +
-						"  <meta name=\"description\" content=\""+desc+"\" />\n" +
-						"  <meta property=\"og:image\" content=\""+fullFileUrl+"\"/>\n" +
-						"  <meta property=\"og:title\" content=\""+title+"\"/>\n" +
-						"  <meta property=\"og:x-request-uri\" content=\""+request.getHeader("x-request-uri")+"\"/>\n" +
-						"  <meta property=\"og:description\" content=\""+desc+"\"/>\n" +
-						"  <meta property=\"og:url\" content=\""+host+hubUrl+"\">\n"+  //TODO
-						"  <meta name=\"twitter:card\" content=\"summary_large_image\">\n" +
-						"  <meta name=\"twitter:title\" content=\""+title+"\">\n" +
-						"  <meta name=\"twitter:description\" content=\""+desc+"\">\n" +
-						"  <meta name=\"twitter:url\" content=\""+host+hubUrl+"\">\n" +  //TODO
-						"  <meta name=\"twitter:image\" content=\""+fullFileUrl+"\">\n";
-		return addMetaContent;
+	private String metaHtml(String title, String desc, String fullFileUrl, String host, HttpServletRequest request) {
+		desc = desc == null ? "" : desc;
+
+		return "  <title>" + title + "</title>\n" +
+			"  <meta name=\"title\" content=\"" + title + "\" />\n" +
+			"  <meta name=\"description\" content=\"" + desc + "\" />\n" +
+			"  <meta property=\"og:image\" content=\"" + fullFileUrl + "\"/>\n" +
+			"  <meta property=\"og:title\" content=\"" + title + "\"/>\n" +
+			"  <meta property=\"og:x-request-uri\" content=\"" + request.getHeader("x-request-uri") + "\"/>\n" +
+			"  <meta property=\"og:description\" content=\"" + desc + "\"/>\n" +
+			"  <meta property=\"og:url\" content=\"" + host + hubUrl + "\">\n" +
+			"  <meta name=\"twitter:card\" content=\"summary_large_image\">\n" +
+			"  <meta name=\"twitter:title\" content=\"" + title + "\">\n" +
+			"  <meta name=\"twitter:description\" content=\"" + desc + "\">\n" +
+			"  <meta name=\"twitter:url\" content=\"" + host + hubUrl + "\">\n" +
+			"  <meta name=\"twitter:image\" content=\"" + fullFileUrl + "\">\n";
 	}
 
 	//test
