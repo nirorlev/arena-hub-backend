@@ -182,13 +182,13 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     }
 
     @Override
-    public AnalyticsResponseDto<Double, Double> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
+    public AnalyticsResponseDto<String, String> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
                                                                              Integer masterId) {
         List<DbAnalyticsResultViewPerSecondDto> viewPerSecondAnalytics =
             videoPlaySegmentService.videoViewsPerSecondAnalytics(filter, masterId);
 
-        AnalyticsResponseDto<Double, Double> analyticsResponseDto = new AnalyticsResponseDto<>();
-        List<MetricValuePairDto<Double, Double>> metricValuePair = viewPerSecondAnalytics.stream()
+        AnalyticsResponseDto<String, String> analyticsResponseDto = new AnalyticsResponseDto<>();
+        List<MetricValuePairDto<String, String>> metricValuePair = viewPerSecondAnalytics.stream()
             .map(entry -> createMetricValuePairDto(entry.getSecond(), entry.getValue()))
             .collect(Collectors.toList());
         analyticsResponseDto.setResult(List.of(createResultDto(metricValuePair, "Video views per second")));

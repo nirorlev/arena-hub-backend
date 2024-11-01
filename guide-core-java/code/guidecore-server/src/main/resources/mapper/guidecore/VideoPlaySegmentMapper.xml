@@ -179,7 +179,7 @@
             WHERE id = #{filter.videoId}
         )
         SELECT
-            (b.bucket_start + b.bucket_end) / 2.0 as second,
+            ROUND((b.bucket_start + b.bucket_end) / 2.0, 1) as second,
             COALESCE(
                         SUM(LEAST(upper(view_segment.segment), b.bucket_end) - GREATEST(lower(view_segment.segment), b.bucket_start))
                             / (b.bucket_end - b.bucket_start)::double precision, 0

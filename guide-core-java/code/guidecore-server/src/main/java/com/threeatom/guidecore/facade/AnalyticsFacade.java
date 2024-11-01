@@ -33,5 +33,5 @@ public interface AnalyticsFacade {
 
     VideoViewersDto videoViewers(VideoViewerDetailsDto filter, Integer masterId);
 
-    AnalyticsResponseDto<Double, Double> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter, Integer masterId);
+    AnalyticsResponseDto<String, String> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter, Integer masterId);
 }
