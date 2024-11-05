@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DbAnalyticsResultViewPerSecondDto {
-    private double second;
-    private double value;
+    private String second;
+    private String value;
 }

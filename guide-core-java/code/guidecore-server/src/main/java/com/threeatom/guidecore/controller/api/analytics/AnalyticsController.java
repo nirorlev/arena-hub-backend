@@ -105,7 +105,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-views-per-second")
-    public ResponseEntity<AnalyticsResponseDto<Double, Double>> videoViewsPerSecond(
+    public ResponseEntity<AnalyticsResponseDto<String, String>> videoViewsPerSecond(
         @Valid VideoViewPerSecondDto filter, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.videoViewsPerSecondAnalytics(filter, masterId));
