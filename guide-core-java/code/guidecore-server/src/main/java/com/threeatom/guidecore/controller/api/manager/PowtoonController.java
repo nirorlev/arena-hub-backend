@@ -2100,11 +2100,6 @@ public class PowtoonController extends GuideCoreController {
                 ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getMustAccessIds())));
             }
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
-                if (!portalUser.isOrgAdmin() &&
-                    CourseAvailabilityType.PUBLIC.getValue().equals(course.getAvailableType())) {
-                    throw new PermitException("No permission for this!");
-                }
-                //发布
                 isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
                 if (null == oldSubject.getPublishedTime() && course.getState().equals(TableConstant.COMMON_ONE)) {
                     course.setPublishedTime(new Date());

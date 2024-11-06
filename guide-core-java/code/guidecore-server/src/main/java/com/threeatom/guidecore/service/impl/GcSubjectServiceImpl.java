@@ -1618,16 +1618,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public void populateUserId(GcSubject course, GcUser user) {
         if (course.getId() == null) {
-            course.setUserId(user.getId());
+            course.setCreateUser(user.getId());
             return;
         }
         GcSubject existingCourse = this.getById(course.getId());
         if (existingCourse.isTopic()) {
-            existingCourse = this.getById(course.getFid());
-            course.setUserId(existingCourse.getUserId());
+            existingCourse = this.getById(existingCourse.getFid());
+            course.setCreateUser(existingCourse.getCreateUser());
             return;
         }
 
-        course.setUserId(existingCourse.getUserId());
+        course.setCreateUser(existingCourse.getCreateUser());
     }
 }
