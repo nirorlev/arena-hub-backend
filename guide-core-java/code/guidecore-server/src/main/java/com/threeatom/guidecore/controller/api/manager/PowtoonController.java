@@ -3002,7 +3002,7 @@ public class PowtoonController extends GuideCoreController {
 
 		channelCreator.setInfo(gcUserInfo);
         ptchannel.setCreateUser(channelCreator);
-		SysFile videoFile = getFile(request, channelVideoContent, portalUser);
+		SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
 		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
         if (Objects.nonNull(gcUserVideoAction)) {
             videoFile.setLikedFlag(TableConstant.COMMON_ONE);
@@ -3128,25 +3128,6 @@ public class PowtoonController extends GuideCoreController {
             return new Message().error("删除失败");
         }
     }
-
-    private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser) {
-        Integer contentId = channelVideoContent.getId();
-        SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
-        sysFileService.updateVideoInformation(videoFile, portalUser);
-		channelVideoContent.setVideoFile(videoFile);
-		String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
-		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
-		videoFile.setFullFileUrl(fullFileUrl);
-		videoFile.setSnapshotUrl(snapShotUrl);
-		videoFile.setVideoId(contentId);
-		videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
-		videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
-		gcVideoService.updateVideoFilePrivacy(videoFile, channelVideoContent);
-		Map<String, Boolean> permissions = authorizationService.listPermissions(channelVideoContent, portalUser);
-		channelVideoContent.setPermissions(permissions);
-		channelVideoContent.getVideoFile().setPermissions(permissions);
-		return videoFile;
-	}
 }
 
 
