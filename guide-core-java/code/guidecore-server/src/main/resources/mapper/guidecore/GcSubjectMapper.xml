@@ -331,27 +331,6 @@
 		and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
 	</sql>
 
-	<select id="selectSubjectById" resultMap="baseResultMap">
-		select
-		<include refid="baseColumn" />
-		<include refid="videoJoinColumn" />
-		,vFile.video_long AS gcVideo_long,
-		vFile.file_url as video_file_url,
-		vFile.name as video_f_name,
-		vFile.id as video_f_id,
-		vFile.save_type as video_f_save_type,
-		vFile.file_type_index as video_f_file_index,
-		vFile.target_lang_json as target_lang_json,
-		cation.lang as lang
-		from gc_subject s
-		left join gc_video gcVideo on gcVideo.sub_id=s.id
-		left join sys_file vFile on vFile.id=gcVideo.file_id
-		left join sys_file_caption cation on cation.video_id = gcVideo.id
-		where s.fid=#{subId}
-		group by s.id, gcVideo.id, vFile.id, cation.id
-		order by s.order,gcVideo.order asc
-	</select>
-
 	<select id="getSubVideoEventList" resultMap="baseResultMap" >
 		select
 		<include refid="baseColumn" />
@@ -762,24 +741,6 @@
 		order by "order" asc
 	</select>
 
-
-	<select id="listSubWithAssoWithChildSubNotHiddenByIds" resultMap="baseResultMap" >
-		select
-		<include refid="baseColumnAssoOrderCase" />
-		<include refid="fileJoinColumn" />
-		from gc_subject s
-		left join sys_file f on s.sub_img_id=f.id
-		WHERE s.id in
-		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
-			#{ids}
-		</foreach>
-		or s.fid in
-		<foreach item="ids" index="index" collection="list"  open="(" separator="," close=")">
-			#{ids}
-		</foreach>
-		order by "order" asc
-	</select>
-
 	<select id="listSubByIds" resultMap="baseResultMap" >
 		SELECT
 		<include refid="baseColumn" />
@@ -841,37 +802,12 @@
 		GROUP BY s.id, subjectAssociation.id, f.id
 	</select>
 
-	<select id="selectByid" resultMap="baseResultMap" >
-		SELECT
-		<include refid="baseColumn" />
-		<include refid="fileJoinColumn" />
-		FROM gc_subject s
-		left join sys_file f on s.sub_img_id=f.id
-		WHERE s.id = #{id}
-		<include refid="where_gcSubject_state_not_hidden" />
-	</select>
-
 	<select id="selectSubByVid" resultMap="baseResultMap" >
 		SELECT
 		<include refid="baseColumn" />
 		FROM gc_video v
 		LEFT JOIN gc_subject s on s.id=v.sub_id
 		WHERE v.id = #{vid}
-		<include refid="where_gcSubject_state_not_hidden" />
-	</select>
-
-	<select id="selectGetSubIdByEventId" resultType="Integer">
-		SELECT v.sub_id
-		FROM gc_event AS e
-				 LEFT JOIN gc_video AS v ON v.id = e.video_id
-		WHERE e.id = #{eventId}
-	</select>
-
-	<select id="getTopSubByVideoId" resultType="Integer">
-		SELECT s.sub_id
-		FROM gc_video AS v
-		LEFT JOIN gc_subject AS s ON s.id = v.sub_id
-		WHERE v.id = #{videoId}
 		<include refid="where_gcSubject_state_not_hidden" />
 	</select>
 
@@ -916,10 +852,6 @@
 		order by s11.order asc
 	</select>
 
-	<select id="selectSubListById" resultType="com.threeatom.guidecore.entity.GcSubject" >
-		select * from gc_subject where fid=#{id}
-	</select>
-
 	<select id="selectAllSubByUserId" resultType="com.threeatom.guidecore.entity.GcSubject" >
 		SELECT s.*,
 		CASE WHEN s.master_id = #{masterId} THEN s.order ELSE sa.order END as orders
@@ -934,21 +866,6 @@
 		ac.user_id = #{userId} and ac.master_id=#{masterId})
 		<include refid="where_gcSubject_state_not_hidden" />
 		order by orders,s.id
-	</select>
-
-	<select id="selectFirstSubForMaster" resultType="com.threeatom.guidecore.entity.GcSubject" >
-		select * from gc_subject where master_id =#{masterId} order by create_time asc limit 1
-	</select>
-
-	<select id="selectSubjectByVids" resultType="com.threeatom.guidecore.entity.GcSubject" >
-		select  distinct s.id,s.master_id,s.name, s.name_index, s.description, s.sub_id,
-		s.type, s.level, s.fid, s.order, s.sub_img_id,s.template_id,s.intro_on_off,s.update_time, s.create_time
-		,s.state, s.token, s.is_public from gc_subject s
-		left join gc_video v on v.sub_id=s.sub_id
-		where v.id in
-		<foreach collection="vids" item="vid" index="index" open="(" close=")" separator=",">
-			#{vid}
-		</foreach>
 	</select>
 
 	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.GcSubject" >
@@ -989,15 +906,6 @@
 		)
 	</select>
 
-	<select id="selectAllSubList" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select * from gc_subject s
-		where s.master_id=#{masterId} and s.type=#{stateAndType} and  s.state!=#{stateAndType}
-		union all
-		select * from gc_subject sub
-		where sub.type=#{stateAndType} and  sub.state!=#{stateAndType} and sub.id in
-			(select ass.subject_id from gc_subject_association ass where ass.master_id=#{masterId})
-	</select>
-
 	<select id="selectAllLevel1SubList" resultMap="baseResultMap">
 		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
 		coalesce(max(answer.update_time)) as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
@@ -1030,101 +938,6 @@
 		</choose>
 	</select>
 
-	<select id="gvgSelectAllLevel1SubList" resultMap="baseResultMap">
-		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
-		coalesce(max(answer.update_time))as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
-		from gc_subject s
-		left join gc_subject s0 on s0.id = s.fid
-		left join gc_video v on v.sub_id=s.id
-		left join sys_file f on v.file_id=f.id
-		left join gc_event e on e.video_id=v.id
-		left join gc_user_answer answer on answer.event_id = e.id
-		<if test="null!=masterId">
-			left join gc_subject_association ass on s.fid=ass.subject_id and ass.master_id = #{masterId}
-		</if>
-		where s.fid in
-		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
-			#{subId}
-		</foreach>
-		group by s.id, v.id, f.video_long, f.file_type, s0.name, s0.Id
-		<choose>
-			<when test="order!=null">
-				order by max(answer.update_time) ${order}
-			</when>
-			<otherwise>
-				<if test="null!=masterId">
-					/*order by s.order asc,s.create_time desc,s.id*/
-					order by s.order asc,s.create_time asc,s.id
-				</if>
-				<if test="null==masterId">
-					order by s.order asc
-				</if>
-			</otherwise>
-		</choose>
-	</select>
-
-	<select id="selectSubjectVideoList" resultMap="baseResultMap">
-		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,
-		v.video_source as video_source,
-		f.file_type as video_f_file_type,
-		f.id as video_f_id,
-		f.file_url as video_file_url,
-		f.file_type_index as video_f_file_index,
-		f.name as video_f_name,
-		f.save_type as video_f_save_type,s0.name as sub0Name,s0.Id as sub0Id,
-		f.thumb_nail_url as thumb_nail_url
-		from gc_subject s
-		left join gc_subject s0 on s0.id = s.fid
-		left join gc_video v on v.sub_id=s.id
-		left join sys_file f on v.file_id=f.id
-		left join gc_event e on e.video_id=v.id
-		left join gc_user_answer answer on answer.event_id = e.id
-		<if test="null!=masterId">
-			left join gc_subject_association ass on s.fid=ass.subject_id and ass.master_id = #{masterId}
-		</if>
-		where s.fid in
-		<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
-			#{subId}
-		</foreach>
-		<if test="context != null">
-			and concat(v.video_name,v.video_name_index) like concat('%',#{context},'%')
-		</if>
-		<choose>
-			<when test="order!=null">
-				order by max(answer.update_time) ${order}
-			</when>
-			<otherwise>
-				<if test="null!=masterId">
-					order by coalesce(ass.ORDER,s.order) asc,s.id asc
-				</if>
-				<if test="null==masterId">
-					order by s.order desc
-				</if>
-			</otherwise>
-		</choose>
-	</select>
-
-
-	<select id="selectAllSubsByPartipants" resultType="com.threeatom.guidecore.entity.GcUser">
-		SELECT subject_id as "subjectId", SUM(SUBJECT_USERS) as "subjectUsers" ,master_id as subjectMasterId FROM (
-		SELECT
-		S.ID AS SUBJECT_ID, COUNT(USER.ID) AS SUBJECT_USERS,S.master_id as master_id
-		FROM GC_USER USER
-		LEFT JOIN GC_USER_ACCESS UA ON USER.ID = UA.USER_ID
-		LEFT JOIN GC_USER_ACCESS_PERMISSION UAP ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_SUBJECT S ON UAP.SUB_PERMISSION::jsonb @> to_jsonb(S.ID::integer)
-		where 1=1
-		<if test="params.subjectIds != null">
-			and    S.id in
-			<foreach collection="params.subjectIds" item="subId" index="index" open="(" close=")" separator=",">
-				#{subId}
-			</foreach>
-		</if>
-		GROUP BY S.ID
-		) T WHERE SUBJECT_ID IS NOT NULL
-		group by SUBJECT_ID
-	</select>
-
 	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.GcSubject">
 		SELECT gc.*, string_agg(tags.tag_text, ',') as course_tags
 		FROM gc_subject gc
@@ -1139,82 +952,6 @@
 		from gc_subject gc
 				 left join gc_subject_tags tags on tags.subject_id = gc.id and tags.master_id = #{masterId}
 		GROUP BY gc.id
-	</select>
-
-	<select id="selectSubjectByIdList" resultMap="subjectOrderMap">
-		select tags.id as id,s.name,s.description,s.order,
-		case when coalesce(tagass.close_subject,tags.close_subject)::jsonb @> to_jsonb(s.id::integer)
-		then 0
-		else 1
-		end as subjectShowFlag,
-		case tags.master_id when #{masterId} then 0
-		else 1
-		end as tagType,
-		case tagass.master_id
-		when #{masterId} then tagass.subject_order
-		else tags.subject_order
-		end as subject_order,
-		s.id as id2
-		from gc_subject s
-		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON UAP.SUB_PERMISSION::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )AND ua.master_id = sa.master_id
-		left join gc_subject_tags tags on tags.subject_id = s.id and(
-		(sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)
-		or(tags.master_id = #{masterId}))
-		left join gc_subject_tag_association tagass on tagass.tag_id = tags.id and tagass.master_id = #{masterId}
-		<if test="tag != null and tag != ''">
-			where s.id in
-			<foreach collection="list" item="subId" separator="," open="(" close=")">
-				#{subId}
-			</foreach>
-			and tags.tag_text = #{tag}
-		</if>
-		group by s.id
-		order by s.order
-	</select>
-
-	<select id="selectSubIdListByMaster" resultType="java.lang.Integer">
-		select s.id
-		from gc_subject s
-				 left join gc_subject_association subjectAssociation on s.id=subjectAssociation.subject_id or s.fid=subjectAssociation.subject_id
-		where s.level = 0
-		  and (s.master_id = #{masterId} or subjectAssociation.master_id = #{masterId})
-		  and s."state" != 0
-		order by s."order"
-	</select>
-
-	<select id="getSubListByPermissionIds" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select s.*,p.id as subjectAssociationId from gc_subject s
-		LEFT JOIN gc_user_access_permission p ON p.sub_permission::jsonb @> to_jsonb(s.id::integer)
-		where
-		p.id in
-		<foreach collection="permissionIds" item="permissionIds" separator="," open="(" close=")" >
-			#{permissionIds}
-		</foreach>
-		and s.id is not null
-	</select>
-
-	<select id="getSubListByPermissionIdsFid" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select
-		s2.*,
-		ap.id as subjectAssociationId
-		from GC_SUBJECT s
-		left join gc_user_access_permission ap on ap.sub_permission::jsonb @> to_jsonb(s.id::integer)
-		left join gc_subject s2 on s2.fid = s.id
-		where ap.id in
-		<foreach collection="permissionIds" item="permissionIds" index="index" open="(" close=")" separator=",">
-			#{permissionIds}
-		</foreach>
-		and s2.id is not null
-	</select>
-
-	<select id="getSubjectByNameIndex" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select s.* from GC_SUBJECT s
-							left join gc_master m on m.id = s.master_id
-		where m.context = #{portalId}
-		  and name_index = #{nameIndex}
-			limit 1
 	</select>
 
 	<select id="getSubjectUserInfo" resultMap="baseResultVoMap">
@@ -1298,145 +1035,6 @@
 		</if>
 	</select>
 
-	<select id="getUserSubjectList" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select s2.*,u.id as userId,s.name as sub0Name
-		from gc_access ac
-		left join gc_user_access uac on uac.access_id = ac.id
-		left join gc_user_access_permission p on p.user_access_id = uac.id
-		left join gc_user u on u.id = uac.user_id
-		left join gc_user_info info on info.id = u.info_id
-		left join gc_subject s on p.sub_permission::jsonb @> to_jsonb(s.id::integer)
-		left join gc_subject s2 on s2.fid = s.id
-		where ac.id in
-		<foreach collection="param.accessIds" item="accessIds" index="index" open="(" close=")" separator=",">
-			#{accessIds}
-		</foreach>
-		and u.id is not null
-		<if test="param.sub0Ids != null and param.sub0Ids.size !=0">
-			and s.id in
-			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
-				#{ids}
-			</foreach>
-		</if>
-		<if test="param.subIds != null and param.subIds.size !=0">
-			and s2.id in
-			<foreach collection="param.subIds" item="ids" index="index" open="(" close=")" separator=",">
-				#{ids}
-			</foreach>
-		</if>
-		<choose>
-			<when test="param.order !=null and param.order != ''">
-				order by concat(info.first_name,info.last_name) ${param.order}
-			</when>
-			<otherwise>
-				order by concat(info.first_name,info.last_name) desc
-			</otherwise>
-		</choose>
-
-		<if test="param.limit != null">
-			limit #{param.limit}
-		</if>
-	</select>
-
-	<select id="getCompleteSubject" resultMap="baseResultVoMap">
-		select s2.num as subjectsSize,
-		vnum.videoNum,
-		info.avatar_file_id AS avatarFileId,
-		info.first_name AS u_first_name,
-		info.last_name AS u_last_name,
-		f.id AS u_f_id,
-		f."name" AS u_f_name,
-		f.file_url AS u_f_file_url,
-		f.save_type AS u_f_save_type,
-		b.* from (
-		select count(1) as nums,a.* from
-		(SELECT u.id as user_id ,u.info_id as info_id,p.video_id,s.*
-		FROM gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.sub_permission::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
-		left join gc_user u on u.id = ua.user_id
-		left join gc_subject s2 on s2.fid = s.id
-		left join gc_video v on v.sub_id = s2.id
-		left join gc_user_video_play p on p.video_id = v.id and p.user_id = u.id
-		where 1=1
-		and p.play_state = 1
-		and ua.master_id = #{param.masterId}
-		and p.play_state is not null
-		and
-		u.id in
-		<foreach collection="param.userIds" item="userIds" index="index" open="(" close=")" separator=",">
-			#{userIds}
-		</foreach>
-		and s.id in
-		<foreach collection="param.accessSubIds" item="accessSubIds" index="index" open="(" close=")" separator=",">
-			#{accessSubIds}
-		</foreach>
-		GROUP BY
-		p.video_id,
-		p.user_id
-		) as a
-		GROUP BY a.id,a.user_id
-		) b
-		left join (select count(v.id) as videoNum,s.id as id   from gc_subject  s
-		left join gc_subject s2 on s2.fid = s.id
-		left join gc_video v on v.sub_id = s2.id
-		GROUP BY s.id ) vNum on vNum.videoNum = b.nums and b.id = vNum.id
-		LEFT JOIN gc_user_info info ON info.id = b.info_id
-		LEFT JOIN sys_file f ON f.id = info.avatar_file_id
-		left join (	select count(*)as num,fid from gc_subject where "level" = 1 GROUP BY fid ) s2 on s2.fid = b.id
-		left join (
-		select * from (
-		select sum(case when answer_json is null then 0 else 1 end) as anNums,
-		sum(case when event_nums.event_id is null then 0 else 1 end) as eventNums,
-		event_nums.* from
-		(select
-		an.answer_json,
-		u.id as user_id,e.id as event_id,s.id as subject_id from gc_subject s
-		left join gc_subject s2 on s.id = s2.fid
-		left join gc_video v on v.sub_id = s2.id
-		left join gc_event e on e.video_id = v.id
-		left join gc_user u on u.id in
-		<foreach collection="param.userIds" item="userIds" index="index" open="(" close=")" separator=",">
-			#{userIds}
-		</foreach>
-		left join gc_user_event ue on ue.event_id = e.id and ue.user_id = u.id and ue.master_id = #{param.masterId}
-		left join gc_user_answer an on an.event_id = e.id and an.user_id = u.id and an.master_id = #{param.masterId}
-		where s.id in
-		<foreach collection="param.accessSubIds" item="accessSubIds" index="index" open="(" close=")" separator=",">
-			#{accessSubIds}
-		</foreach>
-		and ((e.upload_type = 2 and ue.id is not null ) or(e.upload_type = 1 ) or (e.upload_type is null and e.id is null) )
-		) event_nums
-		GROUP BY event_nums.user_id,subject_id
-		) comEvents
-		where annums = eventNums
-		) eu on eu.user_id = b.user_id and b.id = eu.subject_id
-
-		where vNum.videoNum is not null
-		and eu.anNums is not null
-		<if test="param.sub0Ids!=null and param.sub0Ids.size !=0">
-			and b.id in
-			<foreach collection="param.sub0Ids" item="ids" index="index" open="(" close=")" separator=",">
-				#{ids}
-			</foreach>
-		</if>
-		<choose>
-			<when test="param.order !=null and param.order != ''">
-				order by concat(info.first_name,info.last_name) ${param.order}
-			</when>
-			<otherwise>
-				order by concat(info.first_name,info.last_name) desc
-			</otherwise>
-		</choose>
-	</select>
-
-	<select id="productNums" resultType="integer">
-		select sum(a.num) from(
-								  select count(0) num from gc_subject where master_id=#{masterId}
-								  UNION all
-								  select count(0) num from gc_master_remote_coach where master_id=#{masterId})a
-	</select>
-
 	<select id="getCreateUserPublished" resultType="java.lang.Integer">
 		select count(1) from gc_subject
 		where "level" = 0
@@ -1445,43 +1043,9 @@
 		  and master_id = #{masterId}
 	</select>
 
-	<select id="getDiscoverNum" resultType="java.lang.Integer">
-		select count(1) from (
-								 select s.id from gc_subject s
-													  LEFT JOIN gc_user_access_permission uap ON uap.sub_permission::jsonb @> to_jsonb(s.id::integer)
-              LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
-									 LEFT JOIN gc_user u ON u.id = ua.user_id
-								 where
-									 s.LEVEL = 0
-								   AND s.state = 1
-								   AND ua.master_id = #{masterId}
-								   AND u.id = #{userId}
-									OR s.available_type = 1
-								 GROUP BY s.id
-							 )  a
-	</select>
-
 	<select id="getPublicSubjectIds" resultType="java.lang.Integer">
 		select id from gc_subject
 		where available_type = 1
-	</select>
-
-	<select id="selectNotNullVideoList" resultType="java.lang.Integer">
-		select a.fid  from (SELECT
-		count(v.id) as vnums  ,
-		s.fid
-		FROM
-		gc_subject s
-		LEFT JOIN gc_subject s0 ON s0.id = s.fid
-		LEFT JOIN gc_video v ON v.sub_id = s.id
-		WHERE s.fid IN
-		<foreach collection="subIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		GROUP BY s.fid
-		) as a
-		where a.vnums >0
-
 	</select>
 
 	<select id="newGetAvailableCourses" resultMap="baseResultMap">
