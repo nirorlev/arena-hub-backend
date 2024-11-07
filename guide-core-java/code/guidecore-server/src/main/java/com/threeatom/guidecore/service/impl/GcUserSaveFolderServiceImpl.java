@@ -4,13 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
+import com.threeatom.guidecore.mapping.PageableMapping;
+import com.threeatom.guidecore.mapping.PlaylistMapping;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -45,6 +51,13 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Autowired
     @Lazy
     private GcSubjectService gcSubjectService;
+
+    @Autowired
+    private PlaylistMapping playlistMapping;
+    @Autowired
+    private AuthorizationService authorizationService;
+    @Autowired
+    private PageableMapping pageableMapping;
 
 
     public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request){
@@ -217,6 +230,19 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Override
     public Integer countUserPublicPlaylists(Integer userId, Integer masterId) {
         return countPlaylists(userId, masterId, false);
+    }
+
+    @Override
+    public PageableDto<PlaylistDto> ownedPlaylists(PortalUser portalUser, Integer pageNum, Integer pageSize) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser, pageNum, pageSize);
+        List<PlaylistDto> playlistDtos = playlists.stream()
+            .map(playlist -> {
+                playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
+                return playlistMapping.map(playlist);
+            })
+            .collect(Collectors.toList());
+
+        return pageableMapping.map(playlistDtos, pageNum, pageSize);
     }
 
     private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {

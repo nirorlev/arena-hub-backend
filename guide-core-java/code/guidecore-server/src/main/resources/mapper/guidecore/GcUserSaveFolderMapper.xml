@@ -62,6 +62,7 @@
 		            <result property="fileId" column="v_file_id"/>
 		            <result property="videoDesc" column="v_video_desc"/>
 					<result property="videoSource" column="v_video_source"/>
+					<result property="thumbnailUrl" column="v_thumbnail_url"/>
 					<association property="originChannel" resultMap="channelResultMap" columnPrefix="channel_" />
 					<association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
 		        </association>
@@ -301,6 +302,19 @@
 		SELECT time_bucket, value
 		FROM counted_playlist
 		ORDER BY time_bucket
+	</select>
+
+	<select id="ownedPlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id,
+			   video.id as v_id, video.thumbnail_url as v_thumbnail_url
+		FROM gc_user_save_folder playlist
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+		WHERE playlist.user_id = #{portalUser.userId} AND playlist.master_id = #{portalUser.masterId}
+		ORDER BY playlist.update_time DESC
+		LIMIT #{pageSize}
+		OFFSET #{pageNum};
 	</select>
 
 </mapper>
