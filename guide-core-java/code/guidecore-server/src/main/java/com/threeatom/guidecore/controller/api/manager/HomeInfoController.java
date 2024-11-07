@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -424,7 +425,7 @@ public class HomeInfoController extends GuideCoreController {
 
 
             String token = request.getHeader("Authorization");
-            if (null != token && !"".equals(token) && !"undefined".equals(token)) {
+            if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
                 GcUser user = this.getGcUser();
             }
             message.ok().addData("packageList", pageInfo);
@@ -542,7 +543,7 @@ public class HomeInfoController extends GuideCoreController {
         }
 
         String token = request.getHeader("Authorization");
-        if (token != null && !token.isEmpty() && !("undefined").equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             if (user != null) {
             } else {
@@ -707,7 +708,7 @@ public class HomeInfoController extends GuideCoreController {
             Matcher matcher = pattern.matcher(xRequestUri);
             containNumber = matcher.find();
         }
-        if (Objects.nonNull(xRequestUri) && !"".equals(xRequestUri) && !"undefined".equals(xRequestUri) &&
+        if (!StringUtils.isEmpty(xRequestUri) && !"undefined".equals(xRequestUri) &&
             !"/".equals(xRequestUri)) {
             if (xRequestUri.contains("?")) {
                 xRequestUri = xRequestUri.substring(0, xRequestUri.indexOf("?"));
@@ -769,7 +770,7 @@ public class HomeInfoController extends GuideCoreController {
             stats = 5;
             System.out.println("channel/test1");
         }
-        if (Objects.isNull(xRequestUri) || "".equals(xRequestUri) || "undefined".equals(xRequestUri) ||
+        if (StringUtils.isEmpty(xRequestUri) || "undefined".equals(xRequestUri) ||
             "/".equals(xRequestUri)
             || hubUrl.equals(xRequestUri) || homeUrl.equals(xRequestUri)) {
             if (host.equals(siteMapConfiguration.getSiteUrl())) {

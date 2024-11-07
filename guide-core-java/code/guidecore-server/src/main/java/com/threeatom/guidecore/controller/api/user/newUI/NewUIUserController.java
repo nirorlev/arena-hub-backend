@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public class NewUIUserController extends GuideCoreController {
             throw new SystemException(I18NUtil.get("guidecore.video.detail.error"));
         }
         String token = request.getHeader("Authorization");
-        if (null != token && !"".equals(token) && !"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.GC.getCode());
         } else {
