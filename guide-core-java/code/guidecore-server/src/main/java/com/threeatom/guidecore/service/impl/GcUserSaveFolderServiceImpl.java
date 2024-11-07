@@ -255,6 +255,12 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
     }
 
+    @Override
+    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, pageNum, pageSize);
+        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    }
+
     private List<PlaylistDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
         return playlists.stream()
             .map(playlist -> {

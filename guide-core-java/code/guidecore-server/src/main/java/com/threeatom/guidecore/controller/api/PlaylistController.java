@@ -55,4 +55,17 @@ public class PlaylistController {
         return ResponseEntity.ok(playlistService.subscribed(portalUser, pageNum, pageSize));
     }
 
+    @GetMapping("/discoverable")
+    @ApiOperation(value = "Get a list of playlists discoverable by the current user")
+    public ResponseEntity<PageableDto<PlaylistDto>> discoverable(
+        @RequestParam(required = false, defaultValue = "0") Integer pageNum,
+        @RequestParam(required = false, defaultValue = "4") Integer pageSize,
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(playlistService.discoverable(portalUser, pageNum, pageSize));
+    }
+
 }
