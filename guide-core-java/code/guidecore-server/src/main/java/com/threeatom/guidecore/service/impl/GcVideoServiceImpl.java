@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
@@ -771,6 +772,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request) {
 		GcVideo video = findByVideoId(videoId);
+		if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+			throw new ForbiddenException("No permission to view the video");
+		}
+
 		updateVideoFile(request, video, portalUser);
 		return videoMapping.map(video);
 	}
