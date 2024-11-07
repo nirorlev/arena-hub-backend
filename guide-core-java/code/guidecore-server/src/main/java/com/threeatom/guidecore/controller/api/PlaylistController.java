@@ -31,7 +31,7 @@ public class PlaylistController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of playlists owned by the current user")
-    public ResponseEntity<PageableDto<PlaylistDto>> getOwned(
+    public ResponseEntity<PageableDto<PlaylistDto>> owned(
         @RequestParam(required = false, defaultValue = "0") Integer pageNum,
         @RequestParam(required = false, defaultValue = "4") Integer pageSize,
         HttpServletRequest request) {
@@ -40,6 +40,19 @@ public class PlaylistController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(playlistService.ownedPlaylists(portalUser, pageNum, pageSize));
+    }
+
+    @GetMapping("/subscribed")
+    @ApiOperation(value = "Get a list of playlists subscribed by the current user")
+    public ResponseEntity<PageableDto<PlaylistDto>> subscribed(
+        @RequestParam(required = false, defaultValue = "0") Integer pageNum,
+        @RequestParam(required = false, defaultValue = "4") Integer pageSize,
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(playlistService.subscribed(portalUser, pageNum, pageSize));
     }
 
 }

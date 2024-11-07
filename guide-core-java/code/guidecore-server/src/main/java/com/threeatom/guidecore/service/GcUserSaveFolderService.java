@@ -49,4 +49,6 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
     Integer countUserPublicPlaylists(Integer userId, Integer masterId);
 
     PageableDto<PlaylistDto> ownedPlaylists(PortalUser portalUser, Integer pageNum, Integer pageSize);
+
+    PageableDto<PlaylistDto> subscribed(PortalUser portalUser, Integer pageNum, Integer pageSize);
 }
