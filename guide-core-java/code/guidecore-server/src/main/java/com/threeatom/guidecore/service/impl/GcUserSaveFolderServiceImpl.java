@@ -257,7 +257,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, pageNum, pageSize);
+        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser);
         return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
     }
 
@@ -265,7 +265,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                return playlistMapping.map(playlist);
+                PlaylistDto playlistDto = playlistMapping.map(playlist);
+                playlistDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistDto.getSnapshotUrl()));
+                return playlistDto;
             })
             .collect(Collectors.toList());
     }

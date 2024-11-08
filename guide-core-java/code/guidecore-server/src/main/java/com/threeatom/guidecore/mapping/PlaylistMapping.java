@@ -5,7 +5,9 @@ import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
+import java.util.Comparator;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -24,9 +26,13 @@ public interface PlaylistMapping {
     @Named("mapSnapshotUrl")
     default String mapSnapshotUrl(List<GcUserSaveContent> playlistContent) {
         return playlistContent.stream()
-            .findFirst()
-            .map(GcUserSaveContent::getVideo)
-            .map(GcVideo::getThumbnailUrl)
+            .max(Comparator.comparing(GcUserSaveContent::getCreateTime))
+            .map(content -> {
+                GcVideo video = content.getVideo();
+                return StringUtils.isNotBlank(video.getSnapshotUrl())
+                    ? video.getSnapshotUrl()
+                    : content.getVideoFile().getFileUrl();
+            })
             .orElse("");
     }
 
