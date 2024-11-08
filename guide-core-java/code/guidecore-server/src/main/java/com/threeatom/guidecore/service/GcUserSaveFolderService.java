@@ -3,7 +3,10 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.ibatis.annotations.Param;
@@ -44,4 +47,10 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
     Integer countUserPrivatePlaylists(Integer userId, Integer masterId);
 
     Integer countUserPublicPlaylists(Integer userId, Integer masterId);
+
+    List<PlaylistDto> ownedPlaylists(PortalUser portalUser);
+
+    List<PlaylistDto> subscribed(PortalUser portalUser);
+
+    PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize);
 }
