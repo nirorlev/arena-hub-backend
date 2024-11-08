@@ -106,7 +106,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     @Cacheable(value = AuthorizationItemCacheName.COURSE, key = "#course.id", condition = "#course.id != null")
     public PermitCourse create(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
-        permitCourse.setOwnerId(String.valueOf(course.getUserId()));
+        permitCourse.setOwnerId(String.valueOf(course.getCreateUser()));
         if (course.getId() == null) {
             return permitCourse;
         }
