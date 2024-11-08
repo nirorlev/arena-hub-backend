@@ -10,6 +10,7 @@ import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -31,21 +32,17 @@ public class PlaylistController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of playlists owned by the current user")
-    public ResponseEntity<PageableDto<PlaylistDto>> owned(
-        @RequestParam(required = false, defaultValue = "0") Integer pageNum,
-        @RequestParam(required = false, defaultValue = "4") Integer pageSize,
-        HttpServletRequest request) {
-
+    public ResponseEntity<List<PlaylistDto>> owned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.ownedPlaylists(portalUser, pageNum, pageSize));
+        return ResponseEntity.ok(playlistService.ownedPlaylists(portalUser));
     }
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of playlists subscribed by the current user")
-    public ResponseEntity<PageableDto<PlaylistDto>> subscribed(
+    public ResponseEntity<List<PlaylistDto>> subscribed(
         @RequestParam(required = false, defaultValue = "0") Integer pageNum,
         @RequestParam(required = false, defaultValue = "4") Integer pageSize,
         HttpServletRequest request) {
@@ -54,14 +51,14 @@ public class PlaylistController {
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.subscribed(portalUser, pageNum, pageSize));
+        return ResponseEntity.ok(playlistService.subscribed(portalUser));
     }
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of playlists discoverable by the current user")
     public ResponseEntity<PageableDto<PlaylistDto>> discoverable(
         @RequestParam(required = false, defaultValue = "0") Integer pageNum,
-        @RequestParam(required = false, defaultValue = "4") Integer pageSize, HttpServletRequest request) {
+        @RequestParam(required = false, defaultValue = "20") Integer pageSize, HttpServletRequest request) {
 
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);

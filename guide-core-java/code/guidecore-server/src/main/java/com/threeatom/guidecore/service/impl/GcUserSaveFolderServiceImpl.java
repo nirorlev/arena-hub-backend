@@ -244,15 +244,15 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<PlaylistDto> ownedPlaylists(PortalUser portalUser, Integer pageNum, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser, pageNum, pageSize);
-        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    public List<PlaylistDto> ownedPlaylists(PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser);
+        return convertPlaylist(portalUser, playlists);
     }
 
     @Override
-    public PageableDto<PlaylistDto> subscribed(PortalUser portalUser, Integer pageNum, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.subscribedPlaylists(portalUser, pageNum, pageSize);
-        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    public List<PlaylistDto> subscribed(PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.subscribedPlaylists(portalUser);
+        return convertPlaylist(portalUser, playlists);
     }
 
     @Override

@@ -312,9 +312,7 @@
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 		WHERE playlist.user_id = #{portalUser.userId} AND playlist.master_id = #{portalUser.masterId}
-		ORDER BY playlist.update_time DESC
-		LIMIT #{pageSize}
-		OFFSET #{pageNum};
+		ORDER BY playlist.update_time DESC;
 	</select>
 
 	<select id="subscribedPlaylists" parameterType="map" resultMap="baseResultMap">
@@ -326,9 +324,7 @@
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 		WHERE playlist_follow.user_id = #{portalUser.userId}
-		ORDER BY playlist.update_time
-		LIMIT #{pageSize}
-		OFFSET #{pageNum};
+		ORDER BY playlist.update_time;
 	</select>
 
 	<select id="discoverablePlaylists" parameterType="map" resultMap="baseResultMap">
