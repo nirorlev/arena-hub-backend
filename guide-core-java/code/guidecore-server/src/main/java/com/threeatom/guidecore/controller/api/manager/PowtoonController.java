@@ -131,6 +131,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
 import org.slf4j.Logger;
@@ -298,7 +299,7 @@ public class PowtoonController extends GuideCoreController {
         String token = RequestUtil.getRequestAuthHeader(request);
         SysSystem system = this.getSystem();
 
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser gcUser = this.getGcUser();
             return gvgMasterService.search(searchDto, request, gcUser, system)
                 .addData("date:::", new Date());
@@ -317,7 +318,7 @@ public class PowtoonController extends GuideCoreController {
         }
 
         String token = request.getHeader("Authorization");
-        if (token != null && !"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             return gvgMasterService.portalInfosUnlogin(requestParams, user, request)
                 .addData("times", new Date());
@@ -480,7 +481,7 @@ public class PowtoonController extends GuideCoreController {
         }
         String token = request.getHeader("Authorization");
 
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             PortalUser portalUser =
                 portalUserService.getByUserAndMasterId(this.getGcUser().getId(), getHeaderMasterId(request));
             return gvgMasterService.newPtIndexHome(requestParams, request, system, portalUser)
@@ -662,7 +663,7 @@ public class PowtoonController extends GuideCoreController {
         }
         SysSystem system = this.getSystem();
         String token = request.getHeader("Authorization");
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
 
             GcSubject course = gcSubjectService.getById(Integer.parseInt(fid.toString()));
@@ -758,7 +759,7 @@ public class PowtoonController extends GuideCoreController {
     public Message videoDetailPt(HttpServletRequest request, Integer videoId) {
         SysSystem system = this.getSystem();
         String token = RequestUtil.getRequestAuthHeader(request);
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
             GcVideo video = gcVideoService.findByVideoId(videoId);
@@ -2288,7 +2289,7 @@ public class PowtoonController extends GuideCoreController {
         }
         String token = request.getHeader("Authorization");
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser gcUser = getGcUser();
             return gcMasterService.getContentFromOneFolder(gcUserSaveFolder, gcUser, request, EnvType.PT.getCode())
                 .addData("systemTime", df.format(new Date()));
