@@ -73,8 +73,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Value("${web.profile-path:config/static}")
     private String uploadPath;
     @Autowired
-    private Map<String, AliyunOssService> ossServiceMap;
-    @Autowired
     private SysSystemService systemService;
     @Autowired
     private AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
@@ -98,15 +96,30 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return this.sysFileMapper.selectById(id);
     }
 
+
+    @Override
+    public void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo) {
+        updateVideoInformation(sysFile, Optional.empty(), Optional.of(powtoonExternalVideo));
+    }
+
     @Override
     public void updateVideoInformation(SysFile sysFile, PortalUser portalUser) {
+        updateVideoInformation(sysFile, Optional.of(portalUser), Optional.empty());
+    }
+
+    private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> portalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
         if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
             return;
         }
 
-        PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
-        if (externalVideo == null) {
-            throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
+        PowtoonExternalVideo externalVideo;
+        if (powtoonExternalVideo.isPresent()) {
+            externalVideo = powtoonExternalVideo.get();
+        } else {
+            externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
+            if (externalVideo == null) {
+                throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
+            }
         }
 
         JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
@@ -126,9 +139,11 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         sysFile.setDescription(videoData.getString("description"));
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
         sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
-        uploadThumbnailToS3(sysFile, portalUser);
+        if (portalUser.isPresent()) {
+            uploadThumbnailToS3(sysFile, portalUser.get());
+        }
+        
         externalVideo.setVersion(currentVersion);
-
         sysFileService.updateById(sysFile);
         powtoonExternalVideoService.updateById(externalVideo);
     }
