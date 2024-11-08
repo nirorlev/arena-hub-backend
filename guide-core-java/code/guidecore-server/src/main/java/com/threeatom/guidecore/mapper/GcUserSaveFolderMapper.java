@@ -37,6 +37,5 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
 
     List<GcUserSaveFolder> subscribedPlaylists(@Param("portalUser") PortalUser portalUser);
 
-    List<GcUserSaveFolder> discoverablePlaylists(@Param("portalUser") PortalUser portalUser,
-                                                 @Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize);
+    List<GcUserSaveFolder> discoverablePlaylists(@Param("portalUser") PortalUser portalUser);
 }

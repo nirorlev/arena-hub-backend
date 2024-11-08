@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -248,6 +247,15 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         sysFile.setFullFileUrl(fullFileUrl);
         return fullFileUrl;
+    }
+
+    @Override
+    public String getFullFileUrl(String fileUrl) {
+        if (StringUtils.isNotBlank(fileUrl) && (!fileUrl.contains("https") || !fileUrl.contains("http"))) {
+            return getS3Url(fileUrl);
+        }
+
+        return fileUrl;
     }
 
     public String getS3Url(String S3ObjectKey) {
