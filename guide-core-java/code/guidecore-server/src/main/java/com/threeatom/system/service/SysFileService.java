@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.PowtoonExternalVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -101,6 +102,8 @@ public interface SysFileService extends IService<SysFile> {
     void updateImageUrls(GcSubject channel, HttpServletRequest request);
 
     void updateVideoInformation(SysFile sysFile, PortalUser portalUser);
+
+    void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo);
 
     void uploadThumbnailToS3(SysFile sysFile, PortalUser portalUser);
 
