@@ -135,15 +135,13 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         }
 
         sysFile.setFileTypeIndex(currentHostingProvider);
-        sysFile.setName(videoData.getString("title"));
-        sysFile.setDescription(videoData.getString("description"));
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
-        sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
         if (portalUser.isPresent()) {
+            sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
             uploadThumbnailToS3(sysFile, portalUser.get());
+            externalVideo.setVersion(currentVersion);
         }
         
-        externalVideo.setVersion(currentVersion);
         sysFileService.updateById(sysFile);
         powtoonExternalVideoService.updateById(externalVideo);
     }
