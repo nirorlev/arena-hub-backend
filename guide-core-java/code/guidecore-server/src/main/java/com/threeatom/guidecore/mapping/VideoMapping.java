@@ -2,9 +2,11 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
+import com.threeatom.system.entity.SysFile;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -48,6 +50,14 @@ public interface VideoMapping {
     @Mapping(target = "step", constant = "0L")
     @Mapping(target = "aggregateBy", constant = "video-id")
     AnalyticsFilterDto mapFilter(VideoListFilterDto filter, List<Integer> videoIds);
+
+    @Mapping(target = "name", source = "videoName")
+    @Mapping(target = "description", source = "videoDesc")
+    @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
+    @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
+    @Mapping(target = "snapshotUrl", source = "videoFile.snapshotUrl")
+    @Mapping(target = "duration", source = "videoTime")
+    VideoDto map(GcVideo videoFile);
 
     @Named("mapPrivate")
     default boolean mapPrivate(Integer code) {

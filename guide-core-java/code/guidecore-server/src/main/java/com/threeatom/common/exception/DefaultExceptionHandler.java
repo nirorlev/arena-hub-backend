@@ -51,6 +51,13 @@ public class DefaultExceptionHandler {
     }
 
     @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(ForbiddenException.class)
+    public Message forbiddenException(Exception e) {
+        return new Message().commonError(HttpStatus.FORBIDDEN.value(), e.getMessage(), e);
+    }
+
+    @ResponseBody
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler({SystemException.class})
     public Message handlerSystemException(SystemException e) {

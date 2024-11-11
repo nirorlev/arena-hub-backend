@@ -4,13 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
+import com.threeatom.guidecore.mapping.PageableMapping;
+import com.threeatom.guidecore.mapping.PlaylistMapping;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -29,7 +35,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder> implements GcUserSaveFolderService {
+public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder>
+    implements GcUserSaveFolderService {
 
     @Autowired
     private SysFileService sysFileService;
@@ -46,8 +53,16 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Lazy
     private GcSubjectService gcSubjectService;
 
+    @Autowired
+    private PlaylistMapping playlistMapping;
+    @Autowired
+    private AuthorizationService authorizationService;
+    @Autowired
+    private PageableMapping pageableMapping;
 
-    public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request){
+
+    public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
+                                                    HttpServletRequest request) {
         String playListName = (String) request.getAttribute("playListName");
         PageParam pageParam = new PageParam(request);
         Integer pageSize = pageParam.getPageSize();
@@ -55,9 +70,10 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.selectFolderForUserMaster(userId, masterId,folderIdList,null,playListName);
-        gcUserSaveFolders.forEach(playlist->{
-            if (null!=playlist.getUser().getInfo().getAvatarFileId()){
+        List<GcUserSaveFolder> gcUserSaveFolders =
+            this.baseMapper.selectFolderForUserMaster(userId, masterId, folderIdList, null, playListName);
+        gcUserSaveFolders.forEach(playlist -> {
+            if (null != playlist.getUser().getInfo().getAvatarFileId()) {
                 SysFile imgFile = sysFileService.getById(playlist.getUser().getInfo().getAvatarFileId());
                 String url = sysFileService.getResFullUrl(imgFile, request);
                 imgFile.setFullFileUrl(url);
@@ -69,17 +85,19 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
 
     @Override
-    public List<GcUserSaveFolder> getPtNewHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request){
+    public List<GcUserSaveFolder> getPtNewHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
+                                                       HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageSize = pageParam.getPageSize();
         Integer pageNum = pageParam.getPageNum();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.getPtNewHomePlayList(userId, masterId,folderIdList,null);
+        List<GcUserSaveFolder> gcUserSaveFolders =
+            this.baseMapper.getPtNewHomePlayList(userId, masterId, folderIdList, null);
         List<Integer> fileIds = new ArrayList<>();
         for (GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders) {
-            if (null!=gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
+            if (null != gcUserSaveFolder.getUser().getInfo().getAvatarFileId()) {
                 fileIds.add(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
             }
         }
@@ -103,28 +121,32 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return gcUserSaveFolders;
     }
 
-	@Override
-    public List<GcUserSaveFolder> selectFolderForUserMaster(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request,List<Integer> myFolderIdList){
+    @Override
+    public List<GcUserSaveFolder> selectFolderForUserMaster(Integer userId, Integer masterId,
+                                                            List<Integer> folderIdList, HttpServletRequest request,
+                                                            List<Integer> myFolderIdList) {
         PageParam pageParam = new PageParam(request);
         Integer pageSize = pageParam.getPageSize();
         Integer pageNum = pageParam.getPageNum();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcUserSaveFolder> gcUserSaveFolders = this.baseMapper.selectFolderForUserMaster(userId, masterId,folderIdList,myFolderIdList,null);
-        for(GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders){
-            List<GcUserSaveContent> gcUserSaveContentList = gcUserSaveContentService.selectContetnByFolderId(gcUserSaveFolder.getId());
-            if(CollectionUtils.isNotEmpty(gcUserSaveContentList)){
-                for(GcUserSaveContent gcUserSaveContent:gcUserSaveContentList){
-                    if (Objects.nonNull(gcUserSaveContent.getFileId())){
+        List<GcUserSaveFolder> gcUserSaveFolders =
+            this.baseMapper.selectFolderForUserMaster(userId, masterId, folderIdList, myFolderIdList, null);
+        for (GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders) {
+            List<GcUserSaveContent> gcUserSaveContentList =
+                gcUserSaveContentService.selectContetnByFolderId(gcUserSaveFolder.getId());
+            if (CollectionUtils.isNotEmpty(gcUserSaveContentList)) {
+                for (GcUserSaveContent gcUserSaveContent : gcUserSaveContentList) {
+                    if (Objects.nonNull(gcUserSaveContent.getFileId())) {
                         SysFile sysFile = sysFileService.getById(gcUserSaveContent.getFileId());
                         gcUserSaveContent.setVideoFile(sysFile);
                     }
 
-                    if(Objects.nonNull(gcUserSaveContent.getSubId())){
+                    if (Objects.nonNull(gcUserSaveContent.getSubId())) {
                         GcSubject subject = gcSubjectService.getById(gcUserSaveContent.getSubId());
                         SysFile sysFile = sysFileService.getById(subject.getSubImgId());
-                        sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
+                        sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
                         sysFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
                         subject.setSubImgFile(sysFile);
                         gcUserSaveContent.setSubject(subject);
@@ -133,10 +155,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             }
             gcUserSaveFolder.setSaveContentList(gcUserSaveContentList);
         }
-    	return gcUserSaveFolders;
+        return gcUserSaveFolders;
     }
 
-    public List<GcUserSaveFolder> selectFolderAllVideo(Integer userId, Integer masterId, List<Integer> folderIdList, HttpServletRequest request,List<Integer> myFolderIdList){
+    public List<GcUserSaveFolder> selectFolderAllVideo(Integer userId, Integer masterId, List<Integer> folderIdList,
+                                                       HttpServletRequest request, List<Integer> myFolderIdList) {
         PageParam pageParam = new PageParam(request);
         Integer pageSize = pageParam.getPageSize();
         Integer pageNum = pageParam.getPageNum();
@@ -145,11 +168,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
         List<GcUserSaveFolder> playlists =
             getPlaylistsWithVideos(userId, masterId, folderIdList, myFolderIdList);
-        for(GcUserSaveFolder gcUserSaveFolder : playlists){
+        for (GcUserSaveFolder gcUserSaveFolder : playlists) {
             List<GcUserSaveContent> gcUserSaveContents = gcUserSaveFolder.getSaveContentList();
-            for(GcUserSaveContent gcUserSaveContent : gcUserSaveContents){
-                if(Objects.nonNull(gcUserSaveContent.getFileId())){
-                    SysFile sysFile =sysFileService.getById(gcUserSaveContent.getFileId());
+            for (GcUserSaveContent gcUserSaveContent : gcUserSaveContents) {
+                if (Objects.nonNull(gcUserSaveContent.getFileId())) {
+                    SysFile sysFile = sysFileService.getById(gcUserSaveContent.getFileId());
                     gcUserSaveContent.setVideoFile(sysFile);
                     String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                     sysFile.setSnapshotUrl(snapshotUrl);
@@ -157,9 +180,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                 }
             }
             if (null != gcUserSaveFolder.getUser() && null != gcUserSaveFolder.getUser().getInfo() &&
-                null != gcUserSaveFolder.getUser().getInfo().getAvatarFileId()){
-                SysFile sysFile =sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
-                sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile,request));
+                null != gcUserSaveFolder.getUser().getInfo().getAvatarFileId()) {
+                SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
+                sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
                 gcUserSaveFolder.getUser().getInfo().setAvatarFile(sysFile);
             }
 
@@ -168,14 +191,15 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     private List<GcUserSaveFolder> getPlaylistsWithVideos(Integer userId, Integer masterId, List<Integer> folderIdList,
-                                                        List<Integer> myFolderIdList) {
+                                                          List<Integer> myFolderIdList) {
         List<GcUserSaveFolder> playlists =
             this.baseMapper.selectFolderAllVideo(userId, masterId, folderIdList, myFolderIdList);
         List<GcUserSaveContent> playlistContents = playlists.stream()
             .flatMap(playlist -> playlist.getSaveContentList().stream())
             .collect(Collectors.toList());
 
-        playlistContents.forEach(content -> content.setVideo(gcVideoService.getVideoContent(content.getFileId()).orElse(null)));
+        playlistContents.forEach(
+            content -> content.setVideo(gcVideoService.getVideoContent(content.getFileId()).orElse(null)));
         return playlists;
     }
 
@@ -196,12 +220,12 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public Integer selectFolderByIdsAndUser(List<Integer> folderIds, Integer userId) {
-        return this.baseMapper.selectFolderByIdsAndUser(folderIds,userId);
+        return this.baseMapper.selectFolderByIdsAndUser(folderIds, userId);
     }
 
     @Override
-    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId,Integer fileId) {
-        return this.baseMapper.getPlayListMetaConfig(folderId,fileId);
+    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId) {
+        return this.baseMapper.getPlayListMetaConfig(folderId, fileId);
     }
 
     @Override
@@ -217,6 +241,35 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Override
     public Integer countUserPublicPlaylists(Integer userId, Integer masterId) {
         return countPlaylists(userId, masterId, false);
+    }
+
+    @Override
+    public List<PlaylistDto> ownedPlaylists(PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser);
+        return convertPlaylist(portalUser, playlists);
+    }
+
+    @Override
+    public List<PlaylistDto> subscribed(PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.subscribedPlaylists(portalUser);
+        return convertPlaylist(portalUser, playlists);
+    }
+
+    @Override
+    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser);
+        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    }
+
+    private List<PlaylistDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
+        return playlists.stream()
+            .map(playlist -> {
+                playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
+                PlaylistDto playlistDto = playlistMapping.map(playlist);
+                playlistDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistDto.getSnapshotUrl()));
+                return playlistDto;
+            })
+            .collect(Collectors.toList());
     }
 
     private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {

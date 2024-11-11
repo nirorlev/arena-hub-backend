@@ -77,6 +77,8 @@ public interface SysFileService extends IService<SysFile> {
 
     List<String> getAllTag(Integer masterId, SysSystem sys, List<String> folders);
 
+    String getFullFileUrl(String fileUrl);
+
     String getResFullUrlSaveType2(SysFile introVideoFile);
 
     SysFile selectByLogoId(Integer id);

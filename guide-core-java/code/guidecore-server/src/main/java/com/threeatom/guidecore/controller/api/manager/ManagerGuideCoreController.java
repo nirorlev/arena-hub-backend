@@ -652,15 +652,22 @@ public class ManagerGuideCoreController extends GuideCoreController {
             eventPublisherService.publishVideoUpdated(video.getId());
         }
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
-        GcVideo existingVideo = videoService.findByVideoId(video.getId());
+        video.setUserId(portalUser.getUserId());
 
-        if (!authorizationService.checkAccess(existingVideo, PermitAction.EDIT, portalUser)) {
+        if (video.getId() != null) {
+            GcVideo existingVideo = videoService.findByVideoId(video.getId());
+
+            if (!authorizationService.checkAccess(existingVideo, PermitAction.EDIT, portalUser)) {
+                throw new PermitException("No permission for this!");
+            }
+        } else if (!authorizationService.checkAccess(video, PermitAction.CREATE, portalUser)) {
             throw new PermitException("No permission for this!");
         }
 
         boolean successful = gcVideoService.saveVideoInfo(system, video, masterId, request);
 
         if (successful) {
+            video = videoService.findByVideoId(video.getId());
             video.setSubId0(subService.getById(video.getSubId()).getFid());
             return new Message().ok("添加成功！").addData("sync", video);
         }
@@ -677,6 +684,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         Integer masterId = request.getIntHeader("masterId");
         if (videoService.createVideos(videoList, request)) {
             courseContentService.saveCourseContents(videoList);
+            videoList = videoService.findByVideoIds(videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
 
             videoService.updateCourseTags(videoList, masterId);
             return new Message().ok("Added successfully")
@@ -770,7 +778,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
             master.setId(Integer.parseInt(request.getHeader("masterId")));
         }
         GcUser user = this.getGcUser();
-        GcVideo video = videoService.getVideoById(vid);
+        GcVideo video = videoService.findByVideoId(vid);
         String url = sysFileService.getResFullUrl(video.getVideoFile(),request);
         video.setVideoFullUrl(url);
         List<GcEvent> list = null;

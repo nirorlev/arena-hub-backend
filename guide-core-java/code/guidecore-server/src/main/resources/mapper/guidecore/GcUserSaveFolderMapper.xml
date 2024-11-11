@@ -39,6 +39,8 @@
 				<result property="subId" column="sc_sub_id" />
 				<result property="fileId" column="sc_file_id" />
 				<result property="contentId" column="content_id" />
+				<result property="createTime" column="sc_create_time" />
+				<result property="updateTime" column="sc_update_time" />
 			    <association property="subject" javaType="GcSubject" column="sub_id" >
 					<result property="id" column="s_id" />
 					<result property="name" column="s_name" />
@@ -62,6 +64,7 @@
 		            <result property="fileId" column="v_file_id"/>
 		            <result property="videoDesc" column="v_video_desc"/>
 					<result property="videoSource" column="v_video_source"/>
+					<result property="thumbnailUrl" column="v_thumbnail_url"/>
 					<association property="originChannel" resultMap="channelResultMap" columnPrefix="channel_" />
 					<association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
 		        </association>
@@ -69,6 +72,7 @@
 					<id property="id" column="f_id"/>
 					<result property="name" column="f_name"/>
 					<result property="fileUrl" column="f_file_url"/>
+					<result property="thumbNailUrl" column="f_thumb_nail_url"/>
 					<result property="saveType" column="f_save_type"/>
 					<result property="videoLong" column="f_video_long"/>
 					<result property="fileTypeIndex" column="f_file_type_index"/>
@@ -301,6 +305,50 @@
 		SELECT time_bucket, value
 		FROM counted_playlist
 		ORDER BY time_bucket
+	</select>
+
+	<select id="ownedPlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_folder playlist
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist.user_id = #{portalUser.userId} AND playlist.master_id = #{portalUser.masterId}
+		ORDER BY playlist.update_time DESC;
+	</select>
+
+	<select id="subscribedPlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_content_follow playlist_follow
+				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId}
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist_follow.user_id = #{portalUser.userId}
+		ORDER BY playlist.update_time;
+	</select>
+
+	<select id="discoverablePlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_folder playlist
+				 LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
+		ORDER BY playlist.update_time;
 	</select>
 
 </mapper>

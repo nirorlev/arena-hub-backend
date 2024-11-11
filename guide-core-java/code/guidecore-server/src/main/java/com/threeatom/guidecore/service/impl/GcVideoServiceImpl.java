@@ -1,9 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -81,9 +84,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private SysFileService fileService;
 
 	@Autowired
-	private GcUserAccessService userAccessService;
-
-	@Autowired
 	GcMasterService gcMasterService;
 
 	@Autowired
@@ -133,6 +133,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Autowired
 	private AnalyticsFacade analyticsFacade;
 
+	@Autowired
+	private AuthorizationService authorizationService;
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -745,6 +747,37 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		return this.baseMapper.getVideoIdsByChannelIds(channelIds);
+	}
+
+	@Override
+	public SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser) {
+		Integer contentId = video.getId();
+		SysFile videoFile = sysFileService.getById(video.getFileId());
+		sysFileService.updateVideoInformation(videoFile, portalUser);
+		video.setVideoFile(videoFile);
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(video);
+		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
+		videoFile.setFullFileUrl(fullFileUrl);
+		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setVideoId(contentId);
+		videoFile.setIsLiked(videoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
+		videoFile.setLikeNum(videoActionService.countLikeForVideo(contentId));
+		updateVideoFilePrivacy(videoFile, video);
+		Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
+		video.setPermissions(permissions);
+		video.getVideoFile().setPermissions(permissions);
+		return videoFile;
+	}
+
+	@Override
+	public VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request) {
+		GcVideo video = findByVideoId(videoId);
+		if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+			throw new ForbiddenException("No permission to view the video");
+		}
+
+		updateVideoFile(request, video, portalUser);
+		return videoMapping.map(video);
 	}
 
 	@Override
