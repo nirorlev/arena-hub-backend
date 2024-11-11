@@ -97,8 +97,10 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     public void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
+        FeatureToggle defaultByName = getDefaultByName(featureToggleValueDto.getName());
         if (featureToggleValueDto.getMasterId() == null) {
-            updateDefaultFeatureToggle(featureToggleValueDto);
+            defaultByName.setValue(featureToggleValueDto.getValue());
+            updateById(defaultByName);
             return;
         }
 
@@ -125,12 +127,6 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
         }
 
         save(featureToggleMapping.map(featureToggleValueDto));
-    }
-
-    private void updateDefaultFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
-        FeatureToggle featureToggle = getDefaultByName(featureToggleValueDto.getName());
-        featureToggle.setValue(featureToggleValueDto.getValue());
-        updateById(featureToggle);
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
