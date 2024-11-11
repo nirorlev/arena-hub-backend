@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.FeatureToggle;
 import com.threeatom.guidecore.mapper.FeatureToggleMapper;
 import com.threeatom.guidecore.mapping.FeatureToggleMapping;
 import com.threeatom.guidecore.service.FeatureToggleService;
+import com.threeatom.guidecore.service.GcMasterService;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +31,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     private static final String MASTER_ID_COLUMN = "master_id";
 
     private final FeatureToggleMapping featureToggleMapping;
+    private final GcMasterService masterService;
 
     @Override
     @Transactional(readOnly = true)
@@ -116,6 +118,11 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
             , featureToggleValueDto.getName()
             , featureToggleValueDto.getMasterId()
         );
+
+        if (masterService.getMasterById(featureToggleValueDto.getMasterId()) == null) {
+            throw new ResourceNotFoundException(
+                String.format("Portal with master id %s not found", featureToggleValueDto.getMasterId()));
+        }
 
         save(featureToggleMapping.map(featureToggleValueDto));
     }
