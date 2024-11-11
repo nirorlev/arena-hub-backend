@@ -180,10 +180,7 @@
         )
         SELECT
             ROUND((b.bucket_start + b.bucket_end) / 2.0, 1) as second,
-            COALESCE(
-                        SUM(LEAST(upper(view_segment.segment), b.bucket_end) - GREATEST(lower(view_segment.segment), b.bucket_start))
-                            / (b.bucket_end - b.bucket_start)::double precision, 0
-            ) AS value
+            count(view_segment.id) as value
         FROM buckets b
             LEFT JOIN video_play_session video_session ON video_session.video_id = #{filter.videoId}
                 AND video_session.create_time >= #{filter.start} AND video_session.create_time &lt; #{filter.end}
