@@ -3,6 +3,9 @@ package com.threeatom.guidecore.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.dto.request.WebhookDto;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
@@ -16,8 +19,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Service
+@Primary
 @RequiredArgsConstructor
-public class WebhookServiceImpl implements WebhookService{
+public class WebhookServiceImpl implements WebhookService {
 
     private final PowtoonExternalVideoService powtoonExternalVideoService;
     private final SysFileService sysFileService;
