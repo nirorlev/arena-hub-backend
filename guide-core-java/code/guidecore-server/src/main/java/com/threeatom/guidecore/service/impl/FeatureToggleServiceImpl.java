@@ -15,9 +15,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -94,22 +96,34 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     @Override
     public void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
         if (featureToggleValueDto.getMasterId() == null) {
-            FeatureToggle featureToggle = getDefaultByName(featureToggleValueDto.getName());
-            featureToggle.setValue(featureToggleValueDto.getValue());
-            updateById(featureToggle);
+            updateDefaultFeatureToggle(featureToggleValueDto);
             return;
         }
 
         FeatureToggle featureToggleByMaterId =
             getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
         if (featureToggleByMaterId == null) {
-            throw new ResourceNotFoundException(
-                String.format("Feature toggle not found: %s. Master id: %s", featureToggleValueDto.getName(),
-                    featureToggleValueDto.getMasterId()));
+            createNewPortalLevel(featureToggleValueDto);
+            return;
         }
 
         featureToggleByMaterId.setValue(featureToggleValueDto.getValue());
         updateById(featureToggleByMaterId);
+    }
+
+    private void createNewPortalLevel(FeatureToggleValueDto featureToggleValueDto) {
+        log.warn("Feature toggle not found: {}. Master id: {}. Creating new one"
+            , featureToggleValueDto.getName()
+            , featureToggleValueDto.getMasterId()
+        );
+
+        save(featureToggleMapping.map(featureToggleValueDto));
+    }
+
+    private void updateDefaultFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
+        FeatureToggle featureToggle = getDefaultByName(featureToggleValueDto.getName());
+        featureToggle.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggle);
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
