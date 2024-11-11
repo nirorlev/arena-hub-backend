@@ -14,10 +14,11 @@ public enum WebhookType {
     private final String type;
 
     public static Optional<WebhookType> fromString(String string) {
-        try{
-            return Optional.of(WebhookType.valueOf(string));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
+        for (WebhookType t: values()) {
+            if (t.type.equals(string)) {
+                return Optional.of(t);
+            }
         }
+        return Optional.empty();
     }
 }

@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@Primary
 @RequiredArgsConstructor
 public class WebhookServiceImpl implements WebhookService {
 
