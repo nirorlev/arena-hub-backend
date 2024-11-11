@@ -180,7 +180,7 @@
         )
         SELECT
             ROUND((b.bucket_start + b.bucket_end) / 2.0, 1) as second,
-            count(view_segment.id) as value
+            count(view_segment.segment_id) as value
         FROM buckets b
             LEFT JOIN video_play_session video_session ON video_session.video_id = #{filter.videoId}
                 AND video_session.create_time >= #{filter.start} AND video_session.create_time &lt; #{filter.end}
