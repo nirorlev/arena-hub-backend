@@ -99,7 +99,8 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-viewer-list")
-    public ResponseEntity<VideoViewersDto> videoViewers(@Valid VideoViewerDetailsDto filter, HttpServletRequest request) {
+    public ResponseEntity<VideoViewersDto> videoViewers(@Valid VideoViewerDetailsDto filter,
+                                                        HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.videoViewers(filter, masterId));
     }
@@ -112,8 +113,8 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-list")
-    public ResponseEntity<VideoSearchResponseDto> engagementRete(@Valid VideoListFilterDto filter,
-                                                                 HttpServletRequest request) {
+    public ResponseEntity<VideoSearchResponseDto> videoList(@Valid VideoListFilterDto filter,
+                                                            HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(videoService.getVideoListByQuery(filter, masterId, request));
     }
