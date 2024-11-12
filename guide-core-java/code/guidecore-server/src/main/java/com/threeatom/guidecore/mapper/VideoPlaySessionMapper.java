@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
@@ -13,15 +14,7 @@ public interface VideoPlaySessionMapper extends BaseMapper<VideoPlaySession> {
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
-    List<DbAnalyticsResultDto> getTrendVideoViewCountAnalytics(
-        @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
-
     List<DbAnalyticsResultDto> getViewersCountAnalytics(
-        @Param("filter") AnalyticsFilterDto filter,
-        @Param("masterId") Integer masterId);
-
-    List<DbAnalyticsResultDto> getTrendViewersCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
         @Param("masterId") Integer masterId);
 
@@ -31,5 +24,9 @@ public interface VideoPlaySessionMapper extends BaseMapper<VideoPlaySession> {
 
     List<DbAnalyticsResultVideoIdDto> getViewersCountByVideoAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<VideoPlaySession> getVideoViewSessionsByViewerDetails(
+        @Param("filter") VideoViewerDetailsDto filter,
         @Param("masterId") Integer masterId);
 }

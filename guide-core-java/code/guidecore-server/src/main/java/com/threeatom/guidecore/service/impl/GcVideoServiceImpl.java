@@ -1,9 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -81,9 +84,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private SysFileService fileService;
 
 	@Autowired
-	private GcUserAccessService userAccessService;
-
-	@Autowired
 	GcMasterService gcMasterService;
 
 	@Autowired
@@ -133,6 +133,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Autowired
 	private AnalyticsFacade analyticsFacade;
 
+	@Autowired
+	private AuthorizationService authorizationService;
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -632,9 +634,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFiles, Integer originChannelId) {
+	public void saveChannelContent(List<PtChannelContent> ptChannelContent, Integer originChannelId) {
 		List<GcVideo> channelVideoContent = ptChannelContent.stream()
-			.map(channelContent -> createChannelVideoContent(sysFiles, channelContent, originChannelId))
+			.map(channelContent -> createChannelVideoContent(channelContent, originChannelId))
 			.collect(Collectors.toList());
 
 		saveBatch(channelVideoContent);
@@ -748,6 +750,37 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser) {
+		Integer contentId = video.getId();
+		SysFile videoFile = sysFileService.getById(video.getFileId());
+		sysFileService.updateVideoInformation(videoFile, portalUser);
+		video.setVideoFile(videoFile);
+		String snapShotUrl = sysFileService.getVideoSnapshotUrl(video);
+		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
+		videoFile.setFullFileUrl(fullFileUrl);
+		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setVideoId(contentId);
+		videoFile.setIsLiked(videoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
+		videoFile.setLikeNum(videoActionService.countLikeForVideo(contentId));
+		updateVideoFilePrivacy(videoFile, video);
+		Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
+		video.setPermissions(permissions);
+		video.getVideoFile().setPermissions(permissions);
+		return videoFile;
+	}
+
+	@Override
+	public VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request) {
+		GcVideo video = findByVideoId(videoId);
+		if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+			throw new ForbiddenException("No permission to view the video");
+		}
+
+		updateVideoFile(request, video, portalUser);
+		return videoMapping.map(video);
+	}
+
+	@Override
 	public GcVideo findByVideoId(Integer videoId) {
 		return this.baseMapper.findByVideoIds(List.of(videoId)).get(0);
 	}
@@ -787,9 +820,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return response;
 	}
 
-	private GcVideo createChannelVideoContent(List<SysFile> sysFiles, PtChannelContent channelContent,
-											  Integer originChannelId) {
-		SysFile videoFile = getVideoFile(channelContent.getFileId(), sysFiles);
+	private GcVideo createChannelVideoContent(PtChannelContent channelContent, Integer originChannelId) {
+		SysFile videoFile = channelContent.getVideoFile();
 
 		if (videoFile == null) {
 			return null;
@@ -807,26 +839,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return gcVideo;
 	}
 
-	private SysFile getVideoFile(Integer fileId, List<SysFile> sysFiles) {
-		return sysFiles.stream()
-			.filter(sysFile -> sysFile.getId().equals(fileId))
-			.findFirst()
-			.orElse(null);
-	}
-
 	@Override
 	public List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
 		return this.baseMapper.getVideoCountAnalytics(filter, masterId);
-	}
-
-	@Override
-	public List<DbAnalyticsResultDto> getTrendVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-		return this.baseMapper.getTrendVideoCountAnalytics(filter, masterId);
-	}
-
-	@Override
-	public List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList) {
-		return this.baseMapper.getSysFileByIdsOrVideos(fileList,videoList);
 	}
 
 	@Override

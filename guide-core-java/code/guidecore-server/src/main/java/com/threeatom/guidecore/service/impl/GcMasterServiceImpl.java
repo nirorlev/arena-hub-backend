@@ -11,7 +11,6 @@ import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
-import com.threeatom.guidecore.mapper.NewUIUserMapper;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         implements GcMasterService {
-    @Resource NewUIUserMapper newUIUserMapper;
 
     @Autowired private SysFileService sysFileService;
 
@@ -55,7 +53,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired @Lazy private NewUiGcSubjectService newUiGcSubjectService;
 
-    @Autowired private UnavailableVideoService unavailableVideoService;
+    @Autowired @Lazy private UnavailableVideoService unavailableVideoService;
     @Autowired private PortalUserService portalUserService;
     @Autowired private AuthorizationService authorizationService;
 
@@ -200,11 +198,14 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             for (GcUserSaveContent userSaveContent : list) {
                 for (SysFile file : videoFiles) {
                     if (userSaveContent.getFileId().equals(file.getId())) {
+                        GcVideo video = fileIdToVideo.get(file.getId());
+
                         file.setContentId(userSaveContent.getId());
                         file.setVideoId(userSaveContent.getContentId());
                         file.setIsLiked(gcUserVideoActionService.isLikedByUser(userSaveContent.getContentId(), userId) ? 1 : 0);
                         file.setLikeNum(gcUserVideoActionService.countLikeForVideo(userSaveContent.getContentId()));
-                        gcVideoService.updateVideoFilePrivacy(file, fileIdToVideo.get(file.getId()));
+                        file.setCommentNumber(video.getCommentNum());
+                        gcVideoService.updateVideoFilePrivacy(file, video);
                     }
                 }
             }

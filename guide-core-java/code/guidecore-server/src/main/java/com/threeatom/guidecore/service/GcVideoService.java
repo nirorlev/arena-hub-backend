@@ -8,9 +8,11 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import com.threeatom.guidecore.service.bll.GcVideoServiceBll;
@@ -120,13 +122,11 @@ public interface GcVideoService extends GcVideoServiceBll {
         List<Integer> permissionList,
         HttpServletRequest request);
 
+    SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser);
+
     GcVideo findByVideoId(Integer videoId);
 
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
-    List<DbAnalyticsResultDto> getTrendVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
-
-    List<GcVideo> getSysFileByIdsOrVideos(List<Integer> fileList, List<Integer> videoList);
 
     List<GcVideo> selectVideoPlayListBySubId(Integer subId, Integer userId);
 
@@ -138,7 +138,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Map<Integer, videoLongVo> getVideoLongMapBySubjectId(List<Integer> subjectIds);
 
-    void saveChannelContent(List<PtChannelContent> ptChannelContent, List<SysFile> sysFileList, Integer channelId);
+    void saveChannelContent(List<PtChannelContent> ptChannelContent, Integer channelId);
 
     Optional<GcVideo> getVideoContent(Integer fileId);
 
@@ -157,4 +157,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> findByVideoIds(List<Integer> videoIds);
 
     List<Integer> getVideoIdsByChannelIds(List<Integer> channelIds);
+
+    VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request);
 }

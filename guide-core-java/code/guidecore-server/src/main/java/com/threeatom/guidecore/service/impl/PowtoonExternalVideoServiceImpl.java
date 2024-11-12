@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import java.util.List;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -30,6 +31,13 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 		QueryWrapper<PowtoonExternalVideo> queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("sys_file_id", sysFileId);
 		return getOne(queryWrapper);
+	}
+
+	@Override
+	public List<PowtoonExternalVideo> getByExternalId(String externalId) {
+		QueryWrapper<PowtoonExternalVideo> queryWrapper = new QueryWrapper<>();
+		queryWrapper.eq("external_id", externalId);
+		return this.baseMapper.selectList(queryWrapper);
 	}
 
 	@Override

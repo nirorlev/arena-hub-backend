@@ -8,7 +8,9 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.AwsS3StorageService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
@@ -36,9 +38,9 @@ public class SysFIleController extends GuideCoreController {
 
     @Autowired private PowtoonExternalVideoService powtoonExternalVideoService;
 
-    @Autowired private AwsS3StorageService awsS3StorageService;
-
     @Autowired private VideoThumbnailProvider thumbnailProvider;
+
+    @Autowired private PortalUserService portalUserService;
 
     @PostMapping("/saveLink")
     public Message saveLink(@RequestBody SysFile sysFile, HttpServletRequest request) {
@@ -75,8 +77,8 @@ public class SysFIleController extends GuideCoreController {
 
         Integer fileTypeIndex = sysFile.getFileTypeIndex();
         if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
-            String fileKey = awsS3StorageService.uploadFileToS3(sysFile.getThumbNailUrl(), master.getId(), user.getId());
-            sysFile.setThumbNailUrl(fileKey);
+            PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
+            sysFileService.uploadThumbnailToS3(sysFile, portalUser);
         }
 
         if (!sysFileService.saveOrUpdate(sysFile)) {

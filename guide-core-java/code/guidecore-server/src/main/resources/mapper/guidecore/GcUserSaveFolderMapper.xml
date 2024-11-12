@@ -39,6 +39,8 @@
 				<result property="subId" column="sc_sub_id" />
 				<result property="fileId" column="sc_file_id" />
 				<result property="contentId" column="content_id" />
+				<result property="createTime" column="sc_create_time" />
+				<result property="updateTime" column="sc_update_time" />
 			    <association property="subject" javaType="GcSubject" column="sub_id" >
 					<result property="id" column="s_id" />
 					<result property="name" column="s_name" />
@@ -62,17 +64,32 @@
 		            <result property="fileId" column="v_file_id"/>
 		            <result property="videoDesc" column="v_video_desc"/>
 					<result property="videoSource" column="v_video_source"/>
+					<result property="thumbnailUrl" column="v_thumbnail_url"/>
+					<association property="originChannel" resultMap="channelResultMap" columnPrefix="channel_" />
+					<association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
 		        </association>
 				<association property="videoFile" column="file_id" javaType="SysFile">
 					<id property="id" column="f_id"/>
 					<result property="name" column="f_name"/>
 					<result property="fileUrl" column="f_file_url"/>
+					<result property="thumbNailUrl" column="f_thumb_nail_url"/>
 					<result property="saveType" column="f_save_type"/>
 					<result property="videoLong" column="f_video_long"/>
 					<result property="fileTypeIndex" column="f_file_type_index"/>
 				</association>
 			</collection>
-    </resultMap>
+	 </resultMap>
+
+
+	<resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
+		<result property="visibleFlag" column="visible_flag"/>
+	</resultMap>
+
+	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+		<result property="availableType" column="available_type"/>
+		<result property="state" column="state"/>
+	</resultMap>
+
 
 	<sql id="userColumn">
 		,u.id as u_id, u.info_id as info_id, info.last_name as lastName, info.first_name as firstName, info.avatar_file_id as avatarFileId,
@@ -97,7 +114,7 @@
 		<include refid="baseColumn" />
 		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id, sc.content_id,
 		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
-		v2.video_source as video_source,
+		v.video_source as video_source,
 		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
 		<include refid="userColumn"/>
 		<include refid="videoFileColumn" />
@@ -107,7 +124,8 @@
 		join pt_channel_content pcc on pcc.content_id = sc.content_id
 		join gc_video gv on gv.id = pcc.content_id
 		where sc.folder_id=sf.id and sc.master_id=#{masterId}
-		order by sc.create_time asc limit 1) as firstVideoFileId
+		order by sc.create_time asc limit 1) as firstVideoFileId,
+		s.state as course_state, s.available_type as course_available_type
 		from gc_user_save_folder sf
 		left join gc_user_save_content sc on sc.folder_id = sf.id
 		<if test="userId!=null and playListName==null">
@@ -117,14 +135,12 @@
 			AND (sc.user_id=#{userId} or not sf.is_private)
 		</if>
 		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
-		left join gc_subject s on s.id= sc.sub_id
+		left join gc_subject s on s.id= v.origin_course_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
 		left join gc_user u on u.id = sf.user_id
 		left join gc_user_info info on info.id = u.info_id
 		left join sys_file uf on info.avatar_file_id = uf.id
-		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
-		left join gc_video v2 on v2.file_id = f.id
 		where 1=1
 		<if test="userId!=null and playListName==null">
 			AND sf.user_id=#{userId}
@@ -155,15 +171,18 @@
 
 	<select id="getPtNewHomePlayList" resultMap="baseResultMap">
 		SELECT DISTINCT ON (sf.id)
-		<include refid="baseColumn" />
+		<include refid="baseColumn"/>
 		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id, sc.content_id,
-		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
-		v2.video_source as video_source,
-		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
+		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index, v.file_id as v_file_id,
+		v.video_source as video_source,
+		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as
+		s_sub_img_id, s.state as course_state, s.available_type as course_available_type
 		<include refid="userColumn"/>
-		<include refid="videoFileColumn" />
-		<include refid="subjectFileColumn" /> ,
-		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum,
+		<include refid="videoFileColumn"/>
+		<include refid="subjectFileColumn"/>
+		,
+		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as
+		videoNum,
 		(select gv.file_id from gc_user_save_content sc
 		join pt_channel_content pcc on pcc.content_id = sc.content_id
 		join gc_video gv on gv.id = pcc.content_id
@@ -172,14 +191,12 @@
 		from gc_user_save_folder sf
 		left join gc_user_save_content sc on sc.folder_id = sf.id
 		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
-		left join gc_subject s on s.id= sc.sub_id
+		left join gc_subject s on s.id= v.origin_course_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
 		left join gc_user u on u.id = sf.user_id
 		left join gc_user_info info on info.id = u.info_id
 		left join sys_file uf on info.avatar_file_id = uf.id
-		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
-		left join gc_video v2 on v2.file_id = f.id
 		where 1=1
 		<if test="userId!=null">
 			AND sf.user_id !=#{userId}
@@ -189,13 +206,13 @@
 		sf.master_id=#{masterId}
 		<if test="folderIdList!=null and folderIdList.size !=0">
 			AND sf.id in
-			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
+			<foreach item="folderId" index="index" collection="folderIdList" open="(" separator="," close=")">
 				#{folderId}
 			</foreach>
 		</if>
 		<if test="myFolderIdList!=null and myFolderIdList.size !=0">
 			AND sf.id not in
-			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
+			<foreach item="myFolderId" index="index" collection="myFolderIdList" open="(" separator="," close=")">
 				#{myFolderId}
 			</foreach>
 		</if>
@@ -276,26 +293,62 @@
 	</select>
 
 	<select id="getPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT time_bucket, COUNT(gusf.id) OVER (ORDER BY time_bucket) AS value
-			FROM gc_user_save_folder gusf
-				JOIN gc_user_save_folder filter ON gusf.id = filter.id AND filter.master_id = #{masterId}
+		WITH counted_playlist AS (
+			SELECT time_bucket, COUNT(playlist.id) AS value
+			FROM gc_user_save_folder playlist
 				RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-					ON gusf.create_time >= time_bucket AND gusf.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-		GROUP BY time_bucket, gusf.id
-		ORDER BY time_bucket;
+					ON playlist.create_time >= time_bucket
+					       AND playlist.master_id = #{masterId}
+					       AND playlist.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+			GROUP BY time_bucket
+		)
+		SELECT time_bucket, value
+		FROM counted_playlist
+		ORDER BY time_bucket
 	</select>
 
-	<select id="getTrendPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		SELECT time_bucket, COUNT(gusf.id) AS value
-			FROM gc_user_save_folder gusf
-			RIGHT JOIN
-						(
-							SELECT #{filter.start}::timestamp with time zone AS time_bucket
-							UNION
-							SELECT #{filter.end}::timestamp with time zone
-						) AS time_bucket ON gusf.create_time &lt;= time_bucket AND gusf.master_id = #{masterId}
-		GROUP BY time_bucket
-		ORDER BY time_bucket;
+	<select id="ownedPlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_folder playlist
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist.user_id = #{portalUser.userId} AND playlist.master_id = #{portalUser.masterId}
+		ORDER BY playlist.update_time DESC;
+	</select>
+
+	<select id="subscribedPlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_content_follow playlist_follow
+				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId}
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist_follow.user_id = #{portalUser.userId}
+		ORDER BY playlist.update_time;
+	</select>
+
+	<select id="discoverablePlaylists" parameterType="map" resultMap="baseResultMap">
+		SELECT playlist.id, playlist.name, playlist.is_private, playlist.master_id, playlist.create_time, playlist.update_time,
+			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   video.id as v_id, video.video_name as v_video_name,
+			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
+			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		FROM gc_user_save_folder playlist
+				 LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
+				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+				 LEFT JOIN gc_video video ON video.id = content.content_id
+				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
+		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
+		ORDER BY playlist.update_time;
 	</select>
 
 </mapper>

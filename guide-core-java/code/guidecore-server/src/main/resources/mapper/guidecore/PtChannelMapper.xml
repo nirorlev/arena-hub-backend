@@ -484,47 +484,43 @@
 
     <select id="selectVideosInSection" resultMap="baseResultSysFileMap">
         SELECT
-        DISTINCT ON (file.id)
-        file.*,
-        video_content.id as video_id,
-        u.username as channel_create_user_username,
-        u.id as channel_create_uid,
-        info.last_name as createUserLastName,
-        info.first_name as createUserFirstName,
-        info.avatar_file_id as userInfo_avatar_file_id,
-        content.id AS ptChannelContentId
+            file.*,
+            video_content.id as video_id,
+            u.username as channel_create_user_username,
+            u.id as channel_create_uid,
+            info.last_name as createUserLastName,
+            info.first_name as createUserFirstName,
+            info.avatar_file_id as userInfo_avatar_file_id,
+            content.id AS ptChannelContentId
         FROM gc_video video_content
-        JOIN sys_file file ON video_content.file_id = file.id
-        right JOIN pt_channel_content content on content.content_id=video_content.id
-        right JOIN(
-        select channel.* from pt_channel channel
-        LEFT JOIN pt_channel section on section.fid = channel.id
-        where channel.id = #{sectionId}
-        <if test="level==0">
-            union
-            select section.* from pt_channel channel
-            LEFT JOIN pt_channel section on section.fid = channel.id
-            where section.fid = #{sectionId}
-        </if>
-        )channel on channel.id = content.channel_id
-        left join gc_user u on u.id = file.upload_uid
-        left join gc_user_info info on info.id = u.info_id
+            JOIN sys_file file ON video_content.file_id = file.id
+            JOIN pt_channel_content content on content.content_id=video_content.id
+            JOIN(
+                select channel.*
+                from pt_channel channel
+                where channel.id = #{sectionId}
+            ) channel on channel.id = content.channel_id
+            join gc_user u on u.id = file.upload_uid
+            join gc_user_info info on info.id = u.info_id
         WHERE file.id is not null
         <if test="searchName!=null">
             AND video_content.video_name LIKE concat('%',#{searchName},'%')
         </if>
         <choose>
             <when test="order!=null">
-                order by file.id, file.create_time ${order}
+                order by content.content_order ${order}, channel.update_time ${order}
             </when>
             <otherwise>
-                order by file.id asc, content.create_time asc
+                order by content.content_order, channel.update_time desc
             </otherwise>
         </choose>
     </select>
 
     <select id="selectSectionList" resultType="com.threeatom.guidecore.entity.PtChannel">
-        select * from pt_channel where 1=1
+        select channel.*, count(channel_content.content_id) as content_count
+        from pt_channel channel
+            left join pt_channel_content channel_content ON channel.id = channel_content.channel_id
+        where 1=1
         <if test="slug != null">
             and fid = (select id from pt_channel where channel_slug = #{slug} and master_id = #{masterId})
         </if>
@@ -534,6 +530,7 @@
         <if test="masterId !=null">
             and master_id = #{masterId}
         </if>
+        GROUP BY channel.id
         order by create_time ${order}
     </select>
 
@@ -572,6 +569,7 @@
             and ch.create_user_id = #{userId}
         </if>
         and ch.master_id = #{masterId}
+        and ch.visible_flag != 0
         and ch.level = 0
         group by ch.id, u.id, info.id, tags.id
         order by ch.create_time desc
@@ -732,14 +730,18 @@
         left join gc_user us2 on us2.id = channel.create_user_id
         left join gc_user_info info on info.id = us2.info_id
         left join gc_user_video_action vac on vac.content_id = video_content.id and vac."type" = 1
-        where userAccess.user_id = #{userId}
-        and us.id = #{userId}
-        and userAccess.master_id = #{masterId}
-        OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
-        and pcc.id is not null
+        where 1=1
         <if test=" searchName!= null and searchName != ''">
-            and video_content.video_name like concat('%',#{searchName},'%')
+            and video_content.video_name ilike concat('%',#{searchName},'%')
         </if>
+        and (
+            userAccess.user_id = #{userId}
+            and us.id = #{userId}
+            and userAccess.master_id = #{masterId}
+            and channel.visible_flag != 0
+            OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
+            and pcc.id is not null
+        )
         GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id
         order by video_content.update_time desc
     </select>
@@ -869,6 +871,7 @@
                   left join gc_user us2 on us2.id = channel.create_user_id
                   left join gc_user_info info on info.id = us2.info_id
               where 1=1
+                and channel.visible_flag != 0
                 and userAccess.user_id = #{userId}
                 and us.id = #{userId}
                 and userAccess.master_id = #{masterId}
@@ -915,6 +918,7 @@
                                                           left join gc_user us2 on us2.id = channel.create_user_id
                                                           left join gc_user_info info on info.id = us2.info_id
                                                       where 1=1
+                                                        and channel.visible_flag != 0
                                                         and userAccess.user_id = #{userId}
                                                         and us.id = #{userId}
                                                         and userAccess.master_id = #{masterId}
@@ -934,27 +938,16 @@
     </select>
 
     <select id="getChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(pc.id) OVER (ORDER BY time_bucket) AS value
+        WITH counted_channels AS (
+            SELECT time_bucket, COUNT(pc.id) AS value
             FROM pt_channel pc
-            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                ON pc.create_time >= time_bucket
-                       AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                       AND pc.master_id = #{masterId}
-        GROUP BY time_bucket, pc.id
-        ORDER BY time_bucket;
-    </select>
-
-    <select id="getTrendChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(pc.id) AS value
-            FROM pt_channel pc
-                RIGHT JOIN
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                            ON pc.create_time &lt;= time_bucket AND pc.master_id = #{masterId}
-        GROUP BY time_bucket
+                RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                    ON pc.create_time >= time_bucket
+                           AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval AND pc.master_id = #{masterId}
+            GROUP BY time_bucket
+        )
+        SELECT time_bucket, value
+        FROM counted_channels
         ORDER BY time_bucket;
     </select>
 
@@ -990,17 +983,15 @@
                sf_pc_avatar.file_url                 as avatar_full_file_url,
                sf_img.file_url                       as img_full_file_url,
                pcs.update_time                       as subscription_time,
-               count(subscribe_pcs.id)               as subscribeNum
+               (SELECT COUNT(id) FROM pt_channel_subscribe WHERE channel_id = pc.id AND is_deleted = false) as subscribeNum
         FROM pt_channel_subscribe pcs
-                 JOIN pt_channel pc ON pc.id = pcs.channel_id AND pc.master_id = #{masterId} AND pc.visible_flag != 0
+                 JOIN pt_channel pc ON pc.id = pcs.channel_id AND pc.master_id = #{masterId}
                  JOIN gc_user gu ON pc.create_user_id = gu.id
                  JOIN gc_user_info gui ON gu.info_id = gui.id
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-                 LEFT JOIN pt_channel_subscribe subscribe_pcs ON pc.id = subscribe_pcs.channel_id AND subscribe_pcs.is_deleted = false
-        WHERE pcs.is_deleted = false AND pcs.user_id = #{userId}
-        GROUP BY pc.id, pcs.id, gu.id, gui.id, sf_avatar.id, sf_img.id, sf_pc_avatar.id
+        WHERE pcs.is_deleted = false AND pcs.user_id = #{userId} AND (pc.visible_flag IN (1, 2) OR pc.create_user_id = #{userId})
         ORDER BY pcs.update_time DESC;
     </select>
 
@@ -1024,7 +1015,7 @@
                  LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
                  LEFT JOIN sys_file sf_pc_avatar ON pc.channel_avatar_file_id = sf_pc_avatar.id
                  LEFT JOIN sys_file sf_img ON pc.channel_img_file_id = sf_img.id
-        WHERE pc.master_id = #{masterId} AND pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL OR pcs.id IS NOT NULL))
+        WHERE pc.master_id = #{masterId} AND pc.level = 0 AND ((pc.create_user_id = #{userId} OR pc.visible_flag = 1) AND pcs_subscribed.id IS NULL OR pc.visible_flag = 2 AND (ua.id IS NOT NULL AND pcs.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
     </select>
 </mapper>

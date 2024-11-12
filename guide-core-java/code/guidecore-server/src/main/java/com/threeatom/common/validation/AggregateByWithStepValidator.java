@@ -11,6 +11,6 @@ public class AggregateByWithStepValidator implements ConstraintValidator<Aggrega
     @Override
     public boolean isValid(AnalyticsFilterDto filter, ConstraintValidatorContext context) {
         return (AnalyticsAggregation.DATE.equals(filter.getAggregateBy()) && filter.getStep() != null
-            && filter.getStep() >= 0) || !AnalyticsAggregation.DATE.equals(filter.getAggregateBy());
+            && filter.getStep() > 0) || !AnalyticsAggregation.DATE.equals(filter.getAggregateBy());
     }
 }

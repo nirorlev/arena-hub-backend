@@ -131,6 +131,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
 import org.slf4j.Logger;
@@ -298,7 +299,7 @@ public class PowtoonController extends GuideCoreController {
         String token = RequestUtil.getRequestAuthHeader(request);
         SysSystem system = this.getSystem();
 
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser gcUser = this.getGcUser();
             return gvgMasterService.search(searchDto, request, gcUser, system)
                 .addData("date:::", new Date());
@@ -317,7 +318,7 @@ public class PowtoonController extends GuideCoreController {
         }
 
         String token = request.getHeader("Authorization");
-        if (token != null && !"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             return gvgMasterService.portalInfosUnlogin(requestParams, user, request)
                 .addData("times", new Date());
@@ -480,7 +481,7 @@ public class PowtoonController extends GuideCoreController {
         }
         String token = request.getHeader("Authorization");
 
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             PortalUser portalUser =
                 portalUserService.getByUserAndMasterId(this.getGcUser().getId(), getHeaderMasterId(request));
             return gvgMasterService.newPtIndexHome(requestParams, request, system, portalUser)
@@ -648,10 +649,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @PostMapping("navigation")
-    @ApiOperation(value = "新UI课程首页-课程导航页", notes = "课程导航页", httpMethod = "POST")
-    public Message navigation(@RequestBody(required = false) Map<String, Object> params, HttpServletRequest request)
-        throws IOException, PermitContextError, PermitApiError {
-        //复用
+    public Message navigation(@RequestBody(required = false) Map<String, Object> params, HttpServletRequest request) {
         Object fid = params.get("fid");
         if (Objects.isNull(fid)) {
             throw new SystemException(I18NUtil.get("guidecore.course.navigation.error"));
@@ -662,7 +660,7 @@ public class PowtoonController extends GuideCoreController {
         }
         SysSystem system = this.getSystem();
         String token = request.getHeader("Authorization");
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
 
             GcSubject course = gcSubjectService.getById(Integer.parseInt(fid.toString()));
@@ -676,6 +674,7 @@ public class PowtoonController extends GuideCoreController {
 
             return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
         }
+
         return gvgMasterService.navigation(params, request, system, new GcUser(), EnvType.PT.getCode());
     }
 
@@ -758,7 +757,7 @@ public class PowtoonController extends GuideCoreController {
     public Message videoDetailPt(HttpServletRequest request, Integer videoId) {
         SysSystem system = this.getSystem();
         String token = RequestUtil.getRequestAuthHeader(request);
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
             GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
             GcVideo video = gcVideoService.findByVideoId(videoId);
@@ -2100,11 +2099,6 @@ public class PowtoonController extends GuideCoreController {
                 ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getMustAccessIds())));
             }
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
-                if (!portalUser.isOrgAdmin() &&
-                    CourseAvailabilityType.PUBLIC.getValue().equals(course.getAvailableType())) {
-                    throw new PermitException("No permission for this!");
-                }
-                //发布
                 isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
                 if (null == oldSubject.getPublishedTime() && course.getState().equals(TableConstant.COMMON_ONE)) {
                     course.setPublishedTime(new Date());
@@ -2288,7 +2282,7 @@ public class PowtoonController extends GuideCoreController {
         }
         String token = request.getHeader("Authorization");
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        if (!"undefined".equals(token)) {
+        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser gcUser = getGcUser();
             return gcMasterService.getContentFromOneFolder(gcUserSaveFolder, gcUser, request, EnvType.PT.getCode())
                 .addData("systemTime", df.format(new Date()));
@@ -2569,15 +2563,11 @@ public class PowtoonController extends GuideCoreController {
     private void checkChannelPermission(PtChannel channel, Integer userId, PortalUser portalUser) {
         ptChannelService.populateCreatedUserId(channel, userId);
         boolean isAllowed;
-        if (channel.getVisibleFlag() != null) {
-            if (!authorizationService.checkAccess(channel, PermitAction.PUBLISH, portalUser)) {
-                throw new PermitException("No permission to change channel visibility!");
-            }
-        }
 
         if (channel.getId() != null) {
-            eventPublisherService.publishChannelUpdated(channel.getId());
+            checkChannelPublishPermission(channel, portalUser);
             isAllowed = authorizationService.checkAccess(channel, PermitAction.EDIT, portalUser);
+            eventPublisherService.publishChannelUpdated(channel.getId());
         } else if (channel.isSection()) {
             isAllowed = authorizationService.checkAccess(channel, PermitAction.ADD_CONTENT, portalUser);
         } else {
@@ -2586,6 +2576,18 @@ public class PowtoonController extends GuideCoreController {
 
         if (!isAllowed) {
             throw new PermitException("No permission for this!");
+        }
+    }
+
+    private void checkChannelPublishPermission(PtChannel channel, PortalUser portalUser) {
+        PtChannel existingChannel = ptChannelService.getById(channel.getId());
+        if (existingChannel == null) {
+            throw new SystemException("Channel doesn't exist.");
+        }
+        if (channel.getVisibleFlag() != null &&
+            !channel.getVisibleFlag().equals(existingChannel.getVisibleFlag()) &&
+            !authorizationService.checkAccess(existingChannel, PermitAction.PUBLISH, portalUser)) {
+            throw new PermitException("No permission to change channel visibility!");
         }
     }
 
@@ -2965,46 +2967,36 @@ public class PowtoonController extends GuideCoreController {
         return new Message().error();
     }
 
-    @ApiOperation(value = "channelContent修改视频顺序")
-    @PostMapping("/changeContentOrder")
-    public Message changeContentOrder(@RequestBody List<Integer> contentIds, HttpServletRequest request) {
-        Message message = new Message();
-        if (CollectionUtils.isEmpty(contentIds)) {
-            throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
-        }
-        if (ptChannelContentService.changeContentOrder(contentIds)) {
-            return message.ok("success");
-        } else {
-            return message.error();
-        }
-    }
-
     @ApiOperation(value = "Video details page")
     @PostMapping("/contentVideoDetail")
     public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent, HttpServletRequest request) {
         Message message = new Message();
-        GcUser currentUser = this.getGcUser();
-        if (Objects.isNull(ptChannelContent.getId())) {
-            throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
-        }
-        ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
-        GcUserVideoAction gcUserVideoAction =
-            gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(), currentUser.getId(),
-                TableConstant.COMMON_ONE);
-        PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
-        GcUser user = userService.getById(ptchannel.getCreateUserId());
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        if(Objects.isNull(ptChannelContent.getId())){
+			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
+		}
 
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
-        GcUserInfo gcUserInfo = gcUserInfoService.getById(user.getInfoId());
-        if (null != gcUserInfo.getAvatarFileId()) {
-            gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
-            sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(), request);
-        }
-        user.setInfo(gcUserInfo);
-        ptchannel.setCreateUser(user);
-        GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
-        SysFile videoFile = getFile(request, channelVideoContent, portalUser);
+		ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
+		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+		GcUser currentUser = this.getGcUser();
+		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
+		if (!authorizationService.checkAccess(channelVideoContent, PermitAction.VIEW, portalUser)) {
+			throw new PermitException("No permission for this!");
+		}
+
+		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
+		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
+		GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
+		if (null!=gcUserInfo.getAvatarFileId()) {
+			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
+			sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(),request);
+		}
+
+		channelCreator.setInfo(gcUserInfo);
+        ptchannel.setCreateUser(channelCreator);
+		SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
+		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
         if (Objects.nonNull(gcUserVideoAction)) {
             videoFile.setLikedFlag(TableConstant.COMMON_ONE);
         } else {
@@ -3019,7 +3011,7 @@ public class PowtoonController extends GuideCoreController {
                 sysFileService.getResFullUrl(sysFileService.getById(ptChannel.getChannelImgFileId()), request);
             ptChannel.setImgFullFileUrl(channelSnapShotUrl);
         }
-        ptChannel.setCreateUser(user);
+        ptChannel.setCreateUser(channelCreator);
         if (ptChannel.isSection()) {
             PtChannel channel = ptChannelService.getById(ptchannel.getFid());
             ptChannel.setChannelSlug(channel.getChannelSlug());
@@ -3128,24 +3120,6 @@ public class PowtoonController extends GuideCoreController {
         } else {
             return new Message().error("删除失败");
         }
-    }
-
-    private SysFile getFile(HttpServletRequest request, GcVideo channelVideoContent, PortalUser portalUser) {
-        Integer contentId = channelVideoContent.getId();
-        SysFile videoFile = sysFileService.getById(channelVideoContent.getFileId());
-        channelVideoContent.setVideoFile(videoFile);
-        String snapShotUrl = sysFileService.getVideoSnapshotUrl(channelVideoContent);
-        String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
-        videoFile.setFullFileUrl(fullFileUrl);
-        videoFile.setSnapshotUrl(snapShotUrl);
-        videoFile.setVideoId(contentId);
-        videoFile.setIsLiked(gcUserVideoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
-        videoFile.setLikeNum(gcUserVideoActionService.countLikeForVideo(contentId));
-        gcVideoService.updateVideoFilePrivacy(videoFile, channelVideoContent);
-        Map<String, Boolean> permissions = authorizationService.listPermissions(channelVideoContent, portalUser);
-        channelVideoContent.setPermissions(permissions);
-        channelVideoContent.getVideoFile().setPermissions(permissions);
-        return videoFile;
     }
 }
 

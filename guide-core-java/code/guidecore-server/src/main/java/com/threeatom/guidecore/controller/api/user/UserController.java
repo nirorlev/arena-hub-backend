@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -113,7 +114,7 @@ public class UserController {
     }
 
     private GcUser getUserFromToken(String tokens) {
-        if (!"undefined".equals(tokens)) {
+        if (!StringUtils.isEmpty(tokens) && !"undefined".equals(tokens)) {
             Integer userId = JwtUtil.getUserIdByToken(tokens);
             GcUser user = userService.getUserByIdCache(userId);
             JwtUtil.verifyToken(tokens, user.getPassword());

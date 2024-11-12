@@ -36,28 +36,6 @@
         ORDER BY time_bucket;
     </select>
 
-    <select id="getTrendVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / (#{filter.daysAmount})::double precision AS value
-        FROM video_play_segment play_segment
-            JOIN video_play_session play_session
-                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
-                    <if test="!filter.videoIds.empty">
-                        AND play_session.video_id IN
-                        <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                            #{videoId}
-                        </foreach>
-                    </if>
-            RIGHT JOIN
-                (
-                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                    UNION
-                    SELECT #{filter.end}::timestamp with time zone
-                ) AS time_bucket
-                ON play_segment.update_time &lt;= time_bucket
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
     <select id="getVideoWatchingTimeByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
         SELECT video.id AS videoId, SUM(upper(segment) - lower(segment)) AS value
         FROM gc_video video
@@ -92,28 +70,6 @@
         ORDER BY time_bucket;
     </select>
 
-    <select id="getTrendAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(play_session.id)::double precision AS value
-        FROM video_play_segment play_segment
-            JOIN video_play_session play_session
-                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
-                    <if test="!filter.videoIds.empty">
-                        AND play_session.video_id IN
-                        <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                            #{videoId}
-                        </foreach>
-                    </if>
-            RIGHT JOIN
-                (
-                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                    UNION
-                    SELECT #{filter.end}::timestamp with time zone
-                ) AS time_bucket
-                ON play_segment.update_time &lt;= time_bucket
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
     <select id="getDropOffRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, AVG(ratio) AS value
         FROM (
@@ -137,42 +93,6 @@
                         </if>
                     RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
                         ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-                GROUP BY time_bucket, play_segment.session_id
-                ORDER BY time_bucket
-            ) AS engagement
-        ) AS drop_off
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
-    <select id="getTrendDropOffRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, AVG(ratio) AS value
-        FROM (
-            SELECT time_bucket,
-                CASE
-                    WHEN COUNT(engagement_rate) OVER (PARTITION BY time_bucket) = 0 THEN 0
-                    ELSE COUNT(engagement_rate) FILTER (WHERE engagement_rate &lt; #{dropOffThreshold} AND engagement_rate != 0.0) OVER (PARTITION BY time_bucket) / COUNT(engagement_rate) OVER (PARTITION BY time_bucket)::double precision
-                END AS ratio
-            FROM (
-                SELECT time_bucket,
-                    SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS engagement_rate
-                FROM video_play_segment play_segment
-                    JOIN video_play_session play_session
-                        ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
-                    JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
-                        <if test="!filter.videoIds.empty">
-                            AND video.id IN
-                            <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                                #{videoId}
-                            </foreach>
-                        </if>
-                    RIGHT JOIN
-                        (
-                            SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                            UNION
-                            SELECT #{filter.end}::timestamp with time zone
-                        ) AS time_bucket
-                        ON play_segment.update_time &lt;= time_bucket
                 GROUP BY time_bucket, play_segment.session_id
                 ORDER BY time_bucket
             ) AS engagement
@@ -230,30 +150,6 @@
         ORDER BY time_bucket;
     </select>
 
-    <select id="getTrendEngagementRateAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket,
-            SUM(upper(segment) - LOWER(segment)) / SUM(video_time)::double precision AS value
-        FROM video_play_segment play_segment
-            JOIN video_play_session play_session
-                ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
-            JOIN gc_video video ON play_session.video_id = video.id AND video.video_time != 0
-                <if test="!filter.videoIds.empty">
-                    AND video.id IN
-                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                        #{videoId}
-                    </foreach>
-                </if>
-            RIGHT JOIN
-                (
-                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                    UNION
-                    SELECT #{filter.end}::timestamp with time zone
-                ) AS time_bucket
-                ON play_segment.update_time &lt;= time_bucket
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
     <select id="getEngagementRateByVideoAnalytics" parameterType="map"
             resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
         SELECT video.id AS videoId,
@@ -274,4 +170,27 @@
         GROUP BY video.id;
     </select>
 
+    <select id="videoViewsPerSecondAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto">
+        WITH buckets AS (
+            SELECT
+                generate_series(0, video_time, #{filter.step}::int4) AS bucket_start,
+                LEAST(generate_series(#{filter.step}, video_time + #{filter.step}, #{filter.step}), video_time)::int4 AS bucket_end
+            FROM gc_video
+            WHERE id = #{filter.videoId}
+        )
+        SELECT
+            ROUND((b.bucket_start + b.bucket_end) / 2.0, 1) as second,
+            count(view_segment.segment_id) as value
+        FROM buckets b
+            LEFT JOIN video_play_session video_session ON video_session.video_id = #{filter.videoId}
+                AND video_session.create_time >= #{filter.start} AND video_session.create_time &lt; #{filter.end}
+            LEFT JOIN video_play_segment view_segment ON view_segment.session_id = video_session.id
+                                                             AND int4range(b.bucket_start, b.bucket_end) &amp;&amp; view_segment.segment
+        WHERE b.bucket_start != b.bucket_end
+        GROUP BY
+            b.bucket_start,
+            b.bucket_end
+        ORDER BY
+            b.bucket_start;
+    </select>
 </mapper>

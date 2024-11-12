@@ -2,8 +2,11 @@ package com.threeatom.guidecore.controller.api.analytics;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -14,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -90,13 +92,29 @@ public class AnalyticsController {
     }
 
     @GetMapping("/video-likes-count")
-    public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter, HttpServletRequest request) {
+    public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter,
+                                                           HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, masterId));
     }
 
+    @GetMapping("/video-viewer-list")
+    public ResponseEntity<VideoViewersDto> videoViewers(@Valid VideoViewerDetailsDto filter,
+                                                        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.videoViewers(filter, masterId));
+    }
+
+    @GetMapping("/video-views-per-second")
+    public ResponseEntity<AnalyticsResponseDto<String, String>> videoViewsPerSecond(
+        @Valid VideoViewPerSecondDto filter, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return ResponseEntity.ok(analyticsFacade.videoViewsPerSecondAnalytics(filter, masterId));
+    }
+
     @GetMapping("/video-list")
-    public ResponseEntity<VideoSearchResponseDto> engagementRete(@Valid VideoListFilterDto filter, HttpServletRequest request) {
+    public ResponseEntity<VideoSearchResponseDto> videoList(@Valid VideoListFilterDto filter,
+                                                            HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok(videoService.getVideoListByQuery(filter, masterId, request));
     }

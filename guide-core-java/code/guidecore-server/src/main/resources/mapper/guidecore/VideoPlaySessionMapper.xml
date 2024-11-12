@@ -2,6 +2,53 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.VideoPlaySessionMapper">
 
+    <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.VideoPlaySession">
+        <id property="id" column="session_id" javaType="java.util.UUID" />
+        <result property="userId" column="session_user_id" />
+        <result property="videoId" column="session_video_id" />
+        <result property="masterId" column="session_master_id" />
+        <result property="createTime" column="session_create_time" />
+        <result property="updateTime" column="session_update_time" />
+        <association property="user" resultMap="userResultMap" columnPrefix="user_"/>
+        <association property="video" resultMap="videoResultMap" columnPrefix="video_" />
+        <collection property="viewSegments" ofType="com.threeatom.guidecore.entity.VideoPlaySegment" resultMap="viewSegmentResultMap" columnPrefix="segment_"/>
+    </resultMap>
+
+    <resultMap id="videoResultMap" type="com.threeatom.guidecore.entity.GcVideo">
+        <id property="id" column="id"/>
+        <result property="videoName" column="name"/>
+        <result property="videoTime" column="time"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
+        <id property="id" column="id"/>
+        <association property="info" resultMap="userInfoResultMap" columnPrefix="info_"/>
+    </resultMap>
+
+    <resultMap id="userInfoResultMap" type="com.threeatom.guidecore.entity.GcUserInfo">
+        <id property="id" column="id"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="avatarFileId" column="avatar_file_id"/>
+        <association property="avatarFile" resultMap="userAvatarFileResultMap" columnPrefix="avatar_file_"/>
+    </resultMap>
+
+    <resultMap id="userAvatarFileResultMap" type="com.threeatom.system.entity.SysFile">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="fileUrl" column="url"/>
+    </resultMap>
+
+    <resultMap id="viewSegmentResultMap" type="VideoPlaySegment">
+        <id property="id.segmentId" column="id"/>
+        <id property="id.sessionId" column="session_id" javaType="java.util.UUID" />
+        <result property="startWatchTimeInSeconds" column="start_watch_time"/>
+        <result property="endWatchTimeInSeconds" column="end_watch_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+
     <select id="getVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, COUNT(play_session.id) AS value
         FROM video_play_session play_session
@@ -14,27 +61,6 @@
                 </if>
         RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
             ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
-    <select id="getTrendVideoViewCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(play_session.id) AS value
-        FROM video_play_session play_session
-            JOIN video_play_session filter ON play_session.id = filter.id AND filter.master_id = #{masterId}
-                <if test="!filter.videoIds.empty">
-                    AND filter.video_id IN
-                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                        #{videoId}
-                    </foreach>
-                </if>
-        RIGHT JOIN
-            (
-                SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                UNION
-                SELECT #{filter.end}::timestamp with time zone
-            ) AS time_bucket
-            ON play_session.create_time &lt;= time_bucket
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -71,27 +97,6 @@
         ORDER BY time_bucket;
     </select>
 
-    <select id="getTrendViewersCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, COUNT(DISTINCT play_session.user_id) AS value
-        FROM video_play_session play_session
-            JOIN video_play_session filter ON play_session.id = filter.id AND filter.master_id = #{masterId}
-                <if test="!filter.videoIds.empty">
-                    AND filter.video_id IN
-                    <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                        #{videoId}
-                    </foreach>
-                </if>
-            RIGHT JOIN
-                (
-                    SELECT #{filter.start}::timestamp with time zone AS time_bucket
-                    UNION
-                    SELECT #{filter.end}::timestamp with time zone
-                ) AS time_bucket
-                    ON play_session.create_time &lt;= time_bucket
-        GROUP BY time_bucket
-        ORDER BY time_bucket;
-    </select>
-
     <select id="getViewersCountByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
         SELECT video.id AS videoId, COUNT(DISTINCT play_session.user_id) AS value
         FROM gc_video video
@@ -108,4 +113,39 @@
         GROUP BY video.id;
     </select>
 
+    <select id="getVideoViewSessionsByViewerDetails" resultMap="baseResultMap" parameterType="map">
+        SELECT video_session.id as session_id,
+            video_session.user_id as session_user_id,
+            video_session.video_id as session_video_id,
+            video_session.master_id as session_master_id,
+            video_session.create_time as session_create_time,
+            video_session.update_time as session_update_time,
+            play_segment.segment_id as segment_id,
+            play_segment.session_id as segment_session_id,
+            lower(play_segment.segment) as segment_start_watch_time,
+            upper(play_segment.segment) as segment_end_watch_time,
+            play_segment.create_time as segment_create_time,
+            play_segment.update_time as segment_update_time,
+            video_viewed.file_id as video_id,
+            video_viewed.video_name as video_name,
+            video_viewed.video_time as video_time,
+            u.id as user_id,
+            user_info.first_name as user_info_first_name,
+            user_info.last_name as user_info_last_name,
+            user_info.avatar_file_id as user_info_avatar_file_id,
+            user_avatar_file.name as user_info_avatar_file_name,
+            user_avatar_file.file_url as user_info_avatar_file_url
+        FROM video_play_session video_session
+            JOIN video_play_segment play_segment ON video_session.id = play_segment.session_id
+            JOIN gc_user u ON video_session.user_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            JOIN gc_video video_viewed ON video_session.video_id = video_viewed.id
+            RIGHT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+        WHERE video_session.master_id = ${masterId}
+            AND video_session.create_time BETWEEN #{filter.start} AND #{filter.end}
+            AND video_session.video_id IN
+                <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
+                    #{videoId}
+                </foreach>
+    </select>
 </mapper>

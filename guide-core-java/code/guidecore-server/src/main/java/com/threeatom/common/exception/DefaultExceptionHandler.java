@@ -35,6 +35,10 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({Exception.class})
     public Message handlerException(Exception e) {
+        String errorMessage = e.getMessage();
+        if (errorMessage != null) {
+            LOGGER.error(errorMessage, e);
+        }
         sendExceptionToSentry(e);
         return (new Message()).commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
     }
@@ -44,6 +48,13 @@ public class DefaultExceptionHandler {
     @ExceptionHandler({PermitException.class})
     public Message permitException(Exception e) {
         return (new Message()).commonError(HttpStatus.FORBIDDEN.value(), "No permission for this!", e);
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(ForbiddenException.class)
+    public Message forbiddenException(Exception e) {
+        return new Message().commonError(HttpStatus.FORBIDDEN.value(), e.getMessage(), e);
     }
 
     @ResponseBody

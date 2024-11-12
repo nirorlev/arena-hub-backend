@@ -180,6 +180,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Map<String, Boolean> permissions;
 
+    @TableField(exist = false)
+    private Integer contentCount;
+
     public Boolean getIsPrivate() {
         return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);
     }

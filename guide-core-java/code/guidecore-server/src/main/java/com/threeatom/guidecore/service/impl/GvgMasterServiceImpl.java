@@ -46,6 +46,7 @@ import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcEventService;
@@ -233,8 +234,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
+
 	@Autowired
 	private SysMenuService sysMenuService;
+
+	@Autowired
+	private FeatureToggleService featureToggleService;
+
+	private final String COURSE_SEARCH_FEATURE_TOGGLE = "coursesEnabled";
 
 	public Message newPtIndexHome(JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -561,13 +568,19 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 	}
 
+	private boolean isCourseSearchEnabled() {
+        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(COURSE_SEARCH_FEATURE_TOGGLE).getValue());
+    }
+
 	private Message searchAll(HttpServletRequest request, GcUser user, SysSystem system,
 							  Map<String, Object> searchParameters, Integer userId, Integer masterId,
 							  Message message) {
 		searchVideos(request, system, searchParameters, userId, masterId, message);
-		searchCourses(request, user, system, searchParameters, masterId, message);
 		searchChannels(request, user, searchParameters, userId, masterId, message);
 		searchPlaylists(request, searchParameters, masterId, userId, message);
+		if (isCourseSearchEnabled()) {
+			searchCourses(request, user, system, searchParameters, masterId, message);
+		}
 		return message;
 	}
 
@@ -608,11 +621,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	private Message searchChannels(HttpServletRequest request, GcUser user, Map<String, Object> searchParameters,
 								   Integer userId, Integer masterId, Message message) {
-		PageParam pageParam = new PageParam(request);
-		if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-			PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-		}
-
 		request.setAttribute("searchName", searchParameters.get("searchName").toString());
 		List<PtChannel> channels = ptChannelService.indexSearchChannels(userId, null, request, masterId);
 		if (channels.isEmpty()) {
@@ -643,6 +651,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	private Message searchCourses(HttpServletRequest request, GcUser user, SysSystem system,
 								  Map<String, Object> searchParameters, Integer masterId, Message message) {
+		if (!isCourseSearchEnabled()) {
+			throw new SystemException("Course search is disabled by feature toggle.");
+		}
 		searchParameters.remove("videoName");
 		searchParameters.put("subjectName", searchParameters.get("searchName"));
 		PageInfo<GcSubject> coursePageInfo =
@@ -771,22 +782,26 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		searchParameters.put("videoName", searchParameters.get("searchName"));
 		searchParameters.put("pageNum", request.getHeader("pageNum"));
 		searchParameters.put("pageSize", request.getHeader("pageSize"));
-		PageInfo<GcVideo> page = service.page(searchParameters, system, request);
-		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
 		request.setAttribute("searchName", searchParameters.get("searchName"));
-		PageInfo<PtChannel> channelPageInfo = new PageInfo<>(channels);
-		if (!channels.isEmpty()) {
-			message.addData("channelVideoPage", channelPageInfo);
+
+		Boolean loadVideoSuggestions = true;
+
+		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+		PageInfo<PtChannel> channelVideosPage = new PageInfo<>(channels);
+		if (!channelVideosPage.getList().isEmpty()) {
+			message.addData("channelVideoPage", channelVideosPage);
+			loadVideoSuggestions = false;
 		}
 
-		if (page.getList().isEmpty()) {
-			request.removeAttribute("searchName");
-			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
-			return message.addData("videoNullPage", new PageInfo<>(channels));
+		if (isCourseSearchEnabled()) {
+			PageInfo<GcVideo> courseVideosPage = service.page(searchParameters, system, request);
+			if (!courseVideosPage.getList().isEmpty()) {
+				message.addData("videoPage", courseVideosPage);
+				loadVideoSuggestions = false;
+			}
 		}
 
-		message.addData("videoPage", page);
-		if (page.getList().isEmpty()) {
+		if (loadVideoSuggestions) {
 			request.removeAttribute("searchName");
 			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
 			message.addData("videoNullPage", new PageInfo<>(channels));
@@ -1002,9 +1017,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 
 			List<GcSubject> orderSubject = page.getList();
-			List<GcSubject> orderTwoSubList = orderSubject;
-			List<Integer> videoIds = new ArrayList<>();
-			List<Integer> orderTwoSubIds = orderTwoSubList.stream().map(GcSubject::getId).collect(Collectors.toList());
+            List<Integer> videoIds = new ArrayList<>();
+			List<Integer> orderTwoSubIds = orderSubject.stream().map(GcSubject::getId).collect(Collectors.toList());
 			if (null!=orderTwoSubIds&&TableConstant.COMMON_ZERO!=orderTwoSubIds.size()){
 				videoIds = videoService.getIdsBySubIds(orderTwoSubIds);
 			}
@@ -1018,7 +1032,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 
 			Map<Integer, List<PtTags>> finalTagListMap = tagListMap;
-			orderTwoSubList.forEach(sub->{
+			orderSubject.forEach(sub->{
 				List<GcVideo> videos = sub.getGcVideos();
 				if(null!=videos && TableConstant.COMMON_ZERO!=videos.size()) {
 					Long videoFinishedNum = videos.stream().filter(e -> null != e.getCompleteStatus()).filter(e -> e.getCompleteStatus() == 2).count();
@@ -1039,7 +1053,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 
 			});
-			page.setList(orderTwoSubList);
+			page.setList(orderSubject);
 			msg.addData("page", page);
 
 
@@ -1303,7 +1317,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		List<Integer> subIds = new ArrayList<>();
 		//当前视频
 		GcVideo video = gcVideoService.getById(videoId);
-		GcVideo thisVideo = gcVideoService.getVideoById(videoId);
+		GcVideo thisVideo = gcVideoService.findByVideoId(videoId);
 
 		GcVideo videoPlay = gcVideoService.selectVideoPlayByVideo(thisVideo.getId(),user.getId());
 		if (null!=videoPlay.getPlayState()){

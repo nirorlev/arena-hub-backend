@@ -13,8 +13,10 @@ import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -71,11 +73,12 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Value("${web.profile-path:config/static}")
     private String uploadPath;
     @Autowired
-    private Map<String, AliyunOssService> ossServiceMap;
-    @Autowired
     private SysSystemService systemService;
     @Autowired
     private AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
+
+    @Autowired
+    private AwsS3StorageService awsS3StorageService;
 
     @Autowired
     private RedisOperator redisOperator;
@@ -93,31 +96,54 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         return this.sysFileMapper.selectById(id);
     }
 
-    private Optional<String> getVideoPlayerUrlFromExternalVideo(SysFile sysFile) {
-        if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
-            return Optional.empty();
-        }
-        PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
-        if (externalVideo == null) {
-            return Optional.empty();
-        }
 
-        try {
-            JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
-            updateVideoHostingStatus(sysFile, videoData);
-            return Optional.ofNullable(videoData.getString("url"));
-        } catch (SystemException e) {
-            LOGGER.error("Failed to get video player URL from external video", e);
-            return Optional.empty();
-        }
+    @Override
+    public void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo) {
+        updateVideoInformation(sysFile, Optional.empty(), Optional.of(powtoonExternalVideo));
     }
 
-    private void updateVideoHostingStatus(SysFile sysFile, JSONObject videoData) {
-        Integer hostingProvider = videoData.getInteger("hostingProvider");
-        if (hostingProvider != null && hostingProvider != sysFile.getFileTypeIndex()){
-            sysFile.setFileTypeIndex(hostingProvider);
-            sysFileService.updateById(sysFile);
+    @Override
+    public void updateVideoInformation(SysFile sysFile, PortalUser portalUser) {
+        updateVideoInformation(sysFile, Optional.of(portalUser), Optional.empty());
+    }
+
+    private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> portalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
+        if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+            return;
         }
+
+        PowtoonExternalVideo externalVideo;
+        if (powtoonExternalVideo.isPresent()) {
+            externalVideo = powtoonExternalVideo.get();
+        } else {
+            externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
+            if (externalVideo == null) {
+                throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
+            }
+        }
+
+        JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+        sysFile.setFileUrl(videoData.getString("url"));
+
+        Integer currentHostingProvider = videoData.getInteger("hostingProvider");
+        Integer storedHostingProvider = sysFile.getFileTypeIndex();
+        String currentVersion = videoData.getJSONObject("source").getString("version");
+        String storedVersion = externalVideo.getVersion();
+        if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
+            sysFileService.updateById(sysFile);
+            return;
+        }
+
+        sysFile.setFileTypeIndex(currentHostingProvider);
+        sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
+        if (portalUser.isPresent()) {
+            sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
+            uploadThumbnailToS3(sysFile, portalUser.get());
+            externalVideo.setVersion(currentVersion);
+        }
+        
+        sysFileService.updateById(sysFile);
+        powtoonExternalVideoService.updateById(externalVideo);
     }
 
     private AliyunOssService getCurrentOssService(SysSystem sys) {
@@ -235,6 +261,15 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         sysFile.setFullFileUrl(fullFileUrl);
         return fullFileUrl;
+    }
+
+    @Override
+    public String getFullFileUrl(String fileUrl) {
+        if (StringUtils.isNotBlank(fileUrl) && (!fileUrl.contains("https") || !fileUrl.contains("http"))) {
+            return getS3Url(fileUrl);
+        }
+
+        return fileUrl;
     }
 
     public String getS3Url(String S3ObjectKey) {
@@ -668,10 +703,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
-        Optional<String> playerUrl = getVideoPlayerUrlFromExternalVideo(sysFile);
-        if (playerUrl.isPresent()) {
-            return playerUrl.get();
-        }
         return getResFullUrl(sysFile, request);
     }
 
@@ -702,6 +733,13 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         getResFullUrl(courseImage, request);
         getVideoSnapshotUrl(courseImage);
+    }
+
+    @Override
+    public void uploadThumbnailToS3 (SysFile sysFile, PortalUser portalUser) {
+        String thumbnailUrl = sysFile.getThumbNailUrl();
+        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, portalUser);
+        sysFile.setThumbNailUrl(fileKey);
     }
 
     @Override

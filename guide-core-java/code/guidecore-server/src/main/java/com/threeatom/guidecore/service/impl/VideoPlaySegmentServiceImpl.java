@@ -5,8 +5,10 @@ import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
 import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
@@ -53,11 +55,6 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
-    public List<DbAnalyticsResultDto> getTrendVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendVideoWatchingTimeAnalytics(filter, masterId);
-    }
-
-    @Override
     public List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(AnalyticsFilterDto filter,
                                                                                   Integer masterId) {
         return baseMapper.getVideoWatchingTimeByVideoAnalytics(filter, masterId);
@@ -69,28 +66,13 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
-    public List<DbAnalyticsResultDto> getTrendAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendAverageVideoWatchingTimeAnalytics(filter, masterId);
-    }
-
-    @Override
     public List<DbAnalyticsResultDto> getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
     }
 
     @Override
-    public List<DbAnalyticsResultDto> getTrendDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendDropOffRateAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
-    }
-
-    @Override
     public List<DbAnalyticsResultDto> getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
         return baseMapper.getEngagementRateAnalytics(filter, masterId);
-    }
-
-    @Override
-    public List<DbAnalyticsResultDto> getTrendEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendEngagementRateAnalytics(filter, masterId);
     }
 
     @Override
@@ -103,6 +85,12 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     public List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(AnalyticsFilterDto filter,
                                                                             Integer masterId) {
         return baseMapper.getDropOffRateByVideoAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+    }
+
+    @Override
+    public List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
+                                                                                Integer masterId) {
+        return baseMapper.videoViewsPerSecondAnalytics(filter, masterId);
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {

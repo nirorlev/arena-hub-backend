@@ -184,6 +184,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
                 sysFile.setIsLiked(isLikedByUser(sysFile.getVideoId(), userId));
                 GcVideo video = videoService.getVideoContentByFileId(sysFile.getId());
+                sysFile.setCommentNumber(video.getCommentNum());
                 video.setVideoFile(sysFile);
                 videoService.updateVideoFilePrivacy(sysFile, video);
                 Map<String, Boolean> permissions = authorizationService.listPermissions(video, portalUser);
@@ -264,12 +265,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public List<PtChannel> indexSearchChannels(
             Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize = pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
         String searchName = "";
         if (null != request.getAttribute("searchName")) {
             searchName = request.getAttribute("searchName").toString();
@@ -685,11 +680,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public Integer countUserPublishedChannels(Integer userId, Integer masterId) {
         return countChannels(userId, masterId, List.of(PUBLIC, CERTAIN_TEAMS));
-    }
-
-    @Override
-    public List<DbAnalyticsResultDto> getTrendChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        return baseMapper.getTrendChannelsCountAnalytics(filter, masterId);
     }
 
     @Override

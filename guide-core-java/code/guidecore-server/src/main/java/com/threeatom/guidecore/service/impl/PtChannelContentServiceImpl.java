@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannelContent;
@@ -13,8 +14,11 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.system.entity.SysFile;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -32,19 +36,6 @@ public class PtChannelContentServiceImpl
 
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
-
-    public Boolean changeContentOrder(List<Integer> contentIds) {
-        List<PtChannelContent> ptChannelContents = new ArrayList<>();
-        Integer order = 0;
-        for (Integer id : contentIds) {
-            PtChannelContent ptChannelContent = new PtChannelContent();
-            ptChannelContent.setId(id);
-            ptChannelContent.setContentOrder(order);
-            order++;
-            ptChannelContents.add(ptChannelContent);
-        }
-        return this.updateBatchById(ptChannelContents);
-    }
 
     public Boolean deleteContent(Integer fileId, Integer channelId) {
         QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<PtChannelContent>();
@@ -79,6 +70,7 @@ public class PtChannelContentServiceImpl
             log.error("Channel content list cannot be empty");
             throw new IllegalArgumentException("Channel content list cannot be empty");
         }
+        populateVideoFile(ptChannelContent, sysFileList);
 
         List<PtChannelContent> existingChannelContents = new ArrayList<>();
         List<PtChannelContent> newChannelContent = new ArrayList<>();
@@ -94,20 +86,14 @@ public class PtChannelContentServiceImpl
         }
 
         updateBatchById(existingChannelContents);
-        videoService.saveChannelContent(newChannelContent, sysFileList, channelId);
-
-        Map<Integer, SysFile> videoFileIdToFile = sysFileList.stream()
-            .collect(Collectors.toMap(SysFile::getId, Function.identity()));
+        videoService.saveChannelContent(newChannelContent, channelId);
 
         for (PtChannelContent content : newChannelContent) {
-            SysFile videoFile = videoFileIdToFile.get(content.getFileId());
-            content.setVideoFile(videoFile);
-            videoService.getVideoContent(content.getFileId())
-                .ifPresent(videoContent -> {
-                    videoFile.setVideoId(videoContent.getId());
-                    content.getVideoFile().setPermissions(authorizationService.listPermissions(videoContent, portalUser));
-                    content.setContentId(videoContent.getId());
-                });
+            videoService.getVideoContent(content.getFileId()).ifPresent(videoContent -> {
+                content.getVideoFile().setVideoId(videoContent.getId());
+                content.getVideoFile().setPermissions(authorizationService.listPermissions(videoContent, portalUser));
+                content.setContentId(videoContent.getId());
+            });
         }
 
         this.saveOrUpdateBatch(newChannelContent);
@@ -120,5 +106,55 @@ public class PtChannelContentServiceImpl
         queryWrapper.eq("content_id", contentId);
 
         return Optional.ofNullable(this.getOne(queryWrapper));
+    }
+
+    @Override
+    @Transactional
+    public void updateContentOrder(IdsDto ids, Integer channelId, Integer masterId) {
+        List<Integer> sortedIds = ids.getIds();
+        List<PtChannelContent> content = selectContentExist(channelId);
+        Map<Integer, Integer> idToOrderMap = sortedIds.stream()
+            .collect(Collectors.toMap(Function.identity(), sortedIds::indexOf));
+
+        sortContent(content, idToOrderMap);
+
+        for (int i = 0; i < content.size(); i++) {
+            content.get(i).setContentOrder(i);
+            content.get(i).setUpdateTime(new Date());
+        }
+
+        updateBatchById(content);
+    }
+
+    private void populateVideoFile(List<PtChannelContent> channelContents, List<SysFile> videoFiles) {
+        Map<Integer, SysFile> videoFileIdToFile = videoFiles.stream()
+            .collect(Collectors.toMap(SysFile::getId, Function.identity()));
+
+        channelContents.forEach(channelContent -> channelContent.setVideoFile(
+            videoFileIdToFile.get(channelContent.getFileId())));
+    }
+
+    private void sortContent(List<PtChannelContent> content, Map<Integer, Integer> idToOrderMap) {
+        content.sort((content1, content2) -> {
+            Integer indexContent1 = idToOrderMap.get(content1.getId());
+            Integer indexContent2 = idToOrderMap.get(content2.getId());
+
+            // If both ids are in the sortedIds list, compare their positions
+            if (indexContent1 != null && indexContent2 != null) {
+                return indexContent1.compareTo(indexContent2);
+            }
+
+            // If only one id is in the sortedIds list, that content should come first
+            if (indexContent1 != null) {
+                return -1;
+            }
+            if (indexContent2 != null) {
+                return 1;
+            }
+
+            // If neither id is in the sortedIds list, compare their contentOrder
+            return Objects.compare(content1.getContentOrder(), content2.getContentOrder(),
+                Comparator.nullsLast(Integer::compareTo));
+        });
     }
 }
