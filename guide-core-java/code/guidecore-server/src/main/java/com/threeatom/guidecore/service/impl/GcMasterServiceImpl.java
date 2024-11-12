@@ -11,7 +11,6 @@ import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
-import com.threeatom.guidecore.mapper.NewUIUserMapper;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         implements GcMasterService {
-    @Resource NewUIUserMapper newUIUserMapper;
 
     @Autowired private SysFileService sysFileService;
 
@@ -55,7 +53,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired @Lazy private NewUiGcSubjectService newUiGcSubjectService;
 
-    @Autowired private UnavailableVideoService unavailableVideoService;
+    @Autowired @Lazy private UnavailableVideoService unavailableVideoService;
     @Autowired private PortalUserService portalUserService;
     @Autowired private AuthorizationService authorizationService;
 

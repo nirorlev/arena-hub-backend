@@ -9,15 +9,18 @@ import com.threeatom.guidecore.entity.FeatureToggle;
 import com.threeatom.guidecore.mapper.FeatureToggleMapper;
 import com.threeatom.guidecore.mapping.FeatureToggleMapping;
 import com.threeatom.guidecore.service.FeatureToggleService;
+import com.threeatom.guidecore.service.GcMasterService;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
     private static final String MASTER_ID_COLUMN = "master_id";
 
     private final FeatureToggleMapping featureToggleMapping;
+    private final GcMasterService masterService;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,23 +97,36 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
 
     @Override
     public void updateFeatureToggle(FeatureToggleValueDto featureToggleValueDto) {
+        FeatureToggle defaultByName = getDefaultByName(featureToggleValueDto.getName());
         if (featureToggleValueDto.getMasterId() == null) {
-            FeatureToggle featureToggle = getDefaultByName(featureToggleValueDto.getName());
-            featureToggle.setValue(featureToggleValueDto.getValue());
-            updateById(featureToggle);
+            defaultByName.setValue(featureToggleValueDto.getValue());
+            updateById(defaultByName);
             return;
         }
 
-        FeatureToggle featureToggleByMaterId =
+        FeatureToggle featureToggleByMasterId =
             getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
-        if (featureToggleByMaterId == null) {
-            throw new ResourceNotFoundException(
-                String.format("Feature toggle not found: %s. Master id: %s", featureToggleValueDto.getName(),
-                    featureToggleValueDto.getMasterId()));
+        if (featureToggleByMasterId == null) {
+            createNewPortalLevel(featureToggleValueDto);
+            return;
         }
 
-        featureToggleByMaterId.setValue(featureToggleValueDto.getValue());
-        updateById(featureToggleByMaterId);
+        featureToggleByMasterId.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggleByMasterId);
+    }
+
+    private void createNewPortalLevel(FeatureToggleValueDto featureToggleValueDto) {
+        log.warn("Feature toggle not found: {}. Master id: {}. Creating new one"
+            , featureToggleValueDto.getName()
+            , featureToggleValueDto.getMasterId()
+        );
+
+        if (masterService.getMasterById(featureToggleValueDto.getMasterId()) == null) {
+            throw new ResourceNotFoundException(
+                String.format("Portal with master id %s not found", featureToggleValueDto.getMasterId()));
+        }
+
+        save(featureToggleMapping.map(featureToggleValueDto));
     }
 
     private List<FeatureToggle> getFeatureTogglesForMasterId(Integer masterId) {
