@@ -104,15 +104,15 @@ public class FeatureToggleServiceImpl extends ServiceImpl<FeatureToggleMapper, F
             return;
         }
 
-        FeatureToggle featureToggleByMaterId =
+        FeatureToggle featureToggleByMasterId =
             getByNameAndMasterId(featureToggleValueDto.getName(), featureToggleValueDto.getMasterId());
-        if (featureToggleByMaterId == null) {
+        if (featureToggleByMasterId == null) {
             createNewPortalLevel(featureToggleValueDto);
             return;
         }
 
-        featureToggleByMaterId.setValue(featureToggleValueDto.getValue());
-        updateById(featureToggleByMaterId);
+        featureToggleByMasterId.setValue(featureToggleValueDto.getValue());
+        updateById(featureToggleByMasterId);
     }
 
     private void createNewPortalLevel(FeatureToggleValueDto featureToggleValueDto) {
