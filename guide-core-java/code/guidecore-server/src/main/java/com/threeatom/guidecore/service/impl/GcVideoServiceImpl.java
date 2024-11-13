@@ -749,12 +749,22 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return this.baseMapper.getVideoIdsByChannelIds(channelIds);
 	}
 
+	private void syncVideoInformationWithFile(GcVideo video, SysFile file) {
+		String videoThumbnailUrl = video.getThumbnailUrl();
+		String fileThumbnailUrl = file.getThumbNailUrl();
+		if (!videoThumbnailUrl.equals(fileThumbnailUrl)) {
+			video.setThumbnailUrl(fileThumbnailUrl);
+			updateById(video);
+		}
+	}
+
 	@Override
 	public SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser) {
 		Integer contentId = video.getId();
 		SysFile videoFile = sysFileService.getById(video.getFileId());
 		sysFileService.updateVideoInformation(videoFile, portalUser);
 		video.setVideoFile(videoFile);
+		syncVideoInformationWithFile(video, videoFile);
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(video);
 		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
 		videoFile.setFullFileUrl(fullFileUrl);
