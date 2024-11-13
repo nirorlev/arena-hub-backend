@@ -752,10 +752,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private void syncVideoInformationWithFile(GcVideo video, SysFile file) {
 		String videoThumbnailUrl = video.getThumbnailUrl();
 		String fileThumbnailUrl = file.getThumbNailUrl();
-		if (!videoThumbnailUrl.equals(fileThumbnailUrl)) {
-			video.setThumbnailUrl(fileThumbnailUrl);
-			updateById(video);
+		if (fileThumbnailUrl == null || fileThumbnailUrl.equals(videoThumbnailUrl)) {
+			return;
 		}
+		video.setThumbnailUrl(fileThumbnailUrl);
+		updateById(video);
 	}
 
 	@Override
