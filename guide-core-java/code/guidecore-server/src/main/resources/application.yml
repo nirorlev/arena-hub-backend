@@ -42,3 +42,5 @@ sentry:
   dsn: ${SENTRY_DSN}
   environment: ${APP_ENV}
   release: ${ARENA_BACKEND_VERSION}
+  traces-sample-rate: 1.0
+  instrumenter: otel
