@@ -313,8 +313,12 @@
 			   video.id as v_id, video.video_name as v_video_name,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+		   	   <include refid="userColumn"/>
 		FROM gc_user_save_folder playlist
-				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
+		JOIN gc_user u ON u.id = playlist.user_id
+		JOIN gc_user_info info ON info.id = u.info_id
+		JOIN sys_file uf ON uf.id = info.avatar_file_id
+		LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
 		WHERE playlist.user_id = #{portalUser.userId} AND playlist.master_id = #{portalUser.masterId}
@@ -327,8 +331,12 @@
 			   video.id as v_id, video.video_name as v_video_name,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+			   <include refid="userColumn"/>
 		FROM gc_user_save_content_follow playlist_follow
 				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId}
+				 JOIN gc_user u ON u.id = playlist.user_id
+		    	 JOIN gc_user_info info ON info.id = u.info_id
+		    	 JOIN sys_file uf ON uf.id = info.avatar_file_id
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
@@ -342,7 +350,11 @@
 			   video.id as v_id, video.video_name as v_video_name,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
+			   <include refid="userColumn"/>
 		FROM gc_user_save_folder playlist
+				 JOIN gc_user u ON u.id = playlist.user_id
+				 JOIN gc_user_info info ON info.id = u.info_id
+				 JOIN sys_file uf ON uf.id = info.avatar_file_id
 				 LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id

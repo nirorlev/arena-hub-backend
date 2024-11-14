@@ -23,6 +23,9 @@ public class PlaylistDto {
     @ApiModelProperty(value = "Privacy visibility for sharable button")
     private Boolean isPrivate;
 
+    @ApiModelProperty(value = "Owner of the playlist")
+    private UserDetailsDto owner;
+
     @ApiModelProperty(value = "URL of the playlist's background")
     private String snapshotUrl;
 

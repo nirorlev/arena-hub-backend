@@ -9,12 +9,9 @@ import org.mapstruct.Mapping;
 @Mapper
 public interface OwnerMapping {
 
-    @Mapping(target = "thumbUrl", source = "avatarFullFileUrl")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "firstName", source = "info.firstName")
+    @Mapping(target = "lastName", source = "info.lastName")
+    @Mapping(target = "thumbUrl", source = "info.avatarFile.fileUrl")
     UserDetailsDto map(GcUser user);
-
-    @Mapping(target = "id", source = "user.id")
-    @Mapping(target = "firstName", source = "userInfo.firstName")
-    @Mapping(target = "lastName", source = "userInfo.lastName")
-    @Mapping(target = "thumbUrl", source = "userInfo.avatarFile.fileUrl")
-    UserDetailsDto map(GcUser user, GcUserInfo userInfo);
 }

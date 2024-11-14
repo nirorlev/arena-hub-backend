@@ -12,16 +12,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = DateMapping.class)
+@Mapper(uses = {DateMapping.class, OwnerMapping.class})
 public interface PlaylistMapping {
 
-    @Mapping(target = "snapshotUrl", source = "playlist.saveContentList", qualifiedByName = "mapSnapshotUrl")
-    @Mapping(target = "videoNum", source = "playlist.saveContentList", qualifiedByName = "mapVideoNum")
+    @Mapping(target = "snapshotUrl", source = "saveContentList", qualifiedByName = "mapSnapshotUrl")
+    @Mapping(target = "videoNum", source = "saveContentList", qualifiedByName = "mapVideoNum")
+    @Mapping(target = "owner", source = "user")
     PlaylistDto map(GcUserSaveFolder playlist);
-
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "videoId", source = "contentId")
-    PlaylistContentDto mapContent(GcUserSaveContent content);
 
     @Named("mapSnapshotUrl")
     default String mapSnapshotUrl(List<GcUserSaveContent> playlistContent) {
