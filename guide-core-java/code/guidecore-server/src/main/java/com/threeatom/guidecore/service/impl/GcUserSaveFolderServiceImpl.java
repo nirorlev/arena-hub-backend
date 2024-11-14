@@ -10,6 +10,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -259,6 +260,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
         List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser);
         return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    }
+
+    @Override
+    public List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser) {
+        return gcVideoService.playlistLatestVideos(portalUser);
     }
 
     private List<PlaylistDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
