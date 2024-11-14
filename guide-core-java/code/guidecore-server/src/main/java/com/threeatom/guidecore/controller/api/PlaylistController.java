@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -65,6 +66,15 @@ public class PlaylistController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(playlistService.discoverable(portalUser, pageNum, pageSize));
+    }
+
+    @GetMapping("/videos/latest")
+    public ResponseEntity<List<VideoWithDetailsDto>> playlistsLatestVideos(HttpServletRequest request) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser));
     }
 
 }

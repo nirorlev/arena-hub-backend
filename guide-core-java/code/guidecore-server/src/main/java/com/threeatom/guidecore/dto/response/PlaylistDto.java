@@ -3,7 +3,6 @@ package com.threeatom.guidecore.dto.response;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,8 +28,6 @@ public class PlaylistDto {
 
     @ApiModelProperty(value = "Total number of videos in the playlist")
     private Integer videoNum;
-
-    private List<PlaylistContentDto> saveContentList;
 
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;
