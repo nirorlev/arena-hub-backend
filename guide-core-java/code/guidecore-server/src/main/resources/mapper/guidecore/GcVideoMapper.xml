@@ -926,4 +926,22 @@
             </foreach>
     </select>
 
+    <select id="findLatestUserSubscribedPlaylistVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_user_save_content_follow playlist_follow
+            JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist_follow.folder_id AND playlist_content.master_id = #{portalUser.masterId}
+            JOIN gc_video v ON playlist_content.content_id = v.id
+            JOIN sys_file f ON v.file_id = f.id
+
+            LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
+
+            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
+        WHERE playlist_follow.user_id = #{portalUser.userId}
+    </select>
 </mapper>

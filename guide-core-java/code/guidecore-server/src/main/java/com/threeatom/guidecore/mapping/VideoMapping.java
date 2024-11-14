@@ -3,11 +3,13 @@ package com.threeatom.guidecore.mapping;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
-import com.threeatom.system.entity.SysFile;
 import java.util.List;
+import jdk.jfr.Name;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -17,7 +19,7 @@ public interface VideoMapping {
 
     @Mapping(target = "title", source = "videoName")
     @Mapping(target = "thumbUrl", source = "thumbnailUrl")
-    @Mapping(target = "private", source = "originChannel.visibleFlag", qualifiedByName = "mapPrivate")
+    @Mapping(target = "private", source = "originChannel.visibleFlag", qualifiedByName = "mapBoolean")
     @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoSource")
     @Mapping(target = "origin.id", source = "originChannel.id")
     @Mapping(target = "origin.type", constant = "CHANNEL")
@@ -34,7 +36,7 @@ public interface VideoMapping {
 
     @Mapping(target = "title", source = "videoName")
     @Mapping(target = "thumbUrl", source = "thumbnailUrl")
-    @Mapping(target = "private", source = "originCourse.state", qualifiedByName = "mapPrivate")
+    @Mapping(target = "private", source = "originCourse.state", qualifiedByName = "mapBoolean")
     @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoSource")
     @Mapping(target = "origin.id", source = "originCourse.id")
     @Mapping(target = "origin.type", constant = "COURSE")
@@ -59,7 +61,19 @@ public interface VideoMapping {
     @Mapping(target = "duration", source = "videoTime")
     VideoDto map(GcVideo videoFile);
 
-    @Named("mapPrivate")
+
+    @Mapping(target = "name", source = "videoName")
+    @Mapping(target = "description", source = "videoDesc")
+    @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
+    @Mapping(target = "fileUrl", source = "videoFile.fileUrl")
+    @Mapping(target = "snapshotUrl", source = ".", qualifiedByName = "mapSnapshotUrl")
+    @Mapping(target = "duration", source = "videoTime")
+    @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
+    @Mapping(target = "commentsCount", source = "commentNum")
+    @Mapping(target = "likesCount", source = "likeNum")
+    VideoWithDetailsDto mapWithDetails(GcVideo video);
+
+    @Named("mapBoolean")
     default boolean mapPrivate(Integer code) {
         return code != null && code == 1;
     }
@@ -67,5 +81,12 @@ public interface VideoMapping {
     @Named("mapVideoSource")
     default String mapVideoSource(Integer fileTypeIndex) {
         return VideoFileProvider.fromIndex(fileTypeIndex).name();
+    }
+
+    @Named("mapSnapshotUrl")
+    default String mapSnapshotUrl(GcVideo video) {
+        return StringUtils.isNotBlank(video.getSnapshotUrl())
+            ? video.getSnapshotUrl()
+            : video.getVideoFile().getFileUrl();
     }
 }

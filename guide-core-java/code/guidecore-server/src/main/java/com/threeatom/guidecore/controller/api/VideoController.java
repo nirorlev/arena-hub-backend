@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 
 import com.threeatom.guidecore.dto.response.VideoDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserService;
@@ -9,6 +10,7 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -35,5 +37,14 @@ public class VideoController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(videoService.getVideo(videoId, portalUser, request));
+    }
+
+    @GetMapping("/playlists/latest")
+    public ResponseEntity<List<VideoWithDetailsDto>> playlistsLatest(HttpServletRequest request) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(videoService.playlistLatestVideos(portalUser));
     }
 }

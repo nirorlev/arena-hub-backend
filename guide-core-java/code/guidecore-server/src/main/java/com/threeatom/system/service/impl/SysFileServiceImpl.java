@@ -266,7 +266,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     @Override
     public String getFullFileUrl(String fileUrl) {
-        if (StringUtils.isNotBlank(fileUrl) && (!fileUrl.contains("https") || !fileUrl.contains("http"))) {
+        if (StringUtils.isNotBlank(fileUrl) && !fileUrl.contains("https") && !fileUrl.contains("http")) {
             return getS3Url(fileUrl);
         }
 
