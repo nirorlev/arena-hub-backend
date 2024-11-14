@@ -27,6 +27,9 @@ import com.threeatom.system.mapper.SysFileMapper;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.system.service.SysSystemService;
 import com.threeatom.utils.FileUtil;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,8 +54,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jets3t.service.CloudFrontService;
 import org.jets3t.service.utils.ServiceUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -60,9 +61,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> implements SysFileService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SysFileServiceImpl.class);
     private static final int DISK_SAVE_TYPE = 2;
     private static final int FILE_SAVE_TYPE = 1;
     @Resource
@@ -108,7 +109,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> portalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
-        if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
+        Integer storedHostingProvider = sysFile.getFileTypeIndex();
+
+        if (!EventUnifyType.powtoonVideoFileTypes.contains(storedHostingProvider)) {
             return;
         }
 
@@ -118,6 +121,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         } else {
             externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
             if (externalVideo == null) {
+                if (storedHostingProvider.equals(EventUnifyType.POWTOON_KALTURA_FILE_TYPE_INDEX)) {
+                    return;
+                }
                 throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
             }
         }
@@ -126,7 +132,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         sysFile.setFileUrl(videoData.getString("url"));
 
         Integer currentHostingProvider = videoData.getInteger("hostingProvider");
-        Integer storedHostingProvider = sysFile.getFileTypeIndex();
         String currentVersion = videoData.getJSONObject("source").getString("version");
         String storedVersion = externalVideo.getVersion();
         if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
@@ -153,7 +158,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
     public String saveSysFileToProfile(String folder, String fileName, InputStream fileIs) {
         String filePath = "/upload" + File.separator + folder + File.separator + fileName;
-        LOGGER.info(filePath);
+        log.info(filePath);
         File f = new File(this.uploadPath + filePath);
         if (!f.getParentFile().exists()) {
             f.getParentFile().mkdirs();
@@ -402,7 +407,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                 url = objectName;
         }
 
-        LOGGER.info(file.getContentType());
+        log.info(file.getContentType());
         SysFile fileEntity = new SysFile();
         fileEntity.setSysId(sys.getId());
         fileEntity.setFolder(folder);
@@ -454,7 +459,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                 md5 = result.getETag();
                 url = objectName;
         }
-        LOGGER.info(file.getContentType());
+        log.info(file.getContentType());
         SysFile fileEntity = new SysFile();
         fileEntity.setSysId(sys.getId());
         fileEntity.setFolder(folder);
