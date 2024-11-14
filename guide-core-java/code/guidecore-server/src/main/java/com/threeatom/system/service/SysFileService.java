@@ -105,7 +105,7 @@ public interface SysFileService extends IService<SysFile> {
 
     void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo);
 
-    void uploadThumbnailToS3(SysFile sysFile, PortalUser portalUser);
+    void uploadThumbnailToS3(SysFile sysFile, Integer userId, Integer masterId);
 
     SysFile getVideoFile(GcVideo video, HttpServletRequest request);
 

@@ -77,8 +77,7 @@ public class SysFIleController extends GuideCoreController {
 
         Integer fileTypeIndex = sysFile.getFileTypeIndex();
         if (fileTypeIndex != null && EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
-            PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-            sysFileService.uploadThumbnailToS3(sysFile, portalUser);
+            sysFileService.uploadThumbnailToS3(sysFile, user.getId(), master.getId());
         }
 
         if (!sysFileService.saveOrUpdate(sysFile)) {

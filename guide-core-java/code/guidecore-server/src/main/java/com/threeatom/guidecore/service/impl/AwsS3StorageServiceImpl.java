@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.AwsUploadSignUrlConfiguration;
-import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.utils.FileUtil;
 import com.threeatom.utils.RandomUtils;
@@ -69,7 +68,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         } catch (IOException e) {
             String errMessage = "Failed to retrieve AWS private key";
             log.error(errMessage, e);
-            throw new  SystemException(errMessage);
+            throw new SystemException(errMessage);
         }
     }
 
@@ -83,17 +82,17 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
             String formattedDate = now.format(formatter);
             return String.format("%s/user/%s/%s/%s_%d_%s_%s",
-                    masterId,
-                    userId,
-                    formattedDate,
-                    userId,
-                    System.currentTimeMillis(),
-                    RandomUtils.getUUID(10),
-                    fileName);
+                masterId,
+                userId,
+                formattedDate,
+                userId,
+                System.currentTimeMillis(),
+                RandomUtils.getUUID(10),
+                fileName);
         } catch (MalformedURLException e) {
             String errMessage = "Failed to build S3 key from file URL";
             log.error(errMessage, e);
-            throw new  SystemException(errMessage);
+            throw new SystemException(errMessage);
         }
     }
 
@@ -105,16 +104,16 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
                 if (entity == null) {
                     String errMessage = "Failed to download image. Null entity found.";
                     log.error(errMessage);
-                    throw new  SystemException(errMessage);
+                    throw new SystemException(errMessage);
                 }
-                try (InputStream inputStream = entity.getContent()){
+                try (InputStream inputStream = entity.getContent()) {
                     return IOUtils.toByteArray(inputStream);
                 }
             }
         } catch (IOException e) {
             String errMessage = "Failed to retrieve file from URL";
             log.error(errMessage, e);
-            throw new  SystemException(errMessage);
+            throw new SystemException(errMessage);
         }
     }
 
@@ -129,7 +128,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         } catch (IOException e) {
             String errMessage = "Failed to upload file to S3 signed URL";
             log.error(errMessage, e);
-            throw new  SystemException(errMessage);
+            throw new SystemException(errMessage);
         }
     }
 
@@ -137,7 +136,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
     public String generateSignedUrl(String key) throws SystemException {
         byte[] privateKey = getAwsPrivateKey();
         String param_UrlToBeSigned =
-                "https://" + awsUploadSignUrlConfiguration.getDistributionDomain() + "/" + key;
+            "https://" + awsUploadSignUrlConfiguration.getDistributionDomain() + "/" + key;
         try {
             Date param_DateLessThan = ServiceUtils.parseIso8601Date("2123-07-15T22:20:00.000Z");
             String policy = CloudFrontService.buildPolicyForSignedUrl(
@@ -156,17 +155,6 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
             log.error(errMessage, e);
             throw new SystemException(errMessage);
         }
-    }
-
-    @Override
-    public String uploadFileToS3(String fileUrl, PortalUser portalUser) throws SystemException {
-        byte[] fileData = retrieveFileFromUrl(fileUrl);
-        Integer masterId = portalUser.getMasterId();
-        Integer userId = portalUser.getUserId();
-        String key = buildFileS3Key(fileUrl, masterId, userId);
-        String signedUrl = generateSignedUrl(key);
-        uploadFileToSignedUrl(fileData, signedUrl);
-        return key;
     }
 
     @Override

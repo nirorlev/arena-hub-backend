@@ -108,7 +108,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
         updateVideoInformation(sysFile, Optional.of(portalUser), Optional.empty());
     }
 
-    private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> portalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
+    private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> optionalPortalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
         if (!EventUnifyType.powtoonVideoFileTypes.contains(sysFile.getFileTypeIndex())) {
             return;
         }
@@ -137,12 +137,12 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
         sysFile.setFileTypeIndex(currentHostingProvider);
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
-        if (portalUser.isPresent()) {
+        optionalPortalUser.ifPresent(portalUser -> {
             sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
-            uploadThumbnailToS3(sysFile, portalUser.get());
+            uploadThumbnailToS3(sysFile, portalUser.getUserId(), portalUser.getMasterId());
             externalVideo.setVersion(currentVersion);
-        }
-        
+        });
+
         sysFileService.updateById(sysFile);
         powtoonExternalVideoService.updateById(externalVideo);
     }
@@ -737,9 +737,9 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
-    public void uploadThumbnailToS3 (SysFile sysFile, PortalUser portalUser) {
+    public void uploadThumbnailToS3 (SysFile sysFile, Integer userId, Integer masterId) {
         String thumbnailUrl = sysFile.getThumbNailUrl();
-        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, portalUser);
+        String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, userId, masterId);
         sysFile.setThumbNailUrl(fileKey);
     }
 
