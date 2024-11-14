@@ -238,7 +238,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         }
 
         updateUser(user, powtoonUserInfo);
-        userAvatarService.updateUserAvatar(powtoonProfileUrl, user.getId(), masterId);
+//        userAvatarService.updateUserAvatar(powtoonProfileUrl, user.getId(), masterId);
         updateUserInfo(user, powtoonUserInfo, masterId);
 
         return enrichUserWithData(powtoonUserInfo, getUserByIdCache(user.getId()));
