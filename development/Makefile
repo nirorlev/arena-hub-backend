@@ -18,6 +18,9 @@ export AWS_S3_REGION=eu-west-2
 export GUIDE_USER_STORE_DOMAIN=stage.store.demoguide.xyz
 export AWS_IAM_ROLE=iam role
 export BI_TRACKING_HOST=https://example.com
+export SENTRY_AUTO_INIT=false
+export OTEL_TRACES_EXPORTER=none
+export OTEL_METRICS_EXPORTER=none
 
 # Paths
 PROJECT_PATH := ../guide-core-java/code/guidecore-server
