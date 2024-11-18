@@ -1946,22 +1946,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 			}
 			gcAccessService.updateBatchById(accessList);
-			List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.getContainsSubjectAccessPermissionList(subId.toString());
-			if(CollectionUtils.isNotEmpty(userAccessPermissions)){
-				for(GcUserAccessPermission gcUserAccessPermission:userAccessPermissions){
-					if (null!=gcUserAccessPermission.getSubPermission()){
-						gcUserAccessPermission.getSubPermission().remove(subId);
-					}
-					if (null!=gcUserAccessPermission.getMaySubjectJson()){
-						gcUserAccessPermission.getMaySubjectJson().remove(subId);
-					}
-					if (null!=gcUserAccessPermission.getMustSubjectJson()){
-						gcUserAccessPermission.getMustSubjectJson().remove(subId);
-					}
-				}
-			}
-
-			gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
 			courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
 
 			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
@@ -1983,21 +1967,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}
 				}
 				gcAccessService.updateBatchById(accessList);
-				List<GcUserAccessPermission> userAccessPermissions = gcUserAccessPermissionService.getContainsSubjectAccessPermissionList(subId.toString());
-				if(CollectionUtils.isNotEmpty(userAccessPermissions)){
-					for(GcUserAccessPermission gcUserAccessPermission:userAccessPermissions){
-						if (null!=gcUserAccessPermission.getSubPermission()){
-							gcUserAccessPermission.getSubPermission().remove(subId);
-						}
-						if (null!=gcUserAccessPermission.getMaySubjectJson()){
-							gcUserAccessPermission.getMaySubjectJson().remove(subId);
-						}
-						if (null!=gcUserAccessPermission.getMustSubjectJson()){
-							gcUserAccessPermission.getMustSubjectJson().remove(subId);
-						}
-					}
-				}
-				gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
                 courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
 
 				return new Message().ok();

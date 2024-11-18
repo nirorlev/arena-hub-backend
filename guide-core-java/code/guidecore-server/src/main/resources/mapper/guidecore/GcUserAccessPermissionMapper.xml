@@ -125,10 +125,4 @@
         WHERE access.master_id = #{masterId} AND per.sub_permission::jsonb @> to_jsonb(#{subId}::integer)
     </select>
 
-    <select id="getContainsSubjectAccessPermissionList" resultMap="baseResultMap">
-        SELECT a.*
-        FROM gc_user_access_permission a
-        WHERE (a.sub_permission::jsonb @> to_jsonb(#{ptId}::text) OR a.must_subject_json::jsonb @> to_jsonb(#{ptId}::integer) OR a.may_subject_json::jsonb @> to_jsonb(#{ptId}::integer))
-    </select>
-
 </mapper>

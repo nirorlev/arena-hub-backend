@@ -14,11 +14,6 @@ import java.util.List;
 public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccessPermissionMapper, GcUserAccessPermission> implements GcUserAccessPermissionService {
 
     @Override
-    public List<GcUserAccessPermission> getContainsSubjectAccessPermissionList(String ptId) {
-        return this.baseMapper.getContainsSubjectAccessPermissionList(ptId);
-    }
-
-    @Override
     public void deleteSubIdAccessPermissionList(Integer masterId, Integer subId) {
         List<GcUserAccessPermission> userAccessPermissions = this.baseMapper.getContainsSubjectAccessPermissionList(subId.toString());
         for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {

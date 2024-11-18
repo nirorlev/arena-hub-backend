@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface GcUserAccessPermissionService extends IService<GcUserAccessPermission> {
 
-    List<GcUserAccessPermission> getContainsSubjectAccessPermissionList(String ptId);
-
     void deleteSubIdAccessPermissionList(Integer masterId, Integer subId);
 
     void updatePermissionData(Integer masterId, Integer userId);
