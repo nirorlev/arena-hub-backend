@@ -52,16 +52,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
     }
 
     @Override
-    public GcUserAccessPermission getPermissionByUid(Integer userId,Integer portalId) {
-        return this.baseMapper.getPermissionByUid(userId,portalId);
-    }
-
-    @Override
-    public GcUserAccessPermission getPermissionByUserAccessId(Integer userAccessId) {
-        return this.baseMapper.getPermissionByUserAccessId(userAccessId);
-    }
-
-    @Override
     public List<GcUserAccessPermission> getPermissionByUserAccessIdList(List<Integer> ids) {
         QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.in("user_access_id",ids);

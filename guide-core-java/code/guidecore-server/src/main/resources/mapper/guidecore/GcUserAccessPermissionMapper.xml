@@ -28,14 +28,6 @@
         WHERE ua.master_id=#{masterId} AND #{subjectId} = ANY(ARRAY(SELECT jsonb_array_elements_text(a.sub_permission)))
     </select>
 
-    <select id="getPermissionByUid" resultMap="baseResultMap" >
-        SELECT
-        <include refid="baseColumn" />
-        FROM gc_user_access_permission a
-        left join gc_user_access ua on ua.id = a.user_access_id
-        where ua.user_id = #{userId} and ua.master_id = #{masterId}
-    </select>
-
     <select id="deleteGroupByGroupId" resultType="integer">
         DELETE FROM gc_user_access_permission WHERE group_id = #{groupId}
     </select>
@@ -125,12 +117,6 @@
             AND uac.user_id = #{userId}
         </if>
     </update>
-
-    <select id="getPermissionByUserAccessId" resultMap="baseResultMap">
-        SELECT *
-        FROM gc_user_access_permission
-        where user_access_id = #{userAccessId}
-    </select>
 
     <select id="getUserNumByPortal" resultType="integer">
         SELECT count(a.id)
