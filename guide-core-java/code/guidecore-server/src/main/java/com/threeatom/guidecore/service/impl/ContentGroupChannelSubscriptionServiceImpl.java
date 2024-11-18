@@ -6,7 +6,6 @@ import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
@@ -66,7 +65,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel) {
+    public void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds) {
         if (CollectionUtils.isEmpty(contentGroups)) {
             return;
         }
@@ -75,7 +74,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
         QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.in("content_group_id", contentGroupIds);
-        queryWrapper.eq("channel_id", channel.getId());
+        queryWrapper.in("channel_id", channelIds);
 
         this.remove(queryWrapper);
     }

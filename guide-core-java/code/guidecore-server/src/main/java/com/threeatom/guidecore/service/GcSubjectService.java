@@ -130,8 +130,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<GcSubject> newGetAvailableCourses(
             String name, Integer masterId, List<Integer> subIds, Integer userId, String order);
 
-    List<GcSubject> getCompletedTwoCourse(Map<String, Object> paramMap);
-
     List<GcSubject> selectSubjectByNewIndexHome(
             Integer masterId, Integer userId, PageParam pageParam);
 

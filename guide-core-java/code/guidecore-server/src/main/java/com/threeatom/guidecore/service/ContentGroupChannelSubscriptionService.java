@@ -5,7 +5,6 @@ import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.PtChannel;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +24,7 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getPublicChannelIds(Integer contentGroupId);
 
-    void removeChannelFromContentGroups(List<GcAccess> contentGroups, PtChannel channel);
+    void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds);
 
     List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
                                                                           HttpServletRequest request);

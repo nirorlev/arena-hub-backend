@@ -72,13 +72,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
     }
 
     @Override
-    public List<GcUserAccessPermission> selectUserAccessPermissions(List<Integer> userAccessIds) {
-        QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
-        queryWrapper.in("user_access_id",userAccessIds);
-        return this.list(queryWrapper);
-    }
-
-    @Override
     public List<GcUserAccessPermission> getPermissionByUserAccessIdList(List<Integer> ids) {
         QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.in("user_access_id",ids);

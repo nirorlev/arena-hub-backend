@@ -13,8 +13,6 @@ public interface GcUserAccessPermissionService extends IService<GcUserAccessPerm
 
     GcUserAccessPermission getPermissionByUserAccessId(Integer userAccessId);
 
-    List<GcUserAccessPermission> selectUserAccessPermissions(List<Integer> userAccessIds);
-
     List<GcUserAccessPermission> getPermissionByUserAccessIdList(List<Integer> ids);
 
     void insertUserPermission(List<GcUserAccessPermission> permissionList);

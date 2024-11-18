@@ -1602,11 +1602,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getCompletedTwoCourse(Map<String,Object> paramMap){
-        return this.baseMapper.getCompletedTwoCourse(paramMap);
-    }
-
-    @Override
     public void populateUserId(GcSubject course, GcUser user) {
         if (course.getId() == null) {
             course.setCreateUser(user.getId());
