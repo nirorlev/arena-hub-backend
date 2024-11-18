@@ -27,13 +27,6 @@ public interface GvgMasterService extends IService<GcMaster> {
     Message search(
         SearchDto searchDto, HttpServletRequest request, GcUser user, SysSystem system);
 
-    Message index(
-            Map<String, Object> params,
-            HttpServletRequest request,
-            SysSystem system,
-            GcUser gcUser,
-            Integer envFLag);
-
     Message navigation(
             Map<String, Object> params,
             HttpServletRequest request,

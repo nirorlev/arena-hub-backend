@@ -631,20 +631,6 @@ public class PowtoonController extends GuideCoreController {
         return new Message().ok();
     }
 
-    @ApiOperation(value = "新UI课程首页-包括课程名称查询接口", notes = "新UI课程首页", httpMethod = "POST")
-    @PostMapping("index")
-    public Message index(@RequestBody Map<String, Object> params, HttpServletRequest request) throws IOException {
-        //复用
-        String portalId = request.getHeader("masterId");
-        if (Objects.isNull(portalId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        SysSystem system = this.getSystem();
-        GcUser user = this.getGcUser();
-
-        return gvgMasterService.index(params, request, system, user, EnvType.PT.getCode());
-    }
-
     @PostMapping("navigation")
     public Message navigation(@RequestBody(required = false) Map<String, Object> params, HttpServletRequest request) {
         Object fid = params.get("fid");
