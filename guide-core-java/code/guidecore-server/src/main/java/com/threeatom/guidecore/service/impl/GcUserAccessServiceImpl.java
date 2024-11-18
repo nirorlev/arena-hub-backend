@@ -178,14 +178,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public GcUserAccessPermission getUserAccessPermission(Integer userAccessId) {
-        QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
-        queryWrapper.eq("user_access_id", userAccessId);
-        GcUserAccessPermission permission = userAccessPermissionMapper.selectOne(queryWrapper);
-        return permission;
-    }
-
-    @Override
     public List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds) {
         QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
         queryWrapper.in("user_access_id", userAccessIds);

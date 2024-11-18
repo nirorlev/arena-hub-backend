@@ -45,8 +45,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
             Integer masterId, List<Integer> userIds, String order);
 
-    GcUserAccessPermission getUserAccessPermission(Integer userAccessId);
-
     List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds);
 
     int updateUserAccessPermissions(List<GcUserAccessPermission> perList);

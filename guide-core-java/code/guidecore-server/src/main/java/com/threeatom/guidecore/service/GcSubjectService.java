@@ -76,8 +76,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     boolean deleteSub(Integer subId, Integer masterId);
 
-    GcSubject getSubByToken(String token);
-
     List<GcSubject> listSubWithAssoByIds(Integer masterId, List<Integer> subIds);
 
     List<GcSubject> setSubListImg(List<GcSubject> list, SysSystem sys, HttpServletRequest request);

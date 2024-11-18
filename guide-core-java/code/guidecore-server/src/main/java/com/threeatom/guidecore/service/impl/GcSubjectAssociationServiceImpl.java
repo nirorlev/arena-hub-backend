@@ -13,12 +13,6 @@ public class GcSubjectAssociationServiceImpl
         implements GcSubjectAssociationService {
 
     @Override
-    public Integer selectCount(Integer subjectId, Integer masterId) {
-
-        return this.baseMapper.selectCount(subjectId, masterId);
-    }
-
-    @Override
     public List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId) {
         return this.baseMapper.selectSubsByMasterId(masterId);
     }

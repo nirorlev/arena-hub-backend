@@ -10,8 +10,6 @@ public interface GcSubjectAssociationMapper extends BaseMapper<GcSubjectAssociat
 
     long updateOrder(Integer order, Integer subjectId, Integer masterId);
 
-    Integer selectCount(Integer subjectId, Integer masterId);
-
     long bulkUpdatOrderByMasterIdAndSubjetId(List<GcSubjectAssociation> saList);
 
     List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId);

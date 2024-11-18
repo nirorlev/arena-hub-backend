@@ -11,11 +11,6 @@
 	    update gc_subject_association
 	    set order = #{order} where master_id = #{masterId} and subject_id = #{subjectId}
 	</update>
-	
-	<select id="selectCount" parameterType="Integer" resultType="java.lang.Integer">
-		select count(1) from gc_subject_association where
-		master_id=#{masterId} and subject_id = #{subjectId}
-	</select>
 
     <select id="selectSubsByMasterId" parameterType="Integer" resultType="com.threeatom.guidecore.entity.GcSubjectAssociation">
 		select * from gc_subject_association where

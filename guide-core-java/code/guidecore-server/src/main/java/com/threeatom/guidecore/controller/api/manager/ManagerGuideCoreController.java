@@ -468,77 +468,12 @@ public class ManagerGuideCoreController extends GuideCoreController {
         return new Message().ok().addData("subjectImportToken", randomToken);
     }
 
-
-    @ApiOperation(value = "导入课程", httpMethod = "Post")
-    @PostMapping("/importSubject")
-    public Message importSubject(@RequestBody GcSubject sub) {
-        GcMaster master = this.getMaster();
-
-        GcManager manager = this.getManager();
-        GcSubjectAssociation sa = new GcSubjectAssociation();
-        sa.setMasterId(master.getId());
-        sa.setRelationType(TableConstant.gcSubjectAssociation_relationType_1import);
-        GcSubject subject =null;
-        if(sub.getToken()!=null) {
-            //通过token导入课程
-            subject = subService.getSubByToken(sub.getToken());
-            if(subject==null) {
-                return new Message().error(I18NUtil.get("guidecore.master.canFindSubject"));
-            }
-
-            sa.setSubjectId(subject.getId());
-        }else {
-            ApiAssert.notNull(sub.getId(), "课程id不可空");
-            //导入公共课
-            subject = subService.getById(sub.getId());
-            if(subject==null) return new Message().error(I18NUtil.get("guidecore.master.canFindSubject"));
-            if(subject.getIsPublic().intValue()!=TableConstant.gcSubject_isPublic_1)return new Message().error(I18NUtil.get("guidecore.master.notPublicSubject"));
-            sa.setSubjectId(subject.getId());
-        }
-        if(subject.getMasterId().intValue()==master.getId()) {
-            //不可添加自身课程
-            return new Message().error(I18NUtil.get("guidecore.master.cantImportYourOwnSubject"));
-        }
-
-
-        //判断是否添加过该课程
-        int count = gcSubjectAssociationService.selectCount(subject.getId(), master.getId());
-        if(count>0) {
-            return new Message().error(I18NUtil.get("guidecore.master.duplicateImportSubject"));
-        }
-
-        if(null==sub.getFid() && null!=manager) {
-            GcUserAccess gcUserAccess = gcUserAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
-            if(null!=gcUserAccess) {
-                GcAccess gcAccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
-                GcUserAccessPermission gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
-                JSONArray permissionJsonArray = gcUserAccessPermission.getSubPermission();
-                JSONArray jsonArray = gcAccess.getSubjectJson();
-                if (!jsonArray.contains(sub.getId())) {
-                    jsonArray.add(sub.getId());
-                    gcAccessService.updateById(gcAccess);
-                }
-                if (!permissionJsonArray.contains(sub.getId())) {
-                    permissionJsonArray.add(sub.getId());
-                    gcUserAccessPermissionService.saveOrUpdate(gcUserAccessPermission);
-                }
-            }
-        }
-        gcSubjectAssociationService.save(sa);
-        return new Message().ok("绑定成功！");
-    }
-
-
     @ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
     @PostMapping("/saveSub")
     public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject sub,HttpServletRequest request) {
         ApiAssert.ifStringNotInList(sub.getName(), CommonConstant.defaultNoCourseOrVideName, "课程名称错误，不可用该值");
 
         GcManager manager = this.getManager();
-
-
-
-
         GcMaster master = this.getMaster();
         Integer masterId = null;
         if (null==master&&null!=request.getHeader("masterId")){

@@ -1095,14 +1095,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public GcSubject getSubByToken(String token) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
-        queryWrapper.eq("token", token);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        return this.getOne(queryWrapper);
-    }
-
-    @Override
     public List<GcSubject> getChildSubjectBySubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
