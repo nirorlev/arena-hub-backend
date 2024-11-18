@@ -131,13 +131,4 @@
         WHERE (a.sub_permission::jsonb @> to_jsonb(#{ptId}::text) OR a.must_subject_json::jsonb @> to_jsonb(#{ptId}::integer) OR a.may_subject_json::jsonb @> to_jsonb(#{ptId}::integer))
     </select>
 
-    <select id="getGroupMemberPermissionByUidList" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
-        FROM gc_user_access_permission a
-        left join gc_user_access ua on ua.id = a.user_access_id
-        where ua.user_id = #{userId} and ua.master_id = #{masterId}
-        and ua.role_json::text like concat('%',#{roleName},'%')
-    </select>
-
 </mapper>

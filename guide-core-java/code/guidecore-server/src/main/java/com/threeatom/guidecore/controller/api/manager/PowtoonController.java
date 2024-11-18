@@ -1694,19 +1694,10 @@ public class PowtoonController extends GuideCoreController {
     public Message getCoursesInfo(HttpServletRequest request) {
         GcUser user = this.getGcUser();
         GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-        List<GcUserAccessPermission> userAccessPermissionList =
-            gcUserAccessPermissionService.getGroupMemberPermissionByUidList(user.getId(), master.getId(),
-                UserGroupRole.GROUP_MEMBER.getRole());
-        JSONArray jsonArray = new JSONArray();
-        for (GcUserAccessPermission permission : userAccessPermissionList) {
-            if (null != permission.getMustSubjectJson()) {
-                jsonArray.addAll(permission.getMustSubjectJson());
-            }
-        }
-        List<Integer> mustSubjectList = jsonArray.toJavaList(Integer.class);
+        List<Integer> mustCourseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(), UserGroupRole.GROUP_MEMBER);
         Integer mustSubjectSize = TableConstant.COMMON_ZERO;
-        if (TableConstant.COMMON_ZERO != mustSubjectList.size()) {
-            mustSubjectSize = subjectService.getSubjectNum(mustSubjectList);
+        if (!mustCourseIds.isEmpty()) {
+            mustSubjectSize = subjectService.getSubjectNum(mustCourseIds);
         }
         List<Integer> channelIdList = new ArrayList<>();
         SysSystem system = this.getSystem();
