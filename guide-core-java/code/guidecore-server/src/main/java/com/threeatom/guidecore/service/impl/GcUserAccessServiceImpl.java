@@ -24,7 +24,6 @@ import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -63,8 +62,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Autowired private SysFileService sysFileService;
     @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-    @Autowired private ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
-    @Autowired private GcUserAccessPermissionService gcUserAccessPermissionService;
 
     @Override
     public GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId) {

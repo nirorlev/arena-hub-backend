@@ -55,7 +55,6 @@ import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcResourceService;
 import com.threeatom.guidecore.service.GcSubjectCompleteService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserAnswerService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
@@ -133,9 +132,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private NewUiGcSubjectService newUiGcSubjectService;
-
-	@Autowired
-	private GcUserAccessPermissionService gcUserAccessPermissionService;
 
 	@Autowired
 	private GcUserVideoActionService videoActionService;//用户视频操作--查询评论、点赞、星级评价

@@ -88,9 +88,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	GcMasterService gcMasterService;
 
 	@Autowired
-	GcUserAccessPermissionService gcUserAccessPermissionService;
-
-	@Autowired
 	SysFileCaptionService sysFileCaptionService;
 
 	@Autowired

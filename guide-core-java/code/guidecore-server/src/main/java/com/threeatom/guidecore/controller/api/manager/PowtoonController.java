@@ -70,7 +70,6 @@ import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcProblemService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessExtService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
 import com.threeatom.guidecore.service.GcUserInfoService;
@@ -162,9 +161,6 @@ public class PowtoonController extends GuideCoreController {
 
     @Autowired
     private GcSubjectService gcSubjectService;
-
-    @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
 
     @Autowired
     private GcUserAccessService gcUserAccessService;
@@ -1672,12 +1668,6 @@ public class PowtoonController extends GuideCoreController {
         gcUserAccessExtService.saveBatch(extList);
     }
 
-    @GetMapping("/updateData")
-    public Message updateData(@Param("masterId") Integer masterId, @Param("userId") Integer userId) {
-        gcUserAccessPermissionService.updatePermissionData(masterId, userId);
-        return new Message().ok();
-    }
-
     @GetMapping("/getSubjectNameIndex")
     public Message getSubjectNameIndex(@Param("name") String name, HttpServletRequest request) {
         GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
@@ -1834,7 +1824,6 @@ public class PowtoonController extends GuideCoreController {
             course = gcSubjectService.getById(course.getId());
             course.setState(TableConstant.COMMON_ZERO);
             gcAccessService.deleteSubIdAccess(masterId, course.getId());
-            gcUserAccessPermissionService.deleteSubIdAccessPermissionList(masterId, course.getId());
             contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, course.getId());
         }
         if (course.getState() != null && course.getState() == TableConstant.COMMON_ONE) {

@@ -77,8 +77,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Autowired
     private GcUserAccessPermissionService gcUserAccessPermissionService;
     @Autowired
-    private SysSystemService systemService;
-    @Autowired
     private GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @Resource

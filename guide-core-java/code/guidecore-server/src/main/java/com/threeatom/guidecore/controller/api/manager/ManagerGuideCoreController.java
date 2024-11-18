@@ -45,7 +45,6 @@ import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcResourceService;
 import com.threeatom.guidecore.service.GcSubjectAssociationService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
@@ -129,8 +128,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
     private GcUserAccessService gcUserAccessService;
     @Autowired
     private GcAccessService gcAccessService;
-    @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
     @Autowired
     private GcMasterHomeInfoService masterHomeInfoService;
     @Autowired
