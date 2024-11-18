@@ -58,20 +58,6 @@
         ON CONFLICT (user_access_id) DO NOTHING
     </insert>
 
-    <insert id="insertUserPermission">
-        insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
-        values
-        <foreach collection="list" index="index" item="item" separator=",">
-            (#{item.userAccessId},#{item.subPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
-            ,#{item.channelPermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
-            ,#{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
-            ,#{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
-            ,#{item.subscribePermission,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler})
-        </foreach>
-        ON CONFLICT (user_access_id) DO UPDATE SET
-        user_access_id = EXCLUDED.user_access_id
-    </insert>
-
     <insert id="removeUserPermission">
         insert into gc_user_access_permission (user_access_id,sub_permission,channel_permission,must_subject_json,may_subject_json,subscribe_permission)
         values

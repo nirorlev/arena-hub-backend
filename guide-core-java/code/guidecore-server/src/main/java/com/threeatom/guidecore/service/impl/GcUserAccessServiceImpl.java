@@ -487,8 +487,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         if (!userAccesses.isEmpty()) {
             insertUserAccessList(userAccesses);
         }
-
-        updateUserPermissions(getUserAccessListByMasterIdAndUserId(getUserIds(userAccesses), masterId));
     }
 
     @Override
@@ -506,39 +504,4 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         }
     }
 
-    private void updateUserPermissions(List<GcUserAccess> userAccesses) {
-        List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-
-        for (GcUserAccess gcUserAccess : userAccesses) {
-            GcUserAccessPermission permission = new GcUserAccessPermission();
-            GcAccess access = gcUserAccess.getAccess();
-            List<Integer> assignedCourses =
-                contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
-            List<Integer> mustAssignedCourses =
-                contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> optionalAssignedCourses =
-                contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> unsubscribedChannelIds =
-                contentGroupChannelSubscriptionService.getPublicChannelIds(access.getId());
-            List<Integer> subscribedChannelIds =
-                contentGroupChannelSubscriptionService.getSubscribedChannelIds(access.getId());
-
-            permission.setUserAccessId(gcUserAccess.getId());
-            permission.setSubPermission(parseToJsonArray(assignedCourses));
-            permission.setChannelPermission(parseToJsonArray(unsubscribedChannelIds));
-            permission.setSubscribePermission(parseToJsonArray(subscribedChannelIds));
-            permission.setMaySubjectJson(parseToJsonArray(optionalAssignedCourses));
-            permission.setMustSubjectJson(parseToJsonArray(mustAssignedCourses));
-            userAccessPermissions.add(permission);
-        }
-        if (!userAccessPermissions.isEmpty()) {
-            gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
-        }
-    }
-
-    private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
-        return userAccessList.stream()
-            .map(GcUserAccess::getUserId)
-            .collect(Collectors.toList());
-    }
 }
