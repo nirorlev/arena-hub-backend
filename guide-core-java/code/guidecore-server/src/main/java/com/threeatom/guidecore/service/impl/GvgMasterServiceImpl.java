@@ -1042,10 +1042,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 			subject.setResourceNum(resourceNums);
 			//添加是否本人能查看反显
-			List<GcUserAccessPermission> userAccessPermission = gcUserAccessPermissionService.getPermissionByUidList(userId,masterId);
-			Integer isMyView = TableConstant.COMMON_ONE;
-			for (GcUserAccessPermission permission : userAccessPermission) {
-				if(null!=permission.getMustSubjectJson()&&permission.getMustSubjectJson().contains(subject.getId())){
+			List<Integer> courseIds = courseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId,masterId);
+			int isMyView = TableConstant.COMMON_ONE;
+			for (Integer courseId : courseIds) {
+				if(Objects.equals(courseId, subject.getId())){
 					isMyView = TableConstant.COMMON_ZERO;
 					break;
 				}
@@ -1057,7 +1057,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subject.setCourseState(TableConstant.COMMON_ZERO);
 			}
 
-			if ((subject.getCreateUser().equals(userId)||gcUser.getIsOrgAdmin()==true)&&subject.getState().equals(TableConstant.COMMON_ZERO)){
+			if ((subject.getCreateUser().equals(userId)|| gcUser.getIsOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
 				subject.setMode(TableConstant.COMMON_ONE);
 			}else {
 				subject.setMode(TableConstant.COMMON_ZERO);

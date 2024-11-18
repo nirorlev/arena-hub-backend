@@ -125,14 +125,6 @@
         WHERE access.master_id = #{masterId} AND per.sub_permission::jsonb @> to_jsonb(#{subId}::integer)
     </select>
 
-    <select id="getPermissionByUidList"  resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
-        FROM gc_user_access_permission a
-        left join gc_user_access ua on ua.id = a.user_access_id
-        where ua.user_id = #{userId} and ua.master_id = #{masterId}
-    </select>
-
     <select id="getContainsSubjectAccessPermissionList" resultMap="baseResultMap">
         SELECT a.*
         FROM gc_user_access_permission a
