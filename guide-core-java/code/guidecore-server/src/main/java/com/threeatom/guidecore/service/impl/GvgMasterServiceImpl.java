@@ -1189,23 +1189,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		GcSubject subject = subjectService.getById(video.getSubId());
-		List<Integer> permissionSubIds = new ArrayList<>();
 
-		if (envFlag.equals(EnvType.PT.getCode())){
-            List<GcUserAccess> gcUserAccess =
-                gcUserAccessService.selectPtUserAccessByMasterIdAndUserId(user.getId(), masterId);
-            List<GcUserAccessPermission> userAccessPermissions = gcUserAccessService.getUsersAccessPermissions(gcUserAccess.stream().map(GcUserAccess::getId).collect(Collectors.toList()));
-            for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
-                if (null!=userAccessPermission.getSubPermission()){
-                    permissionSubIds.addAll(userAccessPermission.getSubPermission().toJavaList(Integer.class));
-                }
-            }
-            permissionSubIds.add(subject.getFid());
-        }else {
-            GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(), masterId);
-			List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
-			permissionSubIds.addAll(courseIds);
-        }
+		GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(), masterId);
+		List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
 
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
@@ -1216,7 +1202,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		List<GcResource> resourceServiceList = resourceService.getResByVid(videoId);
 		//如果没登录，不返回fullfileurl
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
-		if (Objects.nonNull(user.getId()) && permissionSubIds.contains(subject.getFid())) {
+		if (Objects.nonNull(user.getId()) && courseIds.contains(subject.getFid())) {
 			sysFileService.getResFullUrl(thisVideo.getVideoFile(), request);
 			//资源list
 			if(CollectionUtils.isNotEmpty(resourceServiceList)) {
@@ -1393,15 +1379,15 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		if (Objects.nonNull(user.getId())) {
 			Map<Integer, Object> answerNumMap = gcEventService.videoEventsAnswerNumMap(videoId, user.getId(), masterId);
-			GcUserAccess gcUserAccess = new GcUserAccess();
+			GcUserAccess userAccess = new GcUserAccess();
 			if (envFlag.equals(EnvType.PT.getCode())){
 				GcAccess access = new GcAccess();
 				access.setRoleType(AccessRoleType.STUDENT);
-				gcUserAccess.setAccess(access);
+				userAccess.setAccess(access);
 			}else {
-				gcUserAccess = userAccessService.getUserAccessByMasterIdAndUserId(masterId, user.getId());
+				userAccess = userAccessService.getUserAccessByMasterIdAndUserId(masterId, user.getId());
 			}
-			if (gcUserAccess.getAccess().getRoleType() == AccessRoleType.STUDENT) {//判断是否是老师用户，如果是老师用户则不会去查询已回答问题数量
+			if (userAccess.getAccess().getRoleType() == AccessRoleType.STUDENT) {//判断是否是老师用户，如果是老师用户则不会去查询已回答问题数量
 				for (GcEvent event : eventList) {
 					Map numMap = (Map) answerNumMap.get(event.getId());
 					int num = 0;

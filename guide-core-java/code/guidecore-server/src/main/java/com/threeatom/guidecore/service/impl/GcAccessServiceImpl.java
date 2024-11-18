@@ -146,19 +146,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     public boolean addAccess(GcAccess access) {
         userAccessService.clearCacheAll();
         this.saveOrUpdate(access);
-
-        if (access.getId() != null) {
-
-            QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("access_id", access.getId());
-            List<GcUserAccess> list = userAccessService.list(queryWrapper);
-            List<Integer> userAccessIds =
-                list.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-            if (!userAccessIds.isEmpty()) {
-                userAccessService.updateUserAccessPermission(userAccessIds, access);
-            }
-        }
-
         return true;
     }
 

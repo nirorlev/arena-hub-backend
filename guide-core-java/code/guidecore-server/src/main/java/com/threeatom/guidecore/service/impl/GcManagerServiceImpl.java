@@ -97,7 +97,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                     JSONArray.parseArray(JSON.toString(contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessCode.getId())))
                 );
                 userAccessPermission.setUserAccessId(userAccess.getId());
-                userAccessService.saveUserAccessPermission(userAccessPermission);
                 // 分配课程管理员角色
 
                 // 为课程管理员角色初始化权限

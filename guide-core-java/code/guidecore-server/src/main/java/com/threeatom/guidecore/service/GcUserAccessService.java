@@ -1,19 +1,18 @@
 package com.threeatom.guidecore.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserAccessExt;
 import com.threeatom.guidecore.entity.GcUserAccessPermission;
-import com.threeatom.guidecore.service.bll.GcUserAccessServiceBll;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
-public interface GcUserAccessService extends GcUserAccessServiceBll {
+public interface GcUserAccessService extends IService<GcUserAccess> {
 
     boolean createUserAccess(GcUserAccess userAccess);
 
@@ -38,10 +37,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<GcUserAccess> getUsersByAccessIds(List<Integer> accessIds, UserCommonInfo commonInfo);
 
-    List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds);
-
-    int updateUserAccessPermissions(List<GcUserAccessPermission> perList);
-
     Map<String, Long> getMasterIdUsersNum(Integer masterId);
 
     List<Map<String, Object>> getAllUserInThisMaster(
@@ -52,10 +47,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
             Integer accessId);
 
     List<Map<String, Object>> getAllManagerInThisMaster(Integer masterId);
-
-    int updateUserAccessPermission(List<Integer> userAccessIds, GcAccess gcAccess);
-
-    Integer saveUserAccessPermission(GcUserAccessPermission userAccessPermission);
 
     int deleteById(Integer id);
 

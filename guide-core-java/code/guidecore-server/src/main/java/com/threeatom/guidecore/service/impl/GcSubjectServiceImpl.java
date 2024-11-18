@@ -20,7 +20,6 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.mapper.SysFileMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
 import com.threeatom.utils.TreeUtil;
 import com.threeatom.utils.data.TreeNode;
 
@@ -55,8 +53,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcEventService eventService;
     @Autowired
     private GcMasterMessageService masterMessageService;
-    @Autowired
-    private GcUserAnswerService userAnswerService;
 
     @Lazy
     @Autowired
@@ -67,22 +63,14 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcSubjectAssociationMapper gcSubjectAssociationMapper;
 
     @Autowired
-    private GcEventMapper eventMapper;
-    @Autowired
-    private GcUserAccessPermissionMapper gcUserAccessPermissionMapper;
-    @Autowired
     private GcAccessMapper gcAccessMapper;
     @Autowired
     private GcAccessService gcAccessService;
-    @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
     @Autowired
     private GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
-    @Resource
-    SysFileMapper sysFileMapper;
     @Resource
     GcSubjectMapper gcSubjectMapper;
     @Autowired
@@ -932,8 +920,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return this.removeByIds(subIds);
         }else {
         	 if(gcSubjectAssociationMapper.deleteGcSubjectAssociation(subId, masterId)>0) {
-        		 //删除关联课程，删除gc_user_access_permission及gc_access的课程，否则用户端还会出现
-        		 if(this.deleteSubAccessInJson(subId, masterId) && this.deleteUserSubAccessInJson(subId, masterId))return true;
+                 return this.deleteSubAccessInJson(subId, masterId);
         	 }
 
         	 return false;
@@ -961,26 +948,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         courseAssignmentService.removeByMasterAndCourseId(masterId, subId);
         return gcAccessService.updateBatchById(gcAccessList);
-    }
-
-    public boolean deleteUserSubAccessInJson(int subId,int masterId) {
-    	List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionMapper.listContainsSubPremission(masterId, subId);
-    	if(gcUserAccessPermissionList!=null && !gcUserAccessPermissionList.isEmpty() ) {
-    		for(GcUserAccessPermission permission: gcUserAccessPermissionList) {
-    			JSONArray permissionArray  = permission.getSubPermission();
-    			List list = new ArrayList();
-    			for (int i=0;i<permissionArray.size();i++) {
-    	    		if(subId!=(int)permissionArray.get(i)) {
-    	    			list.add((int)permissionArray.get(i));
-    	    		}
-    			}
-    			permission.setSubPermission(new JSONArray(list));
-    		}
-    	}
-    	if(gcUserAccessPermissionList==null || gcUserAccessPermissionList.size()==0) {
-    		return true;
-    	}
-        return gcUserAccessPermissionService.updateBatchById(gcUserAccessPermissionList);
     }
 
     @Override
