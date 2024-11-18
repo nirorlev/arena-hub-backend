@@ -114,6 +114,8 @@ public class ManagerGuideCoreController extends GuideCoreController {
     private PortalUserService portalUserService;
     @Autowired
     private EventPublisherService eventPublisherService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @GetMapping("/getFuzzyNameVideoInMaster/{videoName}")
     public Message getFuzzyNameVideoInMaster(@PathVariable("videoName") String videoName, HttpServletRequest request) {
@@ -200,16 +202,13 @@ public class ManagerGuideCoreController extends GuideCoreController {
         if(manager.getLevel()!=null&&manager.getLevel()== LevelType.MASTER_MANAGER){//课程管理员
             //判断用户层级得到科目和主题的权限信息json
             GcUserAccess userAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
-            GcUserAccessPermission permission = userAccessService.getUserAccessPermission(userAccess.getId());
-            ApiAssert.notNull(permission, 403, "没有找到用户权限表");
-            List<Integer> subIds = permission.getSubPermission().toJavaList(Integer.class);
-
-            List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),subIds,false);
+            List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
+            List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),courseIds,false);
             subjectAssociationList=subService.setSubListImg(subjectAssociationList, sys, request);
             List<Integer> assoSubIds = subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
-            subIds.removeAll(assoSubIds);
+            courseIds.removeAll(assoSubIds);
             //导入课程
-            list = subService.getSubListWithImgByIds(subIds, sys, request,master.getId());
+            list = subService.getSubListWithImgByIds(courseIds, sys, request,master.getId());
 //          //门户课程
             list.addAll(subjectAssociationList);
         }else{
@@ -594,28 +593,28 @@ public class ManagerGuideCoreController extends GuideCoreController {
         try {
             GcMaster master = this.getMaster();
             GcManager manager = this.getManager();
-            List<Integer> subIds;
+            List<Integer> courseIds;
             if(manager.getLevel()!=null&&manager.getLevel()== LevelType.MASTER_MANAGER){
                 //判断用户层级得到科目和主题的权限信息json
                 GcUserAccess userAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
-                GcUserAccessPermission permission = userAccessService.getUserAccessPermission(userAccess.getId());
-                ApiAssert.notNull(permission, 403, "没有找到用户权限表");
-                subIds = permission.getSubPermission().toJavaList(Integer.class);
-
-                List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),subIds,false);
+                courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
+                List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),courseIds,false);
                 List<Integer> assoSubIds = subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
-                subIds.addAll(assoSubIds);
-                List<GcSubject> level1Subids = subService.selectAllLevel1SubList(subIds,null,master.getId());
+                courseIds.addAll(assoSubIds);
+                List<GcSubject> level1Subids = subService.selectAllLevel1SubList(courseIds,null,master.getId());
                 List<Integer> level1subids = level1Subids.stream().map(GcSubject::getId).collect(Collectors.toList());
-                subIds.addAll(level1subids);
+                courseIds.addAll(level1subids);
             }else{
                 List<GcSubject> subList = subService.getSubListWithHidden(master.getId());
                 List<GcSubject> associationSubList= subService.selectSubjectAssociation(master.getId(),null,false);
                 subList.addAll(associationSubList);
-                subIds = subList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                courseIds = subList.stream().map(GcSubject::getId).collect(Collectors.toList());
             }
+
             List<GcVideo> list = null;
-            if (subIds.size() > 0) list = videoService.getVideoListBySubIds(subIds);
+            if (!courseIds.isEmpty()) {
+                list = videoService.getVideoListBySubIds(courseIds);
+            }
 
             return new Message().ok().addData("list", list);
         } catch (Exception e) {

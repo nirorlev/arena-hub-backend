@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.guidecore.enums.CourseType;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,7 +78,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Autowired
     private SysSystemService systemService;
     @Autowired
-    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    private GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -340,7 +341,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
-        List<Integer> orgMustSubjectIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMustSubjectIds = courseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -361,7 +362,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
 
         //查询顶级组may课程Ids
-        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMaySubjectIds = courseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -399,7 +400,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> selectCompanyResourcesSubject(Integer userId,Integer masterId,String name,HttpServletRequest request){
 
         //查询顶级组may课程Ids
-        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMaySubjectIds = courseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -963,7 +964,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     		return true;
     	}
 
-        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
+        courseAssignmentService.removeByMasterAndCourseId(masterId, subId);
         return gcAccessService.updateBatchById(gcAccessList);
     }
 
@@ -1545,17 +1546,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         if(null==sub.getFid() && null!=manager) {
             GcUserAccess gcUserAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), masterId);
             if(null!=gcUserAccess) {
-                GcUserAccessPermission gcUserAccessPermission = userAccessService.getUserAccessPermission(gcUserAccess.getId());
+                List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
                 GcAccess gcAccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
                 JSONArray jsonArray = gcAccess.getSubjectJson();
-                JSONArray permissionJsonArray = gcUserAccessPermission.getSubPermission();
                 if (!jsonArray.contains(sub.getId())) {
                     jsonArray.add(sub.getId());
                     gcAccessService.updateById(gcAccess);
                 }
-                if (!permissionJsonArray.contains(sub.getId())) {
-                    permissionJsonArray.add(sub.getId());
-                    gcUserAccessPermissionService.saveOrUpdate(gcUserAccessPermission);
+                if (!courseIds.contains(sub.getId())) {
+                    courseAssignmentService.save(user, sub, CourseType.OPTIONAL);
                 }
             }
         }

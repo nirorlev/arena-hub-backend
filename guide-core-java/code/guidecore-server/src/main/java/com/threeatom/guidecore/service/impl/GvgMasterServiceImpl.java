@@ -229,7 +229,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private AuthorizationService authorizationService;
 
 	@Autowired
-	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+	private GcContentGroupCourseAssignmentService courseAssignmentService;
 
 	@Autowired
 	private PtChannelContentService ptChannelContentService;
@@ -1313,7 +1313,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	public Message videoDetail(HttpServletRequest request,Integer videoId,GcUser user,SysSystem system,Integer envFlag) {
 		Integer masterId = request.getIntHeader("masterId");
 		GcMaster gcMaster = gcMasterService.getMasterById(masterId);
-		List<Integer> subIds = new ArrayList<>();
 		//当前视频
 		GcVideo video = gcVideoService.getById(videoId);
 		GcVideo thisVideo = gcVideoService.findByVideoId(videoId);
@@ -1325,7 +1324,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		GcSubject subject = subjectService.getById(video.getSubId());
-		GcUserAccessPermission gcUserAccessPermission = new GcUserAccessPermission();
 		List<Integer> permissionSubIds = new ArrayList<>();
 
 		if (envFlag.equals(EnvType.PT.getCode())){
@@ -1340,10 +1338,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
             permissionSubIds.add(subject.getFid());
         }else {
             GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(user.getId(), masterId);
-            gcUserAccessPermission = gcUserAccessService.getUserAccessPermission(gcUserAccess.getId());
-            if (null!=gcUserAccessPermission.getSubPermission()){
-                permissionSubIds.addAll(gcUserAccessPermission.getSubPermission().toJavaList(Integer.class));
-            }
+			List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
+			permissionSubIds.addAll(courseIds);
         }
 
 		PageParam pageParam = new PageParam(request);
@@ -2097,7 +2093,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 
 			gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
-			contentGroupCourseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
+			courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
 
 			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
 			return new Message().error(I18NUtil.get("guidecore.resource.deleteSucc"));
@@ -2133,7 +2129,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}
 				}
 				gcUserAccessPermissionService.updateBatchById(userAccessPermissions);
-                contentGroupCourseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
+                courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
 
 				return new Message().ok();
 		}

@@ -55,30 +55,6 @@ public class NewUIUserController extends GuideCoreController {
     @Autowired private GvgMasterService gvgMasterService;
     @Autowired private GcUserVideoActionService gcUserVideoActionService;
 
-    @ApiOperation(value = "获取课程页数据", httpMethod = "GET")
-    @GetMapping("/getHomeData")
-    public Message getHomeData(HttpServletRequest request) {
-        Integer masterId = getHeaderMasterId(request);
-        ApiAssert.notNull(masterId, "masterId " + I18NUtil.get("guidecore.master.valueRuleError"));
-
-        GcUser user = this.getGcUser();
-        SysSystem sys = this.getSystem();
-
-        GcUserAccess userAccess =
-                userAccessService.getUserAccessByMasterIdAndUserId(masterId, user.getId());
-        ApiAssert.notNull(userAccess, 403, "没有访问空间的权限");
-        GcUserAccessPermission permission =
-                userAccessService.getUserAccessPermission(userAccess.getId());
-        ApiAssert.notNull(permission, 403, "没有找到用户权限表");
-        List<Integer> subIds = permission.getSubPermission().toJavaList(Integer.class);
-
-        GcMaster master = masterService.getMasterById(masterId);
-        master.setLogoFullUrl(sysFileService.getResFullUrl(master.getLogoFile(), request));
-
-        Message message = new Message();
-        return message;
-    }
-
     @ApiOperation(value = "视频详情页", httpMethod = "GET")
     @GetMapping("/videoDetail")
     public Message videoDetail(HttpServletRequest request, Integer videoId) {
