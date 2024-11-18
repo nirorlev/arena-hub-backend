@@ -37,7 +37,6 @@ import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAccessExt;
-import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;

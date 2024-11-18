@@ -6,7 +6,6 @@ import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -30,7 +30,6 @@ import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcSubjectComplete;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.entity.GcUserAnswer;
 import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.entity.GcUserFabulous;
