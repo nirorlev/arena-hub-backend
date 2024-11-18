@@ -1,25 +1,81 @@
 package com.threeatom.guidecore.controller.api.manager;
 
-import com.threeatom.common.exception.PermitException;
-import com.threeatom.common.permissions.service.AuthorizationService;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.threeatom.common.ApiAssert;
+import com.threeatom.common.controller.Message;
+import com.threeatom.common.exception.PermitException;
+import com.threeatom.common.exception.SystemException;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.common.redis.RedisOperator;
+import com.threeatom.constant.ObjectStorageConstants;
 import com.threeatom.constant.SysConstant;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.constant.AccessCodeType;
+import com.threeatom.guidecore.constant.CommonConstant;
+import com.threeatom.guidecore.constant.EnvType;
+import com.threeatom.guidecore.constant.LevelType;
+import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcManager;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcMasterHomeInfo;
+import com.threeatom.guidecore.entity.GcResource;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.PtLoginConfig;
+import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.service.CourseContentService;
+import com.threeatom.guidecore.service.EventPublisherService;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.service.GcMasterHomeInfoService;
+import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcResourceService;
+import com.threeatom.guidecore.service.GcSubjectAssociationService;
+import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.GcUserAccessPermissionService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcUserVideoActionService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.GvgMasterService;
+import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.PtLoginConfigService;
+import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
+import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysFileCaption;
+import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileCaptionService;
+import com.threeatom.system.service.SysFileService;
+import com.threeatom.utils.ToolUtil;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.crypto.hash.SimpleHash;
@@ -34,25 +90,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.alibaba.fastjson.JSONObject;
-import com.threeatom.common.ApiAssert;
-import com.threeatom.common.controller.Message;
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.constant.ObjectStorageConstants;
-import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.entity.SysFile;
-import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.ToolUtil;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("/api/v1/guidecore/manager")
@@ -466,25 +503,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
         LOGGER.info("randomToken: "+randomToken);
         redisOperator.set(masterRandomToken+master.getId(),randomToken,300);//300秒
         return new Message().ok().addData("subjectImportToken", randomToken);
-    }
-
-    @ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
-    @PostMapping("/saveSub")
-    public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject sub,HttpServletRequest request) {
-        ApiAssert.ifStringNotInList(sub.getName(), CommonConstant.defaultNoCourseOrVideName, "课程名称错误，不可用该值");
-
-        GcManager manager = this.getManager();
-        GcMaster master = this.getMaster();
-        Integer masterId = null;
-        if (null==master&&null!=request.getHeader("masterId")){
-            masterId = Integer.parseInt(request.getHeader("masterId"));
-        }else {
-            masterId = master.getId().intValue();
-        }
-        master = masterService.getById(masterId);
-        GcUser user = this.getGcUser();
-        subService.saveSubInfo(sub,manager,master,user,request);
-        return new Message().ok("添加成功！").addData("sync", sub);
     }
 
     @ApiOperation(value = "修改课程排序", httpMethod = "POST")

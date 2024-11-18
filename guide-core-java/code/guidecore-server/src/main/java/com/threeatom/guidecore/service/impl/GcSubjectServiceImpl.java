@@ -1406,7 +1406,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 accessIds = accessList.stream().map(GcAccess::getId).collect(Collectors.toList());
             }
 
-            if (TableConstant.COMMON_ZERO!=accessList.size()) {
+            if (!accessList.isEmpty()) {
                 for (GcAccess gcAccess : accessList) {
                     accessIds.add(gcAccess.getId());
                     if (null!=sub.getAccessIds()&&sub.getAccessIds().contains(gcAccess.getId())){
@@ -1430,39 +1430,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 }
 
                 gcAccessService.insertOrUpdateList(accessList);
-                List<Integer> userAccessList = userAccessService.selectGetUserAccessIdListUserIds(masterId, accessIds);
-
-                List<GcUserAccessPermission> gcUserAccessPermissions = new ArrayList<>();
-                if (TableConstant.COMMON_ZERO!=userAccessList.size()){
-                    gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUserAccessIdList(userAccessList);
-                }
-                for (GcUserAccessPermission accessPermission : gcUserAccessPermissions) {
-                    if (null!=accessPermission.getMaySubjectJson()){
-                        if (!accessPermission.getMaySubjectJson().contains(sub.getId())) {
-                            accessPermission.getMaySubjectJson().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray subPermission = new JSONArray();
-                        subPermission.add(sub.getId());
-                        accessPermission.setMaySubjectJson(subPermission);
-                    }
-                    if (null!=accessPermission.getSubPermission()){
-                        if (!accessPermission.getSubPermission().contains(sub.getId())) {
-                            accessPermission.getSubPermission().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray subPermission = new JSONArray();
-                        subPermission.add(sub.getId());
-                        accessPermission.setSubPermission(subPermission);
-                    }
-                }
-                if (TableConstant.COMMON_ZERO!=gcUserAccessPermissions.size()){
-                    gcUserAccessPermissionService.updateGcUserAccessPermissions(gcUserAccessPermissions);
-                }
             }
 
             //must
-            if(null!=sub.getMustAccessIds()&&TableConstant.COMMON_ZERO != sub.getMustAccessIds().size()&&null==sub.getAllPublished()){
+            if(null!=sub.getMustAccessIds()&& !sub.getMustAccessIds().isEmpty() &&null==sub.getAllPublished()){
                 mustAccessList = gcAccessService.selectMasterIdAndIds(masterId, sub.getMustAccessIds());
             }
             List<Integer> mustAccessIds = new ArrayList<>();
@@ -1476,7 +1447,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 sub.getMustAccessIds().addAll(mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList()));
                 mustAccessIds = mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList());
             }
-            if (TableConstant.COMMON_ZERO!=mustAccessList.size()){
+            if (!mustAccessList.isEmpty()){
                 for (GcAccess gcAccess : mustAccessList) {
                     mustAccessIds.add(gcAccess.getId());
                     if (null!=sub.getMustAccessIds()&&sub.getMustAccessIds().contains(gcAccess.getId())){
@@ -1498,36 +1469,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     }
                 }
                 gcAccessService.insertOrUpdateList(mustAccessList);
-                List<Integer> userAccessList = userAccessService.selectGetUserAccessIdListUserIds(masterId, mustAccessIds);
-
-                List<GcUserAccessPermission> gcUserAccessPermissions = new ArrayList<>();
-                if (TableConstant.COMMON_ZERO!=userAccessList.size()){
-                    gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUserAccessIdList(userAccessList);
-                }
-                for (GcUserAccessPermission accessPermission : gcUserAccessPermissions) {
-                    if (null!=accessPermission.getMustSubjectJson()){
-                        if (!accessPermission.getMustSubjectJson().contains(sub.getId())) {
-                            accessPermission.getMustSubjectJson().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray jsonArray = new JSONArray();
-                        jsonArray.add(sub.getId());
-                        accessPermission.setMustSubjectJson(jsonArray);
-                    }
-
-                    if (null!=accessPermission.getSubPermission()){
-                        if (!accessPermission.getSubPermission().contains(sub.getId())) {
-                            accessPermission.getSubPermission().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray jsonArray = new JSONArray();
-                        jsonArray.add(sub.getId());
-                        accessPermission.setSubPermission(jsonArray);
-                    }
-                }
-                if (TableConstant.COMMON_ZERO!=gcUserAccessPermissions.size()){
-                    gcUserAccessPermissionService.updateGcUserAccessPermissions(gcUserAccessPermissions);
-                }
             }
         }
         sub.setCreateTime(subs.getCreateTime());

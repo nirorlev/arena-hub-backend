@@ -5,9 +5,6 @@ import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import java.util.List;
 
 public interface GcUserAccessPermissionService extends IService<GcUserAccessPermission> {
-    int updateGcUserAccessPermissions(List<GcUserAccessPermission> perList);
-
-    void updateGcUserAccessPermissionsChannel(List<GcUserAccessPermission> perList);
 
     GcUserAccessPermission getPermissionByUid(Integer userId, Integer masterId);
 

@@ -1905,30 +1905,6 @@ public class PowtoonController extends GuideCoreController {
         }
         gcSubjectService.saveSubInfo(course, null, master, user, request);
 
-        List<GcUserAccessPermission> permission =
-            gcUserAccessPermissionService.getPermissionByUidList(user.getId(), masterId);
-        if (null == course.getIsMyView() || course.getIsMyView().equals(TableConstant.COMMON_ONE)) {
-            for (GcUserAccessPermission userAccessPermission : permission) {
-                if (null != userAccessPermission.getMustSubjectJson()) {
-                    while (userAccessPermission.getMustSubjectJson().contains(course.getId())) {
-                        userAccessPermission.getMustSubjectJson().remove(course.getId());
-                    }
-                }
-            }
-            gcUserAccessPermissionService.updateBatchById(permission);
-        } else {
-            for (GcUserAccessPermission userAccessPermission : permission) {
-                if (null == userAccessPermission.getMustSubjectJson()) {
-                    JSONArray jsonArray = new JSONArray();
-                    jsonArray.add(course.getId());
-                    userAccessPermission.setMustSubjectJson(jsonArray);
-                } else {
-                    userAccessPermission.getMustSubjectJson().add(course.getId());
-                }
-            }
-            gcUserAccessPermissionService.updateBatchById(permission);
-        }
-
         return new Message().ok("添加成功！").addData("sync", course);
     }
 
