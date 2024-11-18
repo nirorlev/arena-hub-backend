@@ -1,8 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.entity.GcAccess;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -49,13 +47,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
     @Override
     public void updatePermissionData(Integer masterId,Integer userId) {
         this.baseMapper.updatePermissionData(masterId,userId);
-    }
-
-    @Override
-    public List<GcUserAccessPermission> getPermissionByUserAccessIdList(List<Integer> ids) {
-        QueryWrapper queryWrapper = new QueryWrapper<GcAccess>();
-        queryWrapper.in("user_access_id",ids);
-        return this.baseMapper.selectList(queryWrapper);
     }
 
     @Override

@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface GcUserAccessPermissionService extends IService<GcUserAccessPermission> {
 
-    List<GcUserAccessPermission> getPermissionByUserAccessIdList(List<Integer> ids);
-
     void insertUserPermission(List<GcUserAccessPermission> permissionList);
 
     List<GcUserAccessPermission> getPermissionByUidList(Integer userId, Integer masterId);

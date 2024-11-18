@@ -1535,13 +1535,7 @@ public class PowtoonController extends GuideCoreController {
     @ApiOperation(value = "updateMaySubject", httpMethod = "GET")
     @GetMapping("/updateMaySubject")
     public Message updateMaySubject(Integer subId, Integer accessId, Integer state, HttpServletRequest request) {
-        Integer masterId = Integer.parseInt(request.getHeader("masterid"));
-        GcMaster master = gcMasterService.getById(masterId);
         GcAccess access = accessService.getById(accessId);
-        List<GcUserAccess> userAccessList = gcUserAccessService.selectAllUserAccessByAccessId(accessId, masterId);
-        List<GcUserAccessPermission> userAccessPermissions =
-            gcUserAccessPermissionService.getPermissionByUserAccessIdList(
-                userAccessList.stream().map(GcUserAccess::getId).collect(Collectors.toList()));
         //关闭
         if (TableConstant.COMMON_ZERO == state) {
             if (null != access.getMustSubjectJson()) {
@@ -1554,19 +1548,6 @@ public class PowtoonController extends GuideCoreController {
                 jsonArray.add(subId);
                 access.setMaySubjectJson(jsonArray);
             }
-
-            for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
-                if (null != userAccessPermission.getMustSubjectJson()) {
-                    userAccessPermission.getMustSubjectJson().remove(subId);
-                }
-                if (null != userAccessPermission.getMaySubjectJson()) {
-                    userAccessPermission.getMaySubjectJson().add(subId);
-                } else {
-                    JSONArray jsonArray = new JSONArray();
-                    jsonArray.add(subId);
-                    userAccessPermission.setMaySubjectJson(jsonArray);
-                }
-            }
         } else {
             if (null != access.getMaySubjectJson()) {
                 access.getMaySubjectJson().remove(subId);
@@ -1578,22 +1559,9 @@ public class PowtoonController extends GuideCoreController {
                 jsonArray.add(subId);
                 access.setMustSubjectJson(jsonArray);
             }
-            for (GcUserAccessPermission userAccessPermission : userAccessPermissions) {
-                if (null != userAccessPermission.getMaySubjectJson()) {
-                    userAccessPermission.getMaySubjectJson().remove(subId);
-                }
-                if (null != userAccessPermission.getMustSubjectJson()) {
-                    userAccessPermission.getMustSubjectJson().add(subId);
-                } else {
-                    JSONArray jsonArray = new JSONArray();
-                    jsonArray.add(subId);
-                    userAccessPermission.setMustSubjectJson(jsonArray);
-                }
-            }
         }
         contentGroupCourseAssignmentService.updateCourseAssignmentMandatoryOpposite(subId, accessId);
         accessService.saveOrUpdate(access);
-        gcUserAccessPermissionService.saveOrUpdateBatch(userAccessPermissions);
         return new Message().ok();
     }
 
