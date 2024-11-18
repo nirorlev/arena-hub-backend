@@ -769,4 +769,9 @@
                                  referencedTableName="groups" referencedColumnNames="powtoon_group_code"
                                  onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+
+    <changeSet id="drop-gc-user-access-permission-table" author="vprokh">
+        <dropTable tableName="gc_user_access_permission"/>
+    </changeSet>
+
 </databaseChangeLog>
