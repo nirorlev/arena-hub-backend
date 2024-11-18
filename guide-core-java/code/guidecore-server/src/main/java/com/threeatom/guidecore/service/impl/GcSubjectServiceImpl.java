@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserGroupRole;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -232,13 +233,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 List<Integer> publicCourseIds = new ArrayList<>();
                 Integer type = Integer.parseInt(request.getAttribute("type").toString());
                 if(type.equals(TableConstant.COMMON_FOUR)){
-                    List<GcUserAccessPermission> permissionList =  gcUserAccessPermissionService.getGroupMemberByUidList(Integer.parseInt(request.getAttribute("userId").toString()),masterId);
-                    for (GcUserAccessPermission permission : permissionList) {
-                        if(null!=permission.getMustSubjectJson()){
-                            publicCourseIds.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
-                        }
-
-                    }
+                    List<Integer> courseIds = courseAssignmentService.getMustCourseIds(
+                        Integer.parseInt(request.getAttribute("userId").toString()), masterId, UserGroupRole.GROUP_MEMBER);
+                    publicCourseIds.addAll(courseIds);
                 }else if (type.equals(TableConstant.COMMON_ZERO)||type.equals(TableConstant.COMMON_TWO)){
                     publicCourseIds = baseMapper.getPublicSubjectIds(masterId);
                 }

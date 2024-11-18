@@ -1728,17 +1728,10 @@ public class PowtoonController extends GuideCoreController {
             gcSubjectService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ZERO);
 
 
-        List<Integer> idLists = new ArrayList<>();
-        List<GcUserAccessPermission> permissionList =
-            gcUserAccessPermissionService.getGroupMemberByUidList(user.getId(), master.getId());
-        for (GcUserAccessPermission permission : permissionList) {
-            if (null != permission.getMustSubjectJson()) {
-                idLists.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
-            }
-        }
+        List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(), UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, TableConstant.gcSubject_state_visible_1,
-                null, master.getId(), user.getId(), channelIdList, idLists);
+                null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
                 master.getId(), user.getId(), channelIdList, publicSubjectIds);
@@ -1750,12 +1743,12 @@ public class PowtoonController extends GuideCoreController {
         queryWrapper.eq("user_id", user.getId());
         List<PtViewSubject> subjectList = viewSubjectService.list(queryWrapper);
         subjectList.forEach(i -> {
-            idLists.add(i.getSubjectId());
+            courseIds.add(i.getSubjectId());
         });
 
         Integer DiscoverNew =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, TableConstant.gcSubject_state_visible_1,
-                null, master.getId(), user.getId(), channelIdList, idLists);
+                null, master.getId(), user.getId(), channelIdList, courseIds);
 
         return new Message().ok()
             .addData("MyAssignments", mustSubjectSize)

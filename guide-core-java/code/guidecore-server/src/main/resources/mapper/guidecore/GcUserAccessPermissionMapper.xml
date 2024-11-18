@@ -140,13 +140,4 @@
         and ua.role_json::text like concat('%',#{roleName},'%')
     </select>
 
-    <select id="getGroupMemberByUidList" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumn" />
-        FROM gc_user_access_permission a
-        left join gc_user_access ua on ua.id = a.user_access_id
-        where ua.user_id = #{userId} and ua.master_id = #{masterId}
-        and ua.role_json::text like concat('%','groupMember','%')
-    </select>
-
 </mapper>

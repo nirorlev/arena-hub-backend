@@ -27,8 +27,6 @@ public interface GcUserAccessPermissionMapper extends BaseMapper<GcUserAccessPer
 
     GcUserAccessPermission getPermissionByUid(Integer userId, Integer masterId);
 
-    List<GcUserAccessPermission> getGroupMemberByUidList(Integer userId, Integer masterId);
-
     List<GcUserAccessPermission> getGroupMemberPermissionByUidList(
             Integer userId, Integer masterId, String roleName);
 

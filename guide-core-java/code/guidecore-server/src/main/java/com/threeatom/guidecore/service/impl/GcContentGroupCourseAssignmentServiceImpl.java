@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -162,6 +163,15 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
         return filterCourseIdsByPredicate(contentGroupCourseAssignments,
             assignment -> assignment.getMandatory() == OPTIONAL_COURSE_VALUE);
+    }
+
+    @Override
+    public List<Integer> getMustCourseIds(Integer userId, Integer masterId, UserGroupRole userRole) {
+        List<GcContentGroupCourseAssignment> courseAssignments =
+            this.baseMapper.getCourseAssignmentsByRoleUserAndMasterId(userId, masterId, userRole.getRole());
+
+        return filterCourseIdsByPredicate(
+            courseAssignments, assignment -> assignment.getMandatory() == MANDATORY_COURSE_VALUE);
     }
 
     @Override

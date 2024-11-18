@@ -50,11 +50,6 @@ public class GcUserAccessPermissionServiceImpl  extends ServiceImpl<GcUserAccess
     }
 
     @Override
-    public List<GcUserAccessPermission> getGroupMemberByUidList(Integer userId , Integer masterId){
-        return this.baseMapper.getGroupMemberByUidList(userId,masterId);
-    }
-
-    @Override
     public List<GcUserAccessPermission> getGroupMemberPermissionByUidList(Integer userId, Integer masterId,String roleName) {
         return this.baseMapper.getGroupMemberPermissionByUidList(userId,masterId,roleName);
     }
