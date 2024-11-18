@@ -50,8 +50,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     private static final String CACHE_TAG = "GcUserAccess";
 
-    private static final String KEY_TAG_ENTITY = "'entity:uid-'+";
-
     @Autowired RedisOperator redisOperator;
 
     @Autowired @Lazy private GcAccessService gcAccessService;
@@ -83,14 +81,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
             Integer userId, Integer masterId) {
 
         return this.baseMapper.selectPtUserAccessByMasterIdAndUserId(userId, masterId);
-    }
-
-    @Override
-    public void clearCache(Integer userId, Integer masterId) {
-
-        redisOperator.del(
-                redisOperator.getFullKeyByValueAndKey(
-                        CACHE_TAG, "entity:uid-" + userId + "-masterId-" + masterId));
     }
 
     @Override
@@ -165,19 +155,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public Integer createOrUpdateById(GcUserAccessExt userAccessExt) {
-        if (userAccessExt.getId() == null) return this.baseMapper.insertGcUserAccessExt(userAccessExt);
-        else return this.baseMapper.updateGcUserAccessExtById(userAccessExt);
-    }
-
-    @Override
-    public List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
-            Integer masterId, List<Integer> userIds, String order) {
-
-        return this.baseMapper.selectUserAccessExtListByMasterIdAndUserIds(masterId, userIds, order);
-    }
-
-    @Override
     public List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds) {
         QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
         queryWrapper.in("user_access_id", userAccessIds);
@@ -212,16 +189,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     public int updateUserAccessPermissions(List<GcUserAccessPermission> perList) {
         if (perList == null || perList.size() < 1) return 0;
         return this.userAccessPermissionMapper.updateGcUserAccessPermissions(perList);
-    }
-
-    @Override
-    public Map<String, Integer> getLastUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        return this.baseMapper.selectLastUsersNum(lastDays, teacherAccessId);
-    }
-
-    @Override
-    public Map<String, Integer> getActiveUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        return this.baseMapper.selectActiveUsersNum(lastDays, teacherAccessId);
     }
 
     @Override
@@ -426,13 +393,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
         queryWrapper.eq("access_id", accessId);
         return this.list(queryWrapper);
-    }
-
-    @Override
-    public GcUserAccess getByUserId(Integer userId) {
-        QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
-        queryWrapper.eq("user_id", userId);
-        return getOne(queryWrapper);
     }
 
     @Override

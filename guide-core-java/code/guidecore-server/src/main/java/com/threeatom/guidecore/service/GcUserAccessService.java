@@ -25,8 +25,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<GcUserAccess> getUserAccessListByUserId(Integer userId, HttpServletRequest request);
 
-    void clearCache(Integer userId, Integer masterId);
-
     void clearCacheAll();
 
     List<Integer> getUserAccessListUserIds(Integer masterId, List<Integer> accessIds);
@@ -40,18 +38,9 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
 
     List<GcUserAccess> getUsersByAccessIds(List<Integer> accessIds, UserCommonInfo commonInfo);
 
-    Integer createOrUpdateById(GcUserAccessExt userAccessExt);
-
-    List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
-            Integer masterId, List<Integer> userIds, String order);
-
     List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds);
 
     int updateUserAccessPermissions(List<GcUserAccessPermission> perList);
-
-    Map<String, Integer> getLastUsersNum(List<Integer> lastDays, Integer teacherAccessId);
-
-    Map<String, Integer> getActiveUsersNum(List<Integer> lastDays, Integer teacherAccessId);
 
     Map<String, Long> getMasterIdUsersNum(Integer masterId);
 
@@ -73,8 +62,6 @@ public interface GcUserAccessService extends GcUserAccessServiceBll {
     GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId);
 
     List<GcUserAccess> getAccessByAccessId(Integer accessId);
-
-    GcUserAccess getByUserId(Integer userId);
 
     List<GcUserAccess> getUserAccessListByMasterIdAndUserId(
             List<Integer> userIdList, Integer masterId);

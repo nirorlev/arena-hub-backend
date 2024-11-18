@@ -6,16 +6,6 @@
 		delete from gc_subject_association where
 		master_id=#{masterId} and subject_id = #{subjectId}
 	</delete>
-	
-	<update id="updateOrder">
-	    update gc_subject_association
-	    set order = #{order} where master_id = #{masterId} and subject_id = #{subjectId}
-	</update>
-
-    <select id="selectSubsByMasterId" parameterType="Integer" resultType="com.threeatom.guidecore.entity.GcSubjectAssociation">
-		select * from gc_subject_association where
-		master_id=#{masterId}
-	</select>
 
     <select id="selectPackageStatus" resultType="java.lang.Integer">
         select COALESCE(status, 0)

@@ -6,7 +6,5 @@ import java.util.List;
 
 public interface GcSubjectAssociationService extends IService<GcSubjectAssociation> {
 
-    List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId);
-
     Integer selectPackageStatus(Integer masterId);
 }

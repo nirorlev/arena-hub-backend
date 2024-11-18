@@ -8,11 +8,7 @@ public interface GcSubjectAssociationMapper extends BaseMapper<GcSubjectAssociat
 
     Integer deleteGcSubjectAssociation(Integer subjectId, Integer masterId);
 
-    long updateOrder(Integer order, Integer subjectId, Integer masterId);
-
     long bulkUpdatOrderByMasterIdAndSubjetId(List<GcSubjectAssociation> saList);
-
-    List<GcSubjectAssociation> selectSubsByMasterId(Integer masterId);
 
     Integer selectPackageStatus(Integer masterId);
 }

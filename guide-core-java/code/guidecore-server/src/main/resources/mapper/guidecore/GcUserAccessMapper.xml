@@ -180,17 +180,6 @@
         WHERE ua.master_id=#{masterId} AND ua.manager_id=#{managerId}
     </select>
 
-    <select id="selectUserAccessByUserAndMasterContext" resultMap="baseResultMap">
-        select
-        <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />
-        FROM
-        gc_user_access ua
-        LEFT JOIN gc_access a on ua.access_id=a.id
-        LEFT JOIN gc_master m on ua.master_id=m.id
-        WHERE m.context=#{context} AND ua.user_id=#{userId}
-    </select>
-
     <select id="selectUserAccessByUser" resultMap="fullResultMap">
         select
         <include refid="baseColumn" />
@@ -248,29 +237,6 @@
             <if test="info.name!=null and info.name !=''">
                 and concat(ui.last_name,ui.first_name) like concat('%',#{info.name},'%')
             </if>
-        </if>
-    </select>
-
-    <select id="selectUserAccessExtListByMasterIdAndUserIds" resultType="map">
-        SELECT ua.user_id,ui.id as info_id,ui.first_name,ui.last_name,
-        uae.log_in_time as lastLogInDate
-        from gc_user_access_ext uae
-        LEFT JOIN gc_user_access ua on uae.user_access_id=ua.id
-        LEFT JOIN gc_user u on u.id=ua.user_id
-        LEFT JOIN gc_user_info ui on ui.id=u.info_id
-        WHERE 1=1
-        <if test="userIds != null and userIds.size > 0">
-            AND ua.user_id in
-            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
-                #{userId}
-            </foreach>
-        </if>
-        and master_id=#{masterId}
-        <if test="order == 'asc'">
-            ORDER BY lastLogInDate asc
-        </if>
-        <if test="order == 'desc'">
-            ORDER BY lastLogInDate desc
         </if>
     </select>
 
@@ -361,21 +327,6 @@
         ORDER BY m.update_time DESC
     </select>
 
-    <select id="selectGcUserAccessExtByAccessId" resultType="gcUserAccessExt">
-        select id,user_access_id,log_in_time from gc_user_access_ext WHERE user_access_id=#{userAccessId}
-    </select>
-
-    <select id="selectLastUsersNum" resultType="map">
-        select
-        <foreach collection="lastDays" index="index" item="lastday" separator=",">
-            COUNT(CASE WHEN CURRENT_DATE - '#{lastday} day'::interval &gt;= ua.create_time THEN TRUE END) as day_#{lastday}
-        </foreach>
-        from gc_user_access ua
-        LEFT JOIN gc_access a ON ua.access_id=a.id
-        WHERE
-        a.admin_id=#{teacherAccessId}
-    </select>
-
     <select id="selectActiveUsersNum" resultType="map">
         select
         <foreach collection="lastDays" index="index" item="lastday" separator=",">
@@ -405,28 +356,6 @@
         a.admin_id=#{teacherAccessId}
     </select>
 
-    <insert id="insertGcUserAccessExt" parameterType="GcUserAccessExt" useGeneratedKeys="true" keyProperty="id">
-        insert into gc_user_access_ext
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-
-            <if test="userAccessId != null">
-                user_access_id,
-            </if>
-            <if test="logInTime != null">
-                log_in_time,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="userAccessId != null">
-                #{userAccessId,jdbcType=INTEGER},
-            </if>
-            <if test="logInTime != null">
-                #{logInTime,jdbcType=TIMESTAMP},
-            </if>
-        </trim>
-
-    </insert>
-
     <insert id="insertUserAccessList">
         insert into gc_user_access (user_id,master_id,access_id,role_json,parent_code)
         values
@@ -442,19 +371,6 @@
         role_json = EXCLUDED.role_json,
         parent_code = EXCLUDED.parent_code
     </insert>
-
-    <update id="updateGcUserAccessExtById" parameterType="GcUserAccessExt">
-        update gc_user_access_ext
-        <set>
-            <if test="userAccessId != null">
-                user_access_id = #{userAccessId,jdbcType=INTEGER},
-            </if>
-            <if test="logInTime != null">
-                log_in_time = #{logInTime,jdbcType=TIMESTAMP},
-            </if>
-        </set>
-        where id = #{id,jdbcType=INTEGER}
-    </update>
 
     <select id="getAccessByUserIdMaster" resultMap="baseResultMap">
         select
@@ -481,34 +397,6 @@
                 #{userId}
             </foreach>
         </if>
-    </select>
-
-    <select id="getIdsListAccessIds" resultMap="baseResultMap">
-        select id from gc_user_access
-        where master_id = #{masterId}
-        <if test="accessIds != null">
-            AND access_id in
-            <foreach collection="accessIds" item="ids" index="index" open="(" close=")" separator=",">
-                #{ids}
-            </foreach>
-        </if>
-    </select>
-
-    <select id="countUsersInPortal" resultMap="baseResultMap">
-        SELECT a.*,max( mess.update_time ) AS userLastActivityTime
-        from (
-                 select
-                     ua.master_id AS master_id,
-                     count( ua.user_id ) AS usersNumInPortal,
-                     ua.id as userid
-                 FROM
-                     gc_user_access ua
-                         LEFT JOIN gc_user us ON us.id = ua.user_id
-                 GROUP BY
-                     ua.master_id
-             )a
-                 LEFT JOIN gc_master_message mess on mess.master_id=a.master_id
-        GROUP BY a.master_id
     </select>
 
     <select id="selectPtUserAccessByMasterIdAndUserId" resultMap="baseResultMap">
