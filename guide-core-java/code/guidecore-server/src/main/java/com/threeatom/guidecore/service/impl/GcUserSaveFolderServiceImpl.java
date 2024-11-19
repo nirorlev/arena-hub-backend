@@ -10,7 +10,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
@@ -245,19 +245,19 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public List<PlaylistDto> ownedPlaylists(PortalUser portalUser) {
+    public List<PlaylistWithDetailsDto> ownedPlaylists(PortalUser portalUser) {
         List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser);
         return convertPlaylist(portalUser, playlists);
     }
 
     @Override
-    public List<PlaylistDto> subscribed(PortalUser portalUser) {
+    public List<PlaylistWithDetailsDto> subscribed(PortalUser portalUser) {
         List<GcUserSaveFolder> playlists = this.baseMapper.subscribedPlaylists(portalUser);
         return convertPlaylist(portalUser, playlists);
     }
 
     @Override
-    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize) {
+    public PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize) {
         List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, cursor);
         Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
 
@@ -281,13 +281,13 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return gcVideoService.playlistLatestVideos(portalUser);
     }
 
-    private List<PlaylistDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
+    private List<PlaylistWithDetailsDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                PlaylistDto playlistDto = playlistMapping.map(playlist);
-                playlistDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistDto.getSnapshotUrl()));
-                return playlistDto;
+                PlaylistWithDetailsDto playlistWithDetailsDto = playlistMapping.map(playlist);
+                playlistWithDetailsDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistWithDetailsDto.getSnapshotUrl()));
+                return playlistWithDetailsDto;
             })
             .collect(Collectors.toList());
     }

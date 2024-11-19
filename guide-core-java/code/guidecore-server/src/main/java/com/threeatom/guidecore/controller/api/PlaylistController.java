@@ -2,7 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -34,7 +34,7 @@ public class PlaylistController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of playlists owned by the current user")
-    public ResponseEntity<List<PlaylistDto>> owned(HttpServletRequest request) {
+    public ResponseEntity<List<PlaylistWithDetailsDto>> owned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -44,7 +44,7 @@ public class PlaylistController {
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of playlists subscribed by the current user")
-    public ResponseEntity<List<PlaylistDto>> subscribed(HttpServletRequest request) {
+    public ResponseEntity<List<PlaylistWithDetailsDto>> subscribed(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -54,7 +54,7 @@ public class PlaylistController {
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of playlists discoverable by the current user")
-    public ResponseEntity<PageableDto<PlaylistDto>> discoverable(
+    public ResponseEntity<PageableDto<PlaylistWithDetailsDto>> discoverable(
         @RequestParam(required = false) String pageAfter,
         @RequestParam(required = false, defaultValue = "20") Integer pageSize, HttpServletRequest request) {
 

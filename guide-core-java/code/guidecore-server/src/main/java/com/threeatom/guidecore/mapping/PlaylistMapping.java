@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.response.PlaylistContentDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -18,7 +17,7 @@ public interface PlaylistMapping {
     @Mapping(target = "snapshotUrl", source = "saveContentList", qualifiedByName = "mapSnapshotUrl")
     @Mapping(target = "videoNum", source = "saveContentList", qualifiedByName = "mapVideoNum")
     @Mapping(target = "owner", source = "user")
-    PlaylistDto map(GcUserSaveFolder playlist);
+    PlaylistWithDetailsDto map(GcUserSaveFolder playlist);
 
     @Named("mapSnapshotUrl")
     default String mapSnapshotUrl(List<GcUserSaveContent> playlistContent) {

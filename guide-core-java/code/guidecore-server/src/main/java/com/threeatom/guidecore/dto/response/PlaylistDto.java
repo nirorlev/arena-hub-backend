@@ -17,20 +17,11 @@ public class PlaylistDto {
     @ApiModelProperty(value = "Title of the playlist")
     private String name;
 
-    @ApiModelProperty(value = "Permissions of the current user on the playlist")
-    private Map<String, Boolean> permissions;
-
-    @ApiModelProperty(value = "Privacy visibility for sharable button")
-    private Boolean isPrivate;
-
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
 
     @ApiModelProperty(value = "URL of the playlist's background")
     private String snapshotUrl;
-
-    @ApiModelProperty(value = "Total number of videos in the playlist")
-    private Integer videoNum;
 
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;

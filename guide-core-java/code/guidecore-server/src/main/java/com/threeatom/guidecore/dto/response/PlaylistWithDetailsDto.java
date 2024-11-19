@@ -1,0 +1,21 @@
+package com.threeatom.guidecore.dto.response;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
+
+@ApiModel(description = "Data Transfer Object representing a Channel")
+@Getter
+@Setter
+public class PlaylistWithDetailsDto extends PlaylistDto {
+    @ApiModelProperty(value = "Permissions of the current user on the playlist")
+    private Map<String, Boolean> permissions;
+
+    @ApiModelProperty(value = "Privacy visibility for sharable button")
+    private Boolean isPrivate;
+
+    @ApiModelProperty(value = "Total number of videos in the playlist")
+    private Integer videoNum;
+}
