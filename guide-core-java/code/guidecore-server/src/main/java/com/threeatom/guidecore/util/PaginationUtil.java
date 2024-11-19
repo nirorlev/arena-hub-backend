@@ -11,15 +11,13 @@ public class PaginationUtil {
     public <T, U> PageableDto<T> createPageableDto(List<U> items, int totalCount, int pageSize,
                                                    Function<List<U>, List<T>> itemsConverter,
                                                    Function<List<U>, String> cursorExtractor) {
-        List<T> convertedItems = itemsConverter.apply(items);
-        boolean hasNextPage = hasNextPage(convertedItems, pageSize);
-
+        boolean hasNextPage = hasNextPage(items, pageSize);
         if (hasNextPage) {
-            convertedItems = convertedItems.subList(0, pageSize);
+            items = items.subList(0, items.size());
         }
 
         return PageableDto.<T>builder()
-            .results(convertedItems)
+            .results(itemsConverter.apply(items))
             .pagination(PaginationDto.builder()
                 .count(totalCount)
                 .pageSize(pageSize)
