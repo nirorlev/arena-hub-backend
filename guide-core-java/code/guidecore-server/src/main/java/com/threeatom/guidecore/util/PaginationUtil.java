@@ -12,19 +12,25 @@ public class PaginationUtil {
                                                    Function<List<U>, List<T>> itemsConverter,
                                                    Function<List<U>, String> cursorExtractor) {
         boolean hasNextPage = hasNextPage(items, pageSize);
-        if (hasNextPage) {
-            items = items.subList(0, items.size());
-        }
+        List<U> paginatedList = getPaginatedList(items, pageSize, hasNextPage);
 
         return PageableDto.<T>builder()
-            .results(itemsConverter.apply(items))
+            .results(itemsConverter.apply(paginatedList))
             .pagination(PaginationDto.builder()
                 .count(totalCount)
                 .pageSize(pageSize)
-                .cursor(cursorExtractor.apply(items))
+                .cursor(cursorExtractor.apply(paginatedList))
                 .hasNextPage(hasNextPage)
                 .build())
             .build();
+    }
+
+    private static <U> List<U> getPaginatedList(List<U> items, int pageSize, boolean hasNextPage) {
+        if (hasNextPage) {
+            return items.subList(0, pageSize);
+        }
+
+        return items;
     }
 
     private <T> boolean hasNextPage(List<T> items, int pageSize) {

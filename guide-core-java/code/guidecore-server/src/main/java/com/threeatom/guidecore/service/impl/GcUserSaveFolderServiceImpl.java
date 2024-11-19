@@ -265,7 +265,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
 
         return PaginationUtil.createPageableDto(playlists, totalCount, pageSize,
-            playlistList -> convertPlaylist(portalUser, playlists), this::playlistNextCursor);
+            playlistList -> convertPlaylist(portalUser, playlistList), this::playlistNextCursor);
     }
 
     private String playlistNextCursor(List<GcUserSaveFolder> playlists) {
