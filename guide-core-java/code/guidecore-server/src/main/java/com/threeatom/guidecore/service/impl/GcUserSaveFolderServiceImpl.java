@@ -296,12 +296,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
-            .map(video -> {
-                VideoWithDetailsDto videoWithDetails = videoMapping.mapWithDetails(video);
-                videoWithDetails.setSnapshotUrl(sysFileService.getFullFileUrl(videoWithDetails.getSnapshotUrl()));
-                videoWithDetails.setFileUrl(sysFileService.getFullFileUrl(videoWithDetails.getFileUrl()));
-                return videoWithDetails;
-            })
+            .map(videoMapping::mapWithDetails)
             .collect(Collectors.toList());
     }
 

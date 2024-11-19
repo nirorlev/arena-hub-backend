@@ -797,7 +797,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
 			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
-		populateLikesData(latestVideos, portalUser.getUserId());
+		populateVideoData(latestVideos, portalUser.getUserId());
 
 		return latestVideos;
 	}
@@ -807,10 +807,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
 	}
 
-	private void populateLikesData(List<GcVideo> videos, Integer userId) {
+	private void populateVideoData(List<GcVideo> videos, Integer userId) {
 		videos.forEach(video -> {
 			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), userId) ? 1 : 0);
 			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
+			video.setSnapshotUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile()));
+			updateVideoUrls(video);
 		});
 	}
 
@@ -844,6 +846,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		videoFile.setSnapshotUrl(snapShotUrl);
 		videoFile.setFullFileUrl(fullFileUrl);
+		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
+	}
+
+	private void updateVideoUrls(GcVideo video) {
+		SysFile videoFile = video.getVideoFile();
+
+		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+		videoFile.setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
 		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
 
