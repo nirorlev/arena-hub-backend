@@ -56,5 +56,5 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 
-    List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser);
+    PageableDto<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 }

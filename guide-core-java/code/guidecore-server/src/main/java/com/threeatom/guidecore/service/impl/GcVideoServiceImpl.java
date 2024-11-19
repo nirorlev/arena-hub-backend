@@ -7,7 +7,6 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -35,7 +34,6 @@ import com.threeatom.system.entity.SysFileCaption;
 import com.threeatom.utils.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -795,13 +793,24 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser) {
-		List<GcVideo> latestUserSubscribedPlaylistVideos =
+	public List<GcVideo> playlistLatestVideos(PortalUser portalUser) {
+		List<GcVideo> latestVideos =
 			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser);
+		populateLikesData(latestVideos, portalUser.getUserId());
 
-		return latestUserSubscribedPlaylistVideos.stream()
-			.map(latestVideo -> convertVideoDetails(latestVideo, portalUser.getUserId()))
-			.collect(Collectors.toList());
+		return latestVideos;
+	}
+
+	@Override
+	public Integer countPlaylistLatestVideos(PortalUser portalUser) {
+		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
+	}
+
+	private void populateLikesData(List<GcVideo> videos, Integer userId) {
+		videos.forEach(video -> {
+			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), userId) ? 1 : 0);
+			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
+		});
 	}
 
 	@Override
@@ -1392,14 +1401,5 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		return VideoSearchResultDto::getVideoWatchingTime;
-	}
-
-	private VideoWithDetailsDto convertVideoDetails(GcVideo video, Integer userId) {
-		VideoWithDetailsDto videoWithDetails = videoMapping.mapWithDetails(video);
-		videoWithDetails.setSnapshotUrl(sysFileService.getFullFileUrl(videoWithDetails.getSnapshotUrl()));
-		videoWithDetails.setFileUrl(sysFileService.getFullFileUrl(videoWithDetails.getFileUrl()));
-		videoWithDetails.setIsLiked(videoActionService.isLikedByUser(video.getId(), userId));
-		videoWithDetails.setLikesCount(videoActionService.countLikeForVideo(video.getId()));
-		return videoWithDetails;
 	}
 }

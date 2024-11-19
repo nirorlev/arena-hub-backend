@@ -15,9 +15,11 @@ import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
 import com.threeatom.guidecore.mapping.PlaylistMapping;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -60,7 +62,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     private PlaylistMapping playlistMapping;
     @Autowired
     private AuthorizationService authorizationService;
-
+    @Autowired
+    private VideoMapping videoMapping;
 
     public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
                                                     HttpServletRequest request) {
@@ -262,10 +265,10 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
 
         return PaginationUtil.createPageableDto(playlists, totalCount, pageSize,
-            playlistList -> convertPlaylist(portalUser, playlists), this::getNextCursor);
+            playlistList -> convertPlaylist(portalUser, playlists), this::playlistNextCursor);
     }
 
-    private String getNextCursor(List<GcUserSaveFolder> playlists) {
+    private String playlistNextCursor(List<GcUserSaveFolder> playlists) {
         if (CollectionUtils.isEmpty(playlists)) {
             return null;
         }
@@ -277,8 +280,29 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser) {
-        return gcVideoService.playlistLatestVideos(portalUser);
+    public PageableDto<VideoWithDetailsDto> playlistLatestVideos(
+        PortalUser portalUser, CursorDto cursor, Integer pageSize) {
+
+        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser);
+        Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
+
+        return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize, this::convertVideoDetails,
+            this::latestPlaylistVideosCursor);
+    }
+
+    private String latestPlaylistVideosCursor(List<GcVideo> videos) {
+        return null;
+    }
+
+    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
+        return latestVideos.stream()
+            .map(video -> {
+                VideoWithDetailsDto videoWithDetails = videoMapping.mapWithDetails(video);
+                videoWithDetails.setSnapshotUrl(sysFileService.getFullFileUrl(videoWithDetails.getSnapshotUrl()));
+                videoWithDetails.setFileUrl(sysFileService.getFullFileUrl(videoWithDetails.getFileUrl()));
+                return videoWithDetails;
+            })
+            .collect(Collectors.toList());
     }
 
     private List<PlaylistWithDetailsDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
@@ -286,7 +310,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
                 PlaylistWithDetailsDto playlistWithDetailsDto = playlistMapping.map(playlist);
-                playlistWithDetailsDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistWithDetailsDto.getSnapshotUrl()));
+                playlistWithDetailsDto.setSnapshotUrl(
+                    sysFileService.getFullFileUrl(playlistWithDetailsDto.getSnapshotUrl()));
                 return playlistWithDetailsDto;
             })
             .collect(Collectors.toList());

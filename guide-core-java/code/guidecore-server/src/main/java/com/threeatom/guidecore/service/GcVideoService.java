@@ -125,6 +125,8 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser);
 
+    Integer countPlaylistLatestVideos(PortalUser portalUser);
+
     GcVideo findByVideoId(Integer videoId);
 
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
@@ -161,5 +163,5 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request);
 
-    List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser);
+    List<GcVideo> playlistLatestVideos(PortalUser portalUser);
 }

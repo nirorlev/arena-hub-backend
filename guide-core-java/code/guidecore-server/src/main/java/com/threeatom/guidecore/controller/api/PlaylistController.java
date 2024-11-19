@@ -66,12 +66,16 @@ public class PlaylistController {
     }
 
     @GetMapping("/videos/latest")
-    public ResponseEntity<List<VideoWithDetailsDto>> playlistsLatestVideos(HttpServletRequest request) {
+    public ResponseEntity<PageableDto<VideoWithDetailsDto>> playlistsLatestVideos(
+        @RequestParam(required = false) String pageAfter,
+        @RequestParam(required = false, defaultValue = "20") Integer pageSize,
+        HttpServletRequest request) {
+
         GcUser currentUser = userService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser));
+        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
     }
 
 }

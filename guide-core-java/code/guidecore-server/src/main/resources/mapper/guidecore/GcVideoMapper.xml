@@ -939,6 +939,15 @@
 
             LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
+        WHERE playlist_follow.user_id = #{portalUser.userId} AND (playlist_follow.update_time &lt; #{cursor.updateTime}
+            OR (playlist_follow.update_time = #{cursor.updateTime} AND playlist_follow.id &lt; #{cursor.id}))
+        ORDER BY playlist_follow.update_time DESC, playlist_follow.id DESC
+    </select>
+
+    <select id="countLatestUserSubscribedPlaylistVideos" resultMap="baseResultMap" resultType="Integer">
+        SELECT count(1)
+        FROM gc_user_save_content_follow playlist_follow
+                 JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist_follow.folder_id AND playlist_content.master_id = #{portalUser.masterId}
         WHERE playlist_follow.user_id = #{portalUser.userId}
     </select>
 </mapper>
