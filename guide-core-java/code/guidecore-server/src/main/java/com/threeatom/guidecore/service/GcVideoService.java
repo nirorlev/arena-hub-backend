@@ -7,9 +7,9 @@ import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -163,5 +163,5 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request);
 
-    List<GcVideo> playlistLatestVideos(PortalUser portalUser);
+    List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor);
 }

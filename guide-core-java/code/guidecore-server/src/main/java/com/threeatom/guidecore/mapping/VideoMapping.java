@@ -14,7 +14,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper
+@Mapper(uses = PlaylistMapping.class)
 public interface VideoMapping {
 
     @Mapping(target = "title", source = "videoName")
@@ -71,6 +71,7 @@ public interface VideoMapping {
     @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
+    @Mapping(target = "playlist", source = "playlist", qualifiedByName = "mapPlaylist")
     VideoWithDetailsDto mapWithDetails(GcVideo video);
 
     @Named("mapBoolean")

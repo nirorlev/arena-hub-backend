@@ -20,9 +20,6 @@ public class PlaylistDto {
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
 
-    @ApiModelProperty(value = "URL of the playlist's background")
-    private String snapshotUrl;
-
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;
 

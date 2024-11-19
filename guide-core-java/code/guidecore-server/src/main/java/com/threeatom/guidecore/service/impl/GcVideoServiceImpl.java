@@ -5,6 +5,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -793,9 +794,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<GcVideo> playlistLatestVideos(PortalUser portalUser) {
+	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
-			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser);
+			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
 		populateLikesData(latestVideos, portalUser.getUserId());
 
 		return latestVideos;

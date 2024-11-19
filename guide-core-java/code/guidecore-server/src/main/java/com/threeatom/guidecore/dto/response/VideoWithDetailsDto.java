@@ -17,4 +17,6 @@ public class VideoWithDetailsDto extends VideoDto {
     private UserDetailsDto owner;
     @ApiModelProperty(value = "Number of comments")
     private Integer commentsCount;
+    @ApiModelProperty(value = "Related playlist details")
+    private PlaylistDto playlist;
 }

@@ -283,7 +283,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     public PageableDto<VideoWithDetailsDto> playlistLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
-        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser);
+        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
         Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
 
         return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize, this::convertVideoDetails,
@@ -309,7 +309,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                PlaylistWithDetailsDto playlistWithDetailsDto = playlistMapping.map(playlist);
+                PlaylistWithDetailsDto playlistWithDetailsDto = playlistMapping.mapWithDetails(playlist);
                 playlistWithDetailsDto.setSnapshotUrl(
                     sysFileService.getFullFileUrl(playlistWithDetailsDto.getSnapshotUrl()));
                 return playlistWithDetailsDto;

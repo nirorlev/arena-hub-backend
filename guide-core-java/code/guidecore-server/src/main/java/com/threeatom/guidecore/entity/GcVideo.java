@@ -152,6 +152,9 @@ public class GcVideo implements Serializable {
     @TableField(exist = false) // 上一次播放的视频信息
     private GcUserVideoPlaysNode gcUserVideoPlaysNode;
 
+    @TableField(exist = false)
+    private GcUserSaveFolder playlist;
+
     /**
      * 1表示该视频已看完
      */

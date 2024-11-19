@@ -12,10 +12,10 @@ import lombok.Setter;
 public class PlaylistWithDetailsDto extends PlaylistDto {
     @ApiModelProperty(value = "Permissions of the current user on the playlist")
     private Map<String, Boolean> permissions;
-
     @ApiModelProperty(value = "Privacy visibility for sharable button")
     private Boolean isPrivate;
-
+    @ApiModelProperty(value = "URL of the playlist's background")
+    private String snapshotUrl;
     @ApiModelProperty(value = "Total number of videos in the playlist")
     private Integer videoNum;
 }
