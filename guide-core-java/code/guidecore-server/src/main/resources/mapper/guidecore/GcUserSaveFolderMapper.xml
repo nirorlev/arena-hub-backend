@@ -355,7 +355,7 @@
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
-		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
+		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false AND playlist.user_id != #{portalUser.userId}
 		  	AND (playlist.update_time &lt; #{cursor.updateTime}
 		  	         OR (playlist.update_time = #{cursor.updateTime} AND playlist.id &lt; #{cursor.id}))
 		ORDER BY playlist.update_time DESC, playlist.id DESC;
