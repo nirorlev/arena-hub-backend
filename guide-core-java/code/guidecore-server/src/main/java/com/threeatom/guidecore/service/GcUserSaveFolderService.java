@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
@@ -53,7 +54,7 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     List<PlaylistDto> subscribed(PortalUser portalUser);
 
-    PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize);
+    PageableDto<PlaylistDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 
     List<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser);
 }

@@ -8,7 +8,9 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PaginationDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -16,7 +18,6 @@ import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
-import com.threeatom.guidecore.mapping.PageableMapping;
 import com.threeatom.guidecore.mapping.PlaylistMapping;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
@@ -24,12 +25,14 @@ import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -58,8 +61,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     private PlaylistMapping playlistMapping;
     @Autowired
     private AuthorizationService authorizationService;
-    @Autowired
-    private PageableMapping pageableMapping;
 
 
     public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
@@ -257,9 +258,30 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser);
-        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, cursor);
+        Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
+
+        return PageableDto.<PlaylistDto>builder()
+            .results(convertPlaylist(portalUser, playlists))
+            .pagination(PaginationDto.builder()
+                .count(totalCount)
+                .pageSize(pageSize)
+                .cursor(getNextCursor(playlists))
+                .hasNextPage(false)
+                .build())
+            .build();
+    }
+
+    private String getNextCursor(List<GcUserSaveFolder> playlists) {
+        if (CollectionUtils.isEmpty(playlists)) {
+            return null;
+        }
+
+        GcUserSaveFolder lastPlaylist = playlists.get(playlists.size() - 1);
+        CursorDto nextCursor = new CursorDto(lastPlaylist.getId(), lastPlaylist.getUpdateTime().toInstant().atZone(
+            ZoneId.systemDefault()).toOffsetDateTime());
+        return nextCursor.encode();
     }
 
     @Override
