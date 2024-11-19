@@ -10,7 +10,6 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PaginationDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -23,6 +22,7 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.util.PaginationUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.time.ZoneId;
@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -262,15 +261,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, cursor);
         Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
 
-        return PageableDto.<PlaylistDto>builder()
-            .results(convertPlaylist(portalUser, playlists))
-            .pagination(PaginationDto.builder()
-                .count(totalCount)
-                .pageSize(pageSize)
-                .cursor(getNextCursor(playlists))
-                .hasNextPage(false)
-                .build())
-            .build();
+        return PaginationUtil.createPageableDto(playlists, totalCount, pageSize,
+            playlistList -> convertPlaylist(portalUser, playlists), this::getNextCursor);
     }
 
     private String getNextCursor(List<GcUserSaveFolder> playlists) {

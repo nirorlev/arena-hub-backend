@@ -11,7 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 @Setter
 @AllArgsConstructor
 public class CursorDto {
-    public static final String SEPARATOR = "/";
+    private static final String SEPARATOR = "/";
+
     private Integer id;
     private OffsetDateTime updateTime;
 
