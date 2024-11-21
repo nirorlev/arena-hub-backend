@@ -1,6 +1,7 @@
 package com.threeatom.common.permissions.service.impl.auth;
 
 import com.threeatom.common.permissions.dto.PermitChannel;
+import com.threeatom.common.permissions.dto.PermitCollection;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.enums.ChannelAction;
 import com.threeatom.common.permissions.enums.ChannelRole;
@@ -48,7 +49,7 @@ public class ChannelAuthorizationService
                 ChannelAction.EDIT, channel -> true,
                 ChannelAction.SUBSCRIBE, channel -> true,
                 ChannelAction.UNSUBSCRIBE, channel -> true,
-                ChannelAction.SHARE, channel -> true,
+                ChannelAction.SHARE, PermitCollection::isPublic,
                 ChannelAction.ADD_CONTENT, channel -> true,
                 ChannelAction.MANAGE_CONTENT, channel -> true,
                 ChannelAction.PUBLISH, channel -> true

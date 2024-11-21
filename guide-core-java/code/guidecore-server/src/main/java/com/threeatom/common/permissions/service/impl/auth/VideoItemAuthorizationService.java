@@ -1,5 +1,6 @@
 package com.threeatom.common.permissions.service.impl.auth;
 
+import com.threeatom.common.permissions.dto.PermitContentItem;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.enums.VideoItemAction;
@@ -38,7 +39,7 @@ public class VideoItemAuthorizationService
             VideoItemAction.DELETE, videoItem -> true,
             VideoItemAction.VIEW, videoItem -> true,
             VideoItemAction.EDIT, videoItem -> true,
-            VideoItemAction.SHARE, videoItem -> true,
+            VideoItemAction.SHARE, PermitContentItem::isPublic,
             VideoItemAction.COMMENT, videoItem -> true
         )
     );
