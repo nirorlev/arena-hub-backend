@@ -8,6 +8,7 @@ import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
+import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import java.io.IOException;
@@ -100,4 +101,6 @@ public interface GcAccessService extends IService<GcAccess> {
 
     void syncContentGroupsWithPowtoonGroups(
         PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId);
+
+    List<ContentGroupDto> userContentGroups(Integer userId, Integer masterId);
 }

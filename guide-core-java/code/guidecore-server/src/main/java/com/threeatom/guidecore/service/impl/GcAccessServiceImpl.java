@@ -18,6 +18,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.MondayApiVo;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
+import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
@@ -25,6 +26,7 @@ import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
+import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterService;
@@ -58,6 +60,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Autowired @Lazy private GcUserService gcUserService;
     @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
     @Autowired private PtChannelSubscribeService ptChannelSubscribeService;
+    @Autowired private ContentGroupMapping contentGroupMapping;
 
     @Override
     public List<GcAccess> getAccessByMasterIdAndCode(GcAccess access) {
@@ -262,6 +265,13 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         ptChannelSubscribeService.autoSubscribeToContentGroupChannels(memberContentGroups, userId);
         userAccessService.syncUserAccessWithPowtoonGroups(masterId, allContentGroups, groups, userId);
         userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, allGroupCodes, userId, masterId);
+    }
+
+    @Override
+    public List<ContentGroupDto> userContentGroups(Integer userId, Integer masterId) {
+        return listAccess(null, masterId, userId).stream()
+            .map(contentGroupMapping::map)
+            .collect(Collectors.toList());
     }
 
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
