@@ -8,6 +8,7 @@ import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,35 +27,36 @@ public class ChannelAuthorizationService
         ChannelAction.MANAGE_CONTENT,
         ChannelAction.PUBLISH
     );
-    private static final Map<ChannelRole, Map<ChannelAction, Boolean>> ROLE_CHANNEL_PERMISSIONS = Map.of(
-        ChannelRole.VIEWER, Map.of(
-            ChannelAction.CREATE, false,
-            ChannelAction.DELETE, false,
-            ChannelAction.VIEW, true,
-            ChannelAction.EDIT, false,
-            ChannelAction.SUBSCRIBE, true,
-            ChannelAction.UNSUBSCRIBE, true,
-            ChannelAction.SHARE, true,
-            ChannelAction.ADD_CONTENT, false,
-            ChannelAction.MANAGE_CONTENT, false,
-            ChannelAction.PUBLISH, false
-        ),
-        ChannelRole.ADMIN, Map.of(
-            ChannelAction.CREATE, true,
-            ChannelAction.DELETE, true,
-            ChannelAction.VIEW, true,
-            ChannelAction.EDIT, true,
-            ChannelAction.SUBSCRIBE, true,
-            ChannelAction.UNSUBSCRIBE, true,
-            ChannelAction.SHARE, true,
-            ChannelAction.ADD_CONTENT, true,
-            ChannelAction.MANAGE_CONTENT, true,
-            ChannelAction.PUBLISH, true
-        )
-    );
+    private static final Map<ChannelRole, Map<ChannelAction, Predicate<PermitChannel>>> ROLE_CHANNEL_PERMISSIONS =
+        Map.of(
+            ChannelRole.VIEWER, Map.of(
+                ChannelAction.CREATE, channel -> false,
+                ChannelAction.DELETE, channel -> false,
+                ChannelAction.VIEW, channel -> true,
+                ChannelAction.EDIT, channel -> false,
+                ChannelAction.SUBSCRIBE, channel -> true,
+                ChannelAction.UNSUBSCRIBE, channel -> true,
+                ChannelAction.SHARE, channel -> true,
+                ChannelAction.ADD_CONTENT, channel -> false,
+                ChannelAction.MANAGE_CONTENT, channel -> false,
+                ChannelAction.PUBLISH, channel -> false
+            ),
+            ChannelRole.ADMIN, Map.of(
+                ChannelAction.CREATE, channel -> true,
+                ChannelAction.DELETE, channel -> true,
+                ChannelAction.VIEW, channel -> true,
+                ChannelAction.EDIT, channel -> true,
+                ChannelAction.SUBSCRIBE, channel -> true,
+                ChannelAction.UNSUBSCRIBE, channel -> true,
+                ChannelAction.SHARE, channel -> true,
+                ChannelAction.ADD_CONTENT, channel -> true,
+                ChannelAction.MANAGE_CONTENT, channel -> true,
+                ChannelAction.PUBLISH, channel -> true
+            )
+        );
 
     @Override
-    protected Map<ChannelAction, Boolean> getPermissionMap(ChannelRole role) {
+    protected Map<ChannelAction, Predicate<PermitChannel>> getPermissionMap(ChannelRole role) {
         return ROLE_CHANNEL_PERMISSIONS.get(role);
     }
 

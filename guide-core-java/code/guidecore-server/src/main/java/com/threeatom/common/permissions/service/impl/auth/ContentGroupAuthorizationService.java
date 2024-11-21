@@ -7,6 +7,7 @@ import com.threeatom.common.permissions.enums.ContentGroupRole;
 import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,17 +19,18 @@ public class ContentGroupAuthorizationService
         ContentGroupAction.ADD_CONTENT,
         ContentGroupAction.MANAGE_CONTENT
     );
-    private static final Map<ContentGroupRole, Map<ContentGroupAction, Boolean>> ROLE_CONTENT_GROUP_PERMISSIONS =
+    private static final Map<ContentGroupRole, Map<ContentGroupAction, Predicate<PermitContentGroup>>>
+        ROLE_CONTENT_GROUP_PERMISSIONS =
         Map.of(
             ContentGroupRole.VIEWER, Map.of(
-                ContentGroupAction.VIEW, true,
-                ContentGroupAction.ADD_CONTENT, false,
-                ContentGroupAction.MANAGE_CONTENT, false
+                ContentGroupAction.VIEW, contentGroup -> true,
+                ContentGroupAction.ADD_CONTENT, contentGroup -> false,
+                ContentGroupAction.MANAGE_CONTENT, contentGroup -> false
             ),
             ContentGroupRole.ADMIN, Map.of(
-                ContentGroupAction.VIEW, true,
-                ContentGroupAction.ADD_CONTENT, true,
-                ContentGroupAction.MANAGE_CONTENT, true
+                ContentGroupAction.VIEW, contentGroup -> true,
+                ContentGroupAction.ADD_CONTENT, contentGroup -> true,
+                ContentGroupAction.MANAGE_CONTENT, contentGroup -> true
             )
         );
 
@@ -46,7 +48,8 @@ public class ContentGroupAuthorizationService
     }
 
     @Override
-    protected Map<ContentGroupAction, Boolean> getPermissionMap(ContentGroupRole contentGroupRole) {
+    protected Map<ContentGroupAction, Predicate<PermitContentGroup>> getPermissionMap(
+        ContentGroupRole contentGroupRole) {
         return ROLE_CONTENT_GROUP_PERMISSIONS.get(contentGroupRole);
     }
 
