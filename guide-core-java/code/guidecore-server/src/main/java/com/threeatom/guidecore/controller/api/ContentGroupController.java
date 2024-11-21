@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
     value = "/api/v2/content-groups",
     produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-public class ContentGroupAssignmentController {
+public class ContentGroupController {
 
     private final GcContentGroupCourseAssignmentService gcContentGroupCourseAssignmentService;
     private final ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
