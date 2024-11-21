@@ -1,16 +1,20 @@
 package com.threeatom.guidecore.facade.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.permissions.enums.PortalAction;
+import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
-import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricDto;
 import com.threeatom.guidecore.dto.response.analytic.MetricValuePairDto;
 import com.threeatom.guidecore.dto.response.analytic.ResultDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.AnalyticsAggregation;
 import com.threeatom.guidecore.enums.AnalyticsType;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
@@ -36,13 +40,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnalyticsFacadeImpl implements AnalyticsFacade {
 
-    private final Map<AnalyticsType, BiFunction<AnalyticsFilterDto, Integer, AnalyticsResponseDto>>
+    private final Map<AnalyticsType, BiFunction<AnalyticsFilterDto, PortalUser, AnalyticsResponseDto>>
         analyticsTypeAnalyticsResponseDtoMap = new HashMap<>();
 
     private final PtChannelService channelService;
     private final GcUserSaveFolderService userSaveFolderService;
     private final VideoPlaySessionService videoPlaySessionService;
     private final VideoPlaySegmentService videoPlaySegmentService;
+    private final AuthorizationService authorizationService;
 
     @Lazy
     @Autowired
@@ -65,127 +70,161 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     }
 
     @Override
-    public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = channelService.getChannelsCountAnalytics(filter, masterId);
+    public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
+        checkPermission(portalUser);
+        List<DbAnalyticsResultDto> analytics =
+            channelService.getChannelsCountAnalytics(filter, portalUser.getMasterId());
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.CHANNEL_COUNT.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = videoService.getVideoCountAnalytics(filter, masterId);
+    public AnalyticsResponseDto getVideoCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
+        List<DbAnalyticsResultDto> analytics = videoService.getVideoCountAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_COUNT.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultDto> analytics = userSaveFolderService.getPlaylistCountAnalytics(filter, masterId);
+    public AnalyticsResponseDto getPlaylistCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
+        List<DbAnalyticsResultDto> analytics =
+            userSaveFolderService.getPlaylistCountAnalytics(filter, portalUser.getMasterId());
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.PLAYLIST_COUNT.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getVideoViewCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = videoPlaySessionService.getVideoViewCountAnalytics(filter, masterId);
+            List<DbAnalyticsResultDto> analytics = videoPlaySessionService.getVideoViewCountAnalytics(filter,
+                portalUser.getMasterId());
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
         }
 
         List<DbAnalyticsResultVideoIdDto> videoViewCountAnalytics =
-            videoPlaySessionService.getVideoViewCountByVideoAnalytics(filter, masterId);
+            videoPlaySessionService.getVideoViewCountByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(videoViewCountAnalytics, AnalyticsType.VIDEO_VIEW_COUNT.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
             List<DbAnalyticsResultDto> analytics =
-                videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, masterId);
+                videoPlaySegmentService.getVideoWatchingTimeAnalytics(filter, portalUser.getMasterId());
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
         }
 
         List<DbAnalyticsResultVideoIdDto> videoWatchingTimeAnalytics =
-            videoPlaySegmentService.getVideoWatchingTimeByVideoAnalytics(filter, masterId);
+            videoPlaySegmentService.getVideoWatchingTimeByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(videoWatchingTimeAnalytics, AnalyticsType.VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getViewersCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = videoPlaySessionService.getViewersCountAnalytics(filter, masterId);
+            List<DbAnalyticsResultDto> analytics =
+                videoPlaySessionService.getViewersCountAnalytics(filter, portalUser.getMasterId());
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.VIEWERS_COUNT.getLabel());
         }
 
         List<DbAnalyticsResultVideoIdDto> viewersCountAnalytics =
-            videoPlaySessionService.getViewersCountByVideoAnalytics(filter, masterId);
+            videoPlaySessionService.getViewersCountByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(viewersCountAnalytics, AnalyticsType.VIEWERS_COUNT.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         List<DbAnalyticsResultDto> analytics =
-            videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, masterId);
+            videoPlaySegmentService.getAverageVideoWatchingTimeAnalytics(filter, portalUser.getMasterId());
 
         return getAnalyticsResponseDto(analytics, AnalyticsType.AVERAGE_VIDEO_WATCHING_TIME.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getDropOffRateAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = videoPlaySegmentService.getDropOffRateAnalytics(filter, masterId);
+            List<DbAnalyticsResultDto> analytics =
+                videoPlaySegmentService.getDropOffRateAnalytics(filter, portalUser.getMasterId());
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.DROP_OFF_RATE.getLabel());
         }
 
         List<DbAnalyticsResultVideoIdDto> dropOffRateAnalytics =
-            videoPlaySegmentService.getDropOffRateByVideoAnalytics(filter, masterId);
+            videoPlaySegmentService.getDropOffRateByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(dropOffRateAnalytics, AnalyticsType.DROP_OFF_RATE.getLabel());
     }
 
     @Override
-    public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public AnalyticsResponseDto getEngagementRateAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         if (AnalyticsAggregation.DATE.equals(filter.getAggregateBy())) {
-            List<DbAnalyticsResultDto> analytics = videoPlaySegmentService.getEngagementRateAnalytics(filter, masterId);
+            List<DbAnalyticsResultDto> analytics = videoPlaySegmentService.getEngagementRateAnalytics(filter,
+                portalUser.getMasterId());
 
             return getAnalyticsResponseDto(analytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
         }
 
         List<DbAnalyticsResultVideoIdDto> engagementRateAnalytics =
-            videoPlaySegmentService.getEngagementRateByVideoAnalytics(filter, masterId);
+            videoPlaySegmentService.getEngagementRateByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(engagementRateAnalytics, AnalyticsType.ENGAGEMENT_RATE.getLabel());
     }
 
     @Override
     public Map<Integer, String> getVideoIdAnalytics(AnalyticsFilterDto filter, AnalyticsType analyticsType,
-                                                    Integer masterId) {
+                                                    PortalUser portalUser) {
+        checkPermission(portalUser);
+
         AnalyticsResponseDto<Integer, String> analytics =
-            analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, masterId);
+            analyticsTypeAnalyticsResponseDtoMap.get(analyticsType).apply(filter, portalUser);
 
         return analytics.getResult().get(0).getValues().stream()
             .collect(Collectors.toMap(MetricValuePairDto::getX, MetricValuePairDto::getY));
     }
 
     @Override
-    public AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, Integer masterId) {
-        List<DbAnalyticsResultVideoIdDto> likesAnalytics = videoService.getLikesByVideoAnalytics(filter, masterId);
+    public AnalyticsResponseDto getLikesAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
+        List<DbAnalyticsResultVideoIdDto> likesAnalytics =
+            videoService.getLikesByVideoAnalytics(filter, portalUser.getMasterId());
         return getAnalyticsByVideoResponseDto(likesAnalytics, AnalyticsType.LIKES.getLabel());
     }
 
     @Override
-    public VideoViewersDto videoViewers(VideoViewerDetailsDto filter, Integer masterId) {
+    public VideoViewersDto videoViewers(VideoViewerDetailsDto filter, PortalUser portalUser) {
+        checkPermission(portalUser);
+
         VideoViewersDto videoViewersDto = new VideoViewersDto();
-        videoViewersDto.setResults(videoPlaySessionService.getVideoViewersAnalytics(filter, masterId));
+        videoViewersDto.setResults(videoPlaySessionService.getVideoViewersAnalytics(filter, portalUser.getMasterId()));
         return videoViewersDto;
     }
 
     @Override
     public AnalyticsResponseDto<String, String> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
-                                                                             Integer masterId) {
+                                                                             PortalUser portalUser) {
+        checkPermission(portalUser);
+
         List<DbAnalyticsResultViewPerSecondDto> viewPerSecondAnalytics =
-            videoPlaySegmentService.videoViewsPerSecondAnalytics(filter, masterId);
+            videoPlaySegmentService.videoViewsPerSecondAnalytics(filter, portalUser.getMasterId());
 
         AnalyticsResponseDto<String, String> analyticsResponseDto = new AnalyticsResponseDto<>();
         List<MetricValuePairDto<String, String>> metricValuePair = viewPerSecondAnalytics.stream()
@@ -245,5 +284,11 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
         metricValuePairDto.setX(xValue);
         metricValuePairDto.setY(yValue);
         return metricValuePairDto;
+    }
+
+    private void checkPermission(PortalUser portalUser) {
+        if (authorizationService.checkAccess(PortalAction.ACCESS_ANALYTICS, portalUser)) {
+            throw new ForbiddenException("No permission to access analytics");
+        }
     }
 }
