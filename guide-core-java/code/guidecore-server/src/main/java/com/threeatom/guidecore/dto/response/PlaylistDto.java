@@ -17,8 +17,6 @@ public class PlaylistDto {
     @ApiModelProperty(value = "Title of the playlist")
     private String name;
 
-    private List<ContentDto> saveContentList;
-
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
 
