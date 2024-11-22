@@ -89,6 +89,7 @@
 	<sql id="fileBaseColumn">
 	   ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type, f.video_long as f_video_long
 	   ,f.file_type_index as f_file_type_index,f.thumb_nail_url as thumb_nail_url,f.thumb_nail_id as thumb_nail_id,f.file_type as f_file_type
+	   ,f.upload_uid
 	</sql>
 
 	<sql id="playlistBaseColumn">
@@ -935,6 +936,17 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             <include refid="playlistBaseColumn"/>,
+            f.upload_uid as user_id,
+            pc.id                         AS channel_id,
+            pc.channel_name               AS channel_channel_name,
+            pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
+            gs.id                         AS course_id,
+            gs.name                       AS course_name,
+            gs.fid                        AS course_fid,
+            gs.state                      AS course_state,
+            gs.available_type             AS course_available_type,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
         FROM gc_user_save_content_follow playlist_follow

@@ -797,7 +797,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
 			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
-		populateVideoData(latestVideos, portalUser.getUserId());
+		populateVideoData(latestVideos, portalUser);
 
 		return latestVideos;
 	}
@@ -807,11 +807,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
 	}
 
-	private void populateVideoData(List<GcVideo> videos, Integer userId) {
+	private void populateVideoData(List<GcVideo> videos, PortalUser portalUser) {
 		videos.forEach(video -> {
-			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), userId) ? 1 : 0);
+			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), portalUser.getUserId()) ? 1 : 0);
 			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
 			video.setSnapshotUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile()));
+			video.setPermissions(authorizationService.listPermissions(video, portalUser));
 			updateVideoUrls(video);
 		});
 	}
