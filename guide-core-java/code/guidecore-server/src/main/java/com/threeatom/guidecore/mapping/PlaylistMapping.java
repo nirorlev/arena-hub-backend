@@ -12,7 +12,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = {DateMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, OwnerMapping.class, ContentMapping.class})
 public interface PlaylistMapping {
 
     @Mapping(target = "snapshotUrl", source = "saveContentList", qualifiedByName = "mapSnapshotUrl")
