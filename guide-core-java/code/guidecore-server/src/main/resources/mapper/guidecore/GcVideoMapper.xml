@@ -987,6 +987,6 @@
             JOIN sys_file f ON v.file_id = f.id
             JOIN pt_channel_content channel_content ON v.id = channel_content.content_id
             JOIN pt_channel pc ON pc.id = channel_content.channel_id
-        WHERE pc.id = #{channelId};
+        WHERE pc.id = #{channelId} OR pc.fid = #{channelId};
     </select>
 </mapper>
