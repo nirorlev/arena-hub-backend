@@ -37,7 +37,7 @@
     </select>
 
     <select id="getVideoWatchingTimeByVideoAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
-        SELECT video.id AS videoId, SUM(upper(segment) - lower(segment)) AS value
+        SELECT video.id AS videoId, SUM(upper(play_segement.segment) - lower(play_segement.segment)) AS value
         FROM gc_video video
             LEFT JOIN video_play_session play_session ON play_session.video_id = video.id
                 AND play_session.create_time >= #{filter.start}
@@ -54,7 +54,7 @@
     </select>
 
     <select id="getAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        SELECT time_bucket, SUM(upper(segment) - lower(segment)) / COUNT(play_session.id)::double precision AS value
+        SELECT time_bucket, SUM(upper(play_segment.segment) - lower(play_segment.segment)) / COUNT(play_session.id)::double precision AS value
         FROM video_play_segment play_segment
             JOIN video_play_session play_session
                 ON play_session.id = play_segment.session_id AND play_session.master_id = #{masterId}
@@ -65,7 +65,7 @@
                         </foreach>
                     </if>
             RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                    ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                    ON play_session.update_time >= time_bucket AND play_session.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -92,7 +92,7 @@
                             </foreach>
                         </if>
                     RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                        ON play_segment.update_time >= time_bucket AND play_segment.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+                        ON play_session.update_time >= time_bucket AND play_session.update_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
                 GROUP BY time_bucket, play_segment.session_id
                 ORDER BY time_bucket
             ) AS engagement

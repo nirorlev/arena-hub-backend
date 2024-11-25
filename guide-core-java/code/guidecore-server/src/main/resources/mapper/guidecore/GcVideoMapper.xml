@@ -740,32 +740,15 @@
     </select>
 
     <select id="getVideoCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        WITH counted_videos AS (
-            SELECT time_bucket, COUNT(v.id) AS value
-            FROM (
-                SELECT course_video.id
-                FROM gc_video course_video
-                    JOIN gc_subject course ON course_video.origin_course_id = course.id AND course.master_id = #{masterId}
-                UNION
-                SELECT channel_video.id
-                FROM gc_video channel_video
-                    JOIN pt_channel channel
-                        ON channel_video.origin_channel_id = channel.id AND channel.master_id = #{masterId}
-                ) AS video_content
-                JOIN gc_video v ON v.id = video_content.id
-                    <if test="!filter.videoIds.empty">
-                        AND v.id IN
-                        <foreach item="videoId" collection="filter.videoIds" open="(" separator="," close=")">
-                            #{videoId}
-                        </foreach>
-                    </if>
-                RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                    ON v.create_time >= time_bucket
-                           AND v.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-            GROUP BY time_bucket
-        )
-        SELECT time_bucket, value
-        FROM counted_videos
+        SELECT time_bucket, count(DISTINCT video.id) as value
+        FROM sys_file video_file
+            JOIN gc_video video ON video_file.id = video.file_id
+            JOIN gc_user_access user_content_group ON user_content_group.user_id = video_file.upload_uid
+                AND user_content_group.master_id = #{masterId}
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON video.create_time >= time_bucket
+                AND video.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
 
