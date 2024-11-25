@@ -971,4 +971,22 @@
                  JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist_follow.folder_id AND playlist_content.master_id = #{portalUser.masterId}
         WHERE playlist_follow.user_id = #{portalUser.userId}
     </select>
+
+    <select id="findLatestChannelVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            f.upload_uid as user_id,
+            pc.id                         AS channel_id,
+            pc.channel_name               AS channel_channel_name,
+            pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_video v
+            JOIN sys_file f ON v.file_id = f.id
+            JOIN pt_channel_content channel_content ON v.id = channel_content.content_id
+            JOIN pt_channel pc ON pc.id = channel_content.channel_id
+        WHERE pc.id = #{channelId};
+    </select>
 </mapper>

@@ -4,7 +4,6 @@ import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.entity.PtChannel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 @Mapper(uses = OwnerMapping.class)
 public interface ChannelMapping {

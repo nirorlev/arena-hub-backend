@@ -15,10 +15,14 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.mapping.ChannelMapping;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -50,6 +54,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
     private final AuthorizationService authorizationService;
+    private final VideoMapping videoMapping;
 
     @Lazy
     @Autowired
@@ -697,6 +702,41 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
 
         channel.setCreateUserId(existingChannel.getCreateUserId());
+    }
+
+    @Override
+    public ChannelLatestVideosDto sectionLatestVideos(Integer channelId, PortalUser portalUser) {
+        List<GcVideo> latestVideos = videoService.channelLatestVideos(channelId, portalUser);
+
+        return ChannelLatestVideosDto.builder()
+            .videos(channelLatestVideos(latestVideos))
+            .sections(sectionLatestVideos(latestVideos))
+            .build();
+    }
+
+    private List<VideoWithDetailsDto> channelLatestVideos(List<GcVideo> videos) {
+        return videos.stream()
+            .filter(video -> !video.getOriginChannel().isSection())
+            .map(videoMapping::mapWithDetails)
+            .collect(Collectors.toList());
+    }
+
+    private List<ChannelSectionVideosDto> sectionLatestVideos(List<GcVideo> videos) {
+        Map<Integer, List<GcVideo>> sectionIdToVideos = videos.stream()
+            .filter(video -> video.getOriginChannel().isSection())
+            .collect(Collectors.groupingBy(video -> video.getOriginChannel().getId()));
+
+        return sectionIdToVideos.values().stream()
+            .filter(gcVideos -> !gcVideos.isEmpty())
+            .map(this::channelSectionVideos)
+            .collect(Collectors.toList());
+    }
+
+    private ChannelSectionVideosDto channelSectionVideos(List<GcVideo> sectionVideos) {
+        return ChannelSectionVideosDto.builder()
+            .name(sectionVideos.get(0).getOriginChannel().getChannelName())
+            .videos(sectionVideos.stream().map(videoMapping::mapWithDetails).collect(Collectors.toList()))
+            .build();
     }
 
     private int countChannels(Integer userId, Integer masterId, List<ChannelVisibilityFlag> channelVisibilityFlags) {
