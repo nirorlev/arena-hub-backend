@@ -941,6 +941,12 @@
         SELECT time_bucket, count(DISTINCT channel.id) as value
         FROM pt_channel channel
             JOIN gc_user_access user_content_group ON user_content_group.user_id = channel.create_user_id AND user_content_group.master_id = #{masterId}
+            <if test="!filter.contentGroupIds.empty">
+                AND user_content_group.access_id IN
+                <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                    #{contentGroupId}
+                </foreach>
+            </if>
             RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
                 ON channel.create_time >= time_bucket
                 AND channel.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval

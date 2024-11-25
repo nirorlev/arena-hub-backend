@@ -300,7 +300,6 @@
 					   AND playlist.master_id = #{masterId}
 					   AND playlist.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
 		GROUP BY time_bucket
-		FROM counted_playlist
 		ORDER BY time_bucket
 	</select>
 

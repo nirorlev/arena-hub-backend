@@ -745,6 +745,12 @@
             JOIN gc_video video ON video_file.id = video.file_id
             JOIN gc_user_access user_content_group ON user_content_group.user_id = video_file.upload_uid
                 AND user_content_group.master_id = #{masterId}
+                <if test="!filter.contentGroupIds.empty">
+                    AND user_content_group.access_id IN
+                    <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                        #{contentGroupId}
+                    </foreach>
+                </if>
             RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
                 ON video.create_time >= time_bucket
                 AND video.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
@@ -778,6 +784,14 @@
             course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
+            <if test="!filter.contentGroupIds.empty">
+                JOIN gc_user_access user_content_group ON user_content_group.user_id = f.upload_uid
+                    AND user_content_group.master_id = #{masterId}
+                    AND user_content_group.access_id IN
+                        <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                            #{contentGroupId}
+                        </foreach>
+            </if>
 
             LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
             LEFT JOIN pt_channel_content pcc ON pcc.content_id = v.id
