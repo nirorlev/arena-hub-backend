@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapping;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
+import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
@@ -13,7 +14,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = PlaylistMapping.class)
+@Mapper(uses = {PlaylistMapping.class, ChannelMapping.class})
 public interface VideoMapping {
 
     @Mapping(target = "title", source = "videoName")
@@ -70,6 +71,17 @@ public interface VideoMapping {
     @Mapping(target = "likesCount", source = "likeNum")
     @Mapping(target = "playlist", source = "playlist", qualifiedByName = "mapPlaylist")
     PlaylistLatestVideosDto mapPlaylistLatestVideos(GcVideo video);
+
+    @Mapping(target = "name", source = "videoName")
+    @Mapping(target = "description", source = "videoDesc")
+    @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
+    @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
+    @Mapping(target = "duration", source = "videoTime")
+    @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
+    @Mapping(target = "commentsCount", source = "commentNum")
+    @Mapping(target = "likesCount", source = "likeNum")
+    @Mapping(target = "channel", source = "originChannel")
+    SubscribedChannelLatestVideosDto mapSubscribedChannelLatestVideos(GcVideo video);
 
     @Mapping(target = "name", source = "videoName")
     @Mapping(target = "description", source = "videoDesc")

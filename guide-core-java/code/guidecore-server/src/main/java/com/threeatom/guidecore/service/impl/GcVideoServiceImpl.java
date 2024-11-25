@@ -810,6 +810,13 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public List<GcVideo> subscribedLatestChannelVideos(PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.findSubscribedLatestChannelVideos(portalUser.getUserId(), portalUser.getMasterId());
+		populateVideoData(latestVideos, portalUser);
+		return latestVideos;
+	}
+
+	@Override
 	public Integer countPlaylistLatestVideos(PortalUser portalUser) {
 		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
 	}

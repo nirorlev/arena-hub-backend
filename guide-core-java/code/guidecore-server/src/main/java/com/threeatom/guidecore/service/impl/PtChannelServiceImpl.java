@@ -17,6 +17,7 @@ import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
+import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
@@ -712,6 +713,15 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             .videos(channelLatestVideos(latestVideos))
             .sections(sectionLatestVideos(latestVideos))
             .build();
+    }
+
+    @Override
+    public List<SubscribedChannelLatestVideosDto> subscribedLatestVideos(PortalUser portalUser) {
+        List<GcVideo> latestVideos = videoService.subscribedLatestChannelVideos(portalUser);
+
+        return latestVideos.stream()
+            .map(videoMapping::mapSubscribedChannelLatestVideos)
+            .collect(Collectors.toList());
     }
 
     private List<VideoWithDetailsDto> channelLatestVideos(List<GcVideo> videos) {

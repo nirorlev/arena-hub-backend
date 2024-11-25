@@ -166,4 +166,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor);
 
     List<GcVideo> channelLatestVideos(Integer channelId, PortalUser portalUser);
+
+    List<GcVideo> subscribedLatestChannelVideos(PortalUser portalUser);
 }

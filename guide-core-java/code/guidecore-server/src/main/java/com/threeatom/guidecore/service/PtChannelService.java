@@ -6,6 +6,8 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
@@ -73,4 +75,6 @@ public interface PtChannelService extends IService<PtChannel> {
     void populateCreatedUserId(PtChannel channel, Integer userId);
 
     ChannelLatestVideosDto sectionLatestVideos(Integer channelId, PortalUser portalUser);
+
+    List<SubscribedChannelLatestVideosDto> subscribedLatestVideos(PortalUser portalUser);
 }

@@ -3,6 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserService;
@@ -93,5 +94,15 @@ public class ChannelController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(channelService.sectionLatestVideos(channelId, portalUser));
+    }
+
+    @GetMapping("/subscribed/videos/latest")
+    @ApiOperation(value = "Get a list of videos from the channel sections")
+    public ResponseEntity<List<SubscribedChannelLatestVideosDto>> subscribedChannelVideos(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(channelService.subscribedLatestVideos(portalUser));
     }
 }
