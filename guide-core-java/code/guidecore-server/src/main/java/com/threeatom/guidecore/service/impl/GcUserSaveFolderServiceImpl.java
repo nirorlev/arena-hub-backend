@@ -10,8 +10,8 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -283,7 +283,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<VideoWithDetailsDto> playlistLatestVideos(
+    public PageableDto<PlaylistLatestVideosDto> playlistLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
         List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
@@ -298,9 +298,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return null;
     }
 
-    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
+    private List<PlaylistLatestVideosDto> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
-            .map(video -> videoMapping.mapWithDetails(video))
+            .map(video -> videoMapping.mapPlaylistLatestVideos(video))
             .collect(Collectors.toList());
     }
 

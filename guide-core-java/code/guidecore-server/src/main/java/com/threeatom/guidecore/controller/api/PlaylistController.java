@@ -2,8 +2,8 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
+import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -66,7 +66,7 @@ public class PlaylistController {
     }
 
     @GetMapping("/videos/latest")
-    public ResponseEntity<PageableDto<VideoWithDetailsDto>> playlistsLatestVideos(
+    public ResponseEntity<PageableDto<PlaylistLatestVideosDto>> playlistsLatestVideos(
         @RequestParam(required = false) String pageAfter,
         @RequestParam(required = false, defaultValue = "20") Integer pageSize,
         HttpServletRequest request) {
@@ -75,7 +75,8 @@ public class PlaylistController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+        return ResponseEntity.ok(
+            playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
     }
 
 }

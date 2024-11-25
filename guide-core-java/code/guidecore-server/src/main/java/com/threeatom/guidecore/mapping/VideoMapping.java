@@ -2,8 +2,8 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
+import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
@@ -68,7 +68,7 @@ public interface VideoMapping {
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
     @Mapping(target = "playlist", source = "playlist", qualifiedByName = "mapPlaylist")
-    VideoWithDetailsDto mapWithDetails(GcVideo video);
+    PlaylistLatestVideosDto mapPlaylistLatestVideos(GcVideo video);
 
     @Named("mapBoolean")
     default boolean mapPrivate(Integer code) {
