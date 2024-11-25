@@ -10,7 +10,7 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a Channel")
 @Getter
 @Setter
-public class ChannelDto {
+public class ChannelWithDetailsDto {
     @ApiModelProperty(value = "Unique identifier of the Channel")
     private Integer id;
 

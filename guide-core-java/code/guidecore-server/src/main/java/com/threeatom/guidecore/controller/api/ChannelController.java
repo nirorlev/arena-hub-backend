@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.IdsDto;
-import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -38,7 +38,7 @@ public class ChannelController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
-    public List<ChannelDto> getOwned(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getOwned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -48,7 +48,7 @@ public class ChannelController {
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of channels subscribed by the current user")
-    public List<ChannelDto> getSubscribedChannels(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getSubscribedChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -58,7 +58,7 @@ public class ChannelController {
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of channels discoverable by the current user")
-    public List<ChannelDto> getDiscoverableChannels(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getDiscoverableChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);

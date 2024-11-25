@@ -14,7 +14,7 @@ import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
-import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
@@ -579,7 +579,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -589,7 +589,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -599,7 +599,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -752,7 +752,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return channelVisibilityFlags.stream().map(ChannelVisibilityFlag::getValue).collect(Collectors.toList());
     }
 
-    private List<ChannelDto> convert(List<PtChannel> channels) {
+    private List<ChannelWithDetailsDto> convert(List<PtChannel> channels) {
         return channels.stream()
             .map(channelMapping::map)
             .collect(Collectors.toList());

@@ -4,9 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
-import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
@@ -55,11 +54,11 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 
