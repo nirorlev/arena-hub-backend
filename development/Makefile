@@ -7,7 +7,7 @@ export REDIS_HOST=127.0.0.1
 export REDIS_PORT=6379
 export REDIS_SSL=false
 export POSTGRES_HOST=127.0.0.1
-export POSTGRES_USER=user
+export POSTGRES_USER=arena_user
 export POSTGRES_DB_NAME=arena_hub
 export POSTGRES_PORT=5432
 export GUIDE_API_PORT=9999
@@ -21,10 +21,6 @@ export BI_TRACKING_HOST=https://example.com
 export SENTRY_AUTO_INIT=false
 export OTEL_TRACES_EXPORTER=none
 export OTEL_METRICS_EXPORTER=none
-export SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
-#export LOGZIO_URL=http://localhost:8071?token=stubToken&type=stubType
-#export LOGZIO_TOKEN=exampleToken
-export APP_ENV=local
 
 # Paths
 PROJECT_PATH := ../guide-core-java/code/guidecore-server
