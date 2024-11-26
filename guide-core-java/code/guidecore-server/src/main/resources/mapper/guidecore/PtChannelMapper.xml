@@ -938,16 +938,19 @@
     </select>
 
     <select id="getChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-        WITH counted_channels AS (
-            SELECT time_bucket, COUNT(pc.id) AS value
-            FROM pt_channel pc
-                RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-                    ON pc.create_time >= time_bucket
-                           AND pc.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval AND pc.master_id = #{masterId}
-            GROUP BY time_bucket
-        )
-        SELECT time_bucket, value
-        FROM counted_channels
+        SELECT time_bucket, count(DISTINCT channel.id) as value
+        FROM pt_channel channel
+            JOIN gc_user_access user_content_group ON user_content_group.user_id = channel.create_user_id AND user_content_group.master_id = #{masterId}
+            <if test="!filter.contentGroupIds.empty">
+                AND user_content_group.access_id IN
+                <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                    #{contentGroupId}
+                </foreach>
+            </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON channel.create_time >= time_bucket
+                AND channel.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+        GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
 

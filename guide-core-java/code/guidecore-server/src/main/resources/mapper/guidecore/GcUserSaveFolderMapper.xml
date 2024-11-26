@@ -293,17 +293,13 @@
 	</select>
 
 	<select id="getPlaylistCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
-		WITH counted_playlist AS (
-			SELECT time_bucket, COUNT(playlist.id) AS value
-			FROM gc_user_save_folder playlist
-				RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-					ON playlist.create_time >= time_bucket
-					       AND playlist.master_id = #{masterId}
-					       AND playlist.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
-			GROUP BY time_bucket
-		)
-		SELECT time_bucket, value
-		FROM counted_playlist
+		SELECT time_bucket, COUNT(playlist.id) AS value
+		FROM gc_user_save_folder playlist
+			RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+				ON playlist.create_time >= time_bucket
+					   AND playlist.master_id = #{masterId}
+					   AND playlist.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+		GROUP BY time_bucket
 		ORDER BY time_bucket
 	</select>
 
