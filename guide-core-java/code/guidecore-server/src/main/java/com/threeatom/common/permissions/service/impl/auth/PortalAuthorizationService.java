@@ -7,6 +7,7 @@ import com.threeatom.common.permissions.enums.PortalRole;
 import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,18 +20,18 @@ public class PortalAuthorizationService extends ResourceAuthorizationService<Per
         PortalAction.ACCESS_SETTINGS
     );
 
-    private static final Map<PortalRole, Map<PortalAction, Boolean>> ROLE_PORTAL_PERMISSIONS = Map.of(
+    private static final Map<PortalRole, Map<PortalAction, Predicate<PermitPortal>>> ROLE_PORTAL_PERMISSIONS = Map.of(
         PortalRole.ADMIN, Map.of(
-            PortalAction.ACCESS_ANALYTICS, true,
-            PortalAction.ACCESS_TEAMS, true,
-            PortalAction.ACCESS_CONFIG, false,
-            PortalAction.ACCESS_SETTINGS, false
+            PortalAction.ACCESS_ANALYTICS, portal -> true,
+            PortalAction.ACCESS_TEAMS, portal -> true,
+            PortalAction.ACCESS_CONFIG, portal -> false,
+            PortalAction.ACCESS_SETTINGS, portal -> false
         ),
         PortalRole.ORG_ADMIN, Map.of(
-            PortalAction.ACCESS_ANALYTICS, true,
-            PortalAction.ACCESS_TEAMS, true,
-            PortalAction.ACCESS_CONFIG, false,
-            PortalAction.ACCESS_SETTINGS, true
+            PortalAction.ACCESS_ANALYTICS, portal -> true,
+            PortalAction.ACCESS_TEAMS, portal -> true,
+            PortalAction.ACCESS_CONFIG, portal -> false,
+            PortalAction.ACCESS_SETTINGS, portal -> true
         )
     );
 
@@ -48,7 +49,7 @@ public class PortalAuthorizationService extends ResourceAuthorizationService<Per
     }
 
     @Override
-    protected Map<PortalAction, Boolean> getPermissionMap(PortalRole contentGroupRole) {
+    protected Map<PortalAction, Predicate<PermitPortal>> getPermissionMap(PortalRole contentGroupRole) {
         return ROLE_PORTAL_PERMISSIONS.get(contentGroupRole);
     }
 
