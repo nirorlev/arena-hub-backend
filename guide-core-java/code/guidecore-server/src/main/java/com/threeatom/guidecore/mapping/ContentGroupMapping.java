@@ -1,12 +1,14 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
+import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
+import com.threeatom.guidecore.entity.GcAccess;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
-public interface ContentGroupChannelSubscriptionMapping {
+public interface ContentGroupMapping {
 
     @Mapping(target = "channelTitle", source = "channel.channelName")
     @Mapping(target = "channelSlug", source = "channel.channelSlug")
@@ -19,4 +21,7 @@ public interface ContentGroupChannelSubscriptionMapping {
     @Mapping(target = "source.user.lastName", source = "createdBy.info.lastName")
     @Mapping(target = "source.user.profilePhotoUrl", source = "createdBy.info.avatarFile.fileUrl")
     ContentGroupChannelSubscriptionDto map(ContentGroupChannelSubscription contentGroupChannelSubscription);
+
+    @Mapping(target = "name", source = "groupName")
+    ContentGroupDto map(GcAccess contentGroup);
 }
