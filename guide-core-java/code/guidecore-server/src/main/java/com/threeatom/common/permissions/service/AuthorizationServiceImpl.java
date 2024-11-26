@@ -11,6 +11,7 @@ import com.threeatom.common.permissions.enums.ChannelAction;
 import com.threeatom.common.permissions.enums.ContentGroupAction;
 import com.threeatom.common.permissions.enums.CourseAction;
 import com.threeatom.common.permissions.enums.PlaylistAction;
+import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.enums.VideoItemAction;
 import com.threeatom.common.permissions.service.impl.auth.ChannelAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.ContentGroupAuthorizationService;
@@ -18,7 +19,6 @@ import com.threeatom.common.permissions.service.impl.auth.CourseAuthorizationSer
 import com.threeatom.common.permissions.service.impl.auth.PlaylistAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.PortalAuthorizationService;
 import com.threeatom.common.permissions.service.impl.auth.VideoItemAuthorizationService;
-import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -26,6 +26,7 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
+import com.threeatom.guidecore.enums.AuthorizationResourceType;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,12 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
+    public boolean checkAccess(PortalAction action, PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        return portalAuthorizationService.checkPermissions(permitUser, action, new PermitPortal());
+    }
+
+    @Override
     public Map<String, Boolean> listPortalPermissions(PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         return convertKeysToString(portalAuthorizationService.listPermissions(permitUser, new PermitPortal()));
@@ -134,7 +141,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     private void logPermissionResult(String resourceId, AuthorizationResourceType resourceType,
-        String permitUserId, PermitAction action, boolean result) {
+                                     String permitUserId, PermitAction action, boolean result) {
 
         String resultFormatted = result ? "ALLOW" : "DENY";
         log.info("[PERMISSION]: {} {} {}({}) User({})"

@@ -666,8 +666,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request) {
-		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, masterId);
+	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, PortalUser portalUser,
+													  HttpServletRequest request) {
+		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, portalUser.getMasterId());
 
 		List<VideoSearchResultDto> result = getChannelOriginVideoListResult(request, videos);
 		result.addAll(getCourseOriginVideoListResult(request, videos));
@@ -677,7 +678,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		Map<Integer, String> videoIdAnalytics =
-			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
+			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), portalUser);
 		return createVideoSearchResponse(populateSortedByValue(result, videoIdAnalytics, filter));
 	}
 

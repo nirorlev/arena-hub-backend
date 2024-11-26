@@ -21,6 +21,7 @@ import com.threeatom.common.permissions.dto.PermitPortal;
 import com.threeatom.common.permissions.dto.PermitResource;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
+import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.config.PermitConfiguration;
@@ -126,6 +127,11 @@ public class PermitServiceImpl implements AuthorizationService {
     @Override
     public boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser) {
         return checkAccess(playlist, List.of(action), portalUser).get(action.getKey());
+    }
+
+    @Override
+    public boolean checkAccess(PortalAction action, PortalUser portalUser) {
+        return false;
     }
 
     private Map<String, Boolean> checkAccess(GcUserSaveFolder playlist, List<PermitAction> actions,

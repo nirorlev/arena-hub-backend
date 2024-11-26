@@ -147,7 +147,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     void updateVideoFilePrivacy(SysFile videoFile, GcVideo video);
 
-    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
+    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, PortalUser portalUser, HttpServletRequest request);
 
     boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
 

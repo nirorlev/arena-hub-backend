@@ -7,8 +7,12 @@ import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.AnalyticsResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewersDto;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.facade.AnalyticsFacade;
+import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -27,95 +31,90 @@ public class AnalyticsController {
 
     private final AnalyticsFacade analyticsFacade;
     private final GcVideoService videoService;
+    private final GcUserService userService;
+    private final PortalUserService portalUserService;
 
     @GetMapping("/channel-count")
     public ResponseEntity<AnalyticsResponseDto> channelCount(@Valid AnalyticsFilterDto filter,
                                                              HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getChannelsCountAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getChannelsCountAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-count")
     public ResponseEntity<AnalyticsResponseDto> videoCount(@Valid AnalyticsFilterDto filter,
                                                            HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getVideoCountAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getVideoCountAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/playlist-count")
     public ResponseEntity<AnalyticsResponseDto> playlistCount(@Valid AnalyticsFilterDto filter,
                                                               HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getPlaylistCountAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getPlaylistCountAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-view-count")
     public ResponseEntity<AnalyticsResponseDto> videoViewCount(@Valid AnalyticsFilterDto filter,
                                                                HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getVideoViewCountAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getVideoViewCountAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-watching-time")
     public ResponseEntity<AnalyticsResponseDto> videoWatchingTime(@Valid AnalyticsFilterDto filter,
                                                                   HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getVideoWatchingTimeAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getVideoWatchingTimeAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/average-video-watching-time")
     public ResponseEntity<AnalyticsResponseDto> averageVideoWatchingTime(@Valid AnalyticsFilterDto filter,
                                                                          HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getAverageVideoWatchingTimeAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getAverageVideoWatchingTimeAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/viewers-count")
     public ResponseEntity<AnalyticsResponseDto> viewersCount(@Valid AnalyticsFilterDto filter,
                                                              HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getViewersCountAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getViewersCountAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/drop-off-rate")
     public ResponseEntity<AnalyticsResponseDto> dropOffRate(@Valid AnalyticsFilterDto filter,
                                                             HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getDropOffRateAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getDropOffRateAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/engagement-rate")
     public ResponseEntity<AnalyticsResponseDto> engagementRate(@Valid AnalyticsFilterDto filter,
                                                                HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getEngagementRateAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getEngagementRateAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-likes-count")
     public ResponseEntity<AnalyticsResponseDto> videoLikes(@Valid AnalyticsFilterDto filter,
                                                            HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.getLikesAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-viewer-list")
     public ResponseEntity<VideoViewersDto> videoViewers(@Valid VideoViewerDetailsDto filter,
                                                         HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.videoViewers(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.videoViewers(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-views-per-second")
     public ResponseEntity<AnalyticsResponseDto<String, String>> videoViewsPerSecond(
         @Valid VideoViewPerSecondDto filter, HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(analyticsFacade.videoViewsPerSecondAnalytics(filter, masterId));
+        return ResponseEntity.ok(analyticsFacade.videoViewsPerSecondAnalytics(filter, getPortalUser(request)));
     }
 
     @GetMapping("/video-list")
     public ResponseEntity<VideoSearchResponseDto> videoList(@Valid VideoListFilterDto filter,
                                                             HttpServletRequest request) {
+        return ResponseEntity.ok(videoService.getVideoListByQuery(filter, getPortalUser(request), request));
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok(videoService.getVideoListByQuery(filter, masterId, request));
+        GcUser currentUser = userService.getCurrentUser(request);
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }
