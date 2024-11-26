@@ -1,5 +1,6 @@
 package com.threeatom.common.permissions.service.impl.auth;
 
+import com.threeatom.common.permissions.dto.PermitCollection;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.enums.PlaylistAction;
@@ -32,6 +33,7 @@ public class PlaylistAuthorizationService
                 PlaylistAction.DELETE, playlist -> false,
                 PlaylistAction.VIEW, playlist -> true,
                 PlaylistAction.EDIT, playlist -> false,
+                PlaylistAction.SHARE, playlist -> true,
                 PlaylistAction.SUBSCRIBE, playlist -> true,
                 PlaylistAction.UNSUBSCRIBE, playlist -> true,
                 PlaylistAction.ADD_CONTENT, playlist -> false,
@@ -43,6 +45,7 @@ public class PlaylistAuthorizationService
                 PlaylistAction.DELETE, playlist -> true,
                 PlaylistAction.VIEW, playlist -> true,
                 PlaylistAction.EDIT, playlist -> true,
+                PlaylistAction.SHARE, PermitCollection::isPublic,
                 PlaylistAction.SUBSCRIBE, playlist -> true,
                 PlaylistAction.UNSUBSCRIBE, playlist -> true,
                 PlaylistAction.ADD_CONTENT, playlist -> true,
