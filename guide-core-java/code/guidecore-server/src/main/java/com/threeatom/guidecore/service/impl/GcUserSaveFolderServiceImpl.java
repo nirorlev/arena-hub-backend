@@ -297,11 +297,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos, PortalUser portalUser) {
         return latestVideos.stream()
-            .map(video -> {
-                VideoWithDetailsDto videoWithDetailsDto = videoMapping.mapWithDetails(video);
-                videoWithDetailsDto.setPermissions(authorizationService.listPermissions(video, portalUser));
-                return videoWithDetailsDto;
-            })
+            .map(video -> videoMapping.mapWithDetails(video))
             .collect(Collectors.toList());
     }
 

@@ -811,7 +811,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		videos.forEach(video -> {
 			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), portalUser.getUserId()) ? 1 : 0);
 			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
-			video.setSnapshotUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile()));
+			video.setSnapshotUrl(
+				sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile())));
 			video.setPermissions(authorizationService.listPermissions(video, portalUser));
 			updateVideoUrls(video);
 		});
