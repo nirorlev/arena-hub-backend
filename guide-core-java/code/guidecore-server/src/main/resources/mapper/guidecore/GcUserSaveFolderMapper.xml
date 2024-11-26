@@ -12,6 +12,7 @@
         <result property="updateTime" column="update_time"/>
 		<result property="isPrivate" column="is_private"/>
         <result property="createTime" column="create_time"/>
+        <result property="subscriptionTime" column="subscription_time"/>
 		<result property="videoNum" column="videoNum"/>
 		<result property="firstVideoFileId" column="firstVideoFileId"/>
 		 <result property="videoSource" column="video_source"/>
@@ -306,6 +307,7 @@
 	<select id="ownedPlaylists" parameterType="map" resultMap="baseResultMap">
 		SELECT playlist.id, playlist.name, playlist.is_private, playlist.user_id, playlist.master_id, playlist.create_time, playlist.update_time,
 			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
+			   playlist_follow.update_time as subscription_time,
 			   video.id as v_id, video.video_name as v_video_name,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
@@ -313,7 +315,8 @@
 		FROM gc_user_save_folder playlist
 		JOIN gc_user u ON u.id = playlist.user_id
 		JOIN gc_user_info info ON info.id = u.info_id
-		JOIN sys_file uf ON uf.id = info.avatar_file_id
+		LEFT JOIN sys_file uf ON uf.id = info.avatar_file_id
+		LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
 		LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
@@ -325,6 +328,7 @@
 		SELECT playlist.id, playlist.name, playlist.is_private, playlist.user_id, playlist.master_id, playlist.create_time, playlist.update_time,
 			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
 			   video.id as v_id, video.video_name as v_video_name,
+			   playlist_follow.update_time as subscription_time,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
 			   <include refid="userColumn"/>
@@ -332,7 +336,7 @@
 				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId}
 				 JOIN gc_user u ON u.id = playlist.user_id
 		    	 JOIN gc_user_info info ON info.id = u.info_id
-		    	 JOIN sys_file uf ON uf.id = info.avatar_file_id
+		    	 LEFT JOIN sys_file uf ON uf.id = info.avatar_file_id
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
@@ -344,18 +348,19 @@
 		SELECT playlist.id, playlist.name, playlist.is_private, playlist.user_id, playlist.master_id, playlist.create_time, playlist.update_time,
 			   content.id as sc_id, content.content_id, content.create_time as sc_create_time, content.update_time as sc_update_time,
 			   video.id as v_id, video.video_name as v_video_name,
+			   playlist_follow.update_time as subscription_time,
 			   video_file.id as f_id, video_file.file_url as f_file_url, video_file.thumb_nail_url as f_thumb_nail_url,
 			   video_file.save_type as f_save_type, video_file.file_type_index as f_file_type_index
 			   <include refid="userColumn"/>
 		FROM gc_user_save_folder playlist
 				 JOIN gc_user u ON u.id = playlist.user_id
 				 JOIN gc_user_info info ON info.id = u.info_id
-				 JOIN sys_file uf ON uf.id = info.avatar_file_id
+				 LEFT JOIN sys_file uf ON uf.id = info.avatar_file_id
 				 LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
 				 LEFT JOIN gc_user_save_content content ON content.folder_id = playlist.id
 				 LEFT JOIN gc_video video ON video.id = content.content_id
 				 LEFT JOIN sys_file video_file ON video_file.id = video.file_id
-		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
+		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false AND playlist.user_id != #{portalUser.userId}
 		  	AND (playlist.update_time &lt; #{cursor.updateTime}
 		  	         OR (playlist.update_time = #{cursor.updateTime} AND playlist.id &lt; #{cursor.id}))
 		ORDER BY playlist.update_time DESC, playlist.id DESC;
@@ -365,7 +370,7 @@
 		SELECT count(1)
 		FROM gc_user_save_folder playlist
 		    LEFT JOIN gc_user_save_content_follow playlist_follow ON playlist_follow.folder_id = playlist.id AND playlist_follow.user_id = #{portalUser.userId}
-		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
+		WHERE playlist_follow.id IS NULL AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false AND playlist.user_id != #{portalUser.userId}
 	</select>
 
 </mapper>

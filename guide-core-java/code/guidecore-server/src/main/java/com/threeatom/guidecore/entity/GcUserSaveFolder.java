@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,9 @@ public class GcUserSaveFolder implements Serializable {
     @ApiModelProperty(value = "保存内容的list")
     @TableField(exist = false)
     private List<GcUserSaveContent> saveContentList;
+
+    @TableField(exist = false)
+    private OffsetDateTime subscriptionTime;
 
     @TableField(exist = false)
     private String snapshotUrl;

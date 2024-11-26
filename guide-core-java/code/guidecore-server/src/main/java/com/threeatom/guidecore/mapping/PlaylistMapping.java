@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.response.PlaylistContentDto;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -12,12 +12,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = {DateMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, OwnerMapping.class, ContentMapping.class})
 public interface PlaylistMapping {
 
     @Mapping(target = "snapshotUrl", source = "saveContentList", qualifiedByName = "mapSnapshotUrl")
     @Mapping(target = "videoNum", source = "saveContentList", qualifiedByName = "mapVideoNum")
     @Mapping(target = "owner", source = "user")
+    PlaylistWithDetailsDto mapWithDetails(GcUserSaveFolder playlist);
+
+    @Mapping(target = "owner", source = "user")
+    @Named("mapPlaylist")
     PlaylistDto map(GcUserSaveFolder playlist);
 
     @Named("mapSnapshotUrl")

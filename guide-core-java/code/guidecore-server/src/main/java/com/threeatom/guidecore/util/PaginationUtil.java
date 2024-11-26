@@ -11,22 +11,26 @@ public class PaginationUtil {
     public <T, U> PageableDto<T> createPageableDto(List<U> items, int totalCount, int pageSize,
                                                    Function<List<U>, List<T>> itemsConverter,
                                                    Function<List<U>, String> cursorExtractor) {
-        List<T> convertedItems = itemsConverter.apply(items);
-        boolean hasNextPage = hasNextPage(convertedItems, pageSize);
-
-        if (hasNextPage) {
-            convertedItems = convertedItems.subList(0, pageSize);
-        }
+        boolean hasNextPage = hasNextPage(items, pageSize);
+        List<U> paginatedList = getPaginatedList(items, pageSize, hasNextPage);
 
         return PageableDto.<T>builder()
-            .results(convertedItems)
+            .results(itemsConverter.apply(paginatedList))
             .pagination(PaginationDto.builder()
                 .count(totalCount)
                 .pageSize(pageSize)
-                .cursor(cursorExtractor.apply(items))
+                .cursor(cursorExtractor.apply(paginatedList))
                 .hasNextPage(hasNextPage)
                 .build())
             .build();
+    }
+
+    private static <U> List<U> getPaginatedList(List<U> items, int pageSize, boolean hasNextPage) {
+        if (hasNextPage) {
+            return items.subList(0, pageSize);
+        }
+
+        return items;
     }
 
     private <T> boolean hasNextPage(List<T> items, int pageSize) {
