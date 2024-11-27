@@ -24,6 +24,7 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.PaginationUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
@@ -45,6 +46,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Autowired
     private SysFileService sysFileService;
+    @Autowired
+    private VideoThumbnailProvider videoThumbnailProvider;
 
     @Autowired
     @Lazy
@@ -305,10 +308,10 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                PlaylistWithDetailsDto playlistWithDetailsDto = playlistMapping.mapWithDetails(playlist);
-                playlistWithDetailsDto.setSnapshotUrl(
-                    sysFileService.getFullFileUrl(playlistWithDetailsDto.getSnapshotUrl()));
-                return playlistWithDetailsDto;
+                playlist.getSaveContentList().forEach(content -> {
+                    playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(content.getVideoFile())));
+                });
+                return playlistMapping.mapWithDetails(playlist);
             })
             .collect(Collectors.toList());
     }
