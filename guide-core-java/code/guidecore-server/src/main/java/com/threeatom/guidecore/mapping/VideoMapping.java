@@ -14,7 +14,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = {PlaylistMapping.class, ChannelMapping.class})
+@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class})
 public interface VideoMapping {
 
     @Mapping(target = "title", source = "videoName")
@@ -69,7 +69,7 @@ public interface VideoMapping {
     @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
-    @Mapping(target = "playlist", source = "playlist", qualifiedByName = "mapPlaylist")
+    @Mapping(target = "source", source = "playlist")
     PlaylistLatestVideosDto mapPlaylistLatestVideos(GcVideo video);
 
     @Mapping(target = "name", source = "videoName")

@@ -9,7 +9,7 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a Channel")
 @Getter
 @Setter
-public class PlaylistDto {
+public class VideoSourceDto {
     @ApiModelProperty(value = "Unique identifier of the playlist")
     private Integer id;
 
