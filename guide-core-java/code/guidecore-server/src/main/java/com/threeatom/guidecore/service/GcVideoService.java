@@ -127,6 +127,10 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Integer countPlaylistLatestVideos(PortalUser portalUser);
 
+    void populateVideoData(List<GcVideo> videos, PortalUser portalUser);
+
+    List<Integer> getVideoOriginSubscriberIds(GcVideo video, Integer masterId);
+
     GcVideo findByVideoId(Integer videoId);
 
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);

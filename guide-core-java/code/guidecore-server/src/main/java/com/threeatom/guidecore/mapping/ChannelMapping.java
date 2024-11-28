@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.PtChannel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,4 +16,8 @@ public interface ChannelMapping {
     @Mapping(target = "backgroundUrl", source = "imgFullFileUrl")
     @Mapping(target = "totalSubscribers", source = "subscribeNum")
     ChannelWithDetailsDto map(PtChannel channel);
+
+    @Mapping(target = "owner", source = "createUser")
+    @Mapping(target = "avatarUrl", source = "avatarFile.fullFileUrl")
+    VideoSourceDto mapVideoSource(PtChannel channel);
 }

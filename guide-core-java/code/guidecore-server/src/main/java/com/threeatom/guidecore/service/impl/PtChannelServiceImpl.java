@@ -14,11 +14,12 @@ import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
+import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
-import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
@@ -716,18 +717,18 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<SubscribedChannelLatestVideosDto> subscribedLatestVideos(PortalUser portalUser) {
+    public List<VideoWithSourceDetailsDto<ChannelDto>> subscribedLatestVideos(PortalUser portalUser) {
         List<GcVideo> latestVideos = videoService.subscribedLatestChannelVideos(portalUser);
 
         return latestVideos.stream()
-            .map(videoMapping::mapSubscribedChannelLatestVideos)
+            .map(videoMapping::mapWithDetailsChannelSource)
             .collect(Collectors.toList());
     }
 
     private List<VideoWithDetailsDto> channelLatestVideos(List<GcVideo> videos) {
         return videos.stream()
             .filter(video -> !video.getOriginChannel().isSection())
-            .map(videoMapping::mapWithDetails)
+            .map(videoMapping::mapWithDetailsChannelSource)
             .collect(Collectors.toList());
     }
 
@@ -745,7 +746,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private ChannelSectionVideosDto channelSectionVideos(List<GcVideo> sectionVideos) {
         return ChannelSectionVideosDto.builder()
             .name(sectionVideos.get(0).getOriginChannel().getChannelName())
-            .videos(sectionVideos.stream().map(videoMapping::mapWithDetails).collect(Collectors.toList()))
+            .videos(sectionVideos.stream().map(videoMapping::mapWithDetailsChannelSource).collect(Collectors.toList()))
             .build();
     }
 

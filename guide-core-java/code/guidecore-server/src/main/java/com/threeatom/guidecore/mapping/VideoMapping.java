@@ -2,25 +2,33 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
-import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
-import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
+import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class})
-public interface VideoMapping {
+public abstract class VideoMapping {
+
+    @Autowired
+    private ChannelMapping channelMapping;
+    @Autowired
+    private CourseMapping courseMapping;
 
     @Mapping(target = "title", source = "videoName")
     @Mapping(target = "thumbUrl", source = "thumbnailUrl")
     @Mapping(target = "private", source = "originChannel.visibleFlag", qualifiedByName = "mapBoolean")
-    @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoSource")
+    @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoUploadSource")
     @Mapping(target = "origin.id", source = "originChannel.id")
     @Mapping(target = "origin.type", constant = "CHANNEL")
     @Mapping(target = "origin.channelSlug", source = "originChannel.channelSlug")
@@ -32,12 +40,12 @@ public interface VideoMapping {
     @Mapping(target = "owner.thumbUrl", source = "originChannel.createUser.avatarFullFileUrl")
     @Mapping(target = "created", source = "createTime")
     @Mapping(target = "updated", source = "updateTime")
-    VideoSearchResultDto mapChannelOrigin(GcVideo video);
+    public abstract VideoSearchResultDto mapChannelOrigin(GcVideo video);
 
     @Mapping(target = "title", source = "videoName")
     @Mapping(target = "thumbUrl", source = "thumbnailUrl")
     @Mapping(target = "private", source = "originCourse.state", qualifiedByName = "mapBoolean")
-    @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoSource")
+    @Mapping(target = "source", source = "videoFile.fileTypeIndex", qualifiedByName = "mapVideoUploadSource")
     @Mapping(target = "origin.id", source = "originCourse.id")
     @Mapping(target = "origin.type", constant = "COURSE")
     @Mapping(target = "origin.title", source = "originCourse.name")
@@ -47,11 +55,11 @@ public interface VideoMapping {
     @Mapping(target = "owner.thumbUrl", source = "originCourse.userInfo.avatarFullFileUrl")
     @Mapping(target = "created", source = "createTime")
     @Mapping(target = "updated", source = "updateTime")
-    VideoSearchResultDto mapCourseOrigin(GcVideo video);
+    public abstract VideoSearchResultDto mapCourseOrigin(GcVideo video);
 
     @Mapping(target = "step", constant = "0L")
     @Mapping(target = "aggregateBy", constant = "video-id")
-    AnalyticsFilterDto mapFilter(VideoListFilterDto filter, List<Integer> videoIds);
+    public abstract AnalyticsFilterDto mapFilter(VideoListFilterDto filter, List<Integer> videoIds);
 
     @Mapping(target = "name", source = "videoName")
     @Mapping(target = "description", source = "videoDesc")
@@ -59,47 +67,75 @@ public interface VideoMapping {
     @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
     @Mapping(target = "snapshotUrl", source = "videoFile.snapshotUrl")
     @Mapping(target = "duration", source = "videoTime")
-    VideoDto map(GcVideo videoFile);
+    public abstract VideoDto map(GcVideo videoFile);
 
+    @Mapping(target = "id", source = "video.id")
+    @Mapping(target = "snapshotUrl", source = "video.snapshotUrl")
+    @Mapping(target = "createTime", source = "video.createTime")
+    @Mapping(target = "updateTime", source = "video.updateTime")
+    @Mapping(target = "permissions", source = "video.permissions")
+    @Mapping(target = "name", source = "video.videoName")
+    @Mapping(target = "description", source = "video.videoDesc")
+    @Mapping(target = "fileTypeIndex", source = "video.videoFile.fileTypeIndex")
+    @Mapping(target = "fileUrl", source = "video.videoFile.fullFileUrl")
+    @Mapping(target = "duration", source = "video.videoTime")
+    @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
+    @Mapping(target = "commentsCount", source = "video.commentNum")
+    @Mapping(target = "likesCount", source = "video.likeNum")
+    @Mapping(target = "source", source = "video", qualifiedByName = "mapVideoSource")
+    public abstract VideoWithSourceDetailsDto<VideoSourceDto> mapPlaylistVideoWithDetails(GcVideo video,
+                                                                                          GcUserSaveFolder playlist);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "snapshotUrl", source = "snapshotUrl")
+    @Mapping(target = "createTime", source = "createTime")
+    @Mapping(target = "updateTime", source = "updateTime")
+    @Mapping(target = "permissions", source = "permissions")
     @Mapping(target = "name", source = "videoName")
     @Mapping(target = "description", source = "videoDesc")
     @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
     @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
     @Mapping(target = "duration", source = "videoTime")
-    @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
+    @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
-    @Mapping(target = "source", source = "playlist")
-    PlaylistLatestVideosDto mapPlaylistLatestVideos(GcVideo video);
+    @Mapping(target = "source", source = "originChannel")
+    public abstract VideoWithSourceDetailsDto<ChannelDto> mapWithDetailsChannelSource(GcVideo video);
 
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "snapshotUrl", source = "snapshotUrl")
+    @Mapping(target = "createTime", source = "createTime")
+    @Mapping(target = "updateTime", source = "updateTime")
+    @Mapping(target = "permissions", source = "permissions")
     @Mapping(target = "name", source = "videoName")
     @Mapping(target = "description", source = "videoDesc")
     @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
     @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
     @Mapping(target = "duration", source = "videoTime")
-    @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
+    @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
-    @Mapping(target = "channel", source = "originChannel")
-    SubscribedChannelLatestVideosDto mapSubscribedChannelLatestVideos(GcVideo video);
+    public abstract VideoWithDetailsDto mapPlaylistVideoWithDetails(GcVideo video);
 
-    @Mapping(target = "name", source = "videoName")
-    @Mapping(target = "description", source = "videoDesc")
-    @Mapping(target = "fileTypeIndex", source = "videoFile.fileTypeIndex")
-    @Mapping(target = "fileUrl", source = "videoFile.fullFileUrl")
-    @Mapping(target = "duration", source = "videoTime")
-    @Mapping(target = "isLiked", source = "isLiked", qualifiedByName = "mapBoolean")
-    @Mapping(target = "commentsCount", source = "commentNum")
-    @Mapping(target = "likesCount", source = "likeNum")
-    VideoWithDetailsDto mapWithDetails(GcVideo video);
+    @Named("mapVideoSource")
+    protected VideoSourceDto mapVideoSource(GcVideo video) {
+        if (video.getOriginChannel() != null) {
+            return channelMapping.mapVideoSource(video.getOriginChannel());
+        }
+        if (video.getOriginCourse() != null) {
+            return courseMapping.map(video.getOriginCourse());
+        }
+
+        return null;
+    }
 
     @Named("mapBoolean")
-    default boolean mapPrivate(Integer code) {
+    protected boolean mapPrivate(Integer code) {
         return code != null && code == 1;
     }
 
-    @Named("mapVideoSource")
-    default String mapVideoSource(Integer fileTypeIndex) {
+    @Named("mapVideoUploadSource")
+    protected String mapVideoUploadSource(Integer fileTypeIndex) {
         return VideoFileProvider.fromIndex(fileTypeIndex).name();
     }
 }

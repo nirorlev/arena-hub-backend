@@ -19,6 +19,12 @@ public class VideoSourceDto {
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
 
+    private Integer subscribersCount;
+
+    private boolean subscribed;
+
+    private String avatarUrl;
+
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;
 

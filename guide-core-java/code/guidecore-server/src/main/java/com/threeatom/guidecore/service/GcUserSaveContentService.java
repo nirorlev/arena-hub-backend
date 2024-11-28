@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import java.util.List;
+import java.util.Optional;
 
 public interface GcUserSaveContentService extends IService<GcUserSaveContent> {
 
@@ -23,4 +24,6 @@ public interface GcUserSaveContentService extends IService<GcUserSaveContent> {
     List<Integer> selectFolderIdByFileId(Integer fileId, Integer masterId);
 
     List<GcUserSaveContent> selectContetnByFolderId(Integer folderId);
+
+    Optional<GcUserSaveContent> getPlaylistVideoContent(Integer playlistId, Integer videoId);
 }

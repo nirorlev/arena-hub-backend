@@ -24,4 +24,7 @@ public interface GcUserSaveContentMapper extends BaseMapper<GcUserSaveContent> {
 
     List<Integer> selectFolderIdByFileId(
             @Param("fileId") Integer fileId, @Param("masterId") Integer masterId);
+
+    GcUserSaveContent getByPlaylistIdAndVideoId(
+        @Param("playlistId") Integer playlistId, @Param("contentId") Integer videoId);
 }

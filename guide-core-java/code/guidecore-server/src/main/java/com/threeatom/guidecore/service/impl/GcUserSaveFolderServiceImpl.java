@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -34,13 +37,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder>
     implements GcUserSaveFolderService {
 
@@ -283,7 +289,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<PlaylistLatestVideosDto> playlistLatestVideos(
+    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
         List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
@@ -294,13 +300,46 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             this::latestPlaylistVideosCursor);
     }
 
+    @Override
+    public VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId, PortalUser portalUser) {
+        Optional<GcUserSaveContent> optionalPlaylistVideoContent =
+            gcUserSaveContentService.getPlaylistVideoContent(playlistId, videoId);
+        if (optionalPlaylistVideoContent.isEmpty()) {
+            log.error("Video {} not found in playlist {}", videoId, playlistId);
+            throw new ForbiddenException("Video not found in playlist");
+        }
+
+        GcUserSaveContent playlistContent = optionalPlaylistVideoContent.get();
+
+        GcVideo video = playlistContent.getVideo();
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view video {}", portalUser.getUserId(), videoId);
+            throw new ForbiddenException("You do not have permission to view this video");
+        }
+
+        GcUserSaveFolder playlist = playlistContent.getPlaylist();
+        if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
+            throw new ForbiddenException("You do not have permission to view this playlist");
+        }
+
+        gcVideoService.populateVideoData(List.of(video), portalUser);
+        List<Integer> videoOriginSubscriberIds =
+            gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
+
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapPlaylistVideoWithDetails(video, playlist);
+        videoWithDetails.getSource().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getSource().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        return videoWithDetails;
+    }
+
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {
         return null;
     }
 
-    private List<PlaylistLatestVideosDto> convertVideoDetails(List<GcVideo> latestVideos) {
+    private List<VideoWithSourceDetailsDto<VideoSourceDto>> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
-            .map(video -> videoMapping.mapPlaylistLatestVideos(video))
+            .map(video -> videoMapping.mapPlaylistVideoWithDetails(video, video.getPlaylist()))
             .collect(Collectors.toList());
     }
 

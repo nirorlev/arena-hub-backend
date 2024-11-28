@@ -4,10 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
+import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
-import com.threeatom.guidecore.dto.response.SubscribedChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
@@ -76,5 +77,5 @@ public interface PtChannelService extends IService<PtChannel> {
 
     ChannelLatestVideosDto sectionLatestVideos(Integer channelId, PortalUser portalUser);
 
-    List<SubscribedChannelLatestVideosDto> subscribedLatestVideos(PortalUser portalUser);
+    List<VideoWithSourceDetailsDto<ChannelDto>> subscribedLatestVideos(PortalUser portalUser);
 }
