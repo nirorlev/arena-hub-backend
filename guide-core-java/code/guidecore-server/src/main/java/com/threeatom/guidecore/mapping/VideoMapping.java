@@ -8,7 +8,6 @@ import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
-import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.enums.VideoFileProvider;
 import java.util.List;
@@ -24,6 +23,8 @@ public abstract class VideoMapping {
     private ChannelMapping channelMapping;
     @Autowired
     private CourseMapping courseMapping;
+    @Autowired
+    private PlaylistMapping playlistMapping;
 
     @Mapping(target = "title", source = "videoName")
     @Mapping(target = "thumbUrl", source = "thumbnailUrl")
@@ -83,8 +84,7 @@ public abstract class VideoMapping {
     @Mapping(target = "commentsCount", source = "video.commentNum")
     @Mapping(target = "likesCount", source = "video.likeNum")
     @Mapping(target = "source", source = "video", qualifiedByName = "mapVideoSource")
-    public abstract VideoWithSourceDetailsDto<VideoSourceDto> mapPlaylistVideoWithDetails(GcVideo video,
-                                                                                          GcUserSaveFolder playlist);
+    public abstract VideoWithSourceDetailsDto<VideoSourceDto> mapWithVideoSource(GcVideo video);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "snapshotUrl", source = "snapshotUrl")
@@ -119,6 +119,9 @@ public abstract class VideoMapping {
 
     @Named("mapVideoSource")
     protected VideoSourceDto mapVideoSource(GcVideo video) {
+        if (video.getPlaylist() != null) {
+            return playlistMapping.mapSource(video.getPlaylist());
+        }
         if (video.getOriginChannel() != null) {
             return channelMapping.mapVideoSource(video.getOriginChannel());
         }

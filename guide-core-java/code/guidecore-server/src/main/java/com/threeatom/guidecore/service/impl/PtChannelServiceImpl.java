@@ -8,7 +8,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
@@ -18,6 +20,7 @@ import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.*;
@@ -723,6 +726,33 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return latestVideos.stream()
             .map(videoMapping::mapWithDetailsChannelSource)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public VideoWithSourceDetailsDto<VideoSourceDto> channelVideoPlayerPage(Integer videoId, Integer channelId,
+                                                                            PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view video {}", portalUser.getUserId(), videoId);
+            throw new ForbiddenException("No permission to view this video");
+        }
+        PtChannel channel = video.getOriginChannel();
+        if (channel == null
+            || !channel.getId().equals(channelId)
+            || !authorizationService.checkAccess(channel, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view channel {} with video id {}", portalUser.getUserId(),
+                channelId, videoId);
+            throw new ForbiddenException("No permission to view this channel");
+        }
+
+        videoService.populateVideoData(List.of(video), portalUser);
+        List<Integer> videoOriginSubscriberIds =
+            videoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
+
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+        videoWithDetails.getSource().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getSource().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        return videoWithDetails;
     }
 
     private List<VideoWithDetailsDto> channelLatestVideos(List<GcVideo> videos) {
