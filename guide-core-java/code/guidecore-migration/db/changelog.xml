@@ -646,4 +646,22 @@
                 constraintName="user_avatar_user_id_fk_uniq"
                 tableName="user_avatar"/>
     </changeSet>
+
+    <changeSet id="create-fe-version-table" author="vprokh">
+        <createTable tableName="fe_version_override">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="version" type="varchar">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="created_date" type="time with time zone" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_date" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
