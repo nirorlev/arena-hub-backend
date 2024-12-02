@@ -29,6 +29,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
+import com.threeatom.guidecore.service.FeVersionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
@@ -148,7 +149,8 @@ public class HomeInfoController extends GuideCoreController {
     private PtChannelService ptChannelService;
     @Autowired
     private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-
+    @Autowired
+    private FeVersionService feVersionService;
 
     @ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
@@ -693,6 +695,7 @@ public class HomeInfoController extends GuideCoreController {
         String xRequestUri = request.getHeader("x-request-uri");
         log.info("[SSR] Method: " + request.getMethod() + ", URI: " + request.getRequestURI() + ", x-request-uri: " +
             request.getHeader("x-request-uri"));
+
         if (xRequestUri != null) {
             if (xRequestUri.endsWith("/")) {
                 xRequestUri = xRequestUri.substring(0, xRequestUri.length() - 1);
@@ -991,14 +994,17 @@ public class HomeInfoController extends GuideCoreController {
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
         try {
             printWriter = response.getWriter();
-            printWriter.write(homeInfoContent(addMetaContent, xRequestUri));
+            String feVersion = feVersionService.getVersion(request.getParameter("version"));
+            printWriter.write(homeInfoContent(feVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String homeInfoContent(String addMetaContent, String xRequestUri) {
+    private String homeInfoContent(String feVersion, String addMetaContent, String xRequestUri) {
+        String hubUrl = feVersion + this.hubUrl;
+
         return String.format(
             """
                 <!doctype html>
