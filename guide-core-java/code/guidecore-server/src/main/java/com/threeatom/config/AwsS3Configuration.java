@@ -1,68 +1,21 @@
 package com.threeatom.config;
 
-import com.threeatom.common.yml.YamlPropertySourceFactory;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource(value = "classpath:system.yml", factory = YamlPropertySourceFactory.class)
-@ConfigurationProperties(prefix = "aws")
+@ConfigurationProperties(prefix = "aws.s3")
+@Getter
 public class AwsS3Configuration {
 
-    @Value("${aws.durationSeconds}")
-    private Integer durationSeconds;
+    @Value("${accessKey}")
+    private String accessKey;
 
-    @Value("${aws.region}")
-    private String region;
+    @Value("${secretAccessKey}")
+    private String secretKey;
 
-    @Value("${aws.roleArn}")
-    private String roleArn;
-
-    @Value("${aws.roleSessionName}")
-    private String roleSessionName;
-
-    @Value("${aws.bucketName}")
-    private String bucketName;
-
-    public Integer getDurationSeconds() {
-        return durationSeconds;
-    }
-
-    public void setDurationSeconds(Integer durationSeconds) {
-        this.durationSeconds = durationSeconds;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public String getRoleArn() {
-        return roleArn;
-    }
-
-    public void setRoleArn(String roleArn) {
-        this.roleArn = roleArn;
-    }
-
-    public String getRoleSessionName() {
-        return roleSessionName;
-    }
-
-    public void setRoleSessionName(String roleSessionName) {
-        this.roleSessionName = roleSessionName;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
-    }
+    @Value("${feBucketName}")
+    private String feBucketName;
 }
