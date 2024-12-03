@@ -47,11 +47,20 @@ public class FeVersionServiceImpl extends ServiceImpl<FeVersionOverrideMapper, F
         return content.split("\n")[0].trim();
     }
 
-    private String findLatestVersion() {
+    @Override
+    public String findLatestVersion() {
         QueryWrapper<FeVersionOverride> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc("modified_date").last("LIMIT 1");
         FeVersionOverride latestVersion = this.getOne(queryWrapper);
 
         return latestVersion != null ? latestVersion.getVersion() : "";
+    }
+
+    @Transactional
+    @Override
+    public void saveVersion(String version) {
+        FeVersionOverride feVersionOverride = new FeVersionOverride();
+        feVersionOverride.setVersion(version);
+        this.save(feVersionOverride);
     }
 }
