@@ -290,7 +290,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
 
         return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize,
-            videos -> convertVideoDetails(videos, portalUser),
+            this::convertVideoDetails,
             this::latestPlaylistVideosCursor);
     }
 
@@ -298,7 +298,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return null;
     }
 
-    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos, PortalUser portalUser) {
+    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
             .map(video -> videoMapping.mapWithDetails(video))
             .collect(Collectors.toList());
