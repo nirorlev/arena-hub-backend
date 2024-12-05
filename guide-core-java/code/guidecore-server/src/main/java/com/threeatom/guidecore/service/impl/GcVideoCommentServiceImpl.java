@@ -5,10 +5,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.controller.Message;
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.dto.response.CommentDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcEventMapper;
 import com.threeatom.guidecore.mapper.GcVideoCommentMapper;
+import com.threeatom.guidecore.mapping.CommentMapping;
 import com.threeatom.guidecore.service.GcEventService;
 import com.threeatom.guidecore.service.GcResourceService;
 import com.threeatom.guidecore.service.GcSubjectService;
@@ -45,6 +50,8 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
     @Autowired private SysFileService sysFileService;
 
     @Autowired private GcSubjectService gcSubjectService;
+    @Autowired private AuthorizationService authorizationService;
+    @Autowired private CommentMapping commentMapping;
 
     @Override
     public boolean saveVideoComment(GcVideoComment videoComment) {
@@ -98,6 +105,19 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("master_id", masterId);
         return this.baseMapper.delete(queryWrapper);
+    }
+
+    @Override
+    public List<CommentDto> videoComments(Integer videoId, PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        List<GcVideoComment> videoComments = getVideoComments(List.of(videoId), portalUser.getMasterId());
+        return videoComments.stream()
+            .map(videoComment -> commentMapping.map(videoComment, portalUser.getUserId()))
+            .collect(Collectors.toList());
     }
 
     @Override
