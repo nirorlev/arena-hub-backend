@@ -1013,6 +1013,7 @@ public class HomeInfoController extends GuideCoreController {
                   <link rel="icon" href="%s/favicon.ico">
                   <script type="module" src="%s/arena.js"></script>
                   <script src="%s/globalConfig.js"></script>
+                  <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=aac6a1b8-02ba-4148-b7a0-d141500a10fc"></script>
                 </head>
 
                 <body><noscript>You need to enable JavaScript to run this app.</noscript>
