@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.GcVideoCommentMapper">
 
-
     <resultMap id="showBaseResultMap" type="GcVideoComment">
         <id property="id" column="id"/>
         
@@ -35,7 +34,7 @@
             <result property="fileUrl" column="f_file_url"/>
             <result property="saveType" column="f_save_type"/>
         </association>
-        
+        <association property="author" column="user_id" javaType="GcUser" resultMap="userResultMap" columnPrefix="user_" />
         <association property="commentFile" column="file_id" javaType="SysFile">
             <id property="id" column="cf_id"/>
             <result property="name" column="cf_name"/>
@@ -47,13 +46,89 @@
             <result property="thumbNailId" column="thumb_nail_id"/>
             <result property="thumbNailUrl" column="thumb_nail_url"/>
         </association>
+        <collection property="userFabulousList" column="comment_id" javaType="ArrayList" ofType="GcUserFabulous" resultMap="userFabuloustResultMap" columnPrefix="user_fabulous_" />
+    </resultMap>
 
+    <resultMap id="userResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id"/>
+        <result property="username" column="username"/>
+        <result property="state" column="state"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="infoId" column="info_id"/>
+        <result property="groupName" column="group_name"/>
+        <result property="logInTime" column="log_in_time"/>
+        <result property="powtoonUserId" column="powtoon_user_id"/>
+
+        <association property="info" column="id" javaType="GcUserInfo" columnPrefix="info_">
+            <id property="id" column="id"/>
+            <result property="lastName" column="last_name"/>
+            <result property="firstName" column="first_name"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="avatarFileId" column="avatar_file_id"/>
+            <association property="avatarFile" column="avatarFile" javaType="SysFile" columnPrefix="avatar_file_">
+                <id property="id" column="id"/>
+                <result property="name" column="name"/>
+                <result property="fileUrl" column="url"/>
+                <result property="saveType" column="save_type"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <resultMap id="userFabuloustResultMap" type="GcUserFabulous">
+        <id property="id" column="id"/>
+        <result property="eventId" column="event_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="targetUserId" column="target_user_id"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="commentId" column="comment_id"/>
     </resultMap>
 
     <sql id="baseColumn">
         vc.id,vc.video_id,vc.user_id,vc.comment,vc.file_id,vc.update_time,vc.create_time
     </sql>
-    
+
+    <sql id="userColumns">
+        u.id as user_id,
+        u.sys_id as user_sys_id,
+        u.username as user_username,
+        u.state as user_state,
+        u.update_time as user_update_time,
+        u.create_time as user_create_time,
+        u.info_id as user_info_id,
+        u.powtoon_user_id as user_powtoon_user_id
+    </sql>
+
+    <sql id="userInfoColumns">
+        user_info.id as user_info_id,
+        user_info.last_name as user_info_last_name,
+        user_info.first_name as user_info_first_name,
+        user_info.gender as user_info_gender,
+        user_info.phone as user_info_phone,
+        user_info.avatar_file_id as user_info_avatar_file_id
+    </sql>
+
+    <sql id="userAvatarFileColumns">
+        f.id as user_info_avatar_file_id,
+        f.name as user_info_avatar_file_name,
+        f.file_url as user_info_avatar_file_url,
+        f.save_type as user_info_avatar_file_save_type
+    </sql>
+
+    <sql id="userFabulousColumns">
+        user_fabulous.id as user_fabulous_id,
+        user_fabulous.user_id as user_fabulous_user_id,
+        user_fabulous.event_id as user_fabulous_event_id,
+        user_fabulous.video_id as user_fabulous_video_id,
+        user_fabulous.target_user_id as user_fabulous_target_user_id,
+        user_fabulous.comment_id as user_fabulous_comment_id,
+        user_fabulous.update_time as user_fabulous_update_time,
+        user_fabulous.create_time as user_fabulous_create_time
+    </sql>
+
     <sql id="userAvatarFileColumn">
         ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
     </sql>
@@ -139,18 +214,21 @@
 
     <select id="getVideoComments" resultMap="showBaseResultMap">
         SELECT
-        <include refid="baseColumn" />
-        <include refid="userAvatarFileColumn" />
-        <include refid="commentFileColumn" />
-        ,ui.id as info_id,ui.first_name,ui.last_name
-        FROM
-        gc_video_comment AS vc
-        LEFT JOIN gc_user AS u ON u.id=vc.user_id
-        LEFT JOIN gc_user_info ui on ui.id=u.info_id
-        LEFT JOIN sys_file f on ui.avatar_file_id=f.id
-        LEFT JOIN sys_file cf on vc.file_id=cf.id
-        WHERE
-        vc.master_id=#{masterId} and vc.video_id in
+            <include refid="baseColumn" />
+            <include refid="userAvatarFileColumn" />
+            <include refid="commentFileColumn" />,
+            user_info.id as info_id, user_info.first_name, user_info.last_name,
+            <include refid="userColumns" />,
+            <include refid="userInfoColumns" />,
+            <include refid="userAvatarFileColumns" />,
+            <include refid="userFabulousColumns" />
+        FROM gc_video_comment AS vc
+            JOIN gc_user AS u ON u.id=vc.user_id
+            LEFT JOIN gc_user_fabulous user_fabulous on user_fabulous.comment_id = vc.id
+            LEFT JOIN gc_user_info user_info on user_info.id=u.info_id
+            LEFT JOIN sys_file f on user_info.avatar_file_id=f.id
+            LEFT JOIN sys_file cf on vc.file_id=cf.id
+        WHERE vc.master_id=#{masterId} and vc.video_id in
         <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
             #{videoId}
         </foreach>

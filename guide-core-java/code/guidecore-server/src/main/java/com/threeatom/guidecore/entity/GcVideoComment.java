@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -57,6 +58,12 @@ public class GcVideoComment implements Serializable {
 
     @TableField(exist = false)
     private Date createTime;
+
+    @TableField(exist = false)
+    private GcUser author;
+
+    @TableField(exist = false)
+    private List<GcUserFabulous> userFabulousList;
 
     @TableField(exist = false)
     private String lastName;
