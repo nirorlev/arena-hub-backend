@@ -287,7 +287,7 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     }
 
     private void checkPermission(PortalUser portalUser) {
-        if (authorizationService.checkAccess(PortalAction.ACCESS_ANALYTICS, portalUser)) {
+        if (!authorizationService.checkAccess(PortalAction.ACCESS_ANALYTICS, portalUser)) {
             throw new ForbiddenException("No permission to access analytics");
         }
     }
