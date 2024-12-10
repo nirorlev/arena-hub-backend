@@ -7,6 +7,7 @@ import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -124,6 +125,8 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser);
 
+    Integer countPlaylistLatestVideos(PortalUser portalUser);
+
     GcVideo findByVideoId(Integer videoId);
 
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
@@ -146,7 +149,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     void updateVideoFilePrivacy(SysFile videoFile, GcVideo video);
 
-    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request);
+    VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, PortalUser portalUser, HttpServletRequest request);
 
     boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
 
@@ -159,4 +162,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<Integer> getVideoIdsByChannelIds(List<Integer> channelIds);
 
     VideoDto getVideo(Integer videoId, PortalUser portalUser, HttpServletRequest request);
+
+    List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor);
 }

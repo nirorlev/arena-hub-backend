@@ -10,6 +10,7 @@ public enum PlaylistAction {
     CREATE("create"),
     DELETE("delete"),
     EDIT("edit"),
+    SHARE("share"),
     ADD_CONTENT("addContent"),
     MANAGE_CONTENT("manageContent"),
     PUBLISH("publish"),

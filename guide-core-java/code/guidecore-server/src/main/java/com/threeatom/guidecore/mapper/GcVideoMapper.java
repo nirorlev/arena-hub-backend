@@ -5,8 +5,10 @@ import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.StudentInfoVO;
 import java.util.List;
 import java.util.Map;
@@ -124,4 +126,9 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> findByVideoIds(@Param("videoIds") List<Integer> videoIds);
 
     List<Integer> getVideoIdsByChannelIds(@Param("channelIds") List<Integer> channelIds);
+
+    List<GcVideo> findLatestUserSubscribedPlaylistVideos(
+        @Param("portalUser") PortalUser portalUser, @Param("cursor") CursorDto cursor);
+
+    Integer countLatestUserSubscribedPlaylistVideos(@Param("portalUser") PortalUser portalUser);
 }

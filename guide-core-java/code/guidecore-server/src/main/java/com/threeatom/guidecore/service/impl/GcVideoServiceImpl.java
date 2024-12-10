@@ -5,6 +5,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
@@ -664,8 +665,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, Integer masterId, HttpServletRequest request) {
-		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, masterId);
+	public VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, PortalUser portalUser,
+													  HttpServletRequest request) {
+		List<GcVideo> videos = this.baseMapper.getVideoListByQuery(filter, portalUser.getMasterId());
 
 		List<VideoSearchResultDto> result = getChannelOriginVideoListResult(request, videos);
 		result.addAll(getCourseOriginVideoListResult(request, videos));
@@ -675,7 +677,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		Map<Integer, String> videoIdAnalytics =
-			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), masterId);
+			analyticsFacade.getVideoIdAnalytics(videoMapping.mapFilter(filter, getVideoIds(videos)), filter.getSortBy(), portalUser);
 		return createVideoSearchResponse(populateSortedByValue(result, videoIdAnalytics, filter));
 	}
 
@@ -749,12 +751,23 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return this.baseMapper.getVideoIdsByChannelIds(channelIds);
 	}
 
+	private void syncVideoInformationWithFile(GcVideo video, SysFile file) {
+		String videoThumbnailUrl = video.getThumbnailUrl();
+		String fileThumbnailUrl = file.getThumbNailUrl();
+		if (fileThumbnailUrl == null || fileThumbnailUrl.equals(videoThumbnailUrl)) {
+			return;
+		}
+		video.setThumbnailUrl(fileThumbnailUrl);
+		updateById(video);
+	}
+
 	@Override
 	public SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser) {
 		Integer contentId = video.getId();
 		SysFile videoFile = sysFileService.getById(video.getFileId());
 		sysFileService.updateVideoInformation(videoFile, portalUser);
 		video.setVideoFile(videoFile);
+		syncVideoInformationWithFile(video, videoFile);
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(video);
 		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
 		videoFile.setFullFileUrl(fullFileUrl);
@@ -778,6 +791,31 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		updateVideoFile(request, video, portalUser);
 		return videoMapping.map(video);
+	}
+
+	@Override
+	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
+		List<GcVideo> latestVideos =
+			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
+		populateVideoData(latestVideos, portalUser);
+
+		return latestVideos;
+	}
+
+	@Override
+	public Integer countPlaylistLatestVideos(PortalUser portalUser) {
+		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
+	}
+
+	private void populateVideoData(List<GcVideo> videos, PortalUser portalUser) {
+		videos.forEach(video -> {
+			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), portalUser.getUserId()) ? 1 : 0);
+			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
+			video.setSnapshotUrl(
+				sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile())));
+			video.setPermissions(authorizationService.listPermissions(video, portalUser));
+			updateVideoUrls(video);
+		});
 	}
 
 	@Override
@@ -810,6 +848,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		videoFile.setSnapshotUrl(snapShotUrl);
 		videoFile.setFullFileUrl(fullFileUrl);
+		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
+	}
+
+	private void updateVideoUrls(GcVideo video) {
+		SysFile videoFile = video.getVideoFile();
+
+		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+		videoFile.setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
 		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
 

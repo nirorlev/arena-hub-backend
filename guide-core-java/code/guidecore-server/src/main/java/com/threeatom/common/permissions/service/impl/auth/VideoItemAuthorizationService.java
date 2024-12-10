@@ -1,5 +1,6 @@
 package com.threeatom.common.permissions.service.impl.auth;
 
+import com.threeatom.common.permissions.dto.PermitContentItem;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.enums.VideoItemAction;
@@ -8,6 +9,7 @@ import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,22 +24,23 @@ public class VideoItemAuthorizationService
         VideoItemAction.SHARE,
         VideoItemAction.COMMENT
     );
-    private static final Map<VideoItemRole, Map<VideoItemAction, Boolean>> ROLE_VIDEO_ITEM_PERMISSIONS = Map.of(
+    private static final Map<VideoItemRole, Map<VideoItemAction, Predicate<PermitVideoItem>>>
+        ROLE_VIDEO_ITEM_PERMISSIONS = Map.of(
         VideoItemRole.VIEWER, Map.of(
-            VideoItemAction.CREATE, false,
-            VideoItemAction.DELETE, false,
-            VideoItemAction.VIEW, true,
-            VideoItemAction.EDIT, false,
-            VideoItemAction.SHARE, true,
-            VideoItemAction.COMMENT, true
+            VideoItemAction.CREATE, videoItem -> false,
+            VideoItemAction.DELETE, videoItem -> false,
+            VideoItemAction.VIEW, videoItem -> true,
+            VideoItemAction.EDIT, videoItem -> false,
+            VideoItemAction.SHARE, videoItem -> true,
+            VideoItemAction.COMMENT, videoItem -> true
         ),
         VideoItemRole.ADMIN, Map.of(
-            VideoItemAction.CREATE, true,
-            VideoItemAction.DELETE, true,
-            VideoItemAction.VIEW, true,
-            VideoItemAction.EDIT, true,
-            VideoItemAction.SHARE, true,
-            VideoItemAction.COMMENT, true
+            VideoItemAction.CREATE, videoItem -> true,
+            VideoItemAction.DELETE, videoItem -> true,
+            VideoItemAction.VIEW, videoItem -> true,
+            VideoItemAction.EDIT, videoItem -> true,
+            VideoItemAction.SHARE, PermitContentItem::isPublic,
+            VideoItemAction.COMMENT, videoItem -> true
         )
     );
 
@@ -64,7 +67,7 @@ public class VideoItemAuthorizationService
     }
 
     @Override
-    protected Map<VideoItemAction, Boolean> getPermissionMap(VideoItemRole videoItemRole) {
+    protected Map<VideoItemAction, Predicate<PermitVideoItem>> getPermissionMap(VideoItemRole videoItemRole) {
         return ROLE_VIDEO_ITEM_PERMISSIONS.get(videoItemRole);
     }
 

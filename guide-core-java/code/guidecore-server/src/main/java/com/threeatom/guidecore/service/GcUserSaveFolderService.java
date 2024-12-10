@@ -3,8 +3,10 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
@@ -48,9 +50,11 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     Integer countUserPublicPlaylists(Integer userId, Integer masterId);
 
-    List<PlaylistDto> ownedPlaylists(PortalUser portalUser);
+    List<PlaylistWithDetailsDto> ownedPlaylists(PortalUser portalUser);
 
-    List<PlaylistDto> subscribed(PortalUser portalUser);
+    List<PlaylistWithDetailsDto> subscribed(PortalUser portalUser);
 
-    PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize);
+    PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize);
+
+    PageableDto<VideoWithDetailsDto> playlistLatestVideos(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 }

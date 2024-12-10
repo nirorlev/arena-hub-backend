@@ -59,8 +59,17 @@
                         #{videoId}
                     </foreach>
                 </if>
-        RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
-            ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
+            <if test="!filter.contentGroupIds.empty">
+                JOIN gc_video video ON play_session.video_id = video.id
+                JOIN sys_file video_file ON video.file_id = video_file.id
+                JOIN gc_user_access user_content_group ON user_content_group.user_id = video_file.upload_uid AND user_content_group.master_id = #{masterId}
+                AND user_content_group.access_id IN
+                <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                    #{contentGroupId}
+                </foreach>
+            </if>
+            RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
+                ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
         GROUP BY time_bucket
         ORDER BY time_bucket;
     </select>
@@ -91,6 +100,15 @@
                         #{videoId}
                     </foreach>
                 </if>
+            <if test="!filter.contentGroupIds.empty">
+                JOIN gc_video video ON play_session.video_id = video.id
+                JOIN sys_file video_file ON video.file_id = video_file.id
+                JOIN gc_user_access user_content_group ON user_content_group.user_id = video_file.upload_uid AND user_content_group.master_id = #{masterId}
+                AND user_content_group.access_id IN
+                <foreach item="contentGroupId" collection="filter.contentGroupIds" open="(" separator="," close=")">
+                    #{contentGroupId}
+                </foreach>
+            </if>
             RIGHT JOIN generate_series(#{filter.start}, #{filter.end}, concat(#{filter.step}, ' second')::interval) AS time_bucket
                 ON play_session.create_time >= time_bucket AND play_session.create_time &lt; time_bucket + concat(#{filter.step}, ' second')::interval
         GROUP BY time_bucket

@@ -8,21 +8,27 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
-import com.threeatom.guidecore.mapping.PageableMapping;
 import com.threeatom.guidecore.mapping.PlaylistMapping;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.VideoThumbnailProvider;
+import com.threeatom.guidecore.util.PaginationUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,6 +46,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Autowired
     private SysFileService sysFileService;
+    @Autowired
+    private VideoThumbnailProvider videoThumbnailProvider;
 
     @Autowired
     @Lazy
@@ -58,8 +66,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     @Autowired
     private AuthorizationService authorizationService;
     @Autowired
-    private PageableMapping pageableMapping;
-
+    private VideoMapping videoMapping;
 
     public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
                                                     HttpServletRequest request) {
@@ -244,30 +251,67 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public List<PlaylistDto> ownedPlaylists(PortalUser portalUser) {
+    public List<PlaylistWithDetailsDto> ownedPlaylists(PortalUser portalUser) {
         List<GcUserSaveFolder> playlists = this.baseMapper.ownedPlaylists(portalUser);
         return convertPlaylist(portalUser, playlists);
     }
 
     @Override
-    public List<PlaylistDto> subscribed(PortalUser portalUser) {
+    public List<PlaylistWithDetailsDto> subscribed(PortalUser portalUser) {
         List<GcUserSaveFolder> playlists = this.baseMapper.subscribedPlaylists(portalUser);
         return convertPlaylist(portalUser, playlists);
     }
 
     @Override
-    public PageableDto<PlaylistDto> discoverable(PortalUser portalUser, Integer pageNum, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser);
-        return pageableMapping.map(convertPlaylist(portalUser, playlists), pageNum, pageSize);
+    public PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize) {
+        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, cursor);
+        Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
+
+        return PaginationUtil.createPageableDto(playlists, totalCount, pageSize,
+            playlistList -> convertPlaylist(portalUser, playlistList), this::playlistNextCursor);
     }
 
-    private List<PlaylistDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
+    private String playlistNextCursor(List<GcUserSaveFolder> playlists) {
+        if (CollectionUtils.isEmpty(playlists)) {
+            return null;
+        }
+
+        GcUserSaveFolder lastPlaylist = playlists.get(playlists.size() - 1);
+        CursorDto nextCursor = new CursorDto(lastPlaylist.getId(), lastPlaylist.getUpdateTime().toInstant().atZone(
+            ZoneId.systemDefault()).toOffsetDateTime());
+        return nextCursor.encode();
+    }
+
+    @Override
+    public PageableDto<VideoWithDetailsDto> playlistLatestVideos(
+        PortalUser portalUser, CursorDto cursor, Integer pageSize) {
+
+        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
+        Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
+
+        return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize,
+            this::convertVideoDetails,
+            this::latestPlaylistVideosCursor);
+    }
+
+    private String latestPlaylistVideosCursor(List<GcVideo> videos) {
+        return null;
+    }
+
+    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
+        return latestVideos.stream()
+            .map(video -> videoMapping.mapWithDetails(video))
+            .collect(Collectors.toList());
+    }
+
+    private List<PlaylistWithDetailsDto> convertPlaylist(PortalUser portalUser, List<GcUserSaveFolder> playlists) {
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                PlaylistDto playlistDto = playlistMapping.map(playlist);
-                playlistDto.setSnapshotUrl(sysFileService.getFullFileUrl(playlistDto.getSnapshotUrl()));
-                return playlistDto;
+                playlist.getSaveContentList().forEach(content -> {
+                    playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(content.getVideoFile())));
+                });
+                return playlistMapping.mapWithDetails(playlist);
             })
             .collect(Collectors.toList());
     }

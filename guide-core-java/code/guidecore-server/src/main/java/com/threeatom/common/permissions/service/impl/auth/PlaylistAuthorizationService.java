@@ -1,5 +1,6 @@
 package com.threeatom.common.permissions.service.impl.auth;
 
+import com.threeatom.common.permissions.dto.PermitCollection;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.enums.PlaylistAction;
@@ -7,7 +8,7 @@ import com.threeatom.common.permissions.enums.PlaylistRole;
 import com.threeatom.common.permissions.service.ResourceAuthorizationService;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,30 +26,33 @@ public class PlaylistAuthorizationService
         PlaylistAction.SUBSCRIBE,
         PlaylistAction.UNSUBSCRIBE
     );
-    private static final Map<PlaylistRole, Map<PlaylistAction, Boolean>> ROLE_PLAYLIST_PERMISSIONS = Map.of(
-        PlaylistRole.VIEWER, Map.of(
-            PlaylistAction.CREATE, false,
-            PlaylistAction.DELETE, false,
-            PlaylistAction.VIEW, true,
-            PlaylistAction.EDIT, false,
-            PlaylistAction.SUBSCRIBE, true,
-            PlaylistAction.UNSUBSCRIBE, true,
-            PlaylistAction.ADD_CONTENT, false,
-            PlaylistAction.MANAGE_CONTENT, false,
-            PlaylistAction.PUBLISH, false
-        ),
-        PlaylistRole.ADMIN, Map.of(
-            PlaylistAction.CREATE, true,
-            PlaylistAction.DELETE, true,
-            PlaylistAction.VIEW, true,
-            PlaylistAction.EDIT, true,
-            PlaylistAction.SUBSCRIBE, true,
-            PlaylistAction.UNSUBSCRIBE, true,
-            PlaylistAction.ADD_CONTENT, true,
-            PlaylistAction.MANAGE_CONTENT, true,
-            PlaylistAction.PUBLISH, true
-        )
-    );
+    private static final Map<PlaylistRole, Map<PlaylistAction, Predicate<PermitPlaylist>>> ROLE_PLAYLIST_PERMISSIONS =
+        Map.of(
+            PlaylistRole.VIEWER, Map.of(
+                PlaylistAction.CREATE, playlist -> false,
+                PlaylistAction.DELETE, playlist -> false,
+                PlaylistAction.VIEW, playlist -> true,
+                PlaylistAction.EDIT, playlist -> false,
+                PlaylistAction.SHARE, playlist -> true,
+                PlaylistAction.SUBSCRIBE, playlist -> true,
+                PlaylistAction.UNSUBSCRIBE, playlist -> true,
+                PlaylistAction.ADD_CONTENT, playlist -> false,
+                PlaylistAction.MANAGE_CONTENT, playlist -> false,
+                PlaylistAction.PUBLISH, playlist -> false
+            ),
+            PlaylistRole.ADMIN, Map.of(
+                PlaylistAction.CREATE, playlist -> true,
+                PlaylistAction.DELETE, playlist -> true,
+                PlaylistAction.VIEW, playlist -> true,
+                PlaylistAction.EDIT, playlist -> true,
+                PlaylistAction.SHARE, PermitCollection::isPublic,
+                PlaylistAction.SUBSCRIBE, playlist -> true,
+                PlaylistAction.UNSUBSCRIBE, playlist -> true,
+                PlaylistAction.ADD_CONTENT, playlist -> true,
+                PlaylistAction.MANAGE_CONTENT, playlist -> true,
+                PlaylistAction.PUBLISH, playlist -> true
+            )
+        );
 
     @Override
     public PlaylistRole getRole(PermitUser permitUser, PermitPlaylist playlist) {
@@ -64,7 +68,7 @@ public class PlaylistAuthorizationService
     }
 
     @Override
-    protected Map<PlaylistAction, Boolean> getPermissionMap(PlaylistRole contentGroupRole) {
+    protected Map<PlaylistAction, Predicate<PermitPlaylist>> getPermissionMap(PlaylistRole contentGroupRole) {
         return ROLE_PLAYLIST_PERMISSIONS.get(contentGroupRole);
     }
 

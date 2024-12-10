@@ -17,6 +17,7 @@ public class AnalyticsFilterDto extends DateRangeDto {
     private String aggregateBy = AnalyticsAggregation.DATE.getCode();
 
     private List<Integer> videoIds = new ArrayList<>();
+    private List<Integer> contentGroupIds = new ArrayList<>();
 
     public AnalyticsAggregation getAggregateBy() {
         return AnalyticsAggregation.fromCode(aggregateBy);

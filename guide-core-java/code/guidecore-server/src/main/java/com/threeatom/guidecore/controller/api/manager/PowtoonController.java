@@ -899,7 +899,7 @@ public class PowtoonController extends GuideCoreController {
             throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
         }
         Message message = new Message();
-        GcVideo video = gcVideoService.getVideoContentByFileId(videoId);
+        GcVideo video = gcVideoService.findByVideoId(videoId);
         SysFile file = video.getVideoFile();
         GcUser myUser = this.getGcUser();
         Integer masterId = getHeaderMasterId(request);
@@ -2675,17 +2675,15 @@ public class PowtoonController extends GuideCoreController {
     public Message selectChannelDetail(@RequestBody PtChannel ptChannel, HttpServletRequest request) {
         Message message = new Message();
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        Integer ptChannelId = null;
-        if (null != ptChannel.getId()) {
-            ptChannelId = ptChannel.getId();
-        } else if (null != ptChannel.getChannelSlug()) {
-            ptChannelId = ptChannelService.findBySlugAndMasterId(ptChannel.getChannelSlug(), masterId).getId();
+
+        if (ptChannel.getChannelSlug() != null) {
+            PtChannel existingChannel = ptChannelService.findBySlugAndMasterId(ptChannel.getChannelSlug(), masterId);
+            ptChannel.setId(existingChannel.getId());
+            ptChannel.setVisibleFlag(existingChannel.getVisibleFlag());
+            ptChannel.setCreateUserId(existingChannel.getCreateUserId());
         }
-        ptChannel.setId(ptChannelId);
 
         GcUser user = this.getGcUser();
-        ptChannelService.populateCreatedUserId(ptChannel, user.getId());
-
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), masterId);
         if (!authorizationService.checkAccess(ptChannel, PermitAction.VIEW, portalUser)) {
             throw new PermitException("No permission for this!");

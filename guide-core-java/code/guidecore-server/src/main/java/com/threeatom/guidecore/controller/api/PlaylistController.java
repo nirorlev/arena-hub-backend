@@ -1,7 +1,9 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistDto;
+import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -32,7 +34,7 @@ public class PlaylistController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of playlists owned by the current user")
-    public ResponseEntity<List<PlaylistDto>> owned(HttpServletRequest request) {
+    public ResponseEntity<List<PlaylistWithDetailsDto>> owned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -42,11 +44,7 @@ public class PlaylistController {
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of playlists subscribed by the current user")
-    public ResponseEntity<List<PlaylistDto>> subscribed(
-        @RequestParam(required = false, defaultValue = "0") Integer pageNum,
-        @RequestParam(required = false, defaultValue = "4") Integer pageSize,
-        HttpServletRequest request) {
-
+    public ResponseEntity<List<PlaylistWithDetailsDto>> subscribed(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -56,15 +54,28 @@ public class PlaylistController {
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of playlists discoverable by the current user")
-    public ResponseEntity<PageableDto<PlaylistDto>> discoverable(
-        @RequestParam(required = false, defaultValue = "0") Integer pageNum,
+    public ResponseEntity<PageableDto<PlaylistWithDetailsDto>> discoverable(
+        @RequestParam(required = false) String pageAfter,
         @RequestParam(required = false, defaultValue = "20") Integer pageSize, HttpServletRequest request) {
 
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.discoverable(portalUser, pageNum, pageSize));
+        return ResponseEntity.ok(playlistService.discoverable(portalUser, CursorDto.decode(pageAfter), pageSize));
+    }
+
+    @GetMapping("/videos/latest")
+    public ResponseEntity<PageableDto<VideoWithDetailsDto>> playlistsLatestVideos(
+        @RequestParam(required = false) String pageAfter,
+        @RequestParam(required = false, defaultValue = "20") Integer pageSize,
+        HttpServletRequest request) {
+
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
     }
 
 }

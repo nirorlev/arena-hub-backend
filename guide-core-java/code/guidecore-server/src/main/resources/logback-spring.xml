@@ -84,7 +84,7 @@
         </filter>
         <additionalFields>appName=arena-backend;appLevel=${APP_ENV};</additionalFields>
     </appender>
-    
+
     <!-- 控制台默认全局输出日志级别 -->
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
