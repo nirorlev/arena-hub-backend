@@ -838,7 +838,7 @@
             course_owner_avatar.id        AS course_user_info_avatar_file_id,
             course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
             course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
+            course_owner_avatar.file_type AS course_user_info_avatar_filetype
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             <if test="!filter.contentGroupIds.empty">
@@ -915,7 +915,7 @@
             course_owner_avatar.id        AS course_user_info_avatar_file_id,
             course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
             course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
+            course_owner_avatar.file_type AS course_user_info_avatar_filetype
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
