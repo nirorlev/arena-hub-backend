@@ -19,7 +19,7 @@ public class VideoWithDetailsDto extends VideoDto {
     @ApiModelProperty(value = "Number of comments")
     private Integer commentsCount;
     @ApiModelProperty(value = "Related playlist details")
-    private PlaylistDto playlist;
+    private Integer viewsCount;
 
     @ApiModelProperty(value = "Permissions of the current user on the video")
     private Map<String, Boolean> permissions;

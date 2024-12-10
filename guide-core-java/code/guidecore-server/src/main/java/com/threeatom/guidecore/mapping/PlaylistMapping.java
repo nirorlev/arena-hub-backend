@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -15,10 +14,6 @@ public interface PlaylistMapping {
     @Mapping(target = "videoNum", source = "saveContentList", qualifiedByName = "mapVideoNum")
     @Mapping(target = "owner", source = "user")
     PlaylistWithDetailsDto mapWithDetails(GcUserSaveFolder playlist);
-
-    @Mapping(target = "owner", source = "user")
-    @Named("mapPlaylist")
-    PlaylistDto map(GcUserSaveFolder playlist);
 
     @Named("mapVideoNum")
     default Integer mapVideoNum(List<GcUserSaveContent> playlistContent) {

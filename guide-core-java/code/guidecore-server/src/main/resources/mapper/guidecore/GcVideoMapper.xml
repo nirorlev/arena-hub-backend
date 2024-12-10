@@ -60,7 +60,26 @@
         <result property="createUserId" column="create_user_id"/>
         <result property="fid" column="fid"/>
         <result property="visibleFlag" column="visible_flag"/>
-        <association columnPrefix="create_user_" property="createUser" column="createUserId" javaType="GcUser" autoMapping="true" />
+        <association resultMap="userResultMap" columnPrefix="create_user_" property="createUser" column="createUserId" javaType="GcUser" autoMapping="true" />
+    </resultMap>
+
+    <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
+        <id property="id" column="id"/>
+        <association property="info" resultMap="userInfoResultMap" columnPrefix="info_"/>
+    </resultMap>
+
+    <resultMap id="userInfoResultMap" type="com.threeatom.guidecore.entity.GcUserInfo">
+        <id property="id" column="id"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="avatarFileId" column="avatar_file_id"/>
+        <association property="avatarFile" resultMap="userAvatarFileResultMap" columnPrefix="avatar_file_"/>
+    </resultMap>
+
+    <resultMap id="userAvatarFileResultMap" type="com.threeatom.system.entity.SysFile">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="fileUrl" column="url"/>
     </resultMap>
 
     <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
@@ -970,5 +989,62 @@
         FROM gc_user_save_content_follow playlist_follow
                  JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist_follow.folder_id AND playlist_content.master_id = #{portalUser.masterId}
         WHERE playlist_follow.user_id = #{portalUser.userId}
+    </select>
+
+    <select id="findLatestChannelVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            f.upload_uid as user_id,
+            pc.id                         AS channel_id,
+            pc.channel_name               AS channel_channel_name,
+            pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_video v
+            JOIN sys_file f ON v.file_id = f.id
+            JOIN pt_channel_content channel_content ON v.id = channel_content.content_id
+            JOIN pt_channel pc ON pc.id = channel_content.channel_id
+        WHERE pc.id = #{channelId} OR pc.fid = #{channelId};
+    </select>
+
+    <select id="findSubscribedLatestChannelVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            f.upload_uid as user_id,
+            channel.id                              AS channel_id,
+            channel.channel_name                    AS channel_channel_name,
+            channel.channel_slug                    AS channel_channel_slug,
+            channel.desc                            AS channel_desc,
+            channel.fid                             AS channel_fid,
+            channel.visible_flag                    AS channel_visible_flag,
+            channel.create_user_id                  AS channel_create_user_id,
+            sf_pc_avatar.file_url                   AS channel_avatar_file_file_url,
+            sf_img.file_url                         AS channel_img_full_file_url,
+            channel_subscription.modified_date      AS subscription_time,
+            gu.id                                   AS channel_create_user_id,
+            gui.first_name                          AS channel_create_user_info_first_name,
+            gui.last_name                           AS channel_create_user_info_last_name,
+            gui.avatar_file_id                      AS channel_create_user_info_avatar_file_id,
+            sf_avatar.file_url                      AS channel_create_user_info_avatar_file_url,
+            sf_avatar.name                          AS channel_create_user_info_avatar_file_name,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_user_access user_content_group
+            JOIN content_group_channel_subscription channel_subscription
+                ON channel_subscription.content_group_id = user_content_group.access_id
+            JOIN pt_channel channel ON channel.id = channel_subscription.channel_id
+            JOIN pt_channel_content channel_content ON channel.id = channel_content.channel_id
+            JOIN gc_video v ON v.id = channel_content.content_id
+            JOIN sys_file f ON v.file_id = f.id
+
+            JOIN gc_user gu ON channel.create_user_id = gu.id
+            LEFT JOIN gc_user_info gui ON gu.info_id = gui.id
+            LEFT JOIN sys_file sf_avatar ON gui.avatar_file_id = sf_avatar.id
+            LEFT JOIN sys_file sf_pc_avatar ON channel.channel_avatar_file_id = sf_pc_avatar.id
+            LEFT JOIN sys_file sf_img ON channel.channel_img_file_id = sf_img.id
+
+        WHERE user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId};
     </select>
 </mapper>

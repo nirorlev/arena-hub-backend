@@ -35,6 +35,9 @@ public class GcUserSaveContent implements Serializable {
     @JSONField(deserialize = false)
     @ApiModelProperty(value = "视频对象")
     private GcVideo video;
+    @TableField(exist = false)
+    @JSONField(deserialize = false)
+    private GcUserSaveFolder playlist;
     @ApiModelProperty(value = "课程Id")
     private Integer subId;
     @TableField(exist = false)

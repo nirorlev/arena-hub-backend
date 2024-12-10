@@ -201,7 +201,7 @@ public class GcVideo implements Serializable {
     private Integer resourceNum;
 
     @TableField(exist = false)
-    private Integer playNum;
+    private Integer viewsCount;
 
     @TableField(exist = false)
     private Integer oldVideoFileId;

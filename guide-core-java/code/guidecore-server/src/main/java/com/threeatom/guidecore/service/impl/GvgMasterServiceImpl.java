@@ -863,7 +863,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				params.put("userId", userId);
 				if (null != gcUserAccessPermissions.getShortTermPermission()) {
 					List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissions.getShortTermPermission().toJavaList(GcUserAccessPermission.class);
-					//List<Integer> shortTermIds = gcUserAccessPermissionList.stream().mapWithDetails(GcUserAccessPermission::getId).collect(Collectors.toList());
+					//List<Integer> shortTermIds = gcUserAccessPermissionList.stream().mapPlaylistVideoWithDetails(GcUserAccessPermission::getId).collect(Collectors.toList());
 					Date date = new Date();
 					if (CollectionUtils.isNotEmpty(gcUserAccessPermissionList)) {
 						for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {

@@ -9,7 +9,7 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a Channel")
 @Getter
 @Setter
-public class PlaylistDto {
+public class VideoSourceDto {
     @ApiModelProperty(value = "Unique identifier of the playlist")
     private Integer id;
 
@@ -18,6 +18,12 @@ public class PlaylistDto {
 
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
+
+    private Integer subscribersCount;
+
+    private boolean subscribed;
+
+    private String avatarUrl;
 
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;
