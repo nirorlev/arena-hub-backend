@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
 import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -106,5 +107,19 @@ public class ChannelController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(channelService.subscribedLatestVideos(portalUser));
+    }
+
+    @GetMapping("/{channelId}/videos/{videoId}/player-page")
+    @ApiOperation(value = "Get a list of videos from the channel sections")
+    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> channelVideoPlayerPage(
+        @PathVariable("videoId") Integer videoId
+        , @PathVariable("channelId") Integer channelId
+        , HttpServletRequest request) {
+
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(channelService.channelVideoPlayerPage(videoId, channelId, portalUser));
     }
 }

@@ -327,7 +327,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         List<Integer> videoOriginSubscriberIds =
             gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
 
-        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapPlaylistVideoWithDetails(video, playlist);
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
         videoWithDetails.getSource().setSubscribersCount(videoOriginSubscriberIds.size());
         videoWithDetails.getSource().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
         return videoWithDetails;
@@ -339,7 +339,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     private List<VideoWithSourceDetailsDto<VideoSourceDto>> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
-            .map(video -> videoMapping.mapPlaylistVideoWithDetails(video, video.getPlaylist()))
+            .map(videoMapping::mapWithVideoSource)
             .collect(Collectors.toList());
     }
 

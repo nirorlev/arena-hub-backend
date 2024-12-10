@@ -60,7 +60,10 @@
         <result property="createUserId" column="create_user_id"/>
         <result property="fid" column="fid"/>
         <result property="visibleFlag" column="visible_flag"/>
-        <association resultMap="userResultMap" columnPrefix="create_user_" property="createUser" column="createUserId" javaType="GcUser" autoMapping="true" />
+        <result property="channelAvatarFileId" column="avatar_file_id"/>
+
+        <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
+        <association resultMap="userResultMap" columnPrefix="create_user_" property="createUser" column="create_user_id" javaType="GcUser" autoMapping="true" />
     </resultMap>
 
     <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
@@ -73,21 +76,27 @@
         <result property="firstName" column="first_name"/>
         <result property="lastName" column="last_name"/>
         <result property="avatarFileId" column="avatar_file_id"/>
-        <association property="avatarFile" resultMap="userAvatarFileResultMap" columnPrefix="avatar_file_"/>
+        <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
     </resultMap>
 
-    <resultMap id="userAvatarFileResultMap" type="com.threeatom.system.entity.SysFile">
+    <resultMap id="avatarFileResultMap" type="com.threeatom.system.entity.SysFile">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="fileUrl" column="url"/>
+        <result property="saveType" column="save_type"/>
+        <result property="fileType" column="type"/>
     </resultMap>
 
     <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
         <result property="userId" column="user_id"/>
+        <result property="createUser" column="user_id"/>
         <result property="fid" column="fid"/>
         <result property="availableType" column="available_type"/>
         <result property="state" column="state"/>
-        <association columnPrefix="user_info_" property="userInfo" column="user_id" javaType="GcUser" autoMapping="true" />
+        <result property="subImgId" column="img_id"/>
+
+        <association property="subImgFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
+        <association resultMap="userResultMap" columnPrefix="user_" property="userInfo" column="create_user" javaType="GcUser" autoMapping="true" />
     </resultMap>
 
     <resultMap id="videoLongMap" type="com.threeatom.guidecore.controller.user.vo.videoLongVo">
@@ -795,20 +804,41 @@
             pc.channel_slug               AS channel_channel_slug,
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
             pcc.id                        AS channel_channel_content_id,
             channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.first_name AS channel_create_user_first_name,
-            channel_owner_info.last_name  AS channel_create_user_last_name,
-            channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
+            channel_owner_info.id         AS channel_create_user_info_id,
+            channel_owner_info.first_name AS channel_create_user_info_first_name,
+            channel_owner_info.last_name  AS channel_create_user_info_last_name,
+            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
+            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
+            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
+            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
             gs.fid                        AS course_fid,
             gs.state                      AS course_state,
             gs.available_type             AS course_available_type,
-            course_owner.id               AS course_user_info_id,
+            gs.sub_img_id                 AS course_img_id,
+            course_avatar.id              AS course_avatar_file_id,
+            course_avatar.name            AS course_avatar_file_name,
+            course_avatar.file_url        AS course_avatar_file_url,
+            course_avatar.save_type       AS course_avatar_file_save_type,
+            course_avatar.file_type       AS course_avatar_file_type,
+
+            course_owner.id               AS course_user_id,
+            course_owner_info.id          AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url
+            course_owner_avatar.id        AS course_user_info_avatar_file_id,
+            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
+            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
+            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             <if test="!filter.contentGroupIds.empty">
@@ -821,12 +851,14 @@
             </if>
 
             LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN pt_channel_content pcc ON pcc.content_id = v.id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
             LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
@@ -849,30 +881,53 @@
             pc.channel_slug               AS channel_channel_slug,
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
             pcc.id                        AS channel_channel_content_id,
             channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.first_name AS channel_create_user_first_name,
-            channel_owner_info.last_name  AS channel_create_user_last_name,
-            channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
+            channel_owner_info.id         AS channel_create_user_info_id,
+            channel_owner_info.first_name AS channel_create_user_info_first_name,
+            channel_owner_info.last_name  AS channel_create_user_info_last_name,
+            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
+            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
+            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
+            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
             gs.fid                        AS course_fid,
             gs.state                      AS course_state,
             gs.available_type             AS course_available_type,
-            course_owner.id               AS course_user_info_id,
+            gs.sub_img_id                 AS course_img_id,
+            course_avatar.id              AS course_avatar_file_id,
+            course_avatar.name            AS course_avatar_file_name,
+            course_avatar.file_url        AS course_avatar_file_url,
+            course_avatar.save_type       AS course_avatar_file_save_type,
+            course_avatar.file_type       AS course_avatar_file_type,
+
+            course_owner.id               AS course_user_id,
+            course_owner_info.id          AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url
+            course_owner_avatar.id        AS course_user_info_avatar_file_id,
+            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
+            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
+            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
             LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN pt_channel_content pcc ON pcc.content_id = v.id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
             LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
@@ -906,19 +961,40 @@
             pc.channel_slug               AS channel_channel_slug,
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
             channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.first_name AS channel_create_user_first_name,
-            channel_owner_info.last_name  AS channel_create_user_last_name,
-            channel_owner_avatar.file_url AS channel_create_user_avatar_full_file_url,
+            channel_owner_info.id         AS channel_create_user_info_id,
+            channel_owner_info.first_name AS channel_create_user_info_first_name,
+            channel_owner_info.last_name  AS channel_create_user_info_last_name,
+            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
+            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
+            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
+            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
             gs.id                         AS course_id,
             gs.name                       AS course_name,
             gs.fid                        AS course_fid,
             gs.state                      AS course_state,
             gs.available_type             AS course_available_type,
-            course_owner.id               AS course_user_info_id,
+            gs.sub_img_id                 AS course_img_id,
+            course_avatar.id              AS course_avatar_file_id,
+            course_avatar.name            AS course_avatar_file_name,
+            course_avatar.file_url        AS course_avatar_file_url,
+            course_avatar.save_type       AS course_avatar_file_save_type,
+            course_avatar.file_type       AS course_avatar_file_type,
+
+            course_owner.id               AS course_user_id,
+            course_owner_info.id          AS course_user_info_id,
             course_owner_info.first_name  AS course_user_info_first_name,
             course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.file_url  AS course_user_info_avatar_full_file_url,
+            course_owner_avatar.id        AS course_user_info_avatar_file_id,
+            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
+            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
+            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
             f.target_lang_json as target_lang_json,
             gs.id as subId0,
             gs.name as topicName
@@ -926,11 +1002,13 @@
             JOIN sys_file f ON v.file_id = f.id
 
             LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
             LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
@@ -961,11 +1039,24 @@
             pc.channel_slug               AS channel_channel_slug,
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
             gs.id                         AS course_id,
             gs.name                       AS course_name,
             gs.fid                        AS course_fid,
             gs.state                      AS course_state,
             gs.available_type             AS course_available_type,
+            gs.sub_img_id                 AS course_img_id,
+            course_avatar.id              AS course_avatar_file_id,
+            course_avatar.name            AS course_avatar_file_name,
+            course_avatar.file_url        AS course_avatar_file_url,
+            course_avatar.save_type       AS course_avatar_file_save_type,
+            course_avatar.file_type       AS course_avatar_file_type,
+
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
         FROM gc_user_save_content_follow playlist_follow
@@ -975,9 +1066,11 @@
             JOIN sys_file f ON v.file_id = f.id
 
             LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
 
             LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
         WHERE playlist_follow.user_id = #{portalUser.userId} AND (playlist_follow.update_time &lt; #{cursor.updateTime}
             OR (playlist_follow.update_time = #{cursor.updateTime} AND playlist_follow.id &lt; #{cursor.id}))
@@ -1001,11 +1094,18 @@
             pc.channel_slug               AS channel_channel_slug,
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             JOIN pt_channel_content channel_content ON v.id = channel_content.content_id
             JOIN pt_channel pc ON pc.id = channel_content.channel_id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
         WHERE pc.id = #{channelId} OR pc.fid = #{channelId};
     </select>
 
@@ -1024,7 +1124,6 @@
             sf_pc_avatar.file_url                   AS channel_avatar_file_file_url,
             sf_img.file_url                         AS channel_img_full_file_url,
             channel_subscription.modified_date      AS subscription_time,
-            gu.id                                   AS channel_create_user_id,
             gui.first_name                          AS channel_create_user_info_first_name,
             gui.last_name                           AS channel_create_user_info_last_name,
             gui.avatar_file_id                      AS channel_create_user_info_avatar_file_id,

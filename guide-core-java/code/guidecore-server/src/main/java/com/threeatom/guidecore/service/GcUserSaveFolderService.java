@@ -5,10 +5,8 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
-import com.threeatom.guidecore.dto.response.PlaylistLatestVideosDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -59,7 +57,9 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 
-    PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(PortalUser portalUser, CursorDto cursor, Integer pageSize);
+    PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(PortalUser portalUser, CursorDto cursor,
+                                                                                Integer pageSize);
 
-    VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId, PortalUser portalUser);
+    VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId,
+                                                              PortalUser portalUser);
 }
