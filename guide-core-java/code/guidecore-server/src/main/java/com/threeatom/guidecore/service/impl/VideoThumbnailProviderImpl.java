@@ -29,6 +29,10 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
 
     @Override
     public String getThumbnailUrl(SysFile sysFile) {
+        if (sysFile == null) {
+            return null;
+        }
+
         VideoFileProvider videoType = VideoFileProvider.fromIndex(sysFile.getFileTypeIndex());
 
         String thumbNailUrl = sysFile.getThumbNailUrl();
