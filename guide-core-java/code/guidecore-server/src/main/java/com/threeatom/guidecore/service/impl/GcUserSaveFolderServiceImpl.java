@@ -33,6 +33,7 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -347,12 +348,20 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return playlists.stream()
             .map(playlist -> {
                 playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-                playlist.getSaveContentList().forEach(content -> {
-                    playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(content.getVideoFile())));
-                });
+                setFirstVideoSnapshotUrl(playlist);
                 return playlistMapping.mapWithDetails(playlist);
             })
             .collect(Collectors.toList());
+    }
+
+    private void setFirstVideoSnapshotUrl(GcUserSaveFolder playlist) {
+        List<GcUserSaveContent> saveContentList = playlist.getSaveContentList();
+        if (CollectionUtils.isEmpty(saveContentList)) {
+            return;
+        }
+        saveContentList.sort(Comparator.comparing(GcUserSaveContent::getUpdateTime, Comparator.nullsLast(Comparator.naturalOrder())));
+        GcUserSaveContent saveContent = saveContentList.get(0);
+        playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(saveContent.getVideoFile())));
     }
 
     private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {

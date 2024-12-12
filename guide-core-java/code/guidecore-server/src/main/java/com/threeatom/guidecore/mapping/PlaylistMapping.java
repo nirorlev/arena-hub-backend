@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
@@ -21,6 +23,10 @@ public interface PlaylistMapping {
 
     @Named("mapVideoNum")
     default Integer mapVideoNum(List<GcUserSaveContent> playlistContent) {
+        if (CollectionUtils.isEmpty(playlistContent)) {
+            return 0;
+        }
+
         return playlistContent.size();
     }
 }
