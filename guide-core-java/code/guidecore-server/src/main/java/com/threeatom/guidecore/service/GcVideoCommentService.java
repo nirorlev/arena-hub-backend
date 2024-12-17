@@ -37,4 +37,6 @@ public interface GcVideoCommentService extends IService<GcVideoComment> {
     Integer deleteVideoComment(Integer commentId, Integer userId, Integer masterId);
 
     List<CommentDto> videoComments(Integer videoId, PortalUser portalUser);
+
+    CommentDto createVideoComment(Integer videoId, com.threeatom.guidecore.dto.request.CommentDto commentDto, PortalUser portalUser);
 }

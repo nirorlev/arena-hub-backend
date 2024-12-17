@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapping;
 import com.threeatom.guidecore.dto.response.CommentDto;
 import com.threeatom.guidecore.entity.GcUserFabulous;
 import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,6 +15,15 @@ public interface CommentMapping {
     @Mapping(target = "likesCount", source = "comment.userFabulousList", qualifiedByName = "mapLikesCount")
     @Mapping(target = "liked", expression = "java(mapIsLiked(comment, userId))")
     CommentDto map(GcVideoComment comment, Integer userId);
+
+    @Mapping(target = "comment", source = "commentDto.text")
+    @Mapping(target = "userId", source = "portalUser.userId")
+    @Mapping(target = "masterId", source = "portalUser.masterId")
+    @Mapping(target = "videoId", source = "videoId")
+    @Mapping(target = "createTime", expression = "java(new java.util.Date())")
+    @Mapping(target = "updateTime", expression = "java(new java.util.Date())")
+    GcVideoComment map(com.threeatom.guidecore.dto.request.CommentDto commentDto, PortalUser portalUser,
+                       Integer videoId);
 
     @Named("mapLikesCount")
     default Integer mapLikesCount(List<GcUserFabulous> fabulous) {

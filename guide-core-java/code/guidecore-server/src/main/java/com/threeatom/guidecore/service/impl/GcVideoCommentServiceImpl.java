@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper, GcVideoComment>
@@ -118,6 +119,21 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         return videoComments.stream()
             .map(videoComment -> commentMapping.map(videoComment, portalUser.getUserId()))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public CommentDto createVideoComment(Integer videoId, com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                         PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        GcVideoComment comment = commentMapping.map(commentDto, portalUser, videoId);
+        save(comment);
+
+        return commentMapping.map(comment, portalUser.getUserId());
     }
 
     @Override
