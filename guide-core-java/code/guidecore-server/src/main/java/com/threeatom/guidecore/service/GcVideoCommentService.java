@@ -21,10 +21,10 @@ public interface GcVideoCommentService extends IService<GcVideoComment> {
     List<GcVideoComment> getAllCommentByVideoId(Integer vid, Integer limit);
 
     List<GcVideoComment> getAllCommentByVideoIdAndUserId(
-            Integer vid, Integer userId, Integer masterId);
+        Integer vid, Integer userId, Integer masterId);
 
     Message getCommentStream(
-            Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request);
+        Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request);
 
     Integer countCommentForVideo(Integer videoId, Integer userId, Integer masterId);
 
@@ -38,5 +38,9 @@ public interface GcVideoCommentService extends IService<GcVideoComment> {
 
     List<CommentDto> videoComments(Integer videoId, PortalUser portalUser);
 
-    CommentDto createVideoComment(Integer videoId, com.threeatom.guidecore.dto.request.CommentDto commentDto, PortalUser portalUser);
+    CommentDto createVideoComment(Integer videoId, com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                  PortalUser portalUser);
+
+    CommentDto updateVideoComment(Integer videoId, Integer commentId,
+                                  com.threeatom.guidecore.dto.request.CommentDto commentDto, PortalUser portalUser);
 }

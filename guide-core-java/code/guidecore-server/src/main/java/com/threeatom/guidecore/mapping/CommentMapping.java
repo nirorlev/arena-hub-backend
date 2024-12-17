@@ -20,8 +20,6 @@ public interface CommentMapping {
     @Mapping(target = "userId", source = "portalUser.userId")
     @Mapping(target = "masterId", source = "portalUser.masterId")
     @Mapping(target = "videoId", source = "videoId")
-    @Mapping(target = "createTime", expression = "java(new java.util.Date())")
-    @Mapping(target = "updateTime", expression = "java(new java.util.Date())")
     GcVideoComment map(com.threeatom.guidecore.dto.request.CommentDto commentDto, PortalUser portalUser,
                        Integer videoId);
 

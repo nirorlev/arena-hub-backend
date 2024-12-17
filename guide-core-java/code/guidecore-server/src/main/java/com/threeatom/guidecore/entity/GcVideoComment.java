@@ -7,7 +7,7 @@ import com.threeatom.system.entity.SysFile;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.Data;
 
@@ -54,10 +54,10 @@ public class GcVideoComment implements Serializable {
     private Integer messageId;
 
     @TableField(exist = false)
-    private Date updateTime;
+    private OffsetDateTime updateTime = OffsetDateTime.now();
 
     @TableField(exist = false)
-    private Date createTime;
+    private OffsetDateTime createTime = OffsetDateTime.now();
 
     @TableField(exist = false)
     private GcUser author;

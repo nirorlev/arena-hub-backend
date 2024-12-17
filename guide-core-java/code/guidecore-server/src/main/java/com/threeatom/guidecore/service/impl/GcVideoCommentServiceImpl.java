@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -23,7 +24,9 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -134,6 +137,26 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         save(comment);
 
         return commentMapping.map(comment, portalUser.getUserId());
+    }
+
+    @Override
+    public CommentDto updateVideoComment(Integer videoId, Integer commentId,
+                                         com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                         PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+        GcVideoComment videoComment = getById(commentId);
+        if (videoComment == null) {
+            throw new ResourceNotFoundException("Comment with specified id not found");
+        }
+
+        videoComment.setComment(commentDto.getText());
+        videoComment.setUpdateTime(OffsetDateTime.now());
+        updateById(videoComment);
+
+        return commentMapping.map(videoComment, portalUser.getUserId());
     }
 
     @Override

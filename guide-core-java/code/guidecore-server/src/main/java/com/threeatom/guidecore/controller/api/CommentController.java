@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,5 +53,18 @@ public class CommentController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(commentService.createVideoComment(videoId, commentDto, portalUser));
+    }
+
+    @PutMapping("/{commentId}/videos/{videoId}")
+    public ResponseEntity<CommentDto> updateComment(@PathVariable("videoId") Integer videoId,
+                                                  @PathVariable("commentId") Integer commentId,
+                                                  @RequestBody
+                                                  @Valid com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                                  HttpServletRequest request) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(commentService.updateVideoComment(videoId, commentId, commentDto, portalUser));
     }
 }
