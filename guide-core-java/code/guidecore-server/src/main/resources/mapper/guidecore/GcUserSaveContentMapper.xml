@@ -63,6 +63,8 @@
 
     <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
         <id property="id" column="id"/>
+        <id property="channelName" column="name"/>
+        <id property="desc" column="desc"/>
 
         <result property="visibleFlag" column="visible_flag"/>
         <result property="createUserId" column="create_user_id"/>
@@ -257,6 +259,8 @@
                channel.id                          as video_channel_id,
                channel.visible_flag                as video_channel_visible_flag,
                channel.create_user_id              as video_channel_create_user_id,
+               channel.channel_name                as video_channel_name,
+               channel.desc                        as video_channel_desc,
                channel.channel_avatar_file_id      as video_channel_avatar_file_id,
                channel.create_time                 as video_channel_create_time,
                channel.update_time                 as video_channel_update_time,

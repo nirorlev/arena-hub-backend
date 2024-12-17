@@ -18,6 +18,7 @@ public interface ChannelMapping {
     ChannelWithDetailsDto map(PtChannel channel);
 
     @Mapping(target = "owner", source = "createUser")
+    @Mapping(target = "name", source = "channelName")
     @Mapping(target = "avatarUrl", source = "avatarFile.fullFileUrl")
     VideoSourceDto mapVideoSource(PtChannel channel);
 }
