@@ -26,13 +26,6 @@
             <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         </association>
 
-        <association property="gcUserAccessPermission" column="id" javaType="GcUserAccessPermission">
-            <id property="id" column="p_id"/>
-            <result property="userAccessId" column="p_user_access_id"/>
-            <result property="subPermission" column="p_sub_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="shortTermPermission" column="p_short_term_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-        </association>
-
         <collection property="masterList" javaType="ArrayList" column="master_id" ofType="GcMaster">
             <id property="id" column="master_id" />
             <result property="portalName" column="portalName" />
