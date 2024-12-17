@@ -140,6 +140,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
     }
 
     @Override
+    @Transactional
     public CommentDto updateVideoComment(Integer videoId, Integer commentId,
                                          com.threeatom.guidecore.dto.request.CommentDto commentDto,
                                          PortalUser portalUser) {
@@ -157,6 +158,22 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         updateById(videoComment);
 
         return commentMapping.map(videoComment, portalUser.getUserId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Integer commentId, PortalUser portalUser) {
+        GcVideoComment videoComment = getById(commentId);
+        if (videoComment == null) {
+            throw new ResourceNotFoundException("Comment with specified id not found");
+        }
+
+        GcVideo video = videoService.findByVideoId(videoComment.getVideoId());
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        removeById(commentId);
     }
 
     @Override

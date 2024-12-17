@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,14 +58,26 @@ public class CommentController {
 
     @PutMapping("/{commentId}/videos/{videoId}")
     public ResponseEntity<CommentDto> updateComment(@PathVariable("videoId") Integer videoId,
-                                                  @PathVariable("commentId") Integer commentId,
-                                                  @RequestBody
-                                                  @Valid com.threeatom.guidecore.dto.request.CommentDto commentDto,
-                                                  HttpServletRequest request) {
+                                                    @PathVariable("commentId") Integer commentId,
+                                                    @RequestBody
+                                                    @Valid com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                                    HttpServletRequest request) {
         GcUser currentUser = userService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(commentService.updateVideoComment(videoId, commentId, commentDto, portalUser));
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<CommentDto> deleteComment(@PathVariable("commentId") Integer commentId,
+                                                    HttpServletRequest request) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        commentService.deleteComment(commentId, portalUser);
+
+        return ResponseEntity.ok().build();
     }
 }
