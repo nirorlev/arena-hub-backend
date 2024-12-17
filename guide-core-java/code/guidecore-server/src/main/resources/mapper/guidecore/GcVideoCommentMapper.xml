@@ -292,13 +292,4 @@
         AND   vc.master_id=#{masterId}
         ORDER BY create_time DESC
     </select>
-    <select id="countCommentByVideoList" resultType="java.lang.Integer">
-        select count(1) from gc_video_comment
-        <if test="list.size !=0">
-            where video_id in
-            <foreach collection="list" item="list" index="index" open="(" close=")" separator="," >
-                #{list}
-            </foreach>
-        </if>
-    </select>
 </mapper>
