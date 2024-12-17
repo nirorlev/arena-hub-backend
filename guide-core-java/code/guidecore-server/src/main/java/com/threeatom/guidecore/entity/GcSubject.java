@@ -276,7 +276,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
 
     @ApiModelProperty(value = "用户id")
     @TableField(exist = false)
-    private Object user;
+    private GcUser user;
 
     @ApiModelProperty(value = "用户信息")
     @TableField(exist = false)

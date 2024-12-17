@@ -76,6 +76,7 @@
 
         <result property="availableType" column="available_type"/>
         <result property="state" column="state"/>
+        <result property="name" column="name"/>
         <result property="createUser" column="create_user"/>
         <result property="subImgId" column="img_id"/>
 
@@ -228,6 +229,7 @@
                course.id                           as video_course_id,
                course.available_type               as video_course_available_type,
                course.state                        as video_course_state,
+               course.name                         as video_course_name,
                course.create_user                  as video_course_create_user,
                course.sub_img_id                   as video_course_img_id,
                course.create_time                  as video_course_create_time,

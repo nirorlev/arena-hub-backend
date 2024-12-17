@@ -61,6 +61,7 @@
         <result property="fid" column="fid"/>
         <result property="visibleFlag" column="visible_flag"/>
         <result property="channelAvatarFileId" column="avatar_file_id"/>
+        <result property="channelContentId" column="content_id"/>
 
         <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
         <association resultMap="userResultMap" columnPrefix="create_user_" property="createUser" column="create_user_id" javaType="GcUser" autoMapping="true" />
@@ -1095,6 +1096,7 @@
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
             pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            channel_content.id            AS channel_content_id,
             channel_avatar.name           AS channel_avatar_file_name,
             channel_avatar.file_url       AS channel_avatar_file_url,
             channel_avatar.save_type      AS channel_avatar_file_save_type,
@@ -1121,6 +1123,7 @@
             channel.fid                             AS channel_fid,
             channel.visible_flag                    AS channel_visible_flag,
             channel.create_user_id                  AS channel_create_user_id,
+            channel_content.id                      AS channel_content_id,
             sf_pc_avatar.file_url                   AS channel_avatar_file_file_url,
             sf_img.file_url                         AS channel_img_full_file_url,
             channel_subscription.modified_date      AS subscription_time,

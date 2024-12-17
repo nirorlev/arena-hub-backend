@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(uses = {DateMapping.class, OwnerMapping.class})
 public interface CourseMapping {
 
-    @Mapping(target = "owner", source = "userInfo")
+    @Mapping(target = "owner", source = "user")
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
     VideoSourceDto map(GcSubject course);
 }

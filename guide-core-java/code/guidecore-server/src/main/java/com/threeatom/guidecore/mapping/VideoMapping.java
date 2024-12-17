@@ -99,6 +99,7 @@ public abstract class VideoMapping {
     @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
+    @Mapping(target = "deprecatedContentId", source = "video.originChannel.channelContentId")
     @Mapping(target = "source", source = "originChannel")
     public abstract VideoWithSourceDetailsDto<ChannelDto> mapWithDetailsChannelSource(GcVideo video);
 
