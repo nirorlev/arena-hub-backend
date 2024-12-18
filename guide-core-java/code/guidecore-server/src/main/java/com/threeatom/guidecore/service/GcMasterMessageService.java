@@ -54,6 +54,4 @@ public interface GcMasterMessageService extends IService<GcMasterMessage> {
 
     boolean deleteAnswerMessage(GcMasterMessage masterMessage);
 
-    List<Map<String, Object>> getNoteCommentMessageList(
-            MessageFIlterVo messageFIlterVo, HttpServletRequest request);
 }

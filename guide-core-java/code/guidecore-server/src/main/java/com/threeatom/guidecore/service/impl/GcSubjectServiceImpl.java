@@ -930,19 +930,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     public boolean deleteSubAccessInJson(int subId,int masterId) {
     	List<GcAccess> gcAccessList = gcAccessMapper.listContainsSub(masterId,subId);
-    	if(gcAccessList!=null && !gcAccessList.isEmpty() ) {
-    		for(GcAccess access: gcAccessList) {
-    			JSONArray accessArray  = access.getSubjectJson();
-    			List list = new ArrayList();
-    			for (int i=0;i<accessArray.size();i++) {
-    	    		if(subId!=(int)accessArray.get(i)) {
-    	    			list.add((int)accessArray.get(i));
-    	    		}
-    			}
-    			access.setSubjectJson(new JSONArray(list));
-    		}
-    	}
-    	if(gcAccessList==null || gcAccessList.size()==0) {
+    	if(CollectionUtils.isEmpty(gcAccessList)) {
     		return true;
     	}
 
@@ -1313,12 +1301,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             GcUserAccess gcUserAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), masterId);
             if(null!=gcUserAccess) {
                 List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
-                GcAccess gcAccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
-                JSONArray jsonArray = gcAccess.getSubjectJson();
-                if (!jsonArray.contains(sub.getId())) {
-                    jsonArray.add(sub.getId());
-                    gcAccessService.updateById(gcAccess);
-                }
                 if (!courseIds.contains(sub.getId())) {
                     courseAssignmentService.save(user, sub, CourseType.OPTIONAL);
                 }

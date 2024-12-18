@@ -2,19 +2,14 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.github.pagehelper.PageHelper;
 import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.controller.user.vo.MessageFIlterVo;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.GcMasterMessage;
 import com.threeatom.guidecore.mapper.GcMasterMessageMapper;
 import com.threeatom.guidecore.service.GcMasterMessageService;
-import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,63 +42,6 @@ public class GcMasterMessageServiceImpl extends ServiceImpl<GcMasterMessageMappe
         queryWrapper.eq("target_user_id", masterMessage.getTargetUserId());
         queryWrapper.eq("user_answer_id", masterMessage.getUserAnswerId());
         return this.remove(queryWrapper);
-    }
-
-    @Override
-    public List<Map<String, Object>> getNoteCommentMessageList(
-            MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
-        PageParam pageParam = new PageParam(request);
-        if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
-            PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
-        }
-        if (l != null && l.size() > 0) {
-            for (Map<String, Object> stringObjectMap : l) {
-                // 组装头像
-                SysFile userFile = new SysFile();
-                userFile.setFileUrl(
-                        stringObjectMap.containsKey("file_url")
-                                ? (String) stringObjectMap.get("file_url")
-                                : "");
-                userFile.setSaveType(
-                        stringObjectMap.containsKey("save_type")
-                                ? (Integer) stringObjectMap.get("save_type")
-                                : 2);
-                stringObjectMap.put("userFullFileUrl", sysFileService.getResFullUrl(userFile, request));
-                // 组装文件
-                if (stringObjectMap.containsKey("res_file_url")) {
-                    SysFile resFile = new SysFile();
-                    resFile.setFileUrl(
-                            stringObjectMap.containsKey("res_file_url")
-                                    ? (String) stringObjectMap.get("res_file_url")
-                                    : null);
-                    resFile.setSaveType(
-                            stringObjectMap.containsKey("res_save_type")
-                                    ? (Integer) stringObjectMap.get("res_save_type")
-                                    : 2);
-                    resFile.setFileTypeIndex(
-                            stringObjectMap.containsKey("res_file_type_index")
-                                    ? (Integer) stringObjectMap.get("res_file_type_index")
-                                    : 0);
-                    resFile.setName(
-                            stringObjectMap.containsKey("res_file_name")
-                                    ? (String) stringObjectMap.get("res_file_name")
-                                    : null);
-                    resFile.setName(
-                            stringObjectMap.containsKey("thumb_nail_url")
-                                    ? (String) stringObjectMap.get("thumb_nail_url")
-                                    : null);
-                    sysFileService.getResFullUrl(resFile, request);
-                    if (resFile.getFileTypeIndex() != null
-                            && resFile.getFileTypeIndex().intValue() == EventUnifyType.VIDEO_2) {
-                        sysFileService.getVideoSnapshotUrl(resFile);
-                    }
-                    stringObjectMap.put("resFile", resFile);
-                } else {
-                    stringObjectMap.put("res_file_type_index", 0);
-                }
-            }
-        }
-        return l;
     }
 
     @Override

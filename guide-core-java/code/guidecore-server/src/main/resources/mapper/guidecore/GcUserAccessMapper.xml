@@ -124,8 +124,8 @@
     </sql>
 
     <sql id="gcAccessbaseColumn">
-        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type,a.admin_id as a_admin_id,
-        a.must_subject_json as a_must_subject_json,a.may_subject_json as a_may_subject_json,a.channel_json as a_channel_json,a.subscribe_json as a_subscribe_json
+        ,a.id as a_id,a.code as a_code,a.role_type as a_role_type,a.admin_id as a_admin_id
+        ,a.channel_json as a_channel_json
     </sql>
 
     <sql id="gcUserColumn">
@@ -178,7 +178,7 @@
         <include refid="baseColumn" />
         ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
         ,m.id as m_id,m.portal_name as m_portal_name,m.context as m_context,m.redirect_url as m_redirect_url
-        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type
+        ,a.id as a_id,a.code as a_code,a.role_type as a_role_type
         FROM
         gc_user_access ua
         LEFT JOIN gc_master m on ua.master_id=m.id

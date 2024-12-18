@@ -39,9 +39,6 @@ public class GcAccess implements Serializable {
     @ApiModelProperty(value = "注册码的类型，空为用户注册码、1为门户注册码、2为免费code")
     private Integer codeType;
 
-    @TableField(value = "subject_json", typeHandler = FastJsonArrayTypeHandler.class)
-    private JSONArray subjectJson;
-
     @TableField(exist = false)
     private Integer userNum = 0;
 
@@ -171,9 +168,6 @@ public class GcAccess implements Serializable {
     @ApiModelProperty(value = "门户编辑code，0-覆盖所有使用该code的权限，1-不覆盖，在用户当前权限上修改，2-不修改用户权限")
     @TableField(exist = false)
     private Integer saveType;
-
-    @TableField(value = "may_subject_json", typeHandler = FastJsonArrayTypeHandler.class)
-    private JSONArray maySubjectJson;
 
     @TableField(exist = false)
     private List<GcUser> users;
@@ -396,14 +390,6 @@ public class GcAccess implements Serializable {
         this.codeType = codeType;
     }
 
-    public JSONArray getSubjectJson() {
-        return subjectJson;
-    }
-
-    public void setSubjectJson(JSONArray subjectJson) {
-        this.subjectJson = subjectJson;
-    }
-
     public Date getUpdateTime() {
         return updateTime;
     }
@@ -588,8 +574,6 @@ public class GcAccess implements Serializable {
                 + adminId
                 + ", codeType="
                 + codeType
-                + ", subjectJson="
-                + subjectJson
                 + ", userNum="
                 + userNum
                 + ", updateTime="

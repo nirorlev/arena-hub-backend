@@ -139,7 +139,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     public List<GcAccess> findAccessListByMasterId(Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
-        queryWrapper.orderByDesc("subject_json::jsonb");
         queryWrapper.isNotNull("group_name");
         return this.list(queryWrapper);
     }
@@ -308,8 +307,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             return studentAccess;
         }
 
-        teacherContentGroup.setSubjectJson(parseToJsonArray(courseIds));
-        studentAccess.setSubjectJson(parseToJsonArray(courseIds));
         updateById(teacherContentGroup);
         updateById(studentAccess);
         return studentAccess;
@@ -318,7 +315,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     private GcAccess createStudentContentGroup(List<Integer> subjectIdList, GcAccess gcAccess, Integer masterId) {
         GcAccess studentAccess = new GcAccess();
         studentAccess.setMasterId(masterId);
-        studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         studentAccess.setCode("studentPT");
         studentAccess.setCodeType(TableConstant.COMMON_ZERO);
         studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
@@ -333,7 +329,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         GcAccess gcAccess = new GcAccess();
         gcAccess.setMasterId(masterId);
         gcAccess.setRoleType(TableConstant.COMMON_ZERO);
-        gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         gcAccess.setCodeType(TableConstant.COMMON_ZERO);
         gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
         gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
@@ -564,7 +559,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         contentGroup.setGroupName(title);
         contentGroup.setRoleType(TableConstant.COMMON_ONE);
         contentGroup.setCodeType(TableConstant.COMMON_ZERO);
-        contentGroup.setSubjectJson(new JSONArray());
         return contentGroup;
     }
 
