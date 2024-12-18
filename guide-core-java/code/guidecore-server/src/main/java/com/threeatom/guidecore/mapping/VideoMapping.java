@@ -83,7 +83,7 @@ public abstract class VideoMapping {
     @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "video.commentNum")
     @Mapping(target = "likesCount", source = "video.likeNum")
-    @Mapping(target = "source", source = "video", qualifiedByName = "mapVideoSource")
+    @Mapping(target = "origin", source = "video", qualifiedByName = "mapVideoSource")
     public abstract VideoWithSourceDetailsDto<VideoSourceDto> mapWithVideoSource(GcVideo video);
 
     @Mapping(target = "id", source = "id")
@@ -100,7 +100,7 @@ public abstract class VideoMapping {
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
     @Mapping(target = "deprecatedContentId", source = "video.originChannel.channelContentId")
-    @Mapping(target = "source", source = "originChannel")
+    @Mapping(target = "origin", source = "originChannel")
     public abstract VideoWithSourceDetailsDto<ChannelDto> mapWithDetailsChannelSource(GcVideo video);
 
     @Mapping(target = "id", source = "id")

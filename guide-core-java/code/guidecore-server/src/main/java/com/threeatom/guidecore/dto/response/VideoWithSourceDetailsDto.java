@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 @Api("Data Transfer Object representing a video with details")
 public class VideoWithSourceDetailsDto<T> extends VideoWithDetailsDto {
-    private T source;
+    private T origin;
 }

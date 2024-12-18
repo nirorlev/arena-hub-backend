@@ -329,8 +329,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
 
         VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
-        videoWithDetails.getSource().setSubscribersCount(videoOriginSubscriberIds.size());
-        videoWithDetails.getSource().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
         return videoWithDetails;
     }
 
