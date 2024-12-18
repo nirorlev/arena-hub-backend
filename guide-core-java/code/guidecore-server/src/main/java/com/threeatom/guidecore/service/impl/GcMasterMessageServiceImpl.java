@@ -56,9 +56,6 @@ public class GcMasterMessageServiceImpl extends ServiceImpl<GcMasterMessageMappe
         if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
             PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
         }
-        List<Map<String, Object>> l =
-                this.baseMapper.getNoteCommentMessageListByTargetUserId(
-                        messageFIlterVo, new PageParam(request));
         if (l != null && l.size() > 0) {
             for (Map<String, Object> stringObjectMap : l) {
                 // 组装头像

@@ -39,9 +39,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     GcSubject getSubNameBysubId(Integer subId);
 
-    List<GcSubject> getSubjectUserInfo(
-            List<Integer> userIdList, List<Integer> subList, Integer masterId);
-
     List<GcSubject> getChildSubjectBySubId(Integer subId);
 
     GcSubject getSubByVid(Integer vid);
@@ -101,9 +98,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<GcSubject> selecUnitNumForVideo(Integer videoId);
 
     List<Integer> countSessions(List<Integer> id);
-
-    List<GcSubject> selectAllSubByUserId(
-            Integer masterId, Integer userId, HttpServletRequest request);
 
     List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids);
 

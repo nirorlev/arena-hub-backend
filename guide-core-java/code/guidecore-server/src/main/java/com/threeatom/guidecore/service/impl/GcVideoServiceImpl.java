@@ -346,12 +346,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			List<GcEvent> eventNum = gcEventService.getEventNumByVideos(videoIds,masterId);
 
 			//查询问题 已回答数量
-			List<GcEvent> eventAnswers = null;
-			if (isAccessId){
-				eventAnswers = gcEventService.selectEventByPermissionList(permissionList, userIdList,masterId);
-			}else {
-				eventAnswers = gcEventService.findEventAnswerByVideoIdsUserList(videoIds, userIdList,masterId);
-			}
+			List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUserList(videoIds, userIdList, masterId);
 			List<GcUserVideoPlay> videoPalyStateByVideos = userVideoPlayService.findVideoPalyStateByVideosUsers(videoIds, userIdList,masterId);
 
 			for (GcVideo gcVideo : gcVideos) {
@@ -432,13 +427,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			List<GcEvent> eventNum = gcEventService.getEventNumByVideos(videoIds,masterId);
 
 			//查询问题 已回答数量
-			List<GcEvent> eventAnswers = null;
-			if (isAccessId){
-				eventAnswers = gcEventService.selectEventByPermissionList(permissionList, userIdList,masterId);
-			}else {
-				eventAnswers = gcEventService.findEventAnswerByVideoIdsUserList(videoIds, userIdList,masterId);
-			}
-
+			List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUserList(videoIds, userIdList,masterId);
 			List<GcUserVideoPlay> videoPalyStateByVideos = userVideoPlayService.findVideoPalyStateByVideosUsers(videoIds, userIdList,masterId);
 
 			for (Integer userId : userIdList) {
@@ -1097,15 +1086,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 		return new ArrayList<GcVideo>(0);
 
-	}
-	@Override
-	public  List<GcVideo> getVideoIdListByAccessId0(List<Integer> accessPermissionId,List<Integer> userId,Integer masterId,HttpServletRequest request) {
-		if (CollectionUtils.isNotEmpty(accessPermissionId)){
-			List<GcVideo> gcVideos = this.baseMapper.getVideoIdListByPermissionId(accessPermissionId);
-			List<GcVideo> gcVideoList = this.buildVideoInfoByList(userId,gcVideos,masterId,true,accessPermissionId,request);
-			return gcVideoList;
-		}
-		return null;
 	}
 
 	@Override

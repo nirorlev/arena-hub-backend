@@ -151,14 +151,6 @@ public class GcAccess implements Serializable {
     @TableField(exist = false)
     private List<GcAccess> accessList;
 
-    public JSONArray getMustSubjectJson() {
-        return mustSubjectJson;
-    }
-
-    public void setMustSubjectJson(JSONArray mustSubjectJson) {
-        this.mustSubjectJson = mustSubjectJson;
-    }
-
     @TableField(value = "channel_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray channelJson;
 
@@ -180,9 +172,6 @@ public class GcAccess implements Serializable {
     @TableField(exist = false)
     private Integer saveType;
 
-    @TableField(value = "must_subject_json", typeHandler = FastJsonArrayTypeHandler.class)
-    private JSONArray mustSubjectJson;
-
     @TableField(value = "may_subject_json", typeHandler = FastJsonArrayTypeHandler.class)
     private JSONArray maySubjectJson;
 
@@ -199,14 +188,6 @@ public class GcAccess implements Serializable {
 
     @TableField(exist = false)
     private String parentCode;
-
-    public JSONArray getMaySubjectJson() {
-        return maySubjectJson;
-    }
-
-    public void setMaySubjectJson(JSONArray maySubjectJson) {
-        this.maySubjectJson = maySubjectJson;
-    }
 
     private String groupName;
 

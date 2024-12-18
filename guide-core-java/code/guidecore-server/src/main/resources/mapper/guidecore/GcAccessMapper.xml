@@ -360,12 +360,9 @@
 		ac.channel_json,
 		ac.group_name,
 		ac.subscribe_json,
-		ac.role_json,
-		uap.may_subject_json as may_subject_json,
-		uap.must_subject_json as must_subject_json
+		ac.role_json
 		FROM gc_access ac
 		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-		left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
 		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE ac.master_id = #{masterId}
@@ -375,7 +372,7 @@
 		<if test="name != null">
 			and concat('%',#{name},'%')
 		</if>
-		GROUP BY ac.id, uap.id
+		GROUP BY ac.id
 		order by ac.group_name asc
 	</select>
 
@@ -397,13 +394,10 @@
 		ac.channel_json,
 		ac.group_name,
 		ac.subscribe_json,
-		ac.role_json,
-		uap.may_subject_json as may_subject_json,
-		uap.must_subject_json as must_subject_json
+		ac.role_json
 		FROM
 		gc_access ac
 		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-		left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
 		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE
@@ -413,7 +407,7 @@
 		<if test="name != null">
 			and ac.group_name like concat('%',#{name},'%')
 		</if>
-		GROUP BY ac.id, uap.id
+		GROUP BY ac.id
 		order by ac.group_name asc
 	</select>
 </mapper>

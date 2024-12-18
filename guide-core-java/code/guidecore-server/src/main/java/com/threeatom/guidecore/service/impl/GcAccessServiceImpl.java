@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
@@ -113,27 +114,12 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     public void deleteSubIdAccess(Integer masterId, Integer subId) {
         List<GcAccess> accessList = this.selectAccessBySubId(subId, masterId);
-        for (GcAccess access : accessList) {
-            if (null != access.getSubjectJson() && access.getSubjectJson().contains(subId)) {
-                while (access.getSubjectJson().contains(subId)) {
-                    access.getSubjectJson().remove(subId);
-                }
-            }
-            if (null != access.getMustSubjectJson() && access.getMustSubjectJson().contains(subId)) {
-                while (access.getMustSubjectJson().contains(subId)) {
-                    access.getMustSubjectJson().remove(subId);
-                }
-            }
-            if (null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(subId)) {
-                while (access.getMaySubjectJson().contains(subId)) {
-                    access.getMaySubjectJson().remove(subId);
-                }
-            }
+        if (CollectionUtils.isEmpty(accessList)) {
+            return;
         }
-        if (null != accessList && accessList.size() != TableConstant.COMMON_ZERO) {
-            contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
-            this.insertOrUpdateList(accessList);
-        }
+
+        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
+        this.insertOrUpdateList(accessList);
     }
 
     @Override

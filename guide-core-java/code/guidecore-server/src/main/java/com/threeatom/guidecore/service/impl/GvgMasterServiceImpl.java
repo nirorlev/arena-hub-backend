@@ -547,7 +547,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 			Message message = new Message().ok();
 			message.addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-			message.addData("allTagList", newUiGcSubjectService.selectAllTag(masterId, userId));
 
             return switch (searchType) {
 				case ALL -> searchAll(request, user, system, searchParameters, userId, masterId, message);
@@ -1909,48 +1908,21 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		return new Message().error();
 	}
 
-	public Message deleteSub(Integer subId,Integer envFlag,GcMaster master,Integer userId) {
-		if(envFlag==EnvType.GC.getCode()) {
-			System.out.println(master.getId());
-			List<GcAccess> accessList = gcAccessService.selectAccessBySubId(subId,master.getId());
-			if(CollectionUtils.isNotEmpty(accessList)){
-				for(GcAccess gcAccess:accessList){
-					if (null!=gcAccess.getSubjectJson()){
-						gcAccess.getSubjectJson().remove(subId);
-					}
-					if (null!=gcAccess.getMaySubjectJson()){
-						gcAccess.getMaySubjectJson().remove(subId);
-					}
-					if (null!=gcAccess.getMustSubjectJson()){
-						gcAccess.getMustSubjectJson().remove(subId);
-					}
-				}
-			}
-			gcAccessService.updateBatchById(accessList);
-			courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
+	public Message deleteSub(Integer subId, Integer envFlag, GcMaster master, Integer userId) {
+		if (envFlag == EnvType.GC.getCode()) {
+			courseAssignmentService.removeByMasterAndCourseId(master.getId(), subId);
 
-			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
-			return new Message().error(I18NUtil.get("guidecore.resource.deleteSucc"));
-		}else if(envFlag==EnvType.PT.getCode()){
-				subService.deleteSub(subId, master.getId());
-				List<GcAccess> accessList = gcAccessService.selectAccessBySubId(subId,master.getId());
-				if(CollectionUtils.isNotEmpty(accessList)){
-					for(GcAccess gcAccess:accessList){
-						if (null!=gcAccess.getSubjectJson()){
-							gcAccess.getSubjectJson().remove(subId);
-						}
-						if (null!=gcAccess.getMaySubjectJson()){
-							gcAccess.getMaySubjectJson().remove(subId);
-						}
-						if (null!=gcAccess.getMustSubjectJson()){
-							gcAccess.getMustSubjectJson().remove(subId);
-						}
-					}
-				}
-				gcAccessService.updateBatchById(accessList);
-                courseAssignmentService.removeByMasterAndCourseId(master.getId(),subId);
-
+			if (subService.deleteSub(subId, master.getId())) {
 				return new Message().ok();
+			}
+			return new Message().error(I18NUtil.get("guidecore.resource.deleteSucc"));
+		}
+
+		if (envFlag == EnvType.PT.getCode()) {
+			subService.deleteSub(subId, master.getId());
+			courseAssignmentService.removeByMasterAndCourseId(master.getId(), subId);
+
+			return new Message().ok();
 		}
 		return new Message().error("删除失败");
 	}

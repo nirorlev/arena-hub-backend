@@ -1017,34 +1017,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return this.getOne(queryWrapper);
     }
 
-    @Override
-    public List<GcSubject> getSubjectUserInfo(List<Integer> userIdList,List<Integer> subList,Integer masterId) {
-        List<GcSubject> gcSubjectList = this.baseMapper.getSubjectUserInfo(userIdList,subList,masterId);
-        gcSubjectList.forEach(i->{
-                Integer videoPlayState = 0;
-                Integer answeredNums = 0;
-                Integer answeredSumNums = 0;
-                for (GcVideo video : i.getVideoChildList()) {
-                    video.setCompleteStatus(buildCompleteStatusEventNum(video.getPlayState(),video.getAnsweredNums(),video.getAnsweredSumNums()));
-                    if (null!= video.getPlayState() && video.getPlayState().equals(TableConstant.gcUserVideoAction_value_rate2_1)){
-                        videoPlayState++;
-                    }
-                    answeredNums+=video.getAnsweredNums();
-                    answeredSumNums+=video.getAnsweredSumNums();
-                }
-                if (TableConstant.COMMON_ZERO!=videoPlayState&&TableConstant.COMMON_ZERO!=i.getVideoChildList().size()){
-                    BigDecimal completedPercent = new BigDecimal(answeredNums).add(new BigDecimal(videoPlayState));
-                    BigDecimal allPercent = new BigDecimal(i.getVideoChildList().size()).add(new BigDecimal(answeredSumNums));
-                    BigDecimal percent = completedPercent.divide(allPercent, 2, BigDecimal.ROUND_DOWN).multiply(new BigDecimal("100"));
-                    i.setTotalPercent(percent);
-                }else {
-                    i.setTotalPercent(new BigDecimal("0"));
-                }
-                sysFileService.getResFullUrl(i.getUserInfo().getInfo().getAvatarFile(),null);
-            });
-        return gcSubjectList;
-    }
-
     private short buildCompleteStatusEventNum(String playState,Integer answeredNums,Integer answeredSumNums){
         if(null == playState){//没有播放记录
             return TableConstant.VIDEO_COMPLETE_STATUS0;
@@ -1256,17 +1228,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return newUiGcSubjectMapper.countSessions(id);
     }
 
-    @Override
-    public List<GcSubject> selectAllSubByUserId(Integer masterId,Integer userId,HttpServletRequest request){
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize=pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        return gcSubjectMapper.selectAllSubByUserId(masterId,userId);
-    }
-
 
     @Override
     public List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids){
@@ -1343,96 +1304,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         this.saveSub(sub);
         GcSubject subs = this.getById(sub.getId());
-
-
-        if (null!=sub.getAvailableType()) {
-            List<GcAccess> accessList = new ArrayList<>();
-
-            //may
-            if (null!=sub.getAccessIds()&&TableConstant.COMMON_ZERO != sub.getAccessIds().size()&&null==sub.getAllPublishedMay()) {
-                accessList = gcAccessService.selectMasterIdAndIds(masterId, sub.getAccessIds());
-            }
-            //全部可查看不加入权限表
-
-            List<GcAccess> mustAccessList = new ArrayList<>();
-            List<Integer> accessIds = new ArrayList<>();
-
-            //发布当前用户可发布的所有组may
-            if (null!=sub.getAllPublishedMay()&&sub.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)){
-                if (user.getIsOrgAdmin()){
-                    accessList = gcAccessService.findAccessListByMasterId(masterId);
-                }else {
-                    accessList = gcAccessMapper.listAccess(null, masterId, user.getId());
-                }
-                sub.getAccessIds().addAll(accessList.stream().map(GcAccess::getId).collect(Collectors.toList()));
-                accessIds = accessList.stream().map(GcAccess::getId).collect(Collectors.toList());
-            }
-
-            if (!accessList.isEmpty()) {
-                for (GcAccess gcAccess : accessList) {
-                    accessIds.add(gcAccess.getId());
-                    if (null!=sub.getAccessIds()&&sub.getAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getSubjectJson()){
-                            gcAccess.getSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setSubjectJson(jsonArray);
-                        }
-                    }
-                    if (null!=sub.getAccessIds()&&sub.getAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getMaySubjectJson()){
-                            gcAccess.getMaySubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setMaySubjectJson(jsonArray);
-                        }
-                    }
-                }
-
-                gcAccessService.insertOrUpdateList(accessList);
-            }
-
-            //must
-            if(null!=sub.getMustAccessIds()&& !sub.getMustAccessIds().isEmpty() &&null==sub.getAllPublished()){
-                mustAccessList = gcAccessService.selectMasterIdAndIds(masterId, sub.getMustAccessIds());
-            }
-            List<Integer> mustAccessIds = new ArrayList<>();
-            //发布当前用户可发布的所有组must
-            if (null!=sub.getAllPublished()&&sub.getAllPublished().equals(TableConstant.COMMON_ZERO)){
-                if (user.getIsOrgAdmin()){
-                    mustAccessList = gcAccessService.findAccessListByMasterId(masterId);
-                }else {
-                    mustAccessList = gcAccessMapper.listAccess(null,masterId,user.getId());
-                }
-                sub.getMustAccessIds().addAll(mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList()));
-                mustAccessIds = mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList());
-            }
-            if (!mustAccessList.isEmpty()){
-                for (GcAccess gcAccess : mustAccessList) {
-                    mustAccessIds.add(gcAccess.getId());
-                    if (null!=sub.getMustAccessIds()&&sub.getMustAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getMustSubjectJson()){
-                            gcAccess.getMustSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setMustSubjectJson(jsonArray);
-                        }
-
-                        if (null!=gcAccess.getSubjectJson()){
-                            gcAccess.getSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setSubjectJson(jsonArray);
-                        }
-                    }
-                }
-                gcAccessService.insertOrUpdateList(mustAccessList);
-            }
-        }
         sub.setCreateTime(subs.getCreateTime());
         sub.setUpdateTime(subs.getUpdateTime());
 

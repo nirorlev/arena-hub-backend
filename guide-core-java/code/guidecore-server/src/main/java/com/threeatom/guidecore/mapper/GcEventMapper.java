@@ -65,8 +65,6 @@ public interface GcEventMapper extends BaseMapper<GcEvent> {
 
     Integer countEventByVideoIds(@Param("list") List<Integer> videoList);
 
-    List<StudentInfoVO> getTaskNumByVideoIds(List<StudentInfoVO> list);
-
     List<GcEvent> selectEventUploadByPortal(@Param("vid") Integer vid, @Param("type") Integer type);
 
     List<GcEvent> selectAllEventByTeacherId(
@@ -84,11 +82,6 @@ public interface GcEventMapper extends BaseMapper<GcEvent> {
 
     List<GcEvent> getEventNumByVideos(
             @Param("videoIds") List<Integer> videoIds, @Param("masterId") Integer masterId);
-
-    List<GcEvent> selectEventByPermissionList(
-            @Param("list") List<Integer> list,
-            @Param("masterId") Integer masterId,
-            @Param("userList") List<Integer> userList);
 
     List<GcEvent> selectEventBySubjectIdUserIds(
             @Param("userList") List<Integer> userList,

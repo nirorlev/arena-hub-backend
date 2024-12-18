@@ -274,7 +274,6 @@
         ui.first_name,
         ui.last_name,
         u.create_time as dateSignedUp,
-        per.sub_permission as sub_permission,
         ua.id as userAccessId,
         u.username as email,
         ui.avatar_file_id as f_file_url,
@@ -285,7 +284,6 @@
         ua.access_id as accessId
         FROM gc_user_access ua
         LEFT JOIN gc_access a ON ua.access_id = a.id
-        LEFT JOIN gc_user_access_permission per ON per.user_access_id = ua.id
         LEFT JOIN gc_master ma ON ma.id = a.master_id
         JOIN gc_user u ON ua.user_id = u.id
         LEFT JOIN gc_user_info ui ON ui.id = u.info_id
@@ -304,8 +302,8 @@
         <if test="searchFilter != null">
             AND REPLACE(CONCAT_WS(',', CONCAT(ui.first_name, ui.last_name), u.username, a.CODE), ' ', '') LIKE concat('%', #{searchFilter}, '%')
         </if>
-        GROUP BY ua.user_id, a.code, ua.user_id, u.update_time, f.id, f.name, ui.id, ui.first_name, ui.last_name, u.create_time,
-        per.sub_permission::jsonb, ua.id, u.username, ui.avatar_file_id, f.save_type, ua.access_id
+        GROUP BY ua.user_id, a.code, ua.user_id, u.update_time, f.id, f.name, ui.id, ui.first_name, ui.last_name, u.create_time
+               , ua.id, u.username, ui.avatar_file_id, f.save_type, ua.access_id
         ORDER BY u.update_time DESC
     </select>
 
@@ -368,11 +366,9 @@
     <select id="getAccessByUserIdMaster" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />,
-               p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        <include refid="gcAccessbaseColumn" />
         from gc_user_access ua
         left join gc_access a on a.id = ua.access_id
-        left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 
@@ -395,11 +391,9 @@
     <select id="selectPtUserAccessByMasterIdAndUserId" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />,
-        p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        <include refid="gcAccessbaseColumn" />
         from gc_user_access ua
         left join gc_access a on a.id = ua.access_id
-        left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 

@@ -77,12 +77,6 @@ public interface GcVideoService extends GcVideoServiceBll {
         HttpServletRequest request,
         Integer envFlag);
 
-    List<GcVideo> getVideoIdListByAccessId0(
-        List<Integer> accessPermissionId,
-        List<Integer> userId,
-        Integer masterId,
-        HttpServletRequest request);
-
     List<GcVideo> getVideoListByUserIdAndSubject(
         List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 

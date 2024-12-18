@@ -11,15 +11,6 @@ public interface NewUiGcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<GcSubject> findSubjects(Map<String, Object> params);
 
-    List<GcSubject> findSubjectsWithVideos(Map<String, Object> params);
-
-    List<GcSubject> findSubjectsByTag(@Param("query") Map<String, Object> params);
-
-    List<GcSubject> getTagNameAndIds(
-            @Param("masterId") Integer masterId,
-            @Param("userId") Integer userId,
-            @Param("tagText") String tagText);
-
     @MapKey("id")
     Map<Integer, GcSubject> sumSubjectDuration(@Param("ids") List<Integer> ids);
 
@@ -29,8 +20,6 @@ public interface NewUiGcSubjectMapper extends BaseMapper<GcSubject> {
     List<GcSubject> listByFid(Map<String, Object> params);
 
     List<GcSubject> listByIds(@Param("ids") List<Integer> ids, @Param("masterId") Integer masterId);
-
-    List<Integer> countSubjects(@Param("id") Integer id);
 
     List<Integer> countSessions(@Param("ids") List<Integer> ids);
 
@@ -46,11 +35,4 @@ public interface NewUiGcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<GcSubject> selectSubjectsByIds(@Param("ids") List<Integer> ids);
 
-    List<String> selectAllTag(@Param("masterId") Integer masterId, @Param("userId") Integer userId);
-
-    List<String> selectSubjectTag(
-            @Param("masterId") Integer masterId, @Param("userId") Integer userId);
-
-    List<GcSubject> selectSubjectByAccessIds(
-            @Param("accessPermissionId") List<Integer> accessPermissionId);
 }

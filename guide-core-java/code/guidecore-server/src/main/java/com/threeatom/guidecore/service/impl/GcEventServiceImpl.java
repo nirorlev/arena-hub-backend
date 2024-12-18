@@ -249,12 +249,6 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
     }
 
     @Override
-    public List<GcEvent> selectEventByPermissionList(
-            List<Integer> permissionList, List<Integer> userIdList, Integer masterId) {
-        return this.baseMapper.selectEventByPermissionList(permissionList, masterId, userIdList);
-    }
-
-    @Override
     public List<GcEvent> selectEventByUserIdAndSubjectId(
             Integer userId, Integer subjectId, Integer masterId) {
         return this.baseMapper.selectEventByUserIdAndSubjectId(userId, subjectId, masterId);

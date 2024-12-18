@@ -1268,30 +1268,6 @@ public class PowtoonController extends GuideCoreController {
             throw new PermitException("No permission for this!");
         }
 
-        if (null != contentGroup.getSubjectJson()) {
-            List<Integer> subjectList = contentGroup.getSubjectJson().toJavaList(Integer.class);
-            subjectList.addAll(idList);
-            contentGroup.setSubjectJson(parseToJsonArray(subjectList));
-        }
-        if (type == TableConstant.COMMON_ZERO) {
-            if (null != contentGroup.getMustSubjectJson()) {
-                List<Integer> mustSubjectList = contentGroup.getMustSubjectJson().toJavaList(Integer.class);
-                mustSubjectList.addAll(idList);
-                contentGroup.setMustSubjectJson(parseToJsonArray(mustSubjectList));
-            } else {
-                contentGroup.setMustSubjectJson(parseToJsonArray(idList));
-            }
-        } else {
-            if (null != contentGroup.getMaySubjectJson()) {
-                List<Integer> maySubjectList = contentGroup.getMaySubjectJson().toJavaList(Integer.class);
-                maySubjectList.addAll(idList);
-                contentGroup.setMaySubjectJson(parseToJsonArray(maySubjectList));
-            } else {
-                contentGroup.setMaySubjectJson(parseToJsonArray(idList));
-            }
-        }
-
-        gcAccessService.saveOrUpdate(contentGroup);
         contentGroupCourseAssignmentService.save(user, idList, accessId, CourseType.ofType(type));
         eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
         eventPublisherService.publishCourseUpdated(idList);
@@ -1306,24 +1282,6 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> idList = JSONArray.parseArray(idListString).toJavaList(Integer.class);
         GcAccess access = accessService.getById(Integer.parseInt(params.get("accessId").toString()));
 
-        for (Integer integer : idList) {
-            if (null != access.getSubjectJson()) {
-                while (access.getSubjectJson().contains(integer)) {
-                    access.getSubjectJson().remove(integer);
-                }
-            }
-            if (null != access.getMustSubjectJson()) {
-                while (access.getMustSubjectJson().contains(integer)) {
-                    access.getMustSubjectJson().remove(integer);
-                }
-            }
-            if (null != access.getMaySubjectJson()) {
-                while (access.getMaySubjectJson().contains(integer)) {
-                    access.getMaySubjectJson().remove(integer);
-                }
-            }
-        }
-        accessService.saveOrUpdate(access);
         contentGroupCourseAssignmentService.removeCourseAssignmentsByCourseId(access, idList);
 
         return new Message().ok();
@@ -1529,32 +1487,8 @@ public class PowtoonController extends GuideCoreController {
 
     @ApiOperation(value = "updateMaySubject", httpMethod = "GET")
     @GetMapping("/updateMaySubject")
-    public Message updateMaySubject(Integer subId, Integer accessId, Integer state, HttpServletRequest request) {
+    public Message updateMaySubject(Integer subId, Integer accessId) {
         GcAccess access = accessService.getById(accessId);
-        //关闭
-        if (TableConstant.COMMON_ZERO == state) {
-            if (null != access.getMustSubjectJson()) {
-                access.getMustSubjectJson().remove(subId);
-            }
-            if (null != access.getMaySubjectJson()) {
-                access.getMaySubjectJson().add(subId);
-            } else {
-                JSONArray jsonArray = new JSONArray();
-                jsonArray.add(subId);
-                access.setMaySubjectJson(jsonArray);
-            }
-        } else {
-            if (null != access.getMaySubjectJson()) {
-                access.getMaySubjectJson().remove(subId);
-            }
-            if (null != access.getMustSubjectJson()) {
-                access.getMustSubjectJson().add(subId);
-            } else {
-                JSONArray jsonArray = new JSONArray();
-                jsonArray.add(subId);
-                access.setMustSubjectJson(jsonArray);
-            }
-        }
         contentGroupCourseAssignmentService.updateCourseAssignmentMandatoryOpposite(subId, accessId);
         accessService.saveOrUpdate(access);
         return new Message().ok();
@@ -2285,43 +2219,6 @@ public class PowtoonController extends GuideCoreController {
 
         return message.error();
     }
-
-    @SneakyThrows
-    @ApiOperation(value = "channel首页")
-    @PostMapping("/selectAllChannels")
-    public Message selectAllChannels(HttpServletRequest request) {
-        Message message = new Message();
-        Integer masterId = request.getIntHeader("masterId");
-        GcUser user = this.getGcUser();
-        List<PtChannel> channels =
-            ptChannelService.indexPtChannels(user.getId(), TableConstant.COMMON_ZERO, request, masterId);
-        List<PtChannel> myChannels =
-            ptChannelService.indexPtChannels(user.getId(), TableConstant.COMMON_ONE, request, masterId);
-        PageInfo channelPageInfo = new PageInfo<>(channels);
-        PageInfo myChannelPageInfo = new PageInfo<>(myChannels);
-        message.ok().addData("myChannels", myChannelPageInfo);
-
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return message.ok()
-            .addData("allChannelList", channelPageInfo)
-            .addData("systemTime", df.format(new Date()));
-    }
-
-    @ApiOperation(value = "指定teamchannel查询")
-    @PostMapping("/selectChannelsByTeam")
-    public Message selectAllChannels(@RequestBody GcAccess access, HttpServletRequest request) {
-        Message message = new Message();
-        GcUser gcuser = this.getGcUser();
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.master.noMasterId"));
-        }
-        List<PtChannel> channels =
-            ptChannelService.selectChannelsByTeam(access.getId(), masterId, gcuser.getId(), request);
-        PageInfo<PtChannel> pageInfo = new PageInfo<>(channels);
-        return message.ok().addData("channelPageInfo", pageInfo);
-    }
-
 
     @ApiOperation(value = "查询categorylist", notes = "查询categorylist", httpMethod = "GET")
     @GetMapping("/selectCategoryList")
