@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.response.VersionOverrideDto;
 import com.threeatom.guidecore.service.FeVersionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -26,15 +27,15 @@ public class VersionOverrideController {
 
     @GetMapping
     @ApiOperation(value = "Get Latest version from DB", response = VersionOverrideDto.class, httpMethod = "GET")
-    public ResponseEntity<VersionOverrideDto> getLatestDbVersionOverride() {
-        String latestVersion = feVersionService.findLatestVersion();
+    public ResponseEntity<VersionOverrideDto> getLatestDbVersionOverride(HttpServletRequest request) {
+        String latestVersion = feVersionService.findLatestVersion(request.getIntHeader("masterId"));
         return ResponseEntity.ok(VersionOverrideDto.builder().version(latestVersion).build());
     }
 
     @PostMapping
     @ApiOperation(value = "Update Latest FE version", response = VersionOverrideDto.class, httpMethod = "POST")
-    public ResponseEntity<Void> updateLatestFeVersion(@RequestBody @Valid VersionOverrideDto versionOverrideDto) {
-        feVersionService.saveVersion(versionOverrideDto.getVersion());
+    public ResponseEntity<Void> updateLatestFeVersion(@RequestBody @Valid VersionOverrideDto versionOverrideDto, HttpServletRequest request) {
+        feVersionService.updateVersion(versionOverrideDto.getVersion(), request.getIntHeader("masterId"));
         return ResponseEntity.ok().build();
     }
 }

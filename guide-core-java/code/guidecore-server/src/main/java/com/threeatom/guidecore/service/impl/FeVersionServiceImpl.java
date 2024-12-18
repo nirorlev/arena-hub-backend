@@ -1,11 +1,9 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.guidecore.entity.FeVersionOverride;
-import com.threeatom.guidecore.mapper.FeVersionOverrideMapper;
+import com.threeatom.guidecore.dto.FeatureToggleValueDto;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.FeVersionService;
+import com.threeatom.guidecore.service.FeatureToggleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,51 +14,51 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FeVersionServiceImpl extends ServiceImpl<FeVersionOverrideMapper, FeVersionOverride>
-    implements FeVersionService {
+public class FeVersionServiceImpl implements FeVersionService {
     private static final String LATEST = "latest";
+    private static final String FEATURE_TOGGLE_CONFIG_NAME = "feVersionOverride";
+
     private final AwsS3StorageService awsS3StorageService;
+    private final FeatureToggleService featureToggleService;
+
     @Value("${aws.s3.feBucketName}")
     private String feBucketName;
 
     @Transactional(readOnly = true)
-    public String getVersion(String versionValue) {
+    public String getVersion(String versionValue, Integer masterId) {
         if (StringUtils.isBlank(versionValue)) {
-            return "/" + findLatestVersion();
+            return "/" + findLatestVersion(masterId);
         }
 
         if (LATEST.equals(versionValue)) {
-            return findLatestDeployedVersion();
+            return findLatestDeployedVersion(masterId);
         }
 
         return "/" + versionValue;
     }
 
-    private String findLatestDeployedVersion() {
+    private String findLatestDeployedVersion(Integer masterId) {
         byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(feBucketName, "latest_version.txt");
         String content = new String(bytes);
 
         if (StringUtils.isBlank(content)) {
-            return findLatestVersion();
+            return findLatestVersion(masterId);
         }
 
         return content.split("\n")[0].trim();
     }
 
     @Override
-    public String findLatestVersion() {
-        QueryWrapper<FeVersionOverride> queryWrapper = new QueryWrapper<>();
-        queryWrapper.orderByDesc("modified_date").last("LIMIT 1");
-        FeVersionOverride latestVersion = this.getOne(queryWrapper);
-
-        return latestVersion != null ? latestVersion.getVersion() : "";
+    public String findLatestVersion(Integer masterId) {
+        return featureToggleService.getFeatureToggle(FEATURE_TOGGLE_CONFIG_NAME, masterId).getValue();
     }
 
-    @Transactional
     @Override
-    public void saveVersion(String version) {
-        FeVersionOverride feVersionOverride = new FeVersionOverride();
-        feVersionOverride.setVersion(version);
-        this.save(feVersionOverride);
+    public void updateVersion(String version, Integer masterId) {
+        featureToggleService.updateFeatureToggle(FeatureToggleValueDto.builder()
+            .name(FEATURE_TOGGLE_CONFIG_NAME)
+            .value(version)
+            .masterId(masterId)
+            .build());
     }
 }

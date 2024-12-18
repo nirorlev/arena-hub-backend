@@ -994,7 +994,7 @@ public class HomeInfoController extends GuideCoreController {
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
         try {
             printWriter = response.getWriter();
-            String feVersion = feVersionService.getVersion(request.getParameter("version"));
+            String feVersion = feVersionService.getVersion(request.getParameter("version"), request.getIntHeader("masterId"));
             printWriter.write(homeInfoContent(feVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
