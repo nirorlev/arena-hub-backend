@@ -45,6 +45,7 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -994,7 +995,9 @@ public class HomeInfoController extends GuideCoreController {
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
         try {
             printWriter = response.getWriter();
-            String feVersion = feVersionService.getVersion(request.getParameter("version"), request.getIntHeader("masterId"));
+            String feVersionOverride = RequestUtil.getFeVersionOverride(request, response);
+            Integer masterId = RequestUtil.getMasterId(request).orElse(null);
+            String feVersion = feVersionService.getVersion(feVersionOverride, masterId);
             printWriter.write(homeInfoContent(feVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {

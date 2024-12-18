@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -14,6 +15,7 @@ public class RequestUtil {
 
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
+    private static final String FE_VERSION_OVERRIDE_NAME = "feVersionOverride";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
@@ -44,5 +46,14 @@ public class RequestUtil {
         ServletRequestAttributes requestAttributes =
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return Optional.ofNullable(requestAttributes).flatMap(attributes -> Optional.of(attributes.getRequest()));
+    }
+
+    public static String getFeVersionOverride(HttpServletRequest request, HttpServletResponse response) {
+        return getCookieValue(request, FE_VERSION_OVERRIDE_NAME)
+            .orElseGet(() -> {
+                String feVersion = request.getParameter(FE_VERSION_OVERRIDE_NAME);
+                response.addCookie(new Cookie(FE_VERSION_OVERRIDE_NAME, feVersion));
+                return feVersion;
+            });
     }
 }
