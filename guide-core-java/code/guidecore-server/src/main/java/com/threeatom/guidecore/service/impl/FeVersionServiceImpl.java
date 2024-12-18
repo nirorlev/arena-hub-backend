@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class FeVersionServiceImpl implements FeVersionService {
-    private static final String LATEST = "latest";
+    private static final String LATEST = "/latest";
     private static final String FEATURE_TOGGLE_CONFIG_NAME = "feVersionOverride";
 
     private final AwsS3StorageService awsS3StorageService;
@@ -27,18 +27,21 @@ public class FeVersionServiceImpl implements FeVersionService {
     @Transactional(readOnly = true)
     public String getVersion(String versionValue, Integer masterId) {
         if (StringUtils.isBlank(versionValue)) {
-            return "/" + findLatestVersion(masterId);
+            return findLatestVersion(masterId);
         }
 
-        if (LATEST.equals(versionValue)) {
-            return findLatestDeployedVersion(masterId);
+        if (versionValue.endsWith(LATEST)) {
+            String version = versionValue.replace(LATEST, "");
+            String latestDeployedVersion = findLatestDeployedVersion(version, masterId);
+            return String.format("%s/%s", version, latestDeployedVersion);
         }
 
-        return "/" + versionValue;
+        return versionValue;
     }
 
-    private String findLatestDeployedVersion(Integer masterId) {
-        byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(feBucketName, "latest_version.txt");
+    private String findLatestDeployedVersion(String versionFolder, Integer masterId) {
+        String filePath = String.format("%s/%s", feBucketName, versionFolder);
+        byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(filePath, "latest_successful_build.txt");
         String content = new String(bytes);
 
         if (StringUtils.isBlank(content)) {
