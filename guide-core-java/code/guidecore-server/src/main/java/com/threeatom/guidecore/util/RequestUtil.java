@@ -15,7 +15,7 @@ public class RequestUtil {
 
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
-    private static final String FE_VERSION_OVERRIDE_NAME = "feVersionOverride";
+    private static final String FE_VERSION_OVERRIDE_NAME = "frontendVersion";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
