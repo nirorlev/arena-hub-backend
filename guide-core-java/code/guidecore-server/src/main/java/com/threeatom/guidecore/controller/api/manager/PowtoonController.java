@@ -2365,7 +2365,7 @@ public class PowtoonController extends GuideCoreController {
 
         ptChannelSubscribeService.subscribe(user, ptChannelSubscribe.getChannelId());
 
-        return message.error();
+        return message.ok();
     }
 
     @ApiOperation(value = "channel取消订阅")
@@ -2384,7 +2384,7 @@ public class PowtoonController extends GuideCoreController {
         ptChannelSubscribe.setUserId(user.getId());
         ptChannelSubscribeService.unsubscribe(user, ptChannelSubscribe.getChannelId());
 
-        return message.error();
+        return message.ok();
     }
 
     @ApiOperation(value = "channelContent保存内容")
