@@ -29,7 +29,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
-import com.threeatom.guidecore.service.FeVersionService;
+import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
@@ -151,7 +151,7 @@ public class HomeInfoController extends GuideCoreController {
     @Autowired
     private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
     @Autowired
-    private FeVersionService feVersionService;
+    private FrontendVersionService frontendVersionService;
 
     @ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
@@ -995,9 +995,9 @@ public class HomeInfoController extends GuideCoreController {
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
         try {
             printWriter = response.getWriter();
-            String feVersionOverride = RequestUtil.getFeVersionOverride(request, response);
+            String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
             Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-            String feVersion = feVersionService.getVersion(feVersionOverride, masterId);
+            String feVersion = frontendVersionService.getVersion(requestedVersion, masterId);
             printWriter.write(homeInfoContent(feVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {

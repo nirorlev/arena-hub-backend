@@ -1,20 +1,17 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.threeatom.guidecore.dto.FeatureToggleValueDto;
 import com.threeatom.guidecore.service.AwsS3StorageService;
-import com.threeatom.guidecore.service.FeVersionService;
 import com.threeatom.guidecore.service.FeatureToggleService;
+import com.threeatom.guidecore.service.FrontendVersionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
-public class FeVersionServiceImpl implements FeVersionService {
+public class FrontendVersionServiceImpl implements FrontendVersionService {
     private static final String LATEST_VERSION_IDENTIFIER = "/latest";
     private static final String FEATURE_TOGGLE_CONFIG_NAME = "frontendVersion";
 
@@ -25,18 +22,18 @@ public class FeVersionServiceImpl implements FeVersionService {
     private String frontendBucketName;
 
     @Transactional(readOnly = true)
-    public String getVersion(String versionValue, Integer masterId) {
-        if (StringUtils.isBlank(versionValue)) {
+    public String getVersion(String requestedVersion, Integer masterId) {
+        if (StringUtils.isBlank(requestedVersion)) {
             return findLatestVersion(masterId);
         }
 
-        if (versionValue.endsWith(LATEST_VERSION_IDENTIFIER)) {
-            String version = versionValue.replace(LATEST_VERSION_IDENTIFIER, "");
+        if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
+            String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
             String latestDeployedVersion = findLatestDeployedVersion(version, masterId);
             return String.format("%s/%s", version, latestDeployedVersion);
         }
 
-        return versionValue;
+        return requestedVersion;
     }
 
     private String findLatestDeployedVersion(String versionFolder, Integer masterId) {
@@ -51,17 +48,7 @@ public class FeVersionServiceImpl implements FeVersionService {
         return content.split("\n")[0].trim();
     }
 
-    @Override
-    public String findLatestVersion(Integer masterId) {
+    private String findLatestVersion(Integer masterId) {
         return featureToggleService.getFeatureToggle(FEATURE_TOGGLE_CONFIG_NAME, masterId).getValue();
-    }
-
-    @Override
-    public void updateVersion(String version, Integer masterId) {
-        featureToggleService.updateFeatureToggle(FeatureToggleValueDto.builder()
-            .name(FEATURE_TOGGLE_CONFIG_NAME)
-            .value(version)
-            .masterId(masterId)
-            .build());
     }
 }

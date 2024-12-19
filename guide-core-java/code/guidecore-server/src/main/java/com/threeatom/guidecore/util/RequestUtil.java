@@ -48,7 +48,7 @@ public class RequestUtil {
         return Optional.ofNullable(requestAttributes).flatMap(attributes -> Optional.of(attributes.getRequest()));
     }
 
-    public static String getFeVersionOverride(HttpServletRequest request, HttpServletResponse response) {
+    public static String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
         return getCookieValue(request, FE_VERSION_OVERRIDE_NAME)
             .orElseGet(() -> {
                 String feVersion = request.getParameter(FE_VERSION_OVERRIDE_NAME);
