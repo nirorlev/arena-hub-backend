@@ -1357,7 +1357,8 @@ public class PowtoonController extends GuideCoreController {
             throw new PermitException("No permission for this!");
         }
 
-        List<Integer> channelIds = (List<Integer>) params.get("channelIds");
+        List<Integer> channelIds = ((List<String>) params.get("channelIds")).stream().map(Integer::parseInt)
+            .collect(Collectors.toList());
 
         contentGroupChannelSubscriptionService.removeChannelsFromContentGroups(List.of(contentGroup), channelIds);
         eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
