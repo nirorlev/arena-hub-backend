@@ -21,7 +21,7 @@ public class VideoSourceDto {
 
     private Integer subscribersCount;
 
-    private boolean subscribed;
+    private Boolean subscribed;
 
     private String avatarUrl;
 
