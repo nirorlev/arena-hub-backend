@@ -15,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class FeVersionServiceImpl implements FeVersionService {
-    private static final String LATEST = "/latest";
-    private static final String FEATURE_TOGGLE_CONFIG_NAME = "feVersionOverride";
+    private static final String LATEST_VERSION_IDENTIFIER = "/latest";
+    private static final String FEATURE_TOGGLE_CONFIG_NAME = "frontendVersion";
 
     private final AwsS3StorageService awsS3StorageService;
     private final FeatureToggleService featureToggleService;
 
-    @Value("${aws.s3.feBucketName}")
-    private String feBucketName;
+    @Value("${aws.s3.frontendBucketName}")
+    private String frontendBucketName;
 
     @Transactional(readOnly = true)
     public String getVersion(String versionValue, Integer masterId) {
@@ -30,8 +30,8 @@ public class FeVersionServiceImpl implements FeVersionService {
             return findLatestVersion(masterId);
         }
 
-        if (versionValue.endsWith(LATEST)) {
-            String version = versionValue.replace(LATEST, "");
+        if (versionValue.endsWith(LATEST_VERSION_IDENTIFIER)) {
+            String version = versionValue.replace(LATEST_VERSION_IDENTIFIER, "");
             String latestDeployedVersion = findLatestDeployedVersion(version, masterId);
             return String.format("%s/%s", version, latestDeployedVersion);
         }
@@ -40,7 +40,7 @@ public class FeVersionServiceImpl implements FeVersionService {
     }
 
     private String findLatestDeployedVersion(String versionFolder, Integer masterId) {
-        String filePath = String.format("%s/%s", feBucketName, versionFolder);
+        String filePath = String.format("%s/%s", frontendBucketName, versionFolder);
         byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(filePath, "latest_successful_build.txt");
         String content = new String(bytes);
 

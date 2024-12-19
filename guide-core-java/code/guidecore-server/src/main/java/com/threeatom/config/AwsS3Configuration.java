@@ -16,6 +16,6 @@ public class AwsS3Configuration {
     @Value("${secretAccessKey}")
     private String secretKey;
 
-    @Value("${feBucketName}")
-    private String feBucketName;
+    @Value("${frontendBucketName}")
+    private String frontendBucketName;
 }

@@ -649,9 +649,9 @@
 
     <changeSet id="create-fe-version-override-feature-toggle-config" author="vprokh">
         <insert tableName="feature_toggle">
-            <column name="name" value="feVersionOverride"/>
+            <column name="name" value="frontendVersion"/>
             <column name="description"
-                    value="Config to override deployed FE version in Runtime"/>
+                    value="Controls the FE version that is served by the backend at Runtime"/>
             <column name="value" value=""/>
         </insert>
     </changeSet>
