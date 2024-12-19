@@ -1037,14 +1037,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			subject.setResourceNum(resourceNums);
 			//添加是否本人能查看反显
 			List<Integer> courseIds = courseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId,masterId);
-			int isMyView = TableConstant.COMMON_ONE;
-			for (Integer courseId : courseIds) {
-				if(Objects.equals(courseId, subject.getId())){
-					isMyView = TableConstant.COMMON_ZERO;
-					break;
-				}
-			}
-			subject.setIsMyView(isMyView);
+			boolean isMyView = courseIds.stream()
+				.anyMatch(courseId -> Objects.equals(courseId, subject.getId()));
+			subject.setIsMyView(isMyView ? TableConstant.COMMON_ZERO : TableConstant.COMMON_ONE);
 			if (subject.getState()==TableConstant.COMMON_ZERO){
 				subject.setCourseState(TableConstant.COMMON_ONE);
 			}else {
