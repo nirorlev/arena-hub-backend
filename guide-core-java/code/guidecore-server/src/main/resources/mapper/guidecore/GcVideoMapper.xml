@@ -54,7 +54,18 @@
         </collection>
 	</resultMap>
 
-    <resultMap id="playlistResultMap" type="GcUserSaveFolder" autoMapping="true" />
+    <resultMap id="playlistResultMap" type="GcUserSaveFolder">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="isPrivate" column="is_private"/>
+        <result property="userId" column="user_id"/>
+        <result property="masterId" column="master_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="saveContentList" javaType="ArrayList" columnPrefix="content_" ofType="GcUserSaveContent">
+            <id property="id" column="id"/>
+        </collection>
+    </resultMap>
 
     <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
         <result property="createUserId" column="create_user_id"/>
@@ -62,6 +73,8 @@
         <result property="visibleFlag" column="visible_flag"/>
         <result property="channelAvatarFileId" column="avatar_file_id"/>
         <result property="channelContentId" column="content_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
 
         <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
         <association resultMap="userResultMap" columnPrefix="create_user_" property="createUser" column="create_user_id" javaType="GcUser" autoMapping="true" />
@@ -95,6 +108,8 @@
         <result property="availableType" column="available_type"/>
         <result property="state" column="state"/>
         <result property="subImgId" column="img_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
 
         <association property="subImgFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
         <association resultMap="userResultMap" columnPrefix="user_" property="userInfo" column="create_user" javaType="GcUser" autoMapping="true" />
@@ -123,6 +138,10 @@
 
 	<sql id="playlistBaseColumn">
         playlist.id as playlist_id, playlist.name as playlist_name, playlist.is_private as playlist_is_private, playlist.user_id as playlist_user_id, playlist.master_id as playlist_master_id, playlist.create_time as playlist_create_time, playlist.update_time as playlist_update_time
+	</sql>
+
+	<sql id="playlistContentBaseColumn">
+        playlist_content.id as playlist_content_id
 	</sql>
 
 	<sql id="leftJoinSysFile">
@@ -1034,6 +1053,7 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             <include refid="playlistBaseColumn"/>,
+            <include refid="playlistContentBaseColumn"/>,
             f.upload_uid as user_id,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,
@@ -1041,6 +1061,8 @@
             pc.fid                        AS channel_fid,
             pc.visible_flag               AS channel_visible_flag,
             pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            pc.create_time                AS channel_create_time,
+            pc.update_time                AS channel_update_time,
             channel_avatar.name           AS channel_avatar_file_name,
             channel_avatar.file_url       AS channel_avatar_file_url,
             channel_avatar.save_type      AS channel_avatar_file_save_type,
@@ -1052,6 +1074,8 @@
             gs.state                      AS course_state,
             gs.available_type             AS course_available_type,
             gs.sub_img_id                 AS course_img_id,
+            gs.create_time                AS course_create_time,
+            gs.update_time                AS course_update_time,
             course_avatar.id              AS course_avatar_file_id,
             course_avatar.name            AS course_avatar_file_name,
             course_avatar.file_url        AS course_avatar_file_url,

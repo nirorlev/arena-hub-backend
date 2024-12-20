@@ -16,7 +16,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class, PlaylistMapping.class})
 public abstract class VideoMapping {
 
     @Autowired
@@ -83,7 +83,7 @@ public abstract class VideoMapping {
     @Mapping(target = "isLiked", source = "video.isLiked", qualifiedByName = "mapBoolean")
     @Mapping(target = "commentsCount", source = "video.commentNum")
     @Mapping(target = "likesCount", source = "video.likeNum")
-    @Mapping(target = "source", source = "video", qualifiedByName = "mapVideoSource")
+    @Mapping(target = "origin", source = "video", qualifiedByName = "mapVideoSource")
     public abstract VideoWithSourceDetailsDto<VideoSourceDto> mapWithVideoSource(GcVideo video);
 
     @Mapping(target = "id", source = "id")
@@ -100,7 +100,7 @@ public abstract class VideoMapping {
     @Mapping(target = "commentsCount", source = "commentNum")
     @Mapping(target = "likesCount", source = "likeNum")
     @Mapping(target = "deprecatedContentId", source = "video.originChannel.channelContentId")
-    @Mapping(target = "source", source = "originChannel")
+    @Mapping(target = "origin", source = "originChannel")
     public abstract VideoWithSourceDetailsDto<ChannelDto> mapWithDetailsChannelSource(GcVideo video);
 
     @Mapping(target = "id", source = "id")
@@ -120,9 +120,6 @@ public abstract class VideoMapping {
 
     @Named("mapVideoSource")
     protected VideoSourceDto mapVideoSource(GcVideo video) {
-        if (video.getPlaylist() != null) {
-            return playlistMapping.mapSource(video.getPlaylist());
-        }
         if (video.getOriginChannel() != null) {
             return channelMapping.mapVideoSource(video.getOriginChannel());
         }

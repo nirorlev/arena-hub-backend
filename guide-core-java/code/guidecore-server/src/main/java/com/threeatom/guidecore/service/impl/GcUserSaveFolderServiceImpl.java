@@ -149,7 +149,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             this.baseMapper.selectFolderForUserMaster(userId, masterId, folderIdList, myFolderIdList, null);
         for (GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders) {
             List<GcUserSaveContent> gcUserSaveContentList =
-                gcUserSaveContentService.selectContetnByFolderId(gcUserSaveFolder.getId());
+                gcUserSaveContentService.selectContentByPlaylistId(gcUserSaveFolder.getId());
             if (CollectionUtils.isNotEmpty(gcUserSaveContentList)) {
                 for (GcUserSaveContent gcUserSaveContent : gcUserSaveContentList) {
                     if (Objects.nonNull(gcUserSaveContent.getFileId())) {
@@ -324,13 +324,16 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             throw new ForbiddenException("You do not have permission to view this playlist");
         }
 
+        playlist.setSaveContentList(gcUserSaveContentService.selectContentByPlaylistId(playlistId));
         gcVideoService.populateVideoData(List.of(video), portalUser);
+        video.setPlaylist(playlist);
+
         List<Integer> videoOriginSubscriberIds =
             gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
 
         VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
-        videoWithDetails.getSource().setSubscribersCount(videoOriginSubscriberIds.size());
-        videoWithDetails.getSource().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
         return videoWithDetails;
     }
 

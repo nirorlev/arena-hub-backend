@@ -71,8 +71,8 @@ public class GcUserSaveContentServiceImpl
     }
 
     @Override
-    public List<GcUserSaveContent> selectContetnByFolderId(Integer folderId) {
-        QueryWrapper<GcUserSaveContent> queryWrapper = new QueryWrapper<GcUserSaveContent>();
+    public List<GcUserSaveContent> selectContentByPlaylistId(Integer folderId) {
+        QueryWrapper<GcUserSaveContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("folder_id", folderId);
         return this.list(queryWrapper);
     }
