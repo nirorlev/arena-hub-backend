@@ -4,12 +4,14 @@ import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.FrontendVersionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FrontendVersionServiceImpl implements FrontendVersionService {
     private static final String LATEST_VERSION_IDENTIFIER = "/latest";
@@ -29,20 +31,21 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
 
         if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
             String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
-            String latestDeployedVersion = findLatestDeployedVersion(version, masterId);
+            String latestDeployedVersion = findLatestDeployedVersion(version);
             return String.format("%s/%s", version, latestDeployedVersion);
         }
 
         return requestedVersion;
     }
 
-    private String findLatestDeployedVersion(String versionFolder, Integer masterId) {
+    private String findLatestDeployedVersion(String versionFolder) {
         String filePath = String.format("%s/%s", frontendBucketName, versionFolder);
         byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(filePath, "latest_successful_build.txt");
         String content = new String(bytes);
 
         if (StringUtils.isBlank(content)) {
-            return findLatestVersion(masterId);
+            log.warn("Failed to find latest version from S3 for: {}", versionFolder);
+            return null;
         }
 
         return content.split("\n")[0].trim();

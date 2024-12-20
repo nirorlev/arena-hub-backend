@@ -162,7 +162,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
     @Override
     public byte[] downloadFileFromS3UsingJetS3t(String bucketName, String key) throws SystemException {
-        AWSCredentials awsCredentials = new AWSCredentials(awsS3Configuration.getAccessKey(), awsS3Configuration.getSecretKey());
+        AWSCredentials awsCredentials = new AWSCredentials(awsS3Configuration.getAccessKey(), awsS3Configuration.getSecretAccessKey());
         S3Service s3Service = new RestS3Service(awsCredentials);
 
         try {

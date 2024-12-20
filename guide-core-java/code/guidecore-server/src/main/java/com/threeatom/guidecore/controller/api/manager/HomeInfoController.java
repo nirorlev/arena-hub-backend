@@ -991,22 +991,33 @@ public class HomeInfoController extends GuideCoreController {
             addMetaContent = metaHtml(titleHtml, descHtml, thumbNail, host, request);
 
         }
-        PrintWriter printWriter;
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
+        String frontendVersion = getRequestedFrontendVersion(request, response);
         try {
-            printWriter = response.getWriter();
-            String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
-            Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-            String feVersion = frontendVersionService.getVersion(requestedVersion, masterId);
-            printWriter.write(homeInfoContent(feVersion, addMetaContent, xRequestUri));
+            PrintWriter printWriter = response.getWriter();
+            printWriter.write(homeInfoContent(frontendVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String homeInfoContent(String feVersion, String addMetaContent, String xRequestUri) {
-        String hubUrl = feVersion + this.hubUrl;
+    private String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
+            Integer masterId = RequestUtil.getMasterId(request).orElse(null);
+            return frontendVersionService.getVersion(requestedVersion, masterId);
+        } catch (Exception e) {
+            log.error("Error getting frontend version", e);
+            return null;
+        }
+    }
+
+    private String homeInfoContent(String frontendVersion, String addMetaContent, String xRequestUri) {
+        String hubUrl = this.hubUrl;
+        if (StringUtils.isNotBlank(frontendVersion)) {
+            hubUrl = String.format("%s/%s", this.hubUrl, frontendVersion);
+        }
 
         return String.format(
             """
