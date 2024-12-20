@@ -54,7 +54,18 @@
         </collection>
 	</resultMap>
 
-    <resultMap id="playlistResultMap" type="GcUserSaveFolder" autoMapping="true" />
+    <resultMap id="playlistResultMap" type="GcUserSaveFolder">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="isPrivate" column="is_private"/>
+        <result property="userId" column="user_id"/>
+        <result property="masterId" column="master_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="saveContentList" javaType="ArrayList" columnPrefix="content_" ofType="GcUserSaveContent">
+            <id property="id" column="id"/>
+        </collection>
+    </resultMap>
 
     <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
         <result property="createUserId" column="create_user_id"/>
@@ -127,6 +138,10 @@
 
 	<sql id="playlistBaseColumn">
         playlist.id as playlist_id, playlist.name as playlist_name, playlist.is_private as playlist_is_private, playlist.user_id as playlist_user_id, playlist.master_id as playlist_master_id, playlist.create_time as playlist_create_time, playlist.update_time as playlist_update_time
+	</sql>
+
+	<sql id="playlistContentBaseColumn">
+        playlist_content.id as playlist_content_id
 	</sql>
 
 	<sql id="leftJoinSysFile">
@@ -1037,6 +1052,8 @@
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
+            <include refid="playlistBaseColumn"/>,
+            <include refid="playlistContentBaseColumn"/>,
             f.upload_uid as user_id,
             pc.id                         AS channel_id,
             pc.channel_name               AS channel_channel_name,

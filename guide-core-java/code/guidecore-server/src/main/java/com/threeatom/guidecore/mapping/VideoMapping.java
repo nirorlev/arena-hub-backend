@@ -16,7 +16,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class, PlaylistMapping.class})
 public abstract class VideoMapping {
 
     @Autowired
@@ -120,9 +120,6 @@ public abstract class VideoMapping {
 
     @Named("mapVideoSource")
     protected VideoSourceDto mapVideoSource(GcVideo video) {
-        if (video.getPlaylist() != null) {
-            return playlistMapping.mapSource(video.getPlaylist());
-        }
         if (video.getOriginChannel() != null) {
             return channelMapping.mapVideoSource(video.getOriginChannel());
         }

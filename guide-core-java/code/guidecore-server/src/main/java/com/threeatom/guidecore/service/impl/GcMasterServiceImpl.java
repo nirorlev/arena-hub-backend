@@ -194,7 +194,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         m.addData("twoLevelList", gcSubjectPageInfo);
         // 获取视频
         List<GcUserSaveContent> list =
-                gcUserSaveContentService.selectContetnByFolderId(content.getFolderId());
+                gcUserSaveContentService.selectContentByPlaylistId(content.getFolderId());
         List<Integer> contentIds = this.gcUserSaveContentService.getVideoIdList(content);
         List<GcVideo> videos = gcVideoService.findByVideoIds(contentIds);
         Map<Integer, GcVideo> fileIdToVideo = videos.stream().collect(Collectors.toMap(GcVideo::getFileId, Function.identity()));
