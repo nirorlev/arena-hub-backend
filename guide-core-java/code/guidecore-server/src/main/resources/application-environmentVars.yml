@@ -52,6 +52,10 @@ spring:
                         multi-statement-allow: true
        
 aws:
+  s3:
+    accessKey: ${DEPLOYMENT_ACCESS_KEY_ID}
+    secretAccessKey: ${DEPLOYMENT_SECRET_ACCESS_KEY}
+    frontendBucketName: site
   durationSeconds: 900
   region: ${AWS_S3_REGION}
   roleArn: ${AWS_IAM_ROLE}

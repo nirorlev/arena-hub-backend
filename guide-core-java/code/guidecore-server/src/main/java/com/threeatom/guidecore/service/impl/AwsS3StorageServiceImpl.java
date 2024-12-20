@@ -1,5 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.SystemException;
+import com.threeatom.common.redis.RedisOperator;
+import com.threeatom.config.AwsS3Configuration;
+import com.threeatom.config.AwsUploadSignUrlConfiguration;
+import com.threeatom.guidecore.service.AwsS3StorageService;
+import com.threeatom.utils.FileUtil;
+import com.threeatom.utils.RandomUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +17,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,19 +30,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jets3t.service.CloudFrontService;
 import org.jets3t.service.CloudFrontServiceException;
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.impl.rest.httpclient.RestS3Service;
+import org.jets3t.service.model.S3Object;
+import org.jets3t.service.security.AWSCredentials;
 import org.jets3t.service.utils.ServiceUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.config.AwsUploadSignUrlConfiguration;
-import com.threeatom.guidecore.service.AwsS3StorageService;
-import com.threeatom.utils.FileUtil;
-import com.threeatom.utils.RandomUtils;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
@@ -44,7 +47,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
     private final RedisOperator redisOperator;
     private final AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
-
+    private final AwsS3Configuration awsS3Configuration;
 
     private byte[] getAwsPrivateKey() throws SystemException {
         if (redisOperator.get("awsPrivateKey") != null) {
@@ -152,6 +155,22 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
             );
         } catch (ParseException | CloudFrontServiceException e) {
             String errMessage = "Failed to sign AWS S3 URL";
+            log.error(errMessage, e);
+            throw new SystemException(errMessage);
+        }
+    }
+
+    @Override
+    public byte[] downloadFileFromS3UsingJetS3t(String bucketName, String key) throws SystemException {
+        AWSCredentials awsCredentials = new AWSCredentials(awsS3Configuration.getAccessKey(), awsS3Configuration.getSecretAccessKey());
+        S3Service s3Service = new RestS3Service(awsCredentials);
+
+        try {
+            S3Object s3Object = s3Service.getObject(bucketName, key);
+            return IOUtils.toByteArray(s3Object.getDataInputStream());
+        } catch (IOException | ServiceException e) {
+            String errMessage =
+                String.format("Failed to download file from S3 bucket '%s' by key '%s'", bucketName, key);
             log.error(errMessage, e);
             throw new SystemException(errMessage);
         }

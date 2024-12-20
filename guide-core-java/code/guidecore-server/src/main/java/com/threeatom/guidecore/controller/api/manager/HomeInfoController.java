@@ -29,6 +29,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
+import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
@@ -44,6 +45,7 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -148,7 +150,8 @@ public class HomeInfoController extends GuideCoreController {
     private PtChannelService ptChannelService;
     @Autowired
     private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-
+    @Autowired
+    private FrontendVersionService frontendVersionService;
 
     @ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
@@ -693,6 +696,7 @@ public class HomeInfoController extends GuideCoreController {
         String xRequestUri = request.getHeader("x-request-uri");
         log.info("[SSR] Method: " + request.getMethod() + ", URI: " + request.getRequestURI() + ", x-request-uri: " +
             request.getHeader("x-request-uri"));
+
         if (xRequestUri != null) {
             if (xRequestUri.endsWith("/")) {
                 xRequestUri = xRequestUri.substring(0, xRequestUri.length() - 1);
@@ -987,18 +991,34 @@ public class HomeInfoController extends GuideCoreController {
             addMetaContent = metaHtml(titleHtml, descHtml, thumbNail, host, request);
 
         }
-        PrintWriter printWriter;
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
+        String frontendVersion = getRequestedFrontendVersion(request, response);
         try {
-            printWriter = response.getWriter();
-            printWriter.write(homeInfoContent(addMetaContent, xRequestUri));
+            PrintWriter printWriter = response.getWriter();
+            printWriter.write(homeInfoContent(frontendVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String homeInfoContent(String addMetaContent, String xRequestUri) {
+    private String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
+            Integer masterId = RequestUtil.getMasterId(request).orElse(null);
+            return frontendVersionService.getVersion(requestedVersion, masterId);
+        } catch (Exception e) {
+            log.error("Error getting frontend version", e);
+            return null;
+        }
+    }
+
+    private String homeInfoContent(String frontendVersion, String addMetaContent, String xRequestUri) {
+        String hubUrl = this.hubUrl;
+        if (StringUtils.isNotBlank(frontendVersion)) {
+            hubUrl = String.format("%s/%s", this.hubUrl, frontendVersion);
+        }
+
         return String.format(
             """
                 <!doctype html>
