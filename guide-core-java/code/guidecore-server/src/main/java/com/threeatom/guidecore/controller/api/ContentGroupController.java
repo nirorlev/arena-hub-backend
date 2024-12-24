@@ -3,7 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
-import com.threeatom.guidecore.dto.response.ContentGroupDto;
+import com.threeatom.guidecore.dto.response.ContentGroupsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -82,7 +82,7 @@ public class ContentGroupController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ContentGroupDto>> userContentGroups(HttpServletRequest request) {
+    public ResponseEntity<ContentGroupsDto> userContentGroups(HttpServletRequest request) {
         GcUser currentUser = gcUserService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
 

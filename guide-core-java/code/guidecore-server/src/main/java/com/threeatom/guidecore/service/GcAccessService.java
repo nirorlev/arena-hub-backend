@@ -2,13 +2,11 @@ package com.threeatom.guidecore.service;
 
 import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.client.dto.GroupDto;
-import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
-import com.threeatom.guidecore.dto.response.ContentGroupDto;
+import com.threeatom.guidecore.dto.response.ContentGroupsDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import java.io.IOException;
@@ -29,22 +27,22 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> listAccess(String name, Integer masterId, Integer userId);
 
     List<GcAccess> getTeamAccessList(
-            String name, Integer masterId, Integer userId, HttpServletRequest request);
+        String name, Integer masterId, Integer userId, HttpServletRequest request);
 
     List<GcAccess> getTeamAccessSubjectNumList(
-            String name,
-            Integer masterId,
-            Integer userId,
-            List<Integer> subIds,
-            HttpServletRequest request);
+        String name,
+        Integer masterId,
+        Integer userId,
+        List<Integer> subIds,
+        HttpServletRequest request);
 
     List<GcAccess> getTeamAccessSubjectNumAdminList(
-            String name,
-            Integer masterId,
-            Integer userId,
-            List<Integer> privateCourseIds,
-            List<Integer> publicCourseIds,
-            List<Integer> subIds);
+        String name,
+        Integer masterId,
+        Integer userId,
+        List<Integer> privateCourseIds,
+        List<Integer> publicCourseIds,
+        List<Integer> subIds);
 
     GcAccess getStudentContentGroup(List<Integer> courseIds, Integer masterId);
 
@@ -53,13 +51,13 @@ public interface GcAccessService extends IService<GcAccess> {
     Integer deleteAccess(Integer id);
 
     Message checkUserAccess(
-            Integer masterId,
-            Integer userId,
-            String accessCode,
-            Integer inviteUserId,
-            GcUser user,
-            HttpServletRequest request)
-            throws ClientException, IOException;
+        Integer masterId,
+        Integer userId,
+        String accessCode,
+        Integer inviteUserId,
+        GcUser user,
+        HttpServletRequest request)
+        throws ClientException, IOException;
 
     GcAccess getAccessById(Integer id);
 
@@ -76,10 +74,10 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> getAccessByMasterIdAndCode(GcAccess access);
 
     List<GcAccess> getAllPackage(
-            Integer masterId,
-            PageParam pageParam,
-            List<Integer> packageIdList,
-            List<Integer> subscriptionIdList);
+        Integer masterId,
+        PageParam pageParam,
+        List<Integer> packageIdList,
+        List<Integer> subscriptionIdList);
 
     GcAccess selectFreeCodeByMaster(Integer masterId);
 
@@ -102,5 +100,5 @@ public interface GcAccessService extends IService<GcAccess> {
     void syncContentGroupsWithPowtoonGroups(
         PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId);
 
-    List<ContentGroupDto> userContentGroups(Integer userId, Integer masterId);
+    ContentGroupsDto userContentGroups(Integer userId, Integer masterId);
 }

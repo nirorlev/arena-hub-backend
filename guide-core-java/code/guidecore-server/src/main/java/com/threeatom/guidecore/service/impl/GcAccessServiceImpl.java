@@ -16,7 +16,8 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
-import com.threeatom.guidecore.dto.response.ContentGroupDto;
+import com.threeatom.guidecore.dto.response.ContentGroupsDto;
+import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
@@ -264,9 +265,24 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
-    public List<ContentGroupDto> userContentGroups(Integer userId, Integer masterId) {
-        return listAccess(null, masterId, userId).stream()
-            .map(contentGroupMapping::map)
+    public ContentGroupsDto userContentGroups(Integer userId, Integer masterId) {
+        List<GcAccess> contentGroups = baseMapper.listContentGroups(masterId, userId);
+        List<GcAccess> managedContentGroups =
+            filterContentGroups(contentGroups, List.of(UserGroupRole.ORG_ADMIN, UserGroupRole.GROUP_ADMIN));
+        List<GcAccess> memberContentGroups = filterContentGroups(contentGroups, List.of(UserGroupRole.GROUP_MEMBER));
+
+        return ContentGroupsDto.builder()
+            .managedGroups(contentGroupMapping.mapManagedGroups(managedContentGroups))
+            .groups(contentGroupMapping.mapGroups(memberContentGroups))
+            .build();
+    }
+
+    private List<GcAccess> filterContentGroups(List<GcAccess> contentGroups, List<UserGroupRole> roles) {
+        return contentGroups.stream()
+            .filter(contentGroup -> {
+                List<String> contentGroupRoles = contentGroup.getRoleJson().toJavaList(String.class);
+                return roles.stream().anyMatch(role -> contentGroupRoles.contains(role.getRole()));
+            })
             .collect(Collectors.toList());
     }
 
