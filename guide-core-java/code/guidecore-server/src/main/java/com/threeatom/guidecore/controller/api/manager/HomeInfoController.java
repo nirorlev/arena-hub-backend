@@ -802,20 +802,19 @@ public class HomeInfoController extends GuideCoreController {
 
 
         } else if (stats == 3 && containNumber) {
-            GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(subOrVid, null);
-            if (Objects.isNull(gcUserSaveFolder) ||
-                gcUserSaveFolder.getSaveContentList().size() == TableConstant.COMMON_ZERO) {
+            GcUserSaveFolder playlist = gcUserSaveFolderService.getPlayListMetaConfig(subOrVid);
+            if (Objects.isNull(playlist) || playlist.getSaveContentList().isEmpty()) {
                 return;
             }
-            SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getSaveContentList().get(0).getFileId());
-            desc = "Playlist last updated " + gcUserSaveFolder.getUpdateTime();
-            title = gcUserSaveFolder.getName();
-            addMetaContent = playListMetaConfig(sysFile, gcUserSaveFolder, host, request, title, desc);
+            GcVideo playlistVideo = gcVideoService.findByVideoId(playlist.getSaveContentList().get(0).getContentId());
+            desc = "Playlist last updated " + playlist.getUpdateTime();
+            title = playlist.getName();
+            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title, desc);
         } else if (stats == 4 && containNumber) {
-            GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(folderId, subOrVid);
-            SysFile sysFile = sysFileService.getById(subOrVid);
-            title = "\"" + sysFile.getName() + "\"" + " in " + "\"" + gcUserSaveFolder.getName() + "\"" + " playlist";
-            addMetaContent = playListMetaConfig(sysFile, gcUserSaveFolder, host, request, title, sysFile.getDescribe());
+            GcUserSaveFolder playlist = gcUserSaveFolderService.getPlayListMetaConfig(folderId);
+            GcVideo playlistVideo = gcVideoService.findByVideoId(subOrVid);
+            title = "\"" + playlistVideo.getVideoName() + "\"" + " in " + "\"" + playlist.getName() + "\"" + " playlist";
+            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title, playlistVideo.getVideoDesc());
         } else if (stats == 5) {
             PtChannel ptChannel = ptChannelService.getbyChannelSlug(channelUrlId);
             if (Objects.isNull(ptChannel)) {

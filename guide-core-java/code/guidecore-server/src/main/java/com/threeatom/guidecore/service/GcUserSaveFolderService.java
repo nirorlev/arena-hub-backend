@@ -43,7 +43,7 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
     Integer selectFolderByIdsAndUser(
         @Param("folderIds") List<Integer> folderIds, @Param("userId") Integer userId);
 
-    GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId);
+    GcUserSaveFolder getPlayListMetaConfig(Integer folderId);
 
     List<DbAnalyticsResultDto> getPlaylistCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 

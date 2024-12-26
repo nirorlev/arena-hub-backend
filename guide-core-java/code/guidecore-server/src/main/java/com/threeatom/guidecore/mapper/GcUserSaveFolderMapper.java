@@ -27,8 +27,7 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
     Integer selectFolderByIdsAndUser(
         @Param("folderIds") List<Integer> folderIds, @Param("userId") Integer userId);
 
-    GcUserSaveFolder getPlayListMetaConfig(
-        @Param("folderId") Integer folderId, @Param("fileId") Integer fileId);
+    GcUserSaveFolder getPlayListMetaConfig(@Param("folderId") Integer folderId);
 
     List<DbAnalyticsResultDto> getPlaylistCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
