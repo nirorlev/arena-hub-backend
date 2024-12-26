@@ -238,8 +238,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId) {
-        return this.baseMapper.getPlayListMetaConfig(folderId, fileId);
+    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId) {
+        return this.baseMapper.getPlayListMetaConfig(folderId);
     }
 
     @Override
