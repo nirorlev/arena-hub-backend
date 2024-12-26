@@ -885,6 +885,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
 
 		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setThumbNailUrl(snapShotUrl);
 		videoFile.setFullFileUrl(fullFileUrl);
 		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
