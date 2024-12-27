@@ -189,6 +189,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
                 String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                 sysFile.setSnapshotUrl(snapShotUrl);
+                sysFile.setThumbNailUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
                 sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
