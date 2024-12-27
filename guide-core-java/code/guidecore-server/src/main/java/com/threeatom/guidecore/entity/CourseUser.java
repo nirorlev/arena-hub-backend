@@ -18,7 +18,6 @@ public class CourseUser {
 
     private Integer userId;
     private Integer courseId;
-    private OffsetDateTime enrollmentDate;
     private OffsetDateTime completionDate;
     private OffsetDateTime createTime = OffsetDateTime.now();
     private OffsetDateTime updateTime = OffsetDateTime.now();

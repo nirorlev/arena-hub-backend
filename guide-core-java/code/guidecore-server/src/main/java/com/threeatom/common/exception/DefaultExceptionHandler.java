@@ -40,7 +40,7 @@ public class DefaultExceptionHandler {
             LOGGER.error(errorMessage, e);
         }
         sendExceptionToSentry(e);
-        return (new Message()).commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
+        return new Message().commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
     }
 
     @ResponseBody

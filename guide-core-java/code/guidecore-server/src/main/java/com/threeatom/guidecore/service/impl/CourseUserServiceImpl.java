@@ -43,7 +43,6 @@ public class CourseUserServiceImpl extends ServiceImpl<CourseUserMapper, CourseU
         CourseUser courseUser = new CourseUser();
         courseUser.setCourseId(courseId);
         courseUser.setUserId(portalUser.getUserId());
-        courseUser.setEnrollmentDate(OffsetDateTime.now());
 
         return courseUser;
     }
