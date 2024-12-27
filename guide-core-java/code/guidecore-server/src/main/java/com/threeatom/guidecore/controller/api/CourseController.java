@@ -3,7 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.IdDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.service.CourseUserService;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/api/v2/courses", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CourseController {
 
-    private final CourseUserService courseUserService;
+    private final CourseEnrollmentService courseEnrollmentService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
 
@@ -34,7 +34,7 @@ public class CourseController {
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        courseUserService.enrollToCourse(portalUser, dto.getId());
+        courseEnrollmentService.enrollToCourse(portalUser, dto.getId());
 
         return ResponseEntity.ok().build();
     }

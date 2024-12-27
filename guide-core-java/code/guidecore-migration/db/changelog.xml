@@ -657,7 +657,7 @@
     </changeSet>
 
     <changeSet id="create-course-user-table" author="vprokh">
-        <createTable tableName="course_user" schemaName="arena_hub">
+        <createTable tableName="course_enrollments" schemaName="arena_hub">
             <column name="id" type="bigserial" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -676,11 +676,11 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="course_user" baseColumnNames="user_id"
-                                 constraintName="course_user_gc_user_id_fk" referencedTableName="gc_user"
+        <addForeignKeyConstraint baseTableName="course_enrollments" baseColumnNames="user_id"
+                                 constraintName="course_enrollments_gc_user_id_fk" referencedTableName="gc_user"
                                  referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint baseTableName="course_user" baseColumnNames="course_id"
-                                 constraintName="course_user_gc_subject_id_fk" referencedTableName="gc_subject"
+        <addForeignKeyConstraint baseTableName="course_enrollments" baseColumnNames="course_id"
+                                 constraintName="course_enrollments_gc_subject_id_fk" referencedTableName="gc_subject"
                                  referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
     </changeSet>
 </databaseChangeLog>

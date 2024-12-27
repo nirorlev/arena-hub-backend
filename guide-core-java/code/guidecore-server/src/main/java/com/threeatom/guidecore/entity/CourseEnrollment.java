@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @TableName(autoResultMap = true)
 @NoArgsConstructor
-public class CourseUser {
+public class CourseEnrollment {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 

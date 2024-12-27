@@ -5,13 +5,12 @@ import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
-import com.threeatom.guidecore.entity.CourseUser;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.mapper.CourseUserMapper;
-import com.threeatom.guidecore.service.CourseUserService;
+import com.threeatom.guidecore.mapper.CourseEnrollmentMapper;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class CourseUserServiceImpl extends ServiceImpl<CourseUserMapper, CourseUser> implements CourseUserService {
+public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMapper, CourseEnrollment> implements
+    CourseEnrollmentService {
 
     private final GcSubjectService courseService;
     private final AuthorizationService authorizationService;
@@ -34,16 +34,16 @@ public class CourseUserServiceImpl extends ServiceImpl<CourseUserMapper, CourseU
             throw new ForbiddenException("No permission to view this course");
         }
 
-        CourseUser courseUser = createCourseUser(portalUser, courseId);
+        CourseEnrollment courseEnrollment = createCourseUser(portalUser, courseId);
 
-        save(courseUser);
+        save(courseEnrollment);
     }
 
-    private CourseUser createCourseUser(PortalUser portalUser, Integer courseId) {
-        CourseUser courseUser = new CourseUser();
-        courseUser.setCourseId(courseId);
-        courseUser.setUserId(portalUser.getUserId());
+    private CourseEnrollment createCourseUser(PortalUser portalUser, Integer courseId) {
+        CourseEnrollment courseEnrollment = new CourseEnrollment();
+        courseEnrollment.setCourseId(courseId);
+        courseEnrollment.setUserId(portalUser.getUserId());
 
-        return courseUser;
+        return courseEnrollment;
     }
 }
