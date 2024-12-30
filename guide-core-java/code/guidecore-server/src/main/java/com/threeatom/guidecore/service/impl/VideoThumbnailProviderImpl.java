@@ -19,7 +19,7 @@ public class VideoThumbnailProviderImpl implements VideoThumbnailProvider {
 
     static {
         VIDEO_TYPE_TO_URL_MAPPING.put(VideoFileProvider.YOUTUBE, "https://i.ytimg.com/vi/%s/hqdefault.jpg");
-        VIDEO_TYPE_TO_URL_MAPPING.put(VideoFileProvider.VIMEO, "https://vumbnail.com/%s_medium.jpg");
+        VIDEO_TYPE_TO_URL_MAPPING.put(VideoFileProvider.VIMEO, "https://vumbnail.com/%s_large.jpg");
         VIDEO_TYPE_TO_URL_MAPPING.put(VideoFileProvider.WISTIA, "%s?image_crop_resized=480x360");
 
         VIDEO_TYPE_TO_URL_ID_REGEXP_MAPPING.put(VideoFileProvider.YOUTUBE,
