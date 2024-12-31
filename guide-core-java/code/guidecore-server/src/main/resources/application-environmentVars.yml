@@ -53,8 +53,8 @@ spring:
        
 aws:
   s3:
-    accessKey: ${DEPLOYMENT_ACCESS_KEY_ID}
-    secretAccessKey: ${DEPLOYMENT_SECRET_ACCESS_KEY}
+    accessKey: ${AWS_ACCESS_KEY_ID}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
     frontendBucketName: site/arena-hub
   durationSeconds: 900
   region: ${AWS_S3_REGION}
