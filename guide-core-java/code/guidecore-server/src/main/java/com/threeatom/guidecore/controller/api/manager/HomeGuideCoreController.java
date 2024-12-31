@@ -9,6 +9,7 @@ import com.threeatom.guidecore.constant.*;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.manager.vo.HomePage;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.response.VersionDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/guidecore")
 @Api(tags = "仪表盘数据")
+@Slf4j
 public class HomeGuideCoreController extends GuideCoreController {
 
     @Autowired private GcManagerService managerService;
@@ -369,22 +372,13 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Order(1)
     @GetMapping("/version")
     public Message getVersion() {
-        StringBuilder sb = null;
         try {
-            InputStream in = new BufferedInputStream(new FileInputStream("./version.json"));
-            InputStreamReader inputStreamReader = new InputStreamReader(in, "UTF-8");
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            sb = new StringBuilder();
-            String text = "";
-            while ((text = bufferedReader.readLine()) != null) {
-                sb.append(text);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            VersionDto versionDto = JSONObject.parseObject(new FileInputStream("./version.json"), VersionDto.class);
+            return new Message().ok().addData("result", versionDto);
         } catch (IOException e) {
-            e.printStackTrace();
+            String errorMessage = String.format("Failed to get version due to %s", e.getMessage());
+            log.error(errorMessage);
+            return new Message().error(errorMessage);
         }
-        JSONObject jsonStringJson = (JSONObject) JSONObject.parse(sb.toString());
-        return new Message().ok().setJsonData(jsonStringJson);
     }
 }
