@@ -13,6 +13,7 @@ import com.threeatom.guidecore.dto.response.VersionDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -27,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired private GcTeacherDataService teacherDataService;
     @Autowired private GcProblemService gcProblemService;
     @Autowired private GcAccessService gcAccessService;
+    @Autowired private FrontendVersionService frontendVersionService;
 
     @PostMapping("/saveHomeVideo")
     public Message saveHomeVideo(@RequestBody JSONObject jsonRequest) {
@@ -371,14 +374,21 @@ public class HomeGuideCoreController extends GuideCoreController {
 
     @Order(1)
     @GetMapping("/version")
-    public Message getVersion() {
+    public Message getVersion(HttpServletRequest request, HttpServletResponse response) {
         try {
             VersionDto versionDto = JSONObject.parseObject(new FileInputStream("./version.json"), VersionDto.class);
+            versionDto.setFrontend(getRequestedFrontendVersion(request, response));
             return new Message().ok().addData("result", versionDto);
         } catch (IOException e) {
             String errorMessage = String.format("Failed to get version due to %s", e.getMessage());
             log.error(errorMessage);
             return new Message().error(errorMessage);
         }
+    }
+
+    private String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
+        String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
+        Integer masterId = RequestUtil.getMasterId(request).orElse(null);
+        return frontendVersionService.getVersion(requestedVersion, masterId);
     }
 }
