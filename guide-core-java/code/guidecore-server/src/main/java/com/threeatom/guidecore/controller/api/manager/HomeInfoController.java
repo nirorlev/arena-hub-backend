@@ -1005,7 +1005,9 @@ public class HomeInfoController extends GuideCoreController {
         try {
             String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
             Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-            return frontendVersionService.getVersion(requestedVersion, masterId);
+            String remoteHost = request.getScheme() + "://" + request.getServerName();
+
+            return frontendVersionService.getVersion(requestedVersion, remoteHost, masterId);
         } catch (Exception e) {
             log.error("Error getting frontend version", e);
             return null;

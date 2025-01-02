@@ -50,10 +50,6 @@ spring:
                 wall:
                     config:
                         multi-statement-allow: true
-       
-aws:
-  s3:
-    frontendBucketName: site/arena-hub
 
 #powtoon config
 oauthToken: /api/v1.0/oauth/token

@@ -105,11 +105,6 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
     }
 
     @Override
-    public byte[] retrieveFileFromS3(String key) {
-        return FileUtil.retrieveFileFromUrl(s3Url(key));
-    }
-
-    @Override
     public String generateSignedUrl(String key) throws SystemException {
         byte[] privateKey = getAwsPrivateKey();
         String param_UrlToBeSigned = s3Url(key);

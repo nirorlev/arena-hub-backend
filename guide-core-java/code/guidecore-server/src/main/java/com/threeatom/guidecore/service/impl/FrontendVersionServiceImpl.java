@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.FrontendVersionService;
+import com.threeatom.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,31 +18,32 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
     private static final String LATEST_VERSION_IDENTIFIER = "/latest";
     private static final String FEATURE_TOGGLE_CONFIG_NAME = "frontendVersion";
 
-    private final AwsS3StorageService awsS3StorageService;
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
     private final FeatureToggleService featureToggleService;
 
-    @Value("${aws.s3.frontendBucketName}")
-    private String frontendBucketName;
-
     @Transactional(readOnly = true)
-    public String getVersion(String requestedVersion, Integer masterId) {
+    public String getVersion(String requestedVersion, String remoteHost, Integer masterId) {
         if (StringUtils.isBlank(requestedVersion)) {
             return findLatestVersion(masterId);
         }
 
         if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
             String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
-            String latestDeployedVersion = findLatestDeployedVersion(version);
+            String latestDeployedVersion = findLatestDeployedVersion(version, remoteHost);
             return String.format("%s/%s", version, latestDeployedVersion);
         }
 
         return requestedVersion;
     }
 
-    private String findLatestDeployedVersion(String versionFolder) {
-        String filePath = String.format("%s/%s/latest_successful_build.txt", frontendBucketName, versionFolder);
-        byte[] bytes = awsS3StorageService.retrieveFileFromS3(filePath);
+    private String findLatestDeployedVersion(String versionFolder, String remoteHost) {
+        String fileUrl = String.format("%s%s/%s/latest_successful_build.txt", remoteHost, contextPath, versionFolder);
+
+        byte[] bytes = FileUtil.retrieveFileFromUrl(fileUrl);
         String content = new String(bytes);
+        log.info("Latest version from S3 for: {} is: {}", fileUrl, content);
 
         if (StringUtils.isBlank(content)) {
             log.warn("Failed to find latest version from S3 for: {}", versionFolder);
