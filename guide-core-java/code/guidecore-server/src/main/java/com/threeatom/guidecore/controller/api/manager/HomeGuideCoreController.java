@@ -377,20 +377,15 @@ public class HomeGuideCoreController extends GuideCoreController {
     public Message getVersion(HttpServletRequest request, HttpServletResponse response) {
         try {
             VersionDto versionDto = JSONObject.parseObject(new FileInputStream("./version.json"), VersionDto.class);
-            versionDto.setFrontend(getRequestedFrontendVersion(request, response));
+            String frontendVersion =
+                frontendVersionService.getVersion(RequestUtil.getRequestedFrontendVersion(request, response),
+                    RequestUtil.getCurrentHost(request));
+            versionDto.setFrontend(frontendVersion);
             return new Message().ok().addData("result", versionDto);
         } catch (IOException e) {
             String errorMessage = String.format("Failed to get version due to %s", e.getMessage());
             log.error(errorMessage);
             return new Message().error(errorMessage);
         }
-    }
-
-    private String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
-        String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
-        Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-        String remoteHost = request.getScheme() + "://" + request.getServerName();
-
-        return frontendVersionService.getVersion(requestedVersion, remoteHost, masterId);
     }
 }

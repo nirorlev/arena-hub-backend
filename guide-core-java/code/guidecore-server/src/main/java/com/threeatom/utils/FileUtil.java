@@ -134,18 +134,18 @@ public class FileUtil {
     }
 
     public byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(fileUrl);
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                HttpEntity entity = response.getEntity();
-                if (entity == null) {
-                    String errMessage = "Failed to download file. Null entity found for url requested: " + fileUrl;
-                    log.error(errMessage);
-                    throw new SystemException(errMessage);
-                }
-                try (InputStream inputStream = entity.getContent()) {
-                    return IOUtils.toByteArray(inputStream);
-                }
+        try (
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            CloseableHttpResponse response = httpClient.execute(new HttpGet(fileUrl))
+        ) {
+            HttpEntity entity = response.getEntity();
+            if (entity == null) {
+                String errMessage = "Failed to download file. Null entity found for url requested: " + fileUrl;
+                log.error(errMessage);
+                throw new SystemException(errMessage);
+            }
+            try (InputStream inputStream = entity.getContent()) {
+                return IOUtils.toByteArray(inputStream);
             }
         } catch (IOException e) {
             String errMessage = "Failed to retrieve file from URL: " + fileUrl;

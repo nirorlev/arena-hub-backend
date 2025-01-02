@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.utils.FileUtil;
@@ -17,25 +16,30 @@ import org.springframework.transaction.annotation.Transactional;
 public class FrontendVersionServiceImpl implements FrontendVersionService {
     private static final String LATEST_VERSION_IDENTIFIER = "/latest";
     private static final String FEATURE_TOGGLE_CONFIG_NAME = "frontendVersion";
+    private final FeatureToggleService featureToggleService;
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final FeatureToggleService featureToggleService;
-
     @Transactional(readOnly = true)
-    public String getVersion(String requestedVersion, String remoteHost, Integer masterId) {
-        if (StringUtils.isBlank(requestedVersion)) {
-            return findLatestVersion(masterId);
-        }
+    @Override
+    public String getVersion(String requestedVersion, String remoteHost) {
+        try {
+            if (StringUtils.isBlank(requestedVersion)) {
+                return findLatestVersion();
+            }
 
-        if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
-            String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
-            String latestDeployedVersion = findLatestDeployedVersion(version, remoteHost);
-            return String.format("%s/%s", version, latestDeployedVersion);
-        }
+            if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
+                String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
+                String latestDeployedVersion = findLatestDeployedVersion(version, remoteHost);
+                return String.format("%s/%s", version, latestDeployedVersion);
+            }
 
-        return requestedVersion;
+            return requestedVersion;
+        } catch (Exception e) {
+            log.error(String.format("Failed to get version for: %s and %s", requestedVersion, remoteHost), e);
+            return "";
+        }
     }
 
     private String findLatestDeployedVersion(String versionFolder, String remoteHost) {
@@ -50,10 +54,10 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
             return null;
         }
 
-        return content.trim().split("\n")[0];
+        return content.split("\n")[0].trim();
     }
 
-    private String findLatestVersion(Integer masterId) {
-        return featureToggleService.getFeatureToggle(FEATURE_TOGGLE_CONFIG_NAME, masterId).getValue();
+    private String findLatestVersion() {
+        return featureToggleService.getFeatureToggle(FEATURE_TOGGLE_CONFIG_NAME).getValue();
     }
 }
