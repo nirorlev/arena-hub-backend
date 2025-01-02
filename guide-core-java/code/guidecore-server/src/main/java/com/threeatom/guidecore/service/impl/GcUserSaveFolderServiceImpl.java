@@ -302,7 +302,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId, PortalUser portalUser) {
+    public VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId,
+                                                                     PortalUser portalUser) {
         Optional<GcUserSaveContent> optionalPlaylistVideoContent =
             gcUserSaveContentService.getPlaylistVideoContent(playlistId, videoId);
         if (optionalPlaylistVideoContent.isEmpty()) {
@@ -324,17 +325,48 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             throw new ForbiddenException("You do not have permission to view this playlist");
         }
 
-        playlist.setSaveContentList(gcUserSaveContentService.selectContentByPlaylistId(playlistId));
         gcVideoService.populateVideoData(List.of(video), portalUser);
         video.setPlaylist(playlist);
 
         List<Integer> videoOriginSubscriberIds =
             gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
+        List<Integer> videoIds = getPlaylistContentVideoIds(playlistId);
 
         VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
         videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
         videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        videoWithDetails.setNextVideoId(getNextVideoId(videoIds, videoId));
+        videoWithDetails.setPrevVideoId(getPreviousVideoId(videoIds, videoId));
         return videoWithDetails;
+    }
+
+    private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
+        List<GcUserSaveContent> saveContents = gcUserSaveContentService.selectContentByPlaylistId(playlistId);
+        if (CollectionUtils.isEmpty(saveContents)) {
+            return List.of();
+        }
+
+        return saveContents.stream()
+            .map(GcUserSaveContent::getContentId)
+            .collect(Collectors.toList());
+    }
+
+    private Integer getPreviousVideoId(List<Integer> videoIds, Integer videoId) {
+        int index = videoIds.indexOf(videoId);
+        if (index == -1 || index == 0) {
+            return null;
+        }
+
+        return videoIds.get(index - 1);
+    }
+
+    private Integer getNextVideoId(List<Integer> playlistVideoIds, Integer videoId) {
+        int index = playlistVideoIds.indexOf(videoId);
+        if (index == -1 || index == playlistVideoIds.size() - 1) {
+            return null;
+        }
+
+        return playlistVideoIds.get(index + 1);
     }
 
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {
@@ -362,9 +394,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         if (CollectionUtils.isEmpty(saveContentList)) {
             return;
         }
-        saveContentList.sort(Comparator.comparing(GcUserSaveContent::getUpdateTime, Comparator.nullsLast(Comparator.naturalOrder())));
+        saveContentList.sort(
+            Comparator.comparing(GcUserSaveContent::getUpdateTime, Comparator.nullsLast(Comparator.naturalOrder())));
         GcUserSaveContent saveContent = saveContentList.get(0);
-        playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(saveContent.getVideoFile())));
+        playlist.setSnapshotUrl(
+            sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(saveContent.getVideoFile())));
     }
 
     private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {
