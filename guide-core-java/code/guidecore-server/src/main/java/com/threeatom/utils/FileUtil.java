@@ -1,5 +1,6 @@
 package com.threeatom.utils;
 
+import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.constant.TableConstant;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,14 +13,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 @UtilityClass
+@Slf4j
 public class FileUtil {
 
     public static String getExtensionName(String filename) {
@@ -121,6 +130,27 @@ public class FileUtil {
                 out.write(buffer, 0, n);
             }
             return out.toByteArray();
+        }
+    }
+
+    public byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet httpGet = new HttpGet(fileUrl);
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    String errMessage = "Failed to download file. Null entity found for url requested: " + fileUrl;
+                    log.error(errMessage);
+                    throw new SystemException(errMessage);
+                }
+                try (InputStream inputStream = entity.getContent()) {
+                    return IOUtils.toByteArray(inputStream);
+                }
+            }
+        } catch (IOException e) {
+            String errMessage = "Failed to retrieve file from URL: " + fileUrl;
+            log.error(errMessage, e);
+            throw new SystemException(errMessage);
         }
     }
 }

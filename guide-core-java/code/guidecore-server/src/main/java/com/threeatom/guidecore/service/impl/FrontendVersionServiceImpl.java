@@ -39,8 +39,8 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
     }
 
     private String findLatestDeployedVersion(String versionFolder) {
-        String filePath = String.format("%s/%s", frontendBucketName, versionFolder);
-        byte[] bytes = awsS3StorageService.downloadFileFromS3(filePath, "latest_successful_build.txt");
+        String filePath = String.format("%s/%s/latest_successful_build.txt", frontendBucketName, versionFolder);
+        byte[] bytes = awsS3StorageService.retrieveFileFromS3(filePath);
         String content = new String(bytes);
 
         if (StringUtils.isBlank(content)) {
@@ -48,7 +48,7 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
             return null;
         }
 
-        return content.split("\n")[0].trim();
+        return content.trim().split("\n")[0];
     }
 
     private String findLatestVersion(Integer masterId) {
