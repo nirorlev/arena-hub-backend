@@ -2,7 +2,6 @@ package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.config.AwsS3Configuration;
 import com.threeatom.config.AwsUploadSignUrlConfiguration;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.utils.FileUtil;
@@ -25,7 +24,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jets3t.service.CloudFrontService;
 import org.jets3t.service.CloudFrontServiceException;
 import org.jets3t.service.utils.ServiceUtils;
@@ -40,7 +38,6 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
     private final RedisOperator redisOperator;
     private final AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
-    private final AwsS3Configuration awsS3Configuration;
 
     private byte[] getAwsPrivateKey() throws SystemException {
         if (redisOperator.get("awsPrivateKey") != null) {
