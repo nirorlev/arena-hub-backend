@@ -40,7 +40,7 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
 
     private String findLatestDeployedVersion(String versionFolder) {
         String filePath = String.format("%s/%s", frontendBucketName, versionFolder);
-        byte[] bytes = awsS3StorageService.downloadFileFromS3UsingJetS3t(filePath, "latest_successful_build.txt");
+        byte[] bytes = awsS3StorageService.downloadFileFromS3(filePath, "latest_successful_build.txt");
         String content = new String(bytes);
 
         if (StringUtils.isBlank(content)) {
