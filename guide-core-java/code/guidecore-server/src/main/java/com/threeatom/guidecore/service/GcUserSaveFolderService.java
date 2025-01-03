@@ -62,4 +62,6 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId,
                                                               PortalUser portalUser);
+
+    List<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(PortalUser portalUser, Integer playlistId);
 }

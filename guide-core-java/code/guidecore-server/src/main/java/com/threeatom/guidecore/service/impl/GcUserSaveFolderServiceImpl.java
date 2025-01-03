@@ -341,6 +341,18 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return videoWithDetails;
     }
 
+    @Override
+    public List<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(PortalUser portalUser,
+                                                                                       Integer playlistId) {
+        GcUserSaveFolder playlist = getById(playlistId);
+        if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
+            throw new ForbiddenException("You do not have permission to view this playlist");
+        }
+
+        return convertVideoDetails(gcVideoService.playlistLatestVideos(playlistId, portalUser));
+    }
+
     private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
         List<GcUserSaveContent> saveContents = gcUserSaveContentService.selectContentByPlaylistId(playlistId);
         if (CollectionUtils.isEmpty(saveContents)) {

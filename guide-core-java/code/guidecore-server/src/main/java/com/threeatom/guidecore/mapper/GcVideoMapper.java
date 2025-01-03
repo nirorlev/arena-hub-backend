@@ -136,4 +136,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> findSubscribedLatestChannelVideos(@Param("userId") Integer userId,
                                                     @Param("masterId") Integer masterId);
+
+    List<GcVideo> playlistLatestVideos(@Param("playlistId") Integer playlistId);
 }

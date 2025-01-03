@@ -1173,4 +1173,54 @@
 
         WHERE user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId};
     </select>
+
+    <select id="playlistLatestVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            f.upload_uid as user_id,
+            pc.id                         AS channel_id,
+            pc.channel_name               AS channel_channel_name,
+            pc.channel_slug               AS channel_channel_slug,
+            pc.fid                        AS channel_fid,
+            pc.visible_flag               AS channel_visible_flag,
+            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            pc.create_time                AS channel_create_time,
+            pc.update_time                AS channel_update_time,
+            channel_avatar.name           AS channel_avatar_file_name,
+            channel_avatar.file_url       AS channel_avatar_file_url,
+            channel_avatar.save_type      AS channel_avatar_file_save_type,
+            channel_avatar.file_type      AS channel_avatar_file_type,
+
+            gs.id                         AS course_id,
+            gs.name                       AS course_name,
+            gs.fid                        AS course_fid,
+            gs.state                      AS course_state,
+            gs.available_type             AS course_available_type,
+            gs.sub_img_id                 AS course_img_id,
+            gs.create_time                AS course_create_time,
+            gs.update_time                AS course_update_time,
+            course_avatar.id              AS course_avatar_file_id,
+            course_avatar.name            AS course_avatar_file_name,
+            course_avatar.file_url        AS course_avatar_file_url,
+            course_avatar.save_type       AS course_avatar_file_save_type,
+            course_avatar.file_type       AS course_avatar_file_type,
+
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_user_save_folder playlist
+            JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist.id
+            JOIN gc_video v ON playlist_content.content_id = v.id
+            JOIN sys_file f ON v.file_id = f.id
+
+            LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
+            LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
+
+            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
+            LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
+        WHERE playlist.id = #{playlistId}
+        ORDER BY playlist_content.create_time DESC
+    </select>
 </mapper>

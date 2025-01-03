@@ -808,6 +808,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public List<GcVideo> playlistLatestVideos(Integer playlistId, PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.playlistLatestVideos(playlistId);
+		populateVideoData(latestVideos, portalUser);
+
+		return latestVideos;
+	}
+
+	@Override
 	public List<GcVideo> channelLatestVideos(Integer channelId, PortalUser portalUser) {
 		List<GcVideo> latestVideos = baseMapper.findLatestChannelVideos(channelId);
 		populateVideoData(latestVideos, portalUser);
