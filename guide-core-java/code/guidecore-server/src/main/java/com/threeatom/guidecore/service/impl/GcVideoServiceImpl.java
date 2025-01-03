@@ -799,7 +799,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
+	public List<GcVideo> subscribedPlaylistLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
 			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
 		populateVideoData(latestVideos, portalUser);

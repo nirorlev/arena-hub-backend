@@ -290,10 +290,10 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(
+    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> subscribedPlaylistLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
-        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
+        List<GcVideo> latestVideos = gcVideoService.subscribedPlaylistLatestVideos(portalUser, cursor);
         Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
 
         return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize,
