@@ -81,7 +81,7 @@ public class PlaylistController {
             playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
     }
 
-    @GetMapping("{playlistId}/videos/{videoId}/player-page")
+    @GetMapping("{playlistId}/videos/{videoId}")
     public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> playlistsLatestVideos(
         @PathVariable("playlistId") Integer playlistId, @PathVariable("videoId") Integer videoId,
         HttpServletRequest request) {
