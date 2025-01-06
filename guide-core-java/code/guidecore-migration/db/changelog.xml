@@ -683,4 +683,92 @@
                                  constraintName="course_enrollments_gc_subject_id_fk" referencedTableName="gc_subject"
                                  referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
     </changeSet>
+
+    <changeSet id="create-groups-table" author="vprokh">
+        <createTable tableName="groups" schemaName="arena_hub">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="powtoon_group_id" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_code" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="master_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="master_id"
+                                 constraintName="groups_gc_master_id_fk" referencedTableName="gc_master"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-managed-groups-table" author="vprokh">
+        <createTable tableName="user_managed_groups" schemaName="arena_hub">
+            <column name="id" type="varchar">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="group_id"
+                                 constraintName="user_managed_groups_groups_id_fk" referencedTableName="groups"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
+                                 constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-groups-table" author="vprokh">
+        <createTable tableName="user_groups" schemaName="arena_hub">
+            <column name="id" type="varchar">
+                <constraints primaryKey="true" unique="true" nullable="false"/>
+            </column>
+            <column name="role" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="group_id"
+                                 constraintName="user_groups_groups_id_fk" referencedTableName="groups"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="user_id"
+                                 constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="add-group-id-gc-access" author="vprokh">
+        <addColumn tableName="gc_access" schemaName="arena_hub">
+            <column name="group_id" type="integer"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="gc_access" baseColumnNames="group_id"
+                                 constraintName="gc_access_groups_id_fk" referencedTableName="groups"
+                                 referencedColumnNames="id" onUpdate="SET NULL" onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>
