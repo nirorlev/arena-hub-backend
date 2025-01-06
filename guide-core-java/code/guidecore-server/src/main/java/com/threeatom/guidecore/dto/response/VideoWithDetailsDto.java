@@ -23,6 +23,9 @@ public class VideoWithDetailsDto extends VideoDto {
     @Deprecated(forRemoval = true)
     @ApiModelProperty(value = "content id fro backward compatibility with old player-page API. Deprecated. Use id instead and new API")
     private Integer deprecatedContentId;
+    @Deprecated(forRemoval = true)
+    @ApiModelProperty(value = "video file id for old playlist adding API. Deprecated")
+    private Integer deprecatedVideoFileId;
 
     private Integer prevVideoId;
     private Integer nextVideoId;
