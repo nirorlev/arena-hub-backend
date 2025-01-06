@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
@@ -88,6 +89,14 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
                 return createVideoViewerDto(userDetailsDto, videoIdToVideoViewerDetails);
             })
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Integer getVideoViewsCount(Integer videoId, Integer masterId) {
+        QueryWrapper<VideoPlaySession> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("video_id", videoId);
+        queryWrapper.eq("master_id", masterId);
+        return count(queryWrapper);
     }
 
     private Map<String, VideoViewerVideoDetailDto> videoViewerDetails(List<VideoPlaySession> playSessions) {

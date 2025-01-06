@@ -24,13 +24,4 @@ public class GcUserFabulous {
     private Date createTime;
 
     private Integer commentId;
-
-    public GcUserFabulous(Integer userId, Integer targetUserId, Integer videoId, Integer eventId) {
-        this.userId = userId;
-        this.targetUserId = targetUserId;
-        this.videoId = videoId;
-        this.eventId = eventId;
-    }
-
-    public GcUserFabulous() {}
 }

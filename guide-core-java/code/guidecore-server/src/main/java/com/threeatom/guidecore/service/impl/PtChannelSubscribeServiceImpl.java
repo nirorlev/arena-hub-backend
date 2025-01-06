@@ -67,6 +67,14 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
     }
 
     @Override
+    public List<PtChannelSubscribe> getChannelSubscribes(Integer channelId) {
+        QueryWrapper<PtChannelSubscribe> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("channel_id", channelId);
+        queryWrapper.eq("is_deleted", false);
+        return list(queryWrapper);
+    }
+
+    @Override
     @Transactional
     public void subscribe(GcUser user, Integer channelId) {
         PtChannelSubscribe unsubscribed = getChannelSubscribe(user, channelId, true);

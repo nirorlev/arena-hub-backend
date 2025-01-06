@@ -4,8 +4,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -14,6 +15,7 @@ public class RequestUtil {
 
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
+    private static final String REQUESTED_FRONTEND_VERSION_NAME = "frontendVersion";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
@@ -44,5 +46,19 @@ public class RequestUtil {
         ServletRequestAttributes requestAttributes =
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return Optional.ofNullable(requestAttributes).flatMap(attributes -> Optional.of(attributes.getRequest()));
+    }
+
+    public static String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
+        String requestedVersion = request.getParameter(REQUESTED_FRONTEND_VERSION_NAME);
+        if (StringUtils.isNotBlank(requestedVersion)) {
+            response.addCookie(new Cookie(REQUESTED_FRONTEND_VERSION_NAME, requestedVersion));
+            return requestedVersion;
+        }
+
+        return getCookieValue(request, REQUESTED_FRONTEND_VERSION_NAME).orElse(null);
+    }
+
+    public static String getCurrentHost(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName();
     }
 }

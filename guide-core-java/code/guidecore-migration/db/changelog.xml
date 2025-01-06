@@ -646,4 +646,13 @@
                 constraintName="user_avatar_user_id_fk_uniq"
                 tableName="user_avatar"/>
     </changeSet>
+
+    <changeSet id="create-fe-version-override-feature-toggle-config" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="frontendVersion"/>
+            <column name="description"
+                    value="Controls the FE version that is served by the backend at Runtime"/>
+            <column name="value" value=""/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>

@@ -8,17 +8,26 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
+import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.ChannelSectionVideosDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.enums.ChannelVisibilityFlag;
 import com.threeatom.guidecore.mapper.PtchannelMapper;
 import com.threeatom.guidecore.mapping.ChannelMapping;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -50,6 +59,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     private final VideoThumbnailProvider thumbnailProvider;
     private final GcUserVideoActionService userVideoActionService;
     private final AuthorizationService authorizationService;
+    private final VideoMapping videoMapping;
 
     @Lazy
     @Autowired
@@ -179,6 +189,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                 String fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
                 String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
                 sysFile.setSnapshotUrl(snapShotUrl);
+                sysFile.setThumbNailUrl(snapShotUrl);
                 sysFile.setFullFileUrl(fullFileUrl);
                 sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
                 sysFile.setLikeNum(userVideoActionService.countLikeForVideo(sysFile.getVideoId()));
@@ -574,7 +585,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -584,7 +595,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -594,7 +605,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(request, channel);
@@ -699,6 +710,77 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         channel.setCreateUserId(existingChannel.getCreateUserId());
     }
 
+    @Override
+    public ChannelLatestVideosDto sectionLatestVideos(Integer channelId, PortalUser portalUser) {
+        List<GcVideo> latestVideos = videoService.channelLatestVideos(channelId, portalUser);
+
+        return ChannelLatestVideosDto.builder()
+            .videos(channelLatestVideos(latestVideos))
+            .sections(sectionLatestVideos(latestVideos))
+            .build();
+    }
+
+    @Override
+    public List<VideoWithSourceDetailsDto<ChannelDto>> subscribedLatestVideos(PortalUser portalUser) {
+        List<GcVideo> latestVideos = videoService.subscribedLatestChannelVideos(portalUser);
+
+        return latestVideos.stream()
+            .map(videoMapping::mapWithDetailsChannelSource)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public VideoWithSourceDetailsDto<VideoSourceDto> channelVideoPlayerPage(Integer videoId, Integer channelId,
+                                                                            PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view video {}", portalUser.getUserId(), videoId);
+            throw new ForbiddenException("No permission to view this video");
+        }
+        PtChannel channel = video.getOriginChannel();
+        if (channel == null
+            || !channel.getId().equals(channelId)
+            || !authorizationService.checkAccess(channel, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view channel {} with video id {}", portalUser.getUserId(),
+                channelId, videoId);
+            throw new ForbiddenException("No permission to view this channel");
+        }
+
+        videoService.populateVideoData(List.of(video), portalUser);
+        List<Integer> videoOriginSubscriberIds =
+            videoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
+
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+        videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        return videoWithDetails;
+    }
+
+    private List<VideoWithDetailsDto> channelLatestVideos(List<GcVideo> videos) {
+        return videos.stream()
+            .filter(video -> !video.getOriginChannel().isSection())
+            .map(videoMapping::mapWithDetailsChannelSource)
+            .collect(Collectors.toList());
+    }
+
+    private List<ChannelSectionVideosDto> sectionLatestVideos(List<GcVideo> videos) {
+        Map<Integer, List<GcVideo>> sectionIdToVideos = videos.stream()
+            .filter(video -> video.getOriginChannel().isSection())
+            .collect(Collectors.groupingBy(video -> video.getOriginChannel().getId()));
+
+        return sectionIdToVideos.values().stream()
+            .filter(gcVideos -> !gcVideos.isEmpty())
+            .map(this::channelSectionVideos)
+            .collect(Collectors.toList());
+    }
+
+    private ChannelSectionVideosDto channelSectionVideos(List<GcVideo> sectionVideos) {
+        return ChannelSectionVideosDto.builder()
+            .name(sectionVideos.get(0).getOriginChannel().getChannelName())
+            .videos(sectionVideos.stream().map(videoMapping::mapWithDetailsChannelSource).collect(Collectors.toList()))
+            .build();
+    }
+
     private int countChannels(Integer userId, Integer masterId, List<ChannelVisibilityFlag> channelVisibilityFlags) {
         QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("create_user_id", userId);
@@ -712,7 +794,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return channelVisibilityFlags.stream().map(ChannelVisibilityFlag::getValue).collect(Collectors.toList());
     }
 
-    private List<ChannelDto> convert(List<PtChannel> channels) {
+    private List<ChannelWithDetailsDto> convert(List<PtChannel> channels) {
         return channels.stream()
             .map(channelMapping::map)
             .collect(Collectors.toList());

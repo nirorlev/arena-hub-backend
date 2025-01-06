@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapping;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.threeatom.guidecore.dto.response.PlaylistDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import java.util.List;
@@ -18,8 +19,7 @@ public interface PlaylistMapping {
     PlaylistWithDetailsDto mapWithDetails(GcUserSaveFolder playlist);
 
     @Mapping(target = "owner", source = "user")
-    @Named("mapPlaylist")
-    PlaylistDto map(GcUserSaveFolder playlist);
+    VideoSourceDto mapSource(GcUserSaveFolder playlist);
 
     @Named("mapVideoNum")
     default Integer mapVideoNum(List<GcUserSaveContent> playlistContent) {
@@ -29,5 +29,4 @@ public interface PlaylistMapping {
 
         return playlistContent.size();
     }
-
 }

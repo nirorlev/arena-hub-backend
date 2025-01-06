@@ -5,6 +5,10 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.system.entity.SysFile;
@@ -14,13 +18,13 @@ import javax.servlet.http.HttpServletRequest;
 public interface PtChannelService extends IService<PtChannel> {
 
     List<PtChannel> indexPtChannels(
-            Integer userId, Integer type, HttpServletRequest request, Integer masterId);
+        Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
     PtChannel selectChannelDetail(
-            Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId);
+        Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId);
 
     List<PtChannel> selectSectionList(
-            Integer fid, String slug, HttpServletRequest request, Integer masterId);
+        Integer fid, String slug, HttpServletRequest request, Integer masterId);
 
     List<SysFile> selectVideosInSection(
         Integer sectionId,
@@ -30,20 +34,20 @@ public interface PtChannelService extends IService<PtChannel> {
         Integer level, PortalUser portalUser);
 
     List<PtChannel> selectChannelsByTeam(
-            Integer accessId, Integer masterId, Integer userId, HttpServletRequest request);
+        Integer accessId, Integer masterId, Integer userId, HttpServletRequest request);
 
     List<PtChannel> selectChannelsByIdAndName(
-            List<Integer> idList, String name, Integer userId, Integer masterId);
+        List<Integer> idList, String name, Integer userId, Integer masterId);
 
     List<PtChannel> selectChannelsByIdsAndName(List<Integer> idList, String name);
 
     List<PtChannel> indexSearchChannels(
-            Integer userId, Integer type, HttpServletRequest request, Integer masterId);
+        Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
     List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request);
 
     List<PtChannel> searchChannelsBySysFile(
-            Integer userId, HttpServletRequest request, Integer masterId);
+        Integer userId, HttpServletRequest request, Integer masterId);
 
     List<PtChannel> searchChannelsBySysFileNew(PortalUser portalUser, HttpServletRequest request);
 
@@ -53,11 +57,11 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
-    List<ChannelDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 
@@ -70,4 +74,11 @@ public interface PtChannelService extends IService<PtChannel> {
     Integer countUserPublishedChannels(Integer userId, Integer masterId);
 
     void populateCreatedUserId(PtChannel channel, Integer userId);
+
+    ChannelLatestVideosDto sectionLatestVideos(Integer channelId, PortalUser portalUser);
+
+    List<VideoWithSourceDetailsDto<ChannelDto>> subscribedLatestVideos(PortalUser portalUser);
+
+    VideoWithSourceDetailsDto<VideoSourceDto> channelVideoPlayerPage(Integer videoId, Integer channelId,
+                                                                     PortalUser portalUser);
 }

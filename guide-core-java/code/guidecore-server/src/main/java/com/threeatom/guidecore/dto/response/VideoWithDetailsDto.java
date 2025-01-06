@@ -19,6 +19,15 @@ public class VideoWithDetailsDto extends VideoDto {
     @ApiModelProperty(value = "Number of comments")
     private Integer commentsCount;
     @ApiModelProperty(value = "Related playlist details")
+    private Integer viewsCount;
+    @Deprecated(forRemoval = true)
+    @ApiModelProperty(value = "content id fro backward compatibility with old player-page API. Deprecated. Use id instead and new API")
+    private Integer deprecatedContentId;
+
+    private Integer prevVideoId;
+    private Integer nextVideoId;
+
+    @ApiModelProperty(value = "Playlist details")
     private PlaylistDto playlist;
 
     @ApiModelProperty(value = "Permissions of the current user on the video")

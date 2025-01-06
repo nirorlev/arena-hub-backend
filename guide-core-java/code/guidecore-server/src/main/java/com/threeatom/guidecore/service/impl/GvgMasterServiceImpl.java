@@ -43,7 +43,6 @@ import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
-import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
 import com.threeatom.guidecore.service.FeatureToggleService;
@@ -863,7 +862,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				params.put("userId", userId);
 				if (null != gcUserAccessPermissions.getShortTermPermission()) {
 					List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissions.getShortTermPermission().toJavaList(GcUserAccessPermission.class);
-					//List<Integer> shortTermIds = gcUserAccessPermissionList.stream().mapWithDetails(GcUserAccessPermission::getId).collect(Collectors.toList());
+					//List<Integer> shortTermIds = gcUserAccessPermissionList.stream().mapPlaylistVideoWithDetails(GcUserAccessPermission::getId).collect(Collectors.toList());
 					Date date = new Date();
 					if (CollectionUtils.isNotEmpty(gcUserAccessPermissionList)) {
 						for (GcUserAccessPermission gcUserAccessPermission : gcUserAccessPermissionList) {
@@ -1643,7 +1642,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		Integer fabulousNum = gcUserFabulousService.getEventFabulousNum(eventId,thisUserId,otherUserId);
 		m.addData("fabulousNum",fabulousNum);
 		//点赞状态
-		GcUserFabulous fabulousState = gcUserFabulousService.getUserFabulous(new GcUserFabulous(user.getId(),otherUserId,null,eventId));
+		GcUserFabulous fabulousState = gcUserFabulousService.getUserFabulous(
+			gcUserFabulous(user, otherUserId, eventId));
 		if (fabulousState == null){
 			m.addData("isFabulousState",0);
 		}else {
@@ -1652,6 +1652,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		m.addData("返回说明", "thisUserEventAnswer-当前用户的回答，thisUserEventResourceList-回答资源list，仅问答题有，isFabulousState-点赞状态,1=已点赞，fabulousNum-点赞数量" +
 				"，commentNum-评论数量");
 		return m;
+	}
+
+	private GcUserFabulous gcUserFabulous(GcUser user, Integer otherUserId, Integer eventId) {
+		GcUserFabulous gcUserFabulous = new GcUserFabulous();
+		gcUserFabulous.setUserId(user.getId());
+		gcUserFabulous.setTargetUserId(otherUserId);
+		gcUserFabulous.setEventId(eventId);
+		return gcUserFabulous;
 	}
 
 	@Override

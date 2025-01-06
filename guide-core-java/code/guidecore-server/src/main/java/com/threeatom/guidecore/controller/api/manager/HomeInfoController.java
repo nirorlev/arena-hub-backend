@@ -29,6 +29,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtChannelContent;
+import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
@@ -44,6 +45,7 @@ import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -148,7 +150,8 @@ public class HomeInfoController extends GuideCoreController {
     private PtChannelService ptChannelService;
     @Autowired
     private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-
+    @Autowired
+    private FrontendVersionService frontendVersionService;
 
     @ApiOperation(value = "保存首页信息，及保存老师、学生端的‘欢迎’‘指引’视频", httpMethod = "POST")
     @PostMapping("/saveOrUpdate")
@@ -693,6 +696,7 @@ public class HomeInfoController extends GuideCoreController {
         String xRequestUri = request.getHeader("x-request-uri");
         log.info("[SSR] Method: " + request.getMethod() + ", URI: " + request.getRequestURI() + ", x-request-uri: " +
             request.getHeader("x-request-uri"));
+
         if (xRequestUri != null) {
             if (xRequestUri.endsWith("/")) {
                 xRequestUri = xRequestUri.substring(0, xRequestUri.length() - 1);
@@ -798,20 +802,19 @@ public class HomeInfoController extends GuideCoreController {
 
 
         } else if (stats == 3 && containNumber) {
-            GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(subOrVid, null);
-            if (Objects.isNull(gcUserSaveFolder) ||
-                gcUserSaveFolder.getSaveContentList().size() == TableConstant.COMMON_ZERO) {
+            GcUserSaveFolder playlist = gcUserSaveFolderService.getPlayListMetaConfig(subOrVid);
+            if (Objects.isNull(playlist) || playlist.getSaveContentList().isEmpty()) {
                 return;
             }
-            SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getSaveContentList().get(0).getFileId());
-            desc = "Playlist last updated " + gcUserSaveFolder.getUpdateTime();
-            title = gcUserSaveFolder.getName();
-            addMetaContent = playListMetaConfig(sysFile, gcUserSaveFolder, host, request, title, desc);
+            GcVideo playlistVideo = gcVideoService.findByVideoId(playlist.getSaveContentList().get(0).getContentId());
+            desc = "Playlist last updated " + playlist.getUpdateTime();
+            title = playlist.getName();
+            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title, desc);
         } else if (stats == 4 && containNumber) {
-            GcUserSaveFolder gcUserSaveFolder = gcUserSaveFolderService.getPlayListMetaConfig(folderId, subOrVid);
-            SysFile sysFile = sysFileService.getById(subOrVid);
-            title = "\"" + sysFile.getName() + "\"" + " in " + "\"" + gcUserSaveFolder.getName() + "\"" + " playlist";
-            addMetaContent = playListMetaConfig(sysFile, gcUserSaveFolder, host, request, title, sysFile.getDescribe());
+            GcUserSaveFolder playlist = gcUserSaveFolderService.getPlayListMetaConfig(folderId);
+            GcVideo playlistVideo = gcVideoService.findByVideoId(subOrVid);
+            title = "\"" + playlistVideo.getVideoName() + "\"" + " in " + "\"" + playlist.getName() + "\"" + " playlist";
+            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title, playlistVideo.getVideoDesc());
         } else if (stats == 5) {
             PtChannel ptChannel = ptChannelService.getbyChannelSlug(channelUrlId);
             if (Objects.isNull(ptChannel)) {
@@ -987,18 +990,24 @@ public class HomeInfoController extends GuideCoreController {
             addMetaContent = metaHtml(titleHtml, descHtml, thumbNail, host, request);
 
         }
-        PrintWriter printWriter;
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
+        String frontendVersion = frontendVersionService.getVersion(
+            RequestUtil.getRequestedFrontendVersion(request, response), RequestUtil.getCurrentHost(request));
         try {
-            printWriter = response.getWriter();
-            printWriter.write(homeInfoContent(addMetaContent, xRequestUri));
+            PrintWriter printWriter = response.getWriter();
+            printWriter.write(homeInfoContent(frontendVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String homeInfoContent(String addMetaContent, String xRequestUri) {
+    private String homeInfoContent(String frontendVersion, String addMetaContent, String xRequestUri) {
+        String hubUrl = this.hubUrl;
+        if (StringUtils.isNotBlank(frontendVersion)) {
+            hubUrl = String.format("%s/%s", this.hubUrl, frontendVersion);
+        }
+
         return String.format(
             """
                 <!doctype html>
@@ -1013,6 +1022,7 @@ public class HomeInfoController extends GuideCoreController {
                   <link rel="icon" href="%s/favicon.ico">
                   <script type="module" src="%s/arena.js"></script>
                   <script src="%s/globalConfig.js"></script>
+                  <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=aac6a1b8-02ba-4148-b7a0-d141500a10fc"></script>
                 </head>
 
                 <body><noscript>You need to enable JavaScript to run this app.</noscript>

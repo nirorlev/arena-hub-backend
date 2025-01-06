@@ -18,6 +18,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -275,7 +276,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
 
     @ApiModelProperty(value = "用户id")
     @TableField(exist = false)
-    private Object user;
+    private GcUser user;
 
     @ApiModelProperty(value = "用户信息")
     @TableField(exist = false)

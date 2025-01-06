@@ -2,6 +2,10 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.IdsDto;
 import com.threeatom.guidecore.dto.response.ChannelDto;
+import com.threeatom.guidecore.dto.response.ChannelLatestVideosDto;
+import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserService;
@@ -37,7 +41,7 @@ public class ChannelController {
 
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
-    public List<ChannelDto> getOwned(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getOwned(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -47,7 +51,7 @@ public class ChannelController {
 
     @GetMapping("/subscribed")
     @ApiOperation(value = "Get a list of channels subscribed by the current user")
-    public List<ChannelDto> getSubscribedChannels(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getSubscribedChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -57,7 +61,7 @@ public class ChannelController {
 
     @GetMapping("/discoverable")
     @ApiOperation(value = "Get a list of channels discoverable by the current user")
-    public List<ChannelDto> getDiscoverableChannels(HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getDiscoverableChannels(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
@@ -76,9 +80,46 @@ public class ChannelController {
     @PostMapping("/{channelId}/content/order")
     @ApiOperation(value = "Update ordering of channel/section content", httpMethod = "POST")
     public ResponseEntity<Void> updateContentOrder(
-        @PathVariable("channelId") Integer channelId, @RequestBody @Valid IdsDto contentIds, HttpServletRequest request) {
+        @PathVariable("channelId") Integer channelId, @RequestBody @Valid IdsDto contentIds,
+        HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         channelContentService.updateContentOrder(contentIds, channelId, masterId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("{channelId}/videos/latest")
+    @ApiOperation(value = "Get a list of videos from the channel sections")
+    public ResponseEntity<ChannelLatestVideosDto> sectionVideos(@PathVariable("channelId") Integer channelId,
+                                                                HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(channelService.sectionLatestVideos(channelId, portalUser));
+    }
+
+    @GetMapping("/subscribed/videos/latest")
+    @ApiOperation(value = "Get a list of videos from the channel sections")
+    public ResponseEntity<List<VideoWithSourceDetailsDto<ChannelDto>>> subscribedChannelVideos(
+        HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(channelService.subscribedLatestVideos(portalUser));
+    }
+
+    @GetMapping("/{channelId}/videos/{videoId}/player-page")
+    @ApiOperation(value = "Get a list of videos from the channel sections")
+    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> channelVideoPlayerPage(
+        @PathVariable("videoId") Integer videoId
+        , @PathVariable("channelId") Integer channelId
+        , HttpServletRequest request) {
+
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(channelService.channelVideoPlayerPage(videoId, channelId, portalUser));
     }
 }

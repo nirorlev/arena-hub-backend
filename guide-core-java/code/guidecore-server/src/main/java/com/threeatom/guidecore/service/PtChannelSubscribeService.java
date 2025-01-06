@@ -14,4 +14,6 @@ public interface PtChannelSubscribeService extends IService<PtChannelSubscribe> 
     void unsubscribe(GcUser user, Integer channelId);
 
     void autoSubscribeToContentGroupChannels(List<GcAccess> contentGroups, Integer userId);
+
+    List<PtChannelSubscribe> getChannelSubscribes(Integer channelId);
 }

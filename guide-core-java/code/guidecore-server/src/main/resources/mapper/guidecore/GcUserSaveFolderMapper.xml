@@ -280,16 +280,15 @@
 
 	<select id="getPlayListMetaConfig" resultMap="baseResultMap">
 		SELECT
-		sf.name,c.file_id as sc_file_id,GREATEST(sf.update_time, c.update_time) AS update_time,	c.video_id as sc_video_id
-		from gc_user_save_folder sf
-		LEFT JOIN  gc_user_save_content c on sf.id=c.folder_id
-		LEFT JOIN  gc_video gv on gv.id=c.content_id
-		WHERE sf.id=#{folderId}
-		<if test="fileId != null">
-			and gv.file_id=#{fileId}
-		</if>
-		ORDER BY
-		ABS(EXTRACT(EPOCH FROM (sf.update_time - c.update_time)))  desc
+			playlist.name,
+			playlist_content.file_id as sc_file_id,
+			GREATEST(playlist.update_time, playlist_content.update_time) AS update_time,
+			playlist_content.video_id as sc_video_id,
+			playlist_content.content_id as content_id
+		from gc_user_save_folder playlist
+			LEFT JOIN gc_user_save_content playlist_content on playlist.id=playlist_content.folder_id
+		WHERE playlist.id = #{folderId}
+		ORDER BY ABS(EXTRACT(EPOCH FROM (playlist.update_time - playlist_content.update_time)))  desc
 		LIMIT 1
 	</select>
 

@@ -1,21 +1,8 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.alibaba.fastjson.JSONObject;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.cloudfront.CloudFrontUrlSigner;
-import com.amazonaws.services.cloudfront.util.SignerUtils;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.threeatom.common.aws.entity.ResultVO;
-import com.threeatom.common.aws.entity.TemporaryCertVO;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.config.AwsS3Configuration;
 import com.threeatom.constant.ObjectStorageConstants;
 import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -30,20 +17,23 @@ import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.Api;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.security.Security;
-import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.UriUtils;
 
 @RestController
 @RequestMapping("/api/v1/guidecore/file")
@@ -51,9 +41,8 @@ import org.springframework.web.util.UriUtils;
 public class FileGuideCoreController extends GuideCoreController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileGuideCoreController.class);
-    @Autowired private SysFileService fileService;
 
-    @Autowired private AwsS3Configuration awsS3Configuration;
+    @Autowired private SysFileService fileService;
 
     @Autowired private AwsS3StorageService awsS3StorageService;
 
@@ -307,39 +296,6 @@ public class FileGuideCoreController extends GuideCoreController {
         return new Message().ok().addData("policy", policyStr);
     }
 
-    //	禁用s3通用方式上传，用cloudfront 上传 /api/v1/guidecore/file/awsUploadSignUrl
-    public ResultVO getUploadCert() {
-        try {
-            AWSSecurityTokenService stsClient =
-                    AWSSecurityTokenServiceClientBuilder.standard()
-                            .withCredentials(new DefaultAWSCredentialsProviderChain())
-                            .withRegion(awsS3Configuration.getRegion())
-                            .build();
-
-            AssumeRoleRequest roleRequest =
-                    new AssumeRoleRequest()
-                            .withRoleArn(awsS3Configuration.getRoleArn())
-                            .withRoleSessionName(awsS3Configuration.getRoleSessionName())
-                            .withDurationSeconds(awsS3Configuration.getDurationSeconds());
-            AssumeRoleResult roleResponse = stsClient.assumeRole(roleRequest);
-            Credentials sessionCredentials = roleResponse.getCredentials();
-
-            TemporaryCertVO certVO = new TemporaryCertVO();
-            certVO.setRegion(awsS3Configuration.getRegion());
-            certVO.setBucketName(awsS3Configuration.getBucketName());
-            certVO.setAccessKey(sessionCredentials.getAccessKeyId());
-            certVO.setSecretKey(sessionCredentials.getSecretAccessKey());
-            certVO.setSessionToken(sessionCredentials.getSessionToken());
-            certVO.setExpiration(sessionCredentials.getExpiration());
-            return ResultVO.success(certVO);
-
-        } catch (AmazonServiceException e) {
-            throw new SystemException(I18NUtil.get("guidecore.aws.error") + e.getMessage());
-        } catch (SdkClientException e) {
-            throw new SystemException(I18NUtil.get("guidecore.aws.error") + e.getMessage());
-        }
-    }
-
     @SneakyThrows
     @PostMapping("/awsUploadSignUrl")
     public Message awsUploadSignUrl(@RequestBody JSONObject jsonParams) {
@@ -347,35 +303,5 @@ public class FileGuideCoreController extends GuideCoreController {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         String signedUrl = awsS3StorageService.generateSignedUrl(key);
         return new Message().ok().addData("signedUrl", signedUrl);
-    }
-
-    public static String signUrl(
-            String distributionDomain,
-            File privateKeyFile,
-            String s3ObjectKey,
-            String keyPairId,
-            Date dateLessThan,
-            Date dateGreaterThan) {
-        SignerUtils.Protocol protocol = SignerUtils.Protocol.https;
-        // 中文URL处理，在s3中空格需要替换成+
-        s3ObjectKey = s3ObjectKey.replace(" ", "+");
-        s3ObjectKey = UriUtils.encodePath(s3ObjectKey, StandardCharsets.UTF_8);
-
-        String ipRange = "0.0.0.0/0";
-
-        try {
-            return CloudFrontUrlSigner.getSignedURLWithCustomPolicy(
-                    protocol,
-                    distributionDomain,
-                    privateKeyFile,
-                    s3ObjectKey,
-                    keyPairId,
-                    dateLessThan,
-                    dateGreaterThan,
-                    ipRange);
-        } catch (InvalidKeySpecException | IOException e) {
-            LOGGER.error("签名url异常：", e);
-        }
-        return "";
     }
 }

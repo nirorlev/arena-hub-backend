@@ -73,7 +73,6 @@ public class AnalyticsFacadeImpl implements AnalyticsFacade {
     public AnalyticsResponseDto getChannelsCountAnalytics(AnalyticsFilterDto filter, PortalUser portalUser) {
         checkPermission(portalUser);
 
-        checkPermission(portalUser);
         List<DbAnalyticsResultDto> analytics =
             channelService.getChannelsCountAnalytics(filter, portalUser.getMasterId());
 

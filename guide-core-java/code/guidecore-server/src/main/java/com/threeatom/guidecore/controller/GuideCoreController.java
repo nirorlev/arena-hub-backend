@@ -129,6 +129,5 @@ public class GuideCoreController extends BaseController {
 			throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
 		}
         return Integer.parseInt(request.getHeader("masterId"));
-
 	}
 }

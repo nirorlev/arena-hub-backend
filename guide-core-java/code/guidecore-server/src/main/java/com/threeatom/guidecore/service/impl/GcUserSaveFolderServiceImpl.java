@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
@@ -35,13 +38,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMapper, GcUserSaveFolder>
     implements GcUserSaveFolderService {
 
@@ -143,7 +149,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             this.baseMapper.selectFolderForUserMaster(userId, masterId, folderIdList, myFolderIdList, null);
         for (GcUserSaveFolder gcUserSaveFolder : gcUserSaveFolders) {
             List<GcUserSaveContent> gcUserSaveContentList =
-                gcUserSaveContentService.selectContetnByFolderId(gcUserSaveFolder.getId());
+                gcUserSaveContentService.selectContentByPlaylistId(gcUserSaveFolder.getId());
             if (CollectionUtils.isNotEmpty(gcUserSaveContentList)) {
                 for (GcUserSaveContent gcUserSaveContent : gcUserSaveContentList) {
                     if (Objects.nonNull(gcUserSaveContent.getFileId())) {
@@ -232,8 +238,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId, Integer fileId) {
-        return this.baseMapper.getPlayListMetaConfig(folderId, fileId);
+    public GcUserSaveFolder getPlayListMetaConfig(Integer folderId) {
+        return this.baseMapper.getPlayListMetaConfig(folderId);
     }
 
     @Override
@@ -284,7 +290,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<VideoWithDetailsDto> playlistLatestVideos(
+    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
         List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
@@ -295,13 +301,82 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             this::latestPlaylistVideosCursor);
     }
 
+    @Override
+    public VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId,
+                                                                     PortalUser portalUser) {
+        Optional<GcUserSaveContent> optionalPlaylistVideoContent =
+            gcUserSaveContentService.getPlaylistVideoContent(playlistId, videoId);
+        if (optionalPlaylistVideoContent.isEmpty()) {
+            log.error("Video {} not found in playlist {}", videoId, playlistId);
+            throw new ForbiddenException("Video not found in playlist");
+        }
+
+        GcUserSaveContent playlistContent = optionalPlaylistVideoContent.get();
+
+        GcVideo video = playlistContent.getVideo();
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view video {}", portalUser.getUserId(), videoId);
+            throw new ForbiddenException("You do not have permission to view this video");
+        }
+
+        GcUserSaveFolder playlist = playlistContent.getPlaylist();
+        if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
+            throw new ForbiddenException("You do not have permission to view this playlist");
+        }
+
+        gcVideoService.populateVideoData(List.of(video), portalUser);
+        video.setPlaylist(playlist);
+
+        List<Integer> videoOriginSubscriberIds =
+            gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
+        List<Integer> videoIds = getPlaylistContentVideoIds(playlistId);
+
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+        videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
+        videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+        videoWithDetails.setDeprecatedContentId(playlistContent.getId());
+        videoWithDetails.setNextVideoId(getNextVideoId(videoIds, videoId));
+        videoWithDetails.setPrevVideoId(getPreviousVideoId(videoIds, videoId));
+        return videoWithDetails;
+    }
+
+    private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
+        List<GcUserSaveContent> saveContents = gcUserSaveContentService.selectContentByPlaylistId(playlistId);
+        if (CollectionUtils.isEmpty(saveContents)) {
+            return List.of();
+        }
+
+        return saveContents.stream()
+            .map(GcUserSaveContent::getContentId)
+            .collect(Collectors.toList());
+    }
+
+    private Integer getPreviousVideoId(List<Integer> videoIds, Integer videoId) {
+        int index = videoIds.indexOf(videoId);
+        if (index == -1 || index == 0) {
+            return null;
+        }
+
+        return videoIds.get(index - 1);
+    }
+
+    private Integer getNextVideoId(List<Integer> playlistVideoIds, Integer videoId) {
+        int index = playlistVideoIds.indexOf(videoId);
+        if (index == -1 || index == playlistVideoIds.size() - 1) {
+            return null;
+        }
+
+        return playlistVideoIds.get(index + 1);
+    }
+
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {
         return null;
     }
 
-    private List<VideoWithDetailsDto> convertVideoDetails(List<GcVideo> latestVideos) {
+    private List<VideoWithSourceDetailsDto<VideoSourceDto>> convertVideoDetails(List<GcVideo> latestVideos) {
         return latestVideos.stream()
-            .map(video -> videoMapping.mapWithDetails(video))
+            .map(videoMapping::mapWithVideoSource)
             .collect(Collectors.toList());
     }
 
@@ -320,9 +395,11 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         if (CollectionUtils.isEmpty(saveContentList)) {
             return;
         }
-        saveContentList.sort(Comparator.comparing(GcUserSaveContent::getUpdateTime, Comparator.nullsLast(Comparator.naturalOrder())));
+        saveContentList.sort(
+            Comparator.comparing(GcUserSaveContent::getUpdateTime, Comparator.nullsLast(Comparator.naturalOrder())));
         GcUserSaveContent saveContent = saveContentList.get(0);
-        playlist.setSnapshotUrl(sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(saveContent.getVideoFile())));
+        playlist.setSnapshotUrl(
+            sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(saveContent.getVideoFile())));
     }
 
     private int countPlaylists(Integer userId, Integer masterId, boolean isPrivate) {

@@ -137,6 +137,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Autowired
 	private AuthorizationService authorizationService;
 
+	@Autowired
+	private VideoPlaySessionService videoPlaySessionService;
+	@Autowired
+	private PtChannelSubscribeService channelSubscribeService;
+
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
 		if(subIds!=null&&subIds.size()>0) {
@@ -803,24 +808,57 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
+	public List<GcVideo> channelLatestVideos(Integer channelId, PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.findLatestChannelVideos(channelId);
+		populateVideoData(latestVideos, portalUser);
+		return latestVideos;
+	}
+
+	@Override
+	public List<GcVideo> subscribedLatestChannelVideos(PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.findSubscribedLatestChannelVideos(portalUser.getUserId(), portalUser.getMasterId());
+		populateVideoData(latestVideos, portalUser);
+		return latestVideos;
+	}
+
+	@Override
 	public Integer countPlaylistLatestVideos(PortalUser portalUser) {
 		return baseMapper.countLatestUserSubscribedPlaylistVideos(portalUser);
 	}
 
-	private void populateVideoData(List<GcVideo> videos, PortalUser portalUser) {
+	@Override
+	public void populateVideoData(List<GcVideo> videos, PortalUser portalUser) {
 		videos.forEach(video -> {
 			video.setIsLiked(videoActionService.isLikedByUser(video.getId(), portalUser.getUserId()) ? 1 : 0);
 			video.setLikeNum(videoActionService.countLikeForVideo(video.getId()));
-			video.setSnapshotUrl(
-				sysFileService.getFullFileUrl(videoThumbnailProvider.getThumbnailUrl(video.getVideoFile())));
 			video.setPermissions(authorizationService.listPermissions(video, portalUser));
+			video.setViewsCount(videoPlaySessionService.getVideoViewsCount(video.getId(), portalUser.getMasterId()));
 			updateVideoUrls(video);
 		});
 	}
 
 	@Override
+	public List<Integer> getVideoOriginSubscriberIds(GcVideo video, Integer masterId) {
+		PtChannel originChannel = video.getOriginChannel();
+		if (originChannel != null) {
+			List<PtChannelSubscribe> channelSubscribes =
+				channelSubscribeService.getChannelSubscribes(originChannel.getId());
+			return channelSubscribes.stream()
+				.map(PtChannelSubscribe::getUserId)
+				.collect(Collectors.toList());
+		}
+
+		return List.of();
+	}
+
+	@Override
 	public GcVideo findByVideoId(Integer videoId) {
-		return this.baseMapper.findByVideoIds(List.of(videoId)).get(0);
+		List<GcVideo> videos = this.baseMapper.findByVideoIds(List.of(videoId));
+		if (CollectionUtils.isEmpty(videos)) {
+			return null;
+		}
+
+		return videos.get(0);
 	}
 
 	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
@@ -847,6 +885,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(videoFile);
 
 		videoFile.setSnapshotUrl(snapShotUrl);
+		videoFile.setThumbNailUrl(snapShotUrl);
 		videoFile.setFullFileUrl(fullFileUrl);
 		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
@@ -856,7 +895,19 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
 		videoFile.setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
-		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
+
+		String thumbnailUrl = videoThumbnailProvider.getThumbnailUrl(videoFile);
+		video.setThumbnailUrl(sysFileService.getFullFileUrl(thumbnailUrl));
+		video.setSnapshotUrl(sysFileService.getFullFileUrl(thumbnailUrl));
+
+		if (video.getOriginCourse() != null && video.getOriginCourse().getSubImgFile() != null) {
+			video.getOriginCourse().getSubImgFile().setFullFileUrl(
+				sysFileService.getFullFileUrl(video.getOriginCourse().getSubImgFile().getFileUrl()));
+		}
+		if (video.getOriginChannel() != null && video.getOriginChannel().getAvatarFile() != null) {
+			video.getOriginChannel().getAvatarFile().setFullFileUrl(
+				sysFileService.getFullFileUrl(video.getOriginChannel().getAvatarFile().getFileUrl()));
+		}
 	}
 
 	private VideoSearchResponseDto createVideoSearchResponse(List<VideoSearchResultDto> searchResult) {
@@ -928,7 +979,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
         for (GcVideo video : gcVideos){
             if (Objects.nonNull(videoPlayCount.get(video.getId()))){
                 Map map = (Map)videoPlayCount.get(video.getId());
-                video.setPlayNum(Integer.parseInt(map.get("countnum").toString()));
+                video.setViewsCount(Integer.parseInt(map.get("countnum").toString()));
             }
 
             List<GcEvent> eventList = eventmap.get(video.getId());

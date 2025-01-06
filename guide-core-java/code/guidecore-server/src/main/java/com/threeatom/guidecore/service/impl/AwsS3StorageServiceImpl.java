@@ -1,5 +1,11 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.SystemException;
+import com.threeatom.common.redis.RedisOperator;
+import com.threeatom.config.AwsUploadSignUrlConfiguration;
+import com.threeatom.guidecore.service.AwsS3StorageService;
+import com.threeatom.utils.FileUtil;
+import com.threeatom.utils.RandomUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +16,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -26,16 +30,6 @@ import org.jets3t.service.utils.ServiceUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.config.AwsUploadSignUrlConfiguration;
-import com.threeatom.guidecore.service.AwsS3StorageService;
-import com.threeatom.utils.FileUtil;
-import com.threeatom.utils.RandomUtils;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 
 @Slf4j
 @Service
@@ -44,7 +38,6 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
 
     private final RedisOperator redisOperator;
     private final AwsUploadSignUrlConfiguration awsUploadSignUrlConfiguration;
-
 
     private byte[] getAwsPrivateKey() throws SystemException {
         if (redisOperator.get("awsPrivateKey") != null) {
@@ -96,27 +89,6 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         }
     }
 
-    private byte[] retrieveFileFromUrl(String fileUrl) throws SystemException {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet(fileUrl);
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                HttpEntity entity = response.getEntity();
-                if (entity == null) {
-                    String errMessage = "Failed to download image. Null entity found.";
-                    log.error(errMessage);
-                    throw new SystemException(errMessage);
-                }
-                try (InputStream inputStream = entity.getContent()) {
-                    return IOUtils.toByteArray(inputStream);
-                }
-            }
-        } catch (IOException e) {
-            String errMessage = "Failed to retrieve file from URL";
-            log.error(errMessage, e);
-            throw new SystemException(errMessage);
-        }
-    }
-
     private void uploadFileToSignedUrl(byte[] filedata, String s3Url) throws SystemException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPut httpPut = new HttpPut(s3Url);
@@ -135,8 +107,7 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
     @Override
     public String generateSignedUrl(String key) throws SystemException {
         byte[] privateKey = getAwsPrivateKey();
-        String param_UrlToBeSigned =
-            "https://" + awsUploadSignUrlConfiguration.getDistributionDomain() + "/" + key;
+        String param_UrlToBeSigned = s3Url(key);
         try {
             Date param_DateLessThan = ServiceUtils.parseIso8601Date("2123-07-15T22:20:00.000Z");
             String policy = CloudFrontService.buildPolicyForSignedUrl(
@@ -157,9 +128,13 @@ public class AwsS3StorageServiceImpl implements AwsS3StorageService {
         }
     }
 
+    private String s3Url(String key) {
+        return "https://" + awsUploadSignUrlConfiguration.getDistributionDomain() + "/" + key;
+    }
+
     @Override
     public String uploadFileToS3(String fileUrl, Integer userId, Integer masterId) throws SystemException {
-        byte[] fileData = retrieveFileFromUrl(fileUrl);
+        byte[] fileData = FileUtil.retrieveFileFromUrl(fileUrl);
         String key = buildFileS3Key(fileUrl, masterId, userId);
         String signedUrl = generateSignedUrl(key);
         uploadFileToSignedUrl(fileData, signedUrl);

@@ -114,6 +114,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -2204,8 +2205,8 @@ public class PowtoonController extends GuideCoreController {
         videoComment.setUserId(user.getId());
         videoComment.setComment(comment);
         videoComment.setVideoId(vid);
-        videoComment.setCreateTime(new Date());
-        videoComment.setUpdateTime(new Date());
+        videoComment.setCreateTime(OffsetDateTime.now());
+        videoComment.setUpdateTime(OffsetDateTime.now());
         if (null != fileId) {
             videoComment.setFileId(fileId);
             SysFile file = sysFileService.getById(fileId);

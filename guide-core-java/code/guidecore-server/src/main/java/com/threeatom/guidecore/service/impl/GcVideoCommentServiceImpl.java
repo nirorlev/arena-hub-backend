@@ -5,11 +5,22 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.controller.Message;
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.entity.*;
+import com.threeatom.guidecore.dto.response.CommentDto;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcEventMapper;
 import com.threeatom.guidecore.mapper.GcVideoCommentMapper;
-import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.mapping.CommentMapping;
 import com.threeatom.guidecore.service.GcResourceService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
@@ -18,33 +29,29 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper, GcVideoComment>
-        implements GcVideoCommentService {
+    implements GcVideoCommentService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcVideoCommentServiceImpl.class);
 
-    @Autowired private GcUserVideoActionService videoActionService;
-    @Autowired private GcVideoService videoService;
-    @Autowired private GcSubjectService subjectService;
-    @Autowired private SysFileService fileService;
-    @Autowired private GcEventService eventService;
-    @Autowired private GcResourceService resourceService;
-
-    @Autowired private GcEventMapper gcEventMapper;
-
-    @Autowired private SysFileService sysFileService;
-
-    @Autowired private GcSubjectService gcSubjectService;
+    private final GcUserVideoActionService videoActionService;
+    private final GcVideoService videoService;
+    private final GcSubjectService subjectService;
+    private final SysFileService fileService;
+    private final GcResourceService resourceService;
+    private final GcEventMapper gcEventMapper;
+    private final AuthorizationService authorizationService;
+    private final CommentMapping commentMapping;
 
     @Override
     public boolean saveVideoComment(GcVideoComment videoComment) {
@@ -87,7 +94,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
 
     @Override
     public List<GcVideoComment> getAllCommentByVideoIdAndUserId(
-            Integer vid, Integer userId, Integer masterId) {
+        Integer vid, Integer userId, Integer masterId) {
         return this.baseMapper.selectGetAllCommentByVideoIdAndUserId(vid, userId, masterId);
     }
 
@@ -101,8 +108,73 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
     }
 
     @Override
+    public List<CommentDto> videoComments(Integer videoId, PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        List<GcVideoComment> videoComments = getVideoComments(List.of(videoId), portalUser.getMasterId());
+        return videoComments.stream()
+            .map(videoComment -> commentMapping.map(videoComment, portalUser.getUserId()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public CommentDto createVideoComment(Integer videoId, com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                         PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        GcVideoComment comment = commentMapping.map(commentDto, portalUser, videoId);
+        save(comment);
+
+        return commentMapping.map(comment, portalUser.getUserId());
+    }
+
+    @Override
+    @Transactional
+    public CommentDto updateVideoComment(Integer videoId, Integer commentId,
+                                         com.threeatom.guidecore.dto.request.CommentDto commentDto,
+                                         PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+        GcVideoComment videoComment = getById(commentId);
+        if (videoComment == null) {
+            throw new ResourceNotFoundException("Comment with specified id not found");
+        }
+
+        videoComment.setComment(commentDto.getText());
+        videoComment.setUpdateTime(OffsetDateTime.now());
+        updateById(videoComment);
+
+        return commentMapping.map(videoComment, portalUser.getUserId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Integer commentId, PortalUser portalUser) {
+        GcVideoComment videoComment = getById(commentId);
+        if (videoComment == null) {
+            throw new ResourceNotFoundException("Comment with specified id not found");
+        }
+
+        GcVideo video = videoService.findByVideoId(videoComment.getVideoId());
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("No access to view this video comments");
+        }
+
+        removeById(commentId);
+    }
+
+    @Override
     public Message getCommentStream(
-            Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request) {
+        Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request) {
         List<Integer> subIds = new ArrayList<>();
         List<GcVideo> videoList;
         if (sub.getSubId() != null) {
@@ -117,12 +189,13 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         List<Integer> videoLikeNums = videoActionService.getVideoLikeNumsByVideoIds(videoIds);
         List<Integer> videoCommentNums = this.getCommentNumsByVideoIds(videoIds);
         List<GcUserVideoAction> userVideoActions =
-                videoActionService.getVideoActionListByUserId(user.getId());
+            videoActionService.getVideoActionListByUserId(user.getId());
 
         List<GcSubject> childSub = subjectService.getSubListByIds(subIds, request);
         List<GcEvent> allEvent = null;
-        if (videoIds != null && videoIds.size() > 0)
+        if (videoIds != null && videoIds.size() > 0) {
             allEvent = gcEventMapper.getEventListByVideoIds(videoIds, user.getId());
+        }
         if (videoLikeNums != null && videoLikeNums.size() > 0) {
             for (int i = 0; i < videoLikeNums.size(); i++) {
                 videoList.get(i).setLikeNum(videoLikeNums.get(i));
@@ -148,16 +221,19 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                     jsonVideoObject.put("sourceUrl", video.getSourceUrl());
                     jsonVideoObject.put("videoFullUrl", video.getVideoFile());
                     List<GcUserVideoAction> videoActioList =
-                            userVideoActions.stream()
-                                    .filter(va -> va.getContentId().equals(video.getId()))
-                                    .collect(Collectors.toList());
+                        userVideoActions.stream()
+                            .filter(va -> va.getContentId().equals(video.getId()))
+                            .collect(Collectors.toList());
 
                     int isLiked = 0;
                     GcUserVideoAction rateVideoAction = null;
                     for (GcUserVideoAction va : videoActioList) {
-                        if (va.getType() == TableConstant.gcUserVideoAction_type_like1) isLiked = 1;
-                        if (va.getType() == TableConstant.gcUserVideoAction_type_rate2)
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_like1) {
+                            isLiked = 1;
+                        }
+                        if (va.getType() == TableConstant.gcUserVideoAction_type_rate2) {
                             rateVideoAction = va;
+                        }
                     }
                     jsonVideoObject.put("isLiked", isLiked);
                     jsonVideoObject.put("rateVideoAction", rateVideoAction);
@@ -165,16 +241,16 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                     // 我的评论，待删除
                     List<GcVideoComment> myComment = this.getMyVideoCommentByVideoIds(videoIds, user.getId());
                     List<GcVideoComment> commentList =
-                            myComment.stream()
-                                    .filter(mc -> mc.getVideoId().equals(video.getId()))
-                                    .collect(Collectors.toList());
+                        myComment.stream()
+                            .filter(mc -> mc.getVideoId().equals(video.getId()))
+                            .collect(Collectors.toList());
                     jsonVideoObject.put("commentList", commentList);
 
                     // 添加问题列表
                     List<GcEvent> thisEventList =
-                            allEvent.stream()
-                                    .filter(ae -> ae.getVideoId().equals(video.getId()))
-                                    .collect(Collectors.toList());
+                        allEvent.stream()
+                            .filter(ae -> ae.getVideoId().equals(video.getId()))
+                            .collect(Collectors.toList());
                     jsonVideoObject.put("eventList", thisEventList);
                     // 添加资源列表
                     jsonVideoObject.put("resourceList", resourceService.getResByVid(video.getId()));
@@ -182,8 +258,9 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
                     List<GcVideoComment> allCommentList = this.getAllCommentByVideoId(video.getId(), 5);
                     for (GcVideoComment videoComment : allCommentList) {
                         SysFile userFile = videoComment.getUserAvatarFile();
-                        if (userFile != null)
+                        if (userFile != null) {
                             videoComment.setUserAvatarUrl(fileService.getResFullUrl(userFile, request));
+                        }
                         SysFile commentFile = videoComment.getCommentFile();
                         if (commentFile != null) {
                             fileService.getResFullUrl(commentFile, request);

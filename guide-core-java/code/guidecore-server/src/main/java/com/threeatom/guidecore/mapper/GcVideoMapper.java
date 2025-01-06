@@ -29,15 +29,15 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> getVideoIdListBySubId0(List<Integer> subId);
 
     List<GcVideo> getVideoIdListByPermissionId(
-            @Param("accessPermissionId") List<Integer> accessPermissionId);
+        @Param("accessPermissionId") List<Integer> accessPermissionId);
 
     List<GcVideo> getVideoListByUserIdsAndSubjectId(
-            @Param("userIdList") List<Integer> userIdList,
-            @Param("subjectId") Integer subjectId,
-            @Param("masterId") Integer masterId);
+        @Param("userIdList") List<Integer> userIdList,
+        @Param("subjectId") Integer subjectId,
+        @Param("masterId") Integer masterId);
 
     List<GcVideo> selectVideosBySubIdsAndVideoName(
-            @Param("subIds") List<Integer> subIds, @Param("videoName") String videoName);
+        @Param("subIds") List<Integer> subIds, @Param("videoName") String videoName);
 
     List<GcVideo> selectVideoListBySubId(Integer subId);
 
@@ -64,19 +64,19 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     Integer countVideoNameInSub0(GcVideo v);
 
     Long sumVideoLongByIdUser(
-            @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
+        @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
     Long sumVideoLong(@Param("videoIds") List<Integer> videoIds);
 
     List<videoLongVo> sumVideoLongBySubId(@Param("subIds") List<Integer> subIds);
 
     Long sumPlayVideoLongByIdUser(
-            @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
+        @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
     List<GcVideo> searchVideo(Map<String, Object> params);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
-            String videoNameIndex, String subNameIndex, Integer masterId);
+        String videoNameIndex, String subNameIndex, Integer masterId);
 
     Integer countVideosBySubId(@Param("ids") List<Integer> ids);
 
@@ -93,19 +93,19 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> getVideoLongListByVideoId(@Param("videoIds") List<Integer> videoIds);
 
     Integer countVideoNumInPortal(
-            @Param("masterId") Integer masterId,
-            @Param("type") Integer type,
-            @Param("state") Integer state,
-            @Param("subIds") List<Integer> subIds,
-            @Param("managerId") Integer managerId);
+        @Param("masterId") Integer masterId,
+        @Param("type") Integer type,
+        @Param("state") Integer state,
+        @Param("subIds") List<Integer> subIds,
+        @Param("managerId") Integer managerId);
 
     List<GcVideo> getSysFileByIdsOrVideos(
-            @Param("fileList") List<Integer> fileList, @Param("videoList") List<Integer> videoList);
+        @Param("fileList") List<Integer> fileList, @Param("videoList") List<Integer> videoList);
 
     List<Integer> getIdsBySubIds(@Param("subIds") List<Integer> subIds);
 
     List<GcVideo> selectVideoPlayListBySubId(
-            @Param("subId") Integer subId, @Param("userId") Integer userId);
+        @Param("subId") Integer subId, @Param("userId") Integer userId);
 
     GcVideo selectVideoPlayByVideo(@Param("video") Integer video, @Param("userId") Integer userId);
 
@@ -131,4 +131,9 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
         @Param("portalUser") PortalUser portalUser, @Param("cursor") CursorDto cursor);
 
     Integer countLatestUserSubscribedPlaylistVideos(@Param("portalUser") PortalUser portalUser);
+
+    List<GcVideo> findLatestChannelVideos(@Param("channelId") Integer channelId);
+
+    List<GcVideo> findSubscribedLatestChannelVideos(@Param("userId") Integer userId,
+                                                    @Param("masterId") Integer masterId);
 }

@@ -50,13 +50,6 @@ spring:
                 wall:
                     config:
                         multi-statement-allow: true
-       
-aws:
-  durationSeconds: 900
-  region: ${AWS_S3_REGION}
-  roleArn: ${AWS_IAM_ROLE}
-  roleSessionName: ${AWS_ROLE_SESSION_NAME}
-  bucketName: ${AWS_S3_BUCKET}
 
 #powtoon config
 oauthToken: /api/v1.0/oauth/token

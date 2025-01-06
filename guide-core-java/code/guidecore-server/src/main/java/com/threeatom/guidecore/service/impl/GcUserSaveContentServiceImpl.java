@@ -6,16 +6,13 @@ import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.mapper.GcUserSaveContentMapper;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GcUserSaveContentServiceImpl
-        extends ServiceImpl<GcUserSaveContentMapper, GcUserSaveContent>
-        implements GcUserSaveContentService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcUserSaveContentServiceImpl.class);
+    extends ServiceImpl<GcUserSaveContentMapper, GcUserSaveContent>
+    implements GcUserSaveContentService {
 
     @Override
     public Integer countSaveContent(GcUserSaveContent gcUserSaveContent) {
@@ -74,9 +71,14 @@ public class GcUserSaveContentServiceImpl
     }
 
     @Override
-    public List<GcUserSaveContent> selectContetnByFolderId(Integer folderId) {
-        QueryWrapper<GcUserSaveContent> queryWrapper = new QueryWrapper<GcUserSaveContent>();
+    public List<GcUserSaveContent> selectContentByPlaylistId(Integer folderId) {
+        QueryWrapper<GcUserSaveContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("folder_id", folderId);
         return this.list(queryWrapper);
+    }
+
+    @Override
+    public Optional<GcUserSaveContent> getPlaylistVideoContent(Integer playlistId, Integer videoId) {
+        return Optional.ofNullable(baseMapper.getByPlaylistIdAndVideoId(playlistId, videoId));
     }
 }

@@ -2,6 +2,105 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.threeatom.guidecore.mapper.GcUserSaveContentMapper">
+
+    <resultMap id="baseResultMap" type="GcUserSaveContent">
+        <id property="id" column="id"/>
+        <result property="folderId" column="folder_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="contentId" column="content_id"/>
+        <result property="masterId" column="master_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+
+        <association property="playlist" column="folder_id" javaType="GcUserSaveFolder" columnPrefix="playlist_">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+            <result property="userId" column="user_id"/>
+            <result property="state" column="state"/>
+            <result property="fileId" column="file_id"/>
+            <result property="masterId" column="master_id"/>
+            <result property="updateTime" column="update_time"/>
+            <result property="isPrivate" column="is_private"/>
+            <result property="createTime" column="create_time"/>
+
+            <association property="user" column="user_id" columnPrefix="user_" resultMap="userResultMap"/>
+        </association>
+
+        <association property="video" column="content_id" javaType="GcVideo" columnPrefix="video_">
+            <id property="id" column="id"/>
+            <result property="videoName" column="name"/>
+            <result property="videoNameIndex" column="name_index"/>
+            <result property="videoTime" column="video_time"/>
+            <result property="fileId" column="file_id"/>
+            <result property="videoDesc" column="desc"/>
+            <result property="videoSource" column="source"/>
+            <result property="thumbnailUrl" column="thumbnail_url"/>
+            <result property="originCourseId" column="origin_course_id"/>
+            <result property="originChannelId" column="origin_channel_id"/>
+            <result property="commentNum" column="comments_count"/>
+            <result property="userId" column="user_id"/>
+            <result property="createTime" column="create_time"/>
+            <result property="updateTime" column="update_time"/>
+
+            <association property="videoFile" column="file_id" javaType="SysFile" columnPrefix="file_" resultMap="fileResultMap" />
+            <association property="originChannel" resultMap="channelResultMap" columnPrefix="channel_" />
+            <association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
+        </association>
+    </resultMap>
+
+    <resultMap id="fileResultMap" type="SysFile">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="saveType" column="save_type"/>
+        <result property="fileType" column="file_type"/>
+        <result property="videoLong" column="video_long"/>
+        <result property="fileTypeIndex" column="file_type_index"/>
+        <result property="snapshotUrl" column="thumb_nail_url"/>
+        <result property="thumbNailId" column="thumb_nail_id"/>
+        <result property="thumbNailUrl" column="thumb_nail_url"/>
+    </resultMap>
+
+    <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
+        <id property="id" column="id"/>
+        <id property="channelName" column="name"/>
+        <id property="desc" column="desc"/>
+
+        <result property="visibleFlag" column="visible_flag"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="channelAvatarFileId" column="avatar_file_id"/>
+        <association property="avatarFile" resultMap="fileResultMap" columnPrefix="avatar_file_"/>
+        <association property="createUser" resultMap="userResultMap" columnPrefix="user_"/>
+    </resultMap>
+
+    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+        <id property="id" column="id"/>
+
+        <result property="availableType" column="available_type"/>
+        <result property="state" column="state"/>
+        <result property="name" column="name"/>
+        <result property="createUser" column="create_user"/>
+        <result property="subImgId" column="img_id"/>
+
+        <association property="subImgFile" resultMap="fileResultMap" columnPrefix="avatar_file_"/>
+        <association property="user" resultMap="userResultMap" columnPrefix="user_"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="infoId" column="info_id"/>
+        <result property="username" column="username"/>
+
+        <association property="info" column="info_id" javaType="GcUserInfo" columnPrefix="info_" >
+            <id property="id" column="id"/>
+            <result property="lastName" column="last_name"/>
+            <result property="firstName" column="fist_name"/>
+            <result property="avatarFileId" column="avatar_file_id"/>
+
+            <association property="avatarFile" column="avatar_file_id" javaType="SysFile" columnPrefix="avatar_file_" resultMap="fileResultMap" />
+        </association>
+    </resultMap>
+
     <select id="getTwoSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u
@@ -83,6 +182,128 @@
         from gc_user_save_content gusc
             JOIN gc_video gv ON gv.id = gusc.content_id AND gv.file_id = #{fileId}
         where gusc.master_id = #{masterId}
+    </select>
+
+    <select id="getByPlaylistIdAndVideoId" resultMap="baseResultMap">
+        select playlist_content.id, playlist_content.folder_id, playlist_content.user_id, playlist_content.content_id, playlist_content.master_id, playlist_content.create_time, playlist_content.update_time,
+               playlist.id                         as playlist_id,
+               playlist.name                       as playlist_name,
+               playlist.user_id                    as playlist_user_id,
+               playlist.state                      as playlist_state,
+               playlist.master_id                  as playlist_master_id,
+               playlist.update_time                as playlist_update_time,
+               playlist.create_time                as playlist_create_time,
+               playlist.is_private                 as playlist_is_private,
+               playlist_user.id                    as playlist_user_id,
+               playlist_user.username              as playlist_user_username,
+               playlist_user_info.id               as playlist_user_info_id,
+               playlist_user_info.last_name        as playlist_user_info_last_name,
+               playlist_user_info.first_name       as playlist_user_info_fist_name,
+               playlist_user_info.avatar_file_id   as playlist_user_info_avatar_file_id,
+               playlist_user_avatar_file.id        as playlist_user_info_avatar_file_id,
+               playlist_user_avatar_file.name      as playlist_user_info_avatar_file_name,
+               playlist_user_avatar_file.file_url  as playlist_user_info_avatar_file_file_url,
+               playlist_user_avatar_file.save_type as playlist_user_info_avatar_file_save_type,
+               video.id                            as video_id,
+               video.video_name                    as video_name,
+               video.video_name_index              as video_name_index,
+               video.video_time                    as video_video_time,
+               video.file_id                       as video_file_id,
+               video.video_desc                    as video_desc,
+               video.video_source                  as video_source,
+               video.thumbnail_url                 as video_thumbnail_url,
+               video.origin_course_id              as video_origin_course_id,
+               video.origin_channel_id             as video_origin_channel_id,
+               video_file.id                       as video_file_id,
+               video_file.name                     as video_file_name,
+               video_file.file_url                 as video_file_file_url,
+               video_file.save_type                as video_file_save_type,
+               video_file.file_type                as video_file_file_type,
+               video_file.video_long               as video_file_video_long,
+               video_file.file_type_index          as video_file_file_type_index,
+               video_file.thumb_nail_id            as video_file_thumb_nail_id,
+               video_file.thumb_nail_url           as video_file_thumb_nail_url,
+               video.create_time                   as video_create_time,
+               video.update_time                   as video_update_time,
+               (CASE WHEN video.origin_course_id IS NOT NULL THEN course.create_user ELSE channel.create_user_id END) as video_user_id,
+               (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) as video_comments_count,
+
+               course.id                           as video_course_id,
+               course.available_type               as video_course_available_type,
+               course.state                        as video_course_state,
+               course.name                         as video_course_name,
+               course.create_user                  as video_course_create_user,
+               course.sub_img_id                   as video_course_img_id,
+               course.create_time                  as video_course_create_time,
+               course.update_time                  as video_course_update_time,
+               course_owner.id                     as video_course_user_id,
+               course_owner.username               as video_course_user_username,
+               course_owner_info.id                as video_course_user_info_id,
+               course_owner_info.last_name         as video_course_user_info_last_name,
+               course_owner_info.first_name        as video_course_user_info_fist_name,
+               course_owner_info.avatar_file_id    as video_course_user_info_avatar_file_id,
+               course_owner_avatar_file.id         as video_course_user_info_avatar_file_id,
+               course_owner_avatar_file.name       as video_course_user_info_avatar_file_name,
+               course_owner_avatar_file.file_url   as video_course_user_info_avatar_file_file_url,
+               course_owner_avatar_file.save_type  as video_course_user_info_avatar_file_save_type,
+               course_avatar_file.id                       as video_course_avatar_file_id,
+               course_avatar_file.name                     as video_course_avatar_file_name,
+               course_avatar_file.file_url                 as video_course_avatar_file_file_url,
+               course_avatar_file.save_type                as video_course_avatar_file_save_type,
+               course_avatar_file.file_type                as video_course_avatar_file_file_type,
+               course_avatar_file.video_long               as video_course_avatar_file_video_long,
+               course_avatar_file.file_type_index          as video_course_avatar_file_file_type_index,
+               course_avatar_file.thumb_nail_id            as video_course_avatar_file_thumb_nail_id,
+               course_avatar_file.thumb_nail_url           as video_course_avatar_file_thumb_nail_url,
+
+               channel.id                          as video_channel_id,
+               channel.visible_flag                as video_channel_visible_flag,
+               channel.create_user_id              as video_channel_create_user_id,
+               channel.channel_name                as video_channel_name,
+               channel.desc                        as video_channel_desc,
+               channel.channel_avatar_file_id      as video_channel_avatar_file_id,
+               channel.create_time                 as video_channel_create_time,
+               channel.update_time                 as video_channel_update_time,
+               channel_owner.id                    as video_channel_user_id,
+               channel_owner.username              as video_channel_user_username,
+               channel_owner_info.id               as video_channel_user_info_id,
+               channel_owner_info.last_name        as video_channel_user_info_last_name,
+               channel_owner_info.first_name       as video_channel_user_info_fist_name,
+               channel_owner_avatar_file.id        as video_channel_user_info_avatar_file_id,
+               channel_owner_avatar_file.name      as video_channel_user_info_avatar_file_name,
+               channel_owner_avatar_file.file_url  as video_channel_user_info_avatar_file_file_url,
+               channel_owner_avatar_file.save_type as video_channel_user_info_avatar_file_save_type,
+               channel_avatar_file.id                       as video_channel_avatar_file_id,
+               channel_avatar_file.name                     as video_channel_avatar_file_name,
+               channel_avatar_file.file_url                 as video_channel_avatar_file_file_url,
+               channel_avatar_file.save_type                as video_channel_avatar_file_save_type,
+               channel_avatar_file.file_type                as video_channel_avatar_file_file_type,
+               channel_avatar_file.video_long               as video_channel_avatar_file_video_long,
+               channel_avatar_file.file_type_index          as video_channel_avatar_file_file_type_index,
+               channel_avatar_file.thumb_nail_id            as video_channel_avatar_file_thumb_nail_id,
+               channel_avatar_file.thumb_nail_url           as video_channel_avatar_file_thumb_nail_url
+        from gc_user_save_content playlist_content
+                 JOIN gc_user_save_folder playlist ON playlist.id = playlist_content.folder_id
+                 JOIN gc_user playlist_user ON playlist.user_id = playlist_user.id
+                 LEFT JOIN gc_user_info playlist_user_info ON playlist_user.info_id = playlist_user_info.id
+                 LEFT JOIN sys_file playlist_user_avatar_file
+                           ON playlist_user_info.avatar_file_id = playlist_user_avatar_file.id
+                 JOIN gc_video video ON video.id = playlist_content.content_id
+                 JOIN sys_file video_file ON video.file_id = video_file.id
+
+                 LEFT JOIN gc_subject course on course.id = video.origin_course_id
+                 LEFT JOIN sys_file course_avatar_file on course.sub_img_id = course_avatar_file.id
+                 LEFT JOIN gc_user course_owner on course.create_user = course_owner.id
+                 LEFT JOIN gc_user_info course_owner_info on course_owner.info_id = course_owner_info.id
+                 LEFT JOIN sys_file course_owner_avatar_file on course_owner_info.avatar_file_id = course_owner_avatar_file.id
+
+                 LEFT JOIN pt_channel channel on channel.id = video.origin_channel_id
+                 LEFT JOIN sys_file channel_avatar_file on channel.channel_avatar_file_id = channel_avatar_file.id
+                 LEFT JOIN gc_user channel_owner on channel.create_user_id = channel_owner.id
+                 LEFT JOIN gc_user_info channel_owner_info on channel_owner.info_id = channel_owner_info.id
+                 LEFT JOIN sys_file channel_owner_avatar_file
+                           on channel_owner_info.avatar_file_id = channel_owner_avatar_file.id
+        where playlist_content.content_id = #{contentId} AND playlist_content.folder_id = #{playlistId};
     </select>
 
     <select id="deleteFileList" resultType="java.lang.Integer">

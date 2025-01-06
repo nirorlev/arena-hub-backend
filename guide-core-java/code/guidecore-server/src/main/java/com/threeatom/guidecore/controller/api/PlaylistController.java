@@ -3,7 +3,8 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
-import com.threeatom.guidecore.dto.response.VideoWithDetailsDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,7 +68,7 @@ public class PlaylistController {
     }
 
     @GetMapping("/videos/latest")
-    public ResponseEntity<PageableDto<VideoWithDetailsDto>> playlistsLatestVideos(
+    public ResponseEntity<PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>>> playlistsLatestVideos(
         @RequestParam(required = false) String pageAfter,
         @RequestParam(required = false, defaultValue = "20") Integer pageSize,
         HttpServletRequest request) {
@@ -75,7 +77,21 @@ public class PlaylistController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+        return ResponseEntity.ok(
+            playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+    }
+
+    @GetMapping("{playlistId}/videos/{videoId}/player-page")
+    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> playlistsLatestVideos(
+        @PathVariable("playlistId") Integer playlistId, @PathVariable("videoId") Integer videoId,
+        HttpServletRequest request) {
+
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(
+            playlistService.playerPageVideo(playlistId, videoId, portalUser));
     }
 
 }
