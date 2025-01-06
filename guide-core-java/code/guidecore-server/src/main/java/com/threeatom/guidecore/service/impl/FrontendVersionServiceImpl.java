@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.utils.FileUtil;
@@ -50,8 +51,9 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
         log.info("Latest version from S3 for: {} is: {}", fileUrl, content);
 
         if (StringUtils.isBlank(content)) {
-            log.warn("Failed to find latest version from S3 for: {}", versionFolder);
-            return null;
+            String errorMessage = "Failed to find latest version from S3 for: " + versionFolder;
+            log.error(errorMessage);
+            throw new SystemException(errorMessage);
         }
 
         return content.split("\n")[0].trim();
