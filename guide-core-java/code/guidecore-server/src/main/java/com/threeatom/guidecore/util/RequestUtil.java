@@ -57,4 +57,8 @@ public class RequestUtil {
 
         return getCookieValue(request, REQUESTED_FRONTEND_VERSION_NAME).orElse(null);
     }
+
+    public static String getCurrentHost(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName();
+    }
 }

@@ -991,24 +991,14 @@ public class HomeInfoController extends GuideCoreController {
 
         }
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
-        String frontendVersion = getRequestedFrontendVersion(request, response);
+        String frontendVersion = frontendVersionService.getVersion(
+            RequestUtil.getRequestedFrontendVersion(request, response), RequestUtil.getCurrentHost(request));
         try {
             PrintWriter printWriter = response.getWriter();
             printWriter.write(homeInfoContent(frontendVersion, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            String requestedVersion = RequestUtil.getRequestedFrontendVersion(request, response);
-            Integer masterId = RequestUtil.getMasterId(request).orElse(null);
-            return frontendVersionService.getVersion(requestedVersion, masterId);
-        } catch (Exception e) {
-            log.error("Error getting frontend version", e);
-            return null;
         }
     }
 
