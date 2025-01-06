@@ -6,16 +6,20 @@ import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.PowtoonClient;
+import com.threeatom.client.dto.GroupDto;
+import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.client.dto.ProfileDto;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
+import com.threeatom.guidecore.entity.Group;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.mapper.GcUserMapper;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -23,8 +27,11 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GroupService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.UserAvatarService;
+import com.threeatom.guidecore.service.UserGroupService;
+import com.threeatom.guidecore.service.UserManagedGroupService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -58,6 +65,9 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private final GcSubjectService gcSubjectService;
     private final PortalUserService portalUserService;
     private final UserAvatarService userAvatarService;
+    private final UserGroupService userGroupService;
+    private final UserManagedGroupService userManagedGroupService;
+    private final GroupService groupService;
 
     @Override
     public GcUser getUserInfo(Integer userId) {
@@ -220,10 +230,20 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
         user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);
 
-        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, masterId, user.getId());
+        List<Group> arenaGroups = groupService.syncGroups(groups.getResults(), user.getId(), masterId);
+        List<Groups> powtoonMemberGroups = getGroups(groups.getResults(), powtoonUserInfo.getPermissions().getGroups());
+
+        userGroupService.syncUserGroups(powtoonMemberGroups, arenaGroups, user.getId());
+        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, arenaGroups, masterId, user.getId());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
 
         return user;
+    }
+
+    private List<Groups> getGroups(List<Groups> allPowtoonGroups, List<GroupDto> powtoonUserGroups) {
+        return allPowtoonGroups.stream()
+            .filter(group -> powtoonUserGroups.stream().anyMatch(userGroup -> userGroup.getId().equals(group.getId())))
+            .collect(Collectors.toList());
     }
 
     private GcUser saveOrUpdateUser(GcUser user, PowtoonUserDto powtoonUserInfo, GcAccess studentAccess,

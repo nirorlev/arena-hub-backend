@@ -236,15 +236,6 @@
 		</if>
 	</select>
 
-	<select id="listContentGroups" resultMap="baseResultMap">
-		select *
-		from gc_access content_group
-				 join gc_user_access user_content_group on content_group.id = user_content_group.access_id
-		where user_content_group.master_id = #{masterId}
-		  and content_group.group_name is not null
-		  and user_content_group.user_id = #{userId}
-	</select>
-
 	<select id="selectAccessByCodeAndMasterId" resultMap="baseResultMap">
 		select * from gc_access
 		where master_id = #{masterId}

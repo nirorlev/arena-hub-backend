@@ -16,8 +16,6 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
-import com.threeatom.guidecore.dto.response.ContentGroupsDto;
-import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
@@ -48,16 +46,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
-        implements GcAccessService {
+    implements GcAccessService {
 
-    @Autowired GcUserAccessService userAccessService;
+    @Autowired
+    GcUserAccessService userAccessService;
 
-    @Autowired private GcMasterService gcMasterService;
-    @Autowired private GcUserInfoService gcUserInfoService;
-    @Autowired @Lazy private GcUserService gcUserService;
-    @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-    @Autowired private PtChannelSubscribeService ptChannelSubscribeService;
-    @Autowired private ContentGroupMapping contentGroupMapping;
+    @Autowired
+    private GcMasterService gcMasterService;
+    @Autowired
+    private GcUserInfoService gcUserInfoService;
+    @Autowired
+    @Lazy
+    private GcUserService gcUserService;
+    @Autowired
+    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    @Autowired
+    private PtChannelSubscribeService ptChannelSubscribeService;
+    @Autowired
+    private ContentGroupMapping contentGroupMapping;
 
     @Override
     public List<GcAccess> getAccessByMasterIdAndCode(GcAccess access) {
@@ -146,7 +152,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             queryWrapper.eq("access_id", access.getId());
             List<GcUserAccess> list = userAccessService.list(queryWrapper);
             List<Integer> userAccessIds =
-                    list.stream().map(GcUserAccess::getId).collect(Collectors.toList());
+                list.stream().map(GcUserAccess::getId).collect(Collectors.toList());
             if (!userAccessIds.isEmpty()) {
                 userAccessService.updateUserAccessPermission(userAccessIds, access);
             }
@@ -187,26 +193,29 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getTeamAccessList(
-            String name, Integer masterId, Integer userId, HttpServletRequest request) {
+        String name, Integer masterId, Integer userId, HttpServletRequest request) {
         return this.baseMapper.getTeamAccessList(name, masterId, userId);
     }
 
     public List<GcAccess> getTeamAccessSubjectNumAdminList(
-            String name,
-            Integer masterId,
-            Integer userId,
-            List<Integer> privateCourseIds,
-            List<Integer> publicCourseIds,
-            List<Integer> subIds) {
+        String name,
+        Integer masterId,
+        Integer userId,
+        List<Integer> privateCourseIds,
+        List<Integer> publicCourseIds,
+        List<Integer> subIds) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumAdminList(name, masterId, userId);
 
         for (GcAccess access : list) {
-            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> mustAssignedCourses =
+                contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses =
+                contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
 
             int coursesNum = access.getSubjectNum() + publicCourseIds.size();
             long coursesCountToExclude = Stream.concat(privateCourseIds.stream(), publicCourseIds.stream())
-                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .filter(
+                    courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
                 .count();
 
             access.setSubjectNum((int) (coursesNum - coursesCountToExclude));
@@ -216,17 +225,20 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getTeamAccessSubjectNumList(
-            String name,
-            Integer masterId,
-            Integer userId,
-            List<Integer> subIds,
-            HttpServletRequest request) {
+        String name,
+        Integer masterId,
+        Integer userId,
+        List<Integer> subIds,
+        HttpServletRequest request) {
         List<GcAccess> list = this.baseMapper.getTeamAccessSubjectNumList(name, masterId, userId);
         for (GcAccess access : list) {
-            List<Integer> mustAssignedCourses = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> optionalAssignedCourses = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> mustAssignedCourses =
+                contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
+            List<Integer> optionalAssignedCourses =
+                contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
             long coursesCountToExclude = subIds.stream()
-                .filter(courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
+                .filter(
+                    courseId -> mustAssignedCourses.contains(courseId) || optionalAssignedCourses.contains(courseId))
                 .count();
 
             access.setSubjectNum((int) (access.getSubjectNum() - coursesCountToExclude));
@@ -244,7 +256,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     @Transactional
     public void syncContentGroupsWithPowtoonGroups(
-        PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId) {
+        PowtoonUserDto powtoonUser, PtGroupsVo groups, List<Group> arenaGroups, Integer masterId, Integer userId) {
         List<GroupDto> memberGroups = powtoonUser.getPermissions().getGroups();
         List<ManagedGroupDto> managedGroups = powtoonUser.getPermissions().getManagedGroups();
 
@@ -254,8 +266,10 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
         allGroupCodes.addAll(managedGroupCodes);
 
-        List<GcAccess> memberContentGroups = createOrUpdateMemberContentGroups(allGroupCodes, masterId, memberGroups);
-        List<GcAccess> managedContentGroups = saveOrUpdateManagedContentGroups(allGroupCodes, masterId, managedGroups);
+        List<GcAccess> memberContentGroups =
+            createOrUpdateMemberContentGroups(allGroupCodes, masterId, arenaGroups, memberGroups);
+        List<GcAccess> managedContentGroups =
+            saveOrUpdateManagedContentGroups(allGroupCodes, masterId, arenaGroups, managedGroups);
         List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups, masterId);
         List<GcAccess> dbContentGroups = this.list();
 
@@ -264,32 +278,10 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, allGroupCodes, userId, masterId);
     }
 
-    @Override
-    public ContentGroupsDto userContentGroups(Integer userId, Integer masterId) {
-        List<GcAccess> contentGroups = baseMapper.listContentGroups(masterId, userId);
-        List<GcAccess> managedContentGroups =
-            filterContentGroups(contentGroups, List.of(UserGroupRole.ORG_ADMIN, UserGroupRole.GROUP_ADMIN));
-        List<GcAccess> memberContentGroups = filterContentGroups(contentGroups, List.of(UserGroupRole.GROUP_MEMBER));
-
-        return ContentGroupsDto.builder()
-            .managedGroups(contentGroupMapping.mapManagedGroups(managedContentGroups))
-            .groups(contentGroupMapping.mapGroups(memberContentGroups))
-            .build();
-    }
-
-    private List<GcAccess> filterContentGroups(List<GcAccess> contentGroups, List<UserGroupRole> roles) {
-        return contentGroups.stream()
-            .filter(contentGroup -> {
-                List<String> contentGroupRoles = contentGroup.getRoleJson().toJavaList(String.class);
-                return roles.stream().anyMatch(role -> contentGroupRoles.contains(role.getRole()));
-            })
-            .collect(Collectors.toList());
-    }
-
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("code",code);
-        queryWrapper.eq("role_type",roleType);
+        queryWrapper.eq("code", code);
+        queryWrapper.eq("role_type", roleType);
         queryWrapper.eq("master_id", masterId);
         return getOne(queryWrapper);
     }
@@ -297,7 +289,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     private List<GcAccess> listToTree(List<GcAccess> gcAccessList) {
         List<GcAccess> newAccessList = new ArrayList<>();
         Map<String, GcAccess> gcAccessMap =
-                gcAccessList.stream().collect(Collectors.toMap(GcAccess::getCode, (p) -> p));
+            gcAccessList.stream().collect(Collectors.toMap(GcAccess::getCode, (p) -> p));
 
         for (GcAccess access : gcAccessList) {
             if (null == access.getParentCode() || null == gcAccessMap.get(access.getParentCode())) {
@@ -395,16 +387,18 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Transactional
     @Override
     public Message checkUserAccess(
-            Integer masterId,
-            Integer userId,
-            String accessCode,
-            Integer inviteUserId,
-            GcUser user,
-            HttpServletRequest request) {
+        Integer masterId,
+        Integer userId,
+        String accessCode,
+        Integer inviteUserId,
+        GcUser user,
+        HttpServletRequest request) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<GcAccess>();
         queryWrapper.eq("master_id", masterId).eq("code", accessCode);
         GcAccess access = this.getOne(queryWrapper);
-        if (access == null) throw new SystemException(I18NUtil.get("guidecore.master.codeError"));
+        if (access == null) {
+            throw new SystemException(I18NUtil.get("guidecore.master.codeError"));
+        }
 
         QueryWrapper<GcUserAccess> queryWrapper2 = new QueryWrapper<GcUserAccess>();
         queryWrapper2.eq("master_id", masterId).eq("user_id", userId).eq("access_id", access.getId());
@@ -425,14 +419,14 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                 // gcMaster.getContext();
                 String email = user.getUsername();
                 List<String> emailList =
-                        JSONObject.parseArray(gcMaster.getEmailCc().toJSONString(), String.class);
+                    JSONObject.parseArray(gcMaster.getEmailCc().toJSONString(), String.class);
                 emailList.add(email);
             }
             message.addData("ifNewMaster", true);
         }
         if (inviteUserId != null && inviteUserId != 0) {
             GcUserAccess inviteUserAccess =
-                    userAccessService.getUserAccessByMasterIdAndUserId(masterId, inviteUserId);
+                userAccessService.getUserAccessByMasterIdAndUserId(masterId, inviteUserId);
         }
 
         return message.addData("access", access).addData("userAccess", userAccess);
@@ -473,7 +467,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> getAllPackage(
-            Integer masterId, PageParam pageParam, List<Integer> packageIdList, List<Integer> idList) {
+        Integer masterId, PageParam pageParam, List<Integer> packageIdList, List<Integer> idList) {
         Map<String, Object> map = new HashMap<>();
         Message message = new Message();
         Integer showFlag = TableConstant.COMMON_ZERO;
@@ -487,7 +481,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     private List<GcAccess> createOrUpdateMemberContentGroups(
-        List<String> groupCodes, Integer masterId, List<GroupDto> powtoonGroups) {
+        List<String> groupCodes, Integer masterId, List<Group> arenaGroups, List<GroupDto> powtoonGroups) {
+        Map<String, Group> powtoonGroupIdToArenaGroup = getPowtoonGroupIdToArenaGroups(arenaGroups);
 
         List<GcAccess> contentGroups = selectAccessByCodeAndMasterId(groupCodes, masterId);
         Map<String, GcAccess> codeToContentGroup = getCodeToContentGroup(contentGroups);
@@ -499,7 +494,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                 contentGroup = codeToContentGroup.get(group.getId());
                 contentGroup.setGroupName(group.getTitle());
             } else {
-                contentGroup = createMemberContentGroup(masterId, group.getId(), group.getTitle());
+                contentGroup =
+                    createMemberContentGroup(masterId, powtoonGroupIdToArenaGroup.get(group.getId()), group.getTitle());
             }
 
             contentGroup.setRoleJson(
@@ -516,8 +512,14 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return memberContentGroups;
     }
 
+    private Map<String, Group> getPowtoonGroupIdToArenaGroups(List<Group> arenaGroups) {
+        return arenaGroups.stream()
+            .collect(Collectors.toMap(Group::getPowtoonGroupId, Function.identity()));
+    }
+
     private List<GcAccess> saveOrUpdateManagedContentGroups(
-        List<String> groupCodes, Integer masterId, List<ManagedGroupDto> managedGroups) {
+        List<String> groupCodes, Integer masterId, List<Group> arenaGroups, List<ManagedGroupDto> managedGroups) {
+        Map<String, Group> powtoonGroupIdToArenaGroup = getPowtoonGroupIdToArenaGroups(arenaGroups);
 
         List<GcAccess> managedContentGroups = new ArrayList<>();
         List<GcAccess> contentGroups = selectAccessByCodeAndMasterId(groupCodes, masterId);
@@ -536,7 +538,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                         JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
                 }
             } else {
-                access = createManagerContentGroup(masterId, managedGroup.getId(), managedGroup.getTitle());
+                access = createManagerContentGroup(masterId, powtoonGroupIdToArenaGroup.get(managedGroup.getId()),
+                    managedGroup.getTitle());
             }
 
             managedContentGroups.add(access);
@@ -563,23 +566,25 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return selectAccessByCodeAndMasterId(getContentGroupCodes(allContentGroups), masterId);
     }
 
-    private GcAccess createManagerContentGroup(Integer masterId, String groupcode, String groupTitle) {
-        GcAccess contentGroup = createContentGroup(masterId, groupcode, groupTitle);
+    private GcAccess createManagerContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
+        GcAccess contentGroup = createContentGroup(masterId, arenaGroup, groupTitle);
         contentGroup.setChannelJson(new JSONArray());
-        contentGroup.setRoleJson(JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
+        contentGroup.setRoleJson(
+            JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
         return contentGroup;
     }
 
-    private GcAccess createMemberContentGroup(Integer masterId, String groupCode, String groupTitle) {
-        GcAccess contentGroup = createContentGroup(masterId, groupCode, groupTitle);
+    private GcAccess createMemberContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
+        GcAccess contentGroup = createContentGroup(masterId, arenaGroup, groupTitle);
         contentGroup.setSubscribeJson(new JSONArray());
         return contentGroup;
     }
 
-    private GcAccess createContentGroup(Integer masterId, String groupCode, String groupTitle) {
+    private GcAccess createContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
         GcAccess contentGroup = new GcAccess();
         contentGroup.setMasterId(masterId);
-        contentGroup.setCode(groupCode);
+        contentGroup.setCode(arenaGroup.getPowtoonGroupId());
+        contentGroup.setGroupId(arenaGroup.getId());
         contentGroup.setGroupName(groupTitle);
         contentGroup.setRoleType(TableConstant.COMMON_ONE);
         contentGroup.setCodeType(TableConstant.COMMON_ZERO);
