@@ -78,7 +78,7 @@ public class PlaylistController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(
-            playlistService.subscribedPlaylistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+            playlistService.findSubscribedPlaylistsLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
     }
 
     @GetMapping("/{playlistId}/videos/latest")
@@ -89,7 +89,7 @@ public class PlaylistController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(playlistService.playlistLatestVideos(portalUser, playlistId));
+        return ResponseEntity.ok(playlistService.findPlaylistLatestVideos(portalUser, playlistId));
     }
 
     @GetMapping("{playlistId}/videos/{videoId}")

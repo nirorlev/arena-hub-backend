@@ -57,11 +57,11 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
 
     PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize);
 
-    PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> subscribedPlaylistLatestVideos(PortalUser portalUser, CursorDto cursor,
-                                                                                          Integer pageSize);
+    PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> findSubscribedPlaylistsLatestVideos(PortalUser portalUser, CursorDto cursor,
+                                                                                               Integer pageSize);
 
     VideoWithSourceDetailsDto<VideoSourceDto> playerPageVideo(Integer playlistId, Integer videoId,
                                                               PortalUser portalUser);
 
-    List<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(PortalUser portalUser, Integer playlistId);
+    List<VideoWithSourceDetailsDto<VideoSourceDto>> findPlaylistLatestVideos(PortalUser portalUser, Integer playlistId);
 }

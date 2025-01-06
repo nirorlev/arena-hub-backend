@@ -799,17 +799,17 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<GcVideo> subscribedPlaylistLatestVideos(PortalUser portalUser, CursorDto cursor) {
+	public List<GcVideo> findSubscribedPlaylistsLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
-			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
+			baseMapper.findLatestUserSubscribedPlaylistsVideos(portalUser, cursor);
 		populateVideoData(latestVideos, portalUser);
 
 		return latestVideos;
 	}
 
 	@Override
-	public List<GcVideo> playlistLatestVideos(Integer playlistId, PortalUser portalUser) {
-		List<GcVideo> latestVideos = baseMapper.playlistLatestVideos(playlistId);
+	public List<GcVideo> findPlaylistLatestVideos(Integer playlistId, PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.findPlaylistLatestVideos(playlistId);
 		populateVideoData(latestVideos, portalUser);
 
 		return latestVideos;

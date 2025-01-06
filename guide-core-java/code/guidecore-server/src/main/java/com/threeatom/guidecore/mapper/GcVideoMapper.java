@@ -127,7 +127,7 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<Integer> getVideoIdsByChannelIds(@Param("channelIds") List<Integer> channelIds);
 
-    List<GcVideo> findLatestUserSubscribedPlaylistVideos(
+    List<GcVideo> findLatestUserSubscribedPlaylistsVideos(
         @Param("portalUser") PortalUser portalUser, @Param("cursor") CursorDto cursor);
 
     Integer countLatestUserSubscribedPlaylistVideos(@Param("portalUser") PortalUser portalUser);
@@ -137,5 +137,5 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> findSubscribedLatestChannelVideos(@Param("userId") Integer userId,
                                                     @Param("masterId") Integer masterId);
 
-    List<GcVideo> playlistLatestVideos(@Param("playlistId") Integer playlistId);
+    List<GcVideo> findPlaylistLatestVideos(@Param("playlistId") Integer playlistId);
 }

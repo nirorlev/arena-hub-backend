@@ -1013,7 +1013,7 @@
             </foreach>
     </select>
 
-    <select id="findLatestUserSubscribedPlaylistVideos" resultMap="baseResultMap">
+    <select id="findLatestUserSubscribedPlaylistsVideos" resultMap="baseResultMap">
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
@@ -1110,7 +1110,7 @@
         WHERE user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId};
     </select>
 
-    <select id="playlistLatestVideos" resultMap="baseResultMap">
+    <select id="findPlaylistLatestVideos" resultMap="baseResultMap">
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
