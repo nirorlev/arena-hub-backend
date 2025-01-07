@@ -330,7 +330,7 @@
 			   <include refid="userColumn"/>
 			   <include refid="videoFileColumn"/>
 		FROM gc_user_save_content_follow playlist_follow
-				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId}
+				 JOIN gc_user_save_folder playlist ON playlist.id = playlist_follow.folder_id AND playlist.master_id = #{portalUser.masterId} AND playlist.is_private = false
 				 JOIN gc_user u ON u.id = playlist.user_id
 		    	 JOIN gc_user_info info ON info.id = u.info_id
 		    	 LEFT JOIN sys_file uf ON uf.id = info.avatar_file_id
