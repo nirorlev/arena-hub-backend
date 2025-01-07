@@ -168,6 +168,65 @@
     	and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
     </sql>
 
+    <sql id="channelColumns">
+        pc.id                         AS channel_id,
+        pc.channel_name               AS channel_channel_name,
+        pc.channel_slug               AS channel_channel_slug,
+        pc.fid                        AS channel_fid,
+        pc.visible_flag               AS channel_visible_flag,
+        pc.channel_avatar_file_id     AS channel_avatar_file_id,
+        pc.create_time                AS channel_create_time,
+        pc.update_time                AS channel_update_time
+    </sql>
+
+    <sql id="channelAvatarFileColumns">
+        channel_avatar.name           AS channel_avatar_file_name,
+        channel_avatar.file_url       AS channel_avatar_file_url,
+        channel_avatar.save_type      AS channel_avatar_file_save_type,
+        channel_avatar.file_type      AS channel_avatar_file_type
+    </sql>
+
+    <sql id="courseColumns">
+        gs.id                         AS course_id,
+        gs.name                       AS course_name,
+        gs.fid                        AS course_fid,
+        gs.state                      AS course_state,
+        gs.available_type             AS course_available_type,
+        gs.sub_img_id                 AS course_img_id,
+        gs.create_time                AS course_create_time,
+        gs.update_time                AS course_update_time
+    </sql>
+
+    <sql id="courseAvatarFileColumns">
+        course_avatar.id              AS course_avatar_file_id,
+        course_avatar.name            AS course_avatar_file_name,
+        course_avatar.file_url        AS course_avatar_file_url,
+        course_avatar.save_type       AS course_avatar_file_save_type,
+        course_avatar.file_type       AS course_avatar_file_type
+    </sql>
+
+    <sql id="courseOwnerColumns">
+        course_owner.id               AS course_user_id,
+        course_owner_info.id          AS course_user_info_id,
+        course_owner_info.first_name  AS course_user_info_first_name,
+        course_owner_info.last_name   AS course_user_info_last_name,
+        course_owner_avatar.id        AS course_user_info_avatar_file_id,
+        course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
+        course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
+        course_owner_avatar.file_type AS course_user_info_avatar_filetype
+    </sql>
+
+    <sql id="channelOwnerColumns">
+        channel_owner.id              AS channel_create_user_id,
+        channel_owner_info.id         AS channel_create_user_info_id,
+        channel_owner_info.first_name AS channel_create_user_info_first_name,
+        channel_owner_info.last_name  AS channel_create_user_info_last_name,
+        channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
+        channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
+        channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
+        channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type
+    </sql>
+
     <select id="getMasterVideoListByFuzzyName" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
@@ -819,46 +878,14 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
-            pc.id                         AS channel_id,
-            pc.channel_name               AS channel_channel_name,
-            pc.channel_slug               AS channel_channel_slug,
-            pc.fid                        AS channel_fid,
-            pc.visible_flag               AS channel_visible_flag,
-            pc.channel_avatar_file_id     AS channel_avatar_file_id,
-            channel_avatar.name           AS channel_avatar_file_name,
-            channel_avatar.file_url       AS channel_avatar_file_url,
-            channel_avatar.save_type      AS channel_avatar_file_save_type,
-            channel_avatar.file_type      AS channel_avatar_file_type,
-
+            <include refid="channelColumns" />,
+            <include refid="channelAvatarFileColumns" />,
             pcc.id                        AS channel_channel_content_id,
-            channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.id         AS channel_create_user_info_id,
-            channel_owner_info.first_name AS channel_create_user_info_first_name,
-            channel_owner_info.last_name  AS channel_create_user_info_last_name,
-            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
-            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
-            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
-            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
-            gs.id                         AS course_id,
-            gs.name                       AS course_name,
-            gs.fid                        AS course_fid,
-            gs.state                      AS course_state,
-            gs.available_type             AS course_available_type,
-            gs.sub_img_id                 AS course_img_id,
-            course_avatar.id              AS course_avatar_file_id,
-            course_avatar.name            AS course_avatar_file_name,
-            course_avatar.file_url        AS course_avatar_file_url,
-            course_avatar.save_type       AS course_avatar_file_save_type,
-            course_avatar.file_type       AS course_avatar_file_type,
+            <include refid="channelOwnerColumns" />,
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
 
-            course_owner.id               AS course_user_id,
-            course_owner_info.id          AS course_user_info_id,
-            course_owner_info.first_name  AS course_user_info_first_name,
-            course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.id        AS course_user_info_avatar_file_id,
-            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
-            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-            course_owner_avatar.file_type AS course_user_info_avatar_filetype
+            <include refid="courseOwnerColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             <if test="!filter.contentGroupIds.empty">
@@ -896,46 +923,15 @@
             <include refid="fileBaseColumn"/>,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num,
-            pc.id                         AS channel_id,
-            pc.channel_name               AS channel_channel_name,
-            pc.channel_slug               AS channel_channel_slug,
-            pc.fid                        AS channel_fid,
-            pc.visible_flag               AS channel_visible_flag,
-            pc.channel_avatar_file_id     AS channel_avatar_file_id,
-            channel_avatar.name           AS channel_avatar_file_name,
-            channel_avatar.file_url       AS channel_avatar_file_url,
-            channel_avatar.save_type      AS channel_avatar_file_save_type,
-            channel_avatar.file_type      AS channel_avatar_file_type,
+            <include refid="channelColumns" />,
+            <include refid="channelAvatarFileColumns" />,
 
             pcc.id                        AS channel_channel_content_id,
-            channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.id         AS channel_create_user_info_id,
-            channel_owner_info.first_name AS channel_create_user_info_first_name,
-            channel_owner_info.last_name  AS channel_create_user_info_last_name,
-            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
-            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
-            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
-            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
-            gs.id                         AS course_id,
-            gs.name                       AS course_name,
-            gs.fid                        AS course_fid,
-            gs.state                      AS course_state,
-            gs.available_type             AS course_available_type,
-            gs.sub_img_id                 AS course_img_id,
-            course_avatar.id              AS course_avatar_file_id,
-            course_avatar.name            AS course_avatar_file_name,
-            course_avatar.file_url        AS course_avatar_file_url,
-            course_avatar.save_type       AS course_avatar_file_save_type,
-            course_avatar.file_type       AS course_avatar_file_type,
+            <include refid="channelOwnerColumns" />,
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
 
-            course_owner.id               AS course_user_id,
-            course_owner_info.id          AS course_user_info_id,
-            course_owner_info.first_name  AS course_user_info_first_name,
-            course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.id        AS course_user_info_avatar_file_id,
-            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
-            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-            course_owner_avatar.file_type AS course_user_info_avatar_filetype
+            <include refid="courseOwnerColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
@@ -976,45 +972,14 @@
             <include refid="fileBaseColumn"/>,
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num,
-            pc.id                         AS channel_id,
-            pc.channel_name               AS channel_channel_name,
-            pc.channel_slug               AS channel_channel_slug,
-            pc.fid                        AS channel_fid,
-            pc.visible_flag               AS channel_visible_flag,
-            pc.channel_avatar_file_id     AS channel_avatar_file_id,
-            channel_avatar.name           AS channel_avatar_file_name,
-            channel_avatar.file_url       AS channel_avatar_file_url,
-            channel_avatar.save_type      AS channel_avatar_file_save_type,
-            channel_avatar.file_type      AS channel_avatar_file_type,
+            <include refid="channelColumns" />,
+            <include refid="channelAvatarFileColumns" />,
 
-            channel_owner.id              AS channel_create_user_id,
-            channel_owner_info.id         AS channel_create_user_info_id,
-            channel_owner_info.first_name AS channel_create_user_info_first_name,
-            channel_owner_info.last_name  AS channel_create_user_info_last_name,
-            channel_owner_avatar.id       AS channel_create_user_info_avatar_file_id,
-            channel_owner_avatar.file_url AS channel_create_user_info_avatar_file_url,
-            channel_owner_avatar.save_type AS channel_create_user_info_avatar_file_save_type,
-            channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type,
-            gs.id                         AS course_id,
-            gs.name                       AS course_name,
-            gs.fid                        AS course_fid,
-            gs.state                      AS course_state,
-            gs.available_type             AS course_available_type,
-            gs.sub_img_id                 AS course_img_id,
-            course_avatar.id              AS course_avatar_file_id,
-            course_avatar.name            AS course_avatar_file_name,
-            course_avatar.file_url        AS course_avatar_file_url,
-            course_avatar.save_type       AS course_avatar_file_save_type,
-            course_avatar.file_type       AS course_avatar_file_type,
+            <include refid="channelOwnerColumns" />,
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
 
-            course_owner.id               AS course_user_id,
-            course_owner_info.id          AS course_user_info_id,
-            course_owner_info.first_name  AS course_user_info_first_name,
-            course_owner_info.last_name   AS course_user_info_last_name,
-            course_owner_avatar.id        AS course_user_info_avatar_file_id,
-            course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
-            course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-            course_owner_avatar.file_type AS course_user_info_avatar_filetype,
+            <include refid="courseOwnerColumns" />,
             f.target_lang_json as target_lang_json,
             gs.id as subId0,
             gs.name as topicName
@@ -1048,39 +1013,18 @@
             </foreach>
     </select>
 
-    <select id="findLatestUserSubscribedPlaylistVideos" resultMap="baseResultMap">
+    <select id="findLatestUserSubscribedPlaylistsVideos" resultMap="baseResultMap">
         SELECT
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             <include refid="playlistBaseColumn"/>,
             <include refid="playlistContentBaseColumn"/>,
             f.upload_uid as user_id,
-            pc.id                         AS channel_id,
-            pc.channel_name               AS channel_channel_name,
-            pc.channel_slug               AS channel_channel_slug,
-            pc.fid                        AS channel_fid,
-            pc.visible_flag               AS channel_visible_flag,
-            pc.channel_avatar_file_id     AS channel_avatar_file_id,
-            pc.create_time                AS channel_create_time,
-            pc.update_time                AS channel_update_time,
-            channel_avatar.name           AS channel_avatar_file_name,
-            channel_avatar.file_url       AS channel_avatar_file_url,
-            channel_avatar.save_type      AS channel_avatar_file_save_type,
-            channel_avatar.file_type      AS channel_avatar_file_type,
+            <include refid="channelColumns" />,
+            <include refid="channelAvatarFileColumns" />,
 
-            gs.id                         AS course_id,
-            gs.name                       AS course_name,
-            gs.fid                        AS course_fid,
-            gs.state                      AS course_state,
-            gs.available_type             AS course_available_type,
-            gs.sub_img_id                 AS course_img_id,
-            gs.create_time                AS course_create_time,
-            gs.update_time                AS course_update_time,
-            course_avatar.id              AS course_avatar_file_id,
-            course_avatar.name            AS course_avatar_file_name,
-            course_avatar.file_url        AS course_avatar_file_url,
-            course_avatar.save_type       AS course_avatar_file_save_type,
-            course_avatar.file_type       AS course_avatar_file_type,
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
 
             CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
@@ -1114,17 +1058,9 @@
             <include refid="baseColumn"/>
             <include refid="fileBaseColumn"/>,
             f.upload_uid as user_id,
-            pc.id                         AS channel_id,
-            pc.channel_name               AS channel_channel_name,
-            pc.channel_slug               AS channel_channel_slug,
-            pc.fid                        AS channel_fid,
-            pc.visible_flag               AS channel_visible_flag,
-            pc.channel_avatar_file_id     AS channel_avatar_file_id,
+            <include refid="channelColumns" />,
             channel_content.id            AS channel_content_id,
-            channel_avatar.name           AS channel_avatar_file_name,
-            channel_avatar.file_url       AS channel_avatar_file_url,
-            channel_avatar.save_type      AS channel_avatar_file_save_type,
-            channel_avatar.file_type      AS channel_avatar_file_type,
+            <include refid="channelAvatarFileColumns" />,
 
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
         FROM gc_video v
@@ -1172,5 +1108,34 @@
             LEFT JOIN sys_file sf_img ON channel.channel_img_file_id = sf_img.id
 
         WHERE user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId};
+    </select>
+
+    <select id="findPlaylistLatestVideos" resultMap="baseResultMap">
+        SELECT
+            <include refid="baseColumn"/>
+            <include refid="fileBaseColumn"/>,
+            f.upload_uid as user_id,
+            <include refid="channelColumns" />,
+            <include refid="channelAvatarFileColumns" />,
+
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
+
+            CASE WHEN v.origin_channel_id IS NOT NULL THEN channel_owner.id ELSE course_owner.id END AS user_id,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = v.id) AS comment_num
+        FROM gc_user_save_folder playlist
+            JOIN gc_user_save_content playlist_content ON playlist_content.folder_id = playlist.id
+            JOIN gc_video v ON playlist_content.content_id = v.id
+            JOIN sys_file f ON v.file_id = f.id
+
+            LEFT JOIN pt_channel pc ON v.origin_channel_id = pc.id
+            LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
+            LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
+
+            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
+            LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
+        WHERE playlist.id = #{playlistId}
+        ORDER BY playlist_content.create_time DESC
     </select>
 </mapper>

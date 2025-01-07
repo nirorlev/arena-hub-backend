@@ -26,11 +26,13 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     private final AuthorizationService authorizationService;
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
+    private List<Consumer<GcVideo>> videoNullifySuppliers;
     private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
 
     @PostConstruct
     public void init() {
         initVideoFileNullifySuppliers();
+        initVideoNullifySuppliers();
         initPlaylistContentNullifySuppliers();
     }
 
@@ -43,7 +45,19 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             file -> file.setName(null),
             file -> file.setVideoLong(0),
             file -> file.setFullFileUrl(null),
-            file -> file.setSnapshotUrl(null)
+            file -> file.setSnapshotUrl(null),
+            file -> file.setFileTypeIndex(null)
+        );
+    }
+
+    private void initVideoNullifySuppliers() {
+        videoNullifySuppliers = List.of(
+            video -> video.setVideoDesc(null),
+            video -> video.setSourceUrl(null),
+            video -> video.setVideoFullUrl(null),
+            video -> video.setFileTypeIndex(null),
+            video -> video.setSnapshotUrl(null),
+            video -> video.setThumbnailUrl(null)
         );
     }
 
@@ -59,6 +73,7 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             .filter(video -> isVideoUnavailable(portalUser, video))
             .forEach(video -> {
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
+                videoNullifySuppliers.forEach(supplier -> supplier.accept(video));
             });
     }
 

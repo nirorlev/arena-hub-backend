@@ -141,6 +141,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private VideoPlaySessionService videoPlaySessionService;
 	@Autowired
 	private PtChannelSubscribeService channelSubscribeService;
+	@Autowired
+	private UnavailableVideoService unavailableVideoService;
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -799,9 +801,17 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<GcVideo> playlistLatestVideos(PortalUser portalUser, CursorDto cursor) {
+	public List<GcVideo> findSubscribedPlaylistsLatestVideos(PortalUser portalUser, CursorDto cursor) {
 		List<GcVideo> latestVideos =
-			baseMapper.findLatestUserSubscribedPlaylistVideos(portalUser, cursor);
+			baseMapper.findLatestUserSubscribedPlaylistsVideos(portalUser, cursor);
+		populateVideoData(latestVideos, portalUser);
+
+		return latestVideos;
+	}
+
+	@Override
+	public List<GcVideo> findPlaylistLatestVideos(Integer playlistId, PortalUser portalUser) {
+		List<GcVideo> latestVideos = baseMapper.findPlaylistLatestVideos(playlistId);
 		populateVideoData(latestVideos, portalUser);
 
 		return latestVideos;
@@ -834,6 +844,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			video.setPermissions(authorizationService.listPermissions(video, portalUser));
 			video.setViewsCount(videoPlaySessionService.getVideoViewsCount(video.getId(), portalUser.getMasterId()));
 			updateVideoUrls(video);
+			unavailableVideoService.nullifyVideoData(portalUser, video);
 		});
 	}
 

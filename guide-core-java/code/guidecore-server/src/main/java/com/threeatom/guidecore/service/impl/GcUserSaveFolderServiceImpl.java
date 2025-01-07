@@ -290,10 +290,10 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     }
 
     @Override
-    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> playlistLatestVideos(
+    public PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>> findSubscribedPlaylistsLatestVideos(
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
-        List<GcVideo> latestVideos = gcVideoService.playlistLatestVideos(portalUser, cursor);
+        List<GcVideo> latestVideos = gcVideoService.findSubscribedPlaylistsLatestVideos(portalUser, cursor);
         Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
 
         return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize,
@@ -339,6 +339,18 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         videoWithDetails.setNextVideoId(getNextVideoId(videoIds, videoId));
         videoWithDetails.setPrevVideoId(getPreviousVideoId(videoIds, videoId));
         return videoWithDetails;
+    }
+
+    @Override
+    public List<VideoWithSourceDetailsDto<VideoSourceDto>> findPlaylistLatestVideos(PortalUser portalUser,
+                                                                                    Integer playlistId) {
+        GcUserSaveFolder playlist = getById(playlistId);
+        if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
+            throw new ForbiddenException("You do not have permission to view this playlist");
+        }
+
+        return convertVideoDetails(gcVideoService.findPlaylistLatestVideos(playlistId, portalUser));
     }
 
     private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
