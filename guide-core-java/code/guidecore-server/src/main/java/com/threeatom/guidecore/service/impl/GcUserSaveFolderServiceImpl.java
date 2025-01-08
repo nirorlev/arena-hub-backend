@@ -27,6 +27,7 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.PaginationUtil;
 import com.threeatom.system.entity.SysFile;
@@ -74,6 +75,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
     private AuthorizationService authorizationService;
     @Autowired
     private VideoMapping videoMapping;
+    @Autowired
+    private UnavailableVideoService unavailableVideoService;
 
     public List<GcUserSaveFolder> getPtHomePlayList(Integer userId, Integer masterId, List<Integer> folderIdList,
                                                     HttpServletRequest request) {
@@ -294,6 +297,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         PortalUser portalUser, CursorDto cursor, Integer pageSize) {
 
         List<GcVideo> latestVideos = gcVideoService.findSubscribedPlaylistsLatestVideos(portalUser, cursor);
+        unavailableVideoService.nullifyVideoData(portalUser, latestVideos);
+
         Integer totalCount = gcVideoService.countPlaylistLatestVideos(portalUser);
 
         return PaginationUtil.createPageableDto(latestVideos, totalCount, pageSize,
@@ -326,6 +331,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
 
         gcVideoService.populateVideoData(List.of(video), portalUser);
+        unavailableVideoService.nullifyVideoData(portalUser, video);
+
         video.setPlaylist(playlist);
 
         List<Integer> videoOriginSubscriberIds =
@@ -350,7 +357,9 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             throw new ForbiddenException("You do not have permission to view this playlist");
         }
 
-        return convertVideoDetails(gcVideoService.findPlaylistLatestVideos(playlistId, portalUser));
+        List<GcVideo> playlistLatestVideos = gcVideoService.findPlaylistLatestVideos(playlistId, portalUser);
+        unavailableVideoService.nullifyVideoData(portalUser, playlistLatestVideos);
+        return convertVideoDetails(playlistLatestVideos);
     }
 
     private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
