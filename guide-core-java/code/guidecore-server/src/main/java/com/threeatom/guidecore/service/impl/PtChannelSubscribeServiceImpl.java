@@ -29,6 +29,7 @@ public class PtChannelSubscribeServiceImpl extends ServiceImpl<PtchannelSubscrib
         QueryWrapper<PtChannelSubscribe> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("channel_id", channelId);
+        queryWrapper.eq("is_deleted", false);
         return this.getOne(queryWrapper);
     }
 

@@ -2691,15 +2691,15 @@ public class PowtoonController extends GuideCoreController {
         }
 
         String order = request.getHeader("order");
-        List<PtChannel> sectionList = new ArrayList<>();
-        if (null != ptChannel.getChannelSlug()) {
-            sectionList = ptChannelService.selectSectionList(null, ptChannel.getChannelSlug(), request, masterId);
+        List<PtChannel> channelSections = new ArrayList<>();
+        if (ptChannel.getChannelSlug() != null) {
+            channelSections = ptChannelService.selectSectionList(null, ptChannel.getChannelSlug(), request, masterId);
         }
-        if (null != ptChannel.getId()) {
-            sectionList = ptChannelService.selectSectionList(ptChannel.getId(), null, request, null);
+        if (ptChannel.getId() != null) {
+            channelSections = ptChannelService.selectSectionList(ptChannel.getId(), null, request, null);
         }
 
-        PageInfo sectionPageInfo = new PageInfo<>(sectionList);
+        PageInfo<PtChannel> sectionPageInfo = new PageInfo<>(channelSections);
         PtChannel channel = new PtChannel();
 
         if (null != ptChannel.getChannelSlug()) {
@@ -2731,9 +2731,10 @@ public class PowtoonController extends GuideCoreController {
             channel.setOwnFlag(TableConstant.COMMON_ZERO);
         }
         updateChannelBackgroundImage(channel, request);
-        message.ok().addData("channel", channel);
 
-        return message.ok().addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        return message.ok()
+            .addData("channel", channel)
+            .addData("systemTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
     }
 
     @ApiOperation(value = "查询section中的视频list")
