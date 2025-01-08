@@ -317,19 +317,14 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         }
 
         GcUserSaveContent playlistContent = optionalPlaylistVideoContent.get();
-
-        GcVideo video = playlistContent.getVideo();
-        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
-            log.error("User {} does not have permission to view video {}", portalUser.getUserId(), videoId);
-            throw new ForbiddenException("You do not have permission to view this video");
-        }
-
         GcUserSaveFolder playlist = playlistContent.getPlaylist();
+
         if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
             log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
             throw new ForbiddenException("You do not have permission to view this playlist");
         }
 
+        GcVideo video = playlistContent.getVideo();
         gcVideoService.populateVideoData(List.of(video), portalUser);
         unavailableVideoService.nullifyVideoData(portalUser, video);
 
