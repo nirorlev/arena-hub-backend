@@ -335,17 +335,38 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
         video.setPlaylist(playlist);
 
+        return convertPlaylistVideo(videoId, playlistId, portalUser, video, playlistContent);
+    }
+
+    private VideoWithSourceDetailsDto<VideoSourceDto> convertPlaylistVideo(Integer videoId,
+                                                                           Integer playlistId,
+                                                                           PortalUser portalUser,
+                                                                           GcVideo video,
+                                                                           GcUserSaveContent playlistContent) {
         List<Integer> videoOriginSubscriberIds =
             gcVideoService.getVideoOriginSubscriberIds(video, portalUser.getUserId());
-        List<Integer> videoIds = getPlaylistContentVideoIds(playlistId);
+        List<GcUserSaveContent> videoContent = gcUserSaveContentService.findVideoContentByPlaylistId(playlistId);
+        List<Integer> availableVideoIds = filterAvailableVideoIds(videoContent, portalUser);
 
         VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
         videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
         videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
         videoWithDetails.setDeprecatedContentId(playlistContent.getId());
-        videoWithDetails.setNextVideoId(getNextVideoId(videoIds, videoId));
-        videoWithDetails.setPrevVideoId(getPreviousVideoId(videoIds, videoId));
+        videoWithDetails.setNextVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
+        videoWithDetails.setPrevVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
+        videoWithDetails.getPlaylist().setVideoNum(videoContent.size());
         return videoWithDetails;
+    }
+
+    private List<Integer> filterAvailableVideoIds(List<GcUserSaveContent> playlistVideoContent, PortalUser portalUser) {
+        List<GcVideo> playlistVideos = playlistVideoContent.stream()
+            .map(GcUserSaveContent::getVideo)
+            .collect(Collectors.toList());
+
+        return playlistVideos.stream()
+            .filter(video -> authorizationService.checkAccess(video, PermitAction.VIEW, portalUser))
+            .map(GcVideo::getId)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -362,33 +383,22 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return convertVideoDetails(playlistLatestVideos);
     }
 
-    private List<Integer> getPlaylistContentVideoIds(Integer playlistId) {
-        List<GcUserSaveContent> saveContents = gcUserSaveContentService.selectContentByPlaylistId(playlistId);
-        if (CollectionUtils.isEmpty(saveContents)) {
-            return List.of();
-        }
-
-        return saveContents.stream()
-            .map(GcUserSaveContent::getContentId)
-            .collect(Collectors.toList());
-    }
-
-    private Integer getPreviousVideoId(List<Integer> videoIds, Integer videoId) {
-        int index = videoIds.indexOf(videoId);
+    private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+        int index = availableVideoIds.indexOf(videoId);
         if (index == -1 || index == 0) {
             return null;
         }
 
-        return videoIds.get(index - 1);
+        return availableVideoIds.get(index - 1);
     }
 
-    private Integer getNextVideoId(List<Integer> playlistVideoIds, Integer videoId) {
-        int index = playlistVideoIds.indexOf(videoId);
-        if (index == -1 || index == playlistVideoIds.size() - 1) {
+    private Integer getNextAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+        int index = availableVideoIds.indexOf(videoId);
+        if (index == -1 || index == availableVideoIds.size() - 1) {
             return null;
         }
 
-        return playlistVideoIds.get(index + 1);
+        return availableVideoIds.get(index + 1);
     }
 
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {
