@@ -19,6 +19,9 @@ public class PlaylistDto {
     @ApiModelProperty(value = "Owner of the playlist")
     private UserDetailsDto owner;
 
+    @ApiModelProperty(value = "Total number of videos in the playlist")
+    private Integer videoNum;
+
     @ApiModelProperty(value = "Creation time of the playlist")
     private OffsetDateTime createTime;
 
