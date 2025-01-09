@@ -8,4 +8,5 @@ import com.threeatom.guidecore.entity.UserManagedGroup;
 import java.util.List;
 
 public interface UserManagedGroupService extends IService<UserManagedGroup> {
+    List<UserManagedGroup> findUserManagedGroups(PortalUser portalUser);
 }

@@ -155,7 +155,7 @@ public class ShiroConfiguration {
 
         filterChainDefinitionMap.put("/api/v2/admin/**", "adminBearer");
         filterChainDefinitionMap.put("/api/*/guidecore/**", "guidecorejwt");
-        filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");
+//        filterChainDefinitionMap.put("/api/v2/**", "guidecorejwt");
         filterChainDefinitionMap.put("/api/*/weapp/**", "weappjwt");
         filterChainDefinitionMap.put("/api/*/admin/**", "adminjwt");
         filterChainDefinitionMap.put("/OKapi/v1/powtoon/home/videoDetailPt", "anon");

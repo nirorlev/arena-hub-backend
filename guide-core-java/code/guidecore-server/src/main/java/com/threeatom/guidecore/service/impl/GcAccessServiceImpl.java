@@ -278,6 +278,13 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, allGroupCodes, userId, masterId);
     }
 
+    @Override
+    public List<GcAccess> findContentGroupsByGroupIds(List<Integer> userManagedGroupIds) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("group_id", userManagedGroupIds);
+        return this.list(queryWrapper);
+    }
+
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("code", code);
