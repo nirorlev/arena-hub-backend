@@ -18,8 +18,6 @@ public class PlaylistWithDetailsDto extends PlaylistDto {
     private Boolean isPrivate;
     @ApiModelProperty(value = "URL of the playlist's background")
     private String snapshotUrl;
-    @ApiModelProperty(value = "Total number of videos in the playlist")
-    private Integer videoNum;
 
     @ApiModelProperty(value = "Playlist content items")
     private List<ContentDto> saveContentList;

@@ -844,7 +844,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			video.setPermissions(authorizationService.listPermissions(video, portalUser));
 			video.setViewsCount(videoPlaySessionService.getVideoViewsCount(video.getId(), portalUser.getMasterId()));
 			updateVideoUrls(video);
-			unavailableVideoService.nullifyVideoData(portalUser, video);
 		});
 	}
 

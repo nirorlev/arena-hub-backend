@@ -25,5 +25,7 @@ public interface GcUserSaveContentService extends IService<GcUserSaveContent> {
 
     List<GcUserSaveContent> selectContentByPlaylistId(Integer folderId);
 
+    List<GcUserSaveContent> findVideoContentByPlaylistId(Integer playlistId);
+
     Optional<GcUserSaveContent> getPlaylistVideoContent(Integer playlistId, Integer videoId);
 }

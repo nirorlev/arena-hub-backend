@@ -78,6 +78,11 @@ public class GcUserSaveContentServiceImpl
     }
 
     @Override
+    public List<GcUserSaveContent> findVideoContentByPlaylistId(Integer playlistId) {
+        return baseMapper.findVideoContentByPlaylistId(playlistId);
+    }
+
+    @Override
     public Optional<GcUserSaveContent> getPlaylistVideoContent(Integer playlistId, Integer videoId) {
         return Optional.ofNullable(baseMapper.getByPlaylistIdAndVideoId(playlistId, videoId));
     }
