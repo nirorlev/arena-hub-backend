@@ -349,7 +349,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         videoWithDetails.setDeprecatedContentId(playlistContent.getId());
         videoWithDetails.setNextVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
         videoWithDetails.setPrevVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
-        videoWithDetails.getPlaylist().setVideoNum(videoContent.size());
+        videoWithDetails.getPlaylist().setSize(videoContent.size());
         return videoWithDetails;
     }
 
