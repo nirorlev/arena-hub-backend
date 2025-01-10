@@ -84,7 +84,7 @@ public class ContentGroupController {
             .body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId, request));
     }
 
-    @GetMapping
+    @GetMapping("/managed")
     public ResponseEntity<List<ContentGroupDto>> userManagedContentGroups(HttpServletRequest request) {
         return ResponseEntity.ok().body(groupFacade.getUserManagedContentGroups(getPortalUser(request)));
     }
