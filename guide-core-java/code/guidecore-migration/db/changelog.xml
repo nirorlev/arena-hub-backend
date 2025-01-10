@@ -689,9 +689,7 @@
             <column name="powtoon_group_code" type="varchar">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="powtoon_parent_group_code" type="varchar">
-                <constraints nullable="false"/>
-            </column>
+            <column name="powtoon_parent_group_code" type="varchar" />
             <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
@@ -735,7 +733,7 @@
     </changeSet>
 
     <changeSet id="create-user-groups-table" author="vprokh">
-        <createTable tableName="user_managed_groups" schemaName="arena_hub">
+        <createTable tableName="user_groups" schemaName="arena_hub">
             <column name="powtoon_group_code" type="varchar">
                 <constraints nullable="false"/>
             </column>
@@ -753,21 +751,10 @@
             </column>
         </createTable>
 
-        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_managed_groups"/>
+        <addPrimaryKey constraintName="user_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_groups"/>
 
-        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
-                                 constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="user_id"
+                                 constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
-
-    <changeSet id="add--group-code-gc-access" author="vprokh">
-        <addColumn tableName="gc_access" schemaName="arena_hub">
-            <column name="group_id" type="integer"/>
-        </addColumn>
-
-        <addForeignKeyConstraint baseTableName="gc_access" baseColumnNames="group_id"
-                                 constraintName="gc_access_groups_id_fk" referencedTableName="groups"
-                                 referencedColumnNames="id" onUpdate="SET NULL" onDelete="CASCADE"/>
-    </changeSet>
-
 </databaseChangeLog>
