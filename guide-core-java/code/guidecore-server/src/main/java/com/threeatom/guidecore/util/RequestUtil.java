@@ -51,7 +51,9 @@ public class RequestUtil {
     public static String getRequestedFrontendVersion(HttpServletRequest request, HttpServletResponse response) {
         String requestedVersion = request.getParameter(REQUESTED_FRONTEND_VERSION_NAME);
         if (StringUtils.isNotBlank(requestedVersion)) {
-            response.addCookie(new Cookie(REQUESTED_FRONTEND_VERSION_NAME, requestedVersion));
+            Cookie cookie = new Cookie(REQUESTED_FRONTEND_VERSION_NAME, requestedVersion);
+            cookie.setPath(request.getContextPath());
+            response.addCookie(cookie);
             return requestedVersion;
         }
 
