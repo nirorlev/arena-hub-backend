@@ -6,5 +6,5 @@ import com.threeatom.guidecore.entity.Group;
 import java.util.List;
 
 public interface GroupService extends IService<Group> {
-    List<Group> syncGroups(List<Groups> groups, Integer userId, Integer masterId);
+    void syncGroups(List<Groups> powtoonGroups, Integer userId, Integer masterId);
 }

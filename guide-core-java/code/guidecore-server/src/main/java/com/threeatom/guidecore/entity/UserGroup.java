@@ -15,7 +15,7 @@ import org.apache.ibatis.type.EnumTypeHandler;
 public class UserGroup {
 
     @TableId(value = "powtoon_group_code")
-    private Integer powtoonGroupCode;
+    private String powtoonGroupCode;
 
     @TableField(value = "role", typeHandler = EnumTypeHandler.class)
     private UserGroupRole role;

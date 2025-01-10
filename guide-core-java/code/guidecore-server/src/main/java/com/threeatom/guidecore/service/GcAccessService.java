@@ -8,7 +8,6 @@ import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.Group;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +97,7 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> selectAccessLevel0(Integer masterId, Integer userId);
 
     void syncContentGroupsWithPowtoonGroups(
-        PowtoonUserDto powtoonUser, PtGroupsVo groups, List<Group> arenaGroups, Integer masterId, Integer userId);
+        PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId);
 
-    List<GcAccess> findContentGroupsByGroupIds(List<Integer> userManagedGroupIds);
+    List<GcAccess> findContentGroupsByCodes(List<String> codes);
 }

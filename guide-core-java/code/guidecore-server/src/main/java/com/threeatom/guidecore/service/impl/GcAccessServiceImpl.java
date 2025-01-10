@@ -256,7 +256,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     @Transactional
     public void syncContentGroupsWithPowtoonGroups(
-        PowtoonUserDto powtoonUser, PtGroupsVo groups, List<Group> arenaGroups, Integer masterId, Integer userId) {
+        PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId) {
+
         List<GroupDto> memberGroups = powtoonUser.getPermissions().getGroups();
         List<ManagedGroupDto> managedGroups = powtoonUser.getPermissions().getManagedGroups();
 
@@ -267,9 +268,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         allGroupCodes.addAll(managedGroupCodes);
 
         List<GcAccess> memberContentGroups =
-            createOrUpdateMemberContentGroups(allGroupCodes, masterId, arenaGroups, memberGroups);
+            createOrUpdateMemberContentGroups(allGroupCodes, masterId, memberGroups);
         List<GcAccess> managedContentGroups =
-            saveOrUpdateManagedContentGroups(allGroupCodes, masterId, arenaGroups, managedGroups);
+            saveOrUpdateManagedContentGroups(allGroupCodes, masterId, managedGroups);
         List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups, masterId);
         List<GcAccess> dbContentGroups = this.list();
 
@@ -279,9 +280,9 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     @Override
-    public List<GcAccess> findContentGroupsByGroupIds(List<Integer> userManagedGroupIds) {
+    public List<GcAccess> findContentGroupsByCodes(List<String> codes) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("group_id", userManagedGroupIds);
+        queryWrapper.in("code", codes);
         return this.list(queryWrapper);
     }
 
@@ -488,8 +489,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     }
 
     private List<GcAccess> createOrUpdateMemberContentGroups(
-        List<String> groupCodes, Integer masterId, List<Group> arenaGroups, List<GroupDto> powtoonGroups) {
-        Map<String, Group> powtoonGroupIdToArenaGroup = getPowtoonGroupIdToArenaGroups(arenaGroups);
+        List<String> groupCodes, Integer masterId, List<GroupDto> powtoonGroups) {
 
         List<GcAccess> contentGroups = selectAccessByCodeAndMasterId(groupCodes, masterId);
         Map<String, GcAccess> codeToContentGroup = getCodeToContentGroup(contentGroups);
@@ -501,8 +501,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                 contentGroup = codeToContentGroup.get(group.getId());
                 contentGroup.setGroupName(group.getTitle());
             } else {
-                contentGroup =
-                    createMemberContentGroup(masterId, powtoonGroupIdToArenaGroup.get(group.getId()), group.getTitle());
+                contentGroup = createMemberContentGroup(masterId, group);
             }
 
             contentGroup.setRoleJson(
@@ -519,14 +518,8 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return memberContentGroups;
     }
 
-    private Map<String, Group> getPowtoonGroupIdToArenaGroups(List<Group> arenaGroups) {
-        return arenaGroups.stream()
-            .collect(Collectors.toMap(Group::getPowtoonGroupId, Function.identity()));
-    }
-
     private List<GcAccess> saveOrUpdateManagedContentGroups(
-        List<String> groupCodes, Integer masterId, List<Group> arenaGroups, List<ManagedGroupDto> managedGroups) {
-        Map<String, Group> powtoonGroupIdToArenaGroup = getPowtoonGroupIdToArenaGroups(arenaGroups);
+        List<String> groupCodes, Integer masterId, List<ManagedGroupDto> managedGroups) {
 
         List<GcAccess> managedContentGroups = new ArrayList<>();
         List<GcAccess> contentGroups = selectAccessByCodeAndMasterId(groupCodes, masterId);
@@ -545,8 +538,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                         JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
                 }
             } else {
-                access = createManagerContentGroup(masterId, powtoonGroupIdToArenaGroup.get(managedGroup.getId()),
-                    managedGroup.getTitle());
+                access = createManagerContentGroup(masterId, managedGroup);
             }
 
             managedContentGroups.add(access);
@@ -573,26 +565,25 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return selectAccessByCodeAndMasterId(getContentGroupCodes(allContentGroups), masterId);
     }
 
-    private GcAccess createManagerContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
-        GcAccess contentGroup = createContentGroup(masterId, arenaGroup, groupTitle);
+    private GcAccess createManagerContentGroup(Integer masterId, ManagedGroupDto group) {
+        GcAccess contentGroup = createContentGroup(masterId, group.getId(), group.getTitle());
         contentGroup.setChannelJson(new JSONArray());
         contentGroup.setRoleJson(
             JSONArray.parseArray("[" + JSON.toJSONString(UserGroupRole.GROUP_ADMIN.getRole()) + "]"));
         return contentGroup;
     }
 
-    private GcAccess createMemberContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
-        GcAccess contentGroup = createContentGroup(masterId, arenaGroup, groupTitle);
+    private GcAccess createMemberContentGroup(Integer masterId, GroupDto group) {
+        GcAccess contentGroup = createContentGroup(masterId, group.getId(), group.getTitle());
         contentGroup.setSubscribeJson(new JSONArray());
         return contentGroup;
     }
 
-    private GcAccess createContentGroup(Integer masterId, Group arenaGroup, String groupTitle) {
+    private GcAccess createContentGroup(Integer masterId, String code, String title) {
         GcAccess contentGroup = new GcAccess();
         contentGroup.setMasterId(masterId);
-        contentGroup.setCode(arenaGroup.getPowtoonGroupId());
-        contentGroup.setGroupId(arenaGroup.getId());
-        contentGroup.setGroupName(groupTitle);
+        contentGroup.setCode(code);
+        contentGroup.setGroupName(title);
         contentGroup.setRoleType(TableConstant.COMMON_ONE);
         contentGroup.setCodeType(TableConstant.COMMON_ZERO);
         contentGroup.setSubjectJson(new JSONArray());

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.GroupDto;
-import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.client.dto.ProfileDto;
 import com.threeatom.common.exception.SystemException;
@@ -19,7 +18,6 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
-import com.threeatom.guidecore.entity.Group;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.mapper.GcUserMapper;
 import com.threeatom.guidecore.service.GcAccessService;
@@ -216,10 +214,10 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     public GcUser syncPowtoonUser(String accessToken, PtLoginConfig ptLoginConfig, Integer masterId)
         throws IOException, ClientException {
         final String bearerToken = "Bearer " + accessToken;
-        PtGroupsVo groups =
+        PtGroupsVo powtoonGroups =
             powtoonClient.getGroups(
                 URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
-        log.info("PtGroups interface returns:" + groups);
+        log.info("PtGroups interface returns:" + powtoonGroups);
 
         PowtoonUserDto powtoonUserInfo =
             powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
@@ -230,19 +228,20 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
         user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);
 
-        List<Group> arenaGroups = groupService.syncGroups(groups.getResults(), user.getId(), masterId);
-        List<Groups> powtoonMemberGroups = getGroups(groups.getResults(), powtoonUserInfo.getPermissions().getGroups());
+        groupService.syncGroups(powtoonGroups.getResults(), user.getId(), masterId);
+        List<Groups> powtoonMemberGroups =
+            getPowtoonMemberGroups(powtoonGroups.getResults(), powtoonUserInfo.getPermissions().getGroups());
 
-        userGroupService.syncUserGroups(powtoonMemberGroups, arenaGroups, user.getId());
-        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, arenaGroups, masterId, user.getId());
+        userGroupService.syncUserGroups(powtoonMemberGroups, user.getId());
+        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, powtoonGroups, masterId, user.getId());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
 
         return user;
     }
 
-    private List<Groups> getGroups(List<Groups> allPowtoonGroups, List<GroupDto> powtoonUserGroups) {
+    private List<Groups> getPowtoonMemberGroups(List<Groups> allPowtoonGroups, List<GroupDto> powtoonMemberGroups) {
         return allPowtoonGroups.stream()
-            .filter(group -> powtoonUserGroups.stream().anyMatch(userGroup -> userGroup.getId().equals(group.getId())))
+            .filter(group -> powtoonMemberGroups.stream().anyMatch(userGroup -> userGroup.getId().equals(group.getId())))
             .collect(Collectors.toList());
     }
 
