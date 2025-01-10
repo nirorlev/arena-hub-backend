@@ -12,13 +12,13 @@ import lombok.Setter;
 @TableName(value = "groups", autoResultMap = true)
 public class Group {
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    @TableId(value = "powtoon_group_code")
+    private String powtoonGroupCode;
 
     private String name;
-    private String powtoonGroupId;
-    private String parentCode;
+    private String parentPowtoonGroupCode;
     private Integer masterId;
 
+    private OffsetDateTime createdTime = OffsetDateTime.now();
     private OffsetDateTime updatedTime = OffsetDateTime.now();
 }

@@ -686,19 +686,22 @@
 
     <changeSet id="create-groups-table" author="vprokh">
         <createTable tableName="groups" schemaName="arena_hub">
-            <column name="id" type="serial">
+            <column name="powtoon_group_code" type="varchar">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="powtoon_group_id" type="varchar">
+            <column name="powtoon_parent_group_code" type="varchar">
                 <constraints nullable="false"/>
             </column>
-            <column name="parent_code" type="varchar">
+            <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
             <column name="master_id" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="timestamp with time zone" defaultValueComputed="now()">
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -710,13 +713,13 @@
 
     <changeSet id="create-user-managed-groups-table" author="vprokh">
         <createTable tableName="user_managed_groups" schemaName="arena_hub">
-            <column name="id" type="varchar">
-                <constraints primaryKey="true" unique="true" nullable="false"/>
+            <column name="powtoon_group_code" type="varchar">
+                <constraints nullable="false"/>
             </column>
             <column name="user_id" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="group_id" type="integer">
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
             <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
@@ -724,9 +727,7 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="group_id"
-                                 constraintName="user_managed_groups_groups_id_fk" referencedTableName="groups"
-                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_managed_groups"/>
 
         <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
                                  constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
@@ -734,17 +735,17 @@
     </changeSet>
 
     <changeSet id="create-user-groups-table" author="vprokh">
-        <createTable tableName="user_groups" schemaName="arena_hub">
-            <column name="id" type="varchar">
-                <constraints primaryKey="true" unique="true" nullable="false"/>
-            </column>
-            <column name="role" type="varchar">
+        <createTable tableName="user_managed_groups" schemaName="arena_hub">
+            <column name="powtoon_group_code" type="varchar">
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="group_id" type="integer">
+            <column name="role" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
                 <constraints nullable="false"/>
             </column>
             <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
@@ -752,16 +753,14 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="group_id"
-                                 constraintName="user_groups_groups_id_fk" referencedTableName="groups"
-                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_managed_groups"/>
 
-        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="user_id"
-                                 constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
+                                 constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
-    <changeSet id="add-group-id-gc-access" author="vprokh">
+    <changeSet id="add--group-code-gc-access" author="vprokh">
         <addColumn tableName="gc_access" schemaName="arena_hub">
             <column name="group_id" type="integer"/>
         </addColumn>

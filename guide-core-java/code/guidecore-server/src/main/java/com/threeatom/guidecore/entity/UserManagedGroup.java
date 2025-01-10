@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,14 +12,14 @@ import lombok.Setter;
 @TableName(value = "user_managed_groups", autoResultMap = true)
 public class UserManagedGroup {
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    @TableId(value = "powtoon_group_code")
+    private Integer powtoonGroupCode;
 
     private Integer userId;
-    private Integer groupId;
 
     @TableField(exist = false)
     private Group group;
 
+    private OffsetDateTime createdTime = OffsetDateTime.now();
     private OffsetDateTime updatedTime = OffsetDateTime.now();
 }
