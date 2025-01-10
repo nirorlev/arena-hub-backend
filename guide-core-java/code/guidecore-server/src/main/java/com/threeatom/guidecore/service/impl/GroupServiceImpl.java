@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements GroupService {
 
-    private GroupMapping groupMapping;
+    private final GroupMapping groupMapping;
 
     @Override
     @Transactional

@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.OffsetDateTime;
@@ -12,11 +11,11 @@ import lombok.Setter;
 @TableName(value = "groups", autoResultMap = true)
 public class Group {
 
-    @TableId(value = "powtoon_group_code")
+    @TableId
     private String powtoonGroupCode;
 
     private String name;
-    private String parentPowtoonGroupCode;
+    private String powtoonParentGroupCode;
     private Integer masterId;
 
     private OffsetDateTime createdTime = OffsetDateTime.now();

@@ -2,7 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.guidecore.controller.user.vo.Groups;
+import com.threeatom.client.dto.GroupDto;
 import com.threeatom.guidecore.entity.UserGroup;
 import com.threeatom.guidecore.mapper.UserGroupMapper;
 import com.threeatom.guidecore.mapping.GroupMapping;
@@ -21,15 +21,15 @@ public class UserGroupServiceImpl extends ServiceImpl<UserGroupMapper, UserGroup
 
     @Override
     @Transactional
-    public void syncUserGroups(List<Groups> powtoonMemberGroups, Integer userId) {
-        List<UserGroup> userGroups = convertToUserGroups(powtoonMemberGroups, userId);
+    public void syncUserGroups(List<GroupDto> powtoonUserMemberGroups, Integer userId) {
+        List<UserGroup> userGroups = convertToUserGroups(powtoonUserMemberGroups, userId);
         saveOrUpdateBatch(userGroups);
 
-        List<String> userGroupCodesToRemove = getUserGroupCodesToRemove(powtoonMemberGroups, userId);
+        List<String> userGroupCodesToRemove = getUserGroupCodesToRemove(powtoonUserMemberGroups, userId);
         removeByIds(userGroupCodesToRemove);
     }
 
-    private List<String> getUserGroupCodesToRemove(List<Groups> powtoonMemberGroups, Integer userId) {
+    private List<String> getUserGroupCodesToRemove(List<GroupDto> powtoonMemberGroups, Integer userId) {
         List<String> powtoonGroupCodes = convertToGroupCodes(powtoonMemberGroups);
         List<UserGroup> existingUserGroups = findByUserId(userId);
 
@@ -39,15 +39,15 @@ public class UserGroupServiceImpl extends ServiceImpl<UserGroupMapper, UserGroup
             .collect(Collectors.toList());
     }
 
-    private List<UserGroup> convertToUserGroups(List<Groups> powtoonMemberGroups, Integer userId) {
+    private List<UserGroup> convertToUserGroups(List<GroupDto> powtoonMemberGroups, Integer userId) {
         return powtoonMemberGroups.stream()
             .map(powtoonUserGroup -> groupMapping.mapUserGroup(powtoonUserGroup, userId))
             .collect(Collectors.toList());
     }
 
-    private List<String> convertToGroupCodes(List<Groups> powtoonUserGroups) {
+    private List<String> convertToGroupCodes(List<GroupDto> powtoonUserGroups) {
         return powtoonUserGroups.stream()
-            .map(Groups::getId)
+            .map(GroupDto::getId)
             .collect(Collectors.toList());
     }
 

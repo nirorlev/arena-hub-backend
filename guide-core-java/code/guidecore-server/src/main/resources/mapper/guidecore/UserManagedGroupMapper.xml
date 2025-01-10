@@ -2,38 +2,40 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.UserManagedGroupMapper">
 
-	<resultMap id="baseResultMap" type="UserManagedGroup" autoMapping="true">
-		<id property="id" column="id"/>
+    <resultMap id="baseResultMap" type="UserManagedGroup" autoMapping="true">
+        <id property="powtoonGroupCode" column="powtoon_group_code"/>
 
-		<result property="userId" column="managed_group_user_id"/>
-		<result property="group_id" column="managed_group_group_id"/>
-		<result property="updateTime" column="managed_group_update_time"/>
+        <result property="userId" column="managed_group_user_id"/>
+        <result property="updatedTime" column="managed_group_updated_time"/>
+        <result property="createdTime" column="managed_group_created_time"/>
 
-		<association property="group" resultMap="groupResultMap" columnPrefix="group_" />
-	</resultMap>
+        <association property="group" resultMap="groupResultMap" columnPrefix="group_"/>
+    </resultMap>
 
-	<resultMap id="groupResultMap" type="Group" >
-		<id property="id" column="id"/>
-		<result property="name" column="name"/>
-		<result property="powtoonGroupId" column="powtoon_group_id"/>
-		<result property="parentCode" column="parent_code"/>
-		<result property="masterId" column="master_id"/>
-		<result property="updatedTime" column="update_time"/>
-	</resultMap>
+    <resultMap id="groupResultMap" type="Group">
+        <id property="powtoonGroupCode" column="powtoon_group_code"/>
+
+        <result property="name" column="name"/>
+        <result property="powtoonParentGroupCode" column="powtoon_parent_group_code"/>
+        <result property="masterId" column="master_id"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
 
     <select id="findUserManagedGroups" resultMap="baseResultMap" resultType="UserManagedGroup">
-        SELECT user_managed_groups.id,
-               user_managed_groups.user_id     as managed_group_user_id,
-               user_managed_groups.group_id    as managed_group_group_id,
-               user_managed_groups.update_time as managed_group_update_time,
-               groups.id                       as group_id,
-               groups.name                     as group_name,
-               groups.powtoon_group_id         as group_powtoon_group_id,
-               groups.parent_code              as group_parent_code,
-               groups.master_id                as group_master_id,
-               groups.update_time              as group_update_time
+        SELECT user_managed_groups.powtoon_group_code,
+               user_managed_groups.user_id      as managed_group_user_id,
+               user_managed_groups.created_time as managed_group_created_time,
+               user_managed_groups.updated_time as managed_group_updated_time,
+               groups.powtoon_group_code        as group_powtoon_group_code,
+               groups.name                      as group_name,
+               groups.powtoon_parent_group_code as group_powtoon_parent_group_code,
+               groups.master_id                 as group_master_id,
+               groups.created_time              as group_created_time,
+               groups.updated_time              as group_updated_time
         FROM user_managed_groups
-                 JOIN groups ON user_managed_groups.group_id = groups.id AND groups.master_id = #{masterId}
-        WHERE managed_group_user_id = #{userId}
+                 JOIN groups ON user_managed_groups.powtoon_group_code = groups.powtoon_group_code AND
+                                groups.master_id = #{masterId}
+        WHERE user_managed_groups.user_id = #{userId}
     </select>
 </mapper>

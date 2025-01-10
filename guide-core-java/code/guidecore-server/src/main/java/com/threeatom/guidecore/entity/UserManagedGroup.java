@@ -12,7 +12,7 @@ import lombok.Setter;
 @TableName(value = "user_managed_groups", autoResultMap = true)
 public class UserManagedGroup {
 
-    @TableId(value = "powtoon_group_code")
+    @TableId
     private String powtoonGroupCode;
 
     private Integer userId;
