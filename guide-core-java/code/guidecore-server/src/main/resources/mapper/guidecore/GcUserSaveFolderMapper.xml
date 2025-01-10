@@ -223,49 +223,6 @@
 		sc.create_time DESC
 	</select>
 
-	<select id="selectFolderAllVideo" resultMap="baseResultMap">
-		SELECT DISTINCT ON (sc.file_id)
-		<include refid="baseColumn" />
-		,sc.id as sc_id, v.id as sc_video_id, sc.sub_id as sc_sub_id,sc.file_id,sc.file_id as sc_file_id, sc.content_id,
-		v.id as v_id, v.video_name as v_video_name, v.video_name_index as v_video_name_index,  v.file_id as v_file_id,
-		s.id as s_id, s.name as s_name, s.name_index as s_name_index, s.description as s_description, s.sub_img_id as s_sub_img_id
-		<include refid="videoFileColumn" />
-		<include refid="subjectFileColumn" /> ,
-		COALESCE((select count(id) from gc_user_save_content where folder_id=sf.id and master_id=#{masterId}),0) as videoNum
-		from gc_user_save_folder sf
-		left join gc_user_save_content sc on sc.folder_id = sf.id
-		<if test="userId!=null ">
-			AND sc.user_id=#{userId}
-		</if>
-		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
-		left join gc_subject s on s.id= sc.sub_id
-		left join sys_file fs on s.sub_img_id=fs.id
-		left join sys_file f on v.file_id=f.id
-
-		left join gc_subject sv on sv.id= v.sub_id <!-- 视频的课程 -->
-
-		where 1=1
-		<if test="userId!=null ">
-			AND sf.user_id=#{userId}
-		</if>
-
-		and
-		sf.master_id=#{masterId}
-		<if test="folderIdList!=null and folderIdList.size !=0">
-			AND sf.id in
-			<foreach item="folderId" index="index" collection="folderIdList"  open="(" separator="," close=")">
-				#{folderId}
-			</foreach>
-		</if>
-		<if test="myFolderIdList!=null and myFolderIdList.size !=0">
-			AND sf.id not in
-			<foreach item="myFolderId" index="index" collection="myFolderIdList"  open="(" separator="," close=")">
-				#{myFolderId}
-			</foreach>
-		</if>
-		order by sc.file_id, sf.create_time asc,sc.create_time asc
-	</select>
-
     <select id="selectFolderByIdsAndUser" resultType="java.lang.Integer">
 		select count(1) from gc_user_save_folder
 		where 1=1

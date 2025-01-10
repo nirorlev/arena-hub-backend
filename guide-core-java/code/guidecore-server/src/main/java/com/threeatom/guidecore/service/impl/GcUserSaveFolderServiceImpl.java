@@ -175,51 +175,6 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         return gcUserSaveFolders;
     }
 
-    public List<GcUserSaveFolder> selectFolderAllVideo(Integer userId, Integer masterId, List<Integer> folderIdList,
-                                                       HttpServletRequest request, List<Integer> myFolderIdList) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageSize = pageParam.getPageSize();
-        Integer pageNum = pageParam.getPageNum();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        List<GcUserSaveFolder> playlists =
-            getPlaylistsWithVideos(userId, masterId, folderIdList, myFolderIdList);
-        for (GcUserSaveFolder gcUserSaveFolder : playlists) {
-            List<GcUserSaveContent> gcUserSaveContents = gcUserSaveFolder.getSaveContentList();
-            for (GcUserSaveContent gcUserSaveContent : gcUserSaveContents) {
-                if (Objects.nonNull(gcUserSaveContent.getFileId())) {
-                    SysFile sysFile = sysFileService.getById(gcUserSaveContent.getFileId());
-                    gcUserSaveContent.setVideoFile(sysFile);
-                    String snapshotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
-                    sysFile.setSnapshotUrl(snapshotUrl);
-                    gcVideoService.updateVideoFilePrivacy(sysFile, gcUserSaveContent.getVideo());
-                }
-            }
-            if (null != gcUserSaveFolder.getUser() && null != gcUserSaveFolder.getUser().getInfo() &&
-                null != gcUserSaveFolder.getUser().getInfo().getAvatarFileId()) {
-                SysFile sysFile = sysFileService.getById(gcUserSaveFolder.getUser().getInfo().getAvatarFileId());
-                sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
-                gcUserSaveFolder.getUser().getInfo().setAvatarFile(sysFile);
-            }
-
-        }
-        return playlists;
-    }
-
-    private List<GcUserSaveFolder> getPlaylistsWithVideos(Integer userId, Integer masterId, List<Integer> folderIdList,
-                                                          List<Integer> myFolderIdList) {
-        List<GcUserSaveFolder> playlists =
-            this.baseMapper.selectFolderAllVideo(userId, masterId, folderIdList, myFolderIdList);
-        List<GcUserSaveContent> playlistContents = playlists.stream()
-            .flatMap(playlist -> playlist.getSaveContentList().stream())
-            .collect(Collectors.toList());
-
-        playlistContents.forEach(
-            content -> content.setVideo(gcVideoService.getVideoContent(content.getFileId()).orElse(null)));
-        return playlists;
-    }
-
     @Override
     public Integer countFolder(GcUserSaveFolder gcUserSaveFolder) {
         QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();

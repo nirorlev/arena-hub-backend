@@ -11,8 +11,6 @@ import java.util.List;
 public interface UnavailableVideoService {
     void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos);
 
-    void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent);
-
     void nullifyVideoData(PortalUser portalUser, GcVideo video);
 
     void nullifyVideoComments(PortalUser portalUser, GcVideo video, PageInfo<GcVideoComment> comments);

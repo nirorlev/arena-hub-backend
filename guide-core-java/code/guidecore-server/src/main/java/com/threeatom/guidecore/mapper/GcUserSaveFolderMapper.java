@@ -21,9 +21,6 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
     List<GcUserSaveFolder> getPtNewHomePlayList(
         Integer userId, Integer masterId, List<Integer> folderIdList, List<Integer> myFolderIdList);
 
-    List<GcUserSaveFolder> selectFolderAllVideo(
-        Integer userId, Integer masterId, List<Integer> folderIdList, List<Integer> myFolderIdList);
-
     Integer selectFolderByIdsAndUser(
         @Param("folderIds") List<Integer> folderIds, @Param("userId") Integer userId);
 

@@ -3,7 +3,6 @@ package com.threeatom.guidecore.service.impl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
-import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -27,13 +26,11 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
     private List<Consumer<GcVideo>> videoNullifySuppliers;
-    private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
 
     @PostConstruct
     public void init() {
         initVideoFileNullifySuppliers();
         initVideoNullifySuppliers();
-        initPlaylistContentNullifySuppliers();
     }
 
     private void initVideoFileNullifySuppliers() {
@@ -61,12 +58,6 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
         );
     }
 
-    private void initPlaylistContentNullifySuppliers() {
-        playlistContentNullifySuppliers = List.of(
-            playlistContent -> playlistContent.setFileId(null)
-        );
-    }
-
     @Override
     public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos) {
         videos.stream()
@@ -79,16 +70,6 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     private boolean featureIsEnabled() {
         return Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
-    }
-
-    @Override
-    public void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent) {
-        playlistContent.stream()
-            .filter(content -> isVideoUnavailable(portalUser, content.getVideo()))
-            .forEach(content -> {
-                playlistContentNullifySuppliers.forEach(supplier -> supplier.accept(content));
-                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(content.getVideoFile()));
-            });
     }
 
     @Override

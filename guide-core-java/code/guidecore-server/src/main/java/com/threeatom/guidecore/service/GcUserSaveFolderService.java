@@ -29,13 +29,6 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
         HttpServletRequest request,
         List<Integer> myFolderIdList);
 
-    List<GcUserSaveFolder> selectFolderAllVideo(
-        Integer userId,
-        Integer masterId,
-        List<Integer> folderIdList,
-        HttpServletRequest request,
-        List<Integer> myFolderIdList);
-
     Integer countFolder(GcUserSaveFolder gcUserSaveFolder);
 
     List<GcUserSaveFolder> selectFolderInMaster(Integer masterId);

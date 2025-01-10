@@ -93,7 +93,6 @@ import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
 import com.threeatom.guidecore.service.SysMenuService;
-import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.AuthorizationUtil;
@@ -284,8 +283,6 @@ public class PowtoonController extends GuideCoreController {
     private AuthorizationService authorizationService;
     @Autowired
     private UserLicenseService userLicenseService;
-    @Autowired
-    private UnavailableVideoService unavailableVideoService;
     @Autowired
     private PortalUserService portalUserService;
     @Autowired
@@ -889,82 +886,6 @@ public class PowtoonController extends GuideCoreController {
         file.setIsLiked(isLiked);
         file.setLikeNum(countLike);
         return new Message().ok().addData("file", file);
-    }
-
-    @GetMapping("/playListVideoDetailPt")
-    public Message playListVideoDetailPt(HttpServletRequest request, Integer videoId, Integer playListId) {
-        if (Objects.isNull(videoId)) {
-            throw new SystemException(I18NUtil.get("powtoon.savefolder.error"));
-        }
-        if (Objects.isNull(playListId)) {
-            throw new SystemException(I18NUtil.get("powtoon.playlist.error"));
-        }
-        Message message = new Message();
-        GcVideo video = gcVideoService.findByVideoId(videoId);
-        SysFile file = video.getVideoFile();
-        GcUser myUser = this.getGcUser();
-        Integer masterId = getHeaderMasterId(request);
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(myUser.getId(), masterId);
-
-        List<Integer> playListIds = new ArrayList<>();
-        playListIds.add(playListId);
-        List<GcUserSaveFolder> playlists =
-            gcUserSaveFolderService.selectFolderAllVideo(null, masterId, playListIds, request, null);
-        GcUser gcUser = gcUserService.getById(playlists.get(0).getUserId());
-        GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
-        gcUser.setInfo(gcUserInfo);
-        if (null != gcUserInfo.getAvatarFileId()) {
-            SysFile sysFile = sysFileService.getById(gcUserInfo.getAvatarFileId());
-            sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
-            gcUser.getInfo().setAvatarFile(sysFile);
-        }
-
-        playlists.get(0).setUser(gcUser);
-        List<Integer> playlistIds = playlists.stream().map(GcUserSaveFolder::getId).collect(Collectors.toList());
-        List<GcUserSaveContentFollow> gcUserSaveContentFollowList =
-            gcUserSaveContentFollowService.selectFollowListByPlayListId(playlistIds);
-        Map<Integer, List<GcUserSaveContentFollow>> map =
-            gcUserSaveContentFollowList.stream().collect(Collectors.groupingBy(GcUserSaveContentFollow::getFolderId));
-
-        List<Integer> gcUserSaveContentFollowIdList =
-            gcUserSaveContentFollowService.selectFollowPlayList(this.getGcUser().getId(),
-                masterId);
-        if (gcUserSaveContentFollowIdList.contains(playListId)) {
-            message.ok().addData("followFlag", TableConstant.COMMON_ONE);
-        }
-
-        for (GcUserSaveFolder playlist : playlists) {
-            if (Objects.nonNull(playlist.getFileId())) {
-                SysFile sysFile = sysFileService.getById(playlist.getFileId());
-                String fullfileurl = sysFileService.getResFullUrl(sysFile, request);
-                playlist.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));
-                playlist.setFullFileUrl(fullfileurl);
-            }
-            List<GcUserSaveContentFollow> list1 = map.get(playlist.getId());
-            if (CollectionUtils.isNotEmpty(list1)) {
-                playlist.setFollowNum(list1.size());
-            }
-            for (GcUserSaveContent content : playlist.getSaveContentList()) {
-                SysFile videoFile = content.getVideoFile();
-                if (videoFile != null) {
-                    SysFile videoFileById = sysFileService.getById(videoFile.getId());
-                    content.setVideoFile(videoFileById);
-                    populateVideoContent(request, videoFileById, portalUser);
-                }
-            }
-
-            playlist.setPermissions(authorizationService.listPermissions(playlist, portalUser));
-        }
-
-        populateVideoContent(request, file, portalUser);
-
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        unavailableVideoService.nullifyVideoData(portalUser, video);
-        unavailableVideoService.nullifyPlaylistContent(portalUser, playlists.get(0).getSaveContentList());
-        return message.ok().addData("thisVideo", file)
-            .addData("playListDetail", playlists.get(0))
-            .addData("systemTime", df.format(new Date()));
     }
 
     private void populateVideoContent(HttpServletRequest request, SysFile videoFile, PortalUser portalUser) {
