@@ -302,8 +302,8 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
         videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
         videoWithDetails.setDeprecatedContentId(playlistContent.getId());
-        videoWithDetails.setNextVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
-        videoWithDetails.setPrevVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
+        videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
+        videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
         videoWithDetails.getPlaylist().setSize(videoContent.size());
         return videoWithDetails;
     }
