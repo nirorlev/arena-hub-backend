@@ -20,6 +20,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
@@ -281,6 +282,10 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Override
     public List<GcAccess> findContentGroupsByCodes(List<String> codes) {
+        if (codes.isEmpty()) {
+            return List.of();
+        }
+
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("code", codes);
         return this.list(queryWrapper);
