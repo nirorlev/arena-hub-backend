@@ -13,9 +13,7 @@ import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.config.MondayConfiguration;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.controller.user.vo.MondayApiVo;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
@@ -23,7 +21,6 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
@@ -56,7 +53,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
 
     @Autowired private GcMasterService gcMasterService;
     @Autowired private GcUserInfoService gcUserInfoService;
-    @Autowired private MondayConfiguration mondayConfiguration;
     @Autowired @Lazy private GcUserService gcUserService;
     @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
     @Autowired private PtChannelSubscribeService ptChannelSubscribeService;
@@ -415,24 +411,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
                 List<String> emailList =
                         JSONObject.parseArray(gcMaster.getEmailCc().toJSONString(), String.class);
                 emailList.add(email);
-                String htmlBody =
-                        I18NUtil.get("guidecore.master.email")
-                                .replace("{user.name}", user.getFirstName() + user.getLastName())
-                                .replace("{email}", user.getUsername())
-                                .replace("{url}", request.getHeader("origin"));
-            }
-            if (mondayConfiguration.getCallMondayApiFlag().equals(TableConstant.COMMON_ONE)) {
-                GcUser gcUser = gcUserService.getById(userId);
-                GcUserInfo gcUserInfo = gcUserInfoService.getById(gcUser.getInfoId());
-                GcMaster gcMaster = gcMasterService.getById(masterId);
-                //					第一次加入新的门户在monday加一条记录
-                MondayApiVo mondayApiVo = new MondayApiVo();
-                mondayApiVo.setEmail(gcUser.getUsername());
-                mondayApiVo.setCodeName(access.getCode());
-                mondayApiVo.setUsername(gcUserInfo.getFirstName() + " " + gcUserInfo.getLastName());
-                mondayApiVo.setPortalName(gcMaster.getContext());
-                mondayApiVo.setPaidFlag(0);
-                mondayApiVo.setBoardId(gcMaster.getBoardId());
             }
             message.addData("ifNewMaster", true);
         }
