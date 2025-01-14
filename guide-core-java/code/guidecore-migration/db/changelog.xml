@@ -757,4 +757,16 @@
                                  constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+
+    <changeSet id="add-groups-foreign-key" author="vprokh">
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="powtoon_group_code"
+                                 constraintName="user_groups_groups_powtoon_group_code_fk"
+                                 referencedTableName="groups" referencedColumnNames="powtoon_group_code"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="powtoon_group_code"
+                                 constraintName="user_managed_groups_groups_powtoon_group_code_fk"
+                                 referencedTableName="groups" referencedColumnNames="powtoon_group_code"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

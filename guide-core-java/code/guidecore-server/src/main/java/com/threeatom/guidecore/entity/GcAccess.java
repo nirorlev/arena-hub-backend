@@ -119,8 +119,6 @@ public class GcAccess implements Serializable {
     @ApiModelProperty(value = "package视频")
     private String packageVideoFileId;
 
-    private Integer groupId;
-
     @ApiModelProperty(value = "视频文件")
     @TableField(exist = false)
     private SysFile packageVideoFile;
@@ -689,13 +687,5 @@ public class GcAccess implements Serializable {
 
     public void setUsers(List<GcUser> users) {
         this.users = users;
-    }
-
-    public Integer getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(Integer groupId) {
-        this.groupId = groupId;
     }
 }
