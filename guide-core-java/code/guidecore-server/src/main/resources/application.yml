@@ -44,4 +44,3 @@ sentry:
   release: ${ARENA_BACKEND_VERSION}
   traces-sample-rate: 1.0
   debug: false
-  instrumenter: otel
