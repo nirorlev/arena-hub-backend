@@ -127,7 +127,7 @@ public class ShiroConfiguration {
         filterChainDefinitionMap.put("/api/v1/guidecore/homeInfo/getTagSubjectList", "anon");
         filterChainDefinitionMap.put("/api/v1/powtoon/home/getPtMessage", "anon");
         filterChainDefinitionMap.put("/api/v1/fred/version", "anon"); // James test
-        filterChainDefinitionMap.put("/api/v1/guidecore/version", "anon");
+        filterChainDefinitionMap.put("/api/v1/version", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/subject/navigation", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/video/subjectId/*", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/user/updateData", "anon");

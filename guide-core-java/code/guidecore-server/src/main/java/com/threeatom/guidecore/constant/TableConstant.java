@@ -87,21 +87,6 @@ public class TableConstant {
     // 分账，百分之十
     public static final long stripe10 = 10l;
 
-    public static final Integer master_message_type = 10;
-
-    // monday
-    public static final Integer monday_join_type_paid = 108;
-    public static final Integer monday_join_type_code = 0;
-    public static final Integer monday_payment_type_paid = 4;
-    public static final Integer monday_payment_type_code = 6;
-    // monday字段枚举
-    public static final String Candidate = "Candidate";
-    public static final String Candidate_Email_Address = "Candidate Email Address";
-    public static final String Portal = "Portal";
-    public static final String Payment = "Payment";
-    public static final String CodePackage = "Code/Package";
-    public static final String Invoice = "Invoice";
-
     // 2. 表：gc_master_home_info 门户首页信息
     public static final String gcMasterHomeInfo_name_content1 = "content1";
     public static final String gcMasterHomeInfo_name_content2 = "content2";
@@ -273,9 +258,6 @@ public class TableConstant {
     // 视频观看状态
     public static final int VIDEO_PLAY_STATUS0 = 0; // 视频观看过 绿色
     public static final int VIDEO_PLAY_STATUS1 = 1; // 视频未观看过 灰色
-
-    // mondayApi返回状态码
-    public static final int MONDAY_RESPONSE_CODE = 401;
 
     public static final int SUBJECT_ERROR_CODE = 450;
 

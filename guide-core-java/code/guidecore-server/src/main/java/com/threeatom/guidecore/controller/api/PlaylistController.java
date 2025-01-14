@@ -68,7 +68,7 @@ public class PlaylistController {
     }
 
     @GetMapping("/videos/latest")
-    public ResponseEntity<PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>>> playlistsLatestVideos(
+    public ResponseEntity<PageableDto<VideoWithSourceDetailsDto<VideoSourceDto>>> subscribedPlaylistsLatestVideos(
         @RequestParam(required = false) String pageAfter,
         @RequestParam(required = false, defaultValue = "20") Integer pageSize,
         HttpServletRequest request) {
@@ -78,11 +78,22 @@ public class PlaylistController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(
-            playlistService.playlistLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+            playlistService.findSubscribedPlaylistsLatestVideos(portalUser, CursorDto.decode(pageAfter), pageSize));
+    }
+
+    @GetMapping("/{playlistId}/videos/latest")
+    public ResponseEntity<List<VideoWithSourceDetailsDto<VideoSourceDto>>> playlistsLatestVideos(
+        @PathVariable("playlistId") Integer playlistId, HttpServletRequest request) {
+
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(playlistService.findPlaylistLatestVideos(portalUser, playlistId));
     }
 
     @GetMapping("{playlistId}/videos/{videoId}")
-    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> playlistsLatestVideos(
+    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> playlistVideoPlayerPage(
         @PathVariable("playlistId") Integer playlistId, @PathVariable("videoId") Integer videoId,
         HttpServletRequest request) {
 

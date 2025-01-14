@@ -51,7 +51,7 @@ public class VideoItemAuthorizationService
             return VideoItemRole.ADMIN;
         }
 
-        if (videoItem.isPublic() || userHasVideoItemInContentGroups(permitUser, videoItem)) {
+        if (videoItem.isPublic() || !videoItem.isPrivate() && userHasVideoItemInContentGroups(permitUser, videoItem)) {
             return VideoItemRole.VIEWER;
         }
 

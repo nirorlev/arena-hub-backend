@@ -655,4 +655,118 @@
             <column name="value" value=""/>
         </insert>
     </changeSet>
+
+    <changeSet id="create-course-user-table" author="vprokh">
+        <createTable tableName="course_enrollments" schemaName="arena_hub">
+            <column name="id" type="bigserial" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completion_date" type="timestamp with time zone"/>
+            <column name="create_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="course_enrollments" baseColumnNames="user_id"
+                                 constraintName="course_enrollments_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="course_enrollments" baseColumnNames="course_id"
+                                 constraintName="course_enrollments_gc_subject_id_fk" referencedTableName="gc_subject"
+                                 referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-groups-table" author="vprokh">
+        <createTable tableName="groups" schemaName="arena_hub">
+            <column name="powtoon_group_code" type="varchar">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="powtoon_parent_group_code" type="varchar" />
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="master_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="groups" baseColumnNames="master_id"
+                                 constraintName="groups_gc_master_id_fk" referencedTableName="gc_master"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-managed-groups-table" author="vprokh">
+        <createTable tableName="user_managed_groups" schemaName="arena_hub">
+            <column name="powtoon_group_code" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_managed_groups"/>
+
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
+                                 constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-groups-table" author="vprokh">
+        <createTable tableName="user_groups" schemaName="arena_hub">
+            <column name="powtoon_group_code" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey constraintName="user_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_groups"/>
+
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="user_id"
+                                 constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="add-groups-foreign-key" author="vprokh">
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="powtoon_group_code"
+                                 constraintName="user_groups_groups_powtoon_group_code_fk"
+                                 referencedTableName="groups" referencedColumnNames="powtoon_group_code"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="powtoon_group_code"
+                                 constraintName="user_managed_groups_groups_powtoon_group_code_fk"
+                                 referencedTableName="groups" referencedColumnNames="powtoon_group_code"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

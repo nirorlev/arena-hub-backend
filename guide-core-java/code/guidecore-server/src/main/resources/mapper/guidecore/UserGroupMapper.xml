@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.UserGroupMapper">
+
+    <resultMap id="baseResultMap" type="UserGroup" autoMapping="true">
+        <result property="role" column="user_group_role" javaType="com.threeatom.guidecore.enums.UserGroupRole" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+        <result property="updatedTime" column="user_group_updated_time"/>
+        <result property="createdTime" column="user_group_created_time"/>
+
+        <association property="id" javaType="GroupToUserPk">
+            <id property="powtoonGroupCode" column="powtoon_group_code" javaType="java.lang.String" />
+            <id property="userId" column="group_user_id" javaType="java.lang.Integer" />
+        </association>
+        <association property="group" resultMap="groupResultMap" columnPrefix="group_"/>
+    </resultMap>
+
+    <resultMap id="groupResultMap" type="Group">
+        <id property="powtoonGroupCode" column="powtoon_group_code"/>
+
+        <result property="name" column="name"/>
+        <result property="powtoonParentGroupCode" column="powtoon_parent_group_code"/>
+        <result property="masterId" column="master_id"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <select id="getById" resultMap="baseResultMap" resultType="UserGroup">
+        SELECT user_groups.powtoon_group_code,
+               user_groups.user_id              as group_user_id,
+               user_groups.role                 as user_group_role,
+               user_groups.created_time         as user_group_created_time,
+               user_groups.updated_time         as user_group_updated_time,
+               groups.powtoon_group_code        as group_powtoon_group_code,
+               groups.name                      as group_name,
+               groups.powtoon_parent_group_code as group_powtoon_parent_group_code,
+               groups.master_id                 as group_master_id,
+               groups.created_time              as group_created_time,
+               groups.updated_time              as group_updated_time
+        FROM user_groups
+                 JOIN groups ON user_groups.powtoon_group_code = groups.powtoon_group_code
+        WHERE user_groups.powtoon_group_code = #{id.powtoonGroupCode}
+          AND user_groups.user_id = #{id.userId}
+    </select>
+
+    <select id="findByUserAndMasterId" resultMap="baseResultMap" resultType="UserGroup">
+        SELECT user_groups.powtoon_group_code,
+               user_groups.user_id              as group_user_id,
+               user_groups.role                 as user_group_role,
+               user_groups.created_time         as user_group_created_time,
+               user_groups.updated_time         as user_group_updated_time,
+               groups.powtoon_group_code        as group_powtoon_group_code,
+               groups.name                      as group_name,
+               groups.powtoon_parent_group_code as group_powtoon_parent_group_code,
+               groups.master_id                 as group_master_id,
+               groups.created_time              as group_created_time,
+               groups.updated_time              as group_updated_time
+        FROM user_groups
+                 JOIN groups ON user_groups.powtoon_group_code = groups.powtoon_group_code AND groups.master_id = #{masterId}
+        WHERE user_groups.user_id = #{userId}
+    </select>
+
+    <insert id="saveOrUpdateBatch">
+        INSERT INTO user_groups (powtoon_group_code, user_id, role, created_time, updated_time)
+        VALUES
+        <foreach collection="userGroups" item="userGroup" separator=",">
+            (#{userGroup.id.powtoonGroupCode}, #{userGroup.id.userId}, #{userGroup.role}, #{userGroup.createdTime},
+            #{userGroup.updatedTime})
+        </foreach>
+        ON CONFLICT (powtoon_group_code, user_id)
+        DO UPDATE SET role = EXCLUDED.role, updated_time = EXCLUDED.updated_time;
+    </insert>
+
+    <delete id="removeByIds">
+        DELETE FROM user_groups
+        WHERE powtoon_group_code IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id.powtoonGroupCode}
+        </foreach>
+        AND user_id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id.userId}
+        </foreach>
+    </delete>
+</mapper>

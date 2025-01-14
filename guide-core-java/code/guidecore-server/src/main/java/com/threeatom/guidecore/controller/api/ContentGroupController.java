@@ -5,10 +5,12 @@ import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.facade.GroupFacade;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
-import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -34,8 +36,9 @@ public class ContentGroupController {
 
     private final GcContentGroupCourseAssignmentService gcContentGroupCourseAssignmentService;
     private final ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
-    private final GcAccessService contentGroupService;
     private final GcUserService gcUserService;
+    private final GroupFacade groupFacade;
+    private final PortalUserService portalUserService;
 
     @GetMapping("/{content-group-id}/course-assignments")
     public ResponseEntity<List<ContentGroupCourseAssignmentDto>> getCourseAssignment(
@@ -81,12 +84,15 @@ public class ContentGroupController {
             .body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId, request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ContentGroupDto>> userContentGroups(HttpServletRequest request) {
+    @GetMapping("/managed")
+    public ResponseEntity<List<ContentGroupDto>> userManagedContentGroups(HttpServletRequest request) {
+        return ResponseEntity.ok().body(groupFacade.getUserManagedContentGroups(getPortalUser(request)));
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
         GcUser currentUser = gcUserService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-
-        return ResponseEntity.ok().body(contentGroupService.userContentGroups(currentUser.getId(), masterId));
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 
 }

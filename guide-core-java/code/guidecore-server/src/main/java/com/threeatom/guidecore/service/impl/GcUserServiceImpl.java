@@ -6,11 +6,14 @@ import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.PowtoonClient;
+import com.threeatom.client.dto.GroupDto;
+import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.client.dto.ProfileDto;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
@@ -23,8 +26,11 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GroupService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.UserAvatarService;
+import com.threeatom.guidecore.service.UserGroupService;
+import com.threeatom.guidecore.service.UserManagedGroupService;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -58,6 +64,9 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private final GcSubjectService gcSubjectService;
     private final PortalUserService portalUserService;
     private final UserAvatarService userAvatarService;
+    private final UserGroupService userGroupService;
+    private final UserManagedGroupService userManagedGroupService;
+    private final GroupService groupService;
 
     @Override
     public GcUser getUserInfo(Integer userId) {
@@ -206,10 +215,10 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     public GcUser syncPowtoonUser(String accessToken, PtLoginConfig ptLoginConfig, Integer masterId)
         throws IOException, ClientException {
         final String bearerToken = "Bearer " + accessToken;
-        PtGroupsVo groups =
+        PtGroupsVo powtoonGroups =
             powtoonClient.getGroups(
                 URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getGroups()), bearerToken);
-        log.info("PtGroups interface returns:" + groups);
+        log.info("PtGroups interface returns:" + powtoonGroups);
 
         PowtoonUserDto powtoonUserInfo =
             powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
@@ -220,7 +229,11 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
         user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);
 
-        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, groups, masterId, user.getId());
+        groupService.syncGroups(powtoonGroups.getResults(), user.getId(), masterId);
+        userGroupService.syncUserGroups(powtoonUserInfo.getPermissions().getGroups(), user.getId(), masterId);
+        userManagedGroupService.syncUserManagedGroups(powtoonUserInfo.getPermissions().getManagedGroups(), user.getId(), masterId);
+
+        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, powtoonGroups, masterId, user.getId());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
 
         return user;

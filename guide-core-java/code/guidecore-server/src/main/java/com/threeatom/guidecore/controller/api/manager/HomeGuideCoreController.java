@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/guidecore")
+@RequestMapping("/api/v1")
 @Api(tags = "仪表盘数据")
 @Slf4j
 public class HomeGuideCoreController extends GuideCoreController {
@@ -61,7 +61,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired private GcAccessService gcAccessService;
     @Autowired private FrontendVersionService frontendVersionService;
 
-    @PostMapping("/saveHomeVideo")
+    @PostMapping("/guidecore/saveHomeVideo")
     public Message saveHomeVideo(@RequestBody JSONObject jsonRequest) {
         if (jsonRequest == null
                 || jsonRequest.getInteger("fileId") == null
@@ -80,7 +80,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "获取首页数据", httpMethod = "GET")
-    @GetMapping("/getHomeData")
+    @GetMapping("/guidecore/getHomeData")
     @ApiResponses({@ApiResponse(code = 200, message = "请求成功", response = HomePage.class)})
     public Message homePageData(HttpServletRequest request) {
         SysSystem sys = this.getSystem();
@@ -174,7 +174,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "获取门户下用户行为数据图表", httpMethod = "POST")
-    @PostMapping("/homeUserBehaviorChartsData")
+    @PostMapping("/guidecore/homeUserBehaviorChartsData")
     public Message homeUserBehaviorChartsData(
             @RequestBody JSONObject jsonRequest, HttpServletRequest request) {
         Message message = new Message();
@@ -210,7 +210,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "关闭网站", httpMethod = "POST")
-    @PostMapping("/close")
+    @PostMapping("/guidecore/close")
     public Message close() {
         Integer managerId = this.getManager().getId();
         if (masterService.setMasterState(managerId, 0)) return new Message().ok();
@@ -218,7 +218,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "打开网站", httpMethod = "POST")
-    @PostMapping("/open")
+    @PostMapping("/guidecore/open")
     public Message open() {
         Integer managerId = this.getManager().getId();
         if (masterService.setMasterState(managerId, 1)) return new Message().ok();
@@ -226,7 +226,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "关闭网站", httpMethod = "POST")
-    @PostMapping("/superAdminClose")
+    @PostMapping("/guidecore/superAdminClose")
     public Message close(@RequestBody GcMaster gcMaster) {
         if (masterService.superAdminSetMasterState(gcMaster.getId(), 0))
             return new Message().ok("success");
@@ -234,7 +234,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "打开网站", httpMethod = "POST")
-    @PostMapping("/superAdminOpen")
+    @PostMapping("/guidecore/superAdminOpen")
     public Message open(@RequestBody GcMaster gcMaster) {
         if (masterService.superAdminSetMasterState(gcMaster.getId(), 1)) return new Message().ok();
         else return new Message().error();
@@ -250,7 +250,7 @@ public class HomeGuideCoreController extends GuideCoreController {
                         dataType = "String"),
                 @ApiImplicitParam(name = "password", value = "密码", required = true, dataType = "String")
             })
-    @PostMapping("/login")
+    @PostMapping("/guidecore/login")
     public Message Login(@RequestBody JSONObject jsonRequest) {
         String username = jsonRequest.getString("username");
         String password = jsonRequest.getString("password");
@@ -271,7 +271,7 @@ public class HomeGuideCoreController extends GuideCoreController {
                 @ApiImplicitParam(name = "lastName", value = "名字后缀", required = true, dataType = "String"),
                 @ApiImplicitParam(name = "code", value = "注册码", dataType = "String")
             })
-    @PostMapping("/register")
+    @PostMapping("/guidecore/register")
     public Message Register(@RequestBody JSONObject jsonRequest) {
         String email = jsonRequest.getString("email");
         String password = jsonRequest.getString("password");
@@ -308,7 +308,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     private static final String email_prefix_newgt_resend_es = "newgt_60_"; // 用户判断1分账只能发一次
 
     @ApiOperation(value = "修改密码", httpMethod = "POST")
-    @PostMapping("/editMasterUserInfo")
+    @PostMapping("/guidecore/editMasterUserInfo")
     public Message editMasterUserInfo(@RequestBody GcManager gcManager) {
         String email = gcManager.getUsername();
         String password = gcManager.getPassword();
@@ -340,7 +340,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     }
 
     @ApiOperation(value = "修改密码", httpMethod = "POST")
-    @PostMapping("/changePassword")
+    @PostMapping("/guidecore/changePassword")
     public Message changePassword(@RequestBody JSONObject requestParams) {
         String email = requestParams.getString("email");
         String captcha = requestParams.getString("captcha");

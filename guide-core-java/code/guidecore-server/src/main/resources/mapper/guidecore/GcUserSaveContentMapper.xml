@@ -101,6 +101,62 @@
         </association>
     </resultMap>
 
+    <sql id="playlistContentColumns">
+        playlist_content.id,
+        playlist_content.folder_id,
+        playlist_content.user_id,
+        playlist_content.content_id,
+        playlist_content.master_id,
+        playlist_content.create_time,
+        playlist_content.update_time
+    </sql>
+
+    <sql id="videoColumns">
+        video.id                   as video_id,
+        video.video_name           as video_name,
+        video.video_name_index     as video_name_index,
+        video.video_time           as video_video_time,
+        video.file_id              as video_file_id,
+        video.video_desc           as video_desc,
+        video.video_source         as video_source,
+        video.thumbnail_url        as video_thumbnail_url,
+        video.origin_course_id     as video_origin_course_id,
+        video.origin_channel_id    as video_origin_channel_id,
+        video_file.id              as video_file_id,
+        video_file.name            as video_file_name,
+        video_file.file_url        as video_file_file_url,
+        video_file.save_type       as video_file_save_type,
+        video_file.file_type       as video_file_file_type,
+        video_file.video_long      as video_file_video_long,
+        video_file.file_type_index as video_file_file_type_index,
+        video_file.thumb_nail_id   as video_file_thumb_nail_id,
+        video_file.thumb_nail_url  as video_file_thumb_nail_url,
+        video.create_time          as video_create_time,
+        video.update_time          as video_update_time
+    </sql>
+
+    <sql id="channelColumns">
+        channel.id                          as video_channel_id,
+        channel.visible_flag                as video_channel_visible_flag,
+        channel.create_user_id              as video_channel_create_user_id,
+        channel.channel_name                as video_channel_name,
+        channel.desc                        as video_channel_desc,
+        channel.channel_avatar_file_id      as video_channel_avatar_file_id,
+        channel.create_time                 as video_channel_create_time,
+        channel.update_time                 as video_channel_update_time
+    </sql>
+
+    <sql id="courseColumns">
+        course.id                           as video_course_id,
+        course.available_type               as video_course_available_type,
+        course.state                        as video_course_state,
+        course.name                         as video_course_name,
+        course.create_user                  as video_course_create_user,
+        course.sub_img_id                   as video_course_img_id,
+        course.create_time                  as video_course_create_time,
+        course.update_time                  as video_course_update_time
+    </sql>
+
     <select id="getTwoSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u
@@ -185,7 +241,7 @@
     </select>
 
     <select id="getByPlaylistIdAndVideoId" resultMap="baseResultMap">
-        select playlist_content.id, playlist_content.folder_id, playlist_content.user_id, playlist_content.content_id, playlist_content.master_id, playlist_content.create_time, playlist_content.update_time,
+        select <include refid="playlistContentColumns" />,
                playlist.id                         as playlist_id,
                playlist.name                       as playlist_name,
                playlist.user_id                    as playlist_user_id,
@@ -204,38 +260,11 @@
                playlist_user_avatar_file.name      as playlist_user_info_avatar_file_name,
                playlist_user_avatar_file.file_url  as playlist_user_info_avatar_file_file_url,
                playlist_user_avatar_file.save_type as playlist_user_info_avatar_file_save_type,
-               video.id                            as video_id,
-               video.video_name                    as video_name,
-               video.video_name_index              as video_name_index,
-               video.video_time                    as video_video_time,
-               video.file_id                       as video_file_id,
-               video.video_desc                    as video_desc,
-               video.video_source                  as video_source,
-               video.thumbnail_url                 as video_thumbnail_url,
-               video.origin_course_id              as video_origin_course_id,
-               video.origin_channel_id             as video_origin_channel_id,
-               video_file.id                       as video_file_id,
-               video_file.name                     as video_file_name,
-               video_file.file_url                 as video_file_file_url,
-               video_file.save_type                as video_file_save_type,
-               video_file.file_type                as video_file_file_type,
-               video_file.video_long               as video_file_video_long,
-               video_file.file_type_index          as video_file_file_type_index,
-               video_file.thumb_nail_id            as video_file_thumb_nail_id,
-               video_file.thumb_nail_url           as video_file_thumb_nail_url,
-               video.create_time                   as video_create_time,
-               video.update_time                   as video_update_time,
+               <include refid="videoColumns" />,
                (CASE WHEN video.origin_course_id IS NOT NULL THEN course.create_user ELSE channel.create_user_id END) as video_user_id,
                (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) as video_comments_count,
 
-               course.id                           as video_course_id,
-               course.available_type               as video_course_available_type,
-               course.state                        as video_course_state,
-               course.name                         as video_course_name,
-               course.create_user                  as video_course_create_user,
-               course.sub_img_id                   as video_course_img_id,
-               course.create_time                  as video_course_create_time,
-               course.update_time                  as video_course_update_time,
+               <include refid="courseColumns" />,
                course_owner.id                     as video_course_user_id,
                course_owner.username               as video_course_user_username,
                course_owner_info.id                as video_course_user_info_id,
@@ -256,14 +285,7 @@
                course_avatar_file.thumb_nail_id            as video_course_avatar_file_thumb_nail_id,
                course_avatar_file.thumb_nail_url           as video_course_avatar_file_thumb_nail_url,
 
-               channel.id                          as video_channel_id,
-               channel.visible_flag                as video_channel_visible_flag,
-               channel.create_user_id              as video_channel_create_user_id,
-               channel.channel_name                as video_channel_name,
-               channel.desc                        as video_channel_desc,
-               channel.channel_avatar_file_id      as video_channel_avatar_file_id,
-               channel.create_time                 as video_channel_create_time,
-               channel.update_time                 as video_channel_update_time,
+               <include refid="channelColumns" />,
                channel_owner.id                    as video_channel_user_id,
                channel_owner.username              as video_channel_user_username,
                channel_owner_info.id               as video_channel_user_info_id,
@@ -304,6 +326,20 @@
                  LEFT JOIN sys_file channel_owner_avatar_file
                            on channel_owner_info.avatar_file_id = channel_owner_avatar_file.id
         where playlist_content.content_id = #{contentId} AND playlist_content.folder_id = #{playlistId};
+    </select>
+
+    <select id="findVideoContentByPlaylistId" resultMap="baseResultMap">
+        select <include refid="playlistContentColumns" />,
+            <include refid="videoColumns" />,
+            <include refid="channelColumns" />,
+            <include refid="courseColumns" />
+        FROM gc_user_save_content playlist_content
+            JOIN gc_video video ON video.id = playlist_content.content_id
+            JOIN sys_file video_file ON video.file_id = video_file.id
+
+            LEFT JOIN pt_channel channel on channel.id = video.origin_channel_id
+            LEFT JOIN gc_subject course on course.id = video.origin_course_id
+        WHERE playlist_content.folder_id = #{playlistId}
     </select>
 
     <select id="deleteFileList" resultType="java.lang.Integer">

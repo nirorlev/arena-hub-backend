@@ -3,7 +3,6 @@ package com.threeatom.guidecore.service.impl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
-import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -26,12 +25,12 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     private final AuthorizationService authorizationService;
 
     private List<Consumer<SysFile>> videoFileNullifySuppliers;
-    private List<Consumer<GcUserSaveContent>> playlistContentNullifySuppliers;
+    private List<Consumer<GcVideo>> videoNullifySuppliers;
 
     @PostConstruct
     public void init() {
         initVideoFileNullifySuppliers();
-        initPlaylistContentNullifySuppliers();
+        initVideoNullifySuppliers();
     }
 
     private void initVideoFileNullifySuppliers() {
@@ -43,13 +42,19 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             file -> file.setName(null),
             file -> file.setVideoLong(0),
             file -> file.setFullFileUrl(null),
-            file -> file.setSnapshotUrl(null)
+            file -> file.setSnapshotUrl(null),
+            file -> file.setFileTypeIndex(null)
         );
     }
 
-    private void initPlaylistContentNullifySuppliers() {
-        playlistContentNullifySuppliers = List.of(
-            playlistContent -> playlistContent.setFileId(null)
+    private void initVideoNullifySuppliers() {
+        videoNullifySuppliers = List.of(
+            video -> video.setVideoDesc(null),
+            video -> video.setSourceUrl(null),
+            video -> video.setVideoFullUrl(null),
+            video -> video.setFileTypeIndex(null),
+            video -> video.setSnapshotUrl(null),
+            video -> video.setThumbnailUrl(null)
         );
     }
 
@@ -59,21 +64,12 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
             .filter(video -> isVideoUnavailable(portalUser, video))
             .forEach(video -> {
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
+                videoNullifySuppliers.forEach(supplier -> supplier.accept(video));
             });
     }
 
     private boolean featureIsEnabled() {
         return Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
-    }
-
-    @Override
-    public void nullifyPlaylistContent(PortalUser portalUser, List<GcUserSaveContent> playlistContent) {
-        playlistContent.stream()
-            .filter(content -> isVideoUnavailable(portalUser, content.getVideo()))
-            .forEach(content -> {
-                playlistContentNullifySuppliers.forEach(supplier -> supplier.accept(content));
-                videoFileNullifySuppliers.forEach(supplier -> supplier.accept(content.getVideoFile()));
-            });
     }
 
     @Override

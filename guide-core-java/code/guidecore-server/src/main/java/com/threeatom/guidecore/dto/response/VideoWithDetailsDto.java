@@ -27,8 +27,8 @@ public class VideoWithDetailsDto extends VideoDto {
     @ApiModelProperty(value = "video file id for old playlist adding API. Deprecated")
     private Integer deprecatedVideoFileId;
 
-    private Integer prevVideoId;
-    private Integer nextVideoId;
+    private Integer prevAvailableVideoId;
+    private Integer nextAvailableVideoId;
 
     @ApiModelProperty(value = "Playlist details")
     private PlaylistDto playlist;
