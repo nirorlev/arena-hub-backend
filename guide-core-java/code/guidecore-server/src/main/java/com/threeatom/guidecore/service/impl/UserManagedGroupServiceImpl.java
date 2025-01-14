@@ -1,13 +1,15 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.dto.ManagedGroupDto;
+import com.threeatom.guidecore.entity.GroupToUserPk;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.UserManagedGroup;
 import com.threeatom.guidecore.mapper.UserManagedGroupMapper;
 import com.threeatom.guidecore.mapping.GroupMapping;
 import com.threeatom.guidecore.service.UserManagedGroupService;
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,26 @@ public class UserManagedGroupServiceImpl extends ServiceImpl<UserManagedGroupMap
     private final GroupMapping groupMapping;
 
     @Override
+    public UserManagedGroup getById(Serializable id) {
+        return baseMapper.getById((GroupToUserPk) id);
+    }
+
+    @Override
+    public boolean saveOrUpdateBatch(Collection<UserManagedGroup> userManagedGroups) {
+        baseMapper.saveOrUpdateBatch(userManagedGroups);
+        return true;
+    }
+
+    @Override
+    public boolean removeByIds(Collection<? extends Serializable> ids) {
+        if (ids.isEmpty()) {
+            return false;
+        }
+
+        return baseMapper.removeByIds(ids);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<UserManagedGroup> findUserManagedGroups(PortalUser portalUser) {
         return baseMapper.findUserManagedGroups(portalUser.getUserId(), portalUser.getMasterId());
@@ -29,20 +51,20 @@ public class UserManagedGroupServiceImpl extends ServiceImpl<UserManagedGroupMap
 
     @Override
     @Transactional
-    public void syncUserManagedGroups(List<ManagedGroupDto> powtoonManagedGroups, Integer userId) {
+    public void syncUserManagedGroups(List<ManagedGroupDto> powtoonManagedGroups, Integer userId, Integer masterId) {
         List<UserManagedGroup> userManagedGroups = convertToUserManagedGroups(powtoonManagedGroups, userId);
         saveOrUpdateBatch(userManagedGroups);
 
-        List<String> userManagedGroupCodesToRemove = getUserManagedGroupCodesToRemove(powtoonManagedGroups, userId);
+        List<String> userManagedGroupCodesToRemove = getUserManagedGroupCodesToRemove(powtoonManagedGroups, userId, masterId);
         removeByIds(userManagedGroupCodesToRemove);
     }
 
-    private List<String> getUserManagedGroupCodesToRemove(List<ManagedGroupDto> powtoonManagedGroups, Integer userId) {
+    private List<String> getUserManagedGroupCodesToRemove(List<ManagedGroupDto> powtoonManagedGroups, Integer userId, Integer masterId) {
         List<String> powtoonGroupCodes = convertToGroupCodes(powtoonManagedGroups);
-        List<UserManagedGroup> existingUserManagedGroups = findByUserId(userId);
+        List<UserManagedGroup> existingUserManagedGroups = findByUserAndMasterId(userId, masterId);
 
         return existingUserManagedGroups.stream()
-            .map(UserManagedGroup::getPowtoonGroupCode)
+            .map(userManagedGroup -> userManagedGroup.getId().getPowtoonGroupCode())
             .filter(powtoonGroupCode -> !powtoonGroupCodes.contains(powtoonGroupCode))
             .collect(Collectors.toList());
     }
@@ -60,9 +82,7 @@ public class UserManagedGroupServiceImpl extends ServiceImpl<UserManagedGroupMap
             .collect(Collectors.toList());
     }
 
-    private List<UserManagedGroup> findByUserId(Integer userId) {
-        QueryWrapper<UserManagedGroup> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
-        return list(queryWrapper);
+    private List<UserManagedGroup> findByUserAndMasterId(Integer userId, Integer masterId) {
+        return baseMapper.findUserManagedGroups(userId, masterId);
     }
 }

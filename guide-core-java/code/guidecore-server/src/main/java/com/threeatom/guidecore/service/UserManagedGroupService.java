@@ -9,5 +9,5 @@ import java.util.List;
 public interface UserManagedGroupService extends IService<UserManagedGroup> {
     List<UserManagedGroup> findUserManagedGroups(PortalUser portalUser);
 
-    void syncUserManagedGroups(List<ManagedGroupDto> powtoonManagedGroups, Integer userId);
+    void syncUserManagedGroups(List<ManagedGroupDto> powtoonManagedGroups, Integer userId, Integer masterId);
 }

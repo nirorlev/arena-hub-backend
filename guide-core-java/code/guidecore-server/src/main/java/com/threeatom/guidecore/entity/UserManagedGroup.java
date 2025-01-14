@@ -13,9 +13,7 @@ import lombok.Setter;
 public class UserManagedGroup {
 
     @TableId
-    private String powtoonGroupCode;
-
-    private Integer userId;
+    private GroupToUserPk id;
 
     @TableField(exist = false)
     private Group group;

@@ -6,5 +6,5 @@ import com.threeatom.guidecore.entity.UserGroup;
 import java.util.List;
 
 public interface UserGroupService extends IService<UserGroup> {
-    void syncUserGroups(List<GroupDto> powtoonUserMemberGroups, Integer userId);
+    void syncUserGroups(List<GroupDto> powtoonUserMemberGroups, Integer userId, Integer masterId);
 }

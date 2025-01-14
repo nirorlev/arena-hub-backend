@@ -19,13 +19,13 @@ public interface GroupMapping {
     @Mapping(target = "powtoonParentGroupCode", source = "powtoonGroup.parent_group_id")
     Group map(Groups powtoonGroup, Integer masterId);
 
-    @Mapping(target = "powtoonGroupCode", source = "powtoonUserGroup.id")
-    @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "id.powtoonGroupCode", source = "powtoonUserGroup.id")
+    @Mapping(target = "id.userId", source = "userId")
     @Mapping(target = "role", source = "powtoonUserGroup.roleId", qualifiedByName = "mapRole")
     UserGroup mapUserGroup(GroupDto powtoonUserGroup, Integer userId);
 
-    @Mapping(target = "powtoonGroupCode", source = "powtoonUserManagedGroup.id")
-    @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "id.powtoonGroupCode", source = "powtoonUserManagedGroup.id")
+    @Mapping(target = "id.userId", source = "userId")
     UserManagedGroup mapUserManagedGroup(ManagedGroupDto powtoonUserManagedGroup, Integer userId);
 
     @Named("mapRole")

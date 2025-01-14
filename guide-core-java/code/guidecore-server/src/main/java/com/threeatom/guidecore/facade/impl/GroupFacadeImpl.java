@@ -24,11 +24,11 @@ public class GroupFacadeImpl implements GroupFacade {
     @Override
     public List<ContentGroupDto> getUserManagedContentGroups(PortalUser portalUser) {
         List<UserManagedGroup> userManagedGroups = userManagedGroupService.findUserManagedGroups(portalUser);
-        List<String> userManagedGroupIds = userManagedGroups.stream()
-            .map(UserManagedGroup::getPowtoonGroupCode)
+        List<String> userManagedGroupCodes = userManagedGroups.stream()
+            .map(userManagedGroup -> userManagedGroup.getId().getPowtoonGroupCode())
             .collect(Collectors.toList());
 
-        List<GcAccess> userManagedContentGroups = contentGroupService.findContentGroupsByCodes(userManagedGroupIds);
+        List<GcAccess> userManagedContentGroups = contentGroupService.findContentGroupsByCodes(userManagedGroupCodes);
         return contentGroupMapping.map(userManagedContentGroups);
     }
 }

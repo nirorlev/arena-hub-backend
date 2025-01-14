@@ -41,10 +41,7 @@ public class PortalUserServiceImpl extends ServiceImpl<PortalUserMapper, PortalU
 
     @Override
     public PortalUser getByUserAndMasterId(Integer userId, Integer masterId) {
-        QueryWrapper<PortalUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("master_id", masterId);
-        return getOne(queryWrapper);
+        return baseMapper.getByUserAndMasterId(userId, masterId);
     }
 
     private PortalUser createPortalUser(Integer userId, Integer masterId, UserOrgRole role) {

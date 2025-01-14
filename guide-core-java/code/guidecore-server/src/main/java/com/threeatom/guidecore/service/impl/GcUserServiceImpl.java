@@ -230,8 +230,8 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);
 
         groupService.syncGroups(powtoonGroups.getResults(), user.getId(), masterId);
-        userGroupService.syncUserGroups(powtoonUserInfo.getPermissions().getGroups(), user.getId());
-        userManagedGroupService.syncUserManagedGroups(powtoonUserInfo.getPermissions().getManagedGroups(), user.getId());
+        userGroupService.syncUserGroups(powtoonUserInfo.getPermissions().getGroups(), user.getId(), masterId);
+        userManagedGroupService.syncUserManagedGroups(powtoonUserInfo.getPermissions().getManagedGroups(), user.getId(), masterId);
 
         accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, powtoonGroups, masterId, user.getId());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
