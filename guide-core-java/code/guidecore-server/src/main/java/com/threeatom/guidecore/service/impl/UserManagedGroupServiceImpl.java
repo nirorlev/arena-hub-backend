@@ -30,6 +30,10 @@ public class UserManagedGroupServiceImpl extends ServiceImpl<UserManagedGroupMap
 
     @Override
     public boolean saveOrUpdateBatch(Collection<UserManagedGroup> userManagedGroups) {
+        if (userManagedGroups.isEmpty()) {
+            return false;
+        }
+
         baseMapper.saveOrUpdateBatch(userManagedGroups);
         return true;
     }
