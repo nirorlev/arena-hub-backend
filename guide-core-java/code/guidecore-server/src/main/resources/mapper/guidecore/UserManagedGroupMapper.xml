@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.UserManagedGroupMapper">
+
+    <resultMap id="baseResultMap" type="UserManagedGroup" autoMapping="true">
+        <result property="updatedTime" column="managed_group_updated_time"/>
+        <result property="createdTime" column="managed_group_created_time"/>
+
+        <association property="id" javaType="GroupToUserPk">
+            <id property="powtoonGroupCode" column="powtoon_group_code" javaType="java.lang.String"/>
+            <id property="userId" column="group_user_id" javaType="java.lang.Integer"/>
+        </association>
+        <association property="group" resultMap="groupResultMap" columnPrefix="group_"/>
+    </resultMap>
+
+    <resultMap id="groupResultMap" type="Group">
+        <id property="powtoonGroupCode" column="powtoon_group_code"/>
+
+        <result property="name" column="name"/>
+        <result property="powtoonParentGroupCode" column="powtoon_parent_group_code"/>
+        <result property="masterId" column="master_id"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <select id="getById" resultMap="baseResultMap" resultType="UserManagedGroup">
+        SELECT user_managed_groups.powtoon_group_code,
+               user_managed_groups.user_id      as group_user_id,
+               user_managed_groups.created_time as managed_group_created_time,
+               user_managed_groups.updated_time as managed_group_updated_time,
+               groups.powtoon_group_code        as group_powtoon_group_code,
+               groups.name                      as group_name,
+               groups.powtoon_parent_group_code as group_powtoon_parent_group_code,
+               groups.master_id                 as group_master_id,
+               groups.created_time              as group_created_time,
+               groups.updated_time              as group_updated_time
+        FROM user_managed_groups
+                 JOIN groups ON user_managed_groups.powtoon_group_code = groups.powtoon_group_code
+        WHERE user_managed_groups.user_id = #{id.userId}
+          AND user_managed_groups.powtoon_group_code = #{id.powtoonGroupCode}
+    </select>
+
+    <insert id="saveOrUpdateBatch">
+        INSERT INTO user_managed_groups (powtoon_group_code, user_id, created_time, updated_time)
+        VALUES
+        <foreach collection="userManagedGroups" item="userManagedGroup" separator=",">
+            (#{userManagedGroup.id.powtoonGroupCode}, #{userManagedGroup.id.userId}, #{userManagedGroup.createdTime},
+            #{userManagedGroup.updatedTime})
+        </foreach>
+        ON CONFLICT (powtoon_group_code, user_id)
+        DO UPDATE SET updated_time = EXCLUDED.updated_time;
+    </insert>
+
+    <delete id="removeByIds">
+        DELETE FROM user_managed_groups
+        WHERE powtoon_group_code IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id.powtoonGroupCode}
+        </foreach>
+        AND user_id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id.userId}
+        </foreach>
+    </delete>
+
+    <select id="findUserManagedGroups" resultMap="baseResultMap" resultType="UserManagedGroup">
+        SELECT user_managed_groups.powtoon_group_code,
+               user_managed_groups.user_id      as group_user_id,
+               user_managed_groups.created_time as managed_group_created_time,
+               user_managed_groups.updated_time as managed_group_updated_time,
+               groups.powtoon_group_code        as group_powtoon_group_code,
+               groups.name                      as group_name,
+               groups.powtoon_parent_group_code as group_powtoon_parent_group_code,
+               groups.master_id                 as group_master_id,
+               groups.created_time              as group_created_time,
+               groups.updated_time              as group_updated_time
+        FROM user_managed_groups
+                 JOIN groups ON user_managed_groups.powtoon_group_code = groups.powtoon_group_code AND
+                                groups.master_id = #{masterId}
+        WHERE user_managed_groups.user_id = #{userId}
+    </select>
+</mapper>

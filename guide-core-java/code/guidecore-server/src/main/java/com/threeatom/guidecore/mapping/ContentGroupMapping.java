@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -24,4 +25,7 @@ public interface ContentGroupMapping {
 
     @Mapping(target = "name", source = "groupName")
     ContentGroupDto map(GcAccess contentGroup);
+
+    @Mapping(target = "name", source = "groupName")
+    List<ContentGroupDto> map(List<GcAccess> contentGroups);
 }

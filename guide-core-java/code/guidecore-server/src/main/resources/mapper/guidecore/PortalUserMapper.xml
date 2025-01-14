@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.PortalUserMapper">
+
+    <resultMap id="baseResultMap" type="PortalUser" autoMapping="true">
+        <result property="userId" column="user_id"/>
+        <result property="masterId" column="master_id"/>
+
+        <result property="role" column="role" javaType="com.threeatom.guidecore.enums.UserOrgRole" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+        <result property="createdDate" column="created_date"/>
+        <result property="syncedDate" column="synced_date"/>
+    </resultMap>
+
+    <select id="getByUserAndMasterId" resultMap="baseResultMap">
+        SELECT user_id,
+               master_id,
+               role,
+               created_date,
+               synced_date
+        FROM portal_user
+        WHERE user_id = #{userId}
+          AND master_id = #{masterId}
+    </select>
+</mapper>
