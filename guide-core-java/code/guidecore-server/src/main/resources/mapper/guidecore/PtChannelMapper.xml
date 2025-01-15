@@ -334,7 +334,7 @@
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
-        LEFT JOIN content_group_channel_subscription channel_subscription ON channel_subscription.id = channel.id AND channel_subscription.is_subscribed = true
+        LEFT JOIN content_group_channel_subscription channel_subscription ON channel_subscription.channel_id = channel.id AND channel_subscription.is_subscribed = true
         LEFT JOIN gc_access content_group ON content_group.id = channel_subscription.content_group_id
         LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.access_id = content_group.id
         WHERE
@@ -354,12 +354,11 @@
         channels.order, channels.master_id, channels.channel_slug, channels.create_time, channels.update_time,
         channels.channel_avatar_file_id, channels.createuserlastname, channels.createUserFirstName,
         channels.tag_id, channels.tag_channel_id, channels.tag_type, channels.tag_text, channels.userAccessId,
-        channels.subscribe_permission, channels.channel_permission, channels.followFlag
+        channels.followFlag
         order by channels.create_time desc
         ) as chan
         LEFT JOIN pt_channel_subscribe sub on chan.id = sub.channel_id and user_id = #{userId} AND sub.is_deleted = false
-        where chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer)
-        and chan.create_user_id != #{userId}
+        where chan.create_user_id != #{userId}
         <if test="userId != null">
             and chan.userAccessId = #{userId}
         </if>
@@ -629,13 +628,12 @@
         ) as channels
         GROUP BY channels.id, channels.create_time, channels.channel_name, channels.create_user_id,
         channels.createUserLastName, channels.createUserFirstName, channels.tag_id, channels.tag_channel_id, channels.tag_type, channels.tag_text,
-        channels.userAccessId, channels.subscribe_permission, channels.channel_permission, channels.followFlag, channels.channel_img_file_id, channels.desc,
+        channels.userAccessId, channels.followFlag, channels.channel_img_file_id, channels.desc,
         channels.visible_flag, channels.master_id, channels.category_id, channels.level, channels.fid, channels."order", channels.channel_slug, channels.update_time, channels.channel_avatar_file_id
         order by channels.create_time desc
         ) as chan
         where 1=1
         <if test="type==1">
-            AND (chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer))
             <if test="userId != null">
                 and chan.userAccessId = #{userId}
             </if>
@@ -643,8 +641,6 @@
             or (chan.visible_flag = 3 and chan.master_id = #{masterId} and chan.create_user_id = #{userId})
         </if>
         <if test="type==0 and userId!=null">
-            AND (chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer) = false OR chan.subscribe_permission is null)
-            AND chan.channel_permission::jsonb @> to_jsonb(chan.id::integer)
             and chan.create_user_id != #{userId}
             <if test="userId != null">
                 and chan.userAccessId = #{userId}
