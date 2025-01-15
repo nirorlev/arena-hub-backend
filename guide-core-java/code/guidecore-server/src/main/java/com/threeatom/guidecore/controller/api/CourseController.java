@@ -1,8 +1,11 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
+import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
@@ -23,10 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
+    private final GcSubjectService courseService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
 
-    @PostMapping("/{courseId}/users/")
+    @PostMapping("/{courseId}/users")
     public ResponseEntity<Void> enrollToCourse(@PathVariable Integer courseId, HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
@@ -35,5 +39,16 @@ public class CourseController {
         courseEnrollmentService.enrollToCourse(portalUser, courseId);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{courseId}/viddos/{videoId}")
+    public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> courseVideo(@PathVariable Integer courseId,
+                                                                                 @PathVariable Integer videoId,
+                                                                                 HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(courseService.courseVideo(courseId, videoId, portalUser));
     }
 }

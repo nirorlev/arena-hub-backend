@@ -1,5 +1,11 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
+import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import java.math.BigDecimal;
@@ -20,6 +26,8 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.system.mapper.SysFileMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,6 +49,7 @@ import com.threeatom.utils.TreeUtil;
 import com.threeatom.utils.data.TreeNode;
 
 @Service
+@Slf4j
 public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject> implements GcSubjectService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcSubjectServiceImpl.class);
@@ -68,6 +77,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcAccessService gcAccessService;
     @Autowired
     private GcContentGroupCourseAssignmentService courseAssignmentService;
+    @Autowired
+    private AuthorizationService authorizationService;
+    @Autowired
+    private UnavailableVideoService unavailableVideoService;
+    @Autowired
+    private VideoMapping videoMapping;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -1371,5 +1386,31 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         course.setCreateUser(existingCourse.getCreateUser());
+    }
+
+    @Override
+    public VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId, PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        if (video == null) {
+            log.error("Video with id {} cannot be found for user {} and course {}", videoId, portalUser.getUserId(), courseId);
+            throw new ResourceNotFoundException("Requested video could not be found");
+        }
+
+        GcSubject course = this.getById(courseId);
+        if (course == null) {
+            log.error("Course with id {} cannot be found for user {}", courseId, portalUser.getUserId());
+            throw new ResourceNotFoundException("Requested course could not be found");
+        }
+
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)
+                || authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have access to video {} in course {}", portalUser.getUserId(), videoId, courseId);
+            throw new ForbiddenException("User does not have access to requested video");
+        }
+
+        videoService.populateVideoData(List.of(video), portalUser);
+        unavailableVideoService.nullifyVideoData(portalUser, video);
+
+        return videoMapping.mapWithVideoSource(video);
     }
 }

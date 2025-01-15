@@ -3,6 +3,8 @@ package com.threeatom.guidecore.service;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.utils.data.TreeNode;
@@ -199,4 +201,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<Integer> getUserPublicSubject(Integer masterId, Integer userId);
 
     void populateUserId(GcSubject course, GcUser user);
+
+    VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId, PortalUser portalUser);
 }
