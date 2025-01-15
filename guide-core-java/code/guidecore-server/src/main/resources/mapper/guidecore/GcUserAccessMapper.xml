@@ -20,8 +20,6 @@
             <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="roleType" column="a_role_type"/>
             <result property="adminId" column="a_admin_id"/>
-            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         </association>
@@ -111,8 +109,6 @@
             <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="roleType" column="a_role_type"/>
             <result property="adminId" column="a_admin_id"/>
-            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         </association>
