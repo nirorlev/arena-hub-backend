@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
@@ -113,27 +114,12 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     public void deleteSubIdAccess(Integer masterId, Integer subId) {
         List<GcAccess> accessList = this.selectAccessBySubId(subId, masterId);
-        for (GcAccess access : accessList) {
-            if (null != access.getSubjectJson() && access.getSubjectJson().contains(subId)) {
-                while (access.getSubjectJson().contains(subId)) {
-                    access.getSubjectJson().remove(subId);
-                }
-            }
-            if (null != access.getMustSubjectJson() && access.getMustSubjectJson().contains(subId)) {
-                while (access.getMustSubjectJson().contains(subId)) {
-                    access.getMustSubjectJson().remove(subId);
-                }
-            }
-            if (null != access.getMaySubjectJson() && access.getMaySubjectJson().contains(subId)) {
-                while (access.getMaySubjectJson().contains(subId)) {
-                    access.getMaySubjectJson().remove(subId);
-                }
-            }
+        if (CollectionUtils.isEmpty(accessList)) {
+            return;
         }
-        if (null != accessList && accessList.size() != TableConstant.COMMON_ZERO) {
-            contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
-            this.insertOrUpdateList(accessList);
-        }
+
+        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
+        this.insertOrUpdateList(accessList);
     }
 
     @Override
@@ -146,19 +132,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     public boolean addAccess(GcAccess access) {
         userAccessService.clearCacheAll();
         this.saveOrUpdate(access);
-
-        if (access.getId() != null) {
-
-            QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("access_id", access.getId());
-            List<GcUserAccess> list = userAccessService.list(queryWrapper);
-            List<Integer> userAccessIds =
-                list.stream().map(GcUserAccess::getId).collect(Collectors.toList());
-            if (!userAccessIds.isEmpty()) {
-                userAccessService.updateUserAccessPermission(userAccessIds, access);
-            }
-        }
-
         return true;
     }
 
@@ -166,7 +139,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     public List<GcAccess> findAccessListByMasterId(Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("master_id", masterId);
-        queryWrapper.orderByDesc("subject_json::jsonb");
         queryWrapper.isNotNull("group_name");
         return this.list(queryWrapper);
     }
@@ -335,8 +307,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
             return studentAccess;
         }
 
-        teacherContentGroup.setSubjectJson(parseToJsonArray(courseIds));
-        studentAccess.setSubjectJson(parseToJsonArray(courseIds));
         updateById(teacherContentGroup);
         updateById(studentAccess);
         return studentAccess;
@@ -345,7 +315,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     private GcAccess createStudentContentGroup(List<Integer> subjectIdList, GcAccess gcAccess, Integer masterId) {
         GcAccess studentAccess = new GcAccess();
         studentAccess.setMasterId(masterId);
-        studentAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         studentAccess.setCode("studentPT");
         studentAccess.setCodeType(TableConstant.COMMON_ZERO);
         studentAccess.setFreeFlag(TableConstant.COMMON_ZERO);
@@ -360,7 +329,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         GcAccess gcAccess = new GcAccess();
         gcAccess.setMasterId(masterId);
         gcAccess.setRoleType(TableConstant.COMMON_ZERO);
-        gcAccess.setSubjectJson(parseToJsonArray(subjectIdList));
         gcAccess.setCodeType(TableConstant.COMMON_ZERO);
         gcAccess.setFreeFlag(TableConstant.COMMON_ZERO);
         gcAccess.setPackageShowFlag(TableConstant.COMMON_ONE);
@@ -591,7 +559,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         contentGroup.setGroupName(title);
         contentGroup.setRoleType(TableConstant.COMMON_ONE);
         contentGroup.setCodeType(TableConstant.COMMON_ZERO);
-        contentGroup.setSubjectJson(new JSONArray());
         return contentGroup;
     }
 

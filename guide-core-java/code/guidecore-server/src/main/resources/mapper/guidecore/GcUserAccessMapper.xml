@@ -20,17 +20,8 @@
             <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="roleType" column="a_role_type"/>
             <result property="adminId" column="a_admin_id"/>
-            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-        </association>
-
-        <association property="gcUserAccessPermission" column="id" javaType="GcUserAccessPermission">
-            <id property="id" column="p_id"/>
-            <result property="userAccessId" column="p_user_access_id"/>
-            <result property="subPermission" column="p_sub_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="shortTermPermission" column="p_short_term_permission" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         </association>
 
         <collection property="masterList" javaType="ArrayList" column="master_id" ofType="GcMaster">
@@ -118,8 +109,6 @@
             <result property="subjectJson" column="a_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="roleType" column="a_role_type"/>
             <result property="adminId" column="a_admin_id"/>
-            <result property="mustSubjectJson" column="a_must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-            <result property="maySubjectJson" column="a_may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="channelJson" column="a_channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
             <result property="subscribeJson" column="a_subscribe_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
         </association>
@@ -131,8 +120,8 @@
     </sql>
 
     <sql id="gcAccessbaseColumn">
-        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type,a.admin_id as a_admin_id,
-        a.must_subject_json as a_must_subject_json,a.may_subject_json as a_may_subject_json,a.channel_json as a_channel_json,a.subscribe_json as a_subscribe_json
+        ,a.id as a_id,a.code as a_code,a.role_type as a_role_type,a.admin_id as a_admin_id
+        ,a.channel_json as a_channel_json
     </sql>
 
     <sql id="gcUserColumn">
@@ -180,23 +169,12 @@
         WHERE ua.master_id=#{masterId} AND ua.manager_id=#{managerId}
     </select>
 
-    <select id="selectUserAccessByUserAndMasterContext" resultMap="baseResultMap">
-        select
-        <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />
-        FROM
-        gc_user_access ua
-        LEFT JOIN gc_access a on ua.access_id=a.id
-        LEFT JOIN gc_master m on ua.master_id=m.id
-        WHERE m.context=#{context} AND ua.user_id=#{userId}
-    </select>
-
     <select id="selectUserAccessByUser" resultMap="fullResultMap">
         select
         <include refid="baseColumn" />
         ,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
         ,m.id as m_id,m.portal_name as m_portal_name,m.context as m_context,m.redirect_url as m_redirect_url
-        ,a.id as a_id,a.code as a_code,a.subject_json as a_subject_json,a.role_type as a_role_type
+        ,a.id as a_id,a.code as a_code,a.role_type as a_role_type
         FROM
         gc_user_access ua
         LEFT JOIN gc_master m on ua.master_id=m.id
@@ -251,29 +229,6 @@
         </if>
     </select>
 
-    <select id="selectUserAccessExtListByMasterIdAndUserIds" resultType="map">
-        SELECT ua.user_id,ui.id as info_id,ui.first_name,ui.last_name,
-        uae.log_in_time as lastLogInDate
-        from gc_user_access_ext uae
-        LEFT JOIN gc_user_access ua on uae.user_access_id=ua.id
-        LEFT JOIN gc_user u on u.id=ua.user_id
-        LEFT JOIN gc_user_info ui on ui.id=u.info_id
-        WHERE 1=1
-        <if test="userIds != null and userIds.size > 0">
-            AND ua.user_id in
-            <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator="," >
-                #{userId}
-            </foreach>
-        </if>
-        and master_id=#{masterId}
-        <if test="order == 'asc'">
-            ORDER BY lastLogInDate asc
-        </if>
-        <if test="order == 'desc'">
-            ORDER BY lastLogInDate desc
-        </if>
-    </select>
-
     <select id="selectUsersNum" resultType="map">
         SELECT
             COUNT(CASE WHEN a.role_type = 0 THEN 1 END) as teacherNum,
@@ -315,7 +270,6 @@
         ui.first_name,
         ui.last_name,
         u.create_time as dateSignedUp,
-        per.sub_permission as sub_permission,
         ua.id as userAccessId,
         u.username as email,
         ui.avatar_file_id as f_file_url,
@@ -326,7 +280,6 @@
         ua.access_id as accessId
         FROM gc_user_access ua
         LEFT JOIN gc_access a ON ua.access_id = a.id
-        LEFT JOIN gc_user_access_permission per ON per.user_access_id = ua.id
         LEFT JOIN gc_master ma ON ma.id = a.master_id
         JOIN gc_user u ON ua.user_id = u.id
         LEFT JOIN gc_user_info ui ON ui.id = u.info_id
@@ -345,8 +298,8 @@
         <if test="searchFilter != null">
             AND REPLACE(CONCAT_WS(',', CONCAT(ui.first_name, ui.last_name), u.username, a.CODE), ' ', '') LIKE concat('%', #{searchFilter}, '%')
         </if>
-        GROUP BY ua.user_id, a.code, ua.user_id, u.update_time, f.id, f.name, ui.id, ui.first_name, ui.last_name, u.create_time,
-        per.sub_permission::jsonb, ua.id, u.username, ui.avatar_file_id, f.save_type, ua.access_id
+        GROUP BY ua.user_id, a.code, ua.user_id, u.update_time, f.id, f.name, ui.id, ui.first_name, ui.last_name, u.create_time
+               , ua.id, u.username, ui.avatar_file_id, f.save_type, ua.access_id
         ORDER BY u.update_time DESC
     </select>
 
@@ -359,21 +312,6 @@
                  JOIN gc_manager m ON ua.manager_id = m.id
         WHERE ua.master_id = #{masterId}
         ORDER BY m.update_time DESC
-    </select>
-
-    <select id="selectGcUserAccessExtByAccessId" resultType="gcUserAccessExt">
-        select id,user_access_id,log_in_time from gc_user_access_ext WHERE user_access_id=#{userAccessId}
-    </select>
-
-    <select id="selectLastUsersNum" resultType="map">
-        select
-        <foreach collection="lastDays" index="index" item="lastday" separator=",">
-            COUNT(CASE WHEN CURRENT_DATE - '#{lastday} day'::interval &gt;= ua.create_time THEN TRUE END) as day_#{lastday}
-        </foreach>
-        from gc_user_access ua
-        LEFT JOIN gc_access a ON ua.access_id=a.id
-        WHERE
-        a.admin_id=#{teacherAccessId}
     </select>
 
     <select id="selectActiveUsersNum" resultType="map">
@@ -405,28 +343,6 @@
         a.admin_id=#{teacherAccessId}
     </select>
 
-    <insert id="insertGcUserAccessExt" parameterType="GcUserAccessExt" useGeneratedKeys="true" keyProperty="id">
-        insert into gc_user_access_ext
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-
-            <if test="userAccessId != null">
-                user_access_id,
-            </if>
-            <if test="logInTime != null">
-                log_in_time,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="userAccessId != null">
-                #{userAccessId,jdbcType=INTEGER},
-            </if>
-            <if test="logInTime != null">
-                #{logInTime,jdbcType=TIMESTAMP},
-            </if>
-        </trim>
-
-    </insert>
-
     <insert id="insertUserAccessList">
         insert into gc_user_access (user_id,master_id,access_id,role_json,parent_code)
         values
@@ -443,27 +359,12 @@
         parent_code = EXCLUDED.parent_code
     </insert>
 
-    <update id="updateGcUserAccessExtById" parameterType="GcUserAccessExt">
-        update gc_user_access_ext
-        <set>
-            <if test="userAccessId != null">
-                user_access_id = #{userAccessId,jdbcType=INTEGER},
-            </if>
-            <if test="logInTime != null">
-                log_in_time = #{logInTime,jdbcType=TIMESTAMP},
-            </if>
-        </set>
-        where id = #{id,jdbcType=INTEGER}
-    </update>
-
     <select id="getAccessByUserIdMaster" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />,
-               p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        <include refid="gcAccessbaseColumn" />
         from gc_user_access ua
         left join gc_access a on a.id = ua.access_id
-        left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 
@@ -483,42 +384,12 @@
         </if>
     </select>
 
-    <select id="getIdsListAccessIds" resultMap="baseResultMap">
-        select id from gc_user_access
-        where master_id = #{masterId}
-        <if test="accessIds != null">
-            AND access_id in
-            <foreach collection="accessIds" item="ids" index="index" open="(" close=")" separator=",">
-                #{ids}
-            </foreach>
-        </if>
-    </select>
-
-    <select id="countUsersInPortal" resultMap="baseResultMap">
-        SELECT a.*,max( mess.update_time ) AS userLastActivityTime
-        from (
-                 select
-                     ua.master_id AS master_id,
-                     count( ua.user_id ) AS usersNumInPortal,
-                     ua.id as userid
-                 FROM
-                     gc_user_access ua
-                         LEFT JOIN gc_user us ON us.id = ua.user_id
-                 GROUP BY
-                     ua.master_id
-             )a
-                 LEFT JOIN gc_master_message mess on mess.master_id=a.master_id
-        GROUP BY a.master_id
-    </select>
-
     <select id="selectPtUserAccessByMasterIdAndUserId" resultMap="baseResultMap">
         select
         <include refid="baseColumn" />
-        <include refid="gcAccessbaseColumn" />,
-        p.id as p_id,p.user_access_id as p_user_access_id,p.sub_permission as p_sub_permission,p.short_term_permission as p_short_term_permission
+        <include refid="gcAccessbaseColumn" />
         from gc_user_access ua
         left join gc_access a on a.id = ua.access_id
-        left join gc_user_access_permission p on p.user_access_id = ua.id
         where ua.user_id = #{userId} and ua.master_id = #{masterId}
     </select>
 

@@ -39,9 +39,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     GcSubject getSubNameBysubId(Integer subId);
 
-    List<GcSubject> getSubjectUserInfo(
-            List<Integer> userIdList, List<Integer> subList, Integer masterId);
-
     List<GcSubject> getChildSubjectBySubId(Integer subId);
 
     GcSubject getSubByVid(Integer vid);
@@ -76,8 +73,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     boolean deleteSub(Integer subId, Integer masterId);
 
-    GcSubject getSubByToken(String token);
-
     List<GcSubject> listSubWithAssoByIds(Integer masterId, List<Integer> subIds);
 
     List<GcSubject> setSubListImg(List<GcSubject> list, SysSystem sys, HttpServletRequest request);
@@ -104,9 +99,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<Integer> countSessions(List<Integer> id);
 
-    List<GcSubject> selectAllSubByUserId(
-            Integer masterId, Integer userId, HttpServletRequest request);
-
     List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids);
 
     List<GcSubject> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId);
@@ -131,8 +123,6 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<GcSubject> newGetAvailableCourses(
             String name, Integer masterId, List<Integer> subIds, Integer userId, String order);
-
-    List<GcSubject> getCompletedTwoCourse(Map<String, Object> paramMap);
 
     List<GcSubject> selectSubjectByNewIndexHome(
             Integer masterId, Integer userId, PageParam pageParam);

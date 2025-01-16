@@ -60,6 +60,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired private GcProblemService gcProblemService;
     @Autowired private GcAccessService gcAccessService;
     @Autowired private FrontendVersionService frontendVersionService;
+    @Autowired private GcContentGroupCourseAssignmentService groupCourseAssignmentService;
 
     @PostMapping("/guidecore/saveHomeVideo")
     public Message saveHomeVideo(@RequestBody JSONObject jsonRequest) {
@@ -83,7 +84,6 @@ public class HomeGuideCoreController extends GuideCoreController {
     @GetMapping("/guidecore/getHomeData")
     @ApiResponses({@ApiResponse(code = 200, message = "请求成功", response = HomePage.class)})
     public Message homePageData(HttpServletRequest request) {
-        SysSystem sys = this.getSystem();
         GcManager manager = this.getManager();
         GcMaster master = this.getMaster();
         if (Objects.nonNull(master.getFaviconLogoFileId())) {
@@ -124,13 +124,11 @@ public class HomeGuideCoreController extends GuideCoreController {
         } else if (TableConstant.COMMON_ONE == manager.getLevel()) {
             GcUserAccess gcUserAccess =
                     userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
-            GcUserAccessPermission gcUserAccessPermission =
-                    userAccessService.getUserAccessPermission(gcUserAccess.getId());
-            List<Integer> subIds = gcUserAccessPermission.getSubPermission().toJavaList(Integer.class);
-            gp.setSubNum(subIds.size());
-            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(), subIds, manager.getId()));
-            gp.setVideoNum(videoService.getVideoNum(master.getId(), subIds, manager.getId()));
-            gp.setResNum(resourceService.getResourceNum(master.getId(), subIds, manager.getId()));
+            List<Integer> courseIds = groupCourseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
+            gp.setSubNum(courseIds.size());
+            gp.setTopicNum(subjectService.getSubTopicNum(master.getId(), courseIds, manager.getId()));
+            gp.setVideoNum(videoService.getVideoNum(master.getId(), courseIds, manager.getId()));
+            gp.setResNum(resourceService.getResourceNum(master.getId(), courseIds, manager.getId()));
         }
         master.setLogoFullUrl(sysFileService.getResFullUrl(master.getLogoFile(), request));
         if (Objects.nonNull(master.getAdminLogoFileId())) {

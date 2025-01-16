@@ -769,4 +769,15 @@
                                  referencedTableName="groups" referencedColumnNames="powtoon_group_code"
                                  onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+
+    <changeSet id="drop-gc-user-access-permission-table" author="vprokh">
+        <dropTable tableName="gc_user_access_permission"/>
+    </changeSet>
+
+    <changeSet id="remove-permission-access-related-columns" author="vpokh">
+        <dropColumn tableName="gc_access" columnName="must_subject_json"/>
+        <dropColumn tableName="gc_access" columnName="may_subject_json"/>
+        <dropColumn tableName="gc_access" columnName="subject_json"/>
+    </changeSet>
+
 </databaseChangeLog>

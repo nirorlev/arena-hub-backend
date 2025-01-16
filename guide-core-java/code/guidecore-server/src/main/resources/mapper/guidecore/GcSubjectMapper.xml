@@ -543,31 +543,28 @@
 		FROM
 		gc_subject s
 		<if test="type == null and createUser == null">
-			LEFT JOIN gc_user_access_permission uap ON (coalesce(may_subject_json, '[]')::jsonb || coalesce(must_subject_json, '[]')::jsonb) @> to_jsonb(s.id::integer)
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
 		<if test="type==3 or type==1">
-			LEFT JOIN gc_user_access_permission uap ON coalesce(uap.must_subject_json, '[]')::jsonb @> to_jsonb(s.id::integer)
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
 		<if test="type==4 or (type == null and createUser != null)">
-			LEFT JOIN gc_user_access_permission uap ON coalesce(uap.may_subject_json, '[]')::jsonb @> to_jsonb(s.id::integer)
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
 			<if test="subIdList != null and subIdList.size !=0">
 				and s.id not in
 				<foreach item="subIdList" index="index" collection="subIdList"  open="(" separator="," close=")">
 					${subIdList}
 				</foreach>
 			</if>
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
 		<if test="(type==0 or type ==2 )  and (null == subIdList or subIdList.size ==0)">
-			LEFT JOIN gc_user_access_permission uap ON coalesce(uap.sub_permission, '[]')::jsonb @> to_jsonb(s.id::integer)
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
-		<if test="(type==0 or type ==2 )and null!= subIdList and subIdList.size !=0">
-			LEFT JOIN gc_user_access_permission uap ON (coalesce(uap.sub_permission, '[]')::jsonb ||
-			<foreach item="subIdList" index="index" collection="subIdList"  open="'[" separator="," close="]'">
-				${subIdList}
-			</foreach>
-			::jsonb) @> to_jsonb(s.id::integer)
-		</if>
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_user_access ua ON ua.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
@@ -872,22 +869,6 @@
 		order by s11.order asc
 	</select>
 
-	<select id="selectAllSubByUserId" resultType="com.threeatom.guidecore.entity.GcSubject" >
-		SELECT s.*,
-		CASE WHEN s.master_id = #{masterId} THEN s.order ELSE sa.order END as orders
-		FROM gc_subject s
-		LEFT JOIN gc_user_access_permission p ON p.sub_permission::jsonb @> to_jsonb(S.id::integer)
-		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
-		AND  sa.master_id = #{masterId}
-		WHERE
-		P.ID =(SELECT pe.id FROM gc_user_access_permission pe
-		LEFT JOIN gc_user_access ac ON ac.id = pe.user_access_id
-		WHERE
-		ac.user_id = #{userId} and ac.master_id=#{masterId})
-		<include refid="where_gcSubject_state_not_hidden" />
-		order by orders,s.id
-	</select>
-
 	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.GcSubject" >
 		select  * from gc_subject where fid in
 		<foreach collection="fids" item="fid" index="index" open="(" close=")" separator=",">
@@ -897,10 +878,6 @@
 
 	<select id="countCourseInPortal" resultType="Integer">
 		select count(1) from gc_subject s
-		<if test="managerId!=null">
-			left join gc_user_access access on access.manager_id=#{managerId}
-			left join gc_user_access_permission per on per.user_access_id=access.id
-		</if>
 		where
 		<if test="subIds==null">
 			s.master_id = #{masterId} and s.type=#{type} and s.state!=#{type} or (s.id in (select ass.subject_id from gc_subject_association ass where ass.master_id=#{masterId}))
@@ -975,87 +952,6 @@
 		GROUP BY gc.id
 	</select>
 
-	<select id="getSubjectUserInfo" resultMap="baseResultVoMap">
-		select
-		s.name as sub0Name,
-		s2.*,
-		u.id as user_id,
-		v.video_name as gcVideo_videoName,
-		v.id as gcVideo_id,
-		f.video_long as gcVideo_long,
-		f.file_type as video_f_file_type,
-		f.id as video_f_id,
-		f.file_url as video_file_url,
-		f.file_type_index as video_f_file_index,
-		f.name as video_f_name,
-		f.save_type as video_f_save_type,
-		p.play_state as play_state,
-
-		info.avatar_file_id AS avatarFileId,
-		info.first_name AS u_first_name,
-		info.last_name AS u_last_name,
-		f2.id AS u_f_id,
-		f2."name" AS u_f_name,
-		f2.file_url AS u_f_file_url,
-		f2.save_type AS u_f_save_type,
-
-		coalesce(eu.anNums,0) as answeredNums,
-		coalesce(eu.eventNums,0) as answeredSumNums
-
-		from gc_subject s
-		left join gc_subject s2 on s.id = s2.fid
-		left join gc_video v on v.sub_id = s2.id
-		left join sys_file f on v.file_id = f.id
-		LEFT JOIN GC_USER_ACCESS_PERMISSION uap ON uap.SUB_PERMISSION::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN GC_USER_ACCESS UA ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN GC_USER u ON u.ID = UA.USER_ID
-		left join (select max(play_state) as play_state,id,video_id,master_id,user_id from gc_user_video_play  uvp GROUP BY id, user_id,video_id,master_id ) p on (u.id = p.user_id and p.video_id = v.id )
-		LEFT JOIN gc_user_info info ON info.id = u.info_id
-		left join sys_file f2 on f2.id = info.avatar_file_id
-
-		left join (select * from (
-		select sum(case when answer_json is null then 0 else 1 end) as anNums,
-		sum(case when event_nums.event_id is null then 0 else 1 end) as eventNums
-		,event_nums.* from
-		(select
-		an.answer_json::jsonb,
-		u.id as user_id,e.id as event_id,s.id as subject_id,s2.id as subject_id2 from gc_subject s
-		left join gc_subject s2 on s.id = s2.fid
-		left join gc_video v on v.sub_id = s2.id
-		left join gc_event e on e.video_id = v.id
-		left join gc_user u on u.id in
-		<foreach collection="userIdList" item="userIdList" index="index" open="(" close=")" separator=",">
-			#{userIdList}
-		</foreach>
-		left join gc_user_event ue on ue.event_id = e.id and ue.user_id = u.id
-		left join gc_user_answer an on an.event_id = e.id and an.user_id = u.id
-		where s.id in
-		<foreach collection="subList" item="subList" index="index" open="(" close=")" separator=",">
-			#{subList}
-		</foreach>
-		and (((e.upload_type = 2 and ue.id is not null ) or(e.upload_type = 1 )) or (e.upload_type is null and e.id is null) )
-		) event_nums
-		GROUP BY event_nums.user_id, event_nums.answer_json::jsonb, event_nums.event_id,
-		event_nums.subject_id, event_nums.subject_id2
-		) comEvents ) eu on eu.user_id = u.id and eu.subject_id2 = s2.id
-
-		where
-		<if test="userIdList.size !=0 and userIdList.size !=0">
-			u.id in
-			<foreach collection="userIdList" item="userIdList" index="index" open="(" close=")" separator=",">
-				#{userIdList}
-			</foreach>
-			and
-			s2.id in
-			<foreach collection="subList" item="subList" index="index" open="(" close=")" separator=",">
-				#{subList}
-			</foreach>
-		</if>
-		<if test="userIdList.size ==0 or userIdList.size ==0">
-			1=2
-		</if>
-	</select>
-
 	<select id="getCreateUserPublished" resultType="java.lang.Integer">
 		select count(1) from gc_subject
 		where "level" = 0
@@ -1124,85 +1020,12 @@
 		</if>
 	</select>
 
-	<select id="getCompletedTwoCourse" resultMap="baseResultVoMap" >
-		select DISTINCT ON (k.id,k.userId) * from (
-		select s.id,u.id as userId,s.name as sub0Name,
-		coalesce( eu.anNums, 0 ) AS answeredNums,
-		coalesce( eu.eventNums, 0 ) AS answeredSumNums ,
-		count(v.id) as subVideoNum ,
-		coalesce(plays.playNum,0) as playNum
-		from gc_subject s
-		LEFT JOIN gc_subject s2 ON s.id = s2.fid
-		LEFT JOIN gc_video v ON v.sub_id = s2.id
-		LEFT JOIN GC_USER u ON u.ID in
-		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		left join (SELECT COUNT(CASE WHEN b.play_state = 1 THEN 1 END) as playNum,b.user_id,b.video_id,b.sub_id from (
-		SELECT max( uvp.play_state )AS play_state, uvp.id, uvp.video_id, uvp.master_id, uvp.user_id,v.sub_id FROM gc_user_video_play uvp
-		left join gc_video v on v.id = uvp.video_id
-		where uvp.user_id in
-		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		and uvp.master_id = #{param.masterId}
-		GROUP BY uvp.user_id, uvp.video_id, uvp.master_id, uvp.id, v.sub_id
-		) as b
-		GROUP BY b.user_id,b.sub_id, b.video_id) plays on plays.sub_id = s2.id and plays.user_id = u.id
-		LEFT JOIN gc_user_info info ON info.id = u.info_id
-		LEFT JOIN sys_file f ON  f.id = info.avatar_file_id
-		LEFT JOIN (SELECT * FROM
-		(SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums,
-		sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
-		event_nums.answer_json::jsonb AS answer_json, event_nums.user_id, event_nums.subject_id2
-		FROM
-		( SELECT an.answer_json,u.id AS user_id,e.id AS event_id,s.id AS subject_id,s2.id AS subject_id2 FROM gc_subject s
-		LEFT JOIN gc_subject s2 ON s.id = s2.fid
-		LEFT JOIN gc_video v ON v.sub_id = s2.id
-		LEFT JOIN gc_event e ON e.video_id = v.id
-		LEFT JOIN gc_user u ON u.id IN
-		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		LEFT JOIN gc_user_event ue ON ue.event_id = e.id
-		AND ue.user_id = u.id
-		LEFT JOIN gc_user_answer an ON an.event_id = e.id
-		AND an.user_id = u.id
-		WHERE
-		1=1
-		AND (((
-		e.upload_type = 2
-		AND ue.id IS NOT NULL
-		)
-		OR ( e.upload_type = 1 ))
-		OR ( e.upload_type IS NULL AND e.id IS NULL )
-		)
-		) event_nums
-		GROUP BY event_nums.user_id, subject_id2, event_nums.answer_json::jsonb) comEvents
-		) eu ON eu.user_id = u.id
-		AND eu.subject_id2 = s.id
-		where 1=1
-		and s.id in
-		<foreach collection="param.subIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		and u.id in
-		<foreach collection="param.userIds" item="ids" index="index" open="(" close=")" separator=",">
-			#{ids}
-		</foreach>
-		group by s2.id,u.id,s.id,eu.anNums,eu.eventNums,plays.playNum) as k
-		where (k.answeredNums !=0
-		or k.playNum !=0)
-		and
-		(k.subVideoNum != 0
-		and k.answeredSumNums !=0)
-	</select>
-
 	<select id="selectSubjectByCreateUser" resultType="java.lang.Integer">
-		select sub.id from gc_subject sub where id not in (
+		select sub.id
+		from gc_subject sub where id not in (
 			select s.id from gc_user_access ua
-								 left join gc_user_access_permission uap  on ua.id = uap.user_access_id
-								 left join gc_subject s on uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
+				 left join gc_content_group_course_assignment content_group_assignment on content_group_assignment.course_id = ua.access_id AND content_group_assignment.is_mandatory = 1
+				 left join gc_subject s on content_group_assignment.course_id = s.id
 			where 1=1
 			  and s.master_id = #{masterId}
 			  and s.create_user = #{createUser}
@@ -1293,8 +1116,9 @@
 		v."video_name"
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
@@ -1504,8 +1328,9 @@
 		v."video_name"
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
@@ -1636,11 +1461,13 @@
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access_permission uap2 ON uap2.may_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment_must ON course_assignment_must.course_id = s.id AND course_assignment_must.is_mandatory = 1
+		LEFT JOIN gc_access content_group_must ON course_assignment_must.content_group_id = content_group_must.id
+		LEFT JOIN gc_content_group_course_assignment course_assignment_may ON course_assignment_may.course_id = s.id AND course_assignment_may.is_mandatory = 0
+		LEFT JOIN gc_access content_group_may ON course_assignment_may.content_group_id = content_group_may.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group_must.id
 		<if test="subjectState!=1">
-			OR ua.id = uap2.user_access_id
+			OR ua.id = content_group_may.id
 		</if>
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
@@ -1651,7 +1478,7 @@
 		AND ua.role_json::jsonb @> to_jsonb('groupMember'::text)
 		AND s.state = 1
 		AND s.level = 0
-		AND (uap.id IS NOT NULL OR (uap2.id IS NOT NULL AND co.subject_state = 2))
+		AND (course_assignment_must.id IS NOT NULL OR (course_assignment_may.id IS NOT NULL AND co.subject_state = 2))
 		<if test="name!=null and name !=''">
 			AND s.name LIKE '%' || #{name} || '%'
 		</if>
@@ -1669,8 +1496,6 @@
 		<if test="orgMustSubjectIds!=null and orgMustSubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMustSubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
-		uap.must_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
-		uap2.may_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
 		co.in_progress DESC
 	</select>
 
@@ -1680,8 +1505,9 @@
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON (uap.must_subject_json::jsonb @> to_jsonb(s.id::integer) OR uap.may_subject_json::jsonb @> to_jsonb(s.id::integer))
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		WHERE u.id = #{userId}
@@ -1711,8 +1537,9 @@
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.may_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		WHERE
@@ -1736,9 +1563,8 @@
 		<if test="subjectState == 3">
 			AND co.subject_state = 1
 		</if>
-		GROUP BY s.id, co.subject_state, co.in_progress, uap.may_subject_json::jsonb
+		GROUP BY s.id, co.subject_state, co.in_progress
 		ORDER BY
-		uap.may_subject_json::jsonb @> to_jsonb(s.id::integer) DESC,
 		<if test="orgMaySubjectIds!=null and orgMaySubjectIds.size !=0">
 			s.id = ANY(ARRAY[<foreach collection="orgMaySubjectIds" item="ids" separator=",">#{ids}</foreach>]) DESC,
 		</if>
@@ -1791,8 +1617,9 @@
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON uap.may_subject_json::jsonb @> to_jsonb(s.id::integer)
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		WHERE u.id = #{userId}
@@ -1873,13 +1700,13 @@
 	<select id="getNewAssignments" resultType="java.lang.Integer">
 		SELECT s.id
 		FROM gc_subject s
-			LEFT JOIN gc_user_access_permission uap ON uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
- 			 LEFT JOIN gc_user_access uac ON uac.id = UAP.USER_ACCESS_ID
-			LEFT JOIN gc_access ac ON ac.id = uac.access_id
-			LEFT JOIN gc_user u ON u.id = uac.user_id
+		 	LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
+		 	LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		 	LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
+			LEFT JOIN gc_user u ON u.id = ua.user_id
 			LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		WHERE s.state = 1
-		  AND uac.master_id = #{masterId}
+		  AND ua.master_id = #{masterId}
 		  AND u.id = #{userId}
 		  AND (co.id IS NULL OR co.subject_state = 0)
 	</select>
@@ -1895,9 +1722,9 @@
 		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON (uap.must_subject_json::jsonb @> to_jsonb(s.id::integer) OR uap.may_subject_json::jsonb @> to_jsonb(s.id::integer))
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN gc_access ac ON ac.id = ua.access_id
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
@@ -1909,7 +1736,7 @@
 		AND s.state = 1
 		AND s.level = 0
 		<if test="groupCodeList!=null and groupCodeList.size !=0">
-			AND ac.code IN
+			AND content_group.code IN
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
 			</foreach>
@@ -1931,11 +1758,10 @@
 		f.save_type AS f_save_type,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		coalesce(co.in_progress,0) as videoProgressPercent
-		FROM
-		gc_subject s
-		LEFT JOIN gc_user_access_permission uap ON (uap.must_subject_json::jsonb @> to_jsonb(s.id::integer) OR uap.may_subject_json::jsonb @> to_jsonb(s.id::integer))
-		LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
-		LEFT JOIN gc_access ac ON ac.id = ua.access_id
+		FROM gc_subject s
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
@@ -1945,7 +1771,7 @@
 		AND ua.master_id = #{masterId}
 		AND s.available_type != 0
 		<if test="groupCodeList!=null and groupCodeList.size !=0">
-			AND ac.code IN
+			AND content_group.code IN
 			<foreach collection="groupCodeList" item="ids" index="index" open="(" close=")" separator=",">
 				#{ids}
 			</foreach>
@@ -1969,8 +1795,9 @@
 		SELECT count(b.id) as nums FROM (
 											SELECT s.id
 											FROM gc_subject s
-													 LEFT JOIN gc_user_access_permission uap ON uap.must_subject_json::jsonb @> to_jsonb(s.id::integer)
-    											LEFT JOIN gc_user_access ua ON UA.ID = UAP.USER_ACCESS_ID
+												 LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
+												 LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+												 LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 												LEFT JOIN gc_user u ON u.id = ua.user_id
 												LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 												LEFT JOIN sys_file f ON s.sub_img_id = f.id
@@ -1979,7 +1806,7 @@
 											  AND ua.role_json::jsonb @> to_jsonb('groupMember'::text)
 											  AND s.state = 1
 											  AND s.level = 0
-											  AND uap.id IS NOT NULL
+											  AND course_assignment.id IS NOT NULL
 											  AND (co.id IS NULL OR co.subject_state = 0)
 											  AND (co.subject_state != 1 OR co.subject_state IS NULL)
 											GROUP BY s.id

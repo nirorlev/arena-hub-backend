@@ -92,9 +92,6 @@ public class GcUserAccess implements Serializable {
     private String code;
 
     @TableField(exist = false)
-    private GcUserAccessPermission gcUserAccessPermission;
-
-    @TableField(exist = false)
     private Integer ifBuyMyYearlyPackage;
 
     @ApiModelProperty(value = "角色json列表")

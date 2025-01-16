@@ -1,5 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserGroupRole;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +20,6 @@ import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.mapper.SysFileMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,7 +37,6 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
 import com.threeatom.utils.TreeUtil;
 import com.threeatom.utils.data.TreeNode;
 
@@ -53,8 +53,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcEventService eventService;
     @Autowired
     private GcMasterMessageService masterMessageService;
-    @Autowired
-    private GcUserAnswerService userAnswerService;
 
     @Lazy
     @Autowired
@@ -65,24 +63,14 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcSubjectAssociationMapper gcSubjectAssociationMapper;
 
     @Autowired
-    private GcEventMapper eventMapper;
-    @Autowired
-    private GcUserAccessPermissionMapper gcUserAccessPermissionMapper;
-    @Autowired
     private GcAccessMapper gcAccessMapper;
     @Autowired
     private GcAccessService gcAccessService;
     @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
-    @Autowired
-    private SysSystemService systemService;
-    @Autowired
-    private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
+    private GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
-    @Resource
-    SysFileMapper sysFileMapper;
     @Resource
     GcSubjectMapper gcSubjectMapper;
     @Autowired
@@ -231,13 +219,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 List<Integer> publicCourseIds = new ArrayList<>();
                 Integer type = Integer.parseInt(request.getAttribute("type").toString());
                 if(type.equals(TableConstant.COMMON_FOUR)){
-                    List<GcUserAccessPermission> permissionList =  gcUserAccessPermissionService.getGroupMemberByUidList(Integer.parseInt(request.getAttribute("userId").toString()),masterId);
-                    for (GcUserAccessPermission permission : permissionList) {
-                        if(null!=permission.getMustSubjectJson()){
-                            publicCourseIds.addAll(permission.getMustSubjectJson().toJavaList(Integer.class));
-                        }
-
-                    }
+                    List<Integer> courseIds = courseAssignmentService.getMustCourseIds(
+                        Integer.parseInt(request.getAttribute("userId").toString()), masterId, UserGroupRole.GROUP_MEMBER);
+                    publicCourseIds.addAll(courseIds);
                 }else if (type.equals(TableConstant.COMMON_ZERO)||type.equals(TableConstant.COMMON_TWO)){
                     publicCourseIds = baseMapper.getPublicSubjectIds(masterId);
                 }
@@ -340,7 +324,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> selectActiveSubject(Integer userId,Integer masterId,Integer subjectState,String name,HttpServletRequest request) {
         //查询顶级组must课程Ids
-        List<Integer> orgMustSubjectIds = contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMustSubjectIds = courseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -361,7 +345,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
 
         //查询顶级组may课程Ids
-        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMaySubjectIds = courseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -399,7 +383,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> selectCompanyResourcesSubject(Integer userId,Integer masterId,String name,HttpServletRequest request){
 
         //查询顶级组may课程Ids
-        List<Integer> orgMaySubjectIds = contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
+        List<Integer> orgMaySubjectIds = courseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(userId, masterId);
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize=pageParam.getPageSize();
@@ -936,8 +920,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return this.removeByIds(subIds);
         }else {
         	 if(gcSubjectAssociationMapper.deleteGcSubjectAssociation(subId, masterId)>0) {
-        		 //删除关联课程，删除gc_user_access_permission及gc_access的课程，否则用户端还会出现
-        		 if(this.deleteSubAccessInJson(subId, masterId) && this.deleteUserSubAccessInJson(subId, masterId))return true;
+                 return this.deleteSubAccessInJson(subId, masterId);
         	 }
 
         	 return false;
@@ -947,44 +930,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     public boolean deleteSubAccessInJson(int subId,int masterId) {
     	List<GcAccess> gcAccessList = gcAccessMapper.listContainsSub(masterId,subId);
-    	if(gcAccessList!=null && !gcAccessList.isEmpty() ) {
-    		for(GcAccess access: gcAccessList) {
-    			JSONArray accessArray  = access.getSubjectJson();
-    			List list = new ArrayList();
-    			for (int i=0;i<accessArray.size();i++) {
-    	    		if(subId!=(int)accessArray.get(i)) {
-    	    			list.add((int)accessArray.get(i));
-    	    		}
-    			}
-    			access.setSubjectJson(new JSONArray(list));
-    		}
-    	}
-    	if(gcAccessList==null || gcAccessList.size()==0) {
+    	if(CollectionUtils.isEmpty(gcAccessList)) {
     		return true;
     	}
 
-        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
+        courseAssignmentService.removeByMasterAndCourseId(masterId, subId);
         return gcAccessService.updateBatchById(gcAccessList);
-    }
-
-    public boolean deleteUserSubAccessInJson(int subId,int masterId) {
-    	List<GcUserAccessPermission> gcUserAccessPermissionList = gcUserAccessPermissionMapper.listContainsSubPremission(masterId, subId);
-    	if(gcUserAccessPermissionList!=null && !gcUserAccessPermissionList.isEmpty() ) {
-    		for(GcUserAccessPermission permission: gcUserAccessPermissionList) {
-    			JSONArray permissionArray  = permission.getSubPermission();
-    			List list = new ArrayList();
-    			for (int i=0;i<permissionArray.size();i++) {
-    	    		if(subId!=(int)permissionArray.get(i)) {
-    	    			list.add((int)permissionArray.get(i));
-    	    		}
-    			}
-    			permission.setSubPermission(new JSONArray(list));
-    		}
-    	}
-    	if(gcUserAccessPermissionList==null || gcUserAccessPermissionList.size()==0) {
-    		return true;
-    	}
-        return gcUserAccessPermissionService.updateBatchById(gcUserAccessPermissionList);
     }
 
     @Override
@@ -1054,34 +1005,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return this.getOne(queryWrapper);
     }
 
-    @Override
-    public List<GcSubject> getSubjectUserInfo(List<Integer> userIdList,List<Integer> subList,Integer masterId) {
-        List<GcSubject> gcSubjectList = this.baseMapper.getSubjectUserInfo(userIdList,subList,masterId);
-        gcSubjectList.forEach(i->{
-                Integer videoPlayState = 0;
-                Integer answeredNums = 0;
-                Integer answeredSumNums = 0;
-                for (GcVideo video : i.getVideoChildList()) {
-                    video.setCompleteStatus(buildCompleteStatusEventNum(video.getPlayState(),video.getAnsweredNums(),video.getAnsweredSumNums()));
-                    if (null!= video.getPlayState() && video.getPlayState().equals(TableConstant.gcUserVideoAction_value_rate2_1)){
-                        videoPlayState++;
-                    }
-                    answeredNums+=video.getAnsweredNums();
-                    answeredSumNums+=video.getAnsweredSumNums();
-                }
-                if (TableConstant.COMMON_ZERO!=videoPlayState&&TableConstant.COMMON_ZERO!=i.getVideoChildList().size()){
-                    BigDecimal completedPercent = new BigDecimal(answeredNums).add(new BigDecimal(videoPlayState));
-                    BigDecimal allPercent = new BigDecimal(i.getVideoChildList().size()).add(new BigDecimal(answeredSumNums));
-                    BigDecimal percent = completedPercent.divide(allPercent, 2, BigDecimal.ROUND_DOWN).multiply(new BigDecimal("100"));
-                    i.setTotalPercent(percent);
-                }else {
-                    i.setTotalPercent(new BigDecimal("0"));
-                }
-                sysFileService.getResFullUrl(i.getUserInfo().getInfo().getAvatarFile(),null);
-            });
-        return gcSubjectList;
-    }
-
     private short buildCompleteStatusEventNum(String playState,Integer answeredNums,Integer answeredSumNums){
         if(null == playState){//没有播放记录
             return TableConstant.VIDEO_COMPLETE_STATUS0;
@@ -1091,14 +1014,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return TableConstant.VIDEO_COMPLETE_STATUS2;
         }
         return TableConstant.VIDEO_COMPLETE_STATUS1;
-    }
-
-    @Override
-    public GcSubject getSubByToken(String token) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
-        queryWrapper.eq("token", token);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
-        return this.getOne(queryWrapper);
     }
 
     @Override
@@ -1301,17 +1216,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return newUiGcSubjectMapper.countSessions(id);
     }
 
-    @Override
-    public List<GcSubject> selectAllSubByUserId(Integer masterId,Integer userId,HttpServletRequest request){
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize=pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        return gcSubjectMapper.selectAllSubByUserId(masterId,userId);
-    }
-
 
     @Override
     public List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids){
@@ -1388,155 +1292,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         this.saveSub(sub);
         GcSubject subs = this.getById(sub.getId());
-
-
-        if (null!=sub.getAvailableType()) {
-            List<GcAccess> accessList = new ArrayList<>();
-
-            //may
-            if (null!=sub.getAccessIds()&&TableConstant.COMMON_ZERO != sub.getAccessIds().size()&&null==sub.getAllPublishedMay()) {
-                accessList = gcAccessService.selectMasterIdAndIds(masterId, sub.getAccessIds());
-            }
-            //全部可查看不加入权限表
-
-            List<GcAccess> mustAccessList = new ArrayList<>();
-            List<Integer> accessIds = new ArrayList<>();
-
-            //发布当前用户可发布的所有组may
-            if (null!=sub.getAllPublishedMay()&&sub.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)){
-                if (user.getIsOrgAdmin()){
-                    accessList = gcAccessService.findAccessListByMasterId(masterId);
-                }else {
-                    accessList = gcAccessMapper.listAccess(null, masterId, user.getId());
-                }
-                sub.getAccessIds().addAll(accessList.stream().map(GcAccess::getId).collect(Collectors.toList()));
-                accessIds = accessList.stream().map(GcAccess::getId).collect(Collectors.toList());
-            }
-
-            if (TableConstant.COMMON_ZERO!=accessList.size()) {
-                for (GcAccess gcAccess : accessList) {
-                    accessIds.add(gcAccess.getId());
-                    if (null!=sub.getAccessIds()&&sub.getAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getSubjectJson()){
-                            gcAccess.getSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setSubjectJson(jsonArray);
-                        }
-                    }
-                    if (null!=sub.getAccessIds()&&sub.getAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getMaySubjectJson()){
-                            gcAccess.getMaySubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setMaySubjectJson(jsonArray);
-                        }
-                    }
-                }
-
-                gcAccessService.insertOrUpdateList(accessList);
-                List<Integer> userAccessList = userAccessService.selectGetUserAccessIdListUserIds(masterId, accessIds);
-
-                List<GcUserAccessPermission> gcUserAccessPermissions = new ArrayList<>();
-                if (TableConstant.COMMON_ZERO!=userAccessList.size()){
-                    gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUserAccessIdList(userAccessList);
-                }
-                for (GcUserAccessPermission accessPermission : gcUserAccessPermissions) {
-                    if (null!=accessPermission.getMaySubjectJson()){
-                        if (!accessPermission.getMaySubjectJson().contains(sub.getId())) {
-                            accessPermission.getMaySubjectJson().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray subPermission = new JSONArray();
-                        subPermission.add(sub.getId());
-                        accessPermission.setMaySubjectJson(subPermission);
-                    }
-                    if (null!=accessPermission.getSubPermission()){
-                        if (!accessPermission.getSubPermission().contains(sub.getId())) {
-                            accessPermission.getSubPermission().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray subPermission = new JSONArray();
-                        subPermission.add(sub.getId());
-                        accessPermission.setSubPermission(subPermission);
-                    }
-                }
-                if (TableConstant.COMMON_ZERO!=gcUserAccessPermissions.size()){
-                    gcUserAccessPermissionService.updateGcUserAccessPermissions(gcUserAccessPermissions);
-                }
-            }
-
-            //must
-            if(null!=sub.getMustAccessIds()&&TableConstant.COMMON_ZERO != sub.getMustAccessIds().size()&&null==sub.getAllPublished()){
-                mustAccessList = gcAccessService.selectMasterIdAndIds(masterId, sub.getMustAccessIds());
-            }
-            List<Integer> mustAccessIds = new ArrayList<>();
-            //发布当前用户可发布的所有组must
-            if (null!=sub.getAllPublished()&&sub.getAllPublished().equals(TableConstant.COMMON_ZERO)){
-                if (user.getIsOrgAdmin()){
-                    mustAccessList = gcAccessService.findAccessListByMasterId(masterId);
-                }else {
-                    mustAccessList = gcAccessMapper.listAccess(null,masterId,user.getId());
-                }
-                sub.getMustAccessIds().addAll(mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList()));
-                mustAccessIds = mustAccessList.stream().map(GcAccess::getId).collect(Collectors.toList());
-            }
-            if (TableConstant.COMMON_ZERO!=mustAccessList.size()){
-                for (GcAccess gcAccess : mustAccessList) {
-                    mustAccessIds.add(gcAccess.getId());
-                    if (null!=sub.getMustAccessIds()&&sub.getMustAccessIds().contains(gcAccess.getId())){
-                        if (null!=gcAccess.getMustSubjectJson()){
-                            gcAccess.getMustSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setMustSubjectJson(jsonArray);
-                        }
-
-                        if (null!=gcAccess.getSubjectJson()){
-                            gcAccess.getSubjectJson().add(sub.getId());
-                        }else {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(sub.getId());
-                            gcAccess.setSubjectJson(jsonArray);
-                        }
-                    }
-                }
-                gcAccessService.insertOrUpdateList(mustAccessList);
-                List<Integer> userAccessList = userAccessService.selectGetUserAccessIdListUserIds(masterId, mustAccessIds);
-
-                List<GcUserAccessPermission> gcUserAccessPermissions = new ArrayList<>();
-                if (TableConstant.COMMON_ZERO!=userAccessList.size()){
-                    gcUserAccessPermissions = gcUserAccessPermissionService.getPermissionByUserAccessIdList(userAccessList);
-                }
-                for (GcUserAccessPermission accessPermission : gcUserAccessPermissions) {
-                    if (null!=accessPermission.getMustSubjectJson()){
-                        if (!accessPermission.getMustSubjectJson().contains(sub.getId())) {
-                            accessPermission.getMustSubjectJson().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray jsonArray = new JSONArray();
-                        jsonArray.add(sub.getId());
-                        accessPermission.setMustSubjectJson(jsonArray);
-                    }
-
-                    if (null!=accessPermission.getSubPermission()){
-                        if (!accessPermission.getSubPermission().contains(sub.getId())) {
-                            accessPermission.getSubPermission().add(sub.getId());
-                        }
-                    }else {
-                        JSONArray jsonArray = new JSONArray();
-                        jsonArray.add(sub.getId());
-                        accessPermission.setSubPermission(jsonArray);
-                    }
-                }
-                if (TableConstant.COMMON_ZERO!=gcUserAccessPermissions.size()){
-                    gcUserAccessPermissionService.updateGcUserAccessPermissions(gcUserAccessPermissions);
-                }
-            }
-        }
         sub.setCreateTime(subs.getCreateTime());
         sub.setUpdateTime(subs.getUpdateTime());
 
@@ -1545,17 +1300,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         if(null==sub.getFid() && null!=manager) {
             GcUserAccess gcUserAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), masterId);
             if(null!=gcUserAccess) {
-                GcUserAccessPermission gcUserAccessPermission = userAccessService.getUserAccessPermission(gcUserAccess.getId());
-                GcAccess gcAccess = gcAccessService.getAccessById(gcUserAccess.getAccessId());
-                JSONArray jsonArray = gcAccess.getSubjectJson();
-                JSONArray permissionJsonArray = gcUserAccessPermission.getSubPermission();
-                if (!jsonArray.contains(sub.getId())) {
-                    jsonArray.add(sub.getId());
-                    gcAccessService.updateById(gcAccess);
-                }
-                if (!permissionJsonArray.contains(sub.getId())) {
-                    permissionJsonArray.add(sub.getId());
-                    gcUserAccessPermissionService.saveOrUpdate(gcUserAccessPermission);
+                List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
+                if (!courseIds.contains(sub.getId())) {
+                    courseAssignmentService.save(user, sub, CourseType.OPTIONAL);
                 }
             }
         }
@@ -1608,11 +1355,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<GcSubject> newGetAvailableCourses(String name,Integer masterId,List<Integer> subIds,Integer userId,String order){
         return this.baseMapper.newGetAvailableCourses(name,masterId,subIds,userId,order);
-    }
-
-    @Override
-    public List<GcSubject> getCompletedTwoCourse(Map<String,Object> paramMap){
-        return this.baseMapper.getCompletedTwoCourse(paramMap);
     }
 
     @Override

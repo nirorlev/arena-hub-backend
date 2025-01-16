@@ -213,13 +213,10 @@ public class TableConstant {
     public static final int gcSubject_state_visible_1 = 1; // state：可见
     public static final String gcSubject_state_jsonStr = "[0,1]"; // state
 
-    public static final int gcSubject_isPublic_1 = 1; // 1=公共课程
-
     public static final int gcSubject_type_subject0 = 0; // 父级主题课程
     public static final int gcSubject_type_topic1 = 1; // 子级话题课程
 
     // 关联课程的关联关系，1=导入import，2=别名alias
-    public static final int gcSubjectAssociation_relationType_1import = 1;
 
     public static final int gcUserVideoAction_type_like1 = 1;
     public static final int gcUserVideoAction_type_rate2 = 2;

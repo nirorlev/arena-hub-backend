@@ -13,11 +13,6 @@ import org.apache.ibatis.annotations.Param;
 
 public interface PtchannelMapper extends BaseMapper<PtChannel> {
 
-    List<PtChannel> selectChannelList(
-        @Param("userId") Integer userId,
-        @Param("type") Integer type,
-        @Param("masterId") Integer masterId);
-
     List<PtChannel> indexPtChannels(
         @Param("userId") Integer userId,
         @Param("type") Integer type,
@@ -49,9 +44,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
     PtChannel selectFollowedChannel(
         @Param("userId") Integer userId, @Param("masterId") Integer masterId);
 
-    List<PtChannel> selectChannelsByTeam(
-        @Param("accessId") Integer accessId, @Param("masterId") Integer masterId);
-
     List<PtChannel> selectChannelsByIdAndName(
         @Param("idList") List<Integer> idList,
         @Param("name") String name,
@@ -60,17 +52,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
 
     List<PtChannel> selectChannelsByIdsAndName(
         @Param("idList") List<Integer> idList, @Param("name") String name);
-
-    // 查询已经关注的的用户
-    @MapKey("channel_slug")
-    Map<String, HashMap> selectFollowedUsers(
-        @Param("slug") List<String> slug, @Param("masterId") Integer masterId);
-
-    List<PtChannel> searchChannels(
-        @Param("searchName") String searchName,
-        @Param("userId") Integer userId,
-        @Param("type") Integer type,
-        @Param("masterId") Integer masterId);
 
     List<PtChannel> searchChannelsBySysFile(
         @Param("searchName") String searchName,
@@ -82,11 +63,6 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
 
     List<PtChannel> indexVideoNowChannel(
         @Param("userId") Integer userId, @Param("masterId") Integer masterId);
-
-    List<PtChannel> getAccessChannelList(
-        @Param("channelIds") List<Integer> channelIds,
-        @Param("masterId") Integer masterId,
-        @Param("userId") Integer userId);
 
     List<DbAnalyticsResultDto> getChannelsCountAnalytics(
         @Param("filter") AnalyticsFilterDto filter,
