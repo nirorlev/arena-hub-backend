@@ -1412,9 +1412,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         videoService.populateVideoData(List.of(video), portalUser);
         unavailableVideoService.nullifyVideoData(portalUser, video);
-        List<GcVideo> courseVideos = getCourseVideos(courseId);
 
-        return convertToVideoDetailsWithSource(video, courseVideos);
+        return convertToVideoDetailsWithSource(video, getCourseVideos(courseId));
     }
 
     private List<GcVideo> getCourseVideos(Integer courseId) {

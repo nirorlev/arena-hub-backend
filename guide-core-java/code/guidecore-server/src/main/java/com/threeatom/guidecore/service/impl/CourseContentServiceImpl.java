@@ -30,11 +30,6 @@ public class CourseContentServiceImpl extends ServiceImpl<CourseContentMapper, C
     }
 
     @Override
-    public void saveCourseContent(GcVideo video) {
-        save(createCourseContent(video));
-    }
-
-    @Override
     public List<CourseContent> findCourseContent(Integer courseId) {
         return baseMapper.findCourseContent(courseId);
     }
