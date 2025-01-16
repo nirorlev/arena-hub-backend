@@ -6,14 +6,11 @@ import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.client.PowtoonClient;
-import com.threeatom.client.dto.GroupDto;
-import com.threeatom.client.dto.ManagedGroupDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.client.dto.ProfileDto;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.constant.SysConstant;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
@@ -233,7 +230,8 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
         userGroupService.syncUserGroups(powtoonUserInfo.getPermissions().getGroups(), user.getId(), masterId);
         userManagedGroupService.syncUserManagedGroups(powtoonUserInfo.getPermissions().getManagedGroups(), user.getId(), masterId);
 
-        accessService.syncContentGroupsWithPowtoonGroups(powtoonUserInfo, powtoonGroups, masterId, user.getId());
+        accessService.syncContentGroupsWithPowtoonGroups(
+            powtoonUserInfo, masterId, user.getId(), powtoonGroups.getResults());
         portalUserService.saveOrUpdate(user.getId(), masterId, powtoonUserInfo.getPermissions().getOrg().getRoleId());
 
         return user;

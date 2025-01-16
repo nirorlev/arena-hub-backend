@@ -1,8 +1,8 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUserAccess;
@@ -71,7 +71,7 @@ public interface GcUserAccessService extends IService<GcUserAccess> {
     Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
 
     void syncUserAccessWithPowtoonGroups(
-        Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo groups, Integer userId);
+        Integer masterId, List<GcAccess> allPowtoonUserContentGroups, Integer userId, List<Groups> results);
 
     void removeOutdatedContentGroupAccess(
         List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId);

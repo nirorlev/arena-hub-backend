@@ -14,13 +14,12 @@ import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
@@ -229,27 +228,27 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     @Transactional
     public void syncContentGroupsWithPowtoonGroups(
-        PowtoonUserDto powtoonUser, PtGroupsVo groups, Integer masterId, Integer userId) {
+        PowtoonUserDto powtoonUser, Integer masterId, Integer userId, List<Groups> powtoonGroups) {
 
         List<GroupDto> memberGroups = powtoonUser.getPermissions().getGroups();
         List<ManagedGroupDto> managedGroups = powtoonUser.getPermissions().getManagedGroups();
 
         List<String> memberGroupCodes = getMemberGroupCodes(memberGroups);
         List<String> managedGroupCodes = getManagedGroupCodes(managedGroups);
-        List<String> allGroupCodes = new ArrayList<>(memberGroupCodes);
-
-        allGroupCodes.addAll(managedGroupCodes);
+        List<String> powtoonUserGroupCodes = new ArrayList<>(memberGroupCodes);
+        powtoonUserGroupCodes.addAll(managedGroupCodes);
 
         List<GcAccess> memberContentGroups =
-            createOrUpdateMemberContentGroups(allGroupCodes, masterId, memberGroups);
-        List<GcAccess> managedContentGroups =
-            saveOrUpdateManagedContentGroups(allGroupCodes, masterId, managedGroups);
-        List<GcAccess> allContentGroups = getAllContentGroups(memberContentGroups, managedContentGroups, masterId);
-        List<GcAccess> dbContentGroups = this.list();
+            createOrUpdateMemberContentGroups(powtoonUserGroupCodes, masterId, memberGroups);
+        saveOrUpdateManagedContentGroups(powtoonUserGroupCodes, masterId, managedGroups);
 
+
+        List<GcAccess> dbContentGroups = this.list();
+        List<GcAccess> dbMemberContentGroups = selectAccessByCodeAndMasterId(memberGroupCodes, masterId);
+
+        userAccessService.syncUserAccessWithPowtoonGroups(masterId, dbMemberContentGroups, userId, powtoonGroups);
+        userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, memberGroupCodes, userId, masterId);
         ptChannelSubscribeService.autoSubscribeToContentGroupChannels(memberContentGroups, userId);
-        userAccessService.syncUserAccessWithPowtoonGroups(masterId, allContentGroups, groups, userId);
-        userAccessService.removeOutdatedContentGroupAccess(dbContentGroups, allGroupCodes, userId, masterId);
     }
 
     @Override
@@ -491,7 +490,7 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return memberContentGroups;
     }
 
-    private List<GcAccess> saveOrUpdateManagedContentGroups(
+    private void saveOrUpdateManagedContentGroups(
         List<String> groupCodes, Integer masterId, List<ManagedGroupDto> managedGroups) {
 
         List<GcAccess> managedContentGroups = new ArrayList<>();
@@ -520,8 +519,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         if (!managedContentGroups.isEmpty()) {
             insertOrUpdateList(managedContentGroups);
         }
-
-        return managedContentGroups;
     }
 
     private List<GcAccess> getAllContentGroups(
