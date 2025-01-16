@@ -146,7 +146,11 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
 	@Autowired
-	private CourseContentService courseContentService;
+	@Lazy
+	private GcUserSaveContentService playlistService;
+	@Autowired
+	@Lazy
+	private GcUserSaveContentService playlistContentService;
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -1464,7 +1468,65 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId, PortalUser portalUser) {
+	public VideoWithSourceDetailsDto<VideoSourceDto> playlistVideo(Integer playlistId, Integer videoId,
+																   PortalUser portalUser) {
+		Optional<GcUserSaveContent> optionalPlaylistVideoContent =
+			playlistContentService.getPlaylistVideoContent(playlistId, videoId);
+		if (optionalPlaylistVideoContent.isEmpty()) {
+			log.error("Video {} not found in playlist {}", videoId, playlistId);
+			throw new ForbiddenException("Video not found in playlist");
+		}
+
+		GcUserSaveContent playlistContent = optionalPlaylistVideoContent.get();
+		GcUserSaveFolder playlist = playlistContent.getPlaylist();
+
+		if (!authorizationService.checkAccess(playlist, PermitAction.VIEW, portalUser)) {
+			log.error("User {} does not have permission to view playlist {}", portalUser.getUserId(), playlistId);
+			throw new ForbiddenException("You do not have permission to view this playlist");
+		}
+
+		GcVideo video = playlistContent.getVideo();
+		populateVideoData(List.of(video), portalUser);
+		unavailableVideoService.nullifyVideoData(portalUser, video);
+
+		video.setPlaylist(playlist);
+
+		return convertPlaylistVideo(videoId, playlistId, portalUser, video, playlistContent);
+	}
+
+	private VideoWithSourceDetailsDto<VideoSourceDto> convertPlaylistVideo(Integer videoId,
+																		   Integer playlistId,
+																		   PortalUser portalUser,
+																		   GcVideo video,
+																		   GcUserSaveContent playlistContent) {
+		List<Integer> videoOriginSubscriberIds = getVideoOriginSubscriberIds(video, portalUser.getUserId());
+		List<GcUserSaveContent> videoContent = playlistService.findVideoContentByPlaylistId(playlistId);
+		List<Integer> availableVideoIds = filterAvailableVideoIds(videoContent, portalUser);
+
+		VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+		videoWithDetails.getOrigin().setSubscribersCount(videoOriginSubscriberIds.size());
+		videoWithDetails.getOrigin().setSubscribed(videoOriginSubscriberIds.contains(portalUser.getUserId()));
+		videoWithDetails.setDeprecatedContentId(playlistContent.getId());
+		videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
+		videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
+		videoWithDetails.getPlaylist().setSize(videoContent.size());
+		return videoWithDetails;
+	}
+
+	private List<Integer> filterAvailableVideoIds(List<GcUserSaveContent> playlistVideoContent, PortalUser portalUser) {
+		List<GcVideo> playlistVideos = playlistVideoContent.stream()
+			.map(GcUserSaveContent::getVideo)
+			.collect(Collectors.toList());
+
+		return playlistVideos.stream()
+			.filter(video -> authorizationService.checkAccess(video, PermitAction.VIEW, portalUser))
+			.map(GcVideo::getId)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId,
+																 PortalUser portalUser) {
 		GcVideo video = findByVideoId(videoId);
 		if (video == null) {
 			log.error("Video with id {} cannot be found for user {} and course {}", videoId, portalUser.getUserId(), courseId);

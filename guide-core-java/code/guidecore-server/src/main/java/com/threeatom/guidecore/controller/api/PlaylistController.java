@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaylistController {
 
     private final GcUserService userService;
+    private final GcVideoService videoService;
     private final GcUserSaveFolderService playlistService;
     private final PortalUserService portalUserService;
 
@@ -101,8 +103,7 @@ public class PlaylistController {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(
-            playlistService.playerPageVideo(playlistId, videoId, portalUser));
+        return ResponseEntity.ok(videoService.playlistVideo(playlistId, videoId, portalUser));
     }
 
 }
