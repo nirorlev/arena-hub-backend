@@ -227,22 +227,6 @@
         channel_owner_avatar.file_type AS channel_create_user_info_avatar_file_type
     </sql>
 
-    <select id="getMasterVideoListByFuzzyName" resultMap="baseResultMap">
-        select
-        <include refid="baseColumn" />
-        <include refid="fileBaseColumn" />
-        from gc_video v
-        <include refid="leftJoinSysFile" />
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
-        LEFT JOIN gc_user_access_permission uap  on uap.sub_permission::jsonb @> to_jsonb(s.fid::integer)
-        LEFT JOIN gc_user_access ua on ua.id=uap.user_access_id
-        <where>
-            ua.master_id=#{masterId} and
-            v.video_name like '%${videoName}%' and ua.user_id=#{userId}
-            <include refid="where_gcSubject_state_not_hidden" />
-        </where>
-    </select>
-
 	<select id="getFuzzyNameVideoInMaster" resultMap="baseResultMap">
 		select
 	    <include refid="baseColumn" />
@@ -744,25 +728,6 @@
             )
         </if>
 
-    </select>
-
-    <select id="getVideoIdListByPermissionId" resultMap="baseResultMap">
-        SELECT
-        <include refid="baseColumnSub1" />
-        <include refid="fileBaseColumn" />
-        , s2."fid" AS subId0
-        ,s2.id as sub_id,
-        ap.id as permission_id
-        from GC_SUBJECT s
-        left join gc_user_access_permission ap on ap.sub_permission::jsonb @> to_jsonb(s.id::integer)
-        left join gc_subject s2 on s2.fid = s.id
-        LEFT JOIN GC_VIDEO V ON S2.ID = V.SUB_ID
-        <include refid="leftJoinSysFile" />
-        where ap.id in
-        <foreach collection="accessPermissionId" item="accessPermissionId" index="index" open="(" close=")" separator=",">
-            #{accessPermissionId}
-        </foreach>
-        and v.id is not null
     </select>
 
     <select id="getSysFileByIdsOrVideos" resultMap="baseResultMap">

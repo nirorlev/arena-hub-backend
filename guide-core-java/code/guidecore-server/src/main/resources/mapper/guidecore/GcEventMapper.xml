@@ -467,23 +467,6 @@
         </if>
     </select>
 
-    <select id="getTaskNumByVideoIds" resultType="com.threeatom.guidecore.entity.StudentInfoVO">
-        select count(et.id) as taskNum,uap.user_access_id as userAccessId,ac.user_id as userId
-        FROM gc_event et
-        left join gc_user_event ue on ue.event_id = et.id
-        left join gc_user_access_permission uap on uap.user_access_id in
-        <foreach collection="list" item="list" index="index" open="(" close=")" separator=",">
-            #{list.userAccessId}
-        </foreach>
-        left join gc_subject g1 on uap.sub_permission::jsonb @> to_jsonb(g1.id::integer)
-        left join gc_subject g2 on g2.fid=g1.id
-        left join gc_video v on v.sub_id = g2.id
-        left join gc_user_access ac on ac.id = uap.user_access_id
-        where ((et.upload_type = 1) or (et.upload_type = 2 AND ue.user_id = ac.user_id))
-        and v.id = et.video_id
-        GROUP BY uap.id, ac.user_id
-    </select>
-
     <select id="selectEventUploadByPortal" resultType="com.threeatom.guidecore.entity.GcEvent">
         select * from  gc_event where type=#{type} and video_id=#{vid}
     </select>
@@ -604,27 +587,6 @@
         where s.id = #{subjectId}
         and e.id is not null
         and s.master_id = #{masterId}
-    </select>
-
-    <select id="selectEventByPermissionList" resultType="com.threeatom.guidecore.entity.GcEvent">
-        select E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id
-        from GC_SUBJECT s
-        left join gc_user_access_permission p on p.sub_permission::jsonb @> to_jsonb(s.id::integer)
-        left join gc_user_access ac on ac.id = p.user_access_id
-        left join gc_subject s2 on s2.fid = s.id
-        left join gc_video v on v.sub_id = s2.id
-        left join gc_event e on e.video_id = v.id
-        LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
-        LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID and ua.user_id in
-        <foreach collection="userList" item="user" open="(" separator="," close=")">
-            #{user}
-        </foreach>
-        where
-        p.id in
-        <foreach collection="list" item="list" open="(" separator="," close=")">
-            #{list}
-        </foreach>
-        and e.id is not null
     </select>
 
     <select id="selectEventByUserIdAndSubjectId" resultType="com.threeatom.guidecore.entity.GcEvent">

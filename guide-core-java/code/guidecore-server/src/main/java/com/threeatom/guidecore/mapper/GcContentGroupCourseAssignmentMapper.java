@@ -21,4 +21,7 @@ public interface GcContentGroupCourseAssignmentMapper
 
     List<GcContentGroupCourseAssignment> getCoursesContentGroupAssignmentByUserAndMasterId(
         @Param("userId") Integer userId, @Param("masterId") Integer masterId);
+
+    List<GcContentGroupCourseAssignment> getCourseAssignmentsByRoleUserAndMasterId(
+        @Param("userId") Integer userId, @Param("masterId") Integer masterId, @Param("roleName") String roleName);
 }

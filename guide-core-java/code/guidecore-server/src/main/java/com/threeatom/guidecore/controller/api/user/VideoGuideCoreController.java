@@ -294,39 +294,6 @@ public class VideoGuideCoreController extends GuideCoreController {
         return new Message().error();
     }
 
-    @ApiOperation(value = "查询回答问题消息", httpMethod = "POST")
-    @PostMapping("/userNoteCommentMessageList")
-    public Message userNoteCommentMessageList(
-            @RequestBody(required = false) MessageFIlterVo messageFIlterVo, HttpServletRequest request) {
-        messageFIlterVo = messageCommon(messageFIlterVo, request);
-        List<Map<String, Object>> list =
-                masterMessageService.getNoteCommentMessageList(messageFIlterVo, request);
-        PageInfo<Map<String, Object>> page = new PageInfo<Map<String, Object>>(list);
-
-        Message m = new Message().ok("获取成功");
-        if (request.getHeader(PageParam.pageSizeStr) != null
-                && request.getHeader(PageParam.pageNumStr) != null) {
-            m.addData("eventList", page);
-        } else {
-            m.addData("eventList", list);
-        }
-        if (messageFIlterVo.getGroupId() != null) {
-            messageFIlterVo.setReadState(TableConstant.gcMasterMessage_readState_0Unread);
-            Integer evidenceNum =
-                    userEventResourceService.countALLResourceListByGcMasterMessageTargetUserId(
-                            messageFIlterVo);
-            Integer answerNum =
-                    userEventResourceService.countAnswerMessageListByGcMasterMessageTargetUserId(
-                            messageFIlterVo);
-
-            TeacherMesNumVo tmnVo = new TeacherMesNumVo();
-            tmnVo.setEvidenceNum(evidenceNum);
-            tmnVo.setAnswerNum(answerNum);
-            m.addData("messageNum", tmnVo);
-        }
-        return m;
-    }
-
     @ApiOperation(value = "查询评论", httpMethod = "GET")
     @GetMapping("/selectComment")
     public Message selectComment(Integer commentId, HttpServletRequest request) {

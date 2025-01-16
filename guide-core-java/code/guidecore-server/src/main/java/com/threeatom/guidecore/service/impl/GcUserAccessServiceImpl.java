@@ -1,9 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import static com.threeatom.utils.ToolUtil.parseToJsonArray;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
@@ -18,18 +14,14 @@ import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
 import com.threeatom.guidecore.mapper.GcUserAccessMapper;
-import com.threeatom.guidecore.mapper.GcUserAccessPermissionMapper;
-import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -50,23 +41,18 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     private static final String CACHE_TAG = "GcUserAccess";
 
-    private static final String KEY_TAG_ENTITY = "'entity:uid-'+";
-
     @Autowired RedisOperator redisOperator;
 
     @Autowired @Lazy private GcAccessService gcAccessService;
 
     @Autowired @Lazy private GcGroupService groupService;
 
-    @Autowired private GcUserAccessPermissionMapper userAccessPermissionMapper;
     @Autowired private GcUserAccessExtMapper userAccessExtMapper;
 
     @Lazy @Autowired private GcSubjectService gcSubjectService;
 
     @Autowired private SysFileService sysFileService;
     @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
-    @Autowired private ContentGroupChannelSubscriptionService contentGroupChannelSubscriptionService;
-    @Autowired private GcUserAccessPermissionService gcUserAccessPermissionService;
 
     @Override
     public GcUserAccess getUserAccessByMasterIdAndUserId(Integer masterId, Integer userId) {
@@ -83,14 +69,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
             Integer userId, Integer masterId) {
 
         return this.baseMapper.selectPtUserAccessByMasterIdAndUserId(userId, masterId);
-    }
-
-    @Override
-    public void clearCache(Integer userId, Integer masterId) {
-
-        redisOperator.del(
-                redisOperator.getFullKeyByValueAndKey(
-                        CACHE_TAG, "entity:uid-" + userId + "-masterId-" + masterId));
     }
 
     @Override
@@ -165,71 +143,15 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public Integer createOrUpdateById(GcUserAccessExt userAccessExt) {
-        if (userAccessExt.getId() == null) return this.baseMapper.insertGcUserAccessExt(userAccessExt);
-        else return this.baseMapper.updateGcUserAccessExtById(userAccessExt);
-    }
-
-    @Override
-    public List<Map<String, Object>> getUsersLastLogInDataByMasterIdAndUserIds(
-            Integer masterId, List<Integer> userIds, String order) {
-
-        return this.baseMapper.selectUserAccessExtListByMasterIdAndUserIds(masterId, userIds, order);
-    }
-
-    @Override
-    public GcUserAccessPermission getUserAccessPermission(Integer userAccessId) {
-        QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
-        queryWrapper.eq("user_access_id", userAccessId);
-        GcUserAccessPermission permission = userAccessPermissionMapper.selectOne(queryWrapper);
-        return permission;
-    }
-
-    @Override
-    public List<GcUserAccessPermission> getUsersAccessPermissions(List<Integer> userAccessIds) {
-        QueryWrapper<GcUserAccessPermission> queryWrapper = new QueryWrapper<GcUserAccessPermission>();
-        queryWrapper.in("user_access_id", userAccessIds);
-
-        return userAccessPermissionMapper.selectList(queryWrapper);
-    }
-
-    @Override
     public boolean createUserAccess(GcUserAccess userAccess) {
 
         if (this.save(userAccess)) {
             GcUserAccessExt userAccessExt = new GcUserAccessExt();
             userAccessExt.setUserAccessId(userAccess.getId());
             userAccessExtMapper.insert(userAccessExt);
-
-            GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-            userAccessPermission.setSubPermission(getContentGroupCourseAssignments(userAccess));
-            userAccessPermission.setUserAccessId(userAccess.getId());
-            userAccessPermissionMapper.insert(userAccessPermission);
         }
 
         return false;
-    }
-
-    private JSONArray getContentGroupCourseAssignments(GcUserAccess userAccess) {
-        List<Integer> contentGroupCourseAssignments =
-            contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccess().getId());
-        return JSONArray.parseArray(JSON.toJSONString(contentGroupCourseAssignments));
-    }
-
-    @Override
-    public int updateUserAccessPermissions(List<GcUserAccessPermission> perList) {
-        if (perList == null || perList.size() < 1) return 0;
-        return this.userAccessPermissionMapper.updateGcUserAccessPermissions(perList);
-    }
-
-    @Override
-    public Map<String, Integer> getLastUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        return this.baseMapper.selectLastUsersNum(lastDays, teacherAccessId);
-    }
-
-    @Override
-    public Map<String, Integer> getActiveUsersNum(List<Integer> lastDays, Integer teacherAccessId) {
-        return this.baseMapper.selectActiveUsersNum(lastDays, teacherAccessId);
     }
 
     @Override
@@ -269,162 +191,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    @Transactional
-    public int updateUserAccessPermission(List<Integer> userAccessIds, GcAccess gcAccess) {
-        // 查询相关用户的实体
-        List<GcUserAccess> list = this.baseMapper.selectUserAccessListByIds(userAccessIds);
-        // 将用户相关的组全部取出
-        List<GcGroup> groupList = groupService.getGroupListByUserAccessIds(userAccessIds);
-
-        List<GcUserAccessPermission> userAccessPermissionList =
-                this.getUsersAccessPermissions(userAccessIds);
-
-        List<GcUserAccessPermission> updatePermission = new ArrayList<GcUserAccessPermission>();
-        for (GcUserAccessPermission accessPermission : userAccessPermissionList) {
-            switch (gcAccess.getSaveType()) {
-                case 0:
-                    {
-                        // 原逻辑，直接覆盖
-                        GcUserAccessPermission permission = new GcUserAccessPermission();
-
-                        Optional<GcUserAccess> optional =
-                                list.stream()
-                                        .filter(a -> a.getId().equals(accessPermission.getUserAccessId()))
-                                        .findFirst();
-                        if (!optional.isPresent()) throw new SystemException(I18NUtil.get("user.not.found"));
-                        GcAccess access = optional.get().getAccess();
-                        if (access == null)
-                            throw new SystemException(I18NUtil.get("access.not.found"));
-                        // 合并权限
-                        Set<Integer> subs = new HashSet<>(
-                            contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId()));
-                        List<GcGroup> subGroupList =
-                                groupList.stream()
-                                        .filter(g -> g.getGroupAccessIds().contains(accessPermission.getUserAccessId()))
-                                        .collect(Collectors.toList());
-
-                        for (GcGroup group : subGroupList) {
-                            subs.addAll(group.getSubIds().toJavaList(Integer.class));
-                        }
-                        permission.setId(accessPermission.getId());
-
-                        permission.setSubPermission(JSONArray.parseArray(JSONArray.toJSONString(subs)));
-
-                        updatePermission.add(permission);
-                        break;
-                    }
-                case 1:
-                    {
-                        // 新增
-                        // 按照用户当前权限更新
-                        // 筛选出新增的部分
-                        List<Integer> contentGroupCourseAssignments = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(gcAccess.getId());
-                        List<Object> newAddSubjects =
-                            contentGroupCourseAssignments.stream()
-                                        .filter(e -> !accessPermission.getSubPermission().contains(e))
-                                        .collect(Collectors.toList());
-                        GcUserAccessPermission gcUserAccessPermission = new GcUserAccessPermission();
-                        gcUserAccessPermission.setId(accessPermission.getId());
-                        accessPermission.getSubPermission().addAll(newAddSubjects);
-                        gcUserAccessPermission.setSubPermission(accessPermission.getSubPermission());
-                        updatePermission.add(gcUserAccessPermission);
-                        break;
-                    }
-                case 2:
-                    {
-                        // 删除
-                        // 查询门户下所有的课程
-                        Integer masterId = gcAccess.getMasterId();
-                        List<GcSubject> gcSubjectList = gcSubjectService.getSubList(masterId, 0);
-                        List<GcSubject> gcSubjectAssoList =
-                                gcSubjectService.selectSubjectAssociation(masterId, null, true);
-                        List<Integer> subIdList =
-                                gcSubjectList.stream().map(GcSubject::getId).collect(Collectors.toList());
-                        List<Integer> gcSubjectAssoIdList =
-                                gcSubjectAssoList.stream().map(GcSubject::getId).collect(Collectors.toList());
-                        subIdList.addAll(gcSubjectAssoIdList);
-                        // 筛选出此次更新未选中的课程
-                        List<Integer> contentGroupCourseAssignments = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(gcAccess.getId());
-                        List<Object> unSelectedSubjects =
-                                subIdList.stream()
-                                        .filter(e -> !contentGroupCourseAssignments.contains(e))
-                                        .collect(Collectors.toList());
-                        // 筛选出用户权限去除要删除课程后的课程
-                        List<Object> saveSubjects =
-                                accessPermission.getSubPermission().stream()
-                                        .filter(e -> !unSelectedSubjects.contains(e))
-                                        .collect(Collectors.toList());
-                        GcUserAccessPermission gcUserAccessPermission = new GcUserAccessPermission();
-                        gcUserAccessPermission.setId(accessPermission.getId());
-                        gcUserAccessPermission.setSubPermission(
-                                JSONArray.parseArray(JSON.toJSONString(saveSubjects)));
-                        updatePermission.add(gcUserAccessPermission);
-                        break;
-                    }
-                case 3:
-                    {
-                        return 0;
-                    }
-            }
-        }
-
-        int row = this.updateUserAccessPermissions(updatePermission);
-        LOGGER.info("更新的行数：" + row + " 行");
-        return row;
-    }
-
-    @Override
-    public Integer saveUserAccessPermission(GcUserAccessPermission userAccessPermission) {
-        return this.userAccessPermissionMapper.insert(userAccessPermission);
-    }
-
-    @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public BigDecimal addPoints(Integer userAccessId, BigDecimal point) {
-        QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
-        queryWrapper.eq("user_access_id", userAccessId);
-        GcUserAccessExt userAccessExt = userAccessExtMapper.getOneByUserAccessId(userAccessId);
-        if (userAccessExt == null) throw new SystemException("没有找到用户数据表");
-
-        GcUserAccessExt updateUserAccessExt = new GcUserAccessExt();
-        updateUserAccessExt.setId(userAccessExt.getId());
-
-        BigDecimal resultPoint = userAccessExt.getPoints().add(point);
-        updateUserAccessExt.setPoints(resultPoint);
-
-        userAccessExtMapper.updateById(updateUserAccessExt);
-
-        return resultPoint;
-    }
-
-    @Override
-    public BigDecimal reducePoints(Integer userAccessId, BigDecimal point) {
-        QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
-        queryWrapper.eq("user_access_id", userAccessId);
-        GcUserAccessExt userAccessExt = userAccessExtMapper.selectOne(queryWrapper);
-        if (userAccessExt == null) throw new SystemException("没有找到用户数据表");
-
-        if (userAccessExt.getPoints().compareTo(point) != -1) {
-            GcUserAccessExt updateUserAccessExt = new GcUserAccessExt();
-            updateUserAccessExt.setId(userAccessExt.getId());
-
-            BigDecimal resultPoint = userAccessExt.getPoints().subtract(point);
-            updateUserAccessExt.setPoints(resultPoint);
-            userAccessExtMapper.updateById(updateUserAccessExt);
-            return resultPoint;
-        } else throw new SystemException("扣除失败！，没有更多的点数可以扣除了");
-    }
-
-    @Override
-    public BigDecimal getCurrentUserPoints(Integer userAccessId) {
-        QueryWrapper<GcUserAccessExt> queryWrapper = new QueryWrapper<GcUserAccessExt>();
-        queryWrapper.eq("user_access_id", userAccessId);
-        GcUserAccessExt userAccessExt = userAccessExtMapper.selectOne(queryWrapper);
-        if (userAccessExt == null) throw new SystemException("没有找到用户数据表");
-        return userAccessExt.getPoints();
-    }
-
-    @Override
     public GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId) {
         return this.baseMapper.getAccessByUserIdMaster(userId, masterId);
     }
@@ -434,13 +200,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
         queryWrapper.eq("access_id", accessId);
         return this.list(queryWrapper);
-    }
-
-    @Override
-    public GcUserAccess getByUserId(Integer userId) {
-        QueryWrapper<GcUserAccess> queryWrapper = new QueryWrapper<GcUserAccess>();
-        queryWrapper.eq("user_id", userId);
-        return getOne(queryWrapper);
     }
 
     @Override
@@ -535,8 +294,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         if (!userAccesses.isEmpty()) {
             insertUserAccessList(userAccesses);
         }
-
-        updateUserPermissions(getUserAccessListByMasterIdAndUserId(getUserIds(userAccesses), masterId));
     }
 
     @Override
@@ -554,39 +311,4 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         }
     }
 
-    private void updateUserPermissions(List<GcUserAccess> userAccesses) {
-        List<GcUserAccessPermission> userAccessPermissions = new ArrayList<>();
-
-        for (GcUserAccess gcUserAccess : userAccesses) {
-            GcUserAccessPermission permission = new GcUserAccessPermission();
-            GcAccess access = gcUserAccess.getAccess();
-            List<Integer> assignedCourses =
-                contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(access.getId());
-            List<Integer> mustAssignedCourses =
-                contentGroupCourseAssignmentService.getMustCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> optionalAssignedCourses =
-                contentGroupCourseAssignmentService.getOptionalCoursesContentGroupAssignmentIds(access.getId());
-            List<Integer> unsubscribedChannelIds =
-                contentGroupChannelSubscriptionService.getPublicChannelIds(access.getId());
-            List<Integer> subscribedChannelIds =
-                contentGroupChannelSubscriptionService.getSubscribedChannelIds(access.getId());
-
-            permission.setUserAccessId(gcUserAccess.getId());
-            permission.setSubPermission(parseToJsonArray(assignedCourses));
-            permission.setChannelPermission(parseToJsonArray(unsubscribedChannelIds));
-            permission.setSubscribePermission(parseToJsonArray(subscribedChannelIds));
-            permission.setMaySubjectJson(parseToJsonArray(optionalAssignedCourses));
-            permission.setMustSubjectJson(parseToJsonArray(mustAssignedCourses));
-            userAccessPermissions.add(permission);
-        }
-        if (!userAccessPermissions.isEmpty()) {
-            gcUserAccessPermissionService.insertUserPermission(userAccessPermissions);
-        }
-    }
-
-    private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
-        return userAccessList.stream()
-            .map(GcUserAccess::getUserId)
-            .collect(Collectors.toList());
-    }
 }

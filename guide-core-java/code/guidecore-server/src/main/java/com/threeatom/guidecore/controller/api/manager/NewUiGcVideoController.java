@@ -2,7 +2,6 @@ package com.threeatom.guidecore.controller.api.manager;
 
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.GuideCoreController;
-import com.threeatom.guidecore.service.GcUserAccessPermissionService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
@@ -46,9 +45,6 @@ public class NewUiGcVideoController extends GuideCoreController {
 
     @Autowired
     private GcUserVideoPlaysNodeService gcUserVideoPlaysNodeService;
-
-    @Autowired
-    private GcUserAccessPermissionService gcUserAccessPermissionService;
 
     @Autowired
     private GcUserAccessService gcUserAccessService;

@@ -69,59 +69,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Autowired
     private GcVideoService videoService;
 
-    public List<PtChannel> indexPtChannels(Integer userId, Integer type, HttpServletRequest request, Integer masterId) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize = pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        List<PtChannel> channels = this.baseMapper.indexPtChannels(userId, type, masterId, null);
-        Map<Integer, List<PtTags>> tagMap = new HashMap<>();
-        if (!channels.isEmpty()) {
-            List<PtTags> tagsList =
-                    tagsService.selectPtChannelTagByIds(
-                            channels.stream().map(PtChannel::getId).collect(Collectors.toList()), masterId);
-            tagMap = tagsList.stream().collect(Collectors.groupingBy(PtTags::getChannelId));
-        }
-
-        List<Integer> channelIdList =
-                channels.stream().map(PtChannel::getId).collect(Collectors.toList());
-        Map<Integer, PtChannel> ptChannelMap = new HashMap<>();
-        if (!channelIdList.isEmpty()) {
-            List<PtChannel> accessChannelList =
-                    this.baseMapper.getAccessChannelList(channelIdList, masterId, userId);
-            ptChannelMap =
-                    accessChannelList.stream()
-                            .collect(
-                                    Collectors.toMap(
-                                            PtChannel::getId,
-                                            PtChannel -> PtChannel,
-                                            (key1, key2) -> key2,
-                                            LinkedHashMap::new));
-        }
-
-        for (PtChannel channel : channels) {
-            if (null != tagMap.get(channel.getId())) {
-                List<PtTags> tagsList = tagMap.get(channel.getId());
-                List<String> strings =
-                        tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
-                channel.setChannelTags(StringUtils.join(strings, ","));
-            }
-            if (null != ptChannelMap.get(channel.getId())) {
-                PtChannel accessChannel = ptChannelMap.get(channel.getId());
-                if (null != accessChannel.getSubscribeAccessList()) {
-                    channel.setSubscribeAccessList(accessChannel.getSubscribeAccessList());
-                }
-                if (null != accessChannel.getAccessList()) {
-                    channel.setAccessList(accessChannel.getAccessList());
-                }
-            }
-            updateUrls(request, channel);
-        }
-        return channels;
-    }
-
     public PtChannel selectChannelDetail(
         Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId) {
 
@@ -219,48 +166,6 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     private int isLikedByUser(Integer contentId, Integer userId) {
         return userVideoActionService.isLikedByUser(contentId, userId) ? 1 : 0;
-    }
-
-    public List<PtChannel> selectChannelsByTeam(
-            Integer accessId, Integer masterId, Integer userId, HttpServletRequest request) {
-        PageParam pageParam = new PageParam(request);
-        Integer pageNum = pageParam.getPageNum();
-        Integer pageSize = pageParam.getPageSize();
-        if (pageNum > 0 && pageSize > 0) {
-            PageHelper.startPage(pageNum, pageSize);
-        }
-        List<PtChannel> channels = this.baseMapper.selectChannelsByTeam(accessId, masterId);
-        // 查询订阅人数
-        for (PtChannel ptChannel : channels) {
-            ptChannel.setFollowFlag(TableConstant.COMMON_ZERO);
-        }
-
-        // 查询当前用户follow的channel
-        PtChannel followedChannel = this.baseMapper.selectFollowedChannel(userId, masterId);
-        if (Objects.nonNull(followedChannel)) {
-            if (CollectionUtils.isNotEmpty(followedChannel.getSubscribeAccessIds())) {
-                for (PtChannel ptChannel : channels) {
-                    if (followedChannel.getSubscribeAccessIds().contains(ptChannel.getId())) {
-                        ptChannel.setFollowFlag(TableConstant.COMMON_ONE);
-                    }
-                }
-            }
-        }
-
-        for (PtChannel channel : channels) {
-            if (CollectionUtils.isNotEmpty(channel.getVideoList())) {
-                for (SysFile gcvideofile : channel.getVideoList()) {
-                    SysFile imgFile = sysFileService.getById(gcvideofile.getId());
-                    String imgFullFileUrl = sysFileService.getResFullUrl(imgFile, request);
-                    gcvideofile.setFullFileUrl(imgFullFileUrl);
-                }
-            }
-        }
-        for (PtChannel ptChannel : channels) {
-            updateUrls(request, ptChannel);
-        }
-
-        return channels;
     }
 
     @Override

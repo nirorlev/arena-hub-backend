@@ -52,9 +52,6 @@ public interface GcEventService extends IService<GcEvent> {
 
     List<GcEvent> getEventNumByVideos(List<Integer> videoList, Integer masterId);
 
-    List<GcEvent> selectEventByPermissionList(
-            List<Integer> permissionList, List<Integer> userIdList, Integer masterId);
-
     List<GcEvent> selectEventBySubjectIdUserIds(
             List<Integer> userIds, Integer subjectId, Integer masterId);
 

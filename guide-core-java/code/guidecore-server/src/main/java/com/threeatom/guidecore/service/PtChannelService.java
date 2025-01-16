@@ -17,9 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface PtChannelService extends IService<PtChannel> {
 
-    List<PtChannel> indexPtChannels(
-        Integer userId, Integer type, HttpServletRequest request, Integer masterId);
-
     PtChannel selectChannelDetail(
         Integer channelId, String slug, HttpServletRequest request, String order, Integer masterId);
 
@@ -32,9 +29,6 @@ public interface PtChannelService extends IService<PtChannel> {
         HttpServletRequest request,
         String searchName,
         Integer level, PortalUser portalUser);
-
-    List<PtChannel> selectChannelsByTeam(
-        Integer accessId, Integer masterId, Integer userId, HttpServletRequest request);
 
     List<PtChannel> selectChannelsByIdAndName(
         List<Integer> idList, String name, Integer userId, Integer masterId);

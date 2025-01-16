@@ -28,9 +28,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> getVideoIdListBySubId0(List<Integer> subId);
 
-    List<GcVideo> getVideoIdListByPermissionId(
-        @Param("accessPermissionId") List<Integer> accessPermissionId);
-
     List<GcVideo> getVideoListByUserIdsAndSubjectId(
         @Param("userIdList") List<Integer> userIdList,
         @Param("subjectId") Integer subjectId,
@@ -52,8 +49,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     List<GcVideo> selectVideoAndEventByTopSubIds(@Param("subIds") List<Integer> subIds);
 
     Map<String, Object> selectVideoTopicSubjectInfo(Integer vid);
-
-    List<GcVideo> getMasterVideoListByFuzzyName(Integer masterId, String videoName, Integer userId);
 
     List<GcVideo> getFuzzyNameVideoInMaster(Integer masterId, String videoName);
 

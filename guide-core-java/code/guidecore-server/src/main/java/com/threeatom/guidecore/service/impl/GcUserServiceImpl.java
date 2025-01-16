@@ -246,7 +246,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
 
         if (user == null) {
             user = createGcUser(powtoonUserInfo, studentAccess, masterId);
-            userAvatarService.saveUserAvatar(powtoonProfileUrl, user.getId(), masterId);
+//            userAvatarService.saveUserAvatar(powtoonProfileUrl, user.getId(), masterId);
             return user;
         }
 

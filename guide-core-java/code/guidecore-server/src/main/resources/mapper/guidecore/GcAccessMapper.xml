@@ -11,11 +11,7 @@
 		<result property="code" column="code"/>
 		<result property="subjectNum" column="subjectNum"/>
 		<result property="channelNum" column="channelNum"/>
-		<result property="subscribeJson" column="subscribe_json"
-				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="roleJson" column="role_json"
-				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-		<result property="subjectJson" column="subject_json"
 				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="packageDescription" column="package_description"/>
 		<result property="packageAdditionalCourseInformation" column="package_additional_course_information"/>
@@ -29,10 +25,6 @@
 		<result property="createTime" column="create_time"/>
 		<result property="packageBadgeFlag" column="package_badge_flag"/>
 		<result property="packageBadgeContent" column="package_badge_content"/>
-		<result property="mustSubjectJson" column="must_subject_json"
-				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
-		<result property="maySubjectJson" column="may_subject_json"
-				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="channelJson" column="channel_json"
 				typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="groupName" column="group_name"/>
@@ -81,7 +73,6 @@
 		<result property="subjectNum" column="subjectNum"/>
 		<result property="channelNum" column="channelNum"/>
 		<result property="roleJson" column="roleJson" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-		<result property="subjectJson" column="subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
 		<result property="packageDescription" column="package_description"  />
 		<result property="packageAdditionalCourseInformation" column="package_additional_course_information"  />
 		<result property="packageName" column="package_name"  />
@@ -93,8 +84,6 @@
 		<result property="createTime" column="create_time"  />
 		<result property="packageBadgeFlag" column="package_badge_flag"  />
 		<result property="packageBadgeContent" column="package_badge_content"  />
-		<result property="mustSubjectJson" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
-		<result property="maySubjectJson" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
 		<result property="channelJson" column="channel_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler" />
 		<result property="groupName" column="group_name"/>
 		<association property="packageImgFile" column="package_img_file" javaType="SysFile">
@@ -135,7 +124,7 @@
 	</resultMap>
 
     <insert id="insertOrUpdateList" useGeneratedKeys="true" keyColumn="id" keyProperty="id" >
-		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,subject_json,must_subject_json,may_subject_json,role_json,update_time)
+		insert into gc_access(id,master_id,role_type,admin_id,code,group_name,role_json,update_time)
 		VALUES
 		<foreach collection="list" index="index" item="item" separator=",">
 		 (
@@ -147,9 +136,6 @@
 		  </if>
 		  #{item.masterId},#{item.roleType},#{item.adminId},#{item.code},
 		  #{item.groupName},
-		  #{item.subjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-		  #{item.mustSubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
-		  #{item.maySubjectJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  #{item.roleJson,jdbcType=OTHER,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler},
 		  now())
 		</foreach>
@@ -158,10 +144,7 @@
 		role_type = excluded.role_type,
 		admin_id = excluded.admin_id,
 		code = excluded.code,
-		subject_json = excluded.subject_json,
 		group_name = excluded.group_name,
-		must_subject_json = excluded.must_subject_json,
-		may_subject_json = excluded.may_subject_json,
 		role_json = excluded.role_json,
 		create_time = now()
 	</insert>
@@ -176,14 +159,14 @@
 	</select>
 
     <sql id="baseColumn">
-	   a.id, a.master_id, a.role_type, a.admin_id, a.code, a.subject_json, a.update_time, a.create_time
+	   a.id, a.master_id, a.role_type, a.admin_id, a.code, a.update_time, a.create_time
 	</sql>
 
 	<select id="listContainsSub" resultMap="baseResultMap" >
 		SELECT
 		<include refid="baseColumn" />
 		FROM gc_access a
-		WHERE master_id=#{masterId} AND subject_json::jsonb @> to_jsonb(#{subjectId}::integer)
+		WHERE master_id=#{masterId};
 	</select>
 
 	<select id="getAllPackage" resultMap="baseResultMap" >
@@ -351,7 +334,6 @@
 		ac.admin_id,
 		ac.code,
 		ac.package_learning_hours,
-		ac.subject_json,
 		ac.update_time,
 		ac.create_time,
 		ac.code_type,
@@ -360,12 +342,9 @@
 		ac.channel_json,
 		ac.group_name,
 		ac.subscribe_json,
-		ac.role_json,
-		uap.may_subject_json as may_subject_json,
-		uap.must_subject_json as must_subject_json
+		ac.role_json
 		FROM gc_access ac
 		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-		left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
 		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE ac.master_id = #{masterId}
@@ -375,7 +354,7 @@
 		<if test="name != null">
 			and concat('%',#{name},'%')
 		</if>
-		GROUP BY ac.id, uap.id
+		GROUP BY ac.id
 		order by ac.group_name asc
 	</select>
 
@@ -388,7 +367,6 @@
 		ac.admin_id,
 		ac.code,
 		ac.package_learning_hours,
-		ac.subject_json,
 		ac.update_time,
 		ac.create_time,
 		ac.code_type,
@@ -397,13 +375,10 @@
 		ac.channel_json,
 		ac.group_name,
 		ac.subscribe_json,
-		ac.role_json,
-		uap.may_subject_json as may_subject_json,
-		uap.must_subject_json as must_subject_json
+		ac.role_json
 		FROM
 		gc_access ac
 		LEFT JOIN gc_user_access ua ON ac.id = ua.access_id AND ua.user_id =  #{userId}
-		left join gc_user_access_permission uap on uap.user_access_id = ua.id
 		left join gc_content_group_course_assignment gcca_must on ac.id = gcca_must.content_group_id AND gcca_must.is_mandatory = 1
 		left join gc_content_group_course_assignment gcca_may on ac.id = gcca_may.content_group_id AND gcca_may.is_mandatory = 0
 		WHERE
@@ -413,7 +388,7 @@
 		<if test="name != null">
 			and ac.group_name like concat('%',#{name},'%')
 		</if>
-		GROUP BY ac.id, uap.id
+		GROUP BY ac.id
 		order by ac.group_name asc
 	</select>
 </mapper>

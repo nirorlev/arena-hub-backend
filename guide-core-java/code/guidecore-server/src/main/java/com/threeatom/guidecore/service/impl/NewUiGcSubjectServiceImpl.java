@@ -6,12 +6,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.security.auth.Subject;
 import javax.servlet.http.HttpServletRequest;
 
 import com.alibaba.fastjson.JSONArray;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcVideoMapper;
@@ -19,7 +17,6 @@ import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -29,7 +26,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.threeatom.common.ApiAssert;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.mapper.NewUiGcSubjectMapper;
 import com.threeatom.system.entity.SysFile;
@@ -309,12 +305,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	@Override
-	public List<GcSubject> getTagNameAndIds(Integer masterId, Integer userId,String tagText) {
-		List<GcSubject> list = this.baseMapper.getTagNameAndIds(masterId,userId,tagText);
-		return list;
-	}
-
-	@Override
 	public Integer getSubjectNum(List<Integer> subIds) {
 		return this.baseMapper.getSubjectNum(subIds);
 	}
@@ -353,48 +343,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	@Override
 	public Map<Integer, GcSubject> sumSubjectDuration(List<Integer> subjectIds) {
 		return  this.baseMapper.sumSubjectDuration(subjectIds);
-	}
-	public Map<Integer,List<GcSubject>> listSubjectByFidList(Map<String, Object> params, SysSystem sys, HttpServletRequest request,boolean ifLogin,List<Integer> accessPermissionId){
-		List<GcSubject> subjects = new ArrayList<>();
-		List<Integer> userList = (List<Integer>) params.get("userList");
-		if (!ifLogin){
-			subjects = newUiGcSubjectMapper.selectSubjectByAccessIds(accessPermissionId);
-		}
-		Map<Integer,List<GcSubject>> subjectMap = subjects.stream().collect(Collectors.groupingBy(GcSubject::getSubjectAssociationId));
-
-		List<GcVideo> gcVideos = new ArrayList<>();
-		if(CollectionUtils.isNotEmpty(subjects)){
-			Integer masterId = request.getIntHeader("masterId");
-			if(!ifLogin) {
-				gcVideos = gcVideoService.getVideoIdListByAccessId0(accessPermissionId,userList,masterId,request);
-			}
-		}
-		for (Integer key: subjectMap.keySet()){
-			List<GcSubject> subjectList = subjectMap.get(key);
-			for (GcSubject subject : subjectList) {
-				List<GcVideo> videoList = new ArrayList<>();
-				for (GcVideo gcVideo : gcVideos) {
-					if (Objects.isNull(subject.getUserId())||Objects.isNull(gcVideo.getUserId())||Objects.isNull(subject.getId())||Objects.isNull(gcVideo.getSubId())){
-						continue;
-					}
-					if (subject.getUserId().equals(gcVideo.getUserId())&&subject.getId().equals(gcVideo.getSubId())){
-						videoList.add(gcVideo);
-					}
-				}
-				if (videoList.size()!=0){
-					int min = videoList.stream().mapToInt(GcVideo::getCompleteStatus).min().getAsInt();
-					int max = videoList.stream().mapToInt(GcVideo::getCompleteStatus).max().getAsInt();
-					subject.setSubjectCompleteStatus(TableConstant.SUBJECT_COMPLETE_STATUS1);
-					if(min == max){//相同就设置为一个值
-						subject.setSubjectCompleteStatus((short)max);
-					}
-					subject.setGcVideos(videoList);
-				}
-			}
-			subjectMap.put(key,subjectList);
-		}
-
-		return subjectMap;
 	}
 
 	@Override
@@ -466,15 +414,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	@Override
 	public List<GcSubject> selectSubjects(List<Integer> subIds) {
 		return newUiGcSubjectMapper.select(subIds);
-	}
-	@Override
-	public List<String> selectAllTag(Integer masterId,Integer userId){
-		return newUiGcSubjectMapper.selectAllTag(masterId,userId);
-	}
-
-	@Override
-	public List<String> selectSubjectTag(Integer masterId, Integer userId) {
-		return newUiGcSubjectMapper.selectSubjectTag(masterId,userId);
 	}
 
 

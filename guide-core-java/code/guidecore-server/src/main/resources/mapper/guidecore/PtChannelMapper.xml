@@ -314,17 +314,16 @@
         tags.channel_id AS tag_channel_id,
         tags.type AS tag_type,
         tags.tag_text AS tag_text,
-        ssubscribeNumUserAccess.user_id as userAccessId,
-        subscribeNumPermission.subscribe_permission::jsonb,
-        subscribeNumPermission.channel_permission::jsonb
+        ssubscribeNumUserAccess.user_id as userAccessId
         <if test="userId!=null">
             ,CASE
             WHEN (
             SELECT count(1)
-            FROM gc_user_access_permission per
-            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+        FROM content_group_channel_subscription channel_subscription
+            JOIN gc_access content_group ON content_group.id = channel_subscription.content_group_id
+            LEFT JOIN gc_user_access acc ON acc.access_id = content_group.id
             WHERE
-            per.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
+            channel_subscription.channel_id = channel.id AND channel_subscription.is_subscribed = true
             and acc.user_id = #{userId}
             and acc.master_id=#{masterId}
             GROUP BY acc.user_id
@@ -335,14 +334,14 @@
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
-        LEFT JOIN gc_user_access_permission subscribeNumPermission ON subscribeNumPermission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        LEFT JOIN content_group_channel_subscription channel_subscription ON channel_subscription.channel_id = channel.id AND channel_subscription.is_subscribed = true
+        LEFT JOIN gc_access content_group ON content_group.id = channel_subscription.content_group_id
+        LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.access_id = content_group.id
         WHERE
         level=0
         AND ssubscribeNumUserAccess.master_id =#{masterId}
         and channel.create_user_id != #{userId}
-        GROUP BY channel.id, ssubscribeNumUserAccess.user_id, info.last_name, info.first_name, tags.id,
-        subscribeNumPermission.subscribe_permission::jsonb, subscribeNumPermission.channel_permission::jsonb
+        GROUP BY channel.id, ssubscribeNumUserAccess.user_id, info.last_name, info.first_name, tags.id
         <if test="userId!=null">
             order by ssubscribeNumUserAccess.user_id = #{userId} desc
         </if>
@@ -355,125 +354,15 @@
         channels.order, channels.master_id, channels.channel_slug, channels.create_time, channels.update_time,
         channels.channel_avatar_file_id, channels.createuserlastname, channels.createUserFirstName,
         channels.tag_id, channels.tag_channel_id, channels.tag_type, channels.tag_text, channels.userAccessId,
-        channels.subscribe_permission, channels.channel_permission, channels.followFlag
+        channels.followFlag
         order by channels.create_time desc
         ) as chan
         LEFT JOIN pt_channel_subscribe sub on chan.id = sub.channel_id and user_id = #{userId} AND sub.is_deleted = false
-        where chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer)
-        and chan.create_user_id != #{userId}
+        where chan.create_user_id != #{userId}
         <if test="userId != null">
             and chan.userAccessId = #{userId}
         </if>
         order by chan.id desc, sub.create_time desc,chan.create_time desc
-    </select>
-
-    <select id="selectChannelList" resultMap="baseResultMap">
-        <if test="type==0">
-            select * from (
-        </if>
-        SELECT
-        channel.*,string_agg(ssubscribeNumUserAccess.user_id::text, ',') as subscribeUserIds,
-        <if test="userId!=null">
-            CASE
-            WHEN (
-            SELECT count(1)
-            FROM gc_user_access_permission per
-            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
-            WHERE
-            per.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-            and acc.user_id = #{userId}
-            and acc.master_id=#{masterId}
-            GROUP BY acc.user_id
-            ) IS NULL THEN 0 ELSE 1 END AS followFlag
-        </if>
-        info.last_name AS createUserLastName,
-        info.first_name AS createUserFirstName,
-        tags.id AS tag_id,
-        tags.channel_id AS tag_channel_id,
-        tags.type AS tag_type,
-        tags.tag_text AS tag_text,
-        string_agg(tags.tag_text, ',') AS channelTags
-        FROM
-        pt_channel channel
-        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id AND sub.is_deleted = false
-        left join gc_user us on us.id = channel.create_user_id
-        left join gc_user_info info on info.id = us.info_id
-        left join pt_tags tags on tags.channel_id = channel.id
-        LEFT JOIN gc_user_access_permission permission ON
-        permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
-        LEFT JOIN gc_user_access_permission accessPermission ON
-        accessPermission.channel_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access access on access.id = accessPermission.user_access_id
-        LEFT JOIN gc_user_access_permission subscribeNumPermission ON
-        subscribeNumPermission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access ssubscribeNumUserAccess
-        on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
-        WHERE
-        1 = 1 and level=0
-        <if test="type==1">
-            and userAccess.user_id = #{userId}
-            and userAccess.master_id =#{masterId}
-            and permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-            or ( channel.create_user_id =#{userId} and channel.level=0 and channel.master_id = #{masterId})
-        </if>
-        <if test="type==0">
-            and access.user_id = #{userId}
-            and access.master_id=#{masterId}
-            and (accessPermission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer) = false
-            or accessPermission.subscribe_permission is null)
-            and accessPermission.channel_permission::jsonb @> to_jsonb(channel.id::integer)
-            and (	channel.create_user_id !=#{userId} and channel.level=0 )
-            and channel.master_id = #{masterId}
-        </if>
-        GROUP BY channel.id
-        order by channel.create_time desc
-        <if test="type==0">
-            ) as channels
-            where channels.followFlag=0
-            order by channels.create_time desc
-        </if>
-    </select>
-
-    <select id="selectChannelsByTeam" resultMap="baseResultMap">
-        SELECT
-            channel.*,
-            COALESCE((select count(ua.id) from gc_access access
-                                                   LEFT JOIN content_group_channel_subscription cgcs on cgcs.content_group_id=access.id AND cgcs.channel_id=channel.id AND is_subscribed=true
-                     ),0) as subscribeNum,info.last_name as createUserLastName,
-            info.first_name as createUserFirstName,tags.id as tag_id,tags.channel_id as tag_channel_id,tags.type as tag_type,tags.tag_text as tag_text,
-            string_agg(tags.tag_text, ',') as channelTags
-        FROM
-            pt_channel channel
-                left join gc_user us on us.id = channel.create_user_id
-                left join gc_user_info info on info.id = us.info_id
-                left join pt_tags tags on tags.channel_id = channel.id
-                left join gc_user_access_permission permission on permission.channel_permission::jsonb @> to_jsonb(channel.id::integer)
-            left join gc_user_access ua on ua.id = permission.user_access_id
-            left join gc_access access on access.id = ua.access_id
-        where access.id=#{accessId} and ua.master_id=#{masterId}
-        group by channel.id,info.last_name,info.first_name,tags.id,tags.channel_id,tags.type,tags.tag_text
-    </select>
-
-    <select id="getAccessChannelList" resultMap="baseResultAccessMap">
-        SELECT
-        channel.*,
-        access.id as code_id,access.id as code_id ,access.code as team_codename,subscribeAccess.id as subscribe_code_id,
-        subscribeAccess.code as subscribe_code_name,subscribeAccess.group_name as groupName,access.group_name as accessGroupName
-        FROM pt_channel channel
-        left join content_group_channel_subscription public_cgcs on public_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = false
-        left join gc_access access on access.id = public_cgcs.content_group_id
-        left join content_group_channel_subscription subscribe_cgcs on subscribe_cgcs.channel_id = channel.id AND public_cgcs.is_subscribed = true
-        left join gc_access subscribeAccess on subscribeAccess.id = subscribe_cgcs.content_group_id
-        LEFT JOIN gc_user_access_permission permission ON permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
-        where channel.id in
-        <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
-            #{channelId}
-        </foreach>
-        and userAccess.master_id = #{masterId}
-        and userAccess.user_id = #{userId}
-        group by channel.id,access.id,subscribeAccess.id
     </select>
 
     <select id="selectChannelDetail" resultMap="baseResultMap">
@@ -629,109 +518,6 @@
         group by ch.id, u.id, info.id, tags.id
     </select>
 
-    <select id="selectFollowedUsers" resultType="map">
-        select
-        b.channelSlug as channel_slug,
-        count(b.userid) as subscribeUserIds
-        from (
-        select
-        channel.id as id,
-        channel.channel_slug as channelSlug,
-        userAccess.user_id as userid
-        from
-        pt_channel channel
-        LEFT JOIN
-        gc_user_access_permission permission
-        ON permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN
-        gc_user_access userAccess
-        on userAccess.id = permission.user_access_id
-        where  1=1
-        and channel.channel_slug in
-        <foreach collection="slug" item="slug" index="String" open="(" close=")" separator=",">
-            #{slug}
-        </foreach>
-        and channel.master_id = #{masterId}
-        group by channel.channel_slug,userAccess.user_id, channel.id
-        ) as b
-        group by b.channelSlug
-    </select>
-
-    <select id="searchChannels"  resultMap="baseResultMap">
-        select * from (
-        <if test="type==0">
-            select * from (
-        </if>
-        SELECT
-        channel.*,string_agg(ssubscribeNumUserAccess.user_id::text, ',') as subscribeUserIds,
-        <if test="userId!=null">
-            CASE WHEN (
-            SELECT count(1)
-            FROM gc_user_access_permission per
-            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
-            WHERE
-            per.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-            and acc.user_id = #{userId}
-            and acc.master_id=#{masterId}
-            GROUP BY acc.user_id
-            ) IS NULL THEN 0 ELSE 1 END AS followFlag,
-        </if>
-        info.last_name AS createUserLastName,
-        info.first_name AS createUserFirstName,
-        tags.id AS tag_id,
-        tags.channel_id AS tag_channel_id,
-        tags.type AS tag_type,
-        tags.tag_text AS tag_text,
-        string_agg(tags.tag_text, ',') AS channelTags
-        FROM
-        pt_channel channel
-        LEFT JOIN pt_channel_subscribe sub on channel.id = sub.channel_id AND sub.is_deleted = false
-        left join gc_user us on us.id = channel.create_user_id
-        left join gc_user_info info on info.id = us.info_id
-        left join pt_tags tags on tags.channel_id = channel.id
-        LEFT JOIN gc_user_access_permission permission ON
-        permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access userAccess on userAccess.id = permission.user_access_id
-        LEFT JOIN gc_user_access_permission accessPermission ON
-        accessPermission.channel_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access access on access.id = accessPermission.user_access_id
-        LEFT JOIN gc_user_access_permission subscribeNumPermission ON
-        subscribeNumPermission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access ssubscribeNumUserAccess
-        on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
-        WHERE((accessPermission.id is not null) or (subscribeNumPermission.id is not null))
-        and (userAccess.user_id = #{userId} or access.user_id = #{userId})
-        and level=0
-        <if test="type==1">
-            and userAccess.user_id = #{userId}
-            and userAccess.master_id =#{masterId}
-            and permission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
-            or ( channel.create_user_id =#{userId} and channel.level=0 and channel.master_id = #{masterId})
-        </if>
-        <if test="type==0">
-            and access.user_id = #{userId}
-            and access.master_id=#{masterId}
-            and (accessPermission.subscribe_permission::jsonb @> to_jsonb(channel.id::integer) = false
-            or accessPermission.subscribe_permission is null
-            )
-            and accessPermission.channel_permission::jsonb @> to_jsonb(channel.id::integer)
-            and (	channel.create_user_id !=#{userId} and channel.level=0 )
-            and channel.master_id = #{masterId}
-        </if>
-        GROUP BY channel.id
-        order by channel.create_time desc
-        <if test="type==0">
-            ) as
-            channels
-            where channels.followFlag=0
-            order by channels.create_time desc
-        </if>
-        ) as chs where 1=1
-        <if test="searchName!=null and searchName != ''">
-            and concat(chs.channel_name,chs.channel_slug) like concat('%',#{searchName},'%')
-        </if>
-    </select>
-
     <select id="searchChannelsBySysFile" resultMap="baseResultSearchMap">
         select channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
         channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
@@ -751,8 +537,9 @@
         left join pt_channel_content pcc on video_content.id = pcc.content_id
         left join pt_channel channel on pcc.channel_id = channel.id
         left join pt_channel ch2 on ch2.id = channel.fid
-        left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
-        left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+        left join content_group_channel_subscription channel_subscription on channel_subscription.channel_id = channel.id
+        left join gc_access content_group on content_group.id = channel_subscription.content_group_id
+        left join gc_user_access userAccess ON userAccess.access_id = content_group.id
         left join gc_user us on us.id = userAccess.user_id
         left join gc_user us2 on us2.id = channel.create_user_id
         left join gc_user_info info on info.id = us2.info_id
@@ -791,17 +578,16 @@
         tags.channel_id AS tag_channel_id,
         tags.type AS tag_type,
         tags.tag_text AS tag_text,
-        ssubscribeNumUserAccess.user_id as userAccessId,
-        subscribeNumPermission.subscribe_permission::jsonb AS subscribe_permission,
-        subscribeNumPermission.channel_permission::jsonb AS channel_permission
+        ssubscribeNumUserAccess.user_id as userAccessId
         <if test="userId!=null">
             ,CASE WHEN
             coalesce((
             SELECT count(1)
-            FROM gc_user_access_permission per
-            LEFT JOIN gc_user_access acc ON acc.id = per.user_access_id
+            FROM content_group_channel_subscription channel_subscription
+                JOIN gc_access content_group ON content_group.id = channel_subscription.content_group_id
+                LEFT JOIN gc_user_access acc ON acc.access_id = content_group.id
             WHERE
-            per.subscribe_permission::jsonb @> to_jsonb(channel.id::integer)
+            content_group.id = channel.id AND channel_subscription.is_subscribed = true
             and acc.user_id = #{userId}
             and acc.master_id=#{masterId}
             GROUP BY acc.user_id), 0 )
@@ -813,8 +599,9 @@
         left join gc_user us on us.id = channel.create_user_id
         left join gc_user_info info on info.id = us.info_id
         left join pt_tags tags on tags.channel_id = channel.id
-        LEFT JOIN gc_user_access_permission subscribeNumPermission ON (subscribeNumPermission.subscribe_permission::jsonb || subscribeNumPermission.channel_permission::jsonb) @> to_jsonb(channel.id::integer)
-        LEFT JOIN gc_user_access ssubscribeNumUserAccess on ssubscribeNumUserAccess.id = subscribeNumPermission.user_access_id
+        left join content_group_channel_subscription channel_subscription on channel_subscription.channel_id = channel.id
+        left join gc_access content_group on content_group.id = channel_subscription.content_group_id
+        left join gc_user_access ssubscribeNumUserAccess ON ssubscribeNumUserAccess.access_id = content_group.id
         WHERE
         1 = 1 and level=0/*type为0查不是自己创建的channel，为1查询自己创建的channel*/
         AND ssubscribeNumUserAccess.master_id =#{masterId}
@@ -831,8 +618,7 @@
         <if test="type==1 and userId!=null">
             or (channel.visible_flag = 3 and channel.master_id = #{masterId} and channel.create_user_id = #{userId})
         </if>
-        GROUP BY channel.id, ssubscribeNumUserAccess.user_id, info.last_name, info.first_name, tags.id, tags.channel_id, tags.type, tags.tag_text,
-        subscribeNumPermission.subscribe_permission::jsonb, subscribeNumPermission.channel_permission::jsonb
+        GROUP BY channel.id, ssubscribeNumUserAccess.user_id, info.last_name, info.first_name, tags.id, tags.channel_id, tags.type, tags.tag_text
         <if test="userId!=null">
             order by ssubscribeNumUserAccess.user_id = #{userId} desc, channel.create_time desc
         </if>
@@ -842,13 +628,12 @@
         ) as channels
         GROUP BY channels.id, channels.create_time, channels.channel_name, channels.create_user_id,
         channels.createUserLastName, channels.createUserFirstName, channels.tag_id, channels.tag_channel_id, channels.tag_type, channels.tag_text,
-        channels.userAccessId, channels.subscribe_permission, channels.channel_permission, channels.followFlag, channels.channel_img_file_id, channels.desc,
+        channels.userAccessId, channels.followFlag, channels.channel_img_file_id, channels.desc,
         channels.visible_flag, channels.master_id, channels.category_id, channels.level, channels.fid, channels."order", channels.channel_slug, channels.update_time, channels.channel_avatar_file_id
         order by channels.create_time desc
         ) as chan
         where 1=1
         <if test="type==1">
-            AND (chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer))
             <if test="userId != null">
                 and chan.userAccessId = #{userId}
             </if>
@@ -856,8 +641,6 @@
             or (chan.visible_flag = 3 and chan.master_id = #{masterId} and chan.create_user_id = #{userId})
         </if>
         <if test="type==0 and userId!=null">
-            AND (chan.subscribe_permission::jsonb @> to_jsonb(chan.id::integer) = false OR chan.subscribe_permission is null)
-            AND chan.channel_permission::jsonb @> to_jsonb(chan.id::integer)
             and chan.create_user_id != #{userId}
             <if test="userId != null">
                 and chan.userAccessId = #{userId}
@@ -889,11 +672,12 @@
                   us2.username as channel_create_user_username,
                   pcc.id as channelContentId
               from gc_video video_content
-                       left join pt_channel_content pcc on video_content.id = pcc.content_id
-                       left join pt_channel channel on pcc.channel_id = channel.id
-                       left join pt_channel ch2 on ch2.id = channel.fid
-                       left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
-    left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+                  left join pt_channel_content pcc on video_content.id = pcc.content_id
+                  left join pt_channel channel on pcc.channel_id = channel.id
+                  left join pt_channel ch2 on ch2.id = channel.fid
+                  left join content_group_channel_subscription channel_subscription on channel_subscription.channel_id = coalesce(ch2.id, channel.id)
+                  left join gc_access content_group on content_group.id = channel_subscription.content_group_id
+                  left join gc_user_access userAccess ON userAccess.access_id = content_group.id
                   left join gc_user us on us.id = userAccess.user_id
                   left join gc_user us2 on us2.id = channel.create_user_id
                   left join gc_user_info info on info.id = us2.info_id
@@ -939,8 +723,9 @@
                                                                left join pt_channel_content pcc on file.id = pcc.file_id
                                                                left join pt_channel channel on pcc.channel_id = channel.id
                                                                left join pt_channel ch2 on ch2.id = channel.fid
-                                                               left join gc_user_access_permission permission ON (permission.subscribe_permission::jsonb || permission.channel_permission::jsonb) @> to_jsonb(coalesce(ch2.id,channel.id)::integer)
-                                                               left join gc_user_access userAccess ON userAccess.id = permission.user_access_id
+                                                               left join content_group_channel_subscription channel_subscription on channel_subscription.channel_id = coalesce(ch2.id, channel.id)
+                                                               left join gc_access content_group on content_group.id = channel_subscription.content_group_id
+                                                               left join gc_user_access userAccess ON userAccess.access_id = content_group.id
                                                           left join gc_user us on us.id = userAccess.user_id
                                                           left join gc_user us2 on us2.id = channel.create_user_id
                                                           left join gc_user_info info on info.id = us2.info_id
@@ -952,7 +737,7 @@
                                                         and pcc.id is not null
                                                         and channel.id is not null
                                                          OR ( channel.create_user_id =#{userId} AND channel.LEVEL = 0  AND channel.master_id = #{masterId})
-                                                      GROUP BY file.id, permission.id, channel.id, ch2.id, us2.id, pcc.id, info.id
+                                                      GROUP BY file.id, channel.id, ch2.id, us2.id, pcc.id, info.id
                                                       order by file.update_time desc
                                                   ) as b
                                                       left join gc_user_video_play play on play.file_id = b.fileId

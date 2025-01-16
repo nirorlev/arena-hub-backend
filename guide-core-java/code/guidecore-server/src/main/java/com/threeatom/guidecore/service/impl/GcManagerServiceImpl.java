@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.SystemException;
@@ -11,7 +10,6 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUserAccess;
-import com.threeatom.guidecore.entity.GcUserAccessPermission;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.GcManagerMapper;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -26,8 +24,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.SimpleHash;
-import org.mortbay.util.ajax.JSON;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DuplicateKeyException;
@@ -91,17 +87,6 @@ public class GcManagerServiceImpl extends ServiceImpl<GcManagerMapper, GcManager
                 userAccess.setAccessId(accessCode.getId());
                 userAccess.setAccess(accessCode);
                 userAccessService.save(userAccess);
-                // 复制课程权限
-                GcUserAccessPermission userAccessPermission = new GcUserAccessPermission();
-                userAccessPermission.setSubPermission(
-                    JSONArray.parseArray(JSON.toString(contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessCode.getId())))
-                );
-                userAccessPermission.setUserAccessId(userAccess.getId());
-                userAccessService.saveUserAccessPermission(userAccessPermission);
-                // 分配课程管理员角色
-
-                // 为课程管理员角色初始化权限
-
             } else { // 无注册码注册方式
                 // 创建新门户
                 GcMaster master = new GcMaster();

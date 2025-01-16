@@ -97,9 +97,6 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<GcSubject> selecUnitNumForVideo(Integer videoId);
 
-    List<GcSubject> selectAllSubByUserId(
-        @Param("masterId") Integer masterId, @Param("userId") Integer userId);
-
     List<GcSubject> selectTwoSubjectsByFids(@Param("fids") List<Integer> fids);
 
     Integer countCourseInPortal(
@@ -128,11 +125,6 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
         @Param("masterId") Integer masterId, @Param("createUser") Integer createUser);
 
     List<Integer> getPublicSubjectIds(@Param("masterID") Integer masterId);
-
-    List<GcSubject> getSubjectUserInfo(
-        @Param("userIdList") List<Integer> userIdList,
-        @Param("subList") List<Integer> subList,
-        @Param("masterId") Integer masterId);
 
     List<GcSubject> selectSubjectByNewIndexHome(
         @Param("userId") Integer userId,

@@ -32,15 +32,9 @@ public interface NewUiGcSubjectService {
 
     List<GcSubject> selectSubjects(List<Integer> subIds);
 
-    List<String> selectAllTag(Integer masterId, Integer userId);
-
-    List<String> selectSubjectTag(Integer masterId, Integer userId);
-
     Map<Integer, GcUserVideoAction> getStarActions(List<Integer> subjectIds);
 
     List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map);
-
-    List<GcSubject> getTagNameAndIds(Integer masterId, Integer userId, String tagText);
 
     List<GcSubject> buildSubject2(
             List<GcSubject> subjects,
