@@ -6,7 +6,6 @@ import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
-import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
@@ -223,11 +222,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public List<Integer> getAccessListBySuperAdmin(Integer userId, Integer masterId) {
-        return this.baseMapper.getAccessListBySuperAdmin(userId, masterId);
-    }
-
-    @Override
     public void insertUserAccessList(List<GcUserAccess> list) {
         this.baseMapper.insertUserAccessList(list);
     }
@@ -269,22 +263,17 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         Map<String, GcAccess> codeToAllPowtoonUserContentGroups =
             allPowtoonUserContentGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
 
-        List<Integer> superAdminContentGroups = getAccessListBySuperAdmin(userId, masterId);
-
         for (GcAccess contentGroup : allPowtoonUserContentGroups) {
             GcUserAccess userAccess = new GcUserAccess();
             userAccess.setUserId(userId);
             userAccess.setMasterId(masterId);
             userAccess.setAccessId(contentGroup.getId());
 
-            if (null != codeToAllPowtoonUserContentGroups.get(contentGroup.getCode())) {
+            if (codeToAllPowtoonUserContentGroups.get(contentGroup.getCode()) != null) {
                 userAccess.setRoleJson(codeToAllPowtoonUserContentGroups.get(contentGroup.getCode()).getRoleJson());
             }
-            if (superAdminContentGroups.contains(contentGroup.getId())) {
-                userAccess.getRoleJson().add(GroupsType.superAdmin);
-            }
 
-            if (null != codeToPowtoonGroups.get(contentGroup.getCode())) {
+            if (codeToPowtoonGroups.get(contentGroup.getCode()) != null) {
                 userAccess.setParentCode(codeToPowtoonGroups.get(contentGroup.getCode()).getParent_group_id());
             }
             userAccess.setAccess(contentGroup);

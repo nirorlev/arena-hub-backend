@@ -60,8 +60,6 @@ public interface GcUserAccessService extends IService<GcUserAccess> {
 
     List<GcUserAccess> getAccessListByUserAndMasterId(Integer userId, Integer masterId);
 
-    List<Integer> getAccessListBySuperAdmin(Integer userId, Integer masterId);
-
     void insertUserAccessList(List<GcUserAccess> list);
 
     void deleteUserAccess(Integer userId, Integer masterId, List<Integer> accessId);
