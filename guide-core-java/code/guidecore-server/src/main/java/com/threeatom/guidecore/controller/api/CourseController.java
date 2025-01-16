@@ -7,6 +7,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
-    private final GcSubjectService courseService;
+    private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
 
@@ -49,6 +50,6 @@ public class CourseController {
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return ResponseEntity.ok(courseService.courseVideo(courseId, videoId, portalUser));
+        return ResponseEntity.ok(videoService.courseVideo(courseId, videoId, portalUser));
     }
 }

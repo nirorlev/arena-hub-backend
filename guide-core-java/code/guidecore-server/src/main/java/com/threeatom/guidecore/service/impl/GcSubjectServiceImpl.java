@@ -1,32 +1,67 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.threeatom.common.exception.ForbiddenException;
-import com.threeatom.common.exception.ResourceNotFoundException;
-import com.threeatom.common.permissions.service.AuthorizationService;
-import com.threeatom.guidecore.dto.response.VideoSourceDto;
-import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
-import com.threeatom.guidecore.mapping.VideoMapping;
-import com.threeatom.guidecore.enums.CourseType;
-import com.threeatom.guidecore.enums.UserGroupRole;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.ApiAssert;
+import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.constant.EnvType;
+import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.mapper.*;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcManager;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.GcSubjectAssociation;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PtTags;
+import com.threeatom.guidecore.entity.SubjectTotals;
+import com.threeatom.guidecore.enums.CourseType;
+import com.threeatom.guidecore.enums.UserGroupRole;
+import com.threeatom.guidecore.mapper.GcAccessMapper;
+import com.threeatom.guidecore.mapper.GcSubjectAssociationMapper;
+import com.threeatom.guidecore.mapper.GcSubjectMapper;
+import com.threeatom.guidecore.mapper.NewUiGcSubjectMapper;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.service.GcMasterMessageService;
+import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcUserEventResourceService;
+import com.threeatom.guidecore.service.GcUserService;
+import com.threeatom.guidecore.service.GcUserVideoActionService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.util.I18NUtil;
-import com.threeatom.system.mapper.SysFileMapper;
+import com.threeatom.system.entity.SysFile;
+import com.threeatom.system.entity.SysSystem;
+import com.threeatom.system.service.SysFileService;
+import com.threeatom.utils.TreeUtil;
+import com.threeatom.utils.data.TreeNode;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,17 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.system.entity.SysFile;
-import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.TreeUtil;
-import com.threeatom.utils.data.TreeNode;
 
 @Service
 @Slf4j
@@ -77,14 +101,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcAccessService gcAccessService;
     @Autowired
     private GcContentGroupCourseAssignmentService courseAssignmentService;
-    @Autowired
-    private AuthorizationService authorizationService;
-    @Autowired
-    private UnavailableVideoService unavailableVideoService;
-    @Autowired
-    private VideoMapping videoMapping;
-    @Autowired
-    private CourseContentService courseContentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -99,7 +115,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private GcUserService gcUserService;//用户服务类--统计参与人数
     @Autowired
     private GcUserVideoActionService videoActionService;//用户视频操作--查询评论、点赞、星级评价
-    
+
     @Override
     public boolean saveSub(GcSubject sub) {
         this.formatSub(sub);
@@ -173,7 +189,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         root.setId(0);
         return TreeUtil.createTree(list, root);
     }
-    
+
     @Override
     public List<GcSubject> getSubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request){
     	 List<GcSubject> list =this.baseMapper.getSubjectListCommon(masterId, null, null);
@@ -194,7 +210,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
          }
     	 return list;
     }
-    
+
     @Override
     public List<GcSubject> getLevel0SubListWithImg(Integer masterId, HttpServletRequest request, List<Integer> channelIds){
         PageParam pageParam = new PageParam(request);
@@ -786,7 +802,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         return list;
     }
-    
+
     //编码不合理，需改造
     @Override
     public List<GcSubject> getSubListWithImgByIds(List<Integer> subIds,SysSystem sys, HttpServletRequest request,Integer masterId) {
@@ -852,7 +868,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
    			  subject.setOrder(subject.getSubjectAssociationOrder());//使用门户自己的排序
     	  }
       }
-   	  	
+
    	  return list;
      }
 
@@ -908,7 +924,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     	l.addAll(list);
         return l;
     }
-    
+
 
     public List<GcSubject> getTopSubList(Integer masterId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
@@ -1003,7 +1019,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
-    
+
     @Override
     public List<GcSubject> getSubjectChild(Integer subId) {
         // TODO Auto-generated method stub
@@ -1058,28 +1074,28 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
         return this.baseMapper.getSubVideoEventList(subId,studentId,masterId);
     }
-    
+
     @Override
     public List<GcSubject> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId) {
         return this.baseMapper.getLevel1VideoEventList(subId,userId,teacherId);
     }
-    
+
     @Override
     public Map<String,Object> selectEventResNumMapForWorkbook(Integer subId, Integer userId){
     	return this.baseMapper.selectEventResNumMapForWorkbook(subId, userId);
     }
-    
+
     @Override
     public Map<String,Object> getAnswerMessageMapForTeacherWorkbook(Integer subId, Integer studentId, Integer teacherId){
     	return this.baseMapper.getAnswerMessageMapForTeacherWorkbook(subId, studentId, teacherId);
-    	
+
     }
-    
+
     @Override
     public Map<String,Object> selectEventResNumMapForWorkbookTeacher(Integer subId, Integer studentId, Integer teacherId){
     	return this.baseMapper.selectEventResNumMapForWorkbookTeacher(subId, studentId,teacherId);
     }
-    
+
 
     @Override
     public List<GcSubject> getSubListByIds(List<Integer> subIds,HttpServletRequest request) {
@@ -1105,7 +1121,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         //查出video下所有事件的问题回答
         List<Map<String,Object>> outEventAnswerUnReadList = masterMessageService.getEventAnswerUnReadList(eventIds,
                 studentId, masterId, teacherId);
-        //查出video下所有事件的资源回答，SELECT mm.id,mm.res_id,ua.event_id FROM gc_master_message AS mm LEFT JOIN gc_user_answer AS ua ON ua.id = mm.res_id WHERE ua.event_id IN ( ? , ? , ? , ? , ? ) AND mm.master_id = ? AND mm.event_type = 5 AND mm.user_id = ? AND mm.target_user_id = ? AND mm.read_state = 0 
+        //查出video下所有事件的资源回答，SELECT mm.id,mm.res_id,ua.event_id FROM gc_master_message AS mm LEFT JOIN gc_user_answer AS ua ON ua.id = mm.res_id WHERE ua.event_id IN ( ? , ? , ? , ? , ? ) AND mm.master_id = ? AND mm.event_type = 5 AND mm.user_id = ? AND mm.target_user_id = ? AND mm.read_state = 0
         List<Map<String, Object>> videoResourceLists = userEventResourceService.getALLResourceListByEventIds(eventIds, studentId, teacherId);
 
         List<Map<String, Object>> videoResourceList  = this.removeRepeatMapByKey(videoResourceLists,"id");
@@ -1183,7 +1199,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         	if(thisSub.getMasterId().intValue()==masterId.intValue()) {
                 thisSub.setOrder(order);
-                
+
                 subjectList.add(thisSub);
                 order++;
         	}else {
@@ -1217,12 +1233,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 		 return this.baseMapper.listSubWithAssoByIds(masterId,subIds);
 	}
 
-	
+
 	@Override
 	public Integer countCourseForName(GcSubject subject) {
 		return this.baseMapper.countCourseForName(subject);
 	}
-	
+
 	@Override
 	public List<GcSubject> selecUnitNumForVideo(Integer videoId){
 		return this.baseMapper.selecUnitNumForVideo(videoId);
@@ -1388,68 +1404,5 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         course.setCreateUser(existingCourse.getCreateUser());
-    }
-
-    @Override
-    public VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId, PortalUser portalUser) {
-        GcVideo video = videoService.findByVideoId(videoId);
-        if (video == null) {
-            log.error("Video with id {} cannot be found for user {} and course {}", videoId, portalUser.getUserId(), courseId);
-            throw new ResourceNotFoundException("Requested video could not be found");
-        }
-
-        GcSubject course = this.getById(courseId);
-        if (course == null) {
-            log.error("Course with id {} cannot be found for user {}", courseId, portalUser.getUserId());
-            throw new ResourceNotFoundException("Requested course could not be found");
-        }
-
-        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)
-                || authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
-            log.error("User {} does not have access to video {} in course {}", portalUser.getUserId(), videoId, courseId);
-            throw new ForbiddenException("User does not have access to requested video");
-        }
-
-        videoService.populateVideoData(List.of(video), portalUser);
-        unavailableVideoService.nullifyVideoData(portalUser, video);
-
-        return convertToVideoDetailsWithSource(video, getCourseVideos(courseId));
-    }
-
-    private List<GcVideo> getCourseVideos(Integer courseId) {
-        List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
-
-        return courseContent.stream()
-            .map(CourseContent::getVideo)
-            .collect(Collectors.toList());
-    }
-
-    private VideoWithSourceDetailsDto<VideoSourceDto> convertToVideoDetailsWithSource(GcVideo video,
-                                                                                      List<GcVideo> courseVideos) {
-        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
-        List<Integer> courseVideoIds = courseVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
-
-        videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(courseVideoIds, video.getId()));
-        videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(courseVideoIds, video.getId()));
-
-        return videoWithDetails;
-    }
-
-    private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
-        int index = availableVideoIds.indexOf(videoId);
-        if (index == -1 || index == 0) {
-            return null;
-        }
-
-        return availableVideoIds.get(index - 1);
-    }
-
-    private Integer getNextAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
-        int index = availableVideoIds.indexOf(videoId);
-        if (index == -1 || index == availableVideoIds.size() - 1) {
-            return null;
-        }
-
-        return availableVideoIds.get(index + 1);
     }
 }

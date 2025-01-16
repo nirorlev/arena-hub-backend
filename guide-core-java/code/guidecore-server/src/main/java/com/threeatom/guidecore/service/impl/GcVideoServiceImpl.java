@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
 import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
@@ -8,6 +9,8 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.CursorDto;
 import com.threeatom.guidecore.dto.request.VideoListFilterDto;
 import com.threeatom.guidecore.dto.response.VideoDto;
+import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResponseDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoSearchResultDto;
 import com.threeatom.guidecore.enums.AnalyticsType;
@@ -76,6 +79,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Lazy
 	@Autowired
 	private GcSubjectService subjectService;
+	@Autowired
+	private CourseContentService courseContentService;
 
 	@Lazy
 	@Autowired
@@ -1457,4 +1462,68 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		return VideoSearchResultDto::getVideoWatchingTime;
 	}
+
+	@Override
+	public VideoWithSourceDetailsDto<VideoSourceDto> courseVideo(Integer courseId, Integer videoId, PortalUser portalUser) {
+		GcVideo video = findByVideoId(videoId);
+		if (video == null) {
+			log.error("Video with id {} cannot be found for user {} and course {}", videoId, portalUser.getUserId(), courseId);
+			throw new ResourceNotFoundException("Requested video could not be found");
+		}
+
+		GcSubject course = subjectService.getById(courseId);
+		if (course == null) {
+			log.error("Course with id {} cannot be found for user {}", courseId, portalUser.getUserId());
+			throw new ResourceNotFoundException("Requested course could not be found");
+		}
+
+		if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)
+			|| authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+			log.error("User {} does not have access to video {} in course {}", portalUser.getUserId(), videoId, courseId);
+			throw new ForbiddenException("User does not have access to requested video");
+		}
+
+		populateVideoData(List.of(video), portalUser);
+		unavailableVideoService.nullifyVideoData(portalUser, video);
+
+		return convertToVideoDetailsWithSource(video, getCourseVideos(courseId));
+	}
+
+	private List<GcVideo> getCourseVideos(Integer courseId) {
+		List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
+
+		return courseContent.stream()
+			.map(CourseContent::getVideo)
+			.collect(Collectors.toList());
+	}
+
+	private VideoWithSourceDetailsDto<VideoSourceDto> convertToVideoDetailsWithSource(GcVideo video,
+																					  List<GcVideo> courseVideos) {
+		VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+		List<Integer> courseVideoIds = courseVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+
+		videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(courseVideoIds, video.getId()));
+		videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(courseVideoIds, video.getId()));
+
+		return videoWithDetails;
+	}
+
+	private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+		int index = availableVideoIds.indexOf(videoId);
+		if (index == -1 || index == 0) {
+			return null;
+		}
+
+		return availableVideoIds.get(index - 1);
+	}
+
+	private Integer getNextAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+		int index = availableVideoIds.indexOf(videoId);
+		if (index == -1 || index == availableVideoIds.size() - 1) {
+			return null;
+		}
+
+		return availableVideoIds.get(index + 1);
+	}
+
 }
