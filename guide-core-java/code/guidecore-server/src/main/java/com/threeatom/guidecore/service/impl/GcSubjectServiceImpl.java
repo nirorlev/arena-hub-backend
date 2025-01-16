@@ -83,6 +83,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private UnavailableVideoService unavailableVideoService;
     @Autowired
     private VideoMapping videoMapping;
+    @Autowired
+    private CourseContentService courseContentService;
 
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
@@ -1410,7 +1412,45 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         videoService.populateVideoData(List.of(video), portalUser);
         unavailableVideoService.nullifyVideoData(portalUser, video);
+        List<GcVideo> courseVideos = getCourseVideos(courseId);
 
-        return videoMapping.mapWithVideoSource(video);
+        return convertToVideoDetailsWithSource(video, courseVideos);
+    }
+
+    private List<GcVideo> getCourseVideos(Integer courseId) {
+        List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
+
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .collect(Collectors.toList());
+    }
+
+    private VideoWithSourceDetailsDto<VideoSourceDto> convertToVideoDetailsWithSource(GcVideo video,
+                                                                                      List<GcVideo> courseVideos) {
+        VideoWithSourceDetailsDto<VideoSourceDto> videoWithDetails = videoMapping.mapWithVideoSource(video);
+        List<Integer> courseVideoIds = courseVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+
+        videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(courseVideoIds, video.getId()));
+        videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(courseVideoIds, video.getId()));
+
+        return videoWithDetails;
+    }
+
+    private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+        int index = availableVideoIds.indexOf(videoId);
+        if (index == -1 || index == 0) {
+            return null;
+        }
+
+        return availableVideoIds.get(index - 1);
+    }
+
+    private Integer getNextAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
+        int index = availableVideoIds.indexOf(videoId);
+        if (index == -1 || index == availableVideoIds.size() - 1) {
+            return null;
+        }
+
+        return availableVideoIds.get(index + 1);
     }
 }

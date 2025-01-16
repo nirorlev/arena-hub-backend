@@ -20,4 +20,7 @@ public class CourseContent implements Serializable {
 
     @TableField(value = "\"order\"")
     private Integer order;
+
+    @TableField(exist = false)
+    private GcVideo video;
 }

@@ -41,7 +41,7 @@ public class CourseController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{courseId}/viddos/{videoId}")
+    @PostMapping("/{courseId}/videos/{videoId}")
     public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> courseVideo(@PathVariable Integer courseId,
                                                                                  @PathVariable Integer videoId,
                                                                                  HttpServletRequest request) {

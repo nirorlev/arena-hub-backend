@@ -34,6 +34,11 @@ public class CourseContentServiceImpl extends ServiceImpl<CourseContentMapper, C
         save(createCourseContent(video));
     }
 
+    @Override
+    public List<CourseContent> findCourseContent(Integer courseId) {
+        return baseMapper.findCourseContent(courseId);
+    }
+
     private CourseContent createCourseContent(GcVideo video) {
         CourseContent courseContent = new CourseContent();
         courseContent.setCourseId(video.getSubId());
