@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcUserAccess>
@@ -190,7 +191,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId) {
-        return this.baseMapper.getAccessByUserIdMaster(userId, masterId);
+        List<GcUserAccess> accessByUserIdMaster = this.baseMapper.getAccessByUserIdMaster(userId, masterId);
+        return CollectionUtils.isEmpty(accessByUserIdMaster) ? null : accessByUserIdMaster.get(0);
     }
 
     @Override

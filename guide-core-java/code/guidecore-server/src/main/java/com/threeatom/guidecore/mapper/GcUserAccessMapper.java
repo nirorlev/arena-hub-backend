@@ -50,7 +50,7 @@ public interface GcUserAccessMapper extends BaseMapper<GcUserAccess> {
 
     List<Map<String, Object>> getAllManagerInThisMaster(Integer masterId);
 
-    GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId);
+    List<GcUserAccess> getAccessByUserIdMaster(Integer userId, Integer masterId);
 
     List<GcUserAccess> getUserAccessListByMasterIdAndUserId(
         @Param("userIdList") List<Integer> userIdList, @Param("masterId") Integer masterId);
