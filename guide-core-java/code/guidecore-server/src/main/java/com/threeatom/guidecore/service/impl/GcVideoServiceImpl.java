@@ -1540,7 +1540,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)
-			|| authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+			|| !authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
 			log.error("User {} does not have access to video {} in course {}", portalUser.getUserId(), videoId, courseId);
 			throw new ForbiddenException("User does not have access to requested video");
 		}

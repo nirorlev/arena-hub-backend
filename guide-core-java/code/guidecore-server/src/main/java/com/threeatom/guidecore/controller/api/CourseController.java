@@ -5,7 +5,6 @@ import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
-import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
@@ -15,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +42,7 @@ public class CourseController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{courseId}/videos/{videoId}")
+    @GetMapping("/{courseId}/videos/{videoId}")
     public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> courseVideo(@PathVariable Integer courseId,
                                                                                  @PathVariable Integer videoId,
                                                                                  HttpServletRequest request) {

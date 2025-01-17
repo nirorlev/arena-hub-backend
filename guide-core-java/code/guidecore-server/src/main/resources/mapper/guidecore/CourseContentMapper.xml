@@ -83,24 +83,28 @@
     </resultMap>
 
     <sql id="videoColumns">
-        video.id, video.video_name, video.video_name_index, video.video_desc, video.file_id, video.sub_id, video.source_url, video.video_source, video.update_time, video.create_time, video.thumbnail_url, video.video_time, video.origin_course_id
+        video.id as video_id, video.video_name as video_name, video.video_name_index as video_name_index, video.video_desc as video_desc,
+        video.file_id as video_file_id, video.sub_id as video_sub_id, video.source_url as video_source_url, video.video_source as video_source,
+        video.order as video_order, video.update_time as video_update_time, video.create_time as video_create_time,
+        video.thumbnail_url as video_thumbnail_url, video.video_time as video_time, video.origin_course_id as video_origin_course_id
     </sql>
 
     <sql id="videoFileColumns">
-        video_file.id as f_id, video_file.name as f_name,video_file.file_url as f_file_url,video_file.save_type as f_save_type, video_file.video_long as f_video_long
-	   ,video_file.file_type_index as f_file_type_index,video_file.thumb_nail_url as thumb_nail_url,video_file.thumb_nail_id as thumb_nail_id,video_file.file_type as f_file_type
-	   ,video_file.upload_uid
+        video_file.id as video_file_id, video_file.name as video_file_name, video_file.file_url as video_file_url,
+        video_file.save_type as video_file_save_type, video_file.video_long as video_file_video_long,
+        video_file.file_type_index as video_file_type_index, video_file.thumb_nail_url as video_file_thumb_nail_url,
+        video_file.thumb_nail_id as video_file_thumb_nail_id, video_file.file_type as video_file_type, video_file.upload_uid as video_user_id
     </sql>
 
     <sql id="courseColumns">
-        gs.id                         AS course_id,
-        gs.name                       AS course_name,
-        gs.fid                        AS course_fid,
-        gs.state                      AS course_state,
-        gs.available_type             AS course_available_type,
-        gs.sub_img_id                 AS course_img_id,
-        gs.create_time                AS course_create_time,
-        gs.update_time                AS course_update_time
+        course.id                         AS course_id,
+        course.name                       AS course_name,
+        course.fid                        AS course_fid,
+        course.state                      AS course_state,
+        course.available_type             AS course_available_type,
+        course.sub_img_id                 AS course_img_id,
+        course.create_time                AS course_create_time,
+        course.update_time                AS course_update_time
     </sql>
 
     <sql id="courseAvatarFileColumns">
@@ -126,8 +130,7 @@
         SELECT course_content.id, course_content.course_id, course_content.content_id, course_content.order,
             <include refid="videoColumns"/>,
             <include refid="videoFileColumns"/>,
-            course_owner.id AS user_id,
-            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS comment_num,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS video_comment_num,
             <include refid="courseColumns"/>,
             <include refid="courseAvatarFileColumns"/>,
             <include refid="courseOwnerColumns"/>
