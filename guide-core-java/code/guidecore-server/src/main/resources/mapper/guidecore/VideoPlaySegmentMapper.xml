@@ -62,6 +62,22 @@
         GROUP BY video.id;
     </select>
 
+    <select id="videoViewedTimeByUser" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto">
+        SELECT video.id as videoId, SUM(upper(play_segement.segment) - lower(play_segement.segment)) as value
+        FROM gc_video video
+            LEFT JOIN video_play_session play_session ON play_session.video_id = video.id
+                AND play_session.master_id = #{masterId}
+                AND play_session.user_id = #{userId}
+            LEFT JOIN video_play_segment play_segement ON play_segement.session_id = play_session.id
+        <if test="!videoIds.empty">
+            WHERE video.id IN
+            <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+        </if>
+        GROUP BY video.id;
+    </select>
+
     <select id="getAverageVideoWatchingTimeAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">
         SELECT time_bucket, SUM(upper(play_segment.segment) - lower(play_segment.segment)) / COUNT(play_session.id)::double precision AS value
         FROM video_play_segment play_segment

@@ -10,6 +10,8 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySegmentMapper;
@@ -17,7 +19,9 @@ import com.threeatom.guidecore.mapping.VideoPlaySegmentMapping;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,7 +65,8 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
-    public List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter, Integer masterId) {
+    public List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(AnalyticsFilterDto filter,
+                                                                           Integer masterId) {
         return baseMapper.getAverageVideoWatchingTimeAnalytics(filter, masterId);
     }
 
@@ -84,13 +89,28 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     @Override
     public List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(AnalyticsFilterDto filter,
                                                                             Integer masterId) {
-        return baseMapper.getDropOffRateByVideoAnalytics(filter, masterId, analyticsConfiguration.getDropOffThreshold());
+        return baseMapper.getDropOffRateByVideoAnalytics(filter, masterId,
+            analyticsConfiguration.getDropOffThreshold());
     }
 
     @Override
     public List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
                                                                                 Integer masterId) {
         return baseMapper.videoViewsPerSecondAnalytics(filter, masterId);
+    }
+
+    @Override
+    public Map<Integer, Double> getVideoProgress(List<GcVideo> videos, PortalUser portalUser) {
+        List<Integer> videoIds = videos.stream()
+            .map(GcVideo::getId)
+            .collect(Collectors.toList());
+        List<DbAnalyticsResultVideoIdDto> videoViewedTimeByUser =
+            baseMapper.videoViewedTimeByUser(videoIds, portalUser.getUserId(), portalUser.getMasterId());
+        Map<Integer, Double> videoIdToViewedSeconds = videoViewedTimeByUser.stream()
+            .collect(Collectors.toMap(DbAnalyticsResultVideoIdDto::getVideoId, DbAnalyticsResultVideoIdDto::getValue));
+
+        return videos.stream()
+            .collect(Collectors.toMap(GcVideo::getId, video -> videoViewedPercent(video, videoIdToViewedSeconds)));
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {
@@ -107,5 +127,9 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
                     videoPlayDto.getSegmentId(),
                     videoPlayDto.getSessionId()));
         }
+    }
+
+    private double videoViewedPercent(GcVideo video, Map<Integer, Double> videoIdToViewedSeconds) {
+        return Optional.ofNullable(videoIdToViewedSeconds.get(video.getId())).orElse(0d) / video.getVideoTime();
     }
 }

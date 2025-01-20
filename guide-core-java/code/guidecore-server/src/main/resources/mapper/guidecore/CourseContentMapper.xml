@@ -26,7 +26,7 @@
         <result property="createTime" column="create_time"/>
         <result property="commentNum" column="comment_num"/>
         <result property="thumbnailUrl" column="thumbnail_url"/>
-        <result property="videoTime" column="video_time"/>
+        <result property="videoTime" column="time"/>
         <result property="originCourseId" column="origin_course_id"/>
         <result property="originChannelId" column="origin_channel_id"/>
         <result property="userId" column="user_id"/>
