@@ -30,6 +30,7 @@ public class CourseContentServiceImpl extends ServiceImpl<CourseContentMapper, C
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CourseContent> findCourseContent(Integer courseId) {
         return baseMapper.findCourseContent(courseId);
     }

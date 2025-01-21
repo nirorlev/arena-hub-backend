@@ -22,5 +22,8 @@ public class CourseContent implements Serializable {
     private Integer order;
 
     @TableField(exist = false)
+    private GcSubject course;
+
+    @TableField(exist = false)
     private GcVideo video;
 }

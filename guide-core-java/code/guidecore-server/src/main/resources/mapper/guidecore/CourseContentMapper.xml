@@ -9,18 +9,19 @@
         <result property="contentId" column="content_id"/>
         <result property="order" column="order"/>
 
+        <association property="course" resultMap="courseResultMap" columnPrefix="course_"/>
         <association property="video" resultMap="videoResultMap" columnPrefix="video_"/>
     </resultMap>
 
     <resultMap id="videoResultMap" type="GcVideo">
         <id property="id" column="id"/>
-        <result property="videoName" column="video_name"/>
-        <result property="videoNameIndex" column="video_name_index"/>
-        <result property="videoDesc" column="video_desc"/>
+        <result property="videoName" column="name"/>
+        <result property="videoNameIndex" column="name_index"/>
+        <result property="videoDesc" column="desc"/>
         <result property="fileId" column="file_id"/>
         <result property="subId" column="sub_id"/>
         <result property="sourceUrl" column="source_url"/>
-        <result property="videoSource" column="video_source"/>
+        <result property="videoSource" column="source"/>
         <result property="order" column="order"/>
         <result property="updateTime" column="update_time"/>
         <result property="createTime" column="create_time"/>
@@ -43,10 +44,12 @@
             <result property="thumbNailUrl" column="thumb_nail_url"/>
         </association>
 
-        <association property="originCourse" resultMap="originCourseResultMap" columnPrefix="course_"/>
+        <association property="originCourse" resultMap="courseResultMap" columnPrefix="video_origin_course_"/>
     </resultMap>
 
-    <resultMap id="originCourseResultMap" type="GcSubject" autoMapping="true">
+    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true">
+        <id property="id" column="id"/>
+
         <result property="userId" column="user_id"/>
         <result property="createUser" column="user_id"/>
         <result property="fid" column="fid"/>
@@ -96,6 +99,17 @@
         video_file.thumb_nail_id as video_file_thumb_nail_id, video_file.file_type as video_file_type, video_file.upload_uid as video_user_id
     </sql>
 
+    <sql id="videoOriginCourseColumns">
+        video_origin_course.id                         AS video_origin_course_id,
+        video_origin_course.name                       AS video_origin_course_name,
+        video_origin_course.fid                        AS video_origin_course_fid,
+        video_origin_course.state                      AS video_origin_course_state,
+        video_origin_course.available_type             AS video_origin_course_available_type,
+        video_origin_course.sub_img_id                 AS video_origin_course_img_id,
+        video_origin_course.create_time                AS video_origin_course_create_time,
+        video_origin_course.update_time                AS video_origin_course_update_time
+    </sql>
+
     <sql id="courseColumns">
         course.id                         AS course_id,
         course.name                       AS course_name,
@@ -107,26 +121,26 @@
         course.update_time                AS course_update_time
     </sql>
 
-    <sql id="courseAvatarFileColumns">
-        course_avatar.id              AS course_avatar_file_id,
-        course_avatar.name            AS course_avatar_file_name,
-        course_avatar.file_url        AS course_avatar_file_url,
-        course_avatar.save_type       AS course_avatar_file_save_type,
-        course_avatar.file_type       AS course_avatar_file_type
+    <sql id="videoOriginCourseAvatarFileColumns">
+        course_avatar.id              AS video_origin_course_avatar_file_id,
+        course_avatar.name            AS video_origin_course_avatar_file_name,
+        course_avatar.file_url        AS video_origin_course_avatar_file_url,
+        course_avatar.save_type       AS video_origin_course_avatar_file_save_type,
+        course_avatar.file_type       AS video_origin_course_avatar_file_type
     </sql>
 
-    <sql id="courseOwnerColumns">
-        course_owner.id               AS course_user_id,
-        course_owner_info.id          AS course_user_info_id,
-        course_owner_info.first_name  AS course_user_info_first_name,
-        course_owner_info.last_name   AS course_user_info_last_name
+    <sql id="videoOriginCourseOwnerColumns">
+        course_owner.id               AS video_origin_course_user_id,
+        course_owner_info.id          AS video_origin_course_user_info_id,
+        course_owner_info.first_name  AS video_origin_course_user_info_first_name,
+        course_owner_info.last_name   AS video_origin_course_user_info_last_name
     </sql>
 
-    <sql id="courseOwnerAvatarColumns">
-        course_owner_avatar.id        AS course_user_info_avatar_file_id,
-        course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
-        course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
-        course_owner_avatar.file_type AS course_user_info_avatar_filetype
+    <sql id="videoOriginCourseOwnerAvatarColumns">
+        course_owner_avatar.id        AS video_origin_course_user_info_avatar_file_id,
+        course_owner_avatar.file_url  AS video_origin_course_user_info_avatar_file_url,
+        course_owner_avatar.save_type AS video_origin_course_user_info_avatar_file_save_type,
+        course_owner_avatar.file_type AS video_origin_course_user_info_avatar_filetype
     </sql>
 
     <select id="findCourseContent" resultMap="baseResultMap">
@@ -135,20 +149,23 @@
             <include refid="videoFileColumns"/>,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS video_comment_num,
             <include refid="courseColumns"/>,
-            <include refid="courseAvatarFileColumns"/>,
-            <include refid="courseOwnerColumns"/>,
-            <include refid="courseOwnerAvatarColumns"/>
+            <include refid="videoOriginCourseColumns"/>,
+            <include refid="videoOriginCourseAvatarFileColumns"/>,
+            <include refid="videoOriginCourseOwnerColumns"/>,
+            <include refid="videoOriginCourseOwnerAvatarColumns"/>
         FROM course_content
+            JOIN gc_subject course ON course_content.course_id = course.id
+
             JOIN gc_video video ON course_content.content_id = video.id
             JOIN sys_file video_file ON video.file_id = video_file.id
 
-            JOIN gc_subject course ON video.origin_course_id = course.id
+            JOIN gc_subject video_origin_course ON video.origin_course_id = video_origin_course.id
             JOIN gc_subject section ON course_content.course_id = section.id
-            JOIN gc_user course_owner ON course.create_user = course_owner.id
-            LEFT JOIN sys_file course_avatar ON course_avatar.id = course.sub_img_id
+            JOIN gc_user course_owner ON video_origin_course.create_user = course_owner.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = video_origin_course.sub_img_id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
-        WHERE course_content.course_id = #{courseId}
+        WHERE course_content.course_id = #{courseId} OR course_content.course_id IN (SELECT id FROM gc_subject WHERE fid = #{courseId})
         ORDER BY section.order, course_content.order
     </select>
 

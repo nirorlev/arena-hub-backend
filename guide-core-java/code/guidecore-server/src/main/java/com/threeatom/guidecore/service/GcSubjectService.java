@@ -3,11 +3,13 @@ package com.threeatom.guidecore.service;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.utils.data.TreeNode;
 import java.util.List;
@@ -203,4 +205,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<Integer> getUserPublicSubject(Integer masterId, Integer userId);
 
     void populateUserId(GcSubject course, GcUser user);
+
+    CourseProgramDto courseProgram(Integer courseId, PortalUser portalUser);
 }

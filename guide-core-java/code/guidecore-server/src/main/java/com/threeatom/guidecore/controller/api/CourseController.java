@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
@@ -7,6 +8,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
+import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
+    private final GcSubjectService courseService;
     private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
@@ -64,5 +67,14 @@ public class CourseController {
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
         return ResponseEntity.ok(courseProgressService.courseProgress(courseId, portalUser));
+    }
+
+    @GetMapping("/{courseId}/program")
+    public ResponseEntity<CourseProgramDto> courseProgram(@PathVariable Integer courseId, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return ResponseEntity.ok(courseService.courseProgram(courseId, portalUser));
     }
 }
