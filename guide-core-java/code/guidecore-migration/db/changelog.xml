@@ -788,4 +788,12 @@
         </insert>
     </changeSet>
 
+    <changeSet id="create-course-attachments-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="courseAttachmentsEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling attachments in courses"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
