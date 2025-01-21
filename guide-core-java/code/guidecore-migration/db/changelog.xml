@@ -780,4 +780,12 @@
         <dropColumn tableName="gc_access" columnName="subject_json"/>
     </changeSet>
 
+    <changeSet id="create-course-tasks-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="courseTasksEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling tasks in courses"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
