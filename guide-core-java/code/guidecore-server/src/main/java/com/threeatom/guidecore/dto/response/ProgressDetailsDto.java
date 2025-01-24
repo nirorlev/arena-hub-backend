@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ProgressDto {
-    private double percentage;
+public class ProgressDetailsDto {
+    private ProgressDto progress;
 }

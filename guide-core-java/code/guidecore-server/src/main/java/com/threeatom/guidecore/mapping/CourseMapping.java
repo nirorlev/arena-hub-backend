@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
+import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
+import com.threeatom.guidecore.dto.response.ProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import org.mapstruct.Mapper;
@@ -13,5 +14,7 @@ public interface CourseMapping {
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
     VideoSourceDto map(GcSubject course);
 
-    CourseTotalProgressDto mapToCourseProgress(GcSubject course, Double progress);
+    CourseProgressDetailsDto mapToCourseProgress(GcSubject course, Double progress);
+
+    ProgressDto mapToProgress(Double progress);
 }

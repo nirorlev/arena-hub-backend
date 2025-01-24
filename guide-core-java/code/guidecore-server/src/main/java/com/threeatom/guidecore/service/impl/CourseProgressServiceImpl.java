@@ -4,7 +4,7 @@ import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
-import com.threeatom.guidecore.dto.response.ProgressDto;
+import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -14,6 +14,7 @@ import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,14 +50,15 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
-        courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(sectionIdToProgress)));
+        courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(
+            sectionIdToProgress.values())));
         courseProgressDto.setContent(convertToProgressDto(videoIdToProgress));
         courseProgressDto.setSections(convertToProgressDto(sectionIdToProgress));
         return courseProgressDto;
     }
 
-    private double getCourseProgress(Map<Integer, Double> sectionIdToProgress) {
-        return sectionIdToProgress.values().stream()
+    private double getCourseProgress(Collection<Double> sectionsProgress) {
+        return sectionsProgress.stream()
             .mapToDouble(Double::doubleValue)
             .average()
             .orElse(0);
@@ -78,12 +80,12 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             }));
     }
 
-    private Map<Integer, ProgressDto> convertToProgressDto(Map<Integer, Double> videoIdToProgress) {
+    private Map<Integer, ProgressDetailsDto> convertToProgressDto(Map<Integer, Double> videoIdToProgress) {
         return videoIdToProgress.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                ProgressDto progressDto = new ProgressDto();
-                progressDto.setProgress(entry.getValue());
-                return progressDto;
+                ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
+                progressDetailsDto.setProgress(courseMapping.mapToProgress(entry.getValue()));
+                return progressDetailsDto;
             }));
     }
 }

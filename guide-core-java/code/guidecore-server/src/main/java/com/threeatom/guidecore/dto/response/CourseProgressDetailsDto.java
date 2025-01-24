@@ -5,8 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CourseTotalProgressDto {
+public class CourseProgressDetailsDto {
     private Integer id;
     private String name;
-    private Double progress;
+    private ProgressDto progress;
 }
