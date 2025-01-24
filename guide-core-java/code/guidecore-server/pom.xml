@@ -26,6 +26,8 @@
         <spring.version>4.2.5.RELEASE</spring.version>
         <swagger.version>2.9.2</swagger.version>
         <shiro.version>1.3.2</shiro.version>
+        <sentry.jdbc.version>7.20.0</sentry.jdbc.version>
+        <sentry.version>7.17.0</sentry.version>
         <skipTests>true</skipTests>
         <aws.java.sdk1.version>1.12.31</aws.java.sdk1.version>
 
@@ -451,13 +453,18 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-opentelemetry-agent</artifactId>
-            <version>7.17.0</version>
+            <version>${sentry.version}</version>
         </dependency>
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-opentelemetry-core</artifactId>
-            <version>7.17.0</version>
-        </dependency>   
+            <version>${sentry.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-jdbc</artifactId>
+            <version>${sentry.jdbc.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

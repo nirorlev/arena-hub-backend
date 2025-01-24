@@ -134,12 +134,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     private List<String> getRoles(PortalUser portalUser) {
         List<String> roles = new ArrayList<>();
         UserOrgRole role = portalUser.getRole();
-        List<Integer> gcUserAccessList = userAccessService.getAccessListBySuperAdmin(
-            portalUser.getUserId(), portalUser.getMasterId());
 
-        if (CollectionUtils.isNotEmpty(gcUserAccessList)) {
-            roles.add(GroupsType.superAdmin);
-        }
         if (role.isMember()) {
             roles.add(UserOrgRole.MEMBER.getRole());
         }

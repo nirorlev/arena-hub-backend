@@ -6,10 +6,8 @@ import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.guidecore.constant.AccessRoleType;
-import com.threeatom.guidecore.constant.GroupsType;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.controller.user.vo.UserCommonInfo;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.mapper.GcUserAccessExtMapper;
@@ -32,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcUserAccess>
@@ -192,7 +191,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Override
     public GcUserAccess getAccessByUserIdMaster(Integer userId, Integer masterId) {
-        return this.baseMapper.getAccessByUserIdMaster(userId, masterId);
+        List<GcUserAccess> accessByUserIdMaster = this.baseMapper.getAccessByUserIdMaster(userId, masterId);
+        return CollectionUtils.isEmpty(accessByUserIdMaster) ? null : accessByUserIdMaster.get(0);
     }
 
     @Override
@@ -221,11 +221,6 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("master_id", masterId);
         return this.list(queryWrapper);
-    }
-
-    @Override
-    public List<Integer> getAccessListBySuperAdmin(Integer userId, Integer masterId) {
-        return this.baseMapper.getAccessListBySuperAdmin(userId, masterId);
     }
 
     @Override
@@ -262,47 +257,43 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     @Override
     @Transactional
     public void syncUserAccessWithPowtoonGroups(
-        Integer masterId, List<GcAccess> allContentGroups, PtGroupsVo powtoonGroups, Integer userId) {
+        Integer masterId, List<GcAccess> allPowtoonUserContentGroups, Integer userId, List<Groups> powtoonGroups) {
 
-        List<GcUserAccess> userAccesses = new ArrayList<>();
+        List<GcUserAccess> userContentGroups = new ArrayList<>();
         Map<String, Groups> codeToPowtoonGroups =
-            powtoonGroups.getResults().stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
-        Map<String, GcAccess> allContentGroupCodeToContentGroup =
-            allContentGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
+            powtoonGroups.stream().collect(Collectors.toMap(Groups::getId, Function.identity()));
+        Map<String, GcAccess> codeToAllPowtoonUserContentGroups =
+            allPowtoonUserContentGroups.stream().collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
 
-        List<Integer> superAdminContentGroups = getAccessListBySuperAdmin(userId, masterId);
-        for (GcAccess contentGroup : allContentGroups) {
+        for (GcAccess contentGroup : allPowtoonUserContentGroups) {
             GcUserAccess userAccess = new GcUserAccess();
             userAccess.setUserId(userId);
             userAccess.setMasterId(masterId);
             userAccess.setAccessId(contentGroup.getId());
 
-            if (null != allContentGroupCodeToContentGroup.get(contentGroup.getCode())) {
-                userAccess.setRoleJson(allContentGroupCodeToContentGroup.get(contentGroup.getCode()).getRoleJson());
-            }
-            if (superAdminContentGroups.contains(contentGroup.getId())) {
-                userAccess.getRoleJson().add(GroupsType.superAdmin);
+            if (codeToAllPowtoonUserContentGroups.get(contentGroup.getCode()) != null) {
+                userAccess.setRoleJson(codeToAllPowtoonUserContentGroups.get(contentGroup.getCode()).getRoleJson());
             }
 
-            if (null != codeToPowtoonGroups.get(contentGroup.getCode())) {
+            if (codeToPowtoonGroups.get(contentGroup.getCode()) != null) {
                 userAccess.setParentCode(codeToPowtoonGroups.get(contentGroup.getCode()).getParent_group_id());
             }
             userAccess.setAccess(contentGroup);
-            userAccesses.add(userAccess);
+            userContentGroups.add(userAccess);
         }
 
-        if (!userAccesses.isEmpty()) {
-            insertUserAccessList(userAccesses);
+        if (!userContentGroups.isEmpty()) {
+            insertUserAccessList(userContentGroups);
         }
     }
 
     @Override
     @Transactional
     public void removeOutdatedContentGroupAccess(
-        List<GcAccess> allContentGroups, List<String> newGroupCodes, Integer userId, Integer masterId) {
+        List<GcAccess> allContentGroups, List<String> powtoonUserGroupCodes, Integer userId, Integer masterId) {
 
         List<Integer> contentGroupIdsToRemove = allContentGroups.stream()
-            .filter(contentGroup -> !newGroupCodes.contains(contentGroup.getCode()))
+            .filter(contentGroup -> !powtoonUserGroupCodes.contains(contentGroup.getCode()))
             .map(GcAccess::getId)
             .collect(Collectors.toList());
 
