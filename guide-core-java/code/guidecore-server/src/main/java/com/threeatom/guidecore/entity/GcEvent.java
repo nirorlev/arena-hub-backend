@@ -90,7 +90,7 @@ public class GcEvent implements Serializable {
     @TableField(exist = false)
     private Integer myAnswerFlag;
 
-    @ApiModelProperty(value = "额外的")
+    @TableField(value = "ext")
     private String ext;
 
     @TableField(exist = false)

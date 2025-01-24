@@ -796,4 +796,7 @@
         </insert>
     </changeSet>
 
+    <changeSet id="alter-gc-event-ext-column" author="vprokh">
+        <modifyDataType tableName="gc_event" columnName="ext" newDataType="varchar"/>
+    </changeSet>
 </databaseChangeLog>

@@ -54,6 +54,7 @@ import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysFileCaption;
@@ -98,6 +99,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagerGuideCoreController.class);
+    private static final String masterRandomToken = "masterRandomToken_";
     @Autowired
     private GcAccessService accessService;
     @Autowired
@@ -155,16 +157,16 @@ public class ManagerGuideCoreController extends GuideCoreController {
     public Message getFuzzyNameVideoInMaster(@PathVariable("videoName") String videoName, HttpServletRequest request) {
         ApiAssert.notNull(videoName, "videoName " + I18NUtil.get("guidecore.master.valueRuleError"));
         GcMaster master = this.getMaster();
-        if(Objects.isNull(master)){
+        if (Objects.isNull(master)) {
             Integer masterId = request.getIntHeader("masterId");
             master = masterService.getMasterById(masterId);
         }
         List<GcVideo> videoList = videoService.getFuzzyNameVideoInMaster(master.getId(), videoName);
-        if(!videoList.isEmpty()){
+        if (!videoList.isEmpty()) {
             for (GcVideo video : videoList) {
                 sysFileService.getResFullUrl(video.getVideoFile(), request);
                 video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
-                if (null!=video.getThumbnailUrl()){
+                if (null != video.getThumbnailUrl()) {
                     video.setSnapshotUrl(video.getThumbnailUrl());
                 }
             }
@@ -175,44 +177,48 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "获取homePage信息")
     @GetMapping("/getHomePageBuilder")
-    public Message getHomePageBuilder(HttpServletRequest request){
+    public Message getHomePageBuilder(HttpServletRequest request) {
         GcMaster master = this.getMaster();
-        if(Objects.isNull(master)){
+        if (Objects.isNull(master)) {
             Integer masterId = request.getIntHeader("masterId");
             master = masterService.getMasterById(masterId);
         }
-        List<GcMasterHomeInfo> infoList = masterHomeInfoService.getGcMasterHomeInfoList(master.getId(),TableConstant.gcMasterHomeInfo_name_page,null,request);
-        return new Message().ok().addData("infoList",infoList);
+        List<GcMasterHomeInfo> infoList =
+            masterHomeInfoService.getGcMasterHomeInfoList(master.getId(), TableConstant.gcMasterHomeInfo_name_page,
+                null, request);
+        return new Message().ok().addData("infoList", infoList);
     }
 
     @GetMapping("/user")
     @ApiOperation(value = "获取用户信息", httpMethod = "GET")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcManager.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcManager.class)
     })
     public Message getUser() {
         GcManager manager = this.getManager();
         return new Message().ok().addData("manager", manager);
     }
 
-
     @ApiOperation(value = "保存基本配置", httpMethod = "POST")
     @PostMapping("/save")
     public Message save(@RequestBody @ApiParam(name = "主站信息", value = "站点信息") GcMaster master) {
         GcManager manager = this.getManager();
-        if(Objects.isNull(manager.getSuperAdminFlag()) || !manager.getSuperAdminFlag().equals(1)) {
+        if (Objects.isNull(manager.getSuperAdminFlag()) || !manager.getSuperAdminFlag().equals(1)) {
             master.setManagerId(manager.getId());
         }
-        String context= master.getContext();
-        if(StringUtils.isNotEmpty(context)) {
-            GcMaster m=masterService.getMasterByContext(context);
-            if(m!=null&&!m.getId().equals(master.getId())) throw new SystemException(I18NUtil.get("guidecore.native.hasContent"));
+        String context = master.getContext();
+        if (StringUtils.isNotEmpty(context)) {
+            GcMaster m = masterService.getMasterByContext(context);
+            if (m != null && !m.getId().equals(master.getId())) {
+                throw new SystemException(I18NUtil.get("guidecore.native.hasContent"));
+            }
 
-            ApiAssert.ifStringNotInList(context, CommonConstant.defaultNoPortalName, I18NUtil.get("guidecore.native.defaultNoPortalName"));
+            ApiAssert.ifStringNotInList(context, CommonConstant.defaultNoPortalName,
+                I18NUtil.get("guidecore.native.defaultNoPortalName"));
         }
         if (masterService.setMaster(master)) {
-            return new Message().ok(200, "保存成功").addData("master",master);
-        }else {
+            return new Message().ok(200, "保存成功").addData("master", master);
+        } else {
             return new Message().error();
         }
 
@@ -221,33 +227,36 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "科目和主题的树状结构图", httpMethod = "GET")
     @GetMapping("/subList")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcSubject.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcSubject.class)
     })
     public Message subjectList(HttpServletRequest request) {
 
         GcMaster master = this.getMaster();
-        if(Objects.isNull(master)){
+        if (Objects.isNull(master)) {
             Integer masterId = request.getIntHeader("masterId");
             master = masterService.getMasterById(masterId);
         }
-        SysSystem sys=this.getSystem();
+        SysSystem sys = this.getSystem();
         List<GcSubject> list = null;
         GcManager manager = this.getManager();
-        if(manager.getLevel()!=null&&manager.getLevel()== LevelType.MASTER_MANAGER){//课程管理员
+        if (manager.getLevel() != null && manager.getLevel() == LevelType.MASTER_MANAGER) {//课程管理员
             //判断用户层级得到科目和主题的权限信息json
-            GcUserAccess userAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
+            GcUserAccess userAccess =
+                userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
             List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
-            List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),courseIds,false);
-            subjectAssociationList=subService.setSubListImg(subjectAssociationList, sys, request);
-            List<Integer> assoSubIds = subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
+            List<GcSubject> subjectAssociationList =
+                subService.selectSubjectAssociation(master.getId(), courseIds, false);
+            subjectAssociationList = subService.setSubListImg(subjectAssociationList, sys, request);
+            List<Integer> assoSubIds =
+                subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
             courseIds.removeAll(assoSubIds);
             //导入课程
-            list = subService.getSubListWithImgByIds(courseIds, sys, request,master.getId());
+            list = subService.getSubListWithImgByIds(courseIds, sys, request, master.getId());
 //          //门户课程
             list.addAll(subjectAssociationList);
-        }else{
+        } else {
             list = subService.getSubListWithImg(master.getId(), sys, request);
-            List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),null,false);
+            List<GcSubject> subjectAssociationList = subService.selectSubjectAssociation(master.getId(), null, false);
             list.addAll(subjectAssociationList);
         }
         return new Message().ok().addData("list", list);
@@ -256,35 +265,37 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "保存AccessCode", httpMethod = "POST")
     @PostMapping("/saveCode")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcAccess.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcAccess.class)
     })
-    public Message saveAccessCode(@RequestBody @ApiParam(name = "创建access", value = "accesscode") GcAccess access,HttpServletRequest request) {
+    public Message saveAccessCode(@RequestBody @ApiParam(name = "创建access", value = "accesscode") GcAccess access,
+                                  HttpServletRequest request) {
         GcMaster master = this.getMaster();
         LOGGER.info(access.toString());
         access.setMasterId(master.getId());
-        if(access.getPackageShowFlag()==null){
+        if (access.getPackageShowFlag() == null) {
             access.setPackageShowFlag(TableConstant.COMMON_ONE);
-        }else if(access.getPackageShowFlag()!=null){
+        } else if (access.getPackageShowFlag() != null) {
             access.setPackageShowFlag(access.getPackageShowFlag());
         }
 
         GcAccess gcAccess = gcAccessService.selectFreeCodeByMaster(master.getId());
-        if(Objects.nonNull(gcAccess)) {
-            if ((Objects.isNull(access.getId()) || !access.getId().equals(gcAccess.getId())) && (Objects.nonNull(access.getDefaultCodeFlag()) && access.getDefaultCodeFlag().equals(1))) {
+        if (Objects.nonNull(gcAccess)) {
+            if ((Objects.isNull(access.getId()) || !access.getId().equals(gcAccess.getId())) &&
+                (Objects.nonNull(access.getDefaultCodeFlag()) && access.getDefaultCodeFlag().equals(1))) {
                 throw new SystemException(I18NUtil.get("guidecore.duplicate.code.error"));
             }
         }
         //判断注册码类型
-        if(access.getRoleType()!=null && !access.getRoleType().equals("")){
+        if (access.getRoleType() != null && !access.getRoleType().equals("")) {
             ApiAssert.jsonValueIntegerIn(access.getRoleType(), "[0,1,2]", "roleType只能为0或1");
-            if(Objects.nonNull(access.getDefaultCodeFlag()) && access.getDefaultCodeFlag().equals(1)){
+            if (Objects.nonNull(access.getDefaultCodeFlag()) && access.getDefaultCodeFlag().equals(1)) {
                 access.setCodeType(AccessCodeType.DEFAULT_ACCESS_CODE);
-            }else {
+            } else {
                 access.setCodeType(AccessCodeType.USER_ACCESS_CODE);
             }
-        }else{
-            if (Objects.isNull(access.getCode())){
-                String code = ToolUtil.getRandomString(3)+System.currentTimeMillis()+ToolUtil.getRandomString(2);
+        } else {
+            if (Objects.isNull(access.getCode())) {
+                String code = ToolUtil.getRandomString(3) + System.currentTimeMillis() + ToolUtil.getRandomString(2);
                 access.setCode(code);
             }
             access.setCodeType(AccessCodeType.MASTER_ACCESS_CODE);
@@ -292,23 +303,24 @@ public class ManagerGuideCoreController extends GuideCoreController {
         }
         List<GcAccess> list = accessService.getAccessByMasterIdAndCode(access);
 
-        if(access.getId()==null && list!=null && list.size()>0) {
+        if (access.getId() == null && list != null && list.size() > 0) {
             return new Message().error(I18NUtil.get("guidecore.master.accessCodeExist"));
         }
-        if (accessService.addAccess(access)) return new Message().ok("添加成功").addData("sync", access);
-
-        else return new Message().error("添加失败");
+        if (accessService.addAccess(access)) {
+            return new Message().ok("添加成功").addData("sync", access);
+        } else {
+            return new Message().error("添加失败");
+        }
     }
-
 
     @ApiOperation(value = "删除AccessCode", httpMethod = "POST")
     @PostMapping("/deleteCode")
-    public Message deleteCode(@RequestBody  GcAccess gcAccess) {
+    public Message deleteCode(@RequestBody GcAccess gcAccess) {
         Message message = new Message();
         List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessByAccessId(gcAccess.getId());
-        if(gcUserAccessList.size()!=TableConstant.COMMON_ZERO) {
+        if (gcUserAccessList.size() != TableConstant.COMMON_ZERO) {
             return message.error(I18NUtil.get("guidecore.delete.code.fail"));
-        }else {
+        } else {
             gcAccessService.deleteAccess(gcAccess.getId());
             return message.ok(I18NUtil.get("guidecore.delete.code.success"));
         }
@@ -316,24 +328,31 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "删除用户权限", httpMethod = "POST")
     @PostMapping("/deleteUserAccess")
-    public Message deleteUserAccess(@RequestBody GcUserAccess gcUser,HttpServletRequest request) {
+    public Message deleteUserAccess(@RequestBody GcUserAccess gcUser, HttpServletRequest request) {
         Message message = new Message();
         GcMaster master = this.getMaster();
         GcManager gcManager = this.getManager();
-        List<GcUserAccess> gcUserAccessList = gcUserAccessService.getUserAccessListByUserId(gcUser.getUserId(),request);
-        List<Integer> masterIdList = gcUserAccessList.stream().map(GcUserAccess::getMasterId).collect(Collectors.toList());
-        if(Objects.nonNull(gcManager) && Objects.nonNull(gcManager.getSuperAdminFlag()) && TableConstant.COMMON_ONE==gcManager.getSuperAdminFlag()){
-            GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(gcUser.getUserId(),gcUser.getMasterId());
-            if(TableConstant.COMMON_ZERO!=gcUserAccessList.size() && TableConstant.COMMON_ONE==gcUserAccessList.size()){
+        List<GcUserAccess> gcUserAccessList =
+            gcUserAccessService.getUserAccessListByUserId(gcUser.getUserId(), request);
+        List<Integer> masterIdList =
+            gcUserAccessList.stream().map(GcUserAccess::getMasterId).collect(Collectors.toList());
+        if (Objects.nonNull(gcManager) && Objects.nonNull(gcManager.getSuperAdminFlag()) &&
+            TableConstant.COMMON_ONE == gcManager.getSuperAdminFlag()) {
+            GcUserAccess gcUserAccess =
+                gcUserAccessService.getAccessByUserIdMaster(gcUser.getUserId(), gcUser.getMasterId());
+            if (TableConstant.COMMON_ZERO != gcUserAccessList.size() &&
+                TableConstant.COMMON_ONE == gcUserAccessList.size()) {
                 gcUserAccessService.deleteById(gcUserAccess.getId());
                 this.gcUserService.deleteById(gcUserAccess.getUserId());
-            }else {
+            } else {
                 gcUserAccessService.deleteById(gcUserAccess.getId());
             }
-        }else {
-            GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(gcUser.getUserId(),master.getId());
-            if (null != gcUserAccess && null!=masterIdList && masterIdList.size()>TableConstant.COMMON_ZERO && masterIdList.contains(gcUserAccess.getMasterId())) {
-                if (TableConstant.COMMON_ZERO != gcUserAccessList.size() && TableConstant.COMMON_ONE == gcUserAccessList.size()) {
+        } else {
+            GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(gcUser.getUserId(), master.getId());
+            if (null != gcUserAccess && null != masterIdList && masterIdList.size() > TableConstant.COMMON_ZERO &&
+                masterIdList.contains(gcUserAccess.getMasterId())) {
+                if (TableConstant.COMMON_ZERO != gcUserAccessList.size() &&
+                    TableConstant.COMMON_ONE == gcUserAccessList.size()) {
                     gcUserAccessService.deleteById(gcUserAccess.getId());
                     this.gcUserService.deleteById(gcUserAccess.getUserId());
                     return new Message().ok("success");
@@ -361,31 +380,37 @@ public class ManagerGuideCoreController extends GuideCoreController {
         List<GcAccess> list = accessService.findAccessListByMasterId(master.getId());
         List<GcSubject> sublist = subService.getSubListTop(master.getId());
         List<GcAccess> adminCodeList = accessService.getAdminAccessListByMasterId(master.getId());
-        List<Map<String, Object>> userList = userAccessService.getAllUserInThisMaster(masterIds,filterMaster.getSearchFilter(),request,new PageParam(request),null);
+        List<Map<String, Object>> userList =
+            userAccessService.getAllUserInThisMaster(masterIds, filterMaster.getSearchFilter(), request,
+                new PageParam(request), null);
         //使用门户端注册码注册的用户集合
         List<Map<String, Object>> managerList = userAccessService.getAllManagerInThisMaster(master.getId());
 
         for (GcAccess access : list) {
-            if(null!=access.getPackageVideoFileId()){
+            if (null != access.getPackageVideoFileId()) {
                 SysFile videoFile = sysFileService.getById(Integer.parseInt(access.getPackageVideoFileId()));
-                sysFileService.getResFullUrl(videoFile,request);
+                sysFileService.getResFullUrl(videoFile, request);
                 access.setPackageVideoFile(videoFile);
             }
             //构造门户端注册码集合
-            if(access.getCodeType()!=null&&access.getCodeType()==AccessCodeType.MASTER_ACCESS_CODE){
+            if (access.getCodeType() != null && access.getCodeType() == AccessCodeType.MASTER_ACCESS_CODE) {
                 managerCodeList.add(access);
                 //统计门户端用户注册码的注册情况
-                List<Map<String, Object>> masterSampleList = managerList.stream().filter(m -> m.get("code").equals(access.getCode())).collect(Collectors.toList());
+                List<Map<String, Object>> masterSampleList =
+                    managerList.stream().filter(m -> m.get("code").equals(access.getCode()))
+                        .collect(Collectors.toList());
                 access.setUserNum(masterSampleList.size());
 
-            }else{
+            } else {
                 userCodeList.add(access);
                 //统计用户端用户注册码的注册情况
-                List<Map<String, Object>> sampleList = userList.stream().filter(u -> u.get("code").equals(access.getCode())).collect(Collectors.toList());
+                List<Map<String, Object>> sampleList =
+                    userList.stream().filter(u -> u.get("code").equals(access.getCode())).collect(Collectors.toList());
                 access.setUserNum(sampleList.size());
             }
-            if(access.getPackageImgId()!=null) {
-                String fullFileUrl = sysFileService.getResFullUrl(sysFileService.getById(access.getPackageImgId()),request);
+            if (access.getPackageImgId() != null) {
+                String fullFileUrl =
+                    sysFileService.getResFullUrl(sysFileService.getById(access.getPackageImgId()), request);
                 access.setPackageImgFullUrl(fullFileUrl);
             }
 
@@ -394,39 +419,37 @@ public class ManagerGuideCoreController extends GuideCoreController {
         SysSystem sys = this.getSystem();
 
         if (userList.size() != 0) {
-            for (Map<String,Object> user:userList){
+            for (Map<String, Object> user : userList) {
                 SysFile file = new SysFile();
-                if (null!=user.get("f_file_url")) {
+                if (null != user.get("f_file_url")) {
                     file.setFileUrl(user.get("f_file_url").toString());
                 }
-                if(null!=user.get("f_save_type")) {
+                if (null != user.get("f_save_type")) {
                     file.setSaveType(Integer.parseInt(user.get("f_save_type").toString()));
                 }
-                if(file.getFileUrl() != null && file.getSaveType() != null)
-                    user.put("full_file_url",sysFileService.getResFullUrl(file,  request));
-                if(TableConstant.COMMON_ZERO!=Integer.parseInt(user.get("joinType").toString())){
-                    user.put("joinType",1);
+                if (file.getFileUrl() != null && file.getSaveType() != null) {
+                    user.put("full_file_url", sysFileService.getResFullUrl(file, request));
+                }
+                if (TableConstant.COMMON_ZERO != Integer.parseInt(user.get("joinType").toString())) {
+                    user.put("joinType", 1);
                 }
             }
         }
         return new Message().ok()
-                .addData("list", userCodeList)
-                .addData("managerCodeList", managerCodeList)
-                .addData("subjectList", sublist)
-                .addData("adminCodeList", adminCodeList)
-                .addData("managerList", managerList)
-                .addData("userList", new PageInfo<>(userList));
+            .addData("list", userCodeList)
+            .addData("managerCodeList", managerCodeList)
+            .addData("subjectList", sublist)
+            .addData("adminCodeList", adminCodeList)
+            .addData("managerList", managerList)
+            .addData("userList", new PageInfo<>(userList));
     }
-
-    private static final String masterRandomToken = "masterRandomToken_";
-
 
     @ApiOperation(value = "超级管理员获取用户端token", httpMethod = "POST")
     @PostMapping("/superAdminGetUserToken")
     public Message superAdminGetUserToken(@RequestBody GcMaster filterMaster) {
         GcUser gcUser = userService.getById(filterMaster.getUserId());
         String token = userService.generateJwtToken(gcUser, filterMaster.getId());
-        return new Message().ok().addData("token",token);
+        return new Message().ok().addData("token", token);
     }
 
     @PostMapping("/changePassword")
@@ -457,23 +480,26 @@ public class ManagerGuideCoreController extends GuideCoreController {
         }
         String pwdHash = new SimpleHash("MD5", val, user.getSalt() + SysConstant.PASS_SALT).toHex();
         user.setPassword(pwdHash);
-        if(null != gcManager && TableConstant.COMMON_ONE==gcManager.getSuperAdminFlag()){
-            String newPwd = new SimpleHash("MD5", requestParams.get("newPassword"), user.getSalt() + SysConstant.PASS_SALT).toHex();
+        if (null != gcManager && TableConstant.COMMON_ONE == gcManager.getSuperAdminFlag()) {
+            String newPwd =
+                new SimpleHash("MD5", requestParams.get("newPassword"), user.getSalt() + SysConstant.PASS_SALT).toHex();
             user.setPassword(newPwd);
-            if(userService.saveOrUpdate(user)){
+            if (userService.saveOrUpdate(user)) {
                 //发送邮件
                 String email = user.getUsername();
                 List<String> emailList = new ArrayList<>();
                 emailList.add(email);
                 return new Message().ok("success");
-            }else{
+            } else {
                 return new Message().error("fail");
             }
-        }else {
+        } else {
             List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUser(userId);
-            List<Integer> masterIdList = gcUserAccessList.stream().map(GcUserAccess::getMasterId).collect(Collectors.toList());
-            if(null!=masterIdList && masterIdList.size()>TableConstant.COMMON_ZERO && masterIdList.contains(master.getId())){
-                if(userService.saveOrUpdate(user)){
+            List<Integer> masterIdList =
+                gcUserAccessList.stream().map(GcUserAccess::getMasterId).collect(Collectors.toList());
+            if (null != masterIdList && masterIdList.size() > TableConstant.COMMON_ZERO &&
+                masterIdList.contains(master.getId())) {
+                if (userService.saveOrUpdate(user)) {
                     //发送邮件
                     try {
                         String textBody = I18NUtil.get("guidecore.superAdminChangePassword") + val;
@@ -481,10 +507,10 @@ public class ManagerGuideCoreController extends GuideCoreController {
                         List<String> emailList = new ArrayList<>();
                         emailList.add(email);
                         return new Message().ok("success");
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         throw new Exception("invalid email");
                     }
-                }else{
+                } else {
                     return new Message().error("fail");
                 }
             }
@@ -494,29 +520,31 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "生成可导入课程的token", httpMethod = "GET")
     @GetMapping("/getSubjectImportToken")
-    public Message getSubjectImportToken () {
+    public Message getSubjectImportToken() {
         GcMaster master = this.getMaster();
-        String randomToken = ToolUtil.getRandomString(3)+System.currentTimeMillis()+ToolUtil.getRandomString(2);
-        LOGGER.info("randomToken: "+randomToken);
-        redisOperator.set(masterRandomToken+master.getId(),randomToken,300);//300秒
+        String randomToken = ToolUtil.getRandomString(3) + System.currentTimeMillis() + ToolUtil.getRandomString(2);
+        LOGGER.info("randomToken: " + randomToken);
+        redisOperator.set(masterRandomToken + master.getId(), randomToken, 300);//300秒
         return new Message().ok().addData("subjectImportToken", randomToken);
     }
 
     @ApiOperation(value = "修改课程排序", httpMethod = "POST")
     @PostMapping("/changeSubOrder")
-    public Message changeSubOrder(@RequestBody JSONObject requestParams,HttpServletRequest request) {
-        List<Integer> subIds =JSONObject.parseArray(requestParams.getString("subIds"),  Integer.class);
-        if (subIds.size() < 0)  throw new SystemException("缺少排序参数");
+    public Message changeSubOrder(@RequestBody JSONObject requestParams, HttpServletRequest request) {
+        List<Integer> subIds = JSONObject.parseArray(requestParams.getString("subIds"), Integer.class);
+        if (subIds.size() < 0) {
+            throw new SystemException("缺少排序参数");
+        }
         GcMaster master = this.getMaster();
-        if (null==master&&null!=request.getHeader("masterId")){
+        if (null == master && null != request.getHeader("masterId")) {
             master = new GcMaster();
             master.setId(Integer.parseInt(request.getHeader("masterId")));
         }
 
 
-        if (subService.changeSubOrder(subIds,master.getId()))
+        if (subService.changeSubOrder(subIds, master.getId())) {
             return new Message().ok("修改成功！");
-        else {
+        } else {
             return new Message().error("修改失败！");
         }
     }
@@ -524,19 +552,22 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "修改视频排序", httpMethod = "POST")
     @PostMapping("/changeVideoOrder")
     public Message changeVideoOrder(@RequestBody JSONObject requestParams) {
-        List<Integer> videoIds =JSONObject.parseArray(requestParams.getString("videoIds"),  Integer.class);
-        if (videoIds.size() < 0)  throw new SystemException("缺少排序参数");
-        if (videoService.changeVideoOrder(videoIds))
+        List<Integer> videoIds = JSONObject.parseArray(requestParams.getString("videoIds"), Integer.class);
+        if (videoIds.size() < 0) {
+            throw new SystemException("缺少排序参数");
+        }
+        if (videoService.changeVideoOrder(videoIds)) {
             return new Message().ok("修改成功！");
-        else
+        } else {
             return new Message().error("修改失败！");
+        }
     }
 
 
     @ApiOperation(value = "视频的列表", httpMethod = "GET")
     @GetMapping("/videoList")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
     })
     public Message videoListAll() {
 
@@ -544,19 +575,22 @@ public class ManagerGuideCoreController extends GuideCoreController {
             GcMaster master = this.getMaster();
             GcManager manager = this.getManager();
             List<Integer> courseIds;
-            if(manager.getLevel()!=null&&manager.getLevel()== LevelType.MASTER_MANAGER){
+            if (manager.getLevel() != null && manager.getLevel() == LevelType.MASTER_MANAGER) {
                 //判断用户层级得到科目和主题的权限信息json
-                GcUserAccess userAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(),master.getId());
+                GcUserAccess userAccess =
+                    userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
                 courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
-                List<GcSubject> subjectAssociationList= subService.selectSubjectAssociation(master.getId(),courseIds,false);
-                List<Integer> assoSubIds = subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                List<GcSubject> subjectAssociationList =
+                    subService.selectSubjectAssociation(master.getId(), courseIds, false);
+                List<Integer> assoSubIds =
+                    subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
                 courseIds.addAll(assoSubIds);
-                List<GcSubject> level1Subids = subService.selectAllLevel1SubList(courseIds,null,master.getId());
+                List<GcSubject> level1Subids = subService.selectAllLevel1SubList(courseIds, null, master.getId());
                 List<Integer> level1subids = level1Subids.stream().map(GcSubject::getId).collect(Collectors.toList());
                 courseIds.addAll(level1subids);
-            }else{
+            } else {
                 List<GcSubject> subList = subService.getSubListWithHidden(master.getId());
-                List<GcSubject> associationSubList= subService.selectSubjectAssociation(master.getId(),null,false);
+                List<GcSubject> associationSubList = subService.selectSubjectAssociation(master.getId(), null, false);
                 subList.addAll(associationSubList);
                 courseIds = subList.stream().map(GcSubject::getId).collect(Collectors.toList());
             }
@@ -576,7 +610,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "视频的列表", httpMethod = "GET")
     @GetMapping("/videoList/{subId}")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
     })
     public Message videoList(@PathVariable("subId") Integer subId) {
 
@@ -587,7 +621,8 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "Update course video", httpMethod = "POST")
     @PostMapping("/saveVideo")
-    public Message saveVideo(@RequestBody @ApiParam(name = "Update video", value = "Video entity") GcVideo video, HttpServletRequest request) {
+    public Message saveVideo(@RequestBody @ApiParam(name = "Update video", value = "Video entity") GcVideo video,
+                             HttpServletRequest request) {
         SysSystem system = this.getSystem();
         GcMaster master = this.getMaster();
         GcUser user = gcUserService.getCurrentUser(request);
@@ -633,7 +668,8 @@ public class ManagerGuideCoreController extends GuideCoreController {
         Integer masterId = request.getIntHeader("masterId");
         if (videoService.createVideos(videoList, request)) {
             courseContentService.saveCourseContents(videoList);
-            videoList = videoService.findByVideoIds(videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
+            videoList =
+                videoService.findByVideoIds(videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));
 
             videoService.updateCourseTags(videoList, masterId);
             return new Message().ok("Added successfully")
@@ -651,17 +687,22 @@ public class ManagerGuideCoreController extends GuideCoreController {
         ApiAssert.notNull(video, "序列化异常");
         ApiAssert.notNull(video.getVideoSource(), "视频源不能为null");
         if (file == null) {
-            if (videoService.saveVideo(video)) return new Message().ok("添加成功！").addData("sync", video);
+            if (videoService.saveVideo(video)) {
+                return new Message().ok("添加成功！").addData("sync", video);
+            }
         }
         GcManager manager = this.getManager();
         SysSystem sys = this.getSystem();
         //保存视频
-        SysFile sysFile = sysFileService.saveVedio(manager.getId(), sys, TableConstant.sysFile_folder_guidecoreVedio, ObjectStorageConstants.ALIYUN_OSS, file);
+        SysFile sysFile = sysFileService.saveVedio(manager.getId(), sys, TableConstant.sysFile_folder_guidecoreVedio,
+            ObjectStorageConstants.ALIYUN_OSS, file);
         if (sysFile != null && !sysFile.getId().equals(0)) {
 
             video.setFileId(sysFile.getId());
             video.setVideoFile(sysFile);
-            if (videoService.saveVideo(video)) return new Message().ok("添加成功！").addData("sync", video);
+            if (videoService.saveVideo(video)) {
+                return new Message().ok("添加成功！").addData("sync", video);
+            }
 
         }
         return new Message().error();
@@ -681,9 +722,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
                     String youtubeFileId = fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId);
                     String fullFileUrl = "https://www.youtube.com/embed/" + youtubeFileId;
                     youtubeFile.setFileUrl(fullFileUrl);
-                    if(Objects.nonNull(manager)) {
+                    if (Objects.nonNull(manager)) {
                         youtubeFile.setUploadUid(manager.getId());
-                    }else {
+                    } else {
                         youtubeFile.setUploadUid(this.getGcUser().getId());
                     }
                     youtubeFile.setName(stringWidthConvertUtil.stringWidthConvert(youtubeFile.getName()));
@@ -695,22 +736,23 @@ public class ManagerGuideCoreController extends GuideCoreController {
             }
             for (SysFile sysFile : youtubeSysfileList) {
                 String fileUrl = sysFile.getFileUrl();
-                String youtubeFileId = fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId, fileUrl.length());
+                String youtubeFileId =
+                    fileUrl.substring(fileUrl.length() - TableConstant.youtubeFileId, fileUrl.length());
                 String fullFileUrl = "https://www.youtube.com/embed/" + youtubeFileId;
                 sysFile.setFileUrl(fullFileUrl);
                 sysFile.setSaveType(TableConstant.sysFile_saveType_youtubeLink_6);
                 sysFile.setFileTypeIndex(TableConstant.youtueFileTypeIndex);
-                if(Objects.nonNull(manager)) {
+                if (Objects.nonNull(manager)) {
                     sysFile.setUploadUid(manager.getId());
-                }else {
+                } else {
                     sysFile.setUploadUid(this.getGcUser().getId());
                 }
                 sysFile.setName(stringWidthConvertUtil.stringWidthConvert(sysFile.getName()));
                 sysFile.setSysId(system.getId());
             }
             sysFileService.saveBatch(youtubeSysfileList);
-        }catch (Exception e){
-            return new Message().error().addData("error",e.getMessage());
+        } catch (Exception e) {
+            return new Message().error().addData("error", e.getMessage());
         }
         return new Message().ok().addData("youtubeSysfile", youtubeSysfileList);
     }
@@ -718,111 +760,121 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "视频", httpMethod = "GET")
     @GetMapping("/video/{id}")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
+        @ApiResponse(code = 200, message = "请求成功", response = GcVideo.class)
     })
     public Message getVideo(@PathVariable("id") Integer vid, HttpServletRequest request) {
         GcMaster master = this.getMaster();
-        if (Objects.isNull(master)&&null!=request.getHeader("masterId")){
+        if (Objects.isNull(master) && null != request.getHeader("masterId")) {
             master = new GcMaster();
             master.setId(Integer.parseInt(request.getHeader("masterId")));
         }
-        GcUser user = this.getGcUser();
+
         GcVideo video = videoService.findByVideoId(vid);
-        String url = sysFileService.getResFullUrl(video.getVideoFile(),request);
+        String url = sysFileService.getResFullUrl(video.getVideoFile(), request);
         video.setVideoFullUrl(url);
         List<GcEvent> list = null;
-        if (video != null) list = eventService.getEventListByVid(vid,master.getId());
-        List<Map<String, Object>> rateList = gcUserVideoActionService.countTypeRateForVideo(video.getId(),TableConstant.gcUserVideoAction_type_rate2);
-        List<GcEvent> portalEventList =list.stream().filter(e->e.getUploadType().equals(TableConstant.COMMON_ONE)).collect(Collectors.toList());
+        list = eventService.getEventListByVid(vid, master.getId());
+        List<Map<String, Object>> rateList =
+            gcUserVideoActionService.countTypeRateForVideo(video.getId(), TableConstant.gcUserVideoAction_type_rate2);
+        List<GcEvent> portalEventList =
+            list.stream().filter(e -> e.getUploadType().equals(TableConstant.COMMON_ONE)).collect(Collectors.toList());
 
         QueryWrapper<PtTags> tagsQueryWrapper = new QueryWrapper<>();
-        tagsQueryWrapper.in("video_id",video.getId());
+        tagsQueryWrapper.in("video_id", video.getId());
         List<PtTags> videoTagList = ptTagsService.list(tagsQueryWrapper);
-        if (null!=videoTagList && TableConstant.COMMON_ZERO!=videoTagList.size()){
-            List<String> videoTagText =  videoTagList.stream().map(PtTags::getTagText).collect(Collectors.toList()).stream().distinct().collect(Collectors.toList());
+        if (null != videoTagList && !videoTagList.isEmpty()) {
+            List<String> videoTagText =
+                videoTagList.stream().map(PtTags::getTagText).collect(Collectors.toList()).stream().distinct()
+                    .collect(Collectors.toList());
             video.setCourseTags(JSONArray.parseArray(JSON.toJSONString(videoTagText)));
         }
-        Message message = new Message().addData("vedio", video).addData("eventList", portalEventList).addData("rateList", rateList);
+        Message message =
+            new Message().addData("vedio", video).addData("eventList", portalEventList).addData("rateList", rateList);
         SysFileCaption sysFileCaption = sysFileCaptionService.selectMainSysFile(vid);
         List<SysFileCaption> captionIdList = new ArrayList<>();
-        message.addData("captionIdList",captionIdList);
-        if (null!=sysFileCaption){
-            SysFile  sysFile = sysFileCaptionService.selectSysFileCaption(sysFileCaption.getId());
-            if (sysFile == null){
-                if (null!=sysFileCaption.getYmTaskId()&&sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO)) {
-                    return message.ok("Subtitle acquisition in progress, please wait").addData("state",0);
+        message.addData("captionIdList", captionIdList);
+        if (null != sysFileCaption) {
+            SysFile sysFile = sysFileCaptionService.selectSysFileCaption(sysFileCaption.getId());
+            if (sysFile == null) {
+                if (null != sysFileCaption.getYmTaskId() &&
+                    sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO)) {
+                    return message.ok("Subtitle acquisition in progress, please wait").addData("state", 0);
                 }
-                return message.ok("Subtitle generation does not meet the requirements, please check the video information,errorCode:"+sysFileCaption.getYmCode()).addData("state",3);
+                return message.ok(
+                    "Subtitle generation does not meet the requirements, please check the video information,errorCode:" +
+                        sysFileCaption.getYmCode()).addData("state", 3);
             }
-            if (sysFileCaption.getYmCode()!=null){
-                if (!sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO)){
-                    return message.ok("Subtitle generation failed,errorCode:"+sysFileCaption.getYmCode()).addData("state",1);
+            if (sysFileCaption.getYmCode() != null) {
+                if (!sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO)) {
+                    return message.ok("Subtitle generation failed,errorCode:" + sysFileCaption.getYmCode())
+                        .addData("state", 1);
                 }
-                if (sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO)  && null!=sysFileCaption.getYmTaskId()){
-                    message.ok("Subtitle generation succeeded").addData("state",2);
+                if (sysFileCaption.getYmCode().equals(TableConstant.COMMON_ZERO) &&
+                    null != sysFileCaption.getYmTaskId()) {
+                    message.ok("Subtitle generation succeeded").addData("state", 2);
                 }
             }
             captionIdList = sysFileCaptionService.selectSysFileCaptionId(vid);
 
-            List<Integer> idList = captionIdList.stream().map(SysFileCaption::getCaptionFileId).collect(Collectors.toList());
+            List<Integer> idList =
+                captionIdList.stream().map(SysFileCaption::getCaptionFileId).collect(Collectors.toList());
             List<SysFile> fileList = sysFileService.listByIds(idList);
-            Map<Integer,SysFile> sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, (p) -> p));
+            Map<Integer, SysFile> sysFileMap = fileList.stream().collect(Collectors.toMap(SysFile::getId, (p) -> p));
 
-            for(int i=0;i<captionIdList.size();i++){
-                SysFileCaption fileCaption = captionIdList.get(i);
-                if (null!=fileCaption&&null!=fileCaption.getCaptionFileId()){
-                    String captionUrl = sysFileService.getResFullUrl(sysFileMap.get(fileCaption.getCaptionFileId()),request);
-                    sysFileMap.get(fileCaption.getCaptionFileId()).setFullFileUrl(captionUrl);
-                    captionIdList.get(i).setSysFileList(sysFileMap.get(fileCaption.getCaptionFileId()));
+            for (SysFileCaption fileCaption : captionIdList) {
+                if (null == fileCaption || null == fileCaption.getCaptionFileId()) {
+                    continue;
                 }
+
+                String captionUrl =
+                    sysFileService.getResFullUrl(sysFileMap.get(fileCaption.getCaptionFileId()), request);
+                sysFileMap.get(fileCaption.getCaptionFileId()).setFullFileUrl(captionUrl);
+                fileCaption.setSysFileList(sysFileMap.get(fileCaption.getCaptionFileId()));
             }
         }
-        return message.ok().addData("captionIdList",captionIdList);
+        return message.ok().addData("captionIdList", captionIdList);
     }
 
     @ApiOperation(value = "删除视频", httpMethod = "DELETE")
     @DeleteMapping("/delVideo/{id}")
-    public Message deleteVideo(@PathVariable("id") Integer vid,HttpServletRequest request) {
-        return gvgMasterService.deleteVideo(vid,EnvType.GC.getCode(),null,null);
+    public Message deleteVideo(@PathVariable("id") Integer vid, HttpServletRequest request) {
+        return gvgMasterService.deleteVideo(vid, EnvType.GC.getCode(), null, null);
     }
 
     @ApiOperation(value = "保存事件", httpMethod = "POST")
     @PostMapping("/saveEvent")
-    public Message saveEvent(@RequestBody @ApiParam(name = "视频事件", value = "事件信息") GcEvent gcEvent,HttpServletRequest request) {
-        GcMaster master = this.getMaster();
-        if ((null==master||null==master.getId())&&null!=request.getHeader("masterId")){
-            master = new GcMaster();
-            master.setId(Integer.parseInt(request.getHeader("masterId")));
-        }
-        if(Objects.nonNull(gcEvent.getFileId())){
+    public Message saveEvent(@RequestBody GcEvent gcEvent, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+
+        if (Objects.nonNull(gcEvent.getFileId())) {
             Message message = new Message();
             SysFile file = sysFileService.getById(gcEvent.getFileId());
-            List<GcEvent> eventList = eventService.getEventListByVid(gcEvent.getVideoId(),master.getId());
-            if(eventList!=null && eventList.size()>=TableConstant.COMMON_ZERO){
+            List<GcEvent> eventList = eventService.getEventListByVid(gcEvent.getVideoId(), masterId);
+            if (eventList != null) {
                 Integer videoLong = file.getVideoLong();
-                for(GcEvent event : eventList) {
+                for (GcEvent event : eventList) {
                     if (event.getEventTime() >= videoLong) {
                         event.setEventTime(videoLong);
                     }
                 }
                 eventService.saveOrUpdateBatch(eventList);
                 List<GcResource> resources = resourceService.getResByVid(gcEvent.getVideoId());
-                if(CollectionUtils.isNotEmpty(resources)){
-                    message.ok().addData("resourceNum",resources.size());
+                if (CollectionUtils.isNotEmpty(resources)) {
+                    message.ok().addData("resourceNum", resources.size());
                 }
                 return message.ok("success").addData("sync", gcEvent).addData("eventNum", eventList.size());
             }
         }
-        if (eventService.saveEvent(gcEvent,master.getId())) {
-            if(null!=gcEvent.getLinkFileId()){
+        if (eventService.saveEvent(gcEvent, masterId)) {
+            if (null != gcEvent.getLinkFileId()) {
                 SysFile file = sysFileService.getById(gcEvent.getLinkFileId());
-                sysFileService.getResFullUrl(file,request);
+                sysFileService.getResFullUrl(file, request);
                 gcEvent.setLinkFile(file);
             }
-            if (null!=gcEvent.getLinkVideoId()){
-                GcVideo video = videoService.getById(gcEvent.getLinkVideoId());
+            if (null != gcEvent.getLinkVideoId()) {
+                GcVideo video = videoService.findByVideoId(gcEvent.getLinkVideoId());
                 SysFile file = sysFileService.getById(video.getFileId());
-                sysFileService.getResFullUrl(file,request);
+                sysFileService.getResFullUrl(file, request);
                 video.setVideoFile(file);
                 gcEvent.setLinkVideo(video);
             }
@@ -830,40 +882,42 @@ public class ManagerGuideCoreController extends GuideCoreController {
             videoIds.add(gcEvent.getVideoId());
             Integer eventNum = eventService.countEventByVideoIds(videoIds);
 
-            if (null!=gcEvent.getVideoId()){
+            if (null != gcEvent.getVideoId()) {
                 GcVideo video = videoService.getById(gcEvent.getVideoId());
                 GcSubject subject = subService.getById(video.getSubId());
-                gvgMasterService.saveInProgress(subject.getFid(),master.getId(),request);
+                gvgMasterService.saveInProgress(subject.getFid(), masterId, request);
             }
-            return new Message().ok("添加成功！").addData("sync", gcEvent).addData("eventNum",eventNum);
+            return new Message().ok("添加成功！").addData("sync", gcEvent).addData("eventNum", eventNum);
         }
         return new Message().error();
     }
 
     @ApiOperation(value = "视频事件list", httpMethod = "GET")
     @GetMapping("/eventList/{vid}")
-    public Message listEvent(@PathVariable("vid") Integer vid,HttpServletRequest request) {
+    public Message listEvent(@PathVariable("vid") Integer vid, HttpServletRequest request) {
         GcMaster master = this.getMaster();
-        List<GcEvent> eventList = eventService.getEventListByVid(vid,master.getId());
+        List<GcEvent> eventList = eventService.getEventListByVid(vid, master.getId());
         //筛选出门户上传的视频
-        List<GcEvent> portalEventList =eventList.stream().filter(e->e.getUploadType().equals(TableConstant.COMMON_ONE)).collect(Collectors.toList());
+        List<GcEvent> portalEventList =
+            eventList.stream().filter(e -> e.getUploadType().equals(TableConstant.COMMON_ONE))
+                .collect(Collectors.toList());
         return new Message().ok().addData("list", portalEventList);
     }
 
     @ApiOperation(value = "删除事件", httpMethod = "DELETE")
     @DeleteMapping("/delEvent/{id}")
 
-    public Message deleteEvent(@PathVariable("id") Integer eventId,HttpServletRequest request) {
+    public Message deleteEvent(@PathVariable("id") Integer eventId, HttpServletRequest request) {
         GcMaster master = this.getMaster();
-        if ((null==master||null==master.getId())&&null!=request.getHeader("masterId")){
+        if ((null == master || null == master.getId()) && null != request.getHeader("masterId")) {
             master = new GcMaster();
             master.setId(Integer.parseInt(request.getHeader("masterId")));
         }
-        if (null!=eventId){
+        if (null != eventId) {
             GcEvent gcEvent = eventService.getById(eventId);
             GcVideo video = videoService.getById(gcEvent.getVideoId());
             GcSubject subject = subService.getById(video.getSubId());
-            gvgMasterService.saveInProgress(subject.getFid(),master.getId(),request);
+            gvgMasterService.saveInProgress(subject.getFid(), master.getId(), request);
         }
         if (eventService.removeById(eventId)) {
             return new Message().ok();
@@ -873,14 +927,14 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "删除分类", httpMethod = "DELETE")
     @DeleteMapping("/delSub/{id}")
-    public Message deleteSub(@PathVariable("id") Integer subId,HttpServletRequest request) {
+    public Message deleteSub(@PathVariable("id") Integer subId, HttpServletRequest request) {
         GcMaster master = this.getMaster();
         Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(master)&&Objects.nonNull(masterId)){
+        if (Objects.isNull(master) && Objects.nonNull(masterId)) {
             master = new GcMaster();
             master.setId(masterId);
         }
-        return gvgMasterService.deleteSub(subId,EnvType.GC.getCode(),master,null);
+        return gvgMasterService.deleteSub(subId, EnvType.GC.getCode(), master, null);
     }
 
     @ApiOperation(value = "事件类型", httpMethod = "GET")
@@ -904,19 +958,20 @@ public class ManagerGuideCoreController extends GuideCoreController {
 
     @ApiOperation(value = "保存事件", httpMethod = "POST")
     @PostMapping("/saveRes")
-    public Message saveRes(@RequestBody @ApiParam(name = "视频资源", value = "视频信息") GcResource res,HttpServletRequest request) {
+    public Message saveRes(@RequestBody @ApiParam(name = "视频资源", value = "视频信息") GcResource res,
+                           HttpServletRequest request) {
         ApiAssert.jsonValueIntegerIn(res.getResourceType(), "[1,2]", "类型值不合法！");
-        if (resourceService.saveResource(res)){
-            if (null!=res.getCourseTags()&&res.getCourseTags().size()!=0){
+        if (resourceService.saveResource(res)) {
+            if (null != res.getCourseTags() && res.getCourseTags().size() != 0) {
                 QueryWrapper<PtTags> queryWrapper = new QueryWrapper<PtTags>();
-                queryWrapper.eq("resource_id",res.getId());
+                queryWrapper.eq("resource_id", res.getId());
                 ptTagsService.remove(queryWrapper);
 
                 Integer masterId = Integer.parseInt(request.getHeader("masterId"));
                 List<String> tagList = res.getCourseTags().toJavaList(String.class);
                 List<PtTags> ptTagsList = new ArrayList<>();
                 Integer finalMasterId = masterId;
-                tagList.forEach(i->{
+                tagList.forEach(i -> {
                     PtTags newTags = new PtTags();
                     newTags.setMasterId(finalMasterId);
                     newTags.setTagText(i);
@@ -936,22 +991,26 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "删除资源", httpMethod = "DELETE")
     @DeleteMapping("/delRes/{id}")
     public Message deleteRes(@PathVariable("id") Integer resId) {
-        if (resourceService.removeById(resId)) return new Message().ok();
+        if (resourceService.removeById(resId)) {
+            return new Message().ok();
+        }
         return new Message().error();
     }
 
     @ApiOperation(value = "资源list", httpMethod = "GET")
     @GetMapping("/resList/{vid}")
-    public Message resList(@PathVariable("vid") Integer vid,HttpServletRequest request) {
+    public Message resList(@PathVariable("vid") Integer vid, HttpServletRequest request) {
         Integer masterId = Integer.parseInt(request.getHeader("masterId"));
         List<GcResource> list = resourceService.getResByVid(vid);
         QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("master_id",masterId);
-        queryWrapper.in("type",TableConstant.COMMON_THREE);
-        Map<Integer,List<PtTags>> listMap =ptTagsService.list(queryWrapper).stream().collect(Collectors.groupingBy(PtTags::getResourceId));
-        list.forEach(i->{
-            if (null!=listMap.get(i.getId())){
-                JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(listMap.get(i.getId()).stream().map(PtTags::getTagText).collect(Collectors.toList())));
+        queryWrapper.in("master_id", masterId);
+        queryWrapper.in("type", TableConstant.COMMON_THREE);
+        Map<Integer, List<PtTags>> listMap =
+            ptTagsService.list(queryWrapper).stream().collect(Collectors.groupingBy(PtTags::getResourceId));
+        list.forEach(i -> {
+            if (null != listMap.get(i.getId())) {
+                JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(
+                    listMap.get(i.getId()).stream().map(PtTags::getTagText).collect(Collectors.toList())));
                 i.setCourseTags(jsonArray);
             }
         });
@@ -964,15 +1023,15 @@ public class ManagerGuideCoreController extends GuideCoreController {
     public Message saveConfig(@RequestBody JSONObject objectParams) {
         Integer activeConfig = objectParams.getInteger("activeConfig");
 
-        GcMaster master=this.getMaster();
-        if(activeConfig!=null) {
+        GcMaster master = this.getMaster();
+        if (activeConfig != null) {
             ApiAssert.jsonValueIntegerIn(activeConfig, "[0,1]", "值为0或者1");
-            if(master.getExtVar()==null) {
+            if (master.getExtVar() == null) {
                 master.setExtVar(new JSONObject());
             }
-            JSONObject config=master.getExtVar();
+            JSONObject config = master.getExtVar();
             config.put("activeConfig", activeConfig);
-            GcMaster updateMaster=new GcMaster();
+            GcMaster updateMaster = new GcMaster();
             updateMaster.setId(master.getId());
             updateMaster.setManagerId(master.getManagerId());
             updateMaster.setExtVar(config);
@@ -983,25 +1042,26 @@ public class ManagerGuideCoreController extends GuideCoreController {
         return new Message().ok();
 
     }
+
     @ApiOperation(value = "保存ptOssConfig", httpMethod = "Post")
     @PostMapping("/savePtConfig")
-    public Message savePtConfig(@RequestBody PtLoginConfig loginConfig){
+    public Message savePtConfig(@RequestBody PtLoginConfig loginConfig) {
         loginConfig.setMasterId(this.getMaster().getId());
         loginConfig.setCreateTime(new Date());
         loginConfig.setUpdateTime(new Date());
         loginConfig.setCreateBy(this.getManager().getUsername());
         loginConfig.setUpdateBy(this.getManager().getUsername());
         ptLoginConfigService.saveOrUpdate(loginConfig);
-        return new Message().ok().addData("loginConfig",loginConfig);
+        return new Message().ok().addData("loginConfig", loginConfig);
     }
 
     @ApiOperation(value = "获取ptOssConfig", httpMethod = "GET")
     @GetMapping("/getPtConfig")
-    public Message getPtConfig(){
+    public Message getPtConfig() {
         GcMaster master = this.getMaster();
         QueryWrapper<PtLoginConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("master_id",master.getId());
+        queryWrapper.eq("master_id", master.getId());
         PtLoginConfig loginConfig = ptLoginConfigService.getOne(queryWrapper);
-        return new Message().ok().addData("ptConfig",loginConfig);
+        return new Message().ok().addData("ptConfig", loginConfig);
     }
 }

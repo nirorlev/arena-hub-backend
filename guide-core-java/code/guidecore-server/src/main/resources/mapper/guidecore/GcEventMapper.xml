@@ -45,6 +45,9 @@
             <id property="id" column="linkVideo_id"/>
             <result property="videoName" column="linkVideo_video_name"/>
             <result property="videoDesc" column="linkVideo_video_desc"/>
+            <result property="originCourseId" column="linkVideo_origin_course_id"/>
+
+            <association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
         </association>
         
         <association property="futurePreEvent" column="future_pre_event_id" javaType="GcEvent">
@@ -99,6 +102,28 @@
 
     </resultMap>
 
+    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+        <result property="userId" column="user_id"/>
+        <result property="createUser" column="user_id"/>
+        <result property="fid" column="fid"/>
+        <result property="availableType" column="available_type"/>
+        <result property="state" column="state"/>
+        <result property="subImgId" column="img_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="courseColumns">
+        course.id                         AS course_id,
+        course.name                       AS course_name,
+        course.fid                        AS course_fid,
+        course.state                      AS course_state,
+        course.available_type             AS course_available_type,
+        course.sub_img_id                 AS course_img_id,
+        course.create_time                AS course_create_time,
+        course.update_time                AS course_update_time
+    </sql>
+
     <sql id="baseColumn">
          e.id,e.upload_user,e.video_id,e.event_time,e.event_title,e.time_limit,e.event_type,e.ext,e.upload_type
          ,e.link_file_id,e.link_video_id,e.future_pre_event_id,e.future_delay_time,e.answer_message_flag
@@ -112,8 +137,9 @@
         linkFile.save_type as linkFile_save_type, linkFile.file_type_index as linkFile_file_type_index
     </sql>
     <sql id="linkVideoColumn">
-        ,linkVideo.id  as  linkVideo_id, linkVideo.video_name as  linkVideo_video_name, linkVideo.video_desc as  linkVideo_video_desc
+        ,linkVideo.id  as  linkVideo_id, linkVideo.video_name as  linkVideo_video_name, linkVideo.video_desc as  linkVideo_video_desc, linkVideo.origin_course_id as linkVideo_origin_course_id
     </sql>
+
     <sql id="futurePreEventColumn">
         ,futurePreEvent.id  as futurePreEvent_id, futurePreEvent.event_type as  futurePreEvent_event_type, 
         futurePreEvent.event_time as  futurePreEvent_event_time, futurePreEvent.event_title as  futurePreEvent_event_title
@@ -130,10 +156,12 @@
            <include refid="linkFileColumn"/>
            <include refid="linkVideoColumn"/>
            <include refid="futurePreEventColumn"/>
-           <include refid="answerListColumn"/>
+           <include refid="answerListColumn"/>,
+           <include refid="courseColumns"/>
         from gc_event e 
 		left join sys_file linkFile on e.link_file_id = linkFile.id 
 		left join gc_video linkVideo on e.link_video_id =linkVideo.id
+        left join gc_subject course ON course.id = linkVideo.origin_course_id
 		left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
 		left join gc_user_answer answer on answer.event_id=futurePreEvent.id and answer.user_id = #{userId}
 		where e.id = #{id} order by e.create_time
@@ -145,11 +173,13 @@
            <include refid="linkFileColumn"/>
            <include refid="linkVideoColumn"/>
            <include refid="futurePreEventColumn"/>
-           <include refid="answerListColumn"/>
-        from gc_event e 
-		left join sys_file linkFile on e.link_file_id = linkFile.id 
-		left join gc_video linkVideo on e.link_video_id =linkVideo.id
-		left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
+           <include refid="answerListColumn"/>,
+           <include refid="courseColumns"/>
+        from gc_event e
+		left join sys_file linkFile on e.link_file_id = linkFile.id
+        left join gc_video linkVideo on e.link_video_id =linkVideo.id
+        left join gc_subject course ON course.id = linkVideo.origin_course_id
+        left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
         left join gc_user_event ue on ue.event_id = e.id
         left join gc_user_answer answer on answer.event_id=futurePreEvent.id
 		where e.video_id = #{vid} and ue.master_id=#{masterId}
@@ -163,10 +193,12 @@
         <include refid="linkFileColumn"/>
         <include refid="linkVideoColumn"/>
         <include refid="futurePreEventColumn"/>
-        <include refid="answerListColumn"/>
+        <include refid="answerListColumn"/>,
+        <include refid="courseColumns"/>
         from gc_event e
         left join sys_file linkFile on e.link_file_id = linkFile.id
         left join gc_video linkVideo on e.link_video_id =linkVideo.id
+        left join gc_subject course ON course.id = linkVideo.origin_course_id
         left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
         left join gc_user_event ue on ue.event_id=e.id
         left join gc_user_answer answer on futurePreEvent.id=answer.event_id
