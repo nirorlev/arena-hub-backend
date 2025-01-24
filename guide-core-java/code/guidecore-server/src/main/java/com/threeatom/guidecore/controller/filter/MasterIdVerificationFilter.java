@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.filter;
 
 import static com.threeatom.guidecore.util.RequestUtil.getRequestAuthHeader;
 
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.guidecore.util.AuthorizationUtil;
 import java.io.IOException;
 import java.util.Optional;
@@ -45,6 +46,7 @@ public class MasterIdVerificationFilter implements Filter {
             if (!masterIdHeader.equals(masterIdJwtOptional.get())) {
                 LOG.error("The masterId in header '{}' and JWT payload '{}' do not match for request path '{}'", masterIdHeader,
                     masterIdJwtOptional.get(), httpServletRequest.getRequestURI());
+                throw new ForbiddenException("The masterId in header and JWT payload do not match");
             }
         } catch (Exception e) {
             LOG.error("Error while verifying masterId", e);
