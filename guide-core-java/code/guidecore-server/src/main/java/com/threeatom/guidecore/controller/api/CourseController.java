@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
@@ -8,6 +9,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
+import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -21,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,14 +39,24 @@ public class CourseController {
     private final GcUserService userService;
     private final PortalUserService portalUserService;
     private final CourseProgressService courseProgressService;
+    private final CourseSettingService courseSettingService;
 
     @PostMapping("/{courseId}/users")
     public ResponseEntity<Void> enrollToCourse(@PathVariable Integer courseId, HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        GcUser currentUser = userService.getCurrentUser(request);
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+        PortalUser portalUser = getPortalUser(request);
 
         courseEnrollmentService.enrollToCourse(portalUser, courseId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{courseId}/settings")
+    public ResponseEntity<Void> saveCourseSetting(@PathVariable Integer courseId,
+                                                  @RequestBody CourseSettingDto courseSetting,
+                                                  HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+
+        courseSettingService.save(courseId, courseSetting, portalUser);
 
         return ResponseEntity.ok().build();
     }
@@ -52,29 +65,28 @@ public class CourseController {
     public ResponseEntity<VideoWithSourceDetailsDto<VideoSourceDto>> courseVideo(@PathVariable Integer courseId,
                                                                                  @PathVariable Integer videoId,
                                                                                  HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        GcUser currentUser = userService.getCurrentUser(request);
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
-
+        PortalUser portalUser = getPortalUser(request);
         return ResponseEntity.ok(videoService.courseVideo(courseId, videoId, portalUser));
     }
 
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<CourseProgressDto> courseProgress(@PathVariable Integer courseId,
                                                             HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        GcUser currentUser = userService.getCurrentUser(request);
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+        PortalUser portalUser = getPortalUser(request);
 
         return ResponseEntity.ok(courseProgressService.courseProgress(courseId, portalUser));
     }
 
     @GetMapping("/{courseId}/program")
     public ResponseEntity<CourseProgramDto> courseProgram(@PathVariable Integer courseId, HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        GcUser currentUser = userService.getCurrentUser(request);
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+        PortalUser portalUser = getPortalUser(request);
 
         return ResponseEntity.ok(courseService.courseProgram(courseId, portalUser));
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }
