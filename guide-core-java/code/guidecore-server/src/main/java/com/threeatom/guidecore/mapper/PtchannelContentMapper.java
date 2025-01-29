@@ -13,4 +13,6 @@ public interface PtchannelContentMapper extends BaseMapper<PtChannelContent> {
             @Param("order") String order,
             @Param("fileId") Integer fileId,
             @Param("userId") Integer userId);
+
+    List<PtChannelContent> findChannelContent(@Param("channelId") Integer channelId);
 }
