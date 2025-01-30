@@ -9,6 +9,6 @@ import lombok.Setter;
 public class CourseProgressDetailsDto {
     private Integer id;
     private String name;
-    private ProgressDto progress;
+    private CourseTotalProgressDto progress;
     private CourseSettingDto compliance;
 }

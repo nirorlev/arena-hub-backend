@@ -34,6 +34,6 @@ public interface VideoPlaySessionService extends IService<VideoPlaySession> {
 
     Integer getVideoViewsCount(Integer videoId, Integer masterId);
 
-    Map<String, VideoViewerVideoDetailDto> videoViewerDetails(
+    Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(
         List<Integer> videoIds, PortalUser portalUser, OffsetDateTime start, OffsetDateTime end);
 }

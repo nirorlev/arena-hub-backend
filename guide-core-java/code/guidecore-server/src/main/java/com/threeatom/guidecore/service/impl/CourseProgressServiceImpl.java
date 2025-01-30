@@ -3,8 +3,11 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
+import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
+import com.threeatom.guidecore.dto.response.ProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
@@ -18,10 +21,8 @@ import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
-import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +38,6 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private final CourseContentService courseContentService;
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
-    private final VideoPlaySegmentService videoPlaySegmentService;
     private final VideoPlaySessionService videoPlaySessionService;
     private final CourseEnrollmentService courseEnrollmentService;
     private final CourseSettingService courseSettingService;
@@ -63,34 +63,66 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .collect(Collectors.toList());
 
         OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
-
-        Map<String, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
+        Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
             videoPlaySessionService.videoViewerDetails(videoIds, portalUser, start,
                 courseProgressEndDate(courseEnrollment));
-        Map<Integer, Double> videoIdToViewPercentage = videoIdToViewerVideoDetails.entrySet().stream()
-            .collect(Collectors.toMap(entry -> Integer.parseInt(entry.getKey()),
-                entry -> entry.getValue().getPercentageViewed()));
-
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
 
+
         CourseProgressDto courseProgressDto = new CourseProgressDto();
-        courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(
-            videoIdToViewPercentage.values()), courseSetting));
-        courseProgressDto.setContent(convertToProgressDto(videoIdToViewPercentage));
-        courseProgressDto.setSections(convertToProgressDto(videoIdToViewPercentage));
+        CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
+        Map<Integer, ProgressDetailsDto> sections = sectionsProgress(videos, videoIdToViewerVideoDetails);
+        courseProgressDetailsDto.setProgress(getCourseProgress(sections));
+
+        courseProgressDto.setCourse(courseProgressDetailsDto);
+        courseProgressDto.setSections(sections);
+        courseProgressDto.setContent(contentProgress(videos, videoIdToViewerVideoDetails));
         return courseProgressDto;
     }
 
-    private double getCourseProgress(Collection<Double> sectionsProgress) {
-        return sectionsProgress.stream()
-            .mapToDouble(Double::doubleValue)
-            .average()
-            .orElse(0);
+    private Map<Integer, ProgressDetailsDto> contentProgress(List<GcVideo> videos,
+                                                             Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails) {
+        return videos.stream()
+            .collect(Collectors.toMap(GcVideo::getId, video -> {
+                ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
+                ProgressDto progressDto = new ProgressDto();
+                VideoViewerVideoDetailDto videoViewerVideoDetailDto = videoIdToViewerVideoDetails.get(video.getId());
+                progressDetailsDto.setProgress(progressDto);
+                if (videoViewerVideoDetailDto == null) {
+                    return progressDetailsDto;
+                }
+
+                progressDto.setPercentage(videoViewerVideoDetailDto.getPercentageViewed());
+                progressDto.setSecondsViewed(videoViewerVideoDetailDto.getTotalViewTime());
+                return progressDetailsDto;
+            }));
     }
 
-    private Map<Integer, Double> sectionsProgress(List<GcVideo> videos, Map<Integer, Double> videoIdToProgress) {
+    private CourseTotalProgressDto getCourseProgress(Map<Integer, ProgressDetailsDto> sections) {
+        CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
+        int secondsViewed = sections.values().stream()
+            .map(ProgressDetailsDto::getProgress)
+            .mapToInt(ProgressDto::getSecondsViewed)
+            .sum();
+        int sectionsCompleted = (int) sections.values().stream()
+            .filter(progressDetailsDto -> progressDetailsDto.getProgress().getPercentage() > 90)
+            .count();
+
+        courseTotalProgressDto.setSecondsViewed(secondsViewed);
+        courseTotalProgressDto.setCompletedSectionsCount(sectionsCompleted);
+        courseTotalProgressDto.setPercentage((double) sectionsCompleted / sections.size() * 100);
+
+        return courseTotalProgressDto;
+    }
+
+    private Map<Integer, ProgressDetailsDto> sectionsProgress(List<GcVideo> videos,
+                                                              Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails) {
         Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
             .collect(Collectors.groupingBy(GcVideo::getSubId));
+        Map<Integer, Double> videoIdToProgress = videoIdToVideoViewerDetails.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getPercentageViewed()));
+        Map<Integer, Integer> videoIdToSecondsWatched = videoIdToVideoViewerDetails.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getTotalViewTime()));
 
         return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
@@ -99,16 +131,18 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                 long sectionViewedVideos = videos.stream()
                     .filter(video -> videoIdToProgress.getOrDefault(video.getId(), 0d) > 90)
                     .count();
+                double percentage = sectionViewedVideos / (double) sectionVideosSize;
+                int secondsWatched = videos.stream()
+                    .mapToInt(video -> videoIdToSecondsWatched.getOrDefault(video.getId(), 0))
+                    .sum();
 
-                return sectionViewedVideos / (double) sectionVideosSize;
-            }));
-    }
-
-    private Map<Integer, ProgressDetailsDto> convertToProgressDto(Map<Integer, Double> videoIdToProgress) {
-        return videoIdToProgress.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
                 ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
-                progressDetailsDto.setProgress(courseMapping.mapToProgress(entry.getValue()));
+                ProgressDto progressDto = new ProgressDto();
+
+                progressDto.setPercentage(percentage);
+                progressDto.setSecondsViewed(secondsWatched);
+
+                progressDetailsDto.setProgress(progressDto);
                 return progressDetailsDto;
             }));
     }

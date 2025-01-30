@@ -111,7 +111,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     @Override
-    public Map<String, VideoViewerVideoDetailDto> videoViewerDetails(
+    public Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(
         List<Integer> videoIds, PortalUser portalUser, OffsetDateTime start, OffsetDateTime end) {
 
         List<VideoPlaySession> playSessions =
@@ -122,7 +122,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
 
         return videoIdToViewSessions.entrySet().stream()
             .collect(Collectors.toMap(
-                entry -> String.valueOf(entry.getKey()), entry -> calculateVideoViewerDetails(entry.getValue())));
+                Map.Entry::getKey, entry -> calculateVideoViewerDetails(entry.getValue())));
     }
 
     private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {

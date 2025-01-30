@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ProgressDto {
-    private double percentage;
-    private int secondsViewed;
+public class CourseTotalProgressDto extends ProgressDto {
+    private Integer completedSectionsCount;
 }
