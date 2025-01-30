@@ -843,10 +843,10 @@
             <column name="course_id" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="course_completion_percentage" type="integer">
+            <column name="section_content_studied_percentage" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="content_completion_percentage" type="integer">
+            <column name="video_view_percentage" type="integer">
                 <constraints nullable="false"/>
             </column>
         </createTable>

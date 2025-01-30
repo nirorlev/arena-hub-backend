@@ -12,6 +12,6 @@ public class CourseSetting {
     private Integer id;
     private Integer courseId;
 
-    private Integer courseCompletionPercentage;
-    private Integer contentCompletionPercentage;
+    private Integer sectionContentStudiedPercentage;
+    private Integer videoViewPercentage;
 }

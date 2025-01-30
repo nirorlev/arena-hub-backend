@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CourseSettingDto {
-    private Integer courseCompletionPercentage;
-    private Integer contentCompletionPercentage;
+    private Integer sectionContentStudiedPercentage;
+    private Integer videoViewPercentage;
 }
