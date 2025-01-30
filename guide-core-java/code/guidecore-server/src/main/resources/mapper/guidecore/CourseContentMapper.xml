@@ -143,12 +143,13 @@
             JOIN sys_file video_file ON video.file_id = video_file.id
 
             JOIN gc_subject course ON video.origin_course_id = course.id
+            JOIN gc_subject section ON course_content.course_id = section.id
             JOIN gc_user course_owner ON course.create_user = course_owner.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = course.sub_img_id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
         WHERE course_content.course_id = #{courseId}
-        ORDER BY course_content.order
+        ORDER BY section.order, course_content.order
     </select>
 
 </mapper>
