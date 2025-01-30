@@ -28,6 +28,7 @@ public interface CourseMapping {
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
     VideoSourceDto map(GcSubject course);
 
+    @Mapping(target = "id", source = "course.id")
     CourseProgressDetailsDto mapToCourseProgress(GcSubject course, Double progress, CourseSetting compliance);
 
     ProgressDto mapToProgress(Double progress);
