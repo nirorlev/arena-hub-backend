@@ -119,7 +119,10 @@
         course_owner.id               AS course_user_id,
         course_owner_info.id          AS course_user_info_id,
         course_owner_info.first_name  AS course_user_info_first_name,
-        course_owner_info.last_name   AS course_user_info_last_name,
+        course_owner_info.last_name   AS course_user_info_last_name
+    </sql>
+
+    <sql id="courseOwnerAvatarColumns">
         course_owner_avatar.id        AS course_user_info_avatar_file_id,
         course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
         course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
@@ -133,7 +136,8 @@
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS video_comment_num,
             <include refid="courseColumns"/>,
             <include refid="courseAvatarFileColumns"/>,
-            <include refid="courseOwnerColumns"/>
+            <include refid="courseOwnerColumns"/>,
+            <include refid="courseOwnerAvatarColumns"/>
         FROM course_content
             JOIN gc_video video ON course_content.content_id = video.id
             JOIN sys_file video_file ON video.file_id = video_file.id
