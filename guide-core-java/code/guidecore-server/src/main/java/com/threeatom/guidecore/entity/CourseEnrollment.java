@@ -10,8 +10,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@TableName(autoResultMap = true)
-@NoArgsConstructor
+@TableName(value = "course_enrollments", autoResultMap = true)
 public class CourseEnrollment {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

@@ -941,7 +941,7 @@
             <include refid="courseAvatarFileColumns" />,
 
             <include refid="courseOwnerColumns" />,
-            <include refid="courseOwnerAvatarColumns" />
+            <include refid="courseOwnerAvatarColumns" />,
             f.target_lang_json as target_lang_json,
             gs.id as subId0,
             gs.name as topicName
