@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
@@ -36,6 +37,14 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         }
 
         save(createSetting(courseId, courseSetting));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CourseSetting findByCourseId(Integer courseId) {
+        QueryWrapper<CourseSetting> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("course_id", courseId);
+        return getOne(queryWrapper);
     }
 
     private CourseSetting createSetting(Integer courseId, CourseSettingDto courseSetting) {

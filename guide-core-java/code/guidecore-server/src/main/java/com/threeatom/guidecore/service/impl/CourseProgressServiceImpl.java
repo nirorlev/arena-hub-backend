@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
+import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -14,6 +15,7 @@ import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
+import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import java.util.Collection;
@@ -34,6 +36,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private final CourseMapping courseMapping;
     private final VideoPlaySegmentService videoPlaySegmentService;
     private final CourseEnrollmentService courseEnrollmentService;
+    private final CourseSettingService courseSettingService;
 
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
@@ -47,17 +50,20 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
+        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
+
         List<GcVideo> videos = courseContentService.findCourseContent(courseId).stream()
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
 
-        Map<Integer, Double> videoIdToProgress = videoPlaySegmentService.getVideoProgress(videos, portalUser, courseEnrollment);
+        Map<Integer, Double> videoIdToProgress =
+            videoPlaySegmentService.getVideoProgress(videos, portalUser, courseEnrollment);
         Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(
-            sectionIdToProgress.values())));
+            sectionIdToProgress.values()), courseSetting));
         courseProgressDto.setContent(convertToProgressDto(videoIdToProgress));
         courseProgressDto.setSections(convertToProgressDto(sectionIdToProgress));
         return courseProgressDto;

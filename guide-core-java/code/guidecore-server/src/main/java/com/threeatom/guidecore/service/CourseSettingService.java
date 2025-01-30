@@ -7,4 +7,6 @@ import com.threeatom.guidecore.entity.PortalUser;
 
 public interface CourseSettingService extends IService<CourseSetting> {
     void save(Integer courseId, CourseSettingDto courseSetting, PortalUser portalUser);
+
+    CourseSetting findByCourseId(Integer courseId);
 }
