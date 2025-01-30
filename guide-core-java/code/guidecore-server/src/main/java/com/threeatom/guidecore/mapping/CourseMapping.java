@@ -2,9 +2,9 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
+import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseSectionContentDto;
 import com.threeatom.guidecore.dto.response.CourseSectionDto;
-import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.ProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.CourseContent;
@@ -33,6 +33,11 @@ public interface CourseMapping {
     ProgressDto mapToProgress(Double progress);
 
     CourseSettingDto mapToSetting(CourseSetting courseSetting);
+
+    @Mapping(target = "courseId", source = "courseId")
+    @Mapping(target = "courseContentStudyPercentage", source = "courseSettingDto.courseContentStudyPercentage")
+    @Mapping(target = "singleVideoViewPercentage", source = "courseSettingDto.singleVideoViewPercentage")
+    CourseSetting mapToSetting(CourseSettingDto courseSettingDto, Integer courseId);
 
     @Mapping(target = "id", source = "course.id")
     @Mapping(target = "name", source = "course.name")
