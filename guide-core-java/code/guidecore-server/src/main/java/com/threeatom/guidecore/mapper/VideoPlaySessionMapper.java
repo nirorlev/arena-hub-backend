@@ -6,6 +6,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.entity.VideoPlaySession;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,4 +30,12 @@ public interface VideoPlaySessionMapper extends BaseMapper<VideoPlaySession> {
     List<VideoPlaySession> getVideoViewSessionsByViewerDetails(
         @Param("filter") VideoViewerDetailsDto filter,
         @Param("masterId") Integer masterId);
+
+    List<VideoPlaySession> findByVideoIdsAndUser(
+        @Param("videoIds") List<Integer> videoIds,
+        @Param("userId") Integer userId,
+        @Param("masterId") Integer masterId,
+        @Param("start") OffsetDateTime start,
+        @Param("end") OffsetDateTime end
+    );
 }

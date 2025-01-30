@@ -5,6 +5,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseSetting;
@@ -18,6 +19,7 @@ import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
+import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +38,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
     private final VideoPlaySegmentService videoPlaySegmentService;
+    private final VideoPlaySessionService videoPlaySessionService;
     private final CourseEnrollmentService courseEnrollmentService;
     private final CourseSettingService courseSettingService;
 
@@ -55,20 +58,26 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
+        List<Integer> videoIds = videos.stream()
+            .map(GcVideo::getId)
+            .collect(Collectors.toList());
+
         OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
 
-        Map<Integer, Double> videoIdToProgress =
-            videoPlaySegmentService.getVideoProgress(videos, portalUser,
-                start, courseProgressEndDate(courseEnrollment));
-        Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
+        Map<String, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
+            videoPlaySessionService.videoViewerDetails(videoIds, portalUser, start,
+                courseProgressEndDate(courseEnrollment));
+        Map<Integer, Double> videoIdToViewPercentage = videoIdToViewerVideoDetails.entrySet().stream()
+            .collect(Collectors.toMap(entry -> Integer.parseInt(entry.getKey()),
+                entry -> entry.getValue().getPercentageViewed()));
 
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(
-            sectionIdToProgress.values()), courseSetting));
-        courseProgressDto.setContent(convertToProgressDto(videoIdToProgress));
-        courseProgressDto.setSections(convertToProgressDto(sectionIdToProgress));
+            videoIdToViewPercentage.values()), courseSetting));
+        courseProgressDto.setContent(convertToProgressDto(videoIdToViewPercentage));
+        courseProgressDto.setSections(convertToProgressDto(videoIdToViewPercentage));
         return courseProgressDto;
     }
 
