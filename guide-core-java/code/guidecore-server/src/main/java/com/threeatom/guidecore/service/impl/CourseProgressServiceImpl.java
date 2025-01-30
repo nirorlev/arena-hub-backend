@@ -6,11 +6,13 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.entity.CourseContent;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
@@ -31,14 +33,18 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
     private final VideoPlaySegmentService videoPlaySegmentService;
+    private final CourseEnrollmentService courseEnrollmentService;
 
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
         GcSubject course = courseService.getById(courseId);
-
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
             throw new ForbiddenException("You have no access to this course");
+        }
+        CourseEnrollment courseEnrollment = courseEnrollmentService.getCourseEnrollment(portalUser, courseId);
+        if (courseEnrollment == null) {
+            log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
         List<GcVideo> videos = courseContentService.findCourseContent(courseId).stream()
@@ -46,7 +52,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
 
-        Map<Integer, Double> videoIdToProgress = videoPlaySegmentService.getVideoProgress(videos, portalUser);
+        Map<Integer, Double> videoIdToProgress = videoPlaySegmentService.getVideoProgress(videos, portalUser, courseEnrollment);
         Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();

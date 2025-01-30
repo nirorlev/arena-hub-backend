@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
@@ -37,6 +38,15 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         CourseEnrollment courseEnrollment = createCourseUser(portalUser, courseId);
 
         save(courseEnrollment);
+    }
+
+    @Override
+    public CourseEnrollment getCourseEnrollment(PortalUser portalUser, Integer courseId) {
+        QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", portalUser.getUserId());
+        queryWrapper.eq("course_id", courseId);
+
+        return getOne(queryWrapper);
     }
 
     private CourseEnrollment createCourseUser(PortalUser portalUser, Integer courseId) {

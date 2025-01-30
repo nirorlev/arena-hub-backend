@@ -9,6 +9,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -100,12 +101,14 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     }
 
     @Override
-    public Map<Integer, Double> getVideoProgress(List<GcVideo> videos, PortalUser portalUser) {
+    public Map<Integer, Double> getVideoProgress(List<GcVideo> videos, PortalUser portalUser,
+                                                 CourseEnrollment courseEnrollment) {
         List<Integer> videoIds = videos.stream()
             .map(GcVideo::getId)
             .collect(Collectors.toList());
         List<DbAnalyticsResultVideoIdDto> videoViewedTimeByUser =
-            baseMapper.videoViewedTimeByUser(videoIds, portalUser.getUserId(), portalUser.getMasterId());
+            baseMapper.videoViewedTimeByUser(videoIds, portalUser.getUserId(),
+                portalUser.getMasterId(), courseEnrollment.getCreateTime(), courseEnrollment.getCompletionDate());
         Map<Integer, Double> videoIdToViewedSeconds = videoViewedTimeByUser.stream()
             .collect(Collectors.toMap(DbAnalyticsResultVideoIdDto::getVideoId, DbAnalyticsResultVideoIdDto::getValue));
 
