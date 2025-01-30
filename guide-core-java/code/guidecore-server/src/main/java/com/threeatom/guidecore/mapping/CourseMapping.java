@@ -56,10 +56,10 @@ public interface CourseMapping {
         }
 
         CourseSectionDto sectionDto = new CourseSectionDto();
-        GcSubject course = courseContent.get(0).getCourse();
+        GcSubject section = courseContent.get(0).getCourse();
 
-        sectionDto.setId(course.getId());
-        sectionDto.setName(course.getName());
+        sectionDto.setId(section.getId());
+        sectionDto.setName(section.getName());
 
         List<CourseSectionContentDto> sectionContent = courseContent.stream()
             .map(this::mapCourseSectionContent)
