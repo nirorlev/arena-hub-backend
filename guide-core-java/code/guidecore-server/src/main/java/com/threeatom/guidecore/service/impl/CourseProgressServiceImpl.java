@@ -50,8 +50,6 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
-        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
-
         List<GcVideo> videos = courseContentService.findCourseContent(courseId).stream()
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
@@ -60,6 +58,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         Map<Integer, Double> videoIdToProgress =
             videoPlaySegmentService.getVideoProgress(videos, portalUser, courseEnrollment);
         Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
+
+        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, getCourseProgress(
