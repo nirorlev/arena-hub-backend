@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,6 +58,17 @@ public class CourseController {
         PortalUser portalUser = getPortalUser(request);
 
         courseSettingService.save(courseId, courseSetting, portalUser);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{courseId}/settings")
+    public ResponseEntity<Void> updateCourseSetting(@PathVariable Integer courseId,
+                                                    @RequestBody CourseSettingDto courseSetting,
+                                                    HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+
+        courseSettingService.update(courseId, courseSetting, portalUser);
 
         return ResponseEntity.ok().build();
     }

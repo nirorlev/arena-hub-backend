@@ -50,4 +50,19 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         return getOne(queryWrapper);
     }
 
+    @Override
+    public void update(Integer courseId, CourseSettingDto courseSettingDto, PortalUser portalUser) {
+        GcSubject course = courseService.getById(courseId);
+        if (course == null) {
+            throw new ResourceNotFoundException("Course with specified id not found");
+        }
+        if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
+            throw new ForbiddenException("No permission to edit this course");
+        }
+
+        CourseSetting courseSetting = findByCourseId(courseId);
+        courseMapping.mapToUpdateSetting(courseSetting, courseSettingDto);
+        updateById(courseSetting);
+    }
+
 }
