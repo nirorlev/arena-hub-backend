@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VideoViewerVideoDetailDto {
-    private Double percentageViewed;
-    private Integer totalViewTime;
-    private Integer viewSessions;
+    private double percentageViewed;
+    private int totalViewTime;
+    private int viewSessions;
 }

@@ -99,6 +99,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     }
 
     private CourseTotalProgressDto getCourseProgress(Map<Integer, ProgressDetailsDto> sections) {
+        if (sections.isEmpty()) {
+            return new CourseTotalProgressDto();
+        }
+
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         int secondsViewed = sections.values().stream()
             .map(ProgressDetailsDto::getProgress)

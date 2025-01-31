@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @Transactional
@@ -113,6 +114,10 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     @Override
     public Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(
         List<Integer> videoIds, PortalUser portalUser, OffsetDateTime start, OffsetDateTime end) {
+
+        if (CollectionUtils.isEmpty(videoIds)) {
+            return Map.of();
+        }
 
         List<VideoPlaySession> playSessions =
             baseMapper.findByVideoIdsAndUser(videoIds, portalUser.getUserId(), portalUser.getMasterId(), start, end);
