@@ -140,6 +140,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private PtChannelSubscribeService channelSubscribeService;
 	@Autowired
 	private UnavailableVideoService unavailableVideoService;
+	@Autowired
+	private CourseContentService courseContentService;
 
 	@Override
 	public List<GcVideo> getVideoListBySubIds(List<Integer> subIds) {
@@ -579,6 +581,8 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		newVideoFile.setFullFileUrl(fullFileUrl);
 		video.setVideoFile(newVideoFile);
 		updateCourseTags(Collections.singletonList(video), masterId);
+
+		courseContentService.saveCourseContents(Collections.singletonList(video));
 
 		return savedSuccessfully;
 	}
