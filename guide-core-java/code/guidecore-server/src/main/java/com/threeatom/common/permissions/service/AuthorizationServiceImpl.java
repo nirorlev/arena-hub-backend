@@ -112,6 +112,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
+    public Map<String, Boolean> listPermissions(GcSubject course, PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        PermitCourse permitCourse = authorizationItemService.create(course);
+
+        return convertKeysToString(courseAuthorizationService.listPermissions(permitUser, permitCourse));
+    }
+
+    @Override
     public Map<String, Boolean> listPermissions(GcVideo video, PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         PermitVideoItem permitVideoItem = authorizationItemService.create(video);
