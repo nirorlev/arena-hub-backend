@@ -1046,7 +1046,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subject.setCourseState(TableConstant.COMMON_ZERO);
 			}
 
-			if ((subject.getCreateUser().equals(userId)|| gcUser.getIsOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
+			if ((subject.getCreateUser().equals(userId)|| portalUser.isOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
 				subject.setMode(TableConstant.COMMON_ONE);
 			}else {
 				subject.setMode(TableConstant.COMMON_ZERO);
