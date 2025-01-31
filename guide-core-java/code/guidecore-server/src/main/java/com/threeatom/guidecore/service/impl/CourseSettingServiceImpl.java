@@ -31,7 +31,7 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         if (course == null) {
             throw new ResourceNotFoundException("Course with specified id not found");
         }
-        if (authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
+        if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             throw new ForbiddenException("No permission to edit this course");
         }
 
