@@ -56,11 +56,15 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         if (course == null) {
             throw new ResourceNotFoundException("Course with specified id not found");
         }
+        CourseSetting courseSetting = findByCourseId(courseId);
+        if (courseSetting == null) {
+            throw new ResourceNotFoundException("Course setting not found");
+        }
+
         if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             throw new ForbiddenException("No permission to edit this course");
         }
 
-        CourseSetting courseSetting = findByCourseId(courseId);
         courseMapping.mapToUpdateSetting(courseSetting, courseSettingDto);
         updateById(courseSetting);
     }
