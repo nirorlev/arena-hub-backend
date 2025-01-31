@@ -799,4 +799,17 @@
     <changeSet id="alter-gc-event-ext-column" author="vprokh">
         <modifyDataType tableName="gc_event" columnName="ext" newDataType="varchar"/>
     </changeSet>
+
+    <changeSet id="alter-course-content-constraints" author="vprokh">
+        <dropForeignKeyConstraint baseTableName="course_content" constraintName="course_content_gc_subject_id_fk"/>
+        <addForeignKeyConstraint baseTableName="course_content" baseColumnNames="course_id"
+                                 constraintName="course_content_gc_subject_id_fk" referencedTableName="gc_subject"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="course_content" constraintName="course_content_gc_video_id_fk"/>
+        <addForeignKeyConstraint baseTableName="course_content" baseColumnNames="content_id"
+                                 constraintName="course_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>
