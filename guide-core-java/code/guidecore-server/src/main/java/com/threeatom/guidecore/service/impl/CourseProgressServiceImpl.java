@@ -25,6 +25,7 @@ import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,11 +69,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                 courseProgressEndDate(courseEnrollment));
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
 
-
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
-        Map<Integer, ProgressDetailsDto> sections = sectionsProgress(videos, videoIdToViewerVideoDetails);
-        courseProgressDetailsDto.setProgress(getCourseProgress(sections));
+        Map<Integer, ProgressDetailsDto> sections =
+            sectionsProgress(videos, videoIdToViewerVideoDetails, courseSetting);
+        courseProgressDetailsDto.setProgress(getCourseProgress(sections, courseSetting));
 
         courseProgressDto.setCourse(courseProgressDetailsDto);
         courseProgressDto.setSections(sections);
@@ -98,18 +99,22 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             }));
     }
 
-    private CourseTotalProgressDto getCourseProgress(Map<Integer, ProgressDetailsDto> sections) {
+    private CourseTotalProgressDto getCourseProgress(Map<Integer, ProgressDetailsDto> sections,
+                                                     CourseSetting courseSetting) {
         if (sections.isEmpty()) {
             return new CourseTotalProgressDto();
         }
 
+        Integer sectionContentStudiedPercentage =
+            Optional.ofNullable(courseSetting).map(CourseSetting::getSectionContentStudiedPercentage).orElse(90);
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         int secondsViewed = sections.values().stream()
             .map(ProgressDetailsDto::getProgress)
             .mapToInt(ProgressDto::getSecondsViewed)
             .sum();
         int sectionsCompleted = (int) sections.values().stream()
-            .filter(progressDetailsDto -> progressDetailsDto.getProgress().getPercentage() > 90)
+            .filter(progressDetailsDto ->
+                progressDetailsDto.getProgress().getPercentage() > sectionContentStudiedPercentage)
             .count();
 
         courseTotalProgressDto.setSecondsViewed(secondsViewed);
@@ -120,7 +125,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     }
 
     private Map<Integer, ProgressDetailsDto> sectionsProgress(List<GcVideo> videos,
-                                                              Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails) {
+                                                              Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails,
+                                                              CourseSetting courseSetting) {
+        Integer videoViewPercentage =
+            Optional.ofNullable(courseSetting).map(CourseSetting::getVideoViewPercentage).orElse(90);
         Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
             .collect(Collectors.groupingBy(GcVideo::getSubId));
         Map<Integer, Double> videoIdToProgress = videoIdToVideoViewerDetails.entrySet().stream()
@@ -133,7 +141,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                 List<GcVideo> sectionVideos = entry.getValue();
                 int sectionVideosSize = sectionVideos.size();
                 long sectionViewedVideos = videos.stream()
-                    .filter(video -> videoIdToProgress.getOrDefault(video.getId(), 0d) > 90)
+                    .filter(video -> videoIdToProgress.getOrDefault(video.getId(), 0d) > videoViewPercentage)
                     .count();
                 double percentage = sectionViewedVideos / (double) sectionVideosSize;
                 int secondsWatched = videos.stream()
