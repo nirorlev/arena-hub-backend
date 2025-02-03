@@ -6,4 +6,6 @@ import com.threeatom.guidecore.entity.PortalUser;
 
 public interface CourseEnrollmentService extends IService<CourseEnrollment> {
     void enrollToCourse(PortalUser portalUser, Integer courseId);
+
+    CourseEnrollment getCourseEnrollment(PortalUser portalUser, Integer courseId);
 }

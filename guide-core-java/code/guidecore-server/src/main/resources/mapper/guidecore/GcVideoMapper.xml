@@ -206,7 +206,10 @@
         course_owner.id               AS course_user_id,
         course_owner_info.id          AS course_user_info_id,
         course_owner_info.first_name  AS course_user_info_first_name,
-        course_owner_info.last_name   AS course_user_info_last_name,
+        course_owner_info.last_name   AS course_user_info_last_name
+    </sql>
+
+    <sql id="courseOwnerAvatarColumns">
         course_owner_avatar.id        AS course_user_info_avatar_file_id,
         course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
         course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
@@ -841,7 +844,8 @@
             <include refid="courseColumns" />,
             <include refid="courseAvatarFileColumns" />,
 
-            <include refid="courseOwnerColumns" />
+            <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             <if test="!filter.contentGroupIds.empty">
@@ -887,7 +891,8 @@
             <include refid="courseColumns" />,
             <include refid="courseAvatarFileColumns" />,
 
-            <include refid="courseOwnerColumns" />
+            <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
@@ -936,6 +941,7 @@
             <include refid="courseAvatarFileColumns" />,
 
             <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />
             f.target_lang_json as target_lang_json,
             gs.id as subId0,
             gs.name as topicName

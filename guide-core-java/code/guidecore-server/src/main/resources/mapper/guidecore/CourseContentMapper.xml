@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.CourseContentMapper">
+
+    <resultMap id="baseResultMap" type="CourseContent" autoMapping="true">
+        <id property="id" column="id"/>
+
+        <result property="courseId" column="course_id"/>
+        <result property="contentId" column="content_id"/>
+        <result property="order" column="order"/>
+
+        <association property="course" resultMap="courseResultMap" columnPrefix="course_"/>
+        <association property="video" resultMap="videoResultMap" columnPrefix="video_"/>
+    </resultMap>
+
+    <resultMap id="videoResultMap" type="GcVideo">
+        <id property="id" column="id"/>
+        <result property="videoName" column="name"/>
+        <result property="videoNameIndex" column="name_index"/>
+        <result property="videoDesc" column="desc"/>
+        <result property="fileId" column="file_id"/>
+        <result property="subId" column="sub_id"/>
+        <result property="sourceUrl" column="source_url"/>
+        <result property="videoSource" column="source"/>
+        <result property="order" column="order"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="commentNum" column="comment_num"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="videoTime" column="time"/>
+        <result property="originCourseId" column="origin_course_id"/>
+        <result property="originChannelId" column="origin_channel_id"/>
+        <result property="userId" column="user_id"/>
+        <association property="videoFile" column="file_id" javaType="SysFile" columnPrefix="video_file_">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+            <result property="fileUrl" column="file_url"/>
+            <result property="saveType" column="save_type"/>
+            <result property="fileType" column="file_type"/>
+            <result property="videoLong" column="video_long"/>
+            <result property="fileTypeIndex" column="file_type_index"/>
+            <result property="snapshotUrl" column="snapshot_url"/>
+            <result property="thumbNailId" column="thumb_nail_id"/>
+            <result property="thumbNailUrl" column="thumb_nail_url"/>
+        </association>
+
+        <association property="originCourse" resultMap="courseResultMap" columnPrefix="video_origin_course_"/>
+    </resultMap>
+
+    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true">
+        <id property="id" column="id"/>
+
+        <result property="userId" column="user_id"/>
+        <result property="createUser" column="user_id"/>
+        <result property="fid" column="fid"/>
+        <result property="availableType" column="available_type"/>
+        <result property="state" column="state"/>
+        <result property="subImgId" column="img_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+
+        <association property="subImgFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
+        <association resultMap="userResultMap" columnPrefix="user_" property="userInfo" column="create_user"
+                     javaType="GcUser" autoMapping="true"/>
+    </resultMap>
+
+    <resultMap id="avatarFileResultMap" type="com.threeatom.system.entity.SysFile">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="fileUrl" column="url"/>
+        <result property="saveType" column="save_type"/>
+        <result property="fileType" column="type"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
+        <id property="id" column="id"/>
+        <association property="info" resultMap="userInfoResultMap" columnPrefix="info_"/>
+    </resultMap>
+
+    <resultMap id="userInfoResultMap" type="com.threeatom.guidecore.entity.GcUserInfo">
+        <id property="id" column="id"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="avatarFileId" column="avatar_file_id"/>
+        <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
+    </resultMap>
+
+    <sql id="videoColumns">
+        video.id as video_id, video.video_name as video_name, video.video_name_index as video_name_index, video.video_desc as video_desc,
+        video.file_id as video_file_id, video.sub_id as video_sub_id, video.source_url as video_source_url, video.video_source as video_source,
+        video.order as video_order, video.update_time as video_update_time, video.create_time as video_create_time,
+        video.thumbnail_url as video_thumbnail_url, video.video_time as video_time, video.origin_course_id as video_origin_course_id
+    </sql>
+
+    <sql id="videoFileColumns">
+        video_file.id as video_file_id, video_file.name as video_file_name, video_file.file_url as video_file_url,
+        video_file.save_type as video_file_save_type, video_file.video_long as video_file_video_long,
+        video_file.file_type_index as video_file_type_index, video_file.thumb_nail_url as video_file_thumb_nail_url,
+        video_file.thumb_nail_id as video_file_thumb_nail_id, video_file.file_type as video_file_type, video_file.upload_uid as video_user_id
+    </sql>
+
+    <sql id="videoOriginCourseColumns">
+        video_origin_course.id                         AS video_origin_course_id,
+        video_origin_course.name                       AS video_origin_course_name,
+        video_origin_course.fid                        AS video_origin_course_fid,
+        video_origin_course.state                      AS video_origin_course_state,
+        video_origin_course.available_type             AS video_origin_course_available_type,
+        video_origin_course.sub_img_id                 AS video_origin_course_img_id,
+        video_origin_course.create_time                AS video_origin_course_create_time,
+        video_origin_course.update_time                AS video_origin_course_update_time
+    </sql>
+
+    <sql id="courseColumns">
+        course.id                         AS course_id,
+        course.name                       AS course_name,
+        course.fid                        AS course_fid,
+        course.state                      AS course_state,
+        course.available_type             AS course_available_type,
+        course.sub_img_id                 AS course_img_id,
+        course.create_time                AS course_create_time,
+        course.update_time                AS course_update_time
+    </sql>
+
+    <sql id="videoOriginCourseAvatarFileColumns">
+        course_avatar.id              AS video_origin_course_avatar_file_id,
+        course_avatar.name            AS video_origin_course_avatar_file_name,
+        course_avatar.file_url        AS video_origin_course_avatar_file_url,
+        course_avatar.save_type       AS video_origin_course_avatar_file_save_type,
+        course_avatar.file_type       AS video_origin_course_avatar_file_type
+    </sql>
+
+    <sql id="videoOriginCourseOwnerColumns">
+        course_owner.id               AS video_origin_course_user_id,
+        course_owner_info.id          AS video_origin_course_user_info_id,
+        course_owner_info.first_name  AS video_origin_course_user_info_first_name,
+        course_owner_info.last_name   AS video_origin_course_user_info_last_name
+    </sql>
+
+    <sql id="videoOriginCourseOwnerAvatarColumns">
+        course_owner_avatar.id        AS video_origin_course_user_info_avatar_file_id,
+        course_owner_avatar.file_url  AS video_origin_course_user_info_avatar_file_url,
+        course_owner_avatar.save_type AS video_origin_course_user_info_avatar_file_save_type,
+        course_owner_avatar.file_type AS video_origin_course_user_info_avatar_filetype
+    </sql>
+
+    <select id="findCourseContent" resultMap="baseResultMap">
+        SELECT course_content.id, course_content.course_id, course_content.content_id, course_content.order,
+            <include refid="videoColumns"/>,
+            <include refid="videoFileColumns"/>,
+            (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS video_comment_num,
+            <include refid="courseColumns"/>,
+            <include refid="videoOriginCourseColumns"/>,
+            <include refid="videoOriginCourseAvatarFileColumns"/>,
+            <include refid="videoOriginCourseOwnerColumns"/>,
+            <include refid="videoOriginCourseOwnerAvatarColumns"/>
+        FROM course_content
+            JOIN gc_subject course ON course_content.course_id = course.id
+
+            JOIN gc_video video ON course_content.content_id = video.id
+            JOIN sys_file video_file ON video.file_id = video_file.id
+
+            JOIN gc_subject video_origin_course ON video.origin_course_id = video_origin_course.id
+            JOIN gc_subject section ON course_content.course_id = section.id
+            JOIN gc_user course_owner ON video_origin_course.create_user = course_owner.id
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = video_origin_course.sub_img_id
+            LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
+            LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
+        WHERE course_content.course_id = #{courseId} OR course_content.course_id IN (SELECT id FROM gc_subject WHERE fid = #{courseId})
+        ORDER BY section.order, course_content.order
+    </select>
+
+</mapper>
