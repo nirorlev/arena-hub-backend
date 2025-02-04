@@ -1548,14 +1548,13 @@ public class PowtoonController extends GuideCoreController {
 
 
     private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, Map<String, String> parameters) {
-        String powtoonAuthResponse =
-            HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(),
-                parameters);
-        if (powtoonAuthResponse == null) {
+        PowtoonAuthDto powtoonAuthDto =
+            powtoonClient.getAuthToken(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken()), parameters);
+        if (powtoonAuthDto == null) {
             throw new SystemException("Powtoon Token is null");
         }
 
-        return JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
+        return powtoonAuthDto;
     }
 
     private Map<String, String> getTokenRequestBody(String code, String redirectUri, PtLoginConfig loginConfig) {

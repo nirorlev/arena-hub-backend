@@ -1,6 +1,7 @@
 package com.threeatom.client;
 
 
+import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import java.net.URI;
@@ -22,5 +23,8 @@ public interface PowtoonClient {
     PtGroupsVo getGroups(URI baseUrl, @RequestHeader("Authorization") String token);
 
     @PostMapping(produces = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    PtGroupsVo logOut(URI baseUrl, @RequestBody Map<String, String> body);
+    void logOut(URI baseUrl, @RequestBody Map<String, String> body);
+
+    @PostMapping(produces = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    PowtoonAuthDto getAuthToken(URI baseUrl, @RequestBody Map<String, String> body);
 }

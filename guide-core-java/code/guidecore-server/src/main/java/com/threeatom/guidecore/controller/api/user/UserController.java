@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.controller.api.user;
 
-import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.exceptions.ClientException;
+import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
@@ -22,10 +22,10 @@ import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.HttpUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +57,7 @@ public class UserController {
     private final SysFileService sysFileService;
     private final SysMenuService sysMenuService;
     private final PortalUserService portalUserService;
+    private final PowtoonClient powtoonClient;
 
     @ApiOperation(value = "Get publish permissions of the current user according to org license limits")
     @GetMapping("/me/permissions")
@@ -132,12 +133,11 @@ public class UserController {
         }
 
         Map<String, String> body = getTokenRequestBody(user, ptLoginConfig);
-        String authResponse =
-            HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
-        PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
+        PowtoonAuthDto powtoonAuthDto =
+            powtoonClient.getAuthToken(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken()), body);
 
-        updateAuthInRedis(user, authInfo);
-        userService.syncPowtoonUser(authInfo.getAccessToken(), ptLoginConfig, masterId);
+        updateAuthInRedis(user, powtoonAuthDto);
+        userService.syncPowtoonUser(powtoonAuthDto.getAccessToken(), ptLoginConfig, masterId);
     }
 
     private Map<String, String> getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
