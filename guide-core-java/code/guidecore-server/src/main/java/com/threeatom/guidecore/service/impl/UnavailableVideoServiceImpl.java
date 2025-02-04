@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
-    private static final String FEATURE_NAME = "unavailableVideoRandomEnabled";
-
     private final FeatureToggleService featureToggleService;
     private final AuthorizationService authorizationService;
 
@@ -61,15 +59,11 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     @Override
     public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos) {
         videos.stream()
-            .filter(video -> isVideoUnavailable(portalUser, video))
+            .filter(video -> isVideoAvailable(portalUser, video))
             .forEach(video -> {
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
                 videoNullifySuppliers.forEach(supplier -> supplier.accept(video));
             });
-    }
-
-    private boolean featureIsEnabled() {
-        return Boolean.parseBoolean(featureToggleService.getFeatureToggle(FEATURE_NAME).getValue());
     }
 
     @Override
@@ -79,15 +73,14 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
 
     @Override
     public void nullifyVideoComments(PortalUser portalUser, GcVideo video, PageInfo<GcVideoComment> comments) {
-        if (!isVideoUnavailable(portalUser, video)) {
+        if (isVideoAvailable(portalUser, video)) {
             return;
         }
 
         comments.getList().clear();
     }
 
-    private boolean isVideoUnavailable(PortalUser portalUser, GcVideo video) {
-        boolean isViewAllowed = authorizationService.checkAccess(video, PermitAction.VIEW, portalUser);
-        return featureIsEnabled() && !isViewAllowed;
+    private boolean isVideoAvailable(PortalUser portalUser, GcVideo video) {
+        return authorizationService.checkAccess(video, PermitAction.VIEW, portalUser);
     }
 }
