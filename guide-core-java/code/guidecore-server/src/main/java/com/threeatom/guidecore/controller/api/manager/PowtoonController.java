@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonAuthDto;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
@@ -107,6 +108,7 @@ import io.swagger.annotations.ApiParam;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -281,6 +283,8 @@ public class PowtoonController extends GuideCoreController {
     private PortalUserService portalUserService;
     @Autowired
     private EventPublisherService eventPublisherService;
+    @Autowired
+    private PowtoonClient powtoonClient;
 
     @ApiOperation(value = "Search videos", httpMethod = "POST")
     @PostMapping("search")
@@ -892,18 +896,21 @@ public class PowtoonController extends GuideCoreController {
         String accessToken = (String) redisOperator.get("PT:" + user.getUsername());
         Map<String, String> body = new HashMap<>();
 
-        if (null != accessToken) {
-            PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
-            body.put("token", accessToken);
-            body.put("client_id", ptLoginConfig.getClientId());
-            try {
-                HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getLogOut(), body);
-            } catch (Exception e) {
-                String msg = e.getMessage();
-                throw new SystemException(I18NUtil.get("powtoon.S3upload.error") + msg);
-            }
-            redisOperator.del("PT:" + user.getUsername());
+        if (null == accessToken) {
+            return new Message().ok();
         }
+
+        PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
+        body.put("token", accessToken);
+        body.put("client_id", ptLoginConfig.getClientId());
+        try {
+            powtoonClient.logOut(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getLogOut()), body);
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            throw new SystemException(I18NUtil.get("powtoon.S3upload.error") + msg);
+        }
+
+        redisOperator.del("PT:" + user.getUsername());
 
         return new Message().ok();
     }
