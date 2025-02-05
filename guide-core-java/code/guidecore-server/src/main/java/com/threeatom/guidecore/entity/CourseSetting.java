@@ -1,9 +1,9 @@
 package com.threeatom.guidecore.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,11 +14,12 @@ public class CourseSetting implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
-
+    @TableId
     private Integer courseId;
 
-    private Integer sectionContentStudiedPercentage;
-    private Integer videoViewPercentage;
+    private Integer courseContentStudyPercentage;
+    private Integer singleVideoViewPercentage;
+
+    private OffsetDateTime createdTime = OffsetDateTime.now();
+    private OffsetDateTime updatedTime = OffsetDateTime.now();
 }

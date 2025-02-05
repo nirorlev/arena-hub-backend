@@ -41,8 +41,8 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
     private CourseSetting createSetting(Integer courseId, CourseSettingDto courseSetting) {
         CourseSetting courseSettingEntity = new CourseSetting();
         courseSettingEntity.setCourseId(courseId);
-        courseSettingEntity.setSectionContentStudiedPercentage(courseSetting.getSectionContentStudiedPercentage());
-        courseSettingEntity.setVideoViewPercentage(courseSetting.getVideoViewPercentage());
+        courseSettingEntity.setCourseContentStudyPercentage(courseSetting.getCourseContentStudyPercentage());
+        courseSettingEntity.setSingleVideoViewPercentage(courseSetting.getSingleVideoViewPercentage());
         return courseSettingEntity;
     }
 }
