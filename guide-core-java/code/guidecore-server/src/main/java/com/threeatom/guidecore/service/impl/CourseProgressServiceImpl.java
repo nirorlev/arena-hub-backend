@@ -55,13 +55,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
-        List<GcVideo> videos = courseContentService.findCourseContent(courseId).stream()
-            .map(CourseContent::getVideo)
-            .filter(video -> video.getSubId() != null)
-            .collect(Collectors.toList());
-        List<Integer> videoIds = videos.stream()
-            .map(GcVideo::getId)
-            .collect(Collectors.toList());
+        List<GcVideo> videos = getCourseVideos(courseId);
+        List<Integer> videoIds = getCourseVideoIds(videos);
 
         OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
@@ -76,9 +71,22 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         courseProgressDetailsDto.setProgress(getCourseProgress(sections, courseSetting));
 
         courseProgressDto.setCourse(courseProgressDetailsDto);
-        courseProgressDto.setSections(sections);
-        courseProgressDto.setContent(contentProgress(videos, videoIdToViewerVideoDetails));
+        courseProgressDto.setSections(convertKeyToString(sections));
+        courseProgressDto.setContent(convertKeyToString(contentProgress(videos, videoIdToViewerVideoDetails)));
         return courseProgressDto;
+    }
+
+    private List<Integer> getCourseVideoIds(List<GcVideo> videos) {
+        return videos.stream()
+            .map(GcVideo::getId)
+            .collect(Collectors.toList());
+    }
+
+    private List<GcVideo> getCourseVideos(Integer courseId) {
+        return courseContentService.findCourseContent(courseId).stream()
+            .map(CourseContent::getVideo)
+            .filter(video -> video.getSubId() != null)
+            .collect(Collectors.toList());
     }
 
     private Map<Integer, ProgressDetailsDto> contentProgress(List<GcVideo> videos,
@@ -106,7 +114,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         }
 
         Integer sectionContentStudiedPercentage =
-            Optional.ofNullable(courseSetting).map(CourseSetting::getSectionContentStudiedPercentage).orElse(90);
+            Optional.ofNullable(courseSetting).map(CourseSetting::getCourseContentStudyPercentage).orElse(90);
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         int secondsViewed = sections.values().stream()
             .map(ProgressDetailsDto::getProgress)
@@ -128,35 +136,46 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                                                               Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails,
                                                               CourseSetting courseSetting) {
         Integer videoViewPercentage =
-            Optional.ofNullable(courseSetting).map(CourseSetting::getVideoViewPercentage).orElse(90);
+            Optional.ofNullable(courseSetting).map(CourseSetting::getSingleVideoViewPercentage).orElse(90);
         Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
             .collect(Collectors.groupingBy(GcVideo::getSubId));
-        Map<Integer, Double> videoIdToProgress = videoIdToVideoViewerDetails.entrySet().stream()
+        Map<Integer, Double> videoIdToPercentViewed = videoIdToVideoViewerDetails.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getPercentageViewed()));
         Map<Integer, Integer> videoIdToSecondsWatched = videoIdToVideoViewerDetails.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getTotalViewTime()));
 
         return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                List<GcVideo> sectionVideos = entry.getValue();
-                int sectionVideosSize = sectionVideos.size();
-                long sectionViewedVideos = videos.stream()
-                    .filter(video -> videoIdToProgress.getOrDefault(video.getId(), 0d) > videoViewPercentage)
-                    .count();
-                double percentage = sectionViewedVideos / (double) sectionVideosSize;
-                int secondsWatched = videos.stream()
-                    .mapToInt(video -> videoIdToSecondsWatched.getOrDefault(video.getId(), 0))
-                    .sum();
+                long sectionViewedVideos = getSectionViewedVideos(videos, videoIdToPercentViewed, videoViewPercentage);
+                int secondsWatched = getSecondsWatched(videos, videoIdToSecondsWatched);
 
-                ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
-                ProgressDto progressDto = new ProgressDto();
-
-                progressDto.setPercentage(percentage);
-                progressDto.setSecondsViewed(secondsWatched);
-
-                progressDetailsDto.setProgress(progressDto);
-                return progressDetailsDto;
+                return sectionProgressDetails(entry.getValue(), sectionViewedVideos, secondsWatched);
             }));
+    }
+
+    private ProgressDetailsDto sectionProgressDetails(List<GcVideo> sectionVideos, long sectionViewedVideosCount,
+                                                      int sectionVideosSectionsViewed) {
+        ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
+        ProgressDto progressDto = new ProgressDto();
+
+        progressDto.setPercentage(sectionViewedVideosCount / (double) sectionVideos.size() * 100);
+        progressDto.setSecondsViewed(sectionVideosSectionsViewed);
+        progressDetailsDto.setProgress(progressDto);
+
+        return progressDetailsDto;
+    }
+
+    private long getSectionViewedVideos(List<GcVideo> videos, Map<Integer, Double> videoIdToProgress,
+                                        Integer videoViewPercentage) {
+        return videos.stream()
+            .filter(video -> videoIdToProgress.getOrDefault(video.getId(), 0d) > videoViewPercentage)
+            .count();
+    }
+
+    private int getSecondsWatched(List<GcVideo> videos, Map<Integer, Integer> videoIdToSecondsWatched) {
+        return videos.stream()
+            .mapToInt(video -> videoIdToSecondsWatched.getOrDefault(video.getId(), 0))
+            .sum();
     }
 
     private OffsetDateTime courseProgressEndDate(CourseEnrollment courseEnrollment) {
@@ -166,5 +185,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         return courseEnrollment.getCompletionDate() != null
             ? courseEnrollment.getCompletionDate()
             : OffsetDateTime.MAX;
+    }
+
+    private <T> Map<String, T> convertKeyToString(Map<Integer, T> sections) {
+        return sections.entrySet().stream()
+            .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
     }
 }
