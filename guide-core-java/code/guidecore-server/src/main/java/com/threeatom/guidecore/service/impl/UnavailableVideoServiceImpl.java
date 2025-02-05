@@ -59,7 +59,7 @@ public class UnavailableVideoServiceImpl implements UnavailableVideoService {
     @Override
     public void nullifyVideoData(PortalUser portalUser, List<GcVideo> videos) {
         videos.stream()
-            .filter(video -> isVideoAvailable(portalUser, video))
+            .filter(video -> !isVideoAvailable(portalUser, video))
             .forEach(video -> {
                 videoFileNullifySuppliers.forEach(supplier -> supplier.accept(video.getVideoFile()));
                 videoNullifySuppliers.forEach(supplier -> supplier.accept(video));
