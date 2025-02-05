@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProgressDetailsDto {
-    private ProgressDto progress;
+    private ProgressDto progress = new ProgressDto();
 }
