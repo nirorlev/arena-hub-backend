@@ -37,6 +37,9 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             throw new ForbiddenException("No permission to edit this course");
         }
+        if (findByCourseId(courseId) != null) {
+            throw new ForbiddenException("Course setting already exists");
+        }
 
         CourseSetting courseSetting = courseMapping.mapToSetting(courseSettingDto, courseId);
         save(courseSetting);
