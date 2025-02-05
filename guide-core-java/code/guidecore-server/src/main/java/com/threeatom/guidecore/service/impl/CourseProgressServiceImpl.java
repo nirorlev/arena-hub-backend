@@ -18,6 +18,7 @@ import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,9 +55,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
+        OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
 
         Map<Integer, Double> videoIdToProgress =
-            videoPlaySegmentService.getVideoProgress(videos, portalUser, courseEnrollment);
+            videoPlaySegmentService.getVideoProgress(videos, portalUser,
+                start, courseProgressEndDate(courseEnrollment));
         Map<Integer, Double> sectionIdToProgress = sectionsProgress(videos, videoIdToProgress);
 
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
@@ -99,5 +102,14 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                 progressDetailsDto.setProgress(courseMapping.mapToProgress(entry.getValue()));
                 return progressDetailsDto;
             }));
+    }
+
+    private OffsetDateTime courseProgressEndDate(CourseEnrollment courseEnrollment) {
+        if (courseEnrollment == null) {
+            return OffsetDateTime.MAX;
+        }
+        return courseEnrollment.getCompletionDate() != null
+            ? courseEnrollment.getCompletionDate()
+            : OffsetDateTime.MAX;
     }
 }
