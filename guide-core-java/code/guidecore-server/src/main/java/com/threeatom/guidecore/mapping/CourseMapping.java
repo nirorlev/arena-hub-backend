@@ -41,7 +41,6 @@ public interface CourseMapping {
     @Mapping(target = "singleVideoViewPercentage", source = "courseSettingDto.singleVideoViewPercentage")
     CourseSetting mapToSetting(CourseSettingDto courseSettingDto, Integer courseId);
 
-    @Mapping(target = "id", ignore = true)
     CourseSetting mapToUpdateSetting(@MappingTarget CourseSetting courseSetting, CourseSettingDto courseSettingDto);
 
     @Mapping(target = "id", source = "course.id")
