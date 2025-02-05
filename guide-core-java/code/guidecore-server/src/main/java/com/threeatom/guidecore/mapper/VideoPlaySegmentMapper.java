@@ -53,7 +53,7 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
     List<DbAnalyticsResultVideoIdDto> videoViewedTimeByUser(@Param("videoIds") List<Integer> videos
         , @Param("userId") Integer userId
         , @Param("masterId") Integer masterId
-        , @Param("star") OffsetDateTime start
+        , @Param("start") OffsetDateTime start
         , @Param("end") OffsetDateTime end
     );
 }

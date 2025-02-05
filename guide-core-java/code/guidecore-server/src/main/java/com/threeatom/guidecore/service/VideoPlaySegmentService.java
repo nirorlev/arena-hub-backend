@@ -12,6 +12,7 @@ import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -36,5 +37,5 @@ public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
                                                                          Integer masterId);
 
     Map<Integer, Double> getVideoProgress(List<GcVideo> videos, PortalUser portalUser,
-                                          CourseEnrollment courseEnrollment);
+                                          OffsetDateTime start, OffsetDateTime end);
 }
