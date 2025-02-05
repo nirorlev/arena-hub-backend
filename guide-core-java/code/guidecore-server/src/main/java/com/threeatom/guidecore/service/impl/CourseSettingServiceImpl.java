@@ -37,6 +37,9 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             throw new ForbiddenException("No permission to edit this course");
         }
+        if (findByCourseId(courseId) != null) {
+            throw new ForbiddenException("Course setting already exists");
+        }
 
         CourseSetting courseSetting = courseMapping.mapToSetting(courseSettingDto, courseId);
         save(courseSetting);
@@ -48,6 +51,25 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         QueryWrapper<CourseSetting> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", courseId);
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public void update(Integer courseId, CourseSettingDto courseSettingDto, PortalUser portalUser) {
+        GcSubject course = courseService.getById(courseId);
+        if (course == null) {
+            throw new ResourceNotFoundException("Course with specified id not found");
+        }
+        CourseSetting courseSetting = findByCourseId(courseId);
+        if (courseSetting == null) {
+            throw new ResourceNotFoundException("Course setting not found");
+        }
+
+        if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
+            throw new ForbiddenException("No permission to edit this course");
+        }
+
+        courseMapping.mapToUpdateSetting(courseSetting, courseSettingDto);
+        updateById(courseSetting);
     }
 
 }

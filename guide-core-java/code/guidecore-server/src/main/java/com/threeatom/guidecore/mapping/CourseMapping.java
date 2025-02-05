@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.util.CollectionUtils;
 
@@ -39,6 +40,8 @@ public interface CourseMapping {
     @Mapping(target = "courseContentStudyPercentage", source = "courseSettingDto.courseContentStudyPercentage")
     @Mapping(target = "singleVideoViewPercentage", source = "courseSettingDto.singleVideoViewPercentage")
     CourseSetting mapToSetting(CourseSettingDto courseSettingDto, Integer courseId);
+
+    CourseSetting mapToUpdateSetting(@MappingTarget CourseSetting courseSetting, CourseSettingDto courseSettingDto);
 
     @Mapping(target = "id", source = "course.id")
     @Mapping(target = "name", source = "course.name")

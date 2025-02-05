@@ -9,4 +9,6 @@ public interface CourseSettingService extends IService<CourseSetting> {
     void save(Integer courseId, CourseSettingDto courseSetting, PortalUser portalUser);
 
     CourseSetting findByCourseId(Integer courseId);
+
+    void update(Integer courseId, CourseSettingDto courseSetting, PortalUser portalUser);
 }
