@@ -560,7 +560,7 @@
 			</if>
 			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
-		<if test="(type==0 or type ==2 )  and (null == subIdList or subIdList.size ==0)">
+		<if test="(type==0 or type ==2 ) ">
 			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		</if>
@@ -594,7 +594,6 @@
 				</foreach>
 			</if>
 			and s.master_id= #{masterId}
-			)
 		</if>
 		GROUP BY
 		v.id,

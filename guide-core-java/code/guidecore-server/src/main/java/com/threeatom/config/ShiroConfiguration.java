@@ -118,10 +118,8 @@ public class ShiroConfiguration {
         filterChainDefinitionMap.put("/api/v1/guidecore/newui/user/videoDetail", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/user/videoAllComment/*", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/user/selectComment", "anon");
-        filterChainDefinitionMap.put("/api/v1/guidecore/user/youtube/getYoutubeUrl", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/file/getUploadCert", "anon");
         filterChainDefinitionMap.put("/api/v1/powtoon/home/portalInfosUnlogin", "anon");
-        filterChainDefinitionMap.put("/api/v1/guidecore/user/youtube/getKalturaVideos", "anon");
         filterChainDefinitionMap.put("/api/v1/govidigo/home/portalInfosUnlogin", "anon");
         filterChainDefinitionMap.put("/api/v1/govidigo/home/getSubjectInfoBySubId", "anon");
         filterChainDefinitionMap.put("/api/v1/guidecore/homeInfo/getTagSubjectList", "anon");

@@ -37,28 +37,14 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
     @Override
     @Transactional
     public boolean saveEvent(GcEvent event, Integer masterId) {
-
         try {
-            ArrayList<GcUserEvent> userEvents = new ArrayList<>();
-            // 校验数据
-            Integer vid = event.getVideoId();
-            Integer eid = event.getId();
-            GcVideo video = videoService.getById(vid);
+            List<GcUserEvent> userEvents = new ArrayList<>();
+            Integer videoId = event.getVideoId();
+            Integer eventId = event.getId();
+            GcVideo video = videoService.getById(videoId);
+
             if (video == null) throw new SystemException(I18NUtil.get("video.empty"));
 
-            if (event.getEventType().equals(2)) {
-                event.setExt(null);
-            }
-
-            if (event.getEventType().equals(3)) {
-                if (event.getOtherQuesImgId() == null || event.getOtherQuesImgId().equals(0))
-                    throw new SystemException(I18NUtil.get("file.upload"));
-
-                Integer quesImgId = event.getOtherQuesImgId();
-                JSONObject object = new JSONObject();
-                object.put("quesImgId", quesImgId);
-                event.setExt(object.toJSONString());
-            }
             this.saveOrUpdate(event);
 
             // 上传人是老师时
@@ -77,8 +63,8 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
                 for (Integer userId : userIds) {
                     userEvents.add(new GcUserEvent(userId, event.getId(), masterId));
                 }
-                if (eid != null) {
-                    gcUserEventService.updateUserEvents(eid, userIds, masterId);
+                if (eventId != null) {
+                    gcUserEventService.updateUserEvents(eventId, userIds, masterId);
                 } else {
                     gcUserEventMapper.insertBatch(userEvents);
                 }

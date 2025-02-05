@@ -40,6 +40,9 @@ public class PtChannelContent implements Serializable {
     @JSONField(deserialize = false)
     private Integer contentOrder;
 
+    @TableField(exist = false)
+    private GcVideo video;
+
     private Integer contentId;
 
     @TableField(exist = false)

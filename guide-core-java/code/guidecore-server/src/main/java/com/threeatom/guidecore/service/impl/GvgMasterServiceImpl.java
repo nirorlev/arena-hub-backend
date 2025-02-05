@@ -803,7 +803,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	}
 
 	@Override
-	public Message navigation(Map<String, Object> params, HttpServletRequest request,SysSystem system,GcUser user,Integer envFlag){
+	public Message navigation(Map<String, Object> params, HttpServletRequest request,SysSystem system,PortalUser portalUser,Integer envFlag){
 		Integer masterId = request.getIntHeader("masterId");
 		GcMaster gcMaster = gcMasterService.getById(masterId);
 		Message msg = new Message().ok();
@@ -822,7 +822,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		GcUser gcUser = null;
 		if(params.get("studentId")==null) {
-			gcUser = user;
+			gcUser = gcUserService.getUserByIdCache(portalUser.getUserId());
 		}else {
 			//后续需增加判断，该用户是否是这个学生的老师
 			gcUser=gcUserService.getUserByIdCache((Integer)params.get("studentId"));
@@ -943,11 +943,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			SubjectTotals subjectTotals = calcTotals(subjects1, userId,true,masterId,envFlag);
 
 			if(envFlag.equals(EnvType.GC.getCode())) {
-				List<GcVideo> videos = videoService.selectVideoPlayListBySubId(subject.getId(), user.getId());
+				List<GcVideo> videos = videoService.selectVideoPlayListBySubId(subject.getId(), portalUser.getUserId());
 				List<Integer> vids = videos.stream().map(GcVideo::getId).collect(Collectors.toList());
-				Map<Integer, GcUserVideoPlay> playMap = gcUserVideoPlayService.findVideoPalyStateByVideos(vids, user.getId(), masterId);
-				List<GcEvent> eventList = eventService.selectEventByUserIdAndSubjectId(user.getId(), subject.getId(), masterId);
-				List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(vids, user.getId(), masterId, EnvType.GC.getCode());
+				Map<Integer, GcUserVideoPlay> playMap = gcUserVideoPlayService.findVideoPalyStateByVideos(vids, portalUser.getUserId(), masterId);
+				List<GcEvent> eventList = eventService.selectEventByUserIdAndSubjectId(portalUser.getUserId(), subject.getId(), masterId);
+				List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(vids, portalUser.getUserId(), masterId, EnvType.GC.getCode());
 				Collection<GcUserVideoPlay> collection = playMap.values();
 				List<GcUserVideoPlay> list = new ArrayList<GcUserVideoPlay>(collection);
 				List<GcUserVideoPlay> sortedVideoList = list.stream().filter(e->e.getUpdateTime()!=null).sorted(Comparator.comparing(GcUserVideoPlay::getUpdateTime).reversed()).collect(Collectors.toList());
@@ -1006,7 +1006,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				Map<String, Object> subParam =  new HashMap<>(1);
 				Integer firstSubId = order.get(0).getId();
 				params.put("subjectId",firstSubId);
-				params.put("userId", user.getId());
+				params.put("userId", portalUser.getUserId());
 				params.put("masterId",masterId);
 				Message message =  service.getVideosBySubIds(firstSubId, subParam, system, request);
 				List<GcVideo> videoList = new ArrayList<>();
@@ -1046,11 +1046,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subject.setCourseState(TableConstant.COMMON_ZERO);
 			}
 
-			if ((subject.getCreateUser().equals(userId)|| gcUser.getIsOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
+			if ((subject.getCreateUser().equals(userId)|| portalUser.isOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
 				subject.setMode(TableConstant.COMMON_ONE);
 			}else {
 				subject.setMode(TableConstant.COMMON_ZERO);
 			}
+			subject.setPermissions(authorizationService.listPermissions(subject, portalUser));
 
 			msg.addData("subject", subject);
 			msg.addData("master",gcMaster);

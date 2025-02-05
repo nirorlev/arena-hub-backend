@@ -5,11 +5,76 @@
     <resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.PtChannelContent">
         <id property="id" column="id"/>
         <result property="channelId" column="channel_id"/>
-        <result property="videoId" column="video_id"/>
         <result property="playlistId" column="playlist_id"/>
         <result property="sectionId" column="section_id"/>
         <result property="contentOrder" column="order"/>
+        <result property="contentId" column="content_id"/>
+
+        <association property="video" resultMap="videoResultMap" columnPrefix="video_"/>
     </resultMap>
+
+    <resultMap id="videoResultMap" type="GcVideo">
+        <id property="id" column="id"/>
+        <result property="videoName" column="name"  />
+        <result property="videoNameIndex" column="index" />
+        <result property="videoDesc" column="desc"  />
+        <result property="fileId" column="file_id"  />
+        <result property="subId" column="sub_id"/>
+        <result property="sourceUrl" column="source_url"/>
+        <result property="videoSource" column="source"/>
+        <result property="order" column="order"/>
+        <result property="updateTime" column="update_time" />
+        <result property="createTime" column="create_time" />
+        <result property="commentNum" column="comment_num"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="videoTime" column="video_time"/>
+        <result property="originChannelId" column="origin_channel_id"/>
+        <result property="userId" column="user_id"/>
+
+        <association property="videoFile" column="file_id" javaType="SysFile">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+            <result property="fileUrl" column="url"/>
+            <result property="saveType" column="save_type"/>
+            <result property="fileType" column="type"/>
+            <result property="videoLong" column="long"/>
+            <result property="fileTypeIndex" column="type_index"/>
+            <result property="snapshotUrl" column="thumbnail_url"/>
+            <result property="thumbNailId" column="thumbnail_id"/>
+            <result property="thumbNailUrl" column="thumbnail_url"/>
+        </association>
+
+        <association property="originChannel" resultMap="channelResultMap" columnPrefix="channel_" />
+    </resultMap>
+
+    <resultMap id="channelResultMap" type="PtChannel" autoMapping="true">
+        <result property="createUserId" column="create_user_id"/>
+        <result property="fid" column="fid"/>
+        <result property="visibleFlag" column="visible_flag"/>
+        <result property="channelAvatarFileId" column="avatar_file_id"/>
+        <result property="channelContentId" column="content_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="channelContentColumns">
+        channel_content.id, channel_content.channel_id, channel_content.playlist_id, channel_content.section_id, channel_content.content_order, channel_content.create_time, channel_content.content_id
+    </sql>
+
+    <sql id="videoColumns">
+        video.id as video_id, video.video_name as video_name, video.video_desc as video_desc, video.file_id as video_file_id, video.sub_id as video_sub_id, video.source_url as video_source_url, video.video_source as video_source, video.order as video_order, video.update_time as video_update_time, video.create_time as video_create_time, video.thumbnail_url as video_thumbnail_url, video.video_time as video_video_time, video.origin_channel_id as video_origin_channel_id
+    </sql>
+
+    <sql id="originChannelColumns">
+        origin_channel.id                         AS channel_id,
+        origin_channel.channel_name               AS channel_channel_name,
+        origin_channel.channel_slug               AS channel_channel_slug,
+        origin_channel.fid                        AS channel_fid,
+        origin_channel.visible_flag               AS channel_visible_flag,
+        origin_channel.channel_avatar_file_id     AS channel_avatar_file_id,
+        origin_channel.create_time                AS channel_create_time,
+        origin_channel.update_time                AS channel_update_time
+    </sql>
 
     <select id="selectVideosInChannel" resultType="com.threeatom.system.entity.SysFile">
         select video.*, content.id as ptChannelContentId, video_content.id as videoId
@@ -28,4 +93,15 @@
         </choose>
     </select>
 
+    <select id="findChannelContent" resultMap="baseResultMap">
+        select
+            <include refid="channelContentColumns"/>,
+            <include refid="videoColumns"/>,
+            <include refid="originChannelColumns"/>,
+            origin_channel.create_user_id as video_user_id
+        from pt_channel_content channel_content
+            JOIN gc_video video ON channel_content.content_id = video.id
+            JOIN pt_channel origin_channel ON video.origin_channel_id = origin_channel.id
+        where channel_content.channel_id = #{channelId} OR channel_content.playlist_id IN (SELECT id FROM pt_channel WHERE fid = #{channelId})
+    </select>
 </mapper>

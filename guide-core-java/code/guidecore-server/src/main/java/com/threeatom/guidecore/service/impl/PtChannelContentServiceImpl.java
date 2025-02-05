@@ -24,6 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -34,7 +36,9 @@ public class PtChannelContentServiceImpl
     extends ServiceImpl<PtchannelContentMapper, PtChannelContent>
     implements PtChannelContentService {
 
-    private final GcVideoService videoService;
+    @Lazy
+    @Autowired
+    private GcVideoService videoService;
     private final AuthorizationService authorizationService;
 
     public Boolean deleteContent(Integer fileId, Integer channelId) {
@@ -124,6 +128,11 @@ public class PtChannelContentServiceImpl
         }
 
         updateBatchById(content);
+    }
+
+    @Override
+    public List<PtChannelContent> findChannelContent(Integer channelId) {
+        return baseMapper.findChannelContent(channelId);
     }
 
     private void populateVideoFile(List<PtChannelContent> channelContents, List<SysFile> videoFiles) {

@@ -175,6 +175,11 @@ public class PermitServiceImpl implements AuthorizationService {
         return checkAccess(new PermitPortal(), PORTAL_PERMISSIONS_TO_CHECK, permitUser);
     }
 
+    @Override
+    public Map<String, Boolean> listPermissions(GcSubject course, PortalUser portalUser) {
+        return Map.of();
+    }
+
     private Map<String, Boolean> checkAccess(PermitResource permitResource, List<PermitAction> actions,
                                              PermitUser permitUser) {
         User user = buildUser(permitUser);

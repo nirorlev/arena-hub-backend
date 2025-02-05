@@ -189,9 +189,17 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint constraintName="channel_assignment_pt_channel_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="channel_id" referencedTableName="pt_channel" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
-        <addForeignKeyConstraint constraintName="channel_assignment_gc_user_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="created_by_user_id" referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint constraintName="channel_assignment_gc_access_id_fk" baseTableName="content_group_channel_subscription" baseColumnNames="content_group_id" referencedTableName="gc_access" referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_pt_channel_id_fk"
+                                 baseTableName="content_group_channel_subscription" baseColumnNames="channel_id"
+                                 referencedTableName="pt_channel" referencedColumnNames="id" onUpdate="CASCADE"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_user_id_fk"
+                                 baseTableName="content_group_channel_subscription" baseColumnNames="created_by_user_id"
+                                 referencedTableName="gc_user" referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="channel_assignment_gc_access_id_fk"
+                                 baseTableName="content_group_channel_subscription" baseColumnNames="content_group_id"
+                                 referencedTableName="gc_access" referencedColumnNames="id" onUpdate="CASCADE"
+                                 onDelete="CASCADE"/>
     </changeSet>
 
     <changeSet id="migrate-content-group-channels" author="vprokh">
@@ -571,8 +579,10 @@
     </changeSet>
 
     <changeSet id="add-on-delete-constraint-for-channel-content" author="vprokh">
-        <dropForeignKeyConstraint baseTableName="pt_channel_content" constraintName="pt_channel_content_gc_video_id_fk" />
-        <dropForeignKeyConstraint baseTableName="gc_user_save_content" constraintName="gc_user_save_content_gc_video_id_fk" />
+        <dropForeignKeyConstraint baseTableName="pt_channel_content"
+                                  constraintName="pt_channel_content_gc_video_id_fk"/>
+        <dropForeignKeyConstraint baseTableName="gc_user_save_content"
+                                  constraintName="gc_user_save_content_gc_video_id_fk"/>
 
         <addForeignKeyConstraint baseTableName="pt_channel_content" baseColumnNames="content_id"
                                  constraintName="pt_channel_content_gc_video_id_fk" referencedTableName="gc_video"
@@ -583,23 +593,25 @@
     </changeSet>
 
     <changeSet id="decode-video-name" author="vprokh">
-        <customChange class="com.arena.hub.migration.DecodeVideoNameMigration" />
+        <customChange class="com.arena.hub.migration.DecodeVideoNameMigration"/>
     </changeSet>
 
     <changeSet id="add-on-delete-constraint-for-channel-play-video" author="vprokh">
-        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_user_id_fk" />
-        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_master_id_fk" />
-        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_video_id_fk" />
+        <dropForeignKeyConstraint baseTableName="video_play_session" constraintName="video_play_session_gc_user_id_fk"/>
+        <dropForeignKeyConstraint baseTableName="video_play_session"
+                                  constraintName="video_play_session_gc_master_id_fk"/>
+        <dropForeignKeyConstraint baseTableName="video_play_session"
+                                  constraintName="video_play_session_gc_video_id_fk"/>
 
         <addForeignKeyConstraint constraintName="video_play_session_gc_user_id_fk" baseTableName="video_play_session"
                                  baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id"
-                                 onUpdate="CASCADE" onDelete="CASCADE" />
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
         <addForeignKeyConstraint constraintName="video_play_session_gc_master_id_fk" baseTableName="video_play_session"
                                  baseColumnNames="master_id" referencedTableName="gc_master" referencedColumnNames="id"
-                                 onUpdate="CASCADE" onDelete="CASCADE" />
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
         <addForeignKeyConstraint constraintName="video_play_session_gc_video_id_fk" baseTableName="video_play_session"
                                  baseColumnNames="video_id" referencedTableName="gc_video" referencedColumnNames="id"
-                                 onUpdate="CASCADE" onDelete="CASCADE" />
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
     <changeSet id="add-powtoon-user-id" author="vprokh">
@@ -619,28 +631,28 @@
     <changeSet id="create-user-avatar-file-table" author="vprokh">
         <createTable tableName="user_avatar" schemaName="arena_hub">
             <column name="id" type="bigserial" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false" />
+                <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="file_s3_key" type="varchar">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="powtoon_file_url" type="varchar">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="user_id" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="created_date" type="time with time zone" defaultValueComputed="now()">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="updated_date" type="timestamp with time zone" defaultValueComputed="now()">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
 
         <addForeignKeyConstraint constraintName="user_avatar_gc_user_id_fk" baseTableName="user_avatar"
                                  baseColumnNames="user_id" referencedTableName="gc_user" referencedColumnNames="id"
-                                 onUpdate="CASCADE" onDelete="CASCADE" />
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
         <addUniqueConstraint
                 columnNames="user_id"
                 constraintName="user_avatar_user_id_fk_uniq"
@@ -689,7 +701,7 @@
             <column name="powtoon_group_code" type="varchar">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="powtoon_parent_group_code" type="varchar" />
+            <column name="powtoon_parent_group_code" type="varchar"/>
             <column name="name" type="varchar">
                 <constraints nullable="false"/>
             </column>
@@ -725,7 +737,8 @@
             </column>
         </createTable>
 
-        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_managed_groups"/>
+        <addPrimaryKey constraintName="user_managed_groups_pk" columnNames="powtoon_group_code, user_id"
+                       tableName="user_managed_groups"/>
 
         <addForeignKeyConstraint baseTableName="user_managed_groups" baseColumnNames="user_id"
                                  constraintName="user_managed_groups_gc_user_id_fk" referencedTableName="gc_user"
@@ -751,7 +764,8 @@
             </column>
         </createTable>
 
-        <addPrimaryKey constraintName="user_groups_pk" columnNames="powtoon_group_code, user_id" tableName="user_groups"/>
+        <addPrimaryKey constraintName="user_groups_pk" columnNames="powtoon_group_code, user_id"
+                       tableName="user_groups"/>
 
         <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="user_id"
                                  constraintName="user_groups_gc_user_id_fk" referencedTableName="gc_user"
@@ -780,4 +794,49 @@
         <dropColumn tableName="gc_access" columnName="subject_json"/>
     </changeSet>
 
+    <changeSet id="create-course-tasks-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="courseTasksEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling tasks in courses"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="create-course-notes-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="courseNotesEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling notes in a course"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="create-course-attachments-feature-toggle" author="rodion.dolhii">
+        <insert tableName="feature_toggle">
+            <column name="name" value="courseAttachmentsEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling attachments in courses"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="alter-gc-event-ext-column" author="vprokh">
+        <modifyDataType tableName="gc_event" columnName="ext" newDataType="varchar"/>
+    </changeSet>
+
+    <changeSet id="alter-course-content-constraints" author="vprokh">
+        <dropForeignKeyConstraint baseTableName="course_content" constraintName="course_content_gc_subject_id_fk"/>
+        <addForeignKeyConstraint baseTableName="course_content" baseColumnNames="course_id"
+                                 constraintName="course_content_gc_subject_id_fk" referencedTableName="gc_subject"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="course_content" constraintName="course_content_gc_video_id_fk"/>
+        <addForeignKeyConstraint baseTableName="course_content" baseColumnNames="content_id"
+                                 constraintName="course_content_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="delete-unavailable-video-random-feature-toggle" author="vprokh">
+        <delete tableName="feature_toggle">
+            <where>name='unavailableVideoRandomEnabled'</where>
+        </delete>
+    </changeSet>
 </databaseChangeLog>

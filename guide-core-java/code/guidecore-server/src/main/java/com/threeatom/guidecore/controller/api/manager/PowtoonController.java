@@ -650,10 +650,10 @@ public class PowtoonController extends GuideCoreController {
 
             user.setIsOrgAdmin(portalUser.isOrgAdmin());
 
-            return gvgMasterService.navigation(params, request, system, user, EnvType.PT.getCode());
+            return gvgMasterService.navigation(params, request, system, portalUser, EnvType.PT.getCode());
         }
 
-        return gvgMasterService.navigation(params, request, system, new GcUser(), EnvType.PT.getCode());
+        return gvgMasterService.navigation(params, request, system, new PortalUser(), EnvType.PT.getCode());
     }
 
     @GetMapping("/downloadPDFCertPt")

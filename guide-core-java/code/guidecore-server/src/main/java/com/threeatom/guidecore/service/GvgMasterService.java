@@ -31,7 +31,7 @@ public interface GvgMasterService extends IService<GcMaster> {
             Map<String, Object> params,
             HttpServletRequest request,
             SysSystem system,
-            GcUser user,
+            PortalUser portalUser,
             Integer envFlag);
 
     Message getVideosBySubject(

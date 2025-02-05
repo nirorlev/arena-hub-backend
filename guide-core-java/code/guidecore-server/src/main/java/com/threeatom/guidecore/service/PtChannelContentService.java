@@ -25,4 +25,7 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     Optional<PtChannelContent> getChannelContent(Integer contentId);
 
     void updateContentOrder(IdsDto ids, Integer channelId, Integer masterId);
+
+    List<PtChannelContent> findChannelContent(Integer channelId);
+
 }

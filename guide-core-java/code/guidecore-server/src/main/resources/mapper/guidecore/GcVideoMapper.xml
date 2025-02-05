@@ -150,10 +150,7 @@
     <sql id="leftJoinSysFile2">
         left join sys_file f2 on f.thumb_nail_id = f2.id
     </sql>
-	<sql id="leftJoinGcMaster">
-		LEFT JOIN gc_master m ON m.id=s.master_id
-	</sql>
-	
+
 	<sql id="leftJoinUserVideoAtion">
 	   LEFT JOIN gc_user_video_action uva ON v.id=uva.content_id
 	</sql>
@@ -209,7 +206,10 @@
         course_owner.id               AS course_user_id,
         course_owner_info.id          AS course_user_info_id,
         course_owner_info.first_name  AS course_user_info_first_name,
-        course_owner_info.last_name   AS course_user_info_last_name,
+        course_owner_info.last_name   AS course_user_info_last_name
+    </sql>
+
+    <sql id="courseOwnerAvatarColumns">
         course_owner_avatar.id        AS course_user_info_avatar_file_id,
         course_owner_avatar.file_url  AS course_user_info_avatar_file_url,
         course_owner_avatar.save_type AS course_user_info_avatar_file_save_type,
@@ -230,20 +230,14 @@
 	<select id="getFuzzyNameVideoInMaster" resultMap="baseResultMap">
 		select
 	    <include refid="baseColumn" />
-	    <include refid="fileBaseColumn" />
-		,f2.thumb_nail_url as thumb_nail_url
-	    from gc_video v 
-	     <include refid="leftJoinSysFile" />
-	    left  join sys_file f2 on f2.id = f.thumb_nail_id
-	     LEFT JOIN gc_subject s ON s.id=v.sub_id
-		  <include refid="leftJoinGcMaster" />
-	    <where>
-	   	m.id=#{masterId} and 
-	   	v.video_name like '%${videoName}%'
-	   	<include refid="where_gcSubject_state_not_hidden" />
-	    </where>
-    </select>    
-    
+	    <include refid="fileBaseColumn" />,
+        <include refid="courseColumns" />
+        FROM gc_video v
+            JOIN sys_file f ON v.file_id = f.id
+            JOIN gc_subject gs ON v.origin_course_id = gs.id
+	    WHERE gs.state != 0 AND gs.master_id = #{masterId} AND v.video_name like '%${videoName}%'
+    </select>
+
 	<select id="selectVideoByid" resultMap="baseResultMap">
 	    select
 	    <include refid="baseColumn" />
@@ -850,7 +844,8 @@
             <include refid="courseColumns" />,
             <include refid="courseAvatarFileColumns" />,
 
-            <include refid="courseOwnerColumns" />
+            <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
             <if test="!filter.contentGroupIds.empty">
@@ -896,7 +891,8 @@
             <include refid="courseColumns" />,
             <include refid="courseAvatarFileColumns" />,
 
-            <include refid="courseOwnerColumns" />
+            <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
 
@@ -945,6 +941,7 @@
             <include refid="courseAvatarFileColumns" />,
 
             <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />,
             f.target_lang_json as target_lang_json,
             gs.id as subId0,
             gs.name as topicName
