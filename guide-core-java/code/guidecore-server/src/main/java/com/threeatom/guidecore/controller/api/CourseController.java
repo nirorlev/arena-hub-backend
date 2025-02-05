@@ -17,6 +17,7 @@ import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class CourseController {
 
     @PostMapping("/{courseId}/settings")
     public ResponseEntity<Void> saveCourseSetting(@PathVariable Integer courseId,
-                                                  @RequestBody CourseSettingDto courseSetting,
+                                                  @RequestBody @Valid CourseSettingDto courseSetting,
                                                   HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
 
@@ -64,7 +65,7 @@ public class CourseController {
 
     @PutMapping("/{courseId}/settings")
     public ResponseEntity<Void> updateCourseSetting(@PathVariable Integer courseId,
-                                                    @RequestBody CourseSettingDto courseSetting,
+                                                    @RequestBody @Valid CourseSettingDto courseSetting,
                                                     HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
 
