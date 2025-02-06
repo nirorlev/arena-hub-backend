@@ -834,6 +834,31 @@
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
+
+    <changeSet id="create-course-settings-table" author="vprokh">
+        <createTable tableName="course_settings" schemaName="arena_hub">
+            <column name="course_id" type="integer">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="course_content_study_percentage" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="single_video_view_percentage" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="course_settings" baseColumnNames="course_id"
+                                 constraintName="course_settings_gc_subject_id_fk" referencedTableName="gc_subject"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
     <changeSet id="delete-unavailable-video-random-feature-toggle" author="vprokh">
         <delete tableName="feature_toggle">
             <where>name='unavailableVideoRandomEnabled'</where>
