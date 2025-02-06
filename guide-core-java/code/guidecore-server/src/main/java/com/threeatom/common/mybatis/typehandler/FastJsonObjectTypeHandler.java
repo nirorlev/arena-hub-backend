@@ -22,9 +22,12 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
         if (StringUtils.isEmpty(jsonString)) {
             LOGGER.warn("json字符串为Empty");
             return null;
-        } else {
-            return JSONObject.parseObject(jsonString);
         }
+        if (jsonString.startsWith("[")) {
+            jsonString = "{\"value\":" + jsonString + "}";
+        }
+
+        return JSONObject.parseObject(jsonString);
     }
 
     public JSONObject getResult(ResultSet rs, int columnIndex) throws SQLException {
