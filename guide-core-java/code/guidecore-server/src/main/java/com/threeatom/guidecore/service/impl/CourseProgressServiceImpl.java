@@ -102,11 +102,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails, GcVideo video) {
 
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = videoIdToViewerVideoDetails.get(video.getId());
+        ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
         if (videoViewerVideoDetailDto == null) {
-            return new ProgressDetailsDto();
+            return progressDetailsDto;
         }
 
-        ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
         progressDetailsDto.setProgress(videoContentProgress(videoViewerVideoDetailDto));
         return progressDetailsDto;
     }
@@ -124,11 +124,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                                                   Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails,
                                                   Map<Integer, ProgressDetailsDto> sectionsProgress,
                                                   Integer videoViewPercentage) {
+        CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         if (videoIdToVideoViewerDetails.isEmpty()) {
-            return new CourseTotalProgressDto();
+            return courseTotalProgressDto;
         }
 
-        CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         int secondsViewed = videoIdToVideoViewerDetails.values().stream()
             .mapToInt(VideoViewerVideoDetailDto::getTotalViewTime)
             .sum();
@@ -166,12 +166,12 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     }
 
     private ProgressDetailsDto sectionProgressDetails(List<GcVideo> sectionVideos, long sectionViewedVideosCount,
-                                                      int sectionVideosSectionsViewed) {
+                                                      int sectionVideosSecondsViewed) {
         ProgressDetailsDto progressDetailsDto = new ProgressDetailsDto();
         ProgressDto progressDto = new ProgressDto();
 
         progressDto.setPercentage(sectionViewedVideosCount / (double) sectionVideos.size() * 100);
-        progressDto.setSecondsViewed(sectionVideosSectionsViewed);
+        progressDto.setSecondsViewed(sectionVideosSecondsViewed);
         progressDetailsDto.setProgress(progressDto);
 
         return progressDetailsDto;
