@@ -77,7 +77,6 @@ public class ContentGroupController {
         return ResponseEntity.noContent().build();
     }
 
-
     @GetMapping("/{content-group-id}/channel-subscriptions")
     public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> getChannelSubscriptions(
         @PathVariable("content-group-id") Integer contentGroupId, HttpServletRequest request) {
@@ -91,6 +90,14 @@ public class ContentGroupController {
         contentGroupChannelSubscriptionService.assignChannels(getPortalUser(request), assignChannels);
 
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/course-assignments/remove/{assignment-id}")
+    public ResponseEntity<Void> removeChannelFromContentGroup(
+        @PathVariable("assignment-id") Integer channelAssignmentId) {
+
+        contentGroupChannelSubscriptionService.removeAssignment(channelAssignmentId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/managed")

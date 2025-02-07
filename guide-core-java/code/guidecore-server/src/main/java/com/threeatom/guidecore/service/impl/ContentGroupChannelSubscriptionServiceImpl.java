@@ -108,6 +108,11 @@ public class ContentGroupChannelSubscriptionServiceImpl
         saveBatch(contentGroupChannelSubscriptions);
     }
 
+    @Override
+    public void removeAssignment(Integer channelAssignmentId) {
+        this.removeById(channelAssignmentId);
+    }
+
     private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription,
                                                        HttpServletRequest request) {
         fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);

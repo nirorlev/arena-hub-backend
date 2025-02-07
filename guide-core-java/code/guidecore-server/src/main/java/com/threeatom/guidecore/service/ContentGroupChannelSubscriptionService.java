@@ -32,4 +32,6 @@ public interface ContentGroupChannelSubscriptionService
     Set<Integer> getContentGroupIds(Integer originChannelId);
 
     void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
+
+    void removeAssignment(Integer channelAssignmentId);
 }
