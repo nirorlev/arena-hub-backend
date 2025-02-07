@@ -15,6 +15,7 @@ import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,13 +50,14 @@ public class ContentGroupController {
     }
 
     @PostMapping(value = "/course/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> assignCourse(@RequestBody AssignCourseDto assignCourseDto, HttpServletRequest request) {
+    public ResponseEntity<Void> assignCourse(@RequestBody @Valid AssignCourseDto assignCourseDto,
+                                             HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourse(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/courses/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> assignCourses(@RequestBody List<AssignCourseDto> assignCourseDto,
+    public ResponseEntity<Void> assignCourses(@RequestBody List<@Valid AssignCourseDto> assignCourseDto,
                                               HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.assignCourses(gcUserService.getCurrentUser(request), assignCourseDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -63,7 +65,7 @@ public class ContentGroupController {
 
     @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateCourseAssignment(
-        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody AssignCourseDto assignCourseDto,
+        @PathVariable("assignment-id") Integer courseAssignmentId, @RequestBody @Valid AssignCourseDto assignCourseDto,
         HttpServletRequest request) {
         gcContentGroupCourseAssignmentService.updateCourseAssignment(
             courseAssignmentId, gcUserService.getCurrentUser(request), assignCourseDto);
@@ -85,7 +87,7 @@ public class ContentGroupController {
     }
 
     @PostMapping(value = "/channels/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> assignChannels(@RequestBody List<AssignChannelDto> assignChannels,
+    public ResponseEntity<Void> assignChannels(@RequestBody @Valid List<AssignChannelDto> assignChannels,
                                                HttpServletRequest request) {
         contentGroupChannelSubscriptionService.assignChannels(getPortalUser(request), assignChannels);
 
@@ -94,7 +96,7 @@ public class ContentGroupController {
 
     @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateChannelAssignment(@PathVariable("assignment-id") Integer channelAssignmentId,
-                                                        @RequestBody AssignChannelDto assignChannelDto,
+                                                        @RequestBody @Valid AssignChannelDto assignChannelDto,
                                                         HttpServletRequest request) {
         contentGroupChannelSubscriptionService.updateAssignment(channelAssignmentId, getPortalUser(request),
             assignChannelDto);
