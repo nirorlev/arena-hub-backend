@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
@@ -82,6 +83,14 @@ public class ContentGroupController {
         @PathVariable("content-group-id") Integer contentGroupId, HttpServletRequest request) {
         return ResponseEntity.ok()
             .body(contentGroupChannelSubscriptionService.getContentGroupSubscriptions(contentGroupId, request));
+    }
+
+    @PostMapping(value = "/channels/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> assignChannels(@RequestBody List<AssignChannelDto> assignChannels,
+                                               HttpServletRequest request) {
+        contentGroupChannelSubscriptionService.assignChannels(getPortalUser(request), assignChannels);
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/managed")

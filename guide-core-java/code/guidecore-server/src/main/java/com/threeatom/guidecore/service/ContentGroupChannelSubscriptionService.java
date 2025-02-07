@@ -1,10 +1,12 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -22,12 +24,12 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
 
-    List<Integer> getPublicChannelIds(Integer contentGroupId);
-
     void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds);
 
     List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
                                                                           HttpServletRequest request);
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
+
+    void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
 }

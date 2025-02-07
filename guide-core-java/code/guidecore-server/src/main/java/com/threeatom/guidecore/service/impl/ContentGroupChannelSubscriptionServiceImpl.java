@@ -2,10 +2,12 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
@@ -33,7 +35,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
         removeUnsubscribedChannels(contentGroup.getId(), channelIds);
 
-        channelIds.forEach(channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user.getId()));
+        channelIds.forEach(
+            channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user.getId()));
     }
 
     @Override
@@ -59,12 +62,6 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Integer> getPublicChannelIds(Integer contentGroupId) {
-        return getChannelIds(List.of(contentGroupId), false);
-    }
-
-    @Override
     public void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds) {
         if (CollectionUtils.isEmpty(contentGroups)) {
             return;
@@ -80,7 +77,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId, HttpServletRequest request) {
+    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
+                                                                                 HttpServletRequest request) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
             baseMapper.findByContentGroupId(contentGroupId, true);
 
@@ -100,7 +98,18 @@ public class ContentGroupChannelSubscriptionServiceImpl
             .collect(Collectors.toSet());
     }
 
-    private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription, HttpServletRequest request) {
+    @Override
+    public void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels) {
+        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = assignChannels.stream()
+            .map(assignChannelDto -> createSubscription(assignChannelDto.getContentGroupId(),
+                assignChannelDto.getChannelId(), assignChannelDto.getSubscribe(), portalUser.getUserId()))
+            .collect(Collectors.toList());
+
+        saveBatch(contentGroupChannelSubscriptions);
+    }
+
+    private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription,
+                                                       HttpServletRequest request) {
         fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);
         return contentGroupChannelSubscription;
     }
