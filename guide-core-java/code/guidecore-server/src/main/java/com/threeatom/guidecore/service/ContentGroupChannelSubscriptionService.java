@@ -34,4 +34,6 @@ public interface ContentGroupChannelSubscriptionService
     void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
 
     void removeAssignment(Integer channelAssignmentId);
+
+    void updateAssignment(Integer channelAssignmentId, PortalUser portalUser, AssignChannelDto assignChannelDto);
 }

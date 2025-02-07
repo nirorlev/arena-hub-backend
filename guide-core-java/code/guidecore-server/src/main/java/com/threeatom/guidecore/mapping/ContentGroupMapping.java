@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.mapping;
 
+import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
@@ -7,6 +8,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper
 public interface ContentGroupMapping {
@@ -28,4 +30,9 @@ public interface ContentGroupMapping {
 
     @Mapping(target = "name", source = "groupName")
     List<ContentGroupDto> map(List<GcAccess> contentGroups);
+
+    @Mapping(target = "modifiedDate", expression = "java(java.time.OffsetDateTime.now())")
+    @Mapping(target = "isSubscribed", source = "subscribe")
+    void updateChannelAssignment(@MappingTarget ContentGroupChannelSubscription contentGroupChannelSubscription,
+                                 AssignChannelDto assignChannelDto);
 }

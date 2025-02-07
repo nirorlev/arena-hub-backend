@@ -113,6 +113,15 @@ public class ContentGroupChannelSubscriptionServiceImpl
         this.removeById(channelAssignmentId);
     }
 
+    @Override
+    public void updateAssignment(Integer channelAssignmentId, PortalUser portalUser,
+                                 AssignChannelDto assignChannelDto) {
+        ContentGroupChannelSubscription contentGroupChannelSubscription = getById(channelAssignmentId);
+        contentGroupMapping.updateChannelAssignment(contentGroupChannelSubscription, assignChannelDto);
+
+        updateById(contentGroupChannelSubscription);
+    }
+
     private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription,
                                                        HttpServletRequest request) {
         fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);
