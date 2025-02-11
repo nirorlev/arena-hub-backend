@@ -7,14 +7,10 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
-import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcUser;
-import com.threeatom.guidecore.entity.GcVideo;
-import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
     void saveVideoPlaySegment(VideoPlayDto videoPlayDto, GcUser user, Integer videoId, Integer masterId);
@@ -35,7 +31,4 @@ public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
 
     List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
                                                                          Integer masterId);
-
-    Map<Integer, Double> getVideoProgress(List<GcVideo> videos, PortalUser portalUser,
-                                          OffsetDateTime start, OffsetDateTime end);
 }

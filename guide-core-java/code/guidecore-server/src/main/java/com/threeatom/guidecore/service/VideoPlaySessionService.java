@@ -7,9 +7,13 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewerDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerDto;
+import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySession;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,4 +33,7 @@ public interface VideoPlaySessionService extends IService<VideoPlaySession> {
     List<VideoViewerDto> getVideoViewersAnalytics(VideoViewerDetailsDto filter, Integer masterId);
 
     Integer getVideoViewsCount(Integer videoId, Integer masterId);
+
+    Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(
+        List<Integer> videoIds, PortalUser portalUser, OffsetDateTime start, OffsetDateTime end);
 }

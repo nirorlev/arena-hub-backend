@@ -11,11 +11,13 @@ import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySessionMapper;
 import com.threeatom.guidecore.mapping.OwnerMapping;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @Transactional
@@ -106,6 +109,25 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         return videoIdToViewSessions.entrySet().stream()
             .collect(Collectors.toMap(
                 entry -> String.valueOf(entry.getKey()), entry -> calculateVideoViewerDetails(entry.getValue())));
+    }
+
+    @Override
+    public Map<Integer, VideoViewerVideoDetailDto> videoViewerDetails(
+        List<Integer> videoIds, PortalUser portalUser, OffsetDateTime start, OffsetDateTime end) {
+
+        if (CollectionUtils.isEmpty(videoIds)) {
+            return Map.of();
+        }
+
+        List<VideoPlaySession> playSessions =
+            baseMapper.findByVideoIdsAndUser(videoIds, portalUser.getUserId(), portalUser.getMasterId(), start, end);
+
+        Map<Integer, List<VideoPlaySession>> videoIdToViewSessions = playSessions.stream()
+            .collect(Collectors.groupingBy(VideoPlaySession::getVideoId));
+
+        return videoIdToViewSessions.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey, entry -> calculateVideoViewerDetails(entry.getValue())));
     }
 
     private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {

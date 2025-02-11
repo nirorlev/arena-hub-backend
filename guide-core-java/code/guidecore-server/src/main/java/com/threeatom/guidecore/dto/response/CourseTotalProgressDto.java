@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ProgressDetailsDto {
-    private ProgressDto progress = new ProgressDto();
+public class CourseTotalProgressDto extends ProgressDto {
+    private int completedSectionsCount;
 }
