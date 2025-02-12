@@ -59,17 +59,17 @@ public class UserManagedGroupServiceImpl extends ServiceImpl<UserManagedGroupMap
         List<UserManagedGroup> userManagedGroups = convertToUserManagedGroups(powtoonManagedGroups, userId);
         saveOrUpdateBatch(userManagedGroups);
 
-        List<String> userManagedGroupCodesToRemove = getUserManagedGroupCodesToRemove(powtoonManagedGroups, userId, masterId);
-        removeByIds(userManagedGroupCodesToRemove);
+        removeByIds(getUserManagedGroupIdsToRemove(powtoonManagedGroups, userId, masterId));
     }
 
-    private List<String> getUserManagedGroupCodesToRemove(List<ManagedGroupDto> powtoonManagedGroups, Integer userId, Integer masterId) {
+    private List<GroupToUserPk> getUserManagedGroupIdsToRemove(List<ManagedGroupDto> powtoonManagedGroups,
+                                                               Integer userId, Integer masterId) {
         List<String> powtoonGroupCodes = convertToGroupCodes(powtoonManagedGroups);
         List<UserManagedGroup> existingUserManagedGroups = findByUserAndMasterId(userId, masterId);
 
         return existingUserManagedGroups.stream()
-            .map(userManagedGroup -> userManagedGroup.getId().getPowtoonGroupCode())
-            .filter(powtoonGroupCode -> !powtoonGroupCodes.contains(powtoonGroupCode))
+            .map(UserManagedGroup::getId)
+            .filter(id -> !powtoonGroupCodes.contains(id.getPowtoonGroupCode()))
             .collect(Collectors.toList());
     }
 
