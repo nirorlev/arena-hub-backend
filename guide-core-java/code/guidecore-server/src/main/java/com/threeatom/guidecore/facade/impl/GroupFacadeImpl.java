@@ -3,6 +3,7 @@ package com.threeatom.guidecore.facade.impl;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +75,18 @@ public class GroupFacadeImpl implements GroupFacade {
         contentGroupOptional.ifPresent(
             contentGroup -> channelSubscriptionService.assignChannels(portalUser, contentGroup.getId(),
                 List.of(assignChannelDto)));
+    }
+
+    @Override
+    public List<ContentGroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser,
+                                                                        HttpServletRequest request) {
+        Optional<GcAccess> contentGroupOptional =
+            contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
+        if (contentGroupOptional.isEmpty()) {
+            return List.of();
+        }
+
+        return courseAssignmentService.findByContentGroupId(contentGroupOptional.get().getId(), request);
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

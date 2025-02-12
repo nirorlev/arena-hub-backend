@@ -271,6 +271,15 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return Optional.ofNullable(this.getOne(queryWrapper));
     }
 
+    @Override
+    public Optional<GcAccess> findContentGroupsByCodeAndMasterId(String code, Integer masterId) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("code", code);
+        queryWrapper.eq("master_id", masterId);
+
+        return Optional.ofNullable(this.getOne(queryWrapper));
+    }
+
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("code", code);

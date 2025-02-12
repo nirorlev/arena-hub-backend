@@ -103,4 +103,6 @@ public interface GcAccessService extends IService<GcAccess> {
     List<GcAccess> findContentGroupsByCodes(List<String> codes);
 
     Optional<GcAccess> findContentGroupsByCode(String code);
+
+    Optional<GcAccess> findContentGroupsByCodeAndMasterId(String groupCode, Integer masterId);
 }
