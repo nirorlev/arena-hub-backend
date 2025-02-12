@@ -1,8 +1,10 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.entity.Group;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GroupMapper;
 import com.threeatom.guidecore.mapping.GroupMapping;
 import com.threeatom.guidecore.service.GroupService;
@@ -26,5 +28,10 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             .collect(Collectors.toList());
 
         saveOrUpdateBatch(groups);
+    }
+
+    @Override
+    public List<Group> findGroups(PortalUser portalUser) {
+        return baseMapper.findGroups(portalUser.getUserId(), portalUser.getMasterId());
     }
 }

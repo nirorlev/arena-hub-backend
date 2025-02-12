@@ -17,7 +17,8 @@ public class ContentGroupAuthorizationService
     private static final List<ContentGroupAction> CONTENT_GROUP_ACTIONS = List.of(
         ContentGroupAction.VIEW,
         ContentGroupAction.ADD_CONTENT,
-        ContentGroupAction.MANAGE_CONTENT
+        ContentGroupAction.MANAGE_CONTENT,
+        ContentGroupAction.VIEW_ANALYTICS
     );
     private static final Map<ContentGroupRole, Map<ContentGroupAction, Predicate<PermitContentGroup>>>
         ROLE_CONTENT_GROUP_PERMISSIONS =
@@ -25,10 +26,12 @@ public class ContentGroupAuthorizationService
             ContentGroupRole.VIEWER, Map.of(
                 ContentGroupAction.VIEW, contentGroup -> true,
                 ContentGroupAction.ADD_CONTENT, contentGroup -> false,
+                ContentGroupAction.VIEW_ANALYTICS, contentGroup -> false,
                 ContentGroupAction.MANAGE_CONTENT, contentGroup -> false
             ),
             ContentGroupRole.ADMIN, Map.of(
                 ContentGroupAction.VIEW, contentGroup -> true,
+                ContentGroupAction.VIEW_ANALYTICS, contentGroup -> true,
                 ContentGroupAction.ADD_CONTENT, contentGroup -> true,
                 ContentGroupAction.MANAGE_CONTENT, contentGroup -> true
             )
