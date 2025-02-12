@@ -6,12 +6,12 @@ import com.threeatom.client.dto.PowtoonUserDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.controller.user.vo.PtGroupsVo;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 public interface GcAccessService extends IService<GcAccess> {
@@ -101,4 +101,6 @@ public interface GcAccessService extends IService<GcAccess> {
         PowtoonUserDto powtoonUser, Integer masterId, Integer userId, List<Groups> powtoonGroups);
 
     List<GcAccess> findContentGroupsByCodes(List<String> codes);
+
+    Optional<GcAccess> findContentGroupsByCode(String code);
 }

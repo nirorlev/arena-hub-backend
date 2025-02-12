@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -260,6 +261,14 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("code", codes);
         return this.list(queryWrapper);
+    }
+
+    @Override
+    public Optional<GcAccess> findContentGroupsByCode(String code) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("code", code);
+
+        return Optional.ofNullable(this.getOne(queryWrapper));
     }
 
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {

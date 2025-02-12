@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -12,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +34,16 @@ public class GroupController {
         GroupResponseDto groupResponseDto = groupFacade.groups(portalUser);
 
         return ResponseEntity.ok(groupResponseDto);
+    }
+
+    @PostMapping("/{groupCode}/course-assignments")
+    public ResponseEntity<Void> assignCourse(@PathVariable("groupCode") String groupCode,
+                                             @RequestBody AssignCourseDto assignCourseDto,
+                                             HttpServletRequest request) {
+        GcUser currentUser = gcUserService.getCurrentUser(request);
+        groupFacade.assignCourseToGroup(groupCode, assignCourseDto, currentUser);
+
+        return ResponseEntity.ok().build();
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

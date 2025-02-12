@@ -1,10 +1,12 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.Group;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.UserManagedGroup;
@@ -12,10 +14,12 @@ import com.threeatom.guidecore.facade.GroupFacade;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.mapping.GroupMapping;
 import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GroupService;
 import com.threeatom.guidecore.service.UserManagedGroupService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +35,7 @@ public class GroupFacadeImpl implements GroupFacade {
     private final ContentGroupMapping contentGroupMapping;
     private final GroupService groupService;
     private final GroupMapping groupMapping;
-
+    private final GcContentGroupCourseAssignmentService courseAssignmentService;
 
     @Override
     public List<ContentGroupDto> getUserManagedContentGroups(PortalUser portalUser) {
@@ -51,6 +55,13 @@ public class GroupFacadeImpl implements GroupFacade {
         Map<String, GroupDto> groupDtos = getGroupCodeToGroups(portalUser, groups, groupCodeToContentGroup(codes));
 
         return createGroupResponse(groupDtos);
+    }
+
+    @Override
+    public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser) {
+        Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
+        contentGroupOptional.ifPresent(
+            contentGroup -> courseAssignmentService.assignCourse(currentUser, assignCourseDto));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {
