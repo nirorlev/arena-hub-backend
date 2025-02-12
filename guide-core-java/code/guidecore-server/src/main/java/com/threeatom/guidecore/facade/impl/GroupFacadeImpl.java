@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupDto;
@@ -13,6 +14,7 @@ import com.threeatom.guidecore.entity.UserManagedGroup;
 import com.threeatom.guidecore.facade.GroupFacade;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.mapping.GroupMapping;
+import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GroupService;
@@ -36,6 +38,7 @@ public class GroupFacadeImpl implements GroupFacade {
     private final GroupService groupService;
     private final GroupMapping groupMapping;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
+    private final ContentGroupChannelSubscriptionService channelSubscriptionService;
 
     @Override
     public List<ContentGroupDto> getUserManagedContentGroups(PortalUser portalUser) {
@@ -62,6 +65,13 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
             contentGroup -> courseAssignmentService.assignCourse(currentUser, assignCourseDto));
+    }
+
+    @Override
+    public void assignChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser) {
+        Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
+        contentGroupOptional.ifPresent(
+            contentGroup -> channelSubscriptionService.assignChannels(portalUser, List.of(assignChannelDto)));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {
