@@ -109,6 +109,12 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
+    public void assignChannels(PortalUser portalUser, Integer contentGroupId, List<AssignChannelDto> assignChannels) {
+        assignChannels.forEach(assignChannelDto -> assignChannelDto.setContentGroupId(contentGroupId));
+        assignChannels(portalUser, assignChannels);
+    }
+
+    @Override
     public void removeAssignment(Integer channelAssignmentId) {
         this.removeById(channelAssignmentId);
     }

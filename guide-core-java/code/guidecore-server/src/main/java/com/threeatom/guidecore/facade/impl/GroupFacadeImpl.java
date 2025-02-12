@@ -64,14 +64,15 @@ public class GroupFacadeImpl implements GroupFacade {
     public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> courseAssignmentService.assignCourse(currentUser, assignCourseDto));
+            contentGroup -> courseAssignmentService.assignCourse(currentUser, contentGroup.getId(), assignCourseDto));
     }
 
     @Override
     public void assignChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> channelSubscriptionService.assignChannels(portalUser, List.of(assignChannelDto)));
+            contentGroup -> channelSubscriptionService.assignChannels(portalUser, contentGroup.getId(),
+                List.of(assignChannelDto)));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

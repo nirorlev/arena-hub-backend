@@ -94,7 +94,7 @@ public class ContentGroupController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping(value = "/course-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/channel-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateChannelAssignment(@PathVariable("assignment-id") Integer channelAssignmentId,
                                                         @RequestBody @Valid AssignChannelDto assignChannelDto,
                                                         HttpServletRequest request) {
@@ -103,7 +103,7 @@ public class ContentGroupController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/course-assignments/remove/{assignment-id}")
+    @DeleteMapping("/channel-assignments/remove/{assignment-id}")
     public ResponseEntity<Void> removeChannelFromContentGroup(
         @PathVariable("assignment-id") Integer channelAssignmentId) {
 

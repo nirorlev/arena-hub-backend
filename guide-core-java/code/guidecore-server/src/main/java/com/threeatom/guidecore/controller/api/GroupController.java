@@ -32,9 +32,8 @@ public class GroupController {
     @GetMapping
     public ResponseEntity<GroupResponseDto> groups(HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
-        GroupResponseDto groupResponseDto = groupFacade.groups(portalUser);
 
-        return ResponseEntity.ok(groupResponseDto);
+        return ResponseEntity.ok(groupFacade.groups(portalUser));
     }
 
     @PostMapping("/{groupCode}/course-assignments")

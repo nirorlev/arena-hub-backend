@@ -13,12 +13,12 @@
     </resultMap>
 
     <select id="findGroups" resultMap="groupResultMap" resultType="Group">
-        SELECT powtoon_group_code,
-               name,
-               powtoon_parent_group_code,
-               master_id,
-               created_time,
-               updated_time
+        SELECT groups.powtoon_group_code,
+               groups.name,
+               groups.powtoon_parent_group_code,
+               groups.master_id,
+               groups.created_time,
+               groups.updated_time
         FROM groups
                  JOIN user_groups
                       ON groups.powtoon_group_code = user_groups.powtoon_group_code AND user_groups.user_id = #{userId}

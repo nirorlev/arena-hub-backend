@@ -74,6 +74,12 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
+    public void assignCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto) {
+        assignCourseDto.setContentGroupId(contentGroupId);
+        assignCourse(currentUser, assignCourseDto);
+    }
+
+    @Override
     public void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser,
                                        AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
