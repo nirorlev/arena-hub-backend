@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class ProgressDto {
     private double percentage;
+    private int secondsViewed;
 }
