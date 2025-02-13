@@ -208,14 +208,12 @@
 	</select>
 
 	<select id="listAccess" resultMap="baseResultMap">
-		select * from gc_access ac
-			join gc_user_access ua on ac.id = ua.access_id and ua.user_id = #{userId}
-		where ua.master_id = #{masterId}
-			and ac.group_name is not null
-			and ua.user_id = #{userId}
-			and (ua.role_json::text like concat('%','groupAdmin','%') or ua.role_json::text like concat('%','orgAdmin','%'))
+		select *
+		from gc_access content_group
+			join user_managed_groups managed_groups on content_group.code = managed_groups.powtoon_group_code and managed_groups.user_id = #{userId}
+		where content_group.master_id = #{masterId} and content_group.group_name is not null
 		<if test="name!=null">
-			and ac.group_name like concat('%',#{name},'%')
+			and content_group.group_name ilike concat('%',#{name},'%')
 		</if>
 	</select>
 
