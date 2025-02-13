@@ -242,13 +242,17 @@
 
     <select id="selectUserAccessesByMasterIdAndRole" resultMap="baseResultMap">
         select
-            <include refid="baseColumn" />
-            <include refid="gcAccessbaseColumn" />
+            <include refid="baseColumn"/>
+            <include refid="gcAccessbaseColumn"/>
         from gc_user_access ua
             JOIN gc_access a on ua.access_id = a.id
         where ua.master_id=#{masterId}
-          and ua.user_id=#{userId}
-          and ua.role_json::text like concat('%',#{role},'%')
+            and ua.user_id=#{userId}
+            and (
+                <foreach collection="roles" item="roleItem" open="(" separator=" OR " close=")">
+                    ua.role_json::text like concat('%',#{roleItem},'%')
+                </foreach>
+            )
     </select>
 
     <select id="countUserAccessesByMasterIdAndRole" resultType="Integer">

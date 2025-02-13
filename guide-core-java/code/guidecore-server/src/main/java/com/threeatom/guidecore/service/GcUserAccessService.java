@@ -66,7 +66,7 @@ public interface GcUserAccessService extends IService<GcUserAccess> {
 
     List<GcUserAccess> selectAllUserAccessByAccessId(Integer accessId, Integer masterId);
 
-    Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role);
+    Set<Integer> getContentGroupIds(Integer userId, Integer masterId, List<String> roles);
 
     void syncUserAccessWithPowtoonGroups(
         Integer masterId, List<GcAccess> allPowtoonUserContentGroups, Integer userId, List<Groups> results);

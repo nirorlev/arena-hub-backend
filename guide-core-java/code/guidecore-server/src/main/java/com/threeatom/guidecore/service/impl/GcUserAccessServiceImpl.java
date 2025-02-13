@@ -109,8 +109,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
         return baseMapper.countUserAccessesByMasterIdAndRole(userId, masterId, role);
     }
 
-    private List<GcUserAccess> selectUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, String role) {
-        return this.baseMapper.selectUserAccessesByMasterIdAndRole(userId, masterId, role);
+    private List<GcUserAccess> selectUserAccessesByMasterIdAndRole(Integer userId, Integer masterId, List<String> roles) {
+        return this.baseMapper.selectUserAccessesByMasterIdAndRole(userId, masterId, roles);
     }
 
     @Override
@@ -246,8 +246,8 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
     }
 
     @Override
-    public Set<Integer> getContentGroupIds(Integer userId, Integer masterId, String role) {
-        return selectUserAccessesByMasterIdAndRole(userId, masterId, role)
+    public Set<Integer> getContentGroupIds(Integer userId, Integer masterId, List<String> roles) {
+        return selectUserAccessesByMasterIdAndRole(userId, masterId, roles)
                 .stream()
                 .map(GcUserAccess::getAccess)
                 .map(GcAccess::getId)
