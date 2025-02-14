@@ -56,6 +56,16 @@ public class GroupController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{groupCode}/course-assignments/{courseId}")
+    public ResponseEntity<Void> removeCourseAssignment(@PathVariable("groupCode") String groupCode,
+                                                       @PathVariable("courseId") Integer courseId,
+                                                       HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+        groupFacade.removeCourseAssignment(groupCode, courseId, portalUser);
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{groupCode}/channel-subscriptions")
     public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> channelSubscriptions(
         @PathVariable("groupCode") String groupCode, HttpServletRequest request) {
@@ -75,8 +85,8 @@ public class GroupController {
 
     @DeleteMapping("/{groupCode}/channel-subscriptions/{channelId}")
     public ResponseEntity<Void> removeChannelSubscription(@PathVariable("groupCode") String groupCode,
-                                             @PathVariable("groupCode") Integer channelId,
-                                             HttpServletRequest request) {
+                                                          @PathVariable("channelId") Integer channelId,
+                                                          HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
         groupFacade.removeChannelSubscription(groupCode, channelId, portalUser);
 

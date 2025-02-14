@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
-import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
@@ -144,8 +143,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void removeCourseAssignmentsByCourseId(GcAccess contentGroup, List<Integer> courseIds) {
-        this.baseMapper.removeByContentGroupIdAndCourseIds(contentGroup.getId(), courseIds);
+    public void removeCourseAssignmentsByCourseId(List<Integer> courseIds, Integer contentGroupId) {
+        this.baseMapper.removeByContentGroupIdAndCourseIds(contentGroupId, courseIds);
     }
 
     @Override

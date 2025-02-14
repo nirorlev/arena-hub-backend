@@ -112,6 +112,16 @@ public class GroupFacadeImpl implements GroupFacade {
             List.of(contentGroup), List.of(channelId)));
     }
 
+    @Override
+    public void removeCourseAssignment(String groupCode, Integer courseId, PortalUser portalUser) {
+        Optional<GcAccess> contentGroupOptional =
+            contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
+
+        contentGroupOptional.ifPresent(
+            contentGroup -> courseAssignmentService.removeCourseAssignmentsByCourseId(List.of(courseId),
+                contentGroup.getId()));
+    }
+
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {
         GroupResponseDto groupResponseDto = new GroupResponseDto();
         groupResponseDto.setGroups(groupDtos);

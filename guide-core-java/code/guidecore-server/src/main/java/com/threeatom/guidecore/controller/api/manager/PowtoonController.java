@@ -1286,12 +1286,12 @@ public class PowtoonController extends GuideCoreController {
 
     @ApiOperation(value = "removeSubject", httpMethod = "POST")
     @PostMapping("/removeSubject")
-    public Message removeSubject(@RequestBody Map<String, Object> params, HttpServletRequest request) {
+    public Message removeSubject(@RequestBody Map<String, Object> params) {
         String idListString = params.get("idList").toString();
         List<Integer> idList = JSONArray.parseArray(idListString).toJavaList(Integer.class);
-        GcAccess access = accessService.getById(Integer.parseInt(params.get("accessId").toString()));
+        GcAccess contentGroup = accessService.getById(Integer.parseInt(params.get("accessId").toString()));
 
-        contentGroupCourseAssignmentService.removeCourseAssignmentsByCourseId(access, idList);
+        contentGroupCourseAssignmentService.removeCourseAssignmentsByCourseId(idList, contentGroup.getId());
 
         return new Message().ok();
     }

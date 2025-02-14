@@ -28,4 +28,6 @@ public interface GroupFacade {
                                                                        HttpServletRequest request);
 
     void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser);
+
+    void removeCourseAssignment(String groupCode, Integer courseId, PortalUser portalUser);
 }
