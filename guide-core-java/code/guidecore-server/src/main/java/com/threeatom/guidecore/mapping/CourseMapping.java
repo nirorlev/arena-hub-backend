@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
+import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseSectionContentDto;
@@ -23,6 +24,12 @@ import org.springframework.util.CollectionUtils;
 
 @Mapper(uses = {DateMapping.class, OwnerMapping.class})
 public interface CourseMapping {
+
+    @Mapping(target = "title", source = "name")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "imageUrl", source = "subImgFile.fullFileUrl")
+    CourseDto mapBasic(GcSubject course);
 
     @Mapping(target = "owner", source = "user")
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
