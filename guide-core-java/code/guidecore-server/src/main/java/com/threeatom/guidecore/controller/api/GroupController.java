@@ -2,7 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
-import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
+import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -67,7 +67,7 @@ public class GroupController {
     }
 
     @GetMapping("/{groupCode}/channel-subscriptions")
-    public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> channelSubscriptions(
+    public ResponseEntity<List<GroupChannelSubscriptionDto>> channelSubscriptions(
         @PathVariable("groupCode") String groupCode, HttpServletRequest request) {
         return ResponseEntity.ok()
             .body(groupFacade.groupChannelSubscriptions(groupCode, getPortalUser(request), request));

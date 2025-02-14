@@ -3,6 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
+import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.GcUser;

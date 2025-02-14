@@ -3,8 +3,8 @@ package com.threeatom.guidecore.facade.impl;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
-import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
+import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
@@ -92,16 +92,17 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<ContentGroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser,
-                                                                              HttpServletRequest request) {
+    public List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser,
+                                                                       HttpServletRequest request) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        if (contentGroupOptional.isEmpty()) {
-            return List.of();
-        }
-
-        return channelSubscriptionService.getContentGroupSubscriptions(contentGroupOptional.get().getId(), request);
+        return contentGroupOptional.map(
+                contentGroup -> channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId(), request)
+                    .stream()
+                    .map(GroupChannelSubscriptionDto.class::cast)
+                    .collect(Collectors.toList()))
+            .orElseGet(List::of);
     }
 
     @Override
