@@ -26,4 +26,6 @@ public interface GroupFacade {
 
     List<ContentGroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser,
                                                                        HttpServletRequest request);
+
+    void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser);
 }

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,7 +59,8 @@ public class GroupController {
     @GetMapping("/{groupCode}/channel-subscriptions")
     public ResponseEntity<List<ContentGroupChannelSubscriptionDto>> channelSubscriptions(
         @PathVariable("groupCode") String groupCode, HttpServletRequest request) {
-        return ResponseEntity.ok().body(groupFacade.groupChannelSubscriptions(groupCode, getPortalUser(request), request));
+        return ResponseEntity.ok()
+            .body(groupFacade.groupChannelSubscriptions(groupCode, getPortalUser(request), request));
     }
 
     @PostMapping("/{groupCode}/channel-subscriptions")
@@ -67,6 +69,16 @@ public class GroupController {
                                              HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
         groupFacade.assignChannelToGroup(groupCode, assignChannelDto, portalUser);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{groupCode}/channel-subscriptions/{channelId}")
+    public ResponseEntity<Void> removeChannelSubscription(@PathVariable("groupCode") String groupCode,
+                                             @PathVariable("groupCode") Integer channelId,
+                                             HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+        groupFacade.removeChannelSubscription(groupCode, channelId, portalUser);
 
         return ResponseEntity.ok().build();
     }

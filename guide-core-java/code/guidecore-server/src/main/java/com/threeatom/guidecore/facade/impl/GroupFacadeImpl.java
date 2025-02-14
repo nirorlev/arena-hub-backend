@@ -103,6 +103,15 @@ public class GroupFacadeImpl implements GroupFacade {
         return channelSubscriptionService.getContentGroupSubscriptions(contentGroupOptional.get().getId(), request);
     }
 
+    @Override
+    public void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser) {
+        Optional<GcAccess> contentGroupOptional =
+            contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
+
+        contentGroupOptional.ifPresent(contentGroup -> channelSubscriptionService.removeChannelsFromContentGroups(
+            List.of(contentGroup), List.of(channelId)));
+    }
+
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {
         GroupResponseDto groupResponseDto = new GroupResponseDto();
         groupResponseDto.setGroups(groupDtos);
@@ -110,8 +119,7 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     private Map<String, GcAccess> groupCodeToContentGroup(List<String> codes) {
-        return contentGroupService.findContentGroupsByCodes(codes)
-            .stream()
+        return contentGroupService.findContentGroupsByCodes(codes).stream()
             .collect(Collectors.toMap(GcAccess::getCode, Function.identity()));
     }
 
