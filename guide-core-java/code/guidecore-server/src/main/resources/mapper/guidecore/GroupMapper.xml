@@ -20,10 +20,12 @@
                groups.created_time,
                groups.updated_time
         FROM groups
-                 JOIN user_groups
-                      ON groups.powtoon_group_code = user_groups.powtoon_group_code AND user_groups.user_id = #{userId}
-                 JOIN user_managed_groups ON groups.powtoon_group_code = user_managed_groups.powtoon_group_code AND
-                                             user_managed_groups.user_id = #{userId}
+                 LEFT JOIN user_groups
+                           ON groups.powtoon_group_code = user_groups.powtoon_group_code AND
+                              user_groups.user_id = #{userId}
+                 LEFT JOIN user_managed_groups ON groups.powtoon_group_code = user_managed_groups.powtoon_group_code AND
+                                                  user_managed_groups.user_id = #{userId}
         WHERE master_id = #{masterId}
+          AND (user_groups.powtoon_group_code IS NOT NULL OR user_managed_groups.powtoon_group_code IS NOT NULL)
     </select>
 </mapper>
