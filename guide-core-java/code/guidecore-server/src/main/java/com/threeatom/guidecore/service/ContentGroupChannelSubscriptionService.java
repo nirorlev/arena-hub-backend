@@ -31,11 +31,13 @@ public interface ContentGroupChannelSubscriptionService
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
 
-    void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
+    void subscribeChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
 
-    void assignChannels(PortalUser portalUser, Integer contentGroupId, List<AssignChannelDto> assignChannels);
+    void subscribeChannels(PortalUser portalUser, Integer contentGroupId, List<AssignChannelDto> assignChannels);
 
     void removeAssignment(Integer channelAssignmentId);
 
     void updateAssignment(Integer channelAssignmentId, PortalUser portalUser, AssignChannelDto assignChannelDto);
+
+    void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId, AssignChannelDto assignChannelDto);
 }

@@ -28,9 +28,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class GroupFacadeImpl implements GroupFacade {
 
@@ -67,15 +69,16 @@ public class GroupFacadeImpl implements GroupFacade {
     public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> courseAssignmentService.assignCourse(currentUser, contentGroup.getId(), assignCourseDto));
+            contentGroup -> courseAssignmentService.assignOrUpdateCourse(currentUser, contentGroup.getId(),
+                assignCourseDto));
     }
 
     @Override
-    public void assignChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser) {
+    public void subscribeChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> channelSubscriptionService.assignChannels(portalUser, contentGroup.getId(),
-                List.of(assignChannelDto)));
+            contentGroup -> channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
+                assignChannelDto));
     }
 
     @Override

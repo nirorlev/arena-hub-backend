@@ -19,7 +19,7 @@ public interface GroupFacade {
 
     void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser);
 
-    void assignChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser);
+    void subscribeChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser);
 
     List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser,
                                                           HttpServletRequest request);

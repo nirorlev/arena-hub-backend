@@ -99,7 +99,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels) {
+    public void subscribeChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = assignChannels.stream()
             .map(assignChannelDto -> createSubscription(assignChannelDto.getContentGroupId(),
                 assignChannelDto.getChannelId(), assignChannelDto.getAutoSubscribe(), portalUser.getUserId()))
@@ -109,9 +109,10 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void assignChannels(PortalUser portalUser, Integer contentGroupId, List<AssignChannelDto> assignChannels) {
+    public void subscribeChannels(PortalUser portalUser, Integer contentGroupId,
+                                  List<AssignChannelDto> assignChannels) {
         assignChannels.forEach(assignChannelDto -> assignChannelDto.setContentGroupId(contentGroupId));
-        assignChannels(portalUser, assignChannels);
+        subscribeChannels(portalUser, assignChannels);
     }
 
     @Override
@@ -126,6 +127,31 @@ public class ContentGroupChannelSubscriptionServiceImpl
         contentGroupMapping.updateChannelAssignment(contentGroupChannelSubscription, assignChannelDto);
 
         updateById(contentGroupChannelSubscription);
+    }
+
+    @Override
+    public void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
+                                          AssignChannelDto assignChannelDto) {
+        ContentGroupChannelSubscription contentGroupChannelSubscription = findByChannelAndContentGroupId(
+            assignChannelDto.getChannelId(), contentGroupId);
+
+        if (contentGroupChannelSubscription == null) {
+            saveChannelSubscription(List.of(contentGroupId), assignChannelDto.getChannelId(), portalUser.getUserId());
+            return;
+        }
+
+        contentGroupMapping.updateChannelAssignment(contentGroupChannelSubscription, assignChannelDto);
+        updateById(contentGroupChannelSubscription);
+    }
+
+    private ContentGroupChannelSubscription findByChannelAndContentGroupId(Integer channelId,
+                                                                           Integer contentGroupId) {
+        QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq("channel_id", channelId);
+        queryWrapper.eq("content_group_id", contentGroupId);
+
+        return this.getOne(queryWrapper);
     }
 
     private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription,

@@ -78,7 +78,7 @@ public class GroupController {
                                              @RequestBody AssignChannelDto assignChannelDto,
                                              HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
-        groupFacade.assignChannelToGroup(groupCode, assignChannelDto, portalUser);
+        groupFacade.subscribeChannelToGroup(groupCode, assignChannelDto, portalUser);
 
         return ResponseEntity.ok().build();
     }

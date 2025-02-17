@@ -50,4 +50,6 @@ public interface GcContentGroupCourseAssignmentService
     List<Integer> getMustCourseIds(Integer userId, Integer masterId, UserGroupRole userRole);
 
     Set<Integer> getContentGroupIds(Integer courseId);
+
+    void assignOrUpdateCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto);
 }
