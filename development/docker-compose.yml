@@ -93,7 +93,7 @@ services:
       AWS_S3_BUCKET: bucket name
       AWS_S3_REGION: eu-west-2
       AWS_IAM_ROLE: iam role
-      GUIDE_USER_STORE_DOMAIN: stage.store.demoguide.xyz
+      GUIDE_USER_STORE_DOMAIN: storage-arena.dev.k8s.powtoon.com
       GUIDE_USER_STORE_KEY_PAIR_ID: ${GUIDE_USER_STORE_KEY_PAIR_ID}
       PDP_API_KEY: ${PDP_API_KEY}
       PDP_ADDRESS: http://pdp:7000
