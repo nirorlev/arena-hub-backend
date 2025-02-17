@@ -16,6 +16,6 @@ public class AssignChannelDto {
     @ApiModelProperty(notes = "The unique ID of the content group from which the channel is to be assigned")
     @NotNull(message = "Content Group ID is required")
     private Integer contentGroupId;
-    @ApiModelProperty(notes = "Specifies whether the channel should be subscribed by user. Default is false")
-    private Boolean subscribe = false;
+    @ApiModelProperty(notes = "Specifies whether the channel should be auto-subscribed by user. Default is false")
+    private Boolean autoSubscribe = false;
 }

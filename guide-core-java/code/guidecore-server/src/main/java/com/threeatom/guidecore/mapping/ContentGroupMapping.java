@@ -32,7 +32,7 @@ public interface ContentGroupMapping {
     List<ContentGroupDto> map(List<GcAccess> contentGroups);
 
     @Mapping(target = "modifiedDate", expression = "java(java.time.OffsetDateTime.now())")
-    @Mapping(target = "isSubscribed", source = "subscribe")
+    @Mapping(target = "autoSubscribe", source = "autoSubscribe")
     void updateChannelAssignment(@MappingTarget ContentGroupChannelSubscription contentGroupChannelSubscription,
                                  AssignChannelDto assignChannelDto);
 }

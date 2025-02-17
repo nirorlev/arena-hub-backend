@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
-import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
@@ -103,7 +102,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     public void assignChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = assignChannels.stream()
             .map(assignChannelDto -> createSubscription(assignChannelDto.getContentGroupId(),
-                assignChannelDto.getChannelId(), assignChannelDto.getSubscribe(), portalUser.getUserId()))
+                assignChannelDto.getChannelId(), assignChannelDto.getAutoSubscribe(), portalUser.getUserId()))
             .collect(Collectors.toList());
 
         saveBatch(contentGroupChannelSubscriptions);
@@ -176,13 +175,13 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     private ContentGroupChannelSubscription createSubscription(Integer contentGroupId, Integer channelId,
-                                                               boolean isSubscribed, Integer userId) {
+                                                               boolean autoSubscribe, Integer userId) {
         ContentGroupChannelSubscription subscription = new ContentGroupChannelSubscription();
 
         subscription.setContentGroupId(contentGroupId);
         subscription.setChannelId(channelId);
         subscription.setCreatedByUserId(userId);
-        subscription.setIsSubscribed(isSubscribed);
+        subscription.setAutoSubscribe(autoSubscribe);
 
         return subscription;
     }
