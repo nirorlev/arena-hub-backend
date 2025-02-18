@@ -237,7 +237,7 @@
 		from gc_access ac
 		LEFT JOIN (SELECT content_group_id, COUNT(id) AS channelNum
 			FROM content_group_channel_subscription
-			WHERE is_subscribed = true
+			WHERE auto_subscribe = true
 			GROUP BY content_group_id)
 		    cgc ON ac.id = cgc.content_group_id
 		left join  gc_user_access ua on ua.access_id = ac.id

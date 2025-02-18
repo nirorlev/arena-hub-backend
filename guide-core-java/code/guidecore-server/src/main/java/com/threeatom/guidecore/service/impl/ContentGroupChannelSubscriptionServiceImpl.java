@@ -170,7 +170,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
         QueryWrapper<ContentGroupChannelSubscription> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.in("content_group_id", contentGroupId);
-        queryWrapper.eq("is_subscribed", subscribed);
+        queryWrapper.eq("auto_subscribe", subscribed);
 
         return getChannelIds(this.list(queryWrapper));
     }
@@ -187,7 +187,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
 
         queryWrapper.eq("content_group_id", contentGroupId);
         queryWrapper.in("channel_id", channelIds);
-        queryWrapper.eq("is_subscribed", false);
+        queryWrapper.eq("auto_subscribe", false);
 
         this.remove(queryWrapper);
     }

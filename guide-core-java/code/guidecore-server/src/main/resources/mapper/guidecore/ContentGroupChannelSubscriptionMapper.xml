@@ -73,7 +73,7 @@
 	<select id="findByContentGroupId" resultMap="baseResultMap">
 		SELECT
             cgcs.id,
-            cgcs.is_subscribed,
+            cgcs.auto_subscribe,
             cgcs.created_date,
             cgcs.modified_date,
             <include refid="createdByUserColumns"/>,
@@ -87,8 +87,8 @@
 			LEFT JOIN sys_file sfc ON sfc.id = pc.channel_img_file_id
 			LEFT JOIN sys_file sfui ON sfui.id = ui.avatar_file_id
 		WHERE cgcs.content_group_id = #{contentGroupId}
-		<if test="isSubscribed != null">
-			AND cgcs.is_subscribed = #{isSubscribed}
+		<if test="autoSubscribe != null">
+			AND cgcs.auto_subscribe = #{autoSubscribe}
 		</if>
 	</select>
 </mapper>
