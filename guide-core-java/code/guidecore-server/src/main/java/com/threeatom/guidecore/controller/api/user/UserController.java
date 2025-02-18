@@ -3,6 +3,7 @@ package com.threeatom.guidecore.controller.api.user;
 import com.aliyuncs.exceptions.ClientException;
 import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonAuthDto;
+import com.threeatom.client.dto.request.GetTokenDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.redis.RedisOperator;
@@ -26,7 +27,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -132,7 +133,7 @@ public class UserController {
             return;
         }
 
-        Map<String, String> body = getTokenRequestBody(user, ptLoginConfig);
+        GetTokenDto body = getTokenRequestBody(user, ptLoginConfig);
         PowtoonAuthDto powtoonAuthDto =
             powtoonClient.getAuthToken(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken()), body);
 
@@ -140,13 +141,15 @@ public class UserController {
         userService.syncPowtoonUser(powtoonAuthDto.getAccessToken(), ptLoginConfig, masterId);
     }
 
-    private Map<String, String> getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
-        Map<String, String> body = new HashMap<>();
-        body.put("client_id", loginConfig.getClientId());
-        body.put("client_secret", loginConfig.getClientSecret());
-        body.put("grant_type", "refresh_token");
-        body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
-        return body;
+    private GetTokenDto getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
+        GetTokenDto getTokenDto = new GetTokenDto();
+
+        getTokenDto.setClientId(loginConfig.getClientId());
+        getTokenDto.setClientSecret(loginConfig.getClientSecret());
+        getTokenDto.setGrantType("refresh_token");
+        getTokenDto.setRefreshToken((String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
+
+        return getTokenDto;
     }
 
     private void updateAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {
