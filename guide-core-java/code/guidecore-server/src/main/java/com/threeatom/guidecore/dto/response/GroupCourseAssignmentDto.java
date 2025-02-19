@@ -27,5 +27,5 @@ public class GroupCourseAssignmentDto {
     private OffsetDateTime deadline = OffsetDateTime.now();
 
     @ApiModelProperty(notes = "The date and time when the content group course assignment was last modified")
-    private OffsetDateTime modifiedDate = OffsetDateTime.now();
+    private OffsetDateTime updatedTime = OffsetDateTime.now();
 }

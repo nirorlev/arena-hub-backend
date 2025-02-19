@@ -11,21 +11,18 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a content group channel subscription")
 public class GroupChannelSubscriptionDto {
 
-    @ApiModelProperty(notes = "The title of the title")
-    private String channelTitle;
+    @ApiModelProperty(notes = "Channel details")
+    private BasicChannelDto channel;
 
-    @ApiModelProperty(notes = "The slug of the channel")
-    private String channelSlug;
+    @ApiModelProperty(notes = "Group basic information")
+    private BasicGroupDto group;
 
-    @ApiModelProperty(notes = "The ID of the channel")
-    private String channelId;
+    @ApiModelProperty(notes = "User basic information")
+    private UserDetailsDto user;
 
-    @ApiModelProperty(notes = "The URL of the channel image")
-    private String channelImageUrl;
-
-    @ApiModelProperty(notes = "The source of the content group course assignment")
-    private ContentGroupCourseAssignmentSourceDto source;
+    @ApiModelProperty(notes = "Whether the channel should be auto-subscribed or not")
+    private boolean autoSubscribe;
 
     @ApiModelProperty(notes = "The date and time when the content group course assignment was last modified")
-    private OffsetDateTime modifiedDate = OffsetDateTime.now();
+    private OffsetDateTime updatedTime = OffsetDateTime.now();
 }

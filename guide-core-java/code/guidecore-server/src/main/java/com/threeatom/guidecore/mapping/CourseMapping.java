@@ -28,7 +28,7 @@ public interface CourseMapping {
     @Mapping(target = "title", source = "name")
     @Mapping(target = "id", source = "id")
     @Mapping(target = "description", source = "description")
-    @Mapping(target = "imageUrl", source = "subImgFile.fullFileUrl")
+    @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
     CourseDto mapBasic(GcSubject course);
 
     @Mapping(target = "owner", source = "user")

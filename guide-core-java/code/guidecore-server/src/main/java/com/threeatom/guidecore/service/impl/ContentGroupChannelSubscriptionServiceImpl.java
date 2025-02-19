@@ -9,7 +9,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
-import com.threeatom.guidecore.mapping.ContentGroupMapping;
+import com.threeatom.guidecore.mapping.ContentGroupChannelSubscriptionMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.PtChannelService;
 import java.util.List;
@@ -27,7 +27,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     extends ServiceImpl<ContentGroupChannelSubscriptionMapper, ContentGroupChannelSubscription>
     implements ContentGroupChannelSubscriptionService {
 
-    private final ContentGroupMapping contentGroupMapping;
+    private final ContentGroupChannelSubscriptionMapping contentGroupChannelSubscriptionMapping;
     private final PtChannelService channelService;
 
     @Override
@@ -83,7 +83,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
         return contentGroupChannelSubscriptions.stream()
             .map(contentGroupChannelSubscription -> {
                 channelService.updateUrls(contentGroupChannelSubscription.getChannel());
-                return contentGroupMapping.map(contentGroupChannelSubscription);
+                return contentGroupChannelSubscriptionMapping.map(contentGroupChannelSubscription);
             })
             .collect(Collectors.toList());
     }
@@ -110,7 +110,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
             return;
         }
 
-        contentGroupMapping.updateChannelSubscription(contentGroupChannelSubscription, subscribeChannelDto);
+        contentGroupChannelSubscriptionMapping.updateChannelSubscription(contentGroupChannelSubscription,
+            subscribeChannelDto);
         updateById(contentGroupChannelSubscription);
     }
 
