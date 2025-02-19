@@ -19,6 +19,8 @@ public class PowtoonClientConfiguration {
     @Bean
     public RequestInterceptor authorizationInterceptor() {
         return requestTemplate -> {
+            requestTemplate.header("User-Agent", "arena");
+
             log.info("Feign Request: {} {}", requestTemplate.method(), requestTemplate.url());
             log.info("Headers: {}", requestTemplate.headers());
             if (requestTemplate.body() != null) {
