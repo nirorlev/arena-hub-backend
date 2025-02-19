@@ -1506,6 +1506,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public void updateUrls(GcSubject course) {
         SysFile subImgFile = course.getSubImgFile();
+        if (subImgFile == null) {
+            return;
+        }
+
         subImgFile.setFullFileUrl(sysFileService.getFullFileUrl(subImgFile.getFileUrl()));
         subImgFile.setSnapshotUrl(sysFileService.getFullFileUrl(subImgFile.getThumbNailUrl()));
     }

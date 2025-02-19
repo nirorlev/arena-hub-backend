@@ -2,14 +2,13 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
-import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
-@Mapper(uses = {CourseMapping.class, UserDetailsDto.class, ContentGroupMapping.class})
+@Mapper(uses = {CourseMapping.class, UserMapping.class, ContentGroupMapping.class})
 public interface GcContentGroupCourseAssignmentMapping {
 
     @Mapping(target = "group", source = "contentGroup")

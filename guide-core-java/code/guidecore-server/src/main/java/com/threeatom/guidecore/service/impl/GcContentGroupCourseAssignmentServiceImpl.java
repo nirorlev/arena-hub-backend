@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +37,9 @@ public class GcContentGroupCourseAssignmentServiceImpl
     private static final int MANDATORY_COURSE_VALUE = 1;
 
     private final GcContentGroupCourseAssignmentMapping gcContentGroupCourseAssignmentMapping;
-    private final GcSubjectService courseService;
+    @Lazy
+    @Autowired
+    private GcSubjectService courseService;
 
     @Override
     @Transactional(readOnly = true)

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -28,7 +30,9 @@ public class ContentGroupChannelSubscriptionServiceImpl
     implements ContentGroupChannelSubscriptionService {
 
     private final ContentGroupChannelSubscriptionMapping contentGroupChannelSubscriptionMapping;
-    private final PtChannelService channelService;
+    @Lazy
+    @Autowired
+    private PtChannelService channelService;
 
     @Override
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
