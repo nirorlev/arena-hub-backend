@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
+import com.threeatom.guidecore.dto.response.BasicGroupDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
@@ -35,4 +36,8 @@ public interface ContentGroupMapping {
     @Mapping(target = "autoSubscribe", source = "autoSubscribe")
     void updateChannelSubscription(@MappingTarget ContentGroupChannelSubscription contentGroupChannelSubscription,
                                    SubscribeChannelDto subscribeChannelDto);
+
+    @Mapping(target = "name", source = "groupName")
+    @Mapping(target = "code", source = "code")
+    BasicGroupDto mapBasicGroup(GcAccess contentGroup);
 }

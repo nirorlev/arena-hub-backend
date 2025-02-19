@@ -1,8 +1,8 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.permissions.service.AuthorizationService;
-import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +73,8 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser) {
+    public void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto,
+                                        PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
             contentGroup -> channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
@@ -82,15 +82,13 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser) {
+    public Map<String, List<GroupCourseAssignmentDto>> groupCourseAssignments(String groupCode, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        return contentGroupOptional.map(
-                gcAccess -> courseAssignmentService.findByContentGroupId(gcAccess.getId()).stream()
-                    .map(GroupCourseAssignmentDto.class::cast)
-                    .collect(Collectors.toList()))
-            .orElseGet(List::of);
+        return contentGroupOptional
+            .map(this::convertCourseIdToCourseAssignment)
+            .orElseGet(Map::of);
     }
 
     @Override
@@ -98,11 +96,8 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        return contentGroupOptional.map(
-                contentGroup -> channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId())
-                    .stream()
-                    .map(GroupChannelSubscriptionDto.class::cast)
-                    .collect(Collectors.toList()))
+        return contentGroupOptional.map(contentGroup ->
+                channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId()))
             .orElseGet(List::of);
     }
 
@@ -123,6 +118,11 @@ public class GroupFacadeImpl implements GroupFacade {
         contentGroupOptional.ifPresent(
             contentGroup -> courseAssignmentService.removeCourseAssignmentsByCourseId(List.of(courseId),
                 contentGroup.getId()));
+    }
+
+    private Map<String, List<GroupCourseAssignmentDto>> convertCourseIdToCourseAssignment(GcAccess contentGroup) {
+        return courseAssignmentService.findByContentGroupId(contentGroup.getId()).stream()
+            .collect(Collectors.groupingBy(courseAssignment -> String.valueOf(courseAssignment.getCourse().getId())));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

@@ -6,7 +6,7 @@ import com.threeatom.guidecore.entity.PtChannel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(uses = OwnerMapping.class)
+@Mapper(uses = UserMapping.class)
 public interface ChannelMapping {
 
     @Mapping(target = "title", source = "channelName")

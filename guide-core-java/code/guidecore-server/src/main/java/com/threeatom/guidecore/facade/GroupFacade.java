@@ -9,6 +9,7 @@ import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
+import java.util.Map;
 
 public interface GroupFacade {
 
@@ -20,7 +21,7 @@ public interface GroupFacade {
 
     void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
 
-    List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser);
+    Map<String, List<GroupCourseAssignmentDto>> groupCourseAssignments(String groupCode, PortalUser portalUser);
 
     List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser);
 

@@ -9,7 +9,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(uses = {DateMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, UserMapping.class})
 public interface CommentMapping {
 
     @Mapping(target = "likesCount", source = "comment.userFabulousList", qualifiedByName = "mapLikesCount")

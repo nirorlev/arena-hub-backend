@@ -22,7 +22,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.util.CollectionUtils;
 
-@Mapper(uses = {DateMapping.class, OwnerMapping.class})
+@Mapper(uses = {DateMapping.class, UserMapping.class})
 public interface CourseMapping {
 
     @Mapping(target = "title", source = "name")

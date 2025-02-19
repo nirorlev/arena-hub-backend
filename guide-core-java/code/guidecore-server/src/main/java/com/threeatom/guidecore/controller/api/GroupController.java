@@ -12,6 +12,7 @@ import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -41,7 +42,7 @@ public class GroupController {
     }
 
     @GetMapping("/{groupCode}/course-assignments")
-    public ResponseEntity<List<GroupCourseAssignmentDto>> courseAssignments(
+    public ResponseEntity<Map<String, List<GroupCourseAssignmentDto>>> courseAssignments(
         @PathVariable("groupCode") String groupCode, HttpServletRequest request) {
         return ResponseEntity.ok().body(groupFacade.groupCourseAssignments(groupCode, getPortalUser(request)));
     }
