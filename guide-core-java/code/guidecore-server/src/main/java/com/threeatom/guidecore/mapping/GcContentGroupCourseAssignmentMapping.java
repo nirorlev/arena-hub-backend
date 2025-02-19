@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
-import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
+import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,7 +18,7 @@ public interface GcContentGroupCourseAssignmentMapping {
     @Mapping(target = "source.user.lastName", source = "createdBy.info.lastName")
     @Mapping(target = "source.user.profilePhotoUrl", source = "createdBy.info.avatarFile.fileUrl")
     @Mapping(target = "mandatory", qualifiedByName = "convertToMandatoryBoolean")
-    ContentGroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
+    GroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
 
     @Mapping(target = "mandatory", qualifiedByName = "convertToMandatoryInt")
     GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto, Integer createdByUserId);

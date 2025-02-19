@@ -3,7 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
-import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
+import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
@@ -40,8 +40,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
     @Override
     @Transactional(readOnly = true)
-    public List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId,
-                                                                      HttpServletRequest request) {
+    public List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId,
+                                                               HttpServletRequest request) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.findByContentGroupId(contentGroupId);
 
@@ -103,11 +103,6 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void removeCourseAssignment(Integer courseAssignmentId) {
-        removeById(courseAssignmentId);
-    }
-
-    @Override
     public void save(GcUser user, GcSubject course, CourseType type) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             new ArrayList<>(createCoursesAssignment(user, course, type));
@@ -119,15 +114,6 @@ public class GcContentGroupCourseAssignmentServiceImpl
     public void save(GcUser user, List<Integer> courseIds, Integer contentGroupId, CourseType type) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = courseIds.stream()
             .map(courseId -> createContentGroupCourseAssignment(user, courseId, contentGroupId, type))
-            .collect(Collectors.toList());
-
-        saveBatch(contentGroupCourseAssignments);
-    }
-
-    @Override
-    public void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDtos) {
-        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = assignCourseDtos.stream()
-            .map(assignCourseDto -> gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId()))
             .collect(Collectors.toList());
 
         saveBatch(contentGroupCourseAssignments);

@@ -2,8 +2,7 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
-import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
-import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
@@ -13,9 +12,8 @@ import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
-public interface GcContentGroupCourseAssignmentService
-    extends IService<GcContentGroupCourseAssignment> {
-    List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request);
+public interface GcContentGroupCourseAssignmentService extends IService<GcContentGroupCourseAssignment> {
+    List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 
@@ -27,13 +25,9 @@ public interface GcContentGroupCourseAssignmentService
 
     void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId);
 
-    void removeCourseAssignment(Integer courseAssignmentId);
-
     void save(GcUser user, GcSubject course, CourseType type);
 
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
-
-    void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDto);
 
     List<Integer> getMustCoursesContentGroupAssignmentIds(Integer contentGroupId);
 

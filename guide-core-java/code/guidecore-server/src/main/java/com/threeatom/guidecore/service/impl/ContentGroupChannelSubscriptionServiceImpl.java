@@ -3,7 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
-import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
+import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
@@ -77,8 +77,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
-                                                                                 HttpServletRequest request) {
+    public List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
+                                                                          HttpServletRequest request) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
             baseMapper.findByContentGroupId(contentGroupId, true);
 
@@ -96,30 +96,6 @@ public class ContentGroupChannelSubscriptionServiceImpl
         return this.list(queryWrapper).stream()
             .map(ContentGroupChannelSubscription::getContentGroupId)
             .collect(Collectors.toSet());
-    }
-
-    @Override
-    public void subscribeChannels(PortalUser portalUser, List<SubscribeChannelDto> subscribeChannelDtos) {
-        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = subscribeChannelDtos.stream()
-            .map(assignChannelDto -> createSubscription(assignChannelDto.getContentGroupId(),
-                assignChannelDto.getChannelId(), assignChannelDto.getAutoSubscribe(), portalUser.getUserId()))
-            .collect(Collectors.toList());
-
-        saveBatch(contentGroupChannelSubscriptions);
-    }
-
-    @Override
-    public void removeChannelSubscription(Integer channelSubscriptionId) {
-        this.removeById(channelSubscriptionId);
-    }
-
-    @Override
-    public void updateChannelSubscription(Integer channelSubscription, PortalUser portalUser,
-                                          SubscribeChannelDto subscribeChannelDto) {
-        ContentGroupChannelSubscription contentGroupChannelSubscription = getById(channelSubscription);
-        contentGroupMapping.updateChannelSubscription(contentGroupChannelSubscription, subscribeChannelDto);
-
-        updateById(contentGroupChannelSubscription);
     }
 
     @Override
