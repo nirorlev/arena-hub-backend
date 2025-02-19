@@ -1,15 +1,14 @@
 package com.threeatom.guidecore.facade;
 
-import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
+import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
-import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 
 public interface GroupFacade {
 
@@ -21,11 +20,9 @@ public interface GroupFacade {
 
     void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
 
-    List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser,
-                                                          HttpServletRequest request);
+    List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser);
 
-    List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser,
-                                                                HttpServletRequest request);
+    List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser);
 
     void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser);
 

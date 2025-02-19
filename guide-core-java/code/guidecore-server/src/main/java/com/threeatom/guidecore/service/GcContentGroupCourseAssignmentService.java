@@ -13,7 +13,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface GcContentGroupCourseAssignmentService extends IService<GcContentGroupCourseAssignment> {
-    List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request);
+    List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 

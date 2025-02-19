@@ -25,8 +25,7 @@ public interface ContentGroupChannelSubscriptionService extends IService<Content
 
     void removeChannelSubscriptions(List<GcAccess> contentGroups, List<Integer> channelIds);
 
-    List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
-                                                                   HttpServletRequest request);
+    List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId);
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
 

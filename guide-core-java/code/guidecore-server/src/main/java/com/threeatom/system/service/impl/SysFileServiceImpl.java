@@ -11,7 +11,6 @@ import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.config.AwsUploadSignUrlConfiguration;
 import com.threeatom.guidecore.constant.EventUnifyType;
 import com.threeatom.guidecore.constant.TableConstant;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
@@ -687,19 +686,8 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
-    public List<SysFile> getHistoryUpload(Integer masterId, Integer userId, String folder) {
-        return sysFileMapper.getHistoryUpload(masterId, userId, folder);
-    }
-
-    @Override
     public List<SysFile> selectBatch(List<Integer> fileIds) {
         return sysFileMapper.selectBatchByFileIds(fileIds);
-    }
-
-    @Override
-    public void deleteFile(SysSystem sys, SysFile file) {
-        AliyunOssService ossService = this.getCurrentOssService(sys);
-        ossService.deleteObject(ossService.getCurrentBucketName(), file.getFileUrl());
     }
 
     @Override
@@ -710,35 +698,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     @Override
     public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
         return getResFullUrl(sysFile, request);
-    }
-
-    public void updateImageUrls(PtChannel channel, HttpServletRequest request) {
-        if (Objects.nonNull(channel.getCreateUser())) {
-            SysFile sysFile = getById(channel.getCreateUser().getAvatarFileId());
-            String imgFullFileUrl = getResFullUrl(sysFile, request);
-            channel.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
-        }
-
-        if (Objects.nonNull(channel.getChannelImgFileId())) {
-            SysFile sysFile = getById(channel.getChannelImgFileId());
-            String imgFullFileUrl = getResFullUrl(sysFile, request);
-            channel.setImgFullFileUrl(imgFullFileUrl);
-        }
-
-        if (Objects.nonNull(channel.getChannelAvatarFileId())) {
-            SysFile avatarFile = getById(channel.getChannelAvatarFileId());
-            String avatarFullFileUrl = getResFullUrl(avatarFile, request);
-            avatarFile.setFullFileUrl(avatarFullFileUrl);
-            channel.setAvatarFile(avatarFile);
-        }
-    }
-
-    @Override
-    public void updateImageUrls(GcSubject course, HttpServletRequest request) {
-        SysFile courseImage = course.getSubImgFile();
-
-        getResFullUrl(courseImage, request);
-        getVideoSnapshotUrl(courseImage);
     }
 
     @Override

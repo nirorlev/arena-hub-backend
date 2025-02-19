@@ -38,6 +38,8 @@ public interface PtChannelService extends IService<PtChannel> {
     List<PtChannel> indexSearchChannels(
         Integer userId, Integer type, HttpServletRequest request, Integer masterId);
 
+    void updateUrls(PtChannel channel);
+
     List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request);
 
     List<PtChannel> searchChannelsBySysFile(

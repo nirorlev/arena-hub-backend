@@ -11,11 +11,10 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.ContentGroupChannelSubscriptionMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
-import com.threeatom.system.service.SysFileService;
+import com.threeatom.guidecore.service.PtChannelService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +28,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     implements ContentGroupChannelSubscriptionService {
 
     private final ContentGroupMapping contentGroupMapping;
-    private final SysFileService fileService;
+    private final PtChannelService channelService;
 
     @Override
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {
@@ -77,14 +76,15 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
-                                                                          HttpServletRequest request) {
+    public List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
             baseMapper.findByContentGroupId(contentGroupId, true);
 
         return contentGroupChannelSubscriptions.stream()
-            .map(contentGroupChannelSubscription -> updateUrls(contentGroupChannelSubscription, request))
-            .map(contentGroupMapping::map)
+            .map(contentGroupChannelSubscription -> {
+                channelService.updateUrls(contentGroupChannelSubscription.getChannel());
+                return contentGroupMapping.map(contentGroupChannelSubscription);
+            })
             .collect(Collectors.toList());
     }
 
@@ -105,7 +105,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
             subscribeChannelDto.getChannelId(), contentGroupId);
 
         if (contentGroupChannelSubscription == null) {
-            saveChannelSubscription(List.of(contentGroupId), subscribeChannelDto.getChannelId(), portalUser.getUserId());
+            saveChannelSubscription(List.of(contentGroupId), subscribeChannelDto.getChannelId(),
+                portalUser.getUserId());
             return;
         }
 
@@ -121,12 +122,6 @@ public class ContentGroupChannelSubscriptionServiceImpl
         queryWrapper.eq("content_group_id", contentGroupId);
 
         return this.getOne(queryWrapper);
-    }
-
-    private ContentGroupChannelSubscription updateUrls(ContentGroupChannelSubscription contentGroupChannelSubscription,
-                                                       HttpServletRequest request) {
-        fileService.updateImageUrls(contentGroupChannelSubscription.getChannel(), request);
-        return contentGroupChannelSubscription;
     }
 
     private List<Integer> getContentGroupIds(List<GcAccess> contentGroups) {

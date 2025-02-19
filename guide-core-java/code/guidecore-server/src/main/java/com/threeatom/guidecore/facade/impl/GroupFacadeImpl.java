@@ -82,26 +82,24 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser,
-                                                                 HttpServletRequest request) {
+    public List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
         return contentGroupOptional.map(
-                gcAccess -> courseAssignmentService.findByContentGroupId(gcAccess.getId(), request).stream()
+                gcAccess -> courseAssignmentService.findByContentGroupId(gcAccess.getId()).stream()
                     .map(GroupCourseAssignmentDto.class::cast)
                     .collect(Collectors.toList()))
             .orElseGet(List::of);
     }
 
     @Override
-    public List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser,
-                                                                       HttpServletRequest request) {
+    public List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
         return contentGroupOptional.map(
-                contentGroup -> channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId(), request)
+                contentGroup -> channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId())
                     .stream()
                     .map(GroupChannelSubscriptionDto.class::cast)
                     .collect(Collectors.toList()))

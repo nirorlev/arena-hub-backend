@@ -1113,7 +1113,7 @@ public class PowtoonController extends GuideCoreController {
                 List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 i.setAllTags(stringList);
             }
-            sysFileService.updateImageUrls(i, request);
+            subService.updateUrls(i);
         });
         pageInfo = new PageInfo<>(subjects);
         return new Message().ok().addData("pageInfo", pageInfo).addData("access", access);
@@ -1164,7 +1164,7 @@ public class PowtoonController extends GuideCoreController {
                 List<String> stringList = ptTagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setAllTags(stringList);
             }
-            sysFileService.updateImageUrls(channel, request);
+            ptChannelService.updateUrls(channel);
         });
         PageInfo<PtChannel> pageInfo = new PageInfo<>(channels);
         return new Message().ok().addData("pageInfo", pageInfo).addData("access", access);
