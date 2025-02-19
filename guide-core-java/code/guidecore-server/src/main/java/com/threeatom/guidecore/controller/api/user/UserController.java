@@ -1,8 +1,9 @@
 package com.threeatom.guidecore.controller.api.user;
 
-import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.exceptions.ClientException;
+import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonAuthDto;
+import com.threeatom.client.dto.request.GetTokenDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.redis.RedisOperator;
@@ -22,11 +23,11 @@ import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.HttpUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.util.HashMap;
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,6 +58,7 @@ public class UserController {
     private final SysFileService sysFileService;
     private final SysMenuService sysMenuService;
     private final PortalUserService portalUserService;
+    private final PowtoonClient powtoonClient;
 
     @ApiOperation(value = "Get publish permissions of the current user according to org license limits")
     @GetMapping("/me/permissions")
@@ -131,22 +133,23 @@ public class UserController {
             return;
         }
 
-        Map<String, String> body = getTokenRequestBody(user, ptLoginConfig);
-        String authResponse =
-            HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(), body);
-        PowtoonAuthDto authInfo = JSONObject.parseObject(authResponse, PowtoonAuthDto.class);
+        GetTokenDto body = getTokenRequestBody(user, ptLoginConfig);
+        PowtoonAuthDto powtoonAuthDto =
+            powtoonClient.getAuthToken(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken()), body);
 
-        updateAuthInRedis(user, authInfo);
-        userService.syncPowtoonUser(authInfo.getAccessToken(), ptLoginConfig, masterId);
+        updateAuthInRedis(user, powtoonAuthDto);
+        userService.syncPowtoonUser(powtoonAuthDto.getAccessToken(), ptLoginConfig, masterId);
     }
 
-    private Map<String, String> getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
-        Map<String, String> body = new HashMap<>();
-        body.put("client_id", loginConfig.getClientId());
-        body.put("client_secret", loginConfig.getClientSecret());
-        body.put("grant_type", "refresh_token");
-        body.put("refresh_token", (String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
-        return body;
+    private GetTokenDto getTokenRequestBody(GcUser user, PtLoginConfig loginConfig) {
+        GetTokenDto getTokenDto = new GetTokenDto();
+
+        getTokenDto.setClientId(loginConfig.getClientId());
+        getTokenDto.setClientSecret(loginConfig.getClientSecret());
+        getTokenDto.setGrantType("refresh_token");
+        getTokenDto.setRefreshToken((String) redisOperator.get("PT_refresh_token:" + user.getUsername()));
+
+        return getTokenDto;
     }
 
     private void updateAuthInRedis(GcUser user, PowtoonAuthDto authInfo) {

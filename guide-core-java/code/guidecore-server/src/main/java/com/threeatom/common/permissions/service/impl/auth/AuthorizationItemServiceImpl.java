@@ -19,6 +19,7 @@ import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -59,10 +60,10 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
 
         permitUser.setContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                UserGroupRole.GROUP_MEMBER.getRole())));
+                List.of(UserGroupRole.GROUP_MEMBER.getRole()))));
         permitUser.setManagedContentGroupIds(convert(
             userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                UserGroupRole.GROUP_ADMIN.getRole())));
+                List.of(UserGroupRole.GROUP_ADMIN.getRole(), UserGroupRole.ORG_ADMIN.getRole()))));
 
         return permitUser;
     }

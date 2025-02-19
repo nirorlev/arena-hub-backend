@@ -1,7 +1,5 @@
 package com.threeatom.guidecore.controller.api.manager;
 
-import static com.threeatom.utils.ToolUtil.parseToJsonArray;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,7 +8,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.threeatom.client.PowtoonClient;
 import com.threeatom.client.dto.PowtoonAuthDto;
+import com.threeatom.client.dto.request.GetTokenDto;
+import com.threeatom.client.dto.request.LogOutDto;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.PermitException;
@@ -40,7 +41,6 @@ import com.threeatom.guidecore.entity.GcUserAccessExt;
 import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
-import com.threeatom.guidecore.entity.GcUserSaveContentFollow;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcUserVideoPlay;
@@ -98,7 +98,6 @@ import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.utils.HttpUtil;
 import io.permit.sdk.api.PermitApiError;
 import io.permit.sdk.api.PermitContextError;
 import io.swagger.annotations.Api;
@@ -107,6 +106,7 @@ import io.swagger.annotations.ApiParam;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -127,7 +127,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
@@ -281,6 +280,8 @@ public class PowtoonController extends GuideCoreController {
     private PortalUserService portalUserService;
     @Autowired
     private EventPublisherService eventPublisherService;
+    @Autowired
+    private PowtoonClient powtoonClient;
 
     @ApiOperation(value = "Search videos", httpMethod = "POST")
     @PostMapping("search")
@@ -890,22 +891,30 @@ public class PowtoonController extends GuideCoreController {
     public Message logout(HttpServletRequest request) {
         GcUser user = this.getGcUser();
         String accessToken = (String) redisOperator.get("PT:" + user.getUsername());
-        Map<String, String> body = new HashMap<>();
 
-        if (null != accessToken) {
-            PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
-            body.put("token", accessToken);
-            body.put("client_id", ptLoginConfig.getClientId());
-            try {
-                HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getLogOut(), body);
-            } catch (Exception e) {
-                String msg = e.getMessage();
-                throw new SystemException(I18NUtil.get("powtoon.S3upload.error") + msg);
-            }
-            redisOperator.del("PT:" + user.getUsername());
+        if (null == accessToken) {
+            return new Message().ok();
         }
 
+        PtLoginConfig ptLoginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(getHeaderMasterId(request));
+        LogOutDto logOutDto = logOutBody(accessToken, ptLoginConfig);
+        try {
+            powtoonClient.logOut(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getLogOut()), logOutDto);
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            throw new SystemException(I18NUtil.get("powtoon.S3upload.error") + msg);
+        }
+
+        redisOperator.del("PT:" + user.getUsername());
+
         return new Message().ok();
+    }
+
+    private LogOutDto logOutBody(String accessToken, PtLoginConfig ptLoginConfig) {
+        LogOutDto logOutDto = new LogOutDto();
+        logOutDto.setToken(accessToken);
+        logOutDto.setClientId(ptLoginConfig.getClientId());
+        return logOutDto;
     }
 
     @ApiOperation(value = "getPtMessage", httpMethod = "GET")
@@ -1524,8 +1533,8 @@ public class PowtoonController extends GuideCoreController {
     }
 
     private PowtoonAuthDto getAuth(String code, String redirectUri, PtLoginConfig ptLoginConfig) {
-        Map<String, String> parameters = getTokenRequestBody(code, redirectUri, ptLoginConfig);
-        PowtoonAuthDto authInfo = getToken(ptLoginConfig, parameters);
+        GetTokenDto tokenRequestBody = getTokenRequestBody(code, redirectUri, ptLoginConfig);
+        PowtoonAuthDto authInfo = getToken(ptLoginConfig, tokenRequestBody);
 
         log.info("getTokenUrl:" + ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken());
         log.info("code::" + code);
@@ -1540,27 +1549,27 @@ public class PowtoonController extends GuideCoreController {
     }
 
 
-    private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, Map<String, String> parameters) {
-        String powtoonAuthResponse =
-            HttpUtil.sendPostFormUrlencoded(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken(),
-                parameters);
-        if (powtoonAuthResponse == null) {
+    private PowtoonAuthDto getToken(PtLoginConfig ptLoginConfig, GetTokenDto tokenDto) {
+        PowtoonAuthDto powtoonAuthDto =
+            powtoonClient.getAuthToken(URI.create(ptLoginConfig.getPtRootUrl() + ptLoginConfig.getOauthToken()),
+                tokenDto);
+        if (powtoonAuthDto == null) {
             throw new SystemException("Powtoon Token is null");
         }
 
-        return JSON.parseObject(powtoonAuthResponse, PowtoonAuthDto.class);
+        return powtoonAuthDto;
     }
 
-    private Map<String, String> getTokenRequestBody(String code, String redirectUri, PtLoginConfig loginConfig) {
-        Map<String, String> parameters = new HashMap<>();
+    private GetTokenDto getTokenRequestBody(String code, String redirectUri, PtLoginConfig loginConfig) {
+        GetTokenDto getTokenDto = new GetTokenDto();
 
-        parameters.put("client_id", loginConfig.getClientId());
-        parameters.put("client_secret", loginConfig.getClientSecret());
-        parameters.put("grant_type", "authorization_code");
-        parameters.put("redirect_uri", redirectUri);
-        parameters.put("code", code);
+        getTokenDto.setClientId(loginConfig.getClientId());
+        getTokenDto.setClientSecret(loginConfig.getClientSecret());
+        getTokenDto.setGrantType("authorization_code");
+        getTokenDto.setRedirectUri(redirectUri);
+        getTokenDto.setCode(code);
 
-        return parameters;
+        return getTokenDto;
     }
 
     private List<Integer> getUserIds(List<GcUserAccess> userAccessList) {
@@ -1618,7 +1627,8 @@ public class PowtoonController extends GuideCoreController {
     public Message getCoursesInfo(HttpServletRequest request) {
         GcUser user = this.getGcUser();
         GcMaster master = masterService.getById(RequestUtil.getMasterId(request).get());
-        List<Integer> mustCourseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(), UserGroupRole.GROUP_MEMBER);
+        List<Integer> mustCourseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
+            UserGroupRole.GROUP_MEMBER);
         Integer mustSubjectSize = TableConstant.COMMON_ZERO;
         if (!mustCourseIds.isEmpty()) {
             mustSubjectSize = subjectService.getSubjectNum(mustCourseIds);
@@ -1643,7 +1653,8 @@ public class PowtoonController extends GuideCoreController {
             gcSubjectService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ZERO);
 
 
-        List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(), UserGroupRole.GROUP_MEMBER);
+        List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
+            UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, TableConstant.gcSubject_state_visible_1,
                 null, master.getId(), user.getId(), channelIdList, courseIds);
@@ -2494,32 +2505,34 @@ public class PowtoonController extends GuideCoreController {
     @PostMapping("/contentVideoDetail")
     public Message contentVideoDetail(@RequestBody PtChannelContent ptChannelContent, HttpServletRequest request) {
         Message message = new Message();
-        if(Objects.isNull(ptChannelContent.getId())){
-			throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
-		}
+        if (Objects.isNull(ptChannelContent.getId())) {
+            throw new SystemException(I18NUtil.get("powtoon.channel.noChannelContent"));
+        }
 
-		ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
-		Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-		GcUser currentUser = this.getGcUser();
-		PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+        ptChannelContent = ptChannelContentService.getById(ptChannelContent.getId());
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = this.getGcUser();
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-		GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
-		if (!authorizationService.checkAccess(channelVideoContent, PermitAction.VIEW, portalUser)) {
-			throw new PermitException("No permission for this!");
-		}
+        GcVideo channelVideoContent = gcVideoService.findByVideoId(ptChannelContent.getContentId());
+        if (!authorizationService.checkAccess(channelVideoContent, PermitAction.VIEW, portalUser)) {
+            throw new PermitException("No permission for this!");
+        }
 
-		PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
-		GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
-		GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
-		if (null!=gcUserInfo.getAvatarFileId()) {
-			gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
-			sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(),request);
-		}
+        PtChannel ptchannel = ptChannelService.getById(ptChannelContent.getChannelId());
+        GcUser channelCreator = userService.getById(ptchannel.getCreateUserId());
+        GcUserInfo gcUserInfo = gcUserInfoService.getById(channelCreator.getInfoId());
+        if (null != gcUserInfo.getAvatarFileId()) {
+            gcUserInfo.setAvatarFile(sysFileService.getById(gcUserInfo.getAvatarFileId()));
+            sysFileService.getResFullUrl(gcUserInfo.getAvatarFile(), request);
+        }
 
-		channelCreator.setInfo(gcUserInfo);
+        channelCreator.setInfo(gcUserInfo);
         ptchannel.setCreateUser(channelCreator);
-		SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
-		GcUserVideoAction gcUserVideoAction = gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(),currentUser.getId(),TableConstant.COMMON_ONE);
+        SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
+        GcUserVideoAction gcUserVideoAction =
+            gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(), currentUser.getId(),
+                TableConstant.COMMON_ONE);
         if (Objects.nonNull(gcUserVideoAction)) {
             videoFile.setLikedFlag(TableConstant.COMMON_ONE);
         } else {

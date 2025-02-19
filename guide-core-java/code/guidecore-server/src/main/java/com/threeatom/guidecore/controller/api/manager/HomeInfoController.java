@@ -978,9 +978,6 @@ public class HomeInfoController extends GuideCoreController {
                     String vimeoId = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
                     thumbNail = "https://vumbnail.com/" + vimeoId + "/_large.jpg";
                 }
-            } else {
-                thumbNail =
-                    "https://stage.store.demoguide.xyz/207/user/691/20221202/691_1669948409603_%E4%B8%8B%E8%BD%BD.png?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vc3RhZ2Uuc3RvcmUuZGVtb2d1aWRlLnh5ei8yMDcvdXNlci82OTEvMjAyMjEyMDIvNjkxXzE2Njk5NDg0MDk2MDNfJUU0JUI4JThCJUU4JUJEJUJELnBuZyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6NDg0NTEzMzIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifX19XX0_&Signature=JxrnVjhil8WMzttjQQBOhsvj2ttj9GtmGWaUlBf475imBpPC1ymy2VVt9-191nvuzHFLuPbXFMq6Q126uw~qrhwnCi1SSmKG~ymGgVXAWMiPEiWWY2Q2xRDKm6yCzXp0B5yZyyXeqy3kpiDNSa1UVrYJ3M~Ks0R3nSnztJ6FEOToWTTKhbZU-eQ7yPjhE9NQooIbIj~KY8FYlOfPFR6TaPPwqWXsMwmvInr6gJondtgspXhwvu57Qmq2oYoacmBLniUyhLOoc2qVZBDdvqKYgNxaRmd92iDPnmDtqLHv90cK8bMoXHMQ6UqgyyulNJ51zVEOnyb4gl5zuj1rWsx3ng__&Key-Pair-Id=K1JQYEVI2UZJ98";
             }
 
             String titleHtml = message.getData().get("name") + "Playlist";

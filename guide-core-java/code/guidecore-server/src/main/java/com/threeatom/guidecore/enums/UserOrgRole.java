@@ -19,7 +19,7 @@ public enum UserOrgRole {
         UserOrgRole.ADMIN
         , UserOrgRole.ORG_ADMIN
     );
-    private static final List<UserOrgRole> MEBMER_ROLES = List.of(
+    private static final List<UserOrgRole> MEMBER_ROLES = List.of(
         UserOrgRole.LIMITED_MEMBER
         , UserOrgRole.MEMBER
     );
@@ -38,6 +38,6 @@ public enum UserOrgRole {
     }
 
     public boolean isMember() {
-        return MEBMER_ROLES.contains(this);
+        return MEMBER_ROLES.contains(this);
     }
 }

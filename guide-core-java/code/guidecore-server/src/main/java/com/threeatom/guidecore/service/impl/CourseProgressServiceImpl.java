@@ -158,8 +158,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
         return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                long sectionViewedVideos = sectionViewedVideos(videos, videoIdToPercentViewed, videoViewPercentage);
-                int secondsWatched = secondsWatched(videos, videoIdToSecondsWatched);
+                long sectionViewedVideos = sectionViewedVideos(entry.getValue(), videoIdToPercentViewed, videoViewPercentage);
+                int secondsWatched = secondsWatched(entry.getValue(), videoIdToSecondsWatched);
 
                 return sectionProgressDetails(entry.getValue(), sectionViewedVideos, secondsWatched);
             }));
