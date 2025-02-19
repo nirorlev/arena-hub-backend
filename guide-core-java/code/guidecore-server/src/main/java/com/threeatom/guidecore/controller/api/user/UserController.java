@@ -7,15 +7,15 @@ import com.threeatom.client.dto.request.GetTokenDto;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.jwt.JwtUtil;
 import com.threeatom.common.redis.RedisOperator;
-import com.threeatom.guidecore.dto.response.LicensePermissionsDto;
 import com.threeatom.guidecore.dto.response.LicenseUsageDto;
+import com.threeatom.guidecore.dto.response.UserPermissionsDto;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtLoginConfig;
+import com.threeatom.guidecore.facade.UserFacade;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcUserService;
-import com.threeatom.guidecore.service.OrgLicenseLimitationService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.SysMenuService;
@@ -27,8 +27,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserLicenseService userLicenseService;
-    private final OrgLicenseLimitationService orgLicenseLimitationService;
+    private final UserFacade userFacade;
     private final GcUserService userService;
     private final GcMasterService gcMasterService;
     private final PtLoginConfigService ptLoginConfigService;
@@ -62,17 +60,15 @@ public class UserController {
 
     @ApiOperation(value = "Get publish permissions of the current user according to org license limits")
     @GetMapping("/me/permissions")
-    public ResponseEntity<LicensePermissionsDto> getPermissions(HttpServletRequest request) {
+    public ResponseEntity<UserPermissionsDto> getPermissions(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        return ResponseEntity.ok().body(orgLicenseLimitationService.getPermissions(masterId));
+        return ResponseEntity.ok().body(userFacade.getPermissions(getPortalUser(request)));
     }
 
     @ApiOperation(value = "Get usage of the current user according to org license limits")
     @GetMapping("/me/usage")
     public ResponseEntity<LicenseUsageDto> getUsage(HttpServletRequest request) {
-        GcUser currentUser = userService.getCurrentUser(request);
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+        PortalUser portalUser = getPortalUser(request);
 
         return ResponseEntity.ok().body(userLicenseService.getLicenseUsage(portalUser));
     }
@@ -171,5 +167,11 @@ public class UserController {
         }
 
         return null;
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }
