@@ -1,6 +1,6 @@
 package com.threeatom.guidecore.facade;
 
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
@@ -19,7 +19,7 @@ public interface GroupFacade {
 
     void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser);
 
-    void subscribeChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser);
+    void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
 
     List<GroupCourseAssignmentDto> groupCourseAssignments(String groupCode, PortalUser portalUser,
                                                           HttpServletRequest request);

@@ -43,7 +43,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     public List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId,
                                                                       HttpServletRequest request) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
-            this.baseMapper.findByContentGroupIds(List.of(contentGroupId));
+            this.baseMapper.findByContentGroupId(contentGroupId);
 
         if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
             return new ArrayList<>();

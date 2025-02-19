@@ -1369,7 +1369,7 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> channelIds = ((List<String>) params.get("channelIds")).stream().map(Integer::parseInt)
             .collect(Collectors.toList());
 
-        contentGroupChannelSubscriptionService.removeChannelsFromContentGroups(List.of(contentGroup), channelIds);
+        contentGroupChannelSubscriptionService.removeChannelSubscriptions(List.of(contentGroup), channelIds);
         eventPublisherService.publishContentGroupUpdated(contentGroup.getId());
         eventPublisherService.publishChannelUpdated(channelIds);
 
@@ -2111,7 +2111,7 @@ public class PowtoonController extends GuideCoreController {
         updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
 
         List<GcAccess> existingAssignedContentGroups = gcAccessService.getAccessByChannelId(masterId, channel.getId());
-        contentGroupChannelSubscriptionService.removeChannelsFromContentGroups(existingAssignedContentGroups,
+        contentGroupChannelSubscriptionService.removeChannelSubscriptions(existingAssignedContentGroups,
             List.of(channel.getId()));
 
         // Publish channel to team

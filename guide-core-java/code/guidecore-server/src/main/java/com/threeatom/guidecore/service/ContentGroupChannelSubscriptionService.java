@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -24,20 +24,20 @@ public interface ContentGroupChannelSubscriptionService
 
     List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
 
-    void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds);
+    void removeChannelSubscriptions(List<GcAccess> contentGroups, List<Integer> channelIds);
 
     List<ContentGroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId,
                                                                           HttpServletRequest request);
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
 
-    void subscribeChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels);
+    void subscribeChannels(PortalUser portalUser, List<SubscribeChannelDto> subscribeChannelDtos);
 
-    void subscribeChannels(PortalUser portalUser, Integer contentGroupId, List<AssignChannelDto> assignChannels);
+    void removeChannelSubscription(Integer channelSubscriptionId);
 
-    void removeAssignment(Integer channelAssignmentId);
+    void updateChannelSubscription(Integer channelSubscription, PortalUser portalUser,
+                                   SubscribeChannelDto subscribeChannelDto);
 
-    void updateAssignment(Integer channelAssignmentId, PortalUser portalUser, AssignChannelDto assignChannelDto);
-
-    void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId, AssignChannelDto assignChannelDto);
+    void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
+                                   SubscribeChannelDto subscribeChannelDto);
 }

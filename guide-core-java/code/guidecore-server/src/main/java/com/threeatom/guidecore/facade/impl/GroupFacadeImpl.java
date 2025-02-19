@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.permissions.service.AuthorizationService;
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
@@ -74,11 +74,11 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public void subscribeChannelToGroup(String groupCode, AssignChannelDto assignChannelDto, PortalUser portalUser) {
+    public void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
             contentGroup -> channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
-                assignChannelDto));
+                subscribeChannelDto));
     }
 
     @Override
@@ -113,7 +113,7 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        contentGroupOptional.ifPresent(contentGroup -> channelSubscriptionService.removeChannelsFromContentGroups(
+        contentGroupOptional.ifPresent(contentGroup -> channelSubscriptionService.removeChannelSubscriptions(
             List.of(contentGroup), List.of(channelId)));
     }
 

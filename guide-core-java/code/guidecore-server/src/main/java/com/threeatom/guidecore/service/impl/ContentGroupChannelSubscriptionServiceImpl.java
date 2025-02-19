@@ -2,7 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -62,7 +62,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void removeChannelsFromContentGroups(List<GcAccess> contentGroups, List<Integer> channelIds) {
+    public void removeChannelSubscriptions(List<GcAccess> contentGroups, List<Integer> channelIds) {
         if (CollectionUtils.isEmpty(contentGroups)) {
             return;
         }
@@ -99,8 +99,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void subscribeChannels(PortalUser portalUser, List<AssignChannelDto> assignChannels) {
-        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = assignChannels.stream()
+    public void subscribeChannels(PortalUser portalUser, List<SubscribeChannelDto> subscribeChannelDtos) {
+        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = subscribeChannelDtos.stream()
             .map(assignChannelDto -> createSubscription(assignChannelDto.getContentGroupId(),
                 assignChannelDto.getChannelId(), assignChannelDto.getAutoSubscribe(), portalUser.getUserId()))
             .collect(Collectors.toList());
@@ -109,38 +109,31 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void subscribeChannels(PortalUser portalUser, Integer contentGroupId,
-                                  List<AssignChannelDto> assignChannels) {
-        assignChannels.forEach(assignChannelDto -> assignChannelDto.setContentGroupId(contentGroupId));
-        subscribeChannels(portalUser, assignChannels);
+    public void removeChannelSubscription(Integer channelSubscriptionId) {
+        this.removeById(channelSubscriptionId);
     }
 
     @Override
-    public void removeAssignment(Integer channelAssignmentId) {
-        this.removeById(channelAssignmentId);
-    }
-
-    @Override
-    public void updateAssignment(Integer channelAssignmentId, PortalUser portalUser,
-                                 AssignChannelDto assignChannelDto) {
-        ContentGroupChannelSubscription contentGroupChannelSubscription = getById(channelAssignmentId);
-        contentGroupMapping.updateChannelAssignment(contentGroupChannelSubscription, assignChannelDto);
+    public void updateChannelSubscription(Integer channelSubscription, PortalUser portalUser,
+                                          SubscribeChannelDto subscribeChannelDto) {
+        ContentGroupChannelSubscription contentGroupChannelSubscription = getById(channelSubscription);
+        contentGroupMapping.updateChannelSubscription(contentGroupChannelSubscription, subscribeChannelDto);
 
         updateById(contentGroupChannelSubscription);
     }
 
     @Override
     public void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
-                                          AssignChannelDto assignChannelDto) {
+                                          SubscribeChannelDto subscribeChannelDto) {
         ContentGroupChannelSubscription contentGroupChannelSubscription = findByChannelAndContentGroupId(
-            assignChannelDto.getChannelId(), contentGroupId);
+            subscribeChannelDto.getChannelId(), contentGroupId);
 
         if (contentGroupChannelSubscription == null) {
-            saveChannelSubscription(List.of(contentGroupId), assignChannelDto.getChannelId(), portalUser.getUserId());
+            saveChannelSubscription(List.of(contentGroupId), subscribeChannelDto.getChannelId(), portalUser.getUserId());
             return;
         }
 
-        contentGroupMapping.updateChannelAssignment(contentGroupChannelSubscription, assignChannelDto);
+        contentGroupMapping.updateChannelSubscription(contentGroupChannelSubscription, subscribeChannelDto);
         updateById(contentGroupChannelSubscription);
     }
 

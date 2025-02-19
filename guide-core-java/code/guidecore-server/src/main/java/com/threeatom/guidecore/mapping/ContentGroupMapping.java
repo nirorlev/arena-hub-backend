@@ -1,6 +1,6 @@
 package com.threeatom.guidecore.mapping;
 
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
@@ -33,6 +33,6 @@ public interface ContentGroupMapping {
 
     @Mapping(target = "modifiedDate", expression = "java(java.time.OffsetDateTime.now())")
     @Mapping(target = "autoSubscribe", source = "autoSubscribe")
-    void updateChannelAssignment(@MappingTarget ContentGroupChannelSubscription contentGroupChannelSubscription,
-                                 AssignChannelDto assignChannelDto);
+    void updateChannelSubscription(@MappingTarget ContentGroupChannelSubscription contentGroupChannelSubscription,
+                                   SubscribeChannelDto subscribeChannelDto);
 }

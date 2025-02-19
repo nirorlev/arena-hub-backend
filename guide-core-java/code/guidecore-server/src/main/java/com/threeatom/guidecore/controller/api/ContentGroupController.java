@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
-import com.threeatom.guidecore.dto.request.AssignChannelDto;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
@@ -87,7 +87,7 @@ public class ContentGroupController {
     }
 
     @PostMapping(value = "/channels/assign", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> assignChannels(@RequestBody @Valid List<AssignChannelDto> assignChannels,
+    public ResponseEntity<Void> assignChannels(@RequestBody @Valid List<SubscribeChannelDto> assignChannels,
                                                HttpServletRequest request) {
         contentGroupChannelSubscriptionService.subscribeChannels(getPortalUser(request), assignChannels);
 
@@ -96,10 +96,10 @@ public class ContentGroupController {
 
     @PutMapping(value = "/channel-assignments/{assignment-id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateChannelAssignment(@PathVariable("assignment-id") Integer channelAssignmentId,
-                                                        @RequestBody @Valid AssignChannelDto assignChannelDto,
+                                                        @RequestBody @Valid SubscribeChannelDto subscribeChannelDto,
                                                         HttpServletRequest request) {
-        contentGroupChannelSubscriptionService.updateAssignment(channelAssignmentId, getPortalUser(request),
-            assignChannelDto);
+        contentGroupChannelSubscriptionService.updateChannelSubscription(channelAssignmentId, getPortalUser(request),
+            subscribeChannelDto);
         return ResponseEntity.ok().build();
     }
 
@@ -107,7 +107,7 @@ public class ContentGroupController {
     public ResponseEntity<Void> removeChannelFromContentGroup(
         @PathVariable("assignment-id") Integer channelAssignmentId) {
 
-        contentGroupChannelSubscriptionService.removeAssignment(channelAssignmentId);
+        contentGroupChannelSubscriptionService.removeChannelSubscription(channelAssignmentId);
         return ResponseEntity.noContent().build();
     }
 

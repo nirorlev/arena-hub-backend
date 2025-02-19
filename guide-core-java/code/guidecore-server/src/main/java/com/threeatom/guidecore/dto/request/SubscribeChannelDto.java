@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @ApiModel(description = "Data Transfer Object for Channel Assignment")
-public class AssignChannelDto {
+public class SubscribeChannelDto {
     @ApiModelProperty(notes = "The unique ID of the channel to be assigned")
     @NotNull(message = "Channel ID is required")
     private Integer channelId;
