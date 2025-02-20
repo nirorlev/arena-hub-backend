@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.facade.impl;
 
+import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
+import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupDto;
@@ -9,7 +11,6 @@ import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.Group;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.UserManagedGroup;
@@ -59,17 +60,19 @@ public class GroupFacadeImpl implements GroupFacade {
     public GroupResponseDto groups(PortalUser portalUser) {
         List<Group> groups = groupService.findGroups(portalUser);
         List<String> codes = getGroupCodes(groups);
-        Map<String, GroupDto> groupDtos = getGroupCodeToGroups(portalUser, groups, groupCodeToContentGroup(codes));
 
-        return createGroupResponse(groupDtos);
+        return createGroupResponse(getGroupCodeToGroups(portalUser, groups, groupCodeToContentGroup(codes)));
     }
 
     @Override
-    public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser) {
+    public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> courseAssignmentService.assignOrUpdateCourse(currentUser, contentGroup.getId(),
-                assignCourseDto));
+            contentGroup -> {
+                checkPermission(contentGroupOptional.get(), portalUser);
+                courseAssignmentService.assignOrUpdateCourse(contentGroup.getId(), assignCourseDto,
+                    portalUser.getUserId());
+            });
     }
 
     @Override
@@ -77,8 +80,11 @@ public class GroupFacadeImpl implements GroupFacade {
                                         PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
-            contentGroup -> channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
-                subscribeChannelDto));
+            contentGroup -> {
+                checkPermission(contentGroupOptional.get(), portalUser);
+                channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
+                    subscribeChannelDto);
+            });
     }
 
     @Override
@@ -102,22 +108,26 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser) {
-        Optional<GcAccess> contentGroupOptional =
-            contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
-
-        contentGroupOptional.ifPresent(contentGroup -> channelSubscriptionService.removeChannelSubscriptions(
-            List.of(contentGroup), List.of(channelId)));
-    }
-
-    @Override
     public void removeCourseAssignment(String groupCode, Integer courseId, PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
         contentGroupOptional.ifPresent(
-            contentGroup -> courseAssignmentService.removeCourseAssignmentsByCourseId(List.of(courseId),
-                contentGroup.getId()));
+            contentGroup -> {
+                checkPermission(contentGroup, portalUser);
+                courseAssignmentService.removeCourseAssignmentsByCourseId(List.of(courseId), contentGroup.getId());
+            });
+    }
+
+    @Override
+    public void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser) {
+        Optional<GcAccess> contentGroupOptional =
+            contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
+
+        contentGroupOptional.ifPresent(contentGroup -> {
+            checkPermission(contentGroup, portalUser);
+            channelSubscriptionService.removeChannelSubscriptions(List.of(contentGroup), List.of(channelId));
+        });
     }
 
     private Map<String, List<GroupCourseAssignmentDto>> convertCourseIdToCourseAssignment(GcAccess contentGroup) {
@@ -150,5 +160,13 @@ public class GroupFacadeImpl implements GroupFacade {
         return groups.stream()
             .map(Group::getPowtoonGroupCode)
             .collect(Collectors.toList());
+    }
+
+    private void checkPermission(GcAccess contentGroup, PortalUser portalUser) {
+        if (!authorizationService.checkAccess(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)) {
+            log.error("User {} does not have permission to manage content group {}", portalUser.getUserId(),
+                contentGroup.getGroupName());
+            throw new ForbiddenException("User does not have permission to manage content group");
+        }
     }
 }

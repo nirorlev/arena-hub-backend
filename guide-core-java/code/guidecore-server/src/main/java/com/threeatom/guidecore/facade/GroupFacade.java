@@ -6,7 +6,6 @@ import com.threeatom.guidecore.dto.response.ContentGroupDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupResponseDto;
-import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,7 @@ public interface GroupFacade {
 
     GroupResponseDto groups(PortalUser portalUser);
 
-    void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, GcUser currentUser);
+    void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, PortalUser portalUser);
 
     void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
 
@@ -25,7 +24,7 @@ public interface GroupFacade {
 
     List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser);
 
-    void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser);
-
     void removeCourseAssignment(String groupCode, Integer courseId, PortalUser portalUser);
+
+    void removeChannelSubscription(String groupCode, Integer channelId, PortalUser portalUser);
 }

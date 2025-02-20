@@ -65,26 +65,23 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto) {
+    public void assignCourse(AssignCourseDto assignCourseDto, Integer userId) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
-            gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId());
+            gcContentGroupCourseAssignmentMapping.map(assignCourseDto, userId);
 
         save(contentGroupCourseAssignment);
     }
 
     @Override
-    public void assignCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto) {
+    public void assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
         assignCourseDto.setContentGroupId(contentGroupId);
-        assignCourse(currentUser, assignCourseDto);
+        assignCourse(assignCourseDto, userId);
     }
 
-    @Override
-    public void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser,
-                                       AssignCourseDto assignCourseDto) {
+    private void updateCourseAssignment(Integer courseAssignmentId, Integer userId, AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
 
-        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto,
-            currentUser.getId());
+        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto, userId);
         updateById(contentGroupCourseAssignment);
     }
 
@@ -179,16 +176,16 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignOrUpdateCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto) {
+    public void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
             this.baseMapper.findByCourseIdAndContentGroupId(assignCourseDto.getCourseId(), contentGroupId);
 
         if (contentGroupCourseAssignment == null) {
-            assignCourse(currentUser, contentGroupId, assignCourseDto);
+            assignCourse(contentGroupId, assignCourseDto, userId);
             return;
         }
 
-        updateCourseAssignment(contentGroupCourseAssignment.getId(), currentUser, assignCourseDto);
+        updateCourseAssignment(contentGroupCourseAssignment.getId(), userId, assignCourseDto);
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(

@@ -51,8 +51,7 @@ public class GroupController {
     public ResponseEntity<Void> assignCourse(@PathVariable("groupCode") String groupCode,
                                              @RequestBody AssignCourseDto assignCourseDto,
                                              HttpServletRequest request) {
-        GcUser currentUser = gcUserService.getCurrentUser(request);
-        groupFacade.assignCourseToGroup(groupCode, assignCourseDto, currentUser);
+        groupFacade.assignCourseToGroup(groupCode, assignCourseDto, getPortalUser(request));
 
         return ResponseEntity.noContent().build();
     }

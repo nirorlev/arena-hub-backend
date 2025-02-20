@@ -10,18 +10,15 @@ import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 
 public interface GcContentGroupCourseAssignmentService extends IService<GcContentGroupCourseAssignment> {
     List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 
-    void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto);
+    void assignCourse(AssignCourseDto assignCourseDto, Integer userId);
 
-    void assignCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto);
-
-    void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser, AssignCourseDto assignCourseDto);
+    void assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
 
     void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId);
 
@@ -45,5 +42,5 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
 
     Set<Integer> getContentGroupIds(Integer courseId);
 
-    void assignOrUpdateCourse(GcUser currentUser, Integer contentGroupId, AssignCourseDto assignCourseDto);
+    void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
 }
