@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
+import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -12,6 +13,9 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 public interface ContentGroupChannelSubscriptionService extends IService<ContentGroupChannelSubscription> {
+
+    @Deprecated(forRemoval = true)
+    List<ContentGroupChannelSubscriptionDto> deprecatedContentGroupSubscriptions(Integer contentGroupId);
 
     void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user);
 

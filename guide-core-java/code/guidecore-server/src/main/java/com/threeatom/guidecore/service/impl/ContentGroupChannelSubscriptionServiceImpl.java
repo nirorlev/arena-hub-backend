@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
+import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -33,6 +34,19 @@ public class ContentGroupChannelSubscriptionServiceImpl
     @Lazy
     @Autowired
     private PtChannelService channelService;
+
+    @Override
+    public List<ContentGroupChannelSubscriptionDto> deprecatedContentGroupSubscriptions(Integer contentGroupId) {
+        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
+            baseMapper.findByContentGroupId(contentGroupId, true);
+
+        return contentGroupChannelSubscriptions.stream()
+            .map(contentGroupChannelSubscription -> {
+                channelService.updateUrls(contentGroupChannelSubscription.getChannel());
+                return contentGroupChannelSubscriptionMapping.mapDeprecated(contentGroupChannelSubscription);
+            })
+            .collect(Collectors.toList());
+    }
 
     @Override
     public void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user) {

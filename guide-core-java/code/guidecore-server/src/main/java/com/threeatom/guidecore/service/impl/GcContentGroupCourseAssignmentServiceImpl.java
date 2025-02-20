@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -40,6 +41,23 @@ public class GcContentGroupCourseAssignmentServiceImpl
     @Lazy
     @Autowired
     private GcSubjectService courseService;
+
+    @Override
+    public List<ContentGroupCourseAssignmentDto> deprecatedFindByContentGroupId(Integer contentGroupId) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            this.baseMapper.findByContentGroupId(contentGroupId);
+
+        if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
+            return new ArrayList<>();
+        }
+
+        return contentGroupCourseAssignments.stream()
+            .map(contentGroupCourseAssignment -> {
+                courseService.updateUrls(contentGroupCourseAssignment.getCourse());
+                return gcContentGroupCourseAssignmentMapping.mapDeprecated(contentGroupCourseAssignment);
+            })
+            .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional(readOnly = true)

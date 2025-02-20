@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
+import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -12,6 +13,9 @@ import java.util.List;
 import java.util.Set;
 
 public interface GcContentGroupCourseAssignmentService extends IService<GcContentGroupCourseAssignment> {
+    @Deprecated(forRemoval = true)
+    List<ContentGroupCourseAssignmentDto> deprecatedFindByContentGroupId(Integer contentGroupId);
+
     List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
