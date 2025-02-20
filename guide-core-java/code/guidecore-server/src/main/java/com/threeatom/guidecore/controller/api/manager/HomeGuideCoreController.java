@@ -377,7 +377,7 @@ public class HomeGuideCoreController extends GuideCoreController {
             VersionDto versionDto = JSONObject.parseObject(new FileInputStream("./version.json"), VersionDto.class);
             String frontendVersion =
                 frontendVersionService.getVersion(RequestUtil.getRequestedFrontendVersion(request, response),
-                    RequestUtil.getCurrentHost(request));
+                    RequestUtil.getCurrentHost(request)).getVersion();
             versionDto.setFrontend(frontendVersion);
             return new Message().ok().addData("result", versionDto);
         } catch (IOException e) {
