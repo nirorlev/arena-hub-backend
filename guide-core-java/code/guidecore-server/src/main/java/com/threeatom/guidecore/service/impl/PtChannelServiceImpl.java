@@ -233,6 +233,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
         if (Objects.nonNull(channel.getCreateUser())) {
             SysFile createUserAvatar = sysFileService.getById(channel.getCreateUser().getAvatarFileId());
+            if (createUserAvatar == null) return;
             String imgFullFileUrl = sysFileService.getFullFileUrl(createUserAvatar.getFileUrl());
             channel.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
         }
