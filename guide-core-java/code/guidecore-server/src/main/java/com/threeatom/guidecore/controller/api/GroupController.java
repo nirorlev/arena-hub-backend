@@ -54,7 +54,7 @@ public class GroupController {
         GcUser currentUser = gcUserService.getCurrentUser(request);
         groupFacade.assignCourseToGroup(groupCode, assignCourseDto, currentUser);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{groupCode}/course-assignments/{courseId}")
@@ -64,7 +64,7 @@ public class GroupController {
         PortalUser portalUser = getPortalUser(request);
         groupFacade.removeCourseAssignment(groupCode, courseId, portalUser);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{groupCode}/channel-subscriptions")
@@ -81,7 +81,7 @@ public class GroupController {
         PortalUser portalUser = getPortalUser(request);
         groupFacade.subscribeChannelToGroup(groupCode, subscribeChannelDto, portalUser);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{groupCode}/channel-subscriptions/{channelId}")
@@ -91,7 +91,7 @@ public class GroupController {
         PortalUser portalUser = getPortalUser(request);
         groupFacade.removeChannelSubscription(groupCode, channelId, portalUser);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {
