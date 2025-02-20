@@ -17,6 +17,7 @@ import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.dto.FrontendVersionOverrideDto;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
@@ -813,8 +814,10 @@ public class HomeInfoController extends GuideCoreController {
         } else if (stats == 4 && containNumber) {
             GcUserSaveFolder playlist = gcUserSaveFolderService.getPlayListMetaConfig(folderId);
             GcVideo playlistVideo = gcVideoService.findByVideoId(subOrVid);
-            title = "\"" + playlistVideo.getVideoName() + "\"" + " in " + "\"" + playlist.getName() + "\"" + " playlist";
-            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title, playlistVideo.getVideoDesc());
+            title =
+                "\"" + playlistVideo.getVideoName() + "\"" + " in " + "\"" + playlist.getName() + "\"" + " playlist";
+            addMetaContent = playListMetaConfig(playlistVideo.getVideoFile(), playlist, host, request, title,
+                playlistVideo.getVideoDesc());
         } else if (stats == 5) {
             PtChannel ptChannel = ptChannelService.getbyChannelSlug(channelUrlId);
             if (Objects.isNull(ptChannel)) {
@@ -988,21 +991,22 @@ public class HomeInfoController extends GuideCoreController {
 
         }
         response.setHeader("Content-Type", "text/html;charset=UTF-8");
-        String frontendVersion = frontendVersionService.getVersion(
+        FrontendVersionOverrideDto frontendVersionOverrideDto = frontendVersionService.getVersion(
             RequestUtil.getRequestedFrontendVersion(request, response), RequestUtil.getCurrentHost(request));
         try {
             PrintWriter printWriter = response.getWriter();
-            printWriter.write(homeInfoContent(frontendVersion, addMetaContent, xRequestUri));
+            printWriter.write(homeInfoContent(frontendVersionOverrideDto, addMetaContent, xRequestUri));
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String homeInfoContent(String frontendVersion, String addMetaContent, String xRequestUri) {
+    private String homeInfoContent(FrontendVersionOverrideDto frontendVersionOverrideDto, String addMetaContent,
+                                   String xRequestUri) {
         String hubUrl = this.hubUrl;
-        if (StringUtils.isNotBlank(frontendVersion)) {
-            hubUrl = String.format("%s/%s", this.hubUrl, frontendVersion);
+        if (StringUtils.isNotBlank(frontendVersionOverrideDto.getVersion())) {
+            hubUrl = String.format("%s/%s", this.hubUrl, frontendVersionOverrideDto.getVersion());
         }
 
         return String.format(
@@ -1017,6 +1021,7 @@ public class HomeInfoController extends GuideCoreController {
                   <link rel="apple-touch-icon" href="%s/apple-touch-icon.png" />
                   <link rel="manifest" href="%s/manifest.json" />
                   <link rel="icon" href="%s/favicon.ico">
+                  <script>%s</script>
                   <script type="module" src="%s/arena.js"></script>
                   <script src="%s/globalConfig.js"></script>
                   <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=aac6a1b8-02ba-4148-b7a0-d141500a10fc"></script>
@@ -1043,8 +1048,20 @@ public class HomeInfoController extends GuideCoreController {
                 <!-- x-request-uri: %s -->
                 <!-- test1001: %s -->
                 """,
-            addMetaContent, hubUrl, hubUrl, hubUrl, hubUrl, hubUrl, xRequestUri, xRequestUri
+            addMetaContent, hubUrl, hubUrl, hubUrl, versionOverrideScript(frontendVersionOverrideDto), hubUrl, hubUrl,
+            xRequestUri, xRequestUri
         );
+    }
+
+    private String versionOverrideScript(FrontendVersionOverrideDto frontendVersionOverrideDto) {
+        return """
+               window.arena = {
+               versions: {
+                  frontend: '%s',
+                  isFEOverrideUsed: %s
+               }
+            };
+            """.formatted(frontendVersionOverrideDto.getVersion(), frontendVersionOverrideDto.isFEOverrideUsed());
     }
 
     @GetMapping("/html/robots.txt")

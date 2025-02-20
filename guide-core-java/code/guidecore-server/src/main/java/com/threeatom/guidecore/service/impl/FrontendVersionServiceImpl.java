@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.common.exception.SystemException;
+import com.threeatom.guidecore.dto.FrontendVersionOverrideDto;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.FrontendVersionService;
 import com.threeatom.utils.FileUtil;
@@ -24,23 +25,31 @@ public class FrontendVersionServiceImpl implements FrontendVersionService {
 
     @Transactional(readOnly = true)
     @Override
-    public String getVersion(String requestedVersion, String remoteHost) {
+    public FrontendVersionOverrideDto getVersion(String requestedVersion, String remoteHost) {
         try {
             if (StringUtils.isBlank(requestedVersion)) {
-                return findLatestVersion();
+                return frontendVersionOverride(findLatestVersion(), false);
             }
 
             if (requestedVersion.endsWith(LATEST_VERSION_IDENTIFIER)) {
                 String version = requestedVersion.replace(LATEST_VERSION_IDENTIFIER, "");
                 String latestDeployedVersion = findLatestDeployedVersion(version, remoteHost);
-                return String.format("%s/%s", version, latestDeployedVersion);
+                return frontendVersionOverride(String.format("%s/%s", version, latestDeployedVersion), true);
             }
 
-            return requestedVersion;
+            return frontendVersionOverride(requestedVersion, true);
         } catch (Exception e) {
             log.error(String.format("Failed to get version for: %s and %s", requestedVersion, remoteHost), e);
-            return "";
+            return frontendVersionOverride("", false);
         }
+    }
+
+    private FrontendVersionOverrideDto frontendVersionOverride(String version, boolean isFEOverrideUsed) {
+        FrontendVersionOverrideDto frontendVersionOverrideDto = new FrontendVersionOverrideDto();
+
+        frontendVersionOverrideDto.setVersion(version);
+        frontendVersionOverrideDto.setFEOverrideUsed(isFEOverrideUsed);
+        return frontendVersionOverrideDto;
     }
 
     private String findLatestDeployedVersion(String versionFolder, String remoteHost) {

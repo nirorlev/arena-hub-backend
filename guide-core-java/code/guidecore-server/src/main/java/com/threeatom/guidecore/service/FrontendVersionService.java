@@ -1,6 +1,8 @@
 package com.threeatom.guidecore.service;
 
+import com.threeatom.guidecore.dto.FrontendVersionOverrideDto;
+
 public interface FrontendVersionService {
 
-    String getVersion(String requestedVersion, String remoteHost);
+    FrontendVersionOverrideDto getVersion(String requestedVersion, String remoteHost);
 }
