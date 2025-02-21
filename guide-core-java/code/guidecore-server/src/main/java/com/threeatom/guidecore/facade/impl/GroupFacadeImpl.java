@@ -69,7 +69,7 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
             contentGroup -> {
-                checkPermission(contentGroupOptional.get(), portalUser);
+                checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
                 courseAssignmentService.assignOrUpdateCourse(contentGroup.getId(), assignCourseDto,
                     portalUser.getUserId());
             });
@@ -81,7 +81,7 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
         contentGroupOptional.ifPresent(
             contentGroup -> {
-                checkPermission(contentGroupOptional.get(), portalUser);
+                checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
                 channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
                     subscribeChannelDto);
             });
@@ -92,8 +92,10 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        return contentGroupOptional
-            .map(this::convertCourseIdToCourseAssignment)
+        return contentGroupOptional.map(contentGroup -> {
+                checkPermission(contentGroup, portalUser, PermitAction.VIEW);
+                return convertCourseIdToCourseAssignment(contentGroup);
+            })
             .orElseGet(Map::of);
     }
 
@@ -102,8 +104,10 @@ public class GroupFacadeImpl implements GroupFacade {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
-        return contentGroupOptional.map(contentGroup ->
-                channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId()))
+        return contentGroupOptional.map(contentGroup -> {
+                checkPermission(contentGroup, portalUser, PermitAction.VIEW);
+                return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId());
+            })
             .orElseGet(List::of);
     }
 
@@ -114,7 +118,7 @@ public class GroupFacadeImpl implements GroupFacade {
 
         contentGroupOptional.ifPresent(
             contentGroup -> {
-                checkPermission(contentGroup, portalUser);
+                checkPermission(contentGroup, portalUser, PermitAction.MANAGE_CONTENT);
                 courseAssignmentService.removeCourseAssignmentsByCourseId(List.of(courseId), contentGroup.getId());
             });
     }
@@ -125,7 +129,7 @@ public class GroupFacadeImpl implements GroupFacade {
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
         contentGroupOptional.ifPresent(contentGroup -> {
-            checkPermission(contentGroup, portalUser);
+            checkPermission(contentGroup, portalUser, PermitAction.MANAGE_CONTENT);
             channelSubscriptionService.removeChannelSubscriptions(List.of(contentGroup), List.of(channelId));
         });
     }
@@ -162,11 +166,12 @@ public class GroupFacadeImpl implements GroupFacade {
             .collect(Collectors.toList());
     }
 
-    private void checkPermission(GcAccess contentGroup, PortalUser portalUser) {
-        if (!authorizationService.checkAccess(contentGroup, PermitAction.MANAGE_CONTENT, portalUser)) {
-            log.error("User {} does not have permission to manage content group {}", portalUser.getUserId(),
-                contentGroup.getGroupName());
-            throw new ForbiddenException("User does not have permission to manage content group");
+    private void checkPermission(GcAccess contentGroup, PortalUser portalUser, PermitAction permitAction) {
+        if (!authorizationService.checkAccess(contentGroup, permitAction, portalUser)) {
+            log.error("User {} does not have permission to {} content group {}", portalUser.getUserId(),
+                permitAction.name(), contentGroup.getGroupName());
+            throw new ForbiddenException(
+                "User does not have permission to %s content group".formatted(permitAction.name()));
         }
     }
 }
