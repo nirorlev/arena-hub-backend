@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GroupMapper">
+
+    <resultMap id="groupResultMap" type="Group">
+        <id property="powtoonGroupCode" column="powtoon_group_code"/>
+
+        <result property="name" column="name"/>
+        <result property="powtoonParentGroupCode" column="powtoon_parent_group_code"/>
+        <result property="masterId" column="master_id"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <select id="findGroups" resultMap="groupResultMap" resultType="Group">
+        SELECT groups.powtoon_group_code,
+               groups.name,
+               groups.powtoon_parent_group_code,
+               groups.master_id,
+               groups.created_time,
+               groups.updated_time
+        FROM groups
+                 LEFT JOIN user_groups
+                           ON groups.powtoon_group_code = user_groups.powtoon_group_code AND
+                              user_groups.user_id = #{userId}
+                 LEFT JOIN user_managed_groups ON groups.powtoon_group_code = user_managed_groups.powtoon_group_code AND
+                                                  user_managed_groups.user_id = #{userId}
+        WHERE master_id = #{masterId}
+          AND (user_groups.powtoon_group_code IS NOT NULL OR user_managed_groups.powtoon_group_code IS NOT NULL)
+    </select>
+</mapper>

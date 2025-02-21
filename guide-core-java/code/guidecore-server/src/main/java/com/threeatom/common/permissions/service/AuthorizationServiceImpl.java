@@ -128,6 +128,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
+    public Map<String, Boolean> listPermissions(GcAccess contentGroup, PortalUser portalUser) {
+        PermitUser permitUser = authorizationItemService.create(portalUser);
+        PermitContentGroup permitContentGroup = authorizationItemService.create(contentGroup);
+
+        return convertKeysToString(contentGroupAuthorizationService.listPermissions(permitUser, permitContentGroup));
+    }
+
+    @Override
     public Map<String, Boolean> listPermissions(PtChannel channel, PortalUser portalUser) {
         PermitUser permitUser = authorizationItemService.create(portalUser);
         PermitChannel permitChannel = authorizationItemService.create(channel);

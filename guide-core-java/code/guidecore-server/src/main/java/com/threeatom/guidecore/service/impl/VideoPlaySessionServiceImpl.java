@@ -15,7 +15,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySessionMapper;
-import com.threeatom.guidecore.mapping.OwnerMapping;
+import com.threeatom.guidecore.mapping.UserMapping;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import org.springframework.util.CollectionUtils;
 public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMapper, VideoPlaySession>
     implements VideoPlaySessionService {
 
-    private final OwnerMapping ownerMapping;
+    private final UserMapping userMapping;
 
     @Override
     public void saveVideoPlaySession(VideoPlayDto videoPlayDto, GcUser user, Integer videoId, Integer masterId) {
@@ -86,7 +86,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         return userToViewSessions.entrySet().stream()
             .map(userToViewSessionEntry -> {
                 GcUser user = userToViewSessionEntry.getKey();
-                UserDetailsDto userDetailsDto = ownerMapping.map(user);
+                UserDetailsDto userDetailsDto = userMapping.map(user);
                 Map<String, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails =
                     videoViewerDetails(userToViewSessionEntry.getValue());
                 return createVideoViewerDto(userDetailsDto, videoIdToVideoViewerDetails);

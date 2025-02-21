@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
-import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
@@ -13,15 +13,16 @@ import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
-import com.threeatom.system.service.SysFileService;
+import com.threeatom.guidecore.service.GcSubjectService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -37,11 +38,12 @@ public class GcContentGroupCourseAssignmentServiceImpl
     private static final int MANDATORY_COURSE_VALUE = 1;
 
     private final GcContentGroupCourseAssignmentMapping gcContentGroupCourseAssignmentMapping;
-    private final SysFileService fileService;
+    @Lazy
+    @Autowired
+    private GcSubjectService courseService;
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ContentGroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId, HttpServletRequest request) {
+    public List<ContentGroupCourseAssignmentDto> deprecatedFindByContentGroupId(Integer contentGroupId) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.findByContentGroupId(contentGroupId);
 
@@ -50,14 +52,29 @@ public class GcContentGroupCourseAssignmentServiceImpl
         }
 
         return contentGroupCourseAssignments.stream()
-            .map(contentGroupCourseAssignment -> updateUrls(contentGroupCourseAssignment, request))
-            .map(gcContentGroupCourseAssignmentMapping::map)
+            .map(contentGroupCourseAssignment -> {
+                courseService.updateUrls(contentGroupCourseAssignment.getCourse());
+                return gcContentGroupCourseAssignmentMapping.mapDeprecated(contentGroupCourseAssignment);
+            })
             .collect(Collectors.toList());
     }
 
-    private GcContentGroupCourseAssignment updateUrls(GcContentGroupCourseAssignment contentGroupCourseAssignment, HttpServletRequest request) {
-        fileService.updateImageUrls(contentGroupCourseAssignment.getCourse(), request);
-        return contentGroupCourseAssignment;
+    @Override
+    @Transactional(readOnly = true)
+    public List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId) {
+        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
+            this.baseMapper.findByContentGroupId(contentGroupId);
+
+        if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
+            return new ArrayList<>();
+        }
+
+        return contentGroupCourseAssignments.stream()
+            .map(contentGroupCourseAssignment -> {
+                courseService.updateUrls(contentGroupCourseAssignment.getCourse());
+                return gcContentGroupCourseAssignmentMapping.map(contentGroupCourseAssignment);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -66,20 +83,23 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourse(GcUser currentUser, AssignCourseDto assignCourseDto) {
+    public void assignCourse(AssignCourseDto assignCourseDto, Integer userId) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
-            gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId());
+            gcContentGroupCourseAssignmentMapping.map(assignCourseDto, userId);
 
         save(contentGroupCourseAssignment);
     }
 
     @Override
-    public void updateCourseAssignment(Integer courseAssignmentId, GcUser currentUser,
-                                       AssignCourseDto assignCourseDto) {
+    public void assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
+        assignCourseDto.setContentGroupId(contentGroupId);
+        assignCourse(assignCourseDto, userId);
+    }
+
+    private void updateCourseAssignment(Integer courseAssignmentId, Integer userId, AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
 
-        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto,
-            currentUser.getId());
+        gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto, userId);
         updateById(contentGroupCourseAssignment);
     }
 
@@ -89,14 +109,10 @@ public class GcContentGroupCourseAssignmentServiceImpl
             this.baseMapper.findByCourseIdAndContentGroupId(courseId, contentGroupId);
 
         if (contentGroupCourseAssignment != null) {
-            contentGroupCourseAssignment.setMandatory(getMandatoryOppositeValue(contentGroupCourseAssignment.getMandatory()));
+            contentGroupCourseAssignment.setMandatory(
+                getMandatoryOppositeValue(contentGroupCourseAssignment.getMandatory()));
             updateById(contentGroupCourseAssignment);
         }
-    }
-
-    @Override
-    public void removeCourseAssignment(Integer courseAssignmentId) {
-        removeById(courseAssignmentId);
     }
 
     @Override
@@ -117,15 +133,6 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourses(GcUser currentUser, List<AssignCourseDto> assignCourseDtos) {
-        List<GcContentGroupCourseAssignment> contentGroupCourseAssignments = assignCourseDtos.stream()
-            .map(assignCourseDto -> gcContentGroupCourseAssignmentMapping.map(assignCourseDto, currentUser.getId()))
-            .collect(Collectors.toList());
-
-        saveBatch(contentGroupCourseAssignments);
-    }
-
-    @Override
     public List<Integer> getMustCoursesContentGroupAssignmentIds(Integer contentGroupId) {
         return getCourseIdsByContentGroupIdAndPredicate(contentGroupId, assignment -> assignment.getMandatory() ==
             MANDATORY_COURSE_VALUE);
@@ -138,8 +145,8 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void removeCourseAssignmentsByCourseId(GcAccess contentGroup, List<Integer> courseIds) {
-        this.baseMapper.removeByContentGroupIdAndCourseIds(contentGroup.getId(), courseIds);
+    public void removeCourseAssignmentsByCourseId(List<Integer> courseIds, Integer contentGroupId) {
+        this.baseMapper.removeByContentGroupIdAndCourseIds(contentGroupId, courseIds);
     }
 
     @Override
@@ -184,6 +191,19 @@ public class GcContentGroupCourseAssignmentServiceImpl
         return assignments.stream()
             .map(GcContentGroupCourseAssignment::getContentGroupId)
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
+        GcContentGroupCourseAssignment contentGroupCourseAssignment =
+            this.baseMapper.findByCourseIdAndContentGroupId(assignCourseDto.getCourseId(), contentGroupId);
+
+        if (contentGroupCourseAssignment == null) {
+            assignCourse(contentGroupId, assignCourseDto, userId);
+            return;
+        }
+
+        updateCourseAssignment(contentGroupCourseAssignment.getId(), userId, assignCourseDto);
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(

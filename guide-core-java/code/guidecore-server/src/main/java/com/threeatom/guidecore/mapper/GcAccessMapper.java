@@ -61,4 +61,8 @@ public interface GcAccessMapper extends BaseMapper<GcAccess> {
 
     List<GcAccess> selectAccessLevel0(
             @Param("masterId") Integer masterId, @Param("userId") Integer userId);
+
+    List<GcAccess> getUserMemberContentGroups(@Param("userId") Integer userId, @Param("masterId") Integer masterId);
+
+    List<GcAccess> getManagedContentGroups(@Param("userId") Integer userId, @Param("masterId") Integer masterId);
 }

@@ -1,7 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import static com.threeatom.utils.ToolUtil.parseToJsonArray;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -20,6 +18,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapping.ContentGroupMapping;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -262,6 +262,23 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         return this.list(queryWrapper);
     }
 
+    @Override
+    public Optional<GcAccess> findContentGroupsByCode(String code) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("code", code);
+
+        return Optional.ofNullable(this.getOne(queryWrapper));
+    }
+
+    @Override
+    public Optional<GcAccess> findContentGroupsByCodeAndMasterId(String code, Integer masterId) {
+        QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("code", code);
+        queryWrapper.eq("master_id", masterId);
+
+        return Optional.ofNullable(this.getOne(queryWrapper));
+    }
+
     private GcAccess getContentGroup(String code, int roleType, Integer masterId) {
         QueryWrapper<GcAccess> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("code", code);
@@ -458,6 +475,16 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
         }
 
         return this.baseMapper.getAllPackage(masterId, showFlag, packageIdList, idList);
+    }
+
+    @Override
+    public List<GcAccess> getMemberContentGroups(PortalUser portalUser) {
+        return baseMapper.getUserMemberContentGroups(portalUser.getUserId(), portalUser.getMasterId());
+    }
+
+    @Override
+    public List<GcAccess> getManagedContentGroups(PortalUser portalUser) {
+        return baseMapper.getManagedContentGroups(portalUser.getUserId(), portalUser.getMasterId());
     }
 
     private List<GcAccess> createOrUpdateMemberContentGroups(

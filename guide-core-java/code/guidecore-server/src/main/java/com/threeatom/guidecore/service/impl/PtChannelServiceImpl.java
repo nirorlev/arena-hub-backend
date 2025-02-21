@@ -214,20 +214,28 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
                     tagsList.stream().map(PtTags::getTagText).collect(Collectors.toList());
                 channel.setChannelTags(StringUtils.join(strings, ","));
             }
-            updateUrls(request, channel);
+            updateUrls(channel);
         }
         return channels;
     }
 
-    private void updateUrls(HttpServletRequest request, PtChannel channel) {
+    @Override
+    public void updateUrls(PtChannel channel) {
         if (Objects.nonNull(channel.getChannelAvatarFileId())) {
             SysFile avatarFile = sysFileService.getById(channel.getChannelAvatarFileId());
-            channel.setAvatarFullFileUrl(sysFileService.getResFullUrl(avatarFile, request));
+            channel.setAvatarFullFileUrl(sysFileService.getFullFileUrl(avatarFile.getFileUrl()));
         }
 
         if (Objects.nonNull(channel.getChannelImgFileId())) {
             SysFile imgFile = sysFileService.getById(channel.getChannelImgFileId());
-            channel.setImgFullFileUrl(sysFileService.getResFullUrl(imgFile, request));
+            channel.setImgFullFileUrl(sysFileService.getFullFileUrl(imgFile.getFileUrl()));
+        }
+
+        if (Objects.nonNull(channel.getCreateUser())) {
+            SysFile createUserAvatar = sysFileService.getById(channel.getCreateUser().getAvatarFileId());
+            if (createUserAvatar == null) return;
+            String imgFullFileUrl = sysFileService.getFullFileUrl(createUserAvatar.getFileUrl());
+            channel.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
         }
     }
 
@@ -510,7 +518,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     public List<ChannelWithDetailsDto> getOwnedChannels(PortalUser portalUser, HttpServletRequest request) {
         List<PtChannel> channels = baseMapper.selectOwnChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
-            updateUrls(request, channel);
+            updateUrls(channel);
             channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);
@@ -521,7 +529,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels =
             baseMapper.selectSubscribedChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
-            updateUrls(request, channel);
+            updateUrls(channel);
             channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);
@@ -532,7 +540,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         List<PtChannel> channels =
             baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
-            updateUrls(request, channel);
+            updateUrls(channel);
             channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
         return convert(channels);

@@ -33,4 +33,6 @@ public interface AuthorizationService {
     Map<String, Boolean> listPermissions(PtChannel channel, PortalUser portalUser);
 
     Map<String, Boolean> listPermissions(GcVideo video, PortalUser portalUser);
+
+    Map<String, Boolean> listPermissions(GcAccess contentGroup, PortalUser portalUser);
 }

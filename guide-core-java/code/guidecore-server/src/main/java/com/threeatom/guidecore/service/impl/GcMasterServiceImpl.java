@@ -57,7 +57,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
 
     @Autowired @Lazy private UnavailableVideoService unavailableVideoService;
     @Autowired private PortalUserService portalUserService;
-    @Autowired private AuthorizationService authorizationService;
+    @Autowired @Lazy private AuthorizationService authorizationService;
 
     private static final String CACHE_TAG = "GcMaster";
 
