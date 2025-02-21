@@ -8,6 +8,7 @@ import com.threeatom.guidecore.controller.user.vo.Groups;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -105,4 +106,8 @@ public interface GcAccessService extends IService<GcAccess> {
     Optional<GcAccess> findContentGroupsByCode(String code);
 
     Optional<GcAccess> findContentGroupsByCodeAndMasterId(String groupCode, Integer masterId);
+
+    List<GcAccess> getMemberContentGroups(PortalUser portalUser);
+
+    List<GcAccess> getManagedContentGroups(PortalUser portalUser);
 }

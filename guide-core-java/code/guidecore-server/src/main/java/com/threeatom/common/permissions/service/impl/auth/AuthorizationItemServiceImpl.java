@@ -14,10 +14,9 @@ import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
-import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
+import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
-import com.threeatom.guidecore.service.GcUserAccessService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +32,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
 
     private final ContentGroupChannelSubscriptionService channelSubscriptionService;
     private final GcContentGroupCourseAssignmentService courseAssignmentService;
-    private final GcUserAccessService userAccessService;
+    private final GcAccessService contentGroupService;
 
     @Override
     @Cacheable(value = AuthorizationItemCacheName.CHANNEL, key = "#channel.id", condition = "#channel.id != null")
@@ -58,12 +57,13 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
         permitUser.setId(portalUser.getUserId().toString());
         permitUser.setOrgAdmin(portalUser.isOrgAdmin());
 
-        permitUser.setContentGroupIds(convert(
-            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                List.of(UserGroupRole.GROUP_MEMBER.getRole()))));
-        permitUser.setManagedContentGroupIds(convert(
-            userAccessService.getContentGroupIds(portalUser.getUserId(), portalUser.getMasterId(),
-                List.of(UserGroupRole.GROUP_ADMIN.getRole(), UserGroupRole.ORG_ADMIN.getRole()))));
+        List<GcAccess> memberContentGroups = contentGroupService.getMemberContentGroups(portalUser);
+        permitUser.setContentGroupIds(
+            convert(memberContentGroups.stream().map(GcAccess::getId).collect(Collectors.toSet())));
+
+        List<GcAccess> managedContentGroups = contentGroupService.getManagedContentGroups(portalUser);
+        permitUser.setManagedContentGroupIds(
+            convert(managedContentGroups.stream().map(GcAccess::getId).collect(Collectors.toSet())));
 
         return permitUser;
     }

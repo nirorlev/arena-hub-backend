@@ -389,4 +389,50 @@
 		GROUP BY ac.id
 		order by ac.group_name asc
 	</select>
+
+	<select id="getUserMemberContentGroups" resultMap="baseResultMap">
+		SELECT
+			content_group.id,
+			content_group.master_id,
+			content_group.role_type,
+			content_group.admin_id,
+			content_group.code,
+			content_group.package_learning_hours,
+			content_group.update_time,
+			content_group.create_time,
+			content_group.code_type,
+			content_group.free_flag,
+			content_group.package_name,
+			content_group.channel_json,
+			content_group.group_name,
+			content_group.subscribe_json,
+			content_group.role_json
+		FROM gc_access content_group
+				 JOIN groups ON content_group.code = groups.powtoon_group_code
+				 JOIN user_groups ON groups.powtoon_group_code = user_groups.powtoon_group_code
+		WHERE groups.master_id = #{masterId} AND user_groups.user_id = #{userId}
+	</select>
+
+	<select id="getManagedContentGroups" resultMap="baseResultMap">
+		SELECT
+			content_group.id,
+			content_group.master_id,
+			content_group.role_type,
+			content_group.admin_id,
+			content_group.code,
+			content_group.package_learning_hours,
+			content_group.update_time,
+			content_group.create_time,
+			content_group.code_type,
+			content_group.free_flag,
+			content_group.package_name,
+			content_group.channel_json,
+			content_group.group_name,
+			content_group.subscribe_json,
+			content_group.role_json
+		FROM gc_access content_group
+				 JOIN groups ON content_group.code = groups.powtoon_group_code
+				 JOIN user_managed_groups ON groups.powtoon_group_code = user_managed_groups.powtoon_group_code
+		WHERE groups.master_id = #{masterId} AND user_managed_groups.user_id = #{userId}
+	</select>
 </mapper>
