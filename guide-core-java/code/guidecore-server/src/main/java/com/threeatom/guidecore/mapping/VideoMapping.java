@@ -16,7 +16,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(uses = {DateMapping.class, ChannelMapping.class, OwnerMapping.class, PlaylistMapping.class})
+@Mapper(uses = {DateMapping.class, ChannelMapping.class, UserMapping.class, PlaylistMapping.class})
 public abstract class VideoMapping {
 
     @Autowired

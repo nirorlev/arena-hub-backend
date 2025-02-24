@@ -207,4 +207,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     void populateUserId(GcSubject course, GcUser user);
 
     CourseProgramDto courseProgram(Integer courseId, PortalUser portalUser);
+
+    void updateUrls(GcSubject course);
 }

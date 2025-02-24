@@ -20,7 +20,7 @@ public class ContentGroupChannelSubscription implements Serializable {
     private Integer contentGroupId;
     private Integer channelId;
     private Integer createdByUserId;
-    private Boolean isSubscribed = false;
+    private Boolean autoSubscribe = false;
 
     @TableField(exist = false)
     private PtChannel channel;

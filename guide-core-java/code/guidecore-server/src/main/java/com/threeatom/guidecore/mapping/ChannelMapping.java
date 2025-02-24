@@ -1,13 +1,21 @@
 package com.threeatom.guidecore.mapping;
 
+import com.threeatom.guidecore.dto.response.BasicChannelDto;
 import com.threeatom.guidecore.dto.response.ChannelWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.PtChannel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper(uses = OwnerMapping.class)
+@Mapper(uses = UserMapping.class)
 public interface ChannelMapping {
+
+    @Named("mapBasic")
+    @Mapping(target = "title", source = "channelName")
+    @Mapping(target = "slug", source = "channelSlug")
+    @Mapping(target = "thumbUrl", source = "imgFullFileUrl")
+    BasicChannelDto mapBasic(PtChannel channel);
 
     @Mapping(target = "title", source = "channelName")
     @Mapping(target = "slug", source = "channelSlug")

@@ -157,6 +157,11 @@ public class PermitServiceImpl implements AuthorizationService {
         return videoPermissions(video, portalUser);
     }
 
+    @Override
+    public Map<String, Boolean> listPermissions(GcAccess contentGroup, PortalUser portalUser) {
+        return Map.of();
+    }
+
     private Map<String, Boolean> videoPermissions(GcVideo video, PortalUser portalUser) {
         return checkAccess(video, VIDEO_PERMISSIONS_TO_CHECK, portalUser);
     }

@@ -864,4 +864,9 @@
             <where>name='unavailableVideoRandomEnabled'</where>
         </delete>
     </changeSet>
+
+    <changeSet id="rename-is-subscribed-column" author="vprokh">
+        <renameColumn tableName="content_group_channel_subscription" schemaName="arena_hub" oldColumnName="is_subscribed" newColumnName="auto_subscribe"/>
+    </changeSet>
+
 </databaseChangeLog>
