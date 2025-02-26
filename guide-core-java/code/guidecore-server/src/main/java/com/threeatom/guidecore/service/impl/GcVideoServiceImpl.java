@@ -689,8 +689,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public boolean createVideos(List<GcVideo> videoList, HttpServletRequest request) {
+	public boolean createVideos(List<GcVideo> videoList, PortalUser portalUser) {
         Integer originCourseId = getOriginCourseId(videoList);
+		GcSubject course = subjectService.getById(originCourseId);
+		if (!authorizationService.checkAccess(course, PermitAction.MANAGE_CONTENT, portalUser)) {
+			throw new ForbiddenException("No permission to upload videos for the course");
+		}
 
 		for (GcVideo video : videoList) {
 			ApiAssert.notNull(video.getVideoName(), "Video name cannot be empty");
@@ -702,14 +706,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 					video.getFileId());
 				return false;
 			}
-			updateVideo(originCourseId, request, video, file);
+			updateVideo(originCourseId, video, file);
 		}
 		return saveOrUpdateBatch(videoList);
 	}
 
-	private void updateVideo(Integer originCourseId, HttpServletRequest request, GcVideo video, SysFile file) {
+	private void updateVideo(Integer originCourseId, GcVideo video, SysFile file) {
 		video.setVideoName(stringWidthConvertUtil.stringWidthConvert(video.getVideoName()));
-		video.setVideoFullUrl(sysFileService.getResFullUrl(file, request));
+		video.setVideoFullUrl(sysFileService.getFullFileUrl(file.getFileUrl()));
 		video.setSubId0(originCourseId);
 		video.setOriginCourseId(originCourseId);
 		video.setThumbnailUrl(file.getThumbNailUrl());

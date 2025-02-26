@@ -664,9 +664,11 @@ public class ManagerGuideCoreController extends GuideCoreController {
     public Message saveVideoBatch(
         @RequestBody @ApiParam(name = "Save Video", value = "Video entities") List<GcVideo> videoList,
         HttpServletRequest request) {
-
         Integer masterId = request.getIntHeader("masterId");
-        if (videoService.createVideos(videoList, request)) {
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        if (videoService.createVideos(videoList, portalUser)) {
             courseContentService.saveCourseContents(videoList);
             videoList =
                 videoService.findByVideoIds(videoList.stream().map(GcVideo::getId).collect(Collectors.toList()));

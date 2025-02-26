@@ -151,7 +151,7 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     VideoSearchResponseDto getVideoListByQuery(VideoListFilterDto filter, PortalUser portalUser, HttpServletRequest request);
 
-    boolean createVideos(List<GcVideo> videoList, HttpServletRequest request);
+    boolean createVideos(List<GcVideo> videoList, PortalUser portalUser);
 
     void updateCourseTags(List<GcVideo> videoList, Integer masterId);
 
