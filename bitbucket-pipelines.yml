@@ -45,14 +45,19 @@ definitions:
 
 pipelines:
   branches:
-    # For develop branch: automatically compile, build container image, push it to ECR,
-    # deploy an image to develop environment
     develop:
-    - step: *build_and_push
+    - step:
+        name: Activate build buttons
+        script:
+          - exit 0
+    - step:
+        <<: *build_and_push
+        trigger: manual
     - step:
         name: Deploy to develop
         image: atlassian/default-image:4
         deployment: develop
+        trigger: manual
         script:
           - .ci/deploy.sh --env develop
 
@@ -109,5 +114,5 @@ pipelines:
         trigger: manual
         script:
           - .ci/deploy.sh --env prod-ec
-          - .ci/permitio.sh copy_policies --src=production --dest=prod-backup # Backups production policies 
+          - .ci/permitio.sh copy_policies --src=production --dest=prod-backup # Backups production policies
           - .ci/permitio.sh copy_policies --src=staging --dest=production
