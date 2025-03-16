@@ -24,6 +24,7 @@ public class VideoEvent {
     @TableField(value = "type", typeHandler = EnumTypeHandler.class)
     private VideoEventType type;
 
+    @TableField(value = "order_number")
     private Integer order = 0;
     private Integer ownerId;
 

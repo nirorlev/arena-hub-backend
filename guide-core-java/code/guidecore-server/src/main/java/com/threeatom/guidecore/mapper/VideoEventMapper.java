@@ -9,5 +9,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface VideoEventMapper extends BaseMapper<VideoEvent> {
-    List<VideoEvent> videoEventsByType(Integer userId, Integer masterId, Integer videoId, VideoEventType eventType);
+    List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType, Integer userId, Integer masterId);
 }

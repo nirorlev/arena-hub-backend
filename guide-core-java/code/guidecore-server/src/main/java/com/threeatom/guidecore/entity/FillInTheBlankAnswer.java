@@ -7,5 +7,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FillInTheBlankAnswer extends Answer {
-    private Map<String, String> keywordToAnswer;
+    private Map<String, Integer> keywordToAnswer;
 }

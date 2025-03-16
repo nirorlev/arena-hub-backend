@@ -16,6 +16,7 @@ import com.threeatom.guidecore.service.VideoEventService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,18 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser) {
         verifyPermission(portalUser, videoId, PermitAction.VIEW);
 
+        return taskService.videoTasks(getTaskVideoEvents(videoId, portalUser));
+    }
+
+    @Override
+    @Transactional
+    public List<TaskDto> createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer videoId,
+                                    PortalUser portalUser) {
+        GcVideo video = videoService.findByVideoId(videoId);
+        verifyPermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
+
+        VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
+        taskService.createTask(taskDto, taskVideoEvent, portalUser);
         return taskService.videoTasks(getTaskVideoEvents(videoId, portalUser));
     }
 

@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface VideoEventFacade {
     List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser);
+
+    List<TaskDto> createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer videoId,
+                             PortalUser portalUser);
 }
