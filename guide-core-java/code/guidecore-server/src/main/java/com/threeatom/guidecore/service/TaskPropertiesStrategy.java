@@ -12,4 +12,6 @@ public interface TaskPropertiesStrategy {
                                     Map<Integer, Integer> tempChoiceIdToRealChoiceId);
 
     TaskProperties createProperties(TaskType type, String jsonProperties) throws JsonProcessingException;
+
+    TaskProperties copyProperties(TaskType type, TaskProperties property);
 }

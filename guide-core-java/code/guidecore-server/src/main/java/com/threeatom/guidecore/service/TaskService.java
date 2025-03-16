@@ -12,4 +12,8 @@ public interface TaskService extends IService<Task> {
     List<TaskDto> videoTasks(List<VideoEvent> taskVideoEvents);
 
     void createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, VideoEvent videoEvent, PortalUser portalUser);
+
+    Task getTask(Integer taskId);
+
+    void updateTask(Task task, com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer userId);
 }

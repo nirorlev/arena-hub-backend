@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.TaskMapper">
+
+    <resultMap id="baseResultMap" type="Task">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="type" column="task_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="question" column="question"/>
+        <result property="answer" column="answer"
+                typeHandler="com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler"/>
+        <result property="retries" column="retries"/>
+        <result property="allowSkip" column="allow_skip"/>
+        <result property="version" column="version"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="properties" column="properties"
+                typeHandler="com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler"/>
+        <result property="videoEventId" column="video_event_id"/>
+        <result property="updatedByUserId" column="updated_by_user_id"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+
+        <association property="videoEvent" resultMap="videoEventResultMap" columnPrefix="video_event_"/>
+        <association property="updatedByUser" resultMap="userResultMap" columnPrefix="updated_by_user_"/>
+        <collection property="choices" javaType="ArrayList" columnPrefix="choice_" ofType="TaskChoice"
+                    resultMap="taskChoicesResultMap"/>
+    </resultMap>
+
+    <resultMap id="videoEventResultMap" type="VideoEvent">
+        <id property="id" column="id"/>
+
+        <result property="videoId" column="video_id"/>
+        <result property="videoTime" column="video_time"/>
+        <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="order" column="order_number"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+
+        <association property="owner" resultMap="userResultMap" columnPrefix="owner_"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id"/>
+        <result property="username" column="username"/>
+        <result property="state" column="state"/>
+        <result property="password" column="password"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="infoId" column="info_id"/>
+        <result property="pid" column="pid"/>
+        <result property="groupName" column="group_name"/>
+        <result property="logInTime" column="log_in_time"/>
+        <result property="lastName" column="last_name"/>
+        <result property="firstName" column="first_name"/>
+        <result property="powtoonUserId" column="powtoon_user_id"/>
+
+        <association property="info" column="id" javaType="GcUserInfo" columnPrefix="info_">
+            <id property="id" column="id"/>
+            <result property="lastName" column="last_name"/>
+            <result property="firstName" column="first_name"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="avatarFileId" column="avatar_file_id"/>
+            <association property="avatarFile" column="avatarFile" javaType="SysFile" columnPrefix="avatar_file_">
+                <id property="id" column="id"/>
+                <result property="name" column="name"/>
+                <result property="fileUrl" column="url"/>
+                <result property="saveType" column="save_type"/>
+                <result property="uploadUid" column="upload_uid"/>
+                <result property="masterId" column="master_id"/>
+                <result property="fileTypeIndex" column="save_type"/>
+                <result property="updateTime" column="update_time"/>
+                <result property="createTime" column="create_time"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <resultMap id="taskChoicesResultMap" type="TaskChoice">
+        <id property="id" column="id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="content" column="content"/>
+        <result property="order" column="order_number"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <sql id="videoEventColumns">
+        video_event.id as video_event_id, video_event.video_id as video_event_video_id,
+        video_event.video_time as video_event_video_time, video_event.type as video_event_type,
+        video_event.order_number as video_event_order_number, video_event.owner_id as video_event_owner_id,
+        video_event.created_time as video_event_created_time, video_event.updated_time as video_event_updated_time
+    </sql>
+
+    <sql id="ownerColumns">
+        u.id as video_event_owner_id, u.sys_id as video_event_owner_sys_id, u.username as video_event_owner_username, u.state as video_event_owner_state, u.update_time as video_event_owner_update_time,
+        u.create_time as video_event_owner_create_time, u.info_id as video_event_owner_info_id, u.pid as video_event_owner_pid, u.powtoon_user_id as video_event_owner_powtoon_user_id
+    </sql>
+
+    <sql id="ownerInfoColumns">
+        user_info.id as video_event_owner_info_id, user_info.last_name as video_event_owner_info_last_name, user_info.first_name as video_event_owner_info_first_name,
+        user_info.avatar_file_id as video_event_owner_info_avatar_file_id, user_info.update_time as video_event_owner_info_update_time,
+        user_info.create_time as video_event_owner_info_create_time
+    </sql>
+
+    <sql id="ownerAvatarFileColumns">
+        user_avatar_file.id as video_event_owner_info_avatar_file_id, user_avatar_file.name as video_event_owner_info_avatar_file_name,
+        user_avatar_file.file_url as video_event_owner_info_avatar_file_url, user_avatar_file.save_type as video_event_owner_info_avatar_file_save_type,
+        user_avatar_file.update_time as video_event_owner_info_avatar_file_update_time, user_avatar_file.create_time as video_event_owner_info_avatar_file_create_time,
+        user_avatar_file.file_type as video_event_owner_info_avatar_file_type, user_avatar_file.upload_uid as video_event_owner_info_avatar_file_upload_uid,
+        user_avatar_file.master_id as video_event_owner_info_avatar_file_master_id, user_avatar_file.file_type_index as video_event_owner_info_avatar_file_file_type_index
+    </sql>
+
+    <sql id="updatedByUserColumns">
+        updated_by_user.id as updated_by_user_id, updated_by_user.sys_id as updated_by_user_sys_id, updated_by_user.username as updated_by_user_username, updated_by_user.state as updated_by_user_state, updated_by_user.update_time as updated_by_user_update_time,
+        updated_by_user.create_time as updated_by_user_create_time, updated_by_user.info_id as updated_by_user_info_id, updated_by_user.pid as updated_by_user_pid, updated_by_user.powtoon_user_id as updated_by_user_powtoon_user_id
+    </sql>
+
+    <sql id="updatedByUserInfoColumns">
+        updated_by_user_info.id as updated_by_user_info_id, updated_by_user_info.last_name as updated_by_user_info_last_name, updated_by_user_info.first_name as updated_by_user_info_first_name,
+        updated_by_user_info.avatar_file_id as updated_by_user_info_avatar_file_id, updated_by_user_info.update_time as updated_by_user_info_update_time,
+        updated_by_user_info.create_time as updated_by_user_info_create_time
+    </sql>
+
+    <sql id="updatedByUserAvatarFileColumns">
+        updated_by_user_avatar_file.id as updated_by_user_info_avatar_file_id, updated_by_user_avatar_file.name as updated_by_user_info_avatar_file_name,
+        updated_by_user_avatar_file.file_url as updated_by_user_info_avatar_file_url, updated_by_user_avatar_file.save_type as updated_by_user_info_avatar_file_save_type,
+        updated_by_user_avatar_file.update_time as updated_by_user_info_avatar_file_update_time, updated_by_user_avatar_file.create_time as updated_by_user_info_avatar_file_create_time,
+        updated_by_user_avatar_file.file_type as updated_by_user_info_avatar_file_type, updated_by_user_avatar_file.upload_uid as updated_by_user_info_avatar_file_upload_uid,
+        updated_by_user_avatar_file.master_id as updated_by_user_info_avatar_file_master_id, updated_by_user_avatar_file.file_type_index as updated_by_user_info_avatar_file_file_type_index
+    </sql>
+
+    <sql id="taskColumns">
+        task.id, task.owner_id, task.video_event_id, task.type as task_type, task.question, task.answer, task.retries, task.allow_skip, task.is_deleted, task.properties,
+        task.version, task.created_time, task.updated_time
+    </sql>
+
+    <sql id="taskChoiceColumns">
+        task_choice.id as choice_id, task_choice.task_id as choice_task_id, task_choice.content as choice_content,
+        task_choice.order_number as choice_order_number, task_choice.is_deleted as choice_is_deleted
+    </sql>
+
+    <select id="findById" resultMap="baseResultMap">
+        SELECT
+            <include refid="taskColumns"/>,
+            <include refid="updatedByUserColumns"/>,
+            <include refid="updatedByUserInfoColumns"/>,
+            <include refid="updatedByUserAvatarFileColumns"/>,
+            <include refid="videoEventColumns"/>,
+            <include refid="ownerColumns"/>,
+            <include refid="ownerInfoColumns"/>,
+            <include refid="ownerAvatarFileColumns"/>,
+            <include refid="taskChoiceColumns"/>
+        FROM tasks task
+            JOIN gc_user updated_by_user ON task.updated_by_user_id = updated_by_user.id
+            JOIN gc_user_info updated_by_user_info ON updated_by_user.info_id = updated_by_user_info.id
+            JOIN video_events video_event ON video_event.id = task.video_event_id
+            JOIN gc_user u ON video_event.owner_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file updated_by_user_avatar_file ON updated_by_user_info.avatar_file_id = updated_by_user_avatar_file.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+            LEFT JOIN task_choices task_choice ON task_choice.task_id = task.id AND task_choice.is_deleted = false
+        WHERE task.id = #{id} AND task.is_deleted = false
+        ORDER BY video_event.video_time, video_event.order_number
+    </select>
+
+</mapper>

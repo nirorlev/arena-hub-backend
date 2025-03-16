@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.mapping;
 
+import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.response.ChoiceDto;
 import com.threeatom.guidecore.dto.response.QuestionDto;
 import com.threeatom.guidecore.entity.MultipleChoiceProperties;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.util.CollectionUtils;
 
@@ -28,6 +30,16 @@ public interface TaskMapping {
     @Mapping(target = "version", source = "task.version")
     @Mapping(target = "question", source = "task", qualifiedByName = "mapQuestion")
     com.threeatom.guidecore.dto.response.TaskDto map(VideoEvent videoEvent);
+
+    @Mapping(target = "choices", ignore = true)
+    @Mapping(target = "type", ignore = true)
+    @Mapping(target = "answer", ignore = true)
+    @Mapping(target = "properties", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "question", source = "taskDto.question.text")
+    @Mapping(target = "allowSkip", source = "taskDto.canSkip")
+    @Mapping(target = "updatedByUserId", source = "updatedByUserId")
+    void update(@MappingTarget Task task, TaskDto taskDto, Integer updatedByUserId);
 
     @Named("mapQuestion")
     default QuestionDto mapQuestion(Task task) {

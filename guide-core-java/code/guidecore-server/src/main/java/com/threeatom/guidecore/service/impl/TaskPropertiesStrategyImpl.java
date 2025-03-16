@@ -51,6 +51,21 @@ public class TaskPropertiesStrategyImpl implements TaskPropertiesStrategy {
         };
     }
 
+    @Override
+    public TaskProperties copyProperties(TaskType type, TaskProperties properties) {
+        return switch (type) {
+            case SINGLE_CHOICE -> new SingleChoiceProperties(((SingleChoiceProperties) properties).isRandomOrder());
+            case MULTIPLE_CHOICE ->
+                new MultipleChoiceProperties(((MultipleChoiceProperties) properties).isRandomOrder());
+            case PAIRING -> {
+                PairingProperties pairingProperty = (PairingProperties) properties;
+                yield new PairingProperties(pairingProperty);
+            }
+            case FILL_IN_THE_BLANK -> new FillInTheBlankProperties();
+            case OPEN_QUESTION -> new OpenQuestionProperties();
+        };
+    }
+
     private void validatePairingChoices(QuestionDto question) {
         Set<Integer> groupedChoiceIds = question.getGrouping().stream()
             .flatMap(List::stream)

@@ -49,6 +49,17 @@ public class VideoAnswerStrategyImpl implements VideoAnswerStrategy {
         };
     }
 
+    @Override
+    public Answer copyAnswer(TaskType type, Answer answer) {
+        return switch (type) {
+            case MULTIPLE_CHOICE -> new MultipleChoiceAnswer(answer);
+            case SINGLE_CHOICE -> new SingleChoiceAnswer(answer);
+            case OPEN_QUESTION -> new OpenQuestionAnswer();
+            case FILL_IN_THE_BLANK -> new FillInTheBlankAnswer(answer);
+            case PAIRING -> new PairingAnswer(answer);
+        };
+    }
+
     private Answer createPairingAnswer(String answer, Map<Integer, Integer> taskChoiceTempIdToRealId) {
         PairingAnswer pairingAnswer = new PairingAnswer();
         List<List<Integer>> tempCorrectChoicePairs = JSON.parseObject(answer, new TypeReference<>() {

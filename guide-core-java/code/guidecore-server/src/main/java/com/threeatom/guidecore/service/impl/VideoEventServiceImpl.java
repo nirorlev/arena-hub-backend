@@ -43,11 +43,39 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
         return videoEvent;
     }
 
+    @Override
+    @Transactional
+    public void updateTaskVideoEvent(PortalUser portalUser, VideoEvent videoEvent, TaskDto taskDto, GcVideo video) {
+        verifyTaskVideoTime(taskDto, video);
+
+        List<VideoEvent> videoEvents =
+            baseMapper.videoEventsByType(videoEvent.getVideoId(), VideoEventType.TASK, portalUser.getUserId(),
+                portalUser.getMasterId());
+
+        optimizeCurrentVideoEventsOrder(videoEvent, videoEvents);
+
+        videoEvent.setVideoTime(taskDto.getTimestamp());
+        updateBatchById(optimizeNewVideoEventsOrder(videoEvent, videoEvents, taskDto.getOrder()));
+    }
+
     private List<VideoEvent> optimizeNewVideoEventsOrder(VideoEvent videoEvent, List<VideoEvent> videoEvents,
                                                          Integer order) {
         List<VideoEvent> videoEventsWithTheSameTimestamp =
             filterVideoEvents(videoEvents, videoEventWithSameTimestamp(videoEvent.getVideoTime()));
         return addVideoEventWithOptimizedOrder(videoEvent, videoEventsWithTheSameTimestamp, order);
+    }
+
+    private void optimizeCurrentVideoEventsOrder(VideoEvent videoEvent, List<VideoEvent> videoEvents) {
+        List<VideoEvent> oldVideoEventsWithTheSameTimestamp = filterVideoEvents(
+            videoEvents
+            , excludeVideoEventWithId(videoEvent.getId()).and(videoEventWithSameTimestamp(videoEvent.getVideoTime()))
+        );
+
+        for (int i = 0; i < oldVideoEventsWithTheSameTimestamp.size(); i++) {
+            oldVideoEventsWithTheSameTimestamp.get(i).setOrder(i);
+        }
+
+        updateBatchById(oldVideoEventsWithTheSameTimestamp);
     }
 
     private List<VideoEvent> addVideoEventWithOptimizedOrder(VideoEvent videoEvent,
@@ -76,6 +104,10 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
 
     private Predicate<VideoEvent> videoEventWithSameTimestamp(Integer timestamp) {
         return videoEvent -> videoEvent.getVideoTime().equals(timestamp);
+    }
+
+    private Predicate<VideoEvent> excludeVideoEventWithId(Integer id) {
+        return videoEvent -> !videoEvent.getId().equals(id);
     }
 
     private void verifyTaskVideoTime(TaskDto taskDto, GcVideo video) {

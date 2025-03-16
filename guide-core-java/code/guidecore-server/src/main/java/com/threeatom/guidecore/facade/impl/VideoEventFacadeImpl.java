@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
@@ -43,6 +44,19 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
         taskService.createTask(taskDto, taskVideoEvent, portalUser);
         return taskService.videoTasks(getTaskVideoEvents(videoId, portalUser));
+    }
+
+    @Override
+    @Transactional
+    public List<TaskDto> updateTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer taskId,
+                                    PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        GcVideo video = videoService.findByVideoId(task.getVideoEvent().getVideoId());
+        verifyPermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
+
+        videoEventService.updateTaskVideoEvent(portalUser, task.getVideoEvent(), taskDto, video);
+        taskService.updateTask(task, taskDto, portalUser.getUserId());
+        return taskService.videoTasks(getTaskVideoEvents(task.getVideoEvent().getVideoId(), portalUser));
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId, PortalUser portalUser) {

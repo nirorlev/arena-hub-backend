@@ -11,4 +11,6 @@ public interface VideoAnswerStrategy {
     Answer createAnswer(QuestionDto questionDto, Map<Integer, Integer> taskChoiceTempIdToRealId);
 
     Answer createAnswer(TaskType type, String answer) throws JsonProcessingException;
+
+    Answer copyAnswer(TaskType type, Answer answer);
 }
