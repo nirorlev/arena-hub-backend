@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
+import com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler;
 import com.threeatom.guidecore.enums.TaskType;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -37,6 +38,7 @@ public class Task {
     private Boolean allowSkip = true;
     private Boolean isDeleted = false;
 
+    @TableField(typeHandler = TaskPropertiesJsonTypeHandler.class)
     private TaskProperties properties;
 
     private Integer version;
