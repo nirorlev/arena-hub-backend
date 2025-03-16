@@ -1,10 +1,10 @@
 package com.threeatom.guidecore.entity;
 
-
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
 import com.threeatom.guidecore.enums.TaskType;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -30,6 +30,7 @@ public class Task {
 
     private String question;
 
+    @TableField(typeHandler = TaskAnswerJsonTypeHandler.class)
     private Answer answer;
 
     private Integer retries = -1;
