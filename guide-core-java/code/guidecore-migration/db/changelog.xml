@@ -869,4 +869,357 @@
         <renameColumn tableName="content_group_channel_subscription" schemaName="arena_hub" oldColumnName="is_subscribed" newColumnName="auto_subscribe"/>
     </changeSet>
 
+    <changeSet id="create-video-events-table" author="vprokh">
+        <createTable tableName="video_events" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="video_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_time" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_number" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="video_events" baseColumnNames="owner_id"
+                                 constraintName="video_events_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="video_events" baseColumnNames="video_id"
+                                 constraintName="video_events_gc_video_id_fk" referencedTableName="gc_video"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-notifications-table" author="vprokh">
+        <createTable tableName="notifications" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_event_id" type="INT"/>
+            <column name="type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                columnNames="video_event_id"
+                constraintName="notifications_video_event_id_fk_uniq"
+                tableName="notifications"/>
+
+        <addForeignKeyConstraint baseTableName="notifications" baseColumnNames="owner_id"
+                                 constraintName="notifications_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="notifications" baseColumnNames="video_event_id"
+                                 constraintName="notifications_video_events_id_fk" referencedTableName="video_events"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="create-tasks-table" author="vprokh">
+        <createTable tableName="tasks" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_event_id" type="INT"/>
+            <column name="type" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="answer" type="JSONB"/>
+            <column name="retries" type="INT" defaultValue="-1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allow_skip" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by_user_id">
+                <constraints nullable="false"/>
+            </column>
+            <column name="properties" type="JSONB"/>
+            <column name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="TIMESTAMP with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                columnNames="video_event_id"
+                constraintName="tasks_video_event_id_fk_uniq"
+                tableName="tasks"/>
+
+        <addForeignKeyConstraint baseTableName="tasks" baseColumnNames="updated_by_user_id"
+                                 constraintName="tasks_gc_user_updated_by_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="tasks" baseColumnNames="owner_id"
+                                 constraintName="tasks_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="tasks" baseColumnNames="video_event_id"
+                                 constraintName="tasks_video_events_id_fk" referencedTableName="video_events"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="create-task-choices-table" author="vprokh">
+        <createTable tableName="task_choices" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_number" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="task_choices" baseColumnNames="task_id"
+                                 constraintName="fk_task_choices_task_id" referencedTableName="tasks"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-task-answers-table" author="vprokh">
+        <createTable tableName="user_task_answers" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="JSONB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_task_answers" baseColumnNames="task_id"
+                                 constraintName="fk_user_task_answers_task_id" referencedTableName="tasks"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answers" baseColumnNames="owner_id"
+                                 constraintName="user_task_answers_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-task-answer-reviews-table" author="vprokh">
+        <createTable tableName="user_task_answer_reviews" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_task_answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="DECIMAL(5, 2)" defaultValue="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT"/>
+            <column name="content" type="TEXT"/>
+            <column name="created_time" type="TIMESTAMP with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_task_answer_reviews" baseColumnNames="user_task_answer_id"
+                                 constraintName="fk_user_task_answer_reviews_user_task_answer_id"
+                                 referencedTableName="user_task_answers"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answer_reviews" baseColumnNames="owner_id"
+                                 constraintName="user_task_answer_reviews_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-task-answer-choices-table" author="vprokh">
+        <createTable tableName="user_task_answer_choices" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_task_answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_choice_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_correct" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_marked" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices" baseColumnNames="user_task_answer_id"
+                                 constraintName="fk_user_task_answer_choices_user_task_answer_id"
+                                 referencedTableName="user_task_answers"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices" baseColumnNames="task_choice_id"
+                                 constraintName="fk_user_task_answer_choices_task_choice_id"
+                                 referencedTableName="task_choices"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-task-answer-choices-pairing-table" author="vprokh">
+        <createTable tableName="user_task_answer_choices_pairings" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_task_answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_choice_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="paired_choice_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_correct" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices_pairings" baseColumnNames="user_task_answer_id"
+                                 constraintName="fk_user_task_answer_choices_pairings_user_task_answer_id"
+                                 referencedTableName="user_task_answers"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices_pairings" baseColumnNames="task_choice_id"
+                                 constraintName="fk_user_task_answer_choices_pairings_task_choice_id"
+                                 referencedTableName="task_choices"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices_pairings" baseColumnNames="paired_choice_id"
+                                 constraintName="fk_user_task_answer_choices_pairings_paired_choice_id"
+                                 referencedTableName="task_choices"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-user-task-answer-choices-fill-in-the-blank-table" author="vprokh">
+        <createTable tableName="user_task_answer_choices_fill_in_blanks" schemaName="arena_hub">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_task_answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_choice_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_correct" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices_fill_in_blanks"
+                                 baseColumnNames="user_task_answer_id"
+                                 constraintName="fk_user_task_answer_choices_fill_in_blanks_user_task_answer_id"
+                                 referencedTableName="user_task_answers"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_task_answer_choices_fill_in_blanks"
+                                 baseColumnNames="task_choice_id"
+                                 constraintName="fk_user_task_answer_choices_fill_in_blanks_task_choice_id"
+                                 referencedTableName="task_choices"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-task-sessions-table" author="vprokh">
+        <createTable tableName="task_sessions" schemaName="arena_hub">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="duration" type="integer" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="startTime" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="task_sessions" baseColumnNames="task_id"
+                                 constraintName="task_sessions_tasks_id_fk" referencedTableName="tasks"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-tasks-audit-table" author="vprokh">
+        <createTable tableName="tasks_audit" schemaName="arena_hub">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="task_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_task_state" type="JSONB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_task_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="tasks_audit" baseColumnNames="task_id"
+                                 constraintName="tasks_audit_tasks_id_fk" referencedTableName="tasks"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="tasks_audit" baseColumnNames="created_by_user_id"
+                                 constraintName="tasks_audit_gc_user_id_fk" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>
