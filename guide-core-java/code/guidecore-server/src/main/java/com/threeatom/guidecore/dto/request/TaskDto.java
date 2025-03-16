@@ -16,6 +16,7 @@ public class TaskDto {
     @Min(value = 0, message = "Order number must be greater than or equal to 0")
     private Integer order;
 
+    @NotNull(message = "Question is required")
     @Valid
     private QuestionDto question;
 

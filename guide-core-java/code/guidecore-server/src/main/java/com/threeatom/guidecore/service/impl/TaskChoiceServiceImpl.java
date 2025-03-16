@@ -2,6 +2,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.request.ChoiceDto;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskChoice;
@@ -44,7 +45,7 @@ public class TaskChoiceServiceImpl extends ServiceImpl<TaskChoiceMapper, TaskCho
             .anyMatch(choiceDtoId -> choiceDtoId > 0);
 
         if (anyPositiveId) {
-            throw new IllegalArgumentException("ChoiceDto id must be negative for new choices");
+            throw new ValidationException("ChoiceDto id must be negative for new choices");
         }
     }
 

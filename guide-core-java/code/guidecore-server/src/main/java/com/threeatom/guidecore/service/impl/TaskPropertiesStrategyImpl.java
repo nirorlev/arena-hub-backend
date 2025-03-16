@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.request.ChoiceDto;
 import com.threeatom.guidecore.dto.request.QuestionDto;
 import com.threeatom.guidecore.entity.FillInTheBlankProperties;
@@ -59,7 +60,7 @@ public class TaskPropertiesStrategyImpl implements TaskPropertiesStrategy {
             .allMatch(groupedChoiceIds::contains);
 
         if (!allChoiceIdsUsedInGrouping) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                 "All task choice ids should be used in grouping field for pairing task type");
         }
     }

@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -81,7 +82,7 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
         if (taskDto.getTimestamp() > video.getVideoTime()) {
             log.error("Failed to create task for video {}. Task timestamp {} cannot be greater than video time {}"
                 , video.getId(), taskDto.getTimestamp(), video.getVideoTime());
-            throw new IllegalArgumentException("Task timestamp cannot be greater than video time");
+            throw new ValidationException("Task timestamp cannot be greater than video time");
         }
     }
 

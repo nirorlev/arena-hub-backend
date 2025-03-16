@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.response.AccessGroupDetailsDto;
 import com.threeatom.guidecore.dto.response.AccessSourceDto;
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
@@ -71,7 +72,7 @@ public class SharableListServiceImpl implements SharableListService {
 
         if (course == null) {
             log.error("Course with id {} not found", courseId);
-            throw new IllegalArgumentException("Course not found");
+            throw new ValidationException("Course not found");
         }
 
         AccessSourceDto accessSourceDto = getAccessSourceDto(courseId, course.getCreateUser(), SourceType.COURSE,
