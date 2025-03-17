@@ -11,6 +11,7 @@ import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.mapper.TaskMapper;
 import com.threeatom.guidecore.mapping.TaskMapping;
+import com.threeatom.guidecore.service.TaskAuditService;
 import com.threeatom.guidecore.service.TaskChoiceService;
 import com.threeatom.guidecore.service.TaskPropertiesStrategy;
 import com.threeatom.guidecore.service.TaskService;
@@ -33,6 +34,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private final TaskChoiceService taskChoiceService;
     private final VideoAnswerStrategy videoAnswerStrategy;
     private final TaskPropertiesStrategy taskPropertiesStrategy;
+    private final TaskAuditService taskAuditService;
 
     @Override
     public List<TaskDto> videoTasks(List<VideoEvent> taskVideoEvents) {
@@ -108,11 +110,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Transactional
     public void deleteTask(Task task, Integer userId) {
         taskChoiceService.deleteChoices(task.getChoices());
+        OffsetDateTime dateTime = OffsetDateTime.now();
 
         task.setIsDeleted(true);
         task.setUpdatedByUserId(userId);
-        task.setUpdatedTime(OffsetDateTime.now());
+        task.setUpdatedTime(dateTime);
         updateById(task);
+
+        taskAuditService.create(task, userId, dateTime);
     }
 
     @Override
