@@ -18,5 +18,5 @@ public class TaskSession {
     private Integer taskId;
     private Integer duration;
 
-    private OffsetDateTime startTime = OffsetDateTime.now();
+    private OffsetDateTime startTime;
 }

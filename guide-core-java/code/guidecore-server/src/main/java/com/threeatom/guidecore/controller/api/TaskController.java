@@ -1,12 +1,14 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.TaskDto;
+import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.facade.VideoEventFacade;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.TaskSessionService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +35,7 @@ public class TaskController {
     private final PortalUserService portalUserService;
     private final GcUserService userService;
     private final VideoEventFacade videoEventFacade;
+    private final TaskSessionService taskSessionService;
 
     @PutMapping("/{taskId}")
     public ResponseEntity<List<com.threeatom.guidecore.dto.response.TaskDto>> updateTask(@PathVariable Integer taskId,
@@ -52,6 +56,14 @@ public class TaskController {
     @GetMapping("/{taskId}/answer-key")
     public ResponseEntity<AnswerKeyDto> answerKey(@PathVariable Integer taskId, HttpServletRequest request) {
         return ResponseEntity.ok(videoEventFacade.taskAnswerKey(taskId, getPortalUser(request)));
+    }
+
+    @PostMapping("/{taskId}/sessions")
+    public ResponseEntity<Void> createTaskSession(@PathVariable Integer taskId,
+                                                  @RequestBody @Valid TaskSessionDto taskSessionDto,
+                                                  HttpServletRequest request) {
+        taskSessionService.createUpdateTaskSession(taskSessionDto, taskId, getPortalUser(request));
+        return ResponseEntity.noContent().build();
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {
