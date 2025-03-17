@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.request.QuestionDto;
 import com.threeatom.guidecore.entity.Answer;
 import com.threeatom.guidecore.entity.FillInTheBlankAnswer;
@@ -18,8 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class VideoAnswerStrategyImpl implements VideoAnswerStrategy {
 
@@ -62,55 +65,81 @@ public class VideoAnswerStrategyImpl implements VideoAnswerStrategy {
 
     private Answer createPairingAnswer(String answer, Map<Integer, Integer> taskChoiceTempIdToRealId) {
         PairingAnswer pairingAnswer = new PairingAnswer();
-        List<List<Integer>> tempCorrectChoicePairs = JSON.parseObject(answer, new TypeReference<>() {
+        List<List<Integer>> correctChoiceTempIdPairs = JSON.parseObject(answer, new TypeReference<>() {
         });
-        List<List<Integer>> correctChoicePairs = tempCorrectChoicePairs.stream()
-            .map(pair -> pair.stream()
-                .map(taskChoiceTempIdToRealId::get)
-                .collect(Collectors.toList()))
+        List<List<Integer>> correctChoiceRealIdPairs = correctChoiceTempIdPairs.stream()
+            .map(pair -> createChoiceRealIdPairingGroup(taskChoiceTempIdToRealId, pair))
             .collect(Collectors.toList());
 
-        pairingAnswer.setChoiceIds(correctChoicePairs);
+        if (correctChoiceRealIdPairs.stream()
+            .anyMatch(realCorrectChoiceIdPair -> realCorrectChoiceIdPair.contains(null))) {
+            log.error("Invalid real choice id for pairing question. Temp choice pairs: {}, Real choice pairs: {}",
+                correctChoiceTempIdPairs, correctChoiceRealIdPairs);
+            throw new ValidationException("Invalid choice id for pairing question");
+        }
+
+        pairingAnswer.setChoiceIds(correctChoiceRealIdPairs);
 
         return pairingAnswer;
     }
 
+    private List<Integer> createChoiceRealIdPairingGroup(Map<Integer, Integer> taskChoiceTempIdToRealId,
+                                                         List<Integer> pair) {
+        return pair.stream()
+            .map(taskChoiceTempIdToRealId::get)
+            .collect(Collectors.toList());
+    }
+
     private Answer createFillInTheBlankAnswer(String answer, Map<Integer, Integer> taskChoiceTempIdToRealId) {
         FillInTheBlankAnswer fillInTheBlankAnswer = new FillInTheBlankAnswer();
-        Map<String, Integer> fillInLabelToTempChoiceId = JSON.parseObject(answer, new TypeReference<>() {
+        Map<String, Integer> fillInLabelToChoiceTempId = JSON.parseObject(answer, new TypeReference<>() {
         });
-        Map<String, Integer> fillInLabelToChoiceIdMap = new HashMap<>();
+        Map<String, Integer> fillInLabelToChoiceRealIdMap = new HashMap<>();
 
-        for (Map.Entry<String, Integer> entry : fillInLabelToTempChoiceId.entrySet()) {
-            Integer correctChoiceId = Optional.ofNullable(taskChoiceTempIdToRealId.get(entry.getValue()))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid choice id for fill in the blank question"));
+        for (Map.Entry<String, Integer> entry : fillInLabelToChoiceTempId.entrySet()) {
+            Integer correctChoiceRealId = Optional.ofNullable(taskChoiceTempIdToRealId.get(entry.getValue()))
+                .orElseThrow(() -> {
+                    log.error("Missing real choice id for fill in the blank question. Temp choice id: {}",
+                        entry.getValue());
+                    return new IllegalArgumentException("Invalid choice id for fill in the blank question");
+                });
 
-            fillInLabelToChoiceIdMap.put(entry.getKey(), correctChoiceId);
+            fillInLabelToChoiceRealIdMap.put(entry.getKey(), correctChoiceRealId);
         }
-        fillInTheBlankAnswer.setKeywordToAnswer(fillInLabelToChoiceIdMap);
+        fillInTheBlankAnswer.setKeywordToAnswer(fillInLabelToChoiceRealIdMap);
 
         return fillInTheBlankAnswer;
     }
 
     private Answer createSingleChoiceAnswer(String answer, Map<Integer, Integer> taskChoiceTempIdToRealId) {
         SingleChoiceAnswer singleChoiceAnswer = new SingleChoiceAnswer();
-        Integer tempCorrectChoiceId = Integer.valueOf(answer);
-        Integer correctChoiceId = Optional.ofNullable(taskChoiceTempIdToRealId.get(tempCorrectChoiceId))
-            .orElseThrow(() -> new IllegalArgumentException("Invalid choice id for single choice question"));
+        Integer correctChoiceTempId = Integer.valueOf(answer);
+        Integer correctChoiceRealId = Optional.ofNullable(taskChoiceTempIdToRealId.get(correctChoiceTempId))
+            .orElseThrow(() -> {
+                log.error("Missing real choice id for single choice question. Temp choice id: {}", correctChoiceTempId);
+                return new IllegalArgumentException("Invalid choice id for single choice question");
+            });
 
-        singleChoiceAnswer.setChoiceId(correctChoiceId);
+        singleChoiceAnswer.setChoiceId(correctChoiceRealId);
         return singleChoiceAnswer;
 
     }
 
     private Answer createMultipleChoiceAnswer(String answer, Map<Integer, Integer> taskChoiceTempIdToRealId) {
         MultipleChoiceAnswer multipleChoiceAnswer = new MultipleChoiceAnswer();
-        List<Integer> correctChoiceIds = JSON.parseArray(answer, Integer.class).stream()
+        List<Integer> correctChoiceTempIds = JSON.parseArray(answer, Integer.class);
+        List<Integer> correctChoiceRealIds = correctChoiceTempIds.stream()
             .filter(taskChoiceTempIdToRealId::containsKey)
             .map(taskChoiceTempIdToRealId::get)
             .collect(Collectors.toList());
 
-        multipleChoiceAnswer.setChoiceIds(correctChoiceIds);
+        if (correctChoiceTempIds.contains(null)) {
+            log.error("Invalid real choice id for multiple choice question. Temp choice ids: {}, Real choice ids: {}",
+                correctChoiceTempIds, correctChoiceRealIds);
+            throw new ValidationException("Invalid choice id for multiple choice question");
+        }
+
+        multipleChoiceAnswer.setChoiceIds(correctChoiceTempIds);
         return multipleChoiceAnswer;
     }
 }
