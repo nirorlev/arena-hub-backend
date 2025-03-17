@@ -59,6 +59,16 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         return taskService.videoTasks(getTaskVideoEvents(task.getVideoEvent().getVideoId(), portalUser));
     }
 
+    @Override
+    @Transactional
+    public void deleteTask(Integer taskId, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        taskService.deleteTask(task, portalUser.getUserId());
+        videoEventService.removeById(task.getVideoEvent().getId());
+    }
+
     private List<VideoEvent> getTaskVideoEvents(Integer videoId, PortalUser portalUser) {
         return videoEventService.videoEventsByType(videoId, VideoEventType.TASK, portalUser);
     }

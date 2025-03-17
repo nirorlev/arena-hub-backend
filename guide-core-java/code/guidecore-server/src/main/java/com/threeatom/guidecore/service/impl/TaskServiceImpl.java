@@ -14,6 +14,7 @@ import com.threeatom.guidecore.service.TaskChoiceService;
 import com.threeatom.guidecore.service.TaskPropertiesStrategy;
 import com.threeatom.guidecore.service.TaskService;
 import com.threeatom.guidecore.service.VideoAnswerStrategy;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,6 +101,17 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         }
 
         log.warn("Task {} has not been updated since the initial task state is the same!", task.getId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteTask(Task task, Integer userId) {
+        taskChoiceService.deleteChoices(task.getChoices());
+
+        task.setIsDeleted(true);
+        task.setUpdatedByUserId(userId);
+        task.setUpdatedTime(OffsetDateTime.now());
+        updateById(task);
     }
 
     private Optional<Task> findById(Integer taskId) {

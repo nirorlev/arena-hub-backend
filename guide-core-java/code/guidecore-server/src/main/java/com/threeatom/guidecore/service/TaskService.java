@@ -16,4 +16,6 @@ public interface TaskService extends IService<Task> {
     Task getTask(Integer taskId);
 
     void updateTask(Task task, com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer userId);
+
+    void deleteTask(Task task, Integer userId);
 }

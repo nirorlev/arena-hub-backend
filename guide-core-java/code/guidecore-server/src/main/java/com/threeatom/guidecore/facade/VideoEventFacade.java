@@ -13,4 +13,6 @@ public interface VideoEventFacade {
 
     List<TaskDto> updateTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer taskId,
                              PortalUser portalUser);
+
+    void deleteTask(Integer taskId, PortalUser portalUser);
 }

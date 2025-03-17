@@ -12,4 +12,6 @@ public interface TaskChoiceService extends IService<TaskChoice> {
     Map<Integer, Integer> createTaskChoices(List<ChoiceDto> choices, Task task);
 
     Map<Integer, Integer> updateTaskChoices(List<TaskChoice> choices, List<ChoiceDto> choiceDtos, Integer taskId);
+
+    void deleteChoices(List<TaskChoice> choices);
 }

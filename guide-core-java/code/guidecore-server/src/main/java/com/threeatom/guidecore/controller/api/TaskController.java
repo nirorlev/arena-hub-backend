@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +39,12 @@ public class TaskController {
         List<com.threeatom.guidecore.dto.response.TaskDto> tasks =
             videoEventFacade.updateTask(taskDto, taskId, getPortalUser(request));
         return ResponseEntity.ok(tasks);
+    }
+
+    @DeleteMapping("/{taskId}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Integer taskId, HttpServletRequest request) {
+        videoEventFacade.deleteTask(taskId, getPortalUser(request));
+        return ResponseEntity.noContent().build();
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

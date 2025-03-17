@@ -60,6 +60,13 @@ public class TaskChoiceServiceImpl extends ServiceImpl<TaskChoiceMapper, TaskCho
         return saveOrUpdateTaskChoices(choiceDtos, taskId, choiceDtoIds, idToExistingChoice);
     }
 
+    @Override
+    @Transactional
+    public void deleteChoices(List<TaskChoice> choices) {
+        choices.forEach(taskChoice -> taskChoice.setIsDeleted(true));
+        updateBatchById(choices);
+    }
+
     private void validateAllChoiceIdsAreNegative(List<ChoiceDto> choiceDtos) {
         boolean anyPositiveId = choiceDtos.stream()
             .map(ChoiceDto::getId)
