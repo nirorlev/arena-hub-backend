@@ -6,6 +6,7 @@ import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.ChoiceDto;
 import com.threeatom.guidecore.dto.response.QuestionDto;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.FillInTheBlankAnswer;
 import com.threeatom.guidecore.entity.MultipleChoiceAnswer;
 import com.threeatom.guidecore.entity.MultipleChoiceProperties;
@@ -14,6 +15,7 @@ import com.threeatom.guidecore.entity.PairingProperties;
 import com.threeatom.guidecore.entity.SingleChoiceAnswer;
 import com.threeatom.guidecore.entity.SingleChoiceProperties;
 import com.threeatom.guidecore.entity.Task;
+import com.threeatom.guidecore.entity.TaskAudit;
 import com.threeatom.guidecore.entity.TaskChoice;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.TaskType;
@@ -50,7 +52,25 @@ public interface TaskMapping {
     void update(@MappingTarget Task task, TaskDto taskDto, Integer updatedByUserId);
 
     @Mapping(target = "answer", source = ".", qualifiedByName = "mapAnswer")
-    AnswerKeyDto toAnswerDto(Task task);
+    AnswerKeyDto toAnswerKeyDto(Task task);
+
+    @Mapping(target = "creationTime", source = "createdTime")
+    @Mapping(target = "createdBy", source = "createdByUser")
+    @Mapping(target = "task", source = "previousTaskState")
+    TaskVersionDto mapTaskVersion(TaskAudit taskAudit);
+
+    @Mapping(target = "creationTime", source = "createdTime")
+    @Mapping(target = "createdBy", source = "updatedByUser")
+    @Mapping(target = "task", source = ".")
+    TaskVersionDto mapTaskVersion(Task task);
+
+    List<TaskVersionDto> mapTaskVersions(List<TaskAudit> taskAudits);
+
+    @Mapping(target = "retries", source = "retries")
+    @Mapping(target = "canSkip", source = "allowSkip")
+    @Mapping(target = "version", source = "version")
+    @Mapping(target = "question", source = "task", qualifiedByName = "mapQuestion")
+    com.threeatom.guidecore.dto.response.TaskDto map(Task task);
 
     @Named("mapQuestion")
     default QuestionDto mapQuestion(Task task) {

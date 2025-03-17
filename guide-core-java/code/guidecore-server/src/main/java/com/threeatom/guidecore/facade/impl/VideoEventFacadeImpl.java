@@ -5,6 +5,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -76,6 +77,14 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
 
         return taskService.answerKey(task);
+    }
+
+    @Override
+    public List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser) {
+        Task currentVersion = taskService.getTask(taskId);
+        verifyPermission(portalUser, currentVersion.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        return taskService.taskVersions(currentVersion);
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId) {

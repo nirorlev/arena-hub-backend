@@ -6,6 +6,7 @@ import com.threeatom.guidecore.entity.TaskAudit;
 import com.threeatom.guidecore.mapper.TaskAuditMapper;
 import com.threeatom.guidecore.service.TaskAuditService;
 import java.time.OffsetDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,4 +25,8 @@ public class TaskAuditServiceImpl extends ServiceImpl<TaskAuditMapper, TaskAudit
         save(taskAudit);
     }
 
+    @Override
+    public List<TaskAudit> findByTaskId(Integer taskId) {
+        return baseMapper.findByTaskId(taskId);
+    }
 }
