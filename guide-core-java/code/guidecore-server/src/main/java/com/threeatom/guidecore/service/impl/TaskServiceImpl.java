@@ -98,8 +98,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setAnswer(videoAnswerStrategy.createAnswer(question, tempChoiceIdToChoiceId));
 
         if (!initialStateTask.equals(task)) {
+            OffsetDateTime dateTime = OffsetDateTime.now();
+            task.setUpdatedTime(dateTime);
             task.setVersion(task.getVersion() + 1);
+
             updateById(task);
+            taskAuditService.create(initialStateTask, userId, dateTime);
             return;
         }
 
