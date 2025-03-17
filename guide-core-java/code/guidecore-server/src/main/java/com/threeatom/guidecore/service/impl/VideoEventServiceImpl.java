@@ -9,9 +9,7 @@ import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.mapper.VideoEventMapper;
 import com.threeatom.guidecore.service.VideoEventService;
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +32,13 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
         verifyTaskVideoTime(taskDto, video);
 
         List<VideoEvent> videoEvents =
-            baseMapper.videoEventsByType(video.getId(), VideoEventType.TASK, portalUser.getUserId(),
-                portalUser.getMasterId());
+            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp(),
+                portalUser.getUserId(), portalUser.getMasterId());
 
         VideoEvent videoEvent = createVideoEvent(portalUser.getUserId(), taskDto.getTimestamp(), video.getId());
-        saveOrUpdateBatch(optimizeNewVideoEventsOrder(videoEvent, videoEvents, taskDto.getOrder()));
+        List<VideoEvent> orderedVideoEvents =
+            addVideoEvent(videoEvent, videoEvents, taskDto.getOrder());
+        saveOrUpdateBatch(orderedVideoEvents);
 
         return videoEvent;
     }
@@ -49,65 +49,45 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
         verifyTaskVideoTime(taskDto, video);
 
         List<VideoEvent> videoEvents =
-            baseMapper.videoEventsByType(videoEvent.getVideoId(), VideoEventType.TASK, portalUser.getUserId(),
-                portalUser.getMasterId());
+            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp(),
+                portalUser.getUserId(), portalUser.getMasterId());
 
-        optimizeCurrentVideoEventsOrder(videoEvent, videoEvents);
+        List<VideoEvent> reorderedOtherExistingVideoEvents = reorderOtherExistingVideoEvents(videoEvent, videoEvents);
 
         videoEvent.setVideoTime(taskDto.getTimestamp());
-        updateBatchById(optimizeNewVideoEventsOrder(videoEvent, videoEvents, taskDto.getOrder()));
+        List<VideoEvent> orderVideoEvents =
+            addVideoEvent(videoEvent, reorderedOtherExistingVideoEvents, taskDto.getOrder());
+        updateBatchById(orderVideoEvents);
     }
 
-    private List<VideoEvent> optimizeNewVideoEventsOrder(VideoEvent videoEvent, List<VideoEvent> videoEvents,
-                                                         Integer order) {
-        List<VideoEvent> videoEventsWithTheSameTimestamp =
-            filterVideoEvents(videoEvents, videoEventWithSameTimestamp(videoEvent.getVideoTime()));
-        return addVideoEventWithOptimizedOrder(videoEvent, videoEventsWithTheSameTimestamp, order);
-    }
+    private List<VideoEvent> reorderOtherExistingVideoEvents(VideoEvent videoEvent, List<VideoEvent> videoEvents) {
+        List<VideoEvent> otherExistingVideoEvents = excludeVideoEvent(videoEvents, videoEvent.getId());
 
-    private void optimizeCurrentVideoEventsOrder(VideoEvent videoEvent, List<VideoEvent> videoEvents) {
-        List<VideoEvent> oldVideoEventsWithTheSameTimestamp = filterVideoEvents(
-            videoEvents
-            , excludeVideoEventWithId(videoEvent.getId()).and(videoEventWithSameTimestamp(videoEvent.getVideoTime()))
-        );
-
-        for (int i = 0; i < oldVideoEventsWithTheSameTimestamp.size(); i++) {
-            oldVideoEventsWithTheSameTimestamp.get(i).setOrder(i);
+        for (int i = 0; i < otherExistingVideoEvents.size(); i++) {
+            otherExistingVideoEvents.get(i).setOrder(i);
         }
 
-        updateBatchById(oldVideoEventsWithTheSameTimestamp);
+        return otherExistingVideoEvents;
     }
 
-    private List<VideoEvent> addVideoEventWithOptimizedOrder(VideoEvent videoEvent,
-                                                             List<VideoEvent> videoEventsWithTheSameTimestamp,
-                                                             Integer order) {
-        int videoEventsWithSameTimestampSize = videoEventsWithTheSameTimestamp.size();
-        int requestedOrder = order != null ? order : videoEventsWithSameTimestampSize;
-        int newOrder = Math.min(requestedOrder, videoEventsWithSameTimestampSize);
+    private List<VideoEvent> addVideoEvent(VideoEvent videoEvent, List<VideoEvent> videoEvents, Integer order) {
+        int videoEventsSize = videoEvents.size();
+        int requestedOrder = order != null ? order : videoEventsSize;
+        int newOrder = Math.min(requestedOrder, videoEventsSize);
+
+        for (int i = newOrder; i < videoEventsSize; i++) {
+            videoEvents.get(i).setOrder(i + 1);
+        }
 
         videoEvent.setOrder(newOrder);
-
-        for (int i = newOrder; i < videoEventsWithSameTimestampSize; i++) {
-            videoEventsWithTheSameTimestamp.get(i).setOrder(i + 1);
-        }
-
-        videoEventsWithTheSameTimestamp.add(videoEvent);
-        return videoEventsWithTheSameTimestamp;
+        videoEvents.add(videoEvent);
+        return videoEvents;
     }
 
-    private List<VideoEvent> filterVideoEvents(List<VideoEvent> videoEvents, Predicate<VideoEvent> predicate) {
+    private List<VideoEvent> excludeVideoEvent(List<VideoEvent> videoEvents, Integer videoEventId) {
         return videoEvents.stream()
-            .filter(predicate)
-            .sorted(Comparator.comparing(VideoEvent::getOrder))
+            .filter(videoEvent -> !videoEvent.getId().equals(videoEventId))
             .collect(Collectors.toList());
-    }
-
-    private Predicate<VideoEvent> videoEventWithSameTimestamp(Integer timestamp) {
-        return videoEvent -> videoEvent.getVideoTime().equals(timestamp);
-    }
-
-    private Predicate<VideoEvent> excludeVideoEventWithId(Integer id) {
-        return videoEvent -> !videoEvent.getId().equals(id);
     }
 
     private void verifyTaskVideoTime(TaskDto taskDto, GcVideo video) {
