@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.facade;
 
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
@@ -15,4 +16,6 @@ public interface VideoEventFacade {
                              PortalUser portalUser);
 
     void deleteTask(Integer taskId, PortalUser portalUser);
+
+    AnswerKeyDto taskAnswerKey(Integer taskId, PortalUser portalUser);
 }

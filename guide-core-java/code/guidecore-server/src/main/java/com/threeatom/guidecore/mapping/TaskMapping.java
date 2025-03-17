@@ -1,14 +1,22 @@
 package com.threeatom.guidecore.mapping;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.threeatom.guidecore.dto.request.TaskDto;
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.ChoiceDto;
 import com.threeatom.guidecore.dto.response.QuestionDto;
+import com.threeatom.guidecore.entity.FillInTheBlankAnswer;
+import com.threeatom.guidecore.entity.MultipleChoiceAnswer;
 import com.threeatom.guidecore.entity.MultipleChoiceProperties;
+import com.threeatom.guidecore.entity.PairingAnswer;
 import com.threeatom.guidecore.entity.PairingProperties;
+import com.threeatom.guidecore.entity.SingleChoiceAnswer;
 import com.threeatom.guidecore.entity.SingleChoiceProperties;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskChoice;
 import com.threeatom.guidecore.entity.VideoEvent;
+import com.threeatom.guidecore.enums.TaskType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,6 +48,9 @@ public interface TaskMapping {
     @Mapping(target = "allowSkip", source = "taskDto.canSkip")
     @Mapping(target = "updatedByUserId", source = "updatedByUserId")
     void update(@MappingTarget Task task, TaskDto taskDto, Integer updatedByUserId);
+
+    @Mapping(target = "answer", source = ".", qualifiedByName = "mapAnswer")
+    AnswerKeyDto toAnswerDto(Task task);
 
     @Named("mapQuestion")
     default QuestionDto mapQuestion(Task task) {
@@ -77,6 +88,28 @@ public interface TaskMapping {
         questionDto.setGrouping(grouping);
 
         return questionDto;
+    }
+
+    @Named("mapAnswer")
+    default String mapAnswer(Task task) {
+        TaskType type = task.getType();
+
+        switch (type) {
+            case SINGLE_CHOICE -> {
+                return String.valueOf(((SingleChoiceAnswer) task.getAnswer()).getChoiceId());
+            }
+            case MULTIPLE_CHOICE -> {
+                return JSONArray.toJSONString(((MultipleChoiceAnswer) task.getAnswer()).getChoiceIds());
+            }
+            case PAIRING -> {
+                return JSONArray.toJSONString(((PairingAnswer) task.getAnswer()).getChoiceIds());
+            }
+            case FILL_IN_THE_BLANK -> {
+                return JSONObject.toJSONString(((FillInTheBlankAnswer) task.getAnswer()).getKeywordToAnswer());
+            }
+        }
+
+        return null;
     }
 
     private List<ChoiceDto> mapChoicesDto(List<TaskChoice> choices) {

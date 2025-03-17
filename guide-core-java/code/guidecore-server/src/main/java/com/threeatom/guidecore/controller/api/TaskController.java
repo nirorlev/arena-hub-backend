@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.TaskDto;
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.facade.VideoEventFacade;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,6 +47,11 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable Integer taskId, HttpServletRequest request) {
         videoEventFacade.deleteTask(taskId, getPortalUser(request));
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{taskId}/answer-key")
+    public ResponseEntity<AnswerKeyDto> answerKey(@PathVariable Integer taskId, HttpServletRequest request) {
+        return ResponseEntity.ok(videoEventFacade.taskAnswerKey(taskId, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

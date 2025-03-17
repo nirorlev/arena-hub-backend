@@ -3,6 +3,7 @@ package com.threeatom.guidecore.facade.impl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -67,6 +68,14 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         taskService.deleteTask(task, portalUser.getUserId());
         videoEventService.removeById(task.getVideoEvent().getId());
+    }
+
+    @Override
+    public AnswerKeyDto taskAnswerKey(Integer taskId, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        return taskService.answerKey(task);
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId, PortalUser portalUser) {

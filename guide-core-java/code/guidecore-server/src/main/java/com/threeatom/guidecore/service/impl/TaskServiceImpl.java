@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.request.QuestionDto;
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -112,6 +113,11 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setUpdatedByUserId(userId);
         task.setUpdatedTime(OffsetDateTime.now());
         updateById(task);
+    }
+
+    @Override
+    public AnswerKeyDto answerKey(Task task) {
+        return taskMapping.toAnswerDto(task);
     }
 
     private Optional<Task> findById(Integer taskId) {

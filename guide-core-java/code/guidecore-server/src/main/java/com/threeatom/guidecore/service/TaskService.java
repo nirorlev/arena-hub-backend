@@ -2,6 +2,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
@@ -18,4 +19,6 @@ public interface TaskService extends IService<Task> {
     void updateTask(Task task, com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer userId);
 
     void deleteTask(Task task, Integer userId);
+
+    AnswerKeyDto answerKey(Task task);
 }
