@@ -19,6 +19,7 @@ public class CourseSetting implements Serializable {
 
     private Integer courseContentStudyPercentage;
     private Integer singleVideoViewPercentage;
+    private Integer tasksGradePercentage;
 
     private OffsetDateTime createdTime = OffsetDateTime.now();
     private OffsetDateTime updatedTime = OffsetDateTime.now();

@@ -1222,4 +1222,10 @@
                                  referencedColumnNames="id" onUpdate="CASCADE"/>
     </changeSet>
 
+    <changeSet id="add-tasks-grade-percentage-column" author="vprokh">
+        <addColumn tableName="course_settings" schemaName="arena_hub">
+            <column name="tasks_grade_percentage" type="integer" defaultValue="0" />
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
