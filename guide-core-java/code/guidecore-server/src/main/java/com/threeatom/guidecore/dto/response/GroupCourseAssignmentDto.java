@@ -24,7 +24,7 @@ public class GroupCourseAssignmentDto {
     private Boolean mandatory;
 
     @ApiModelProperty(notes = "The date when course assignment is due", example = "2023-12-31 00:00:00")
-    private OffsetDateTime deadline = OffsetDateTime.now();
+    private OffsetDateTime deadline;
 
     @ApiModelProperty(notes = "The date and time when the content group course assignment was last modified")
     private OffsetDateTime updatedTime = OffsetDateTime.now();

@@ -100,15 +100,16 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser) {
+    public Map<String, List<GroupChannelSubscriptionDto>> groupChannelSubscriptions(String groupCode,
+                                                                                    PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional =
             contentGroupService.findContentGroupsByCodeAndMasterId(groupCode, portalUser.getMasterId());
 
         return contentGroupOptional.map(contentGroup -> {
                 checkPermission(contentGroup, portalUser, PermitAction.VIEW);
-                return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId());
+                return convertChannelIdToChannelSubscription(contentGroup);
             })
-            .orElseGet(List::of);
+            .orElseGet(Map::of);
     }
 
     @Override
@@ -137,6 +138,14 @@ public class GroupFacadeImpl implements GroupFacade {
     private Map<String, List<GroupCourseAssignmentDto>> convertCourseIdToCourseAssignment(GcAccess contentGroup) {
         return courseAssignmentService.findByContentGroupId(contentGroup.getId()).stream()
             .collect(Collectors.groupingBy(courseAssignment -> String.valueOf(courseAssignment.getCourse().getId())));
+    }
+
+    private Map<String, List<GroupChannelSubscriptionDto>> convertChannelIdToChannelSubscription(
+        GcAccess contentGroup) {
+
+        return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId()).stream()
+            .collect(
+                Collectors.groupingBy(channelSubscription -> String.valueOf(channelSubscription.getChannel().getId())));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

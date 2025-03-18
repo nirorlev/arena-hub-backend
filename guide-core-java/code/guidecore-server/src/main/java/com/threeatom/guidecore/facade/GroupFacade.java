@@ -22,7 +22,7 @@ public interface GroupFacade {
 
     Map<String, List<GroupCourseAssignmentDto>> groupCourseAssignments(String groupCode, PortalUser portalUser);
 
-    List<GroupChannelSubscriptionDto> groupChannelSubscriptions(String groupCode, PortalUser portalUser);
+    Map<String, List<GroupChannelSubscriptionDto>> groupChannelSubscriptions(String groupCode, PortalUser portalUser);
 
     void removeCourseAssignment(String groupCode, Integer courseId, PortalUser portalUser);
 

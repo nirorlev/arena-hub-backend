@@ -2,7 +2,7 @@
 include .local.env
 export $(shell sed 's/=.*//' .local.env)
 
-export START_ENVIRONMENT=environmentVars
+export START_ENVIRONMENT=environmentVars,local,swagger
 export REDIS_HOST=127.0.0.1
 export REDIS_PORT=6379
 export REDIS_SSL=false
@@ -18,6 +18,8 @@ export AWS_S3_REGION=eu-west-2
 export GUIDE_USER_STORE_DOMAIN=storage-arena.dev.k8s.powtoon.com
 export AWS_IAM_ROLE=iam role
 export BI_TRACKING_HOST=https://example.com
+export SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+export APP_ENV=local
 export SENTRY_AUTO_INIT=false
 export OTEL_TRACES_EXPORTER=none
 export OTEL_METRICS_EXPORTER=none

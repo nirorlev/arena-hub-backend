@@ -32,16 +32,16 @@ services:
     networks:
       - arena_dev
 
-  akita:
-    container_name: akita
-    image: akitasoftware/cli:latest
-    depends_on:
-      - java-app
-    environment:
-      - AKITA_API_KEY_ID=${AKITA_API_KEY_ID}
-      - AKITA_API_KEY_SECRET=${AKITA_API_KEY_SECRET}
-    network_mode: "service:java-app"
-    entrypoint: /akita apidump --service local-hub
+#  akita:
+#    container_name: akita
+#    image: akitasoftware/cli:latest
+#    depends_on:
+#      - java-app
+#    environment:
+#      - AKITA_API_KEY_ID=${AKITA_API_KEY_ID}
+#      - AKITA_API_KEY_SECRET=${AKITA_API_KEY_SECRET}
+#    network_mode: "service:java-app"
+#    entrypoint: /akita apidump --service local-hub
 
   mvn-migrations:
     image: maven
@@ -71,11 +71,12 @@ services:
     depends_on:
       - postgres-db
       - redis
-      - pdp
     networks:
       - arena_dev
+    env_file:
+      - .local.env
     environment:
-      START_ENVIRONMENT: environmentVars,swagger
+      START_ENVIRONMENT: environmentVars,local,swagger
       GUIDE_API_PORT: '9999'
       REDIS_HOST: redis
       REDIS_PASS: ${REDIS_PASS}
@@ -83,7 +84,7 @@ services:
       REDIS_SSL: 'false'
       POSTGRES_HOST: postgres-db
       POSTGRES_USER: arena_user
-      POSTGRES_PASS: 'postgres'
+      POSTGRES_PASS: ${POSTGRES_PASS}
       POSTGRES_DB_NAME: arena_hub
       POSTGRES_PORT: '5432'
       POSTGRES_SSL: 'false'
@@ -99,19 +100,9 @@ services:
       PDP_ADDRESS: http://pdp:7000
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       SENTRY_DSN: ${SENTRY_DSN}
-      ARENA_BACKEND_VERSION: ${ARENA_BACKEND_VERSION}
-      BI_TRACKING_HOST: ${BI_TRACKING_HOST}
-
-  pdp:
-    image: permitio/pdp-v2:latest
-    container_name: pdp
-    restart: unless-stopped
-    ports:
-      - 7000:7766
-    environment:
-      PDP_API_KEY: ${PDP_API_KEY}
-    networks:
-      - arena_dev
+      APP_ENV: local
+      ARENA_BACKEND_VERSION: 1.0.0
+      BI_TRACKING_HOST: https://example.com
 
 networks:
   arena_dev:

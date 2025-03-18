@@ -67,7 +67,7 @@ public class GroupController {
     }
 
     @GetMapping("/{groupCode}/channel-subscriptions")
-    public ResponseEntity<List<GroupChannelSubscriptionDto>> channelSubscriptions(
+    public ResponseEntity<Map<String, List<GroupChannelSubscriptionDto>>> channelSubscriptions(
         @PathVariable("groupCode") String groupCode, HttpServletRequest request) {
         return ResponseEntity.ok()
             .body(groupFacade.groupChannelSubscriptions(groupCode, getPortalUser(request)));
