@@ -1,19 +1,25 @@
 package com.threeatom.guidecore.entity;
 
-
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
+import com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler;
 import com.threeatom.guidecore.enums.TaskType;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.ibatis.type.EnumTypeHandler;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@EqualsAndHashCode(exclude = {"videoEvent", "version", "updatedByUser", "createdTime", "updatedTime"})
 @TableName(value = "tasks", autoResultMap = true)
 public class Task {
 
@@ -30,12 +36,14 @@ public class Task {
 
     private String question;
 
+    @TableField(typeHandler = TaskAnswerJsonTypeHandler.class)
     private Answer answer;
 
     private Integer retries = -1;
     private Boolean allowSkip = true;
     private Boolean isDeleted = false;
 
+    @TableField(typeHandler = TaskPropertiesJsonTypeHandler.class)
     private TaskProperties properties;
 
     private Integer version;
@@ -49,5 +57,28 @@ public class Task {
 
     @TableField(exist = false)
     private VideoEvent videoEvent;
+
+    @TableField(exist = false)
+    private GcUser updatedByUser;
+
+    public Task(Task task, Answer answer, TaskProperties properties) {
+        this.id = task.getId();
+        this.ownerId = task.getOwnerId();
+        this.updatedByUserId = task.getUpdatedByUserId();
+        this.videoEventId = task.getVideoEventId();
+        this.type = task.getType();
+        this.question = task.getQuestion();
+        this.answer = answer;
+        this.properties = properties;
+        this.version = task.getVersion();
+        this.retries = task.getRetries();
+        this.allowSkip = task.getAllowSkip();
+        this.isDeleted = task.getIsDeleted();
+        this.createdTime = task.getCreatedTime();
+        this.updatedTime = task.getUpdatedTime();
+        this.choices = task.getChoices() == null ? null : task.getChoices().stream()
+            .map(TaskChoice::new)
+            .collect(Collectors.toList());
+    }
 }
 

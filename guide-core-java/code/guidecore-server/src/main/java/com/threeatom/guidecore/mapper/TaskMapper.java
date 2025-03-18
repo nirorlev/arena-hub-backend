@@ -7,4 +7,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface TaskMapper extends BaseMapper<Task> {
+    Task findById(Integer id);
 }

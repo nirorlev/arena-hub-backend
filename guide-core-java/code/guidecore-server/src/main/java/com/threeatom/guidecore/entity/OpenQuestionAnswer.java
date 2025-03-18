@@ -6,6 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode
-public class OpenQuestionProperties implements TaskProperties {
+@EqualsAndHashCode(callSuper = true)
+public class OpenQuestionAnswer extends Answer {
+    private String content;
 }

@@ -1,9 +1,7 @@
 package com.threeatom.common.exception;
 
 import com.threeatom.common.controller.Message;
-
 import io.sentry.Sentry;
-
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shiro.authz.AuthorizationException;
@@ -27,7 +25,7 @@ public class DefaultExceptionHandler {
     public DefaultExceptionHandler() {
     }
 
-    private void sendExceptionToSentry (Exception e) {
+    private void sendExceptionToSentry(Exception e) {
         Sentry.captureException(e);
     }
 
@@ -79,8 +77,15 @@ public class DefaultExceptionHandler {
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResourceNotFoundException.class)
-    public Message handleVideoPlaySegmentNotFoundException(ResourceNotFoundException e) {
-        return (new Message()).commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+    public Message handleResourceNotFoundException(ResourceNotFoundException e) {
+        return new Message().commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ValidationException.class)
+    public Message handleValidationException(ValidationException e) {
+        return new Message().commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
     }
 
     @ExceptionHandler(BindException.class)
