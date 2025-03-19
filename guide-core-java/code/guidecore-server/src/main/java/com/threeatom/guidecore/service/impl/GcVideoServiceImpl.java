@@ -871,7 +871,9 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			return null;
 		}
 
-		return videos.get(0);
+		GcVideo video = videos.get(0);
+		updateVideoUrls(video);
+		return video;
 	}
 
 	private void removeCourseTags(Integer masterId, List<Integer> videoIds) {
