@@ -96,7 +96,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
     @Override
     public List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
-            baseMapper.findByContentGroupId(contentGroupId, true);
+            baseMapper.findByContentGroupId(contentGroupId, null);
 
         return contentGroupChannelSubscriptions.stream()
             .map(contentGroupChannelSubscription -> {
