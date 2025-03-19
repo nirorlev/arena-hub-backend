@@ -22,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEvent> implements VideoEventService {
 
     @Override
-    public List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType, PortalUser portalUser) {
-        return baseMapper.videoEventsByType(videoId, eventType, portalUser.getUserId(), portalUser.getMasterId());
+    public List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType) {
+        return baseMapper.videoEventsByType(videoId, eventType);
     }
 
     @Override
@@ -32,8 +32,7 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
         verifyTaskVideoTime(taskDto, video);
 
         List<VideoEvent> videoEvents =
-            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp(),
-                portalUser.getUserId(), portalUser.getMasterId());
+            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp());
 
         VideoEvent videoEvent = createVideoEvent(portalUser.getUserId(), taskDto.getTimestamp(), video.getId());
         List<VideoEvent> orderedVideoEvents =
@@ -45,12 +44,11 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
 
     @Override
     @Transactional
-    public void updateTaskVideoEvent(PortalUser portalUser, VideoEvent videoEvent, TaskDto taskDto, GcVideo video) {
+    public void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video, PortalUser portalUser) {
         verifyTaskVideoTime(taskDto, video);
 
         List<VideoEvent> videoEvents =
-            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp(),
-                portalUser.getUserId(), portalUser.getMasterId());
+            baseMapper.videoEventsByTypeAndTimestamp(video.getId(), VideoEventType.TASK, taskDto.getTimestamp());
 
         List<VideoEvent> reorderedOtherExistingVideoEvents = reorderOtherExistingVideoEvents(videoEvent, videoEvents);
 

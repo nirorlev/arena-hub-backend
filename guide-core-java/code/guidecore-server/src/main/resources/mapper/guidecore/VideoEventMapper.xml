@@ -151,7 +151,7 @@
             LEFT JOIN tasks task ON video_event.id = task.video_event_id AND task.is_deleted = false
             LEFT JOIN task_choices task_choice ON task_choice.task_id = task.id AND task_choice.is_deleted = false
             LEFT JOIN notifications notification ON video_event.id = notification.video_event_id
-        WHERE video_event.owner_id = #{userId} AND video_event.video_id = #{videoId} AND video_event.type = #{eventType}
+        WHERE video_event.video_id = #{videoId} AND video_event.type = #{eventType}
         ORDER BY video_event.video_time, video_event.order_number
     </select>
 
@@ -171,7 +171,7 @@
             LEFT JOIN tasks task ON video_event.id = task.video_event_id AND task.is_deleted = false
             LEFT JOIN task_choices task_choice ON task_choice.task_id = task.id AND task_choice.is_deleted = false
             LEFT JOIN notifications notification ON video_event.id = notification.video_event_id
-        WHERE video_event.owner_id = #{userId} AND video_event.video_id = #{videoId} AND video_event.type = #{eventType} AND video_event.video_time = #{timestamp}
+        WHERE video_event.video_id = #{videoId} AND video_event.type = #{eventType} AND video_event.video_time = #{timestamp}
         ORDER BY video_event.video_time, video_event.order_number
     </select>
 

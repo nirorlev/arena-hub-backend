@@ -32,7 +32,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser) {
         verifyPermission(portalUser, videoId, PermitAction.VIEW);
 
-        return taskService.videoTasks(getTaskVideoEvents(videoId, portalUser));
+        return taskService.videoTasks(getTaskVideoEvents(videoId));
     }
 
     @Override
@@ -44,7 +44,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
         taskService.createTask(taskDto, taskVideoEvent, portalUser);
-        return taskService.videoTasks(getTaskVideoEvents(videoId, portalUser));
+        return taskService.videoTasks(getTaskVideoEvents(videoId));
     }
 
     @Override
@@ -55,9 +55,9 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         GcVideo video = videoService.findByVideoId(task.getVideoEvent().getVideoId());
         verifyPermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
 
-        videoEventService.updateTaskVideoEvent(portalUser, task.getVideoEvent(), taskDto, video);
+        videoEventService.updateTaskVideoEvent(task.getVideoEvent(), taskDto, video, portalUser);
         taskService.updateTask(task, taskDto, portalUser.getUserId());
-        return taskService.videoTasks(getTaskVideoEvents(task.getVideoEvent().getVideoId(), portalUser));
+        return taskService.videoTasks(getTaskVideoEvents(task.getVideoEvent().getVideoId()));
     }
 
     @Override
@@ -78,8 +78,8 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         return taskService.answerKey(task);
     }
 
-    private List<VideoEvent> getTaskVideoEvents(Integer videoId, PortalUser portalUser) {
-        return videoEventService.videoEventsByType(videoId, VideoEventType.TASK, portalUser);
+    private List<VideoEvent> getTaskVideoEvents(Integer videoId) {
+        return videoEventService.videoEventsByType(videoId, VideoEventType.TASK);
     }
 
     private void verifyPermission(PortalUser portalUser, Integer videoId, PermitAction permitAction) {

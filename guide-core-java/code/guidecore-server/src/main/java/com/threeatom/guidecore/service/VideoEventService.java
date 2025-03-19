@@ -10,9 +10,9 @@ import com.threeatom.guidecore.enums.VideoEventType;
 import java.util.List;
 
 public interface VideoEventService extends IService<VideoEvent> {
-    List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType, PortalUser portalUser);
+    List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType);
 
     VideoEvent createTaskVideoEvent(TaskDto taskDto, GcVideo video, PortalUser portalUser);
 
-    void updateTaskVideoEvent(PortalUser portalUser, VideoEvent videoEvent, TaskDto taskDto, GcVideo video);
+    void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video, PortalUser portalUser);
 }
