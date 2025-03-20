@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.UserTaskAnswerMapper">
+
+    <resultMap id="baseResultMap" type="UserTaskAnswer">
+        <id property="id" column="id"/>
+
+        <result property="taskVersion" column="task_version"/>
+
+        <result property="ownerId" column="owner_id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="content" column="content" typeHandler="com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler"/>
+        <result property="createdTime" column="created_time"/>
+
+        <association property="owner" resultMap="userResultMap" columnPrefix="owner_"/>
+        <association property="task" resultMap="taskResultMap" columnPrefix="task_"/>
+        <association property="userTaskAnswerSingleChoice" resultMap="userTaskAnswerChoiceResultMap" columnPrefix="user_task_answer_single_choice_"/>
+
+        <collection property="userTaskAnswerReviews" javaType="ArrayList" columnPrefix="user_task_answer_review_" ofType="UserTaskAnswerReview"
+                    resultMap="userTaskAnswerReviewResultMap"/>
+        <collection property="userTaskAnswerMultipleChoices" javaType="ArrayList" columnPrefix="user_task_answer_multiple_choice_" ofType="UserTaskAnswerChoice"
+                    resultMap="userTaskAnswerChoiceResultMap"/>
+        <collection property="userTaskAnswerChoicePairings" javaType="ArrayList" columnPrefix="user_task_answer_choice_pairing_" ofType="UserTaskAnswerChoicePairing"
+                    resultMap="userTaskAnswerChoicePairingResultMap"/>
+        <collection property="userTaskAnswerChoiceFillInBlanks" javaType="ArrayList" columnPrefix="user_task_answer_choice_fill_in_blank_" ofType="UserTaskAnswerChoiceFillInBlank"
+                    resultMap="userTaskAnswerChoiceFillInBlankResultMap"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id"/>
+        <result property="username" column="username"/>
+        <result property="state" column="state"/>
+        <result property="password" column="password"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="infoId" column="info_id"/>
+        <result property="pid" column="pid"/>
+        <result property="groupName" column="group_name"/>
+        <result property="logInTime" column="log_in_time"/>
+        <result property="lastName" column="last_name"/>
+        <result property="firstName" column="first_name"/>
+        <result property="powtoonUserId" column="powtoon_user_id"/>
+
+        <association property="info" column="id" javaType="GcUserInfo" columnPrefix="info_">
+            <id property="id" column="id"/>
+            <result property="lastName" column="last_name"/>
+            <result property="firstName" column="first_name"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="avatarFileId" column="avatar_file_id"/>
+            <association property="avatarFile" column="avatarFile" javaType="SysFile" columnPrefix="avatar_file_">
+                <id property="id" column="id"/>
+                <result property="name" column="name"/>
+                <result property="fileUrl" column="url"/>
+                <result property="saveType" column="save_type"/>
+                <result property="uploadUid" column="upload_uid"/>
+                <result property="masterId" column="master_id"/>
+                <result property="fileTypeIndex" column="save_type"/>
+                <result property="updateTime" column="update_time"/>
+                <result property="createTime" column="create_time"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <resultMap id="taskResultMap" type="Task">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="videoEventId" column="video_event_id"/>
+        <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="question" column="question"/>
+        <result property="version" column="version"/>
+        <result property="retries" column="retries"/>
+        <result property="allowSkip" column="allow_skip"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="properties" column="properties" typeHandler="com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler"/>
+        <result property="videoEventId" column="video_event_id"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <resultMap id="userTaskAnswerChoiceResultMap" type="UserTaskAnswerChoice">
+        <id property="id" column="id"/>
+        <result property="userTaskAnswerId" column="user_task_answer_id"/>
+        <result property="taskChoiceId" column="task_choice_id"/>
+        <result property="isCorrect" column="is_correct"/>
+        <result property="isMarked" column="is_marked"/>
+    </resultMap>
+
+    <resultMap id="userTaskAnswerChoicePairingResultMap" type="UserTaskAnswerChoicePairing">
+        <id property="id" column="id"/>
+        <result property="userTaskAnswerId" column="user_task_answer_id"/>
+        <result property="taskChoiceId" column="task_choice_id"/>
+        <result property="pairedChoiceId" column="paired_choice_id"/>
+        <result property="isCorrect" column="is_correct"/>
+    </resultMap>
+
+    <resultMap id="userTaskAnswerChoiceFillInBlankResultMap" type="UserTaskAnswerChoiceFillInBlank">
+        <id property="id" column="id"/>
+        <result property="userTaskAnswerId" column="user_task_answer_id"/>
+        <result property="taskChoiceId" column="task_choice_id"/>
+        <result property="key" column="key"/>
+        <result property="isCorrect" column="is_correct"/>
+    </resultMap>
+
+    <resultMap id="userTaskAnswerReviewResultMap" type="UserTaskAnswerReview">
+        <id property="id" column="id"/>
+        <result property="userTaskAnswerId" column="user_task_answer_id"/>
+        <result property="score" column="score"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="content" column="content"/>
+        <result property="createdTime" column="created_time"/>
+
+        <association property="owner" resultMap="userResultMap" columnPrefix="owner_"/>
+    </resultMap>
+
+    <sql id="userTaskAnswerColumns">
+        user_task_answer.id, user_task_answer.owner_id, user_task_answer.task_id, user_task_answer.task_version, user_task_answer.content, user_task_answer.created_time
+    </sql>
+
+    <sql id="taskColumns">
+        task.id as task_id, task.owner_id as task_owner_id, task.video_event_id as task_video_event_id, task.type as task_type,
+        task.question as task_question, task.retries as task_retries, task.allow_skip as task_allow_skip, task.is_deleted as task_is_deleted,
+        task.properties as task_properties, task.created_time as task_created_time, task.updated_time as task_updated_time
+    </sql>
+
+    <sql id="ownerColumns">
+        u.id as owner_id, u.sys_id as owner_sys_id, u.username as owner_username, u.state as owner_state, u.update_time as owner_update_time,
+        u.create_time as owner_create_time, u.info_id as owner_info_id, u.pid as owner_pid, u.powtoon_user_id as owner_powtoon_user_id
+    </sql>
+
+    <sql id="ownerInfoColumns">
+        user_info.id as owner_info_id, user_info.last_name as owner_info_last_name, user_info.first_name as owner_info_first_name,
+        user_info.avatar_file_id as owner_info_avatar_file_id, user_info.update_time as owner_info_update_time,
+        user_info.create_time as owner_info_create_time
+    </sql>
+
+    <sql id="ownerAvatarFileColumns">
+        user_avatar_file.id as owner_info_avatar_file_id, user_avatar_file.name as owner_info_avatar_file_name,
+        user_avatar_file.file_url as owner_info_avatar_file_url, user_avatar_file.save_type as owner_info_avatar_file_save_type,
+        user_avatar_file.update_time as owner_info_avatar_file_update_time, user_avatar_file.create_time as owner_info_avatar_file_create_time,
+        user_avatar_file.file_type as owner_info_avatar_file_type, user_avatar_file.upload_uid as owner_info_avatar_file_upload_uid,
+        user_avatar_file.master_id as owner_info_avatar_file_master_id, user_avatar_file.file_type_index as owner_info_avatar_file_file_type_index
+    </sql>
+
+    <sql id="userTaskAnswerReviewOwnerColumns">
+        review_owner.id as user_task_answer_review_owner_id, review_owner.sys_id as user_task_answer_review_owner_sys_id,
+        review_owner.username as user_task_answer_review_owner_username, review_owner.state as user_task_answer_review_owner_state,
+        review_owner.update_time as user_task_answer_review_owner_update_time, review_owner.create_time as user_task_answer_review_owner_create_time,
+        review_owner.info_id as user_task_answer_review_owner_info_id, review_owner.pid as user_task_answer_review_owner_pid,
+        review_owner.powtoon_user_id as user_task_answer_review_owner_powtoon_user_id
+    </sql>
+
+    <sql id="userTaskAnswerReviewOwnerInfoColumns">
+        review_owner_info.id as user_task_answer_review_owner_info_id, review_owner_info.last_name as user_task_answer_review_owner_info_last_name,
+        review_owner_info.first_name as user_task_answer_review_owner_info_first_name, review_owner_info.avatar_file_id as user_task_answer_review_owner_info_avatar_file_id
+    </sql>
+
+    <sql id="userTaskAnswerReviewOwnerAvatarFileColumns">
+        review_owner_avatar_file.id as user_task_answer_review_owner_info_avatar_file_id, review_owner_avatar_file.name as user_task_answer_review_owner_info_avatar_file_name,
+        review_owner_avatar_file.file_url as user_task_answer_review_owner_info_avatar_file_url, review_owner_avatar_file.save_type as user_task_answer_review_owner_info_avatar_file_save_type,
+        review_owner_avatar_file.file_type as user_task_answer_review_owner_info_avatar_file_type,
+        review_owner_avatar_file.upload_uid as user_task_answer_review_owner_info_avatar_file_upload_uid,
+        review_owner_avatar_file.master_id as user_task_answer_review_owner_info_avatar_file_master_id,
+        review_owner_avatar_file.file_type_index as user_task_answer_review_owner_info_avatar_file_file_type_index
+    </sql>
+
+    <sql id="userTaskAnswerReviewColumns">
+        user_task_answer_review.id as user_task_answer_review_id, user_task_answer_review.user_task_answer_id as user_task_answer_review_user_task_answer_id,
+        user_task_answer_review.score as user_task_answer_review_score, user_task_answer_review.owner_id as user_task_answer_review_owner_id,
+        user_task_answer_review.content as user_task_answer_review_content, user_task_answer_review.created_time as user_task_answer_review_created_time
+    </sql>
+
+    <sql id="userTaskAnswerSingleChoiceColumns">
+        user_task_answer_single_choice.id as user_task_answer_single_choice_id, user_task_answer_single_choice.user_task_answer_id as user_task_answer_single_choice_user_task_answer_id,
+        user_task_answer_single_choice.task_choice_id as user_task_answer_single_choice_task_choice_id, user_task_answer_single_choice.is_correct as user_task_answer_single_choice_is_correct,
+        user_task_answer_single_choice.is_marked as user_task_answer_single_choice_is_marked
+    </sql>
+
+    <sql id="userTaskAnswerMultipleChoicesColumns">
+        user_task_answer_multiple_choice.id as user_task_answer_multiple_choice_id, user_task_answer_multiple_choice.user_task_answer_id as user_task_answer_multiple_choice_user_task_answer_id,
+        user_task_answer_multiple_choice.task_choice_id as user_task_answer_multiple_choice_task_choice_id, user_task_answer_multiple_choice.is_correct as user_task_answer_multiple_choice_is_correct,
+        user_task_answer_multiple_choice.is_marked as user_task_answer_multiple_choice_is_marked
+    </sql>
+
+    <sql id="userTaskAnswerChoicePairingsColumns">
+        user_task_answer_choice_pairing.id as user_task_answer_choice_pairing_id, user_task_answer_choice_pairing.user_task_answer_id as user_task_answer_choice_pairing_user_task_answer_id,
+        user_task_answer_choice_pairing.task_choice_id as user_task_answer_choice_pairing_task_choice_id, user_task_answer_choice_pairing.paired_choice_id as user_task_answer_choice_pairing_paired_choice_id,
+        user_task_answer_choice_pairing.is_correct as user_task_answer_choice_pairing_is_correct
+    </sql>
+
+    <sql id="userTaskAnswerChoiceFillInBlanksColumns">
+        user_task_answer_choice_fill_in_blank.id as user_task_answer_choice_fill_in_blank_id, user_task_answer_choice_fill_in_blank.user_task_answer_id as user_task_answer_choice_fill_in_blank_user_task_answer_id,
+        user_task_answer_choice_fill_in_blank.task_choice_id as user_task_answer_choice_fill_in_blank_task_choice_id, user_task_answer_choice_fill_in_blank.key as user_task_answer_choice_fill_in_blank_key,
+        user_task_answer_choice_fill_in_blank.is_correct as user_task_answer_choice_fill_in_blank_is_correct
+    </sql>
+
+    <select id="findTaskAnswers" resultMap="baseResultMap">
+        SELECT
+            <include refid="userTaskAnswerColumns"/>,
+            <include refid="taskColumns"/>,
+            <include refid="ownerColumns"/>,
+            <include refid="ownerInfoColumns"/>,
+            <include refid="ownerAvatarFileColumns"/>,
+            <include refid="userTaskAnswerReviewColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerInfoColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerAvatarFileColumns"/>
+
+            <choose>
+                <when test="taskType == 'SINGLE_CHOICE'">
+                    , <include refid="userTaskAnswerSingleChoiceColumns"/>
+                </when>
+                <when test="taskType == 'MULTIPLE_CHOICE'">
+                    , <include refid="userTaskAnswerMultipleChoicesColumns"/>
+                </when>
+                <when test="taskType == 'PAIRING'">
+                    , <include refid="userTaskAnswerChoicePairingsColumns"/>
+                </when>
+                <when test="taskType == 'FILL_IN_THE_BLANK'">
+                    , <include refid="userTaskAnswerChoiceFillInBlanksColumns"/>
+                </when>
+            </choose>
+        FROM user_task_answers user_task_answer
+            JOIN tasks task ON user_task_answer.task_id = task.id
+            JOIN gc_user u ON user_task_answer.owner_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+            LEFT JOIN user_task_answer_reviews user_task_answer_review ON user_task_answer.id = user_task_answer_review.user_task_answer_id
+            LEFT JOIN gc_user review_owner ON user_task_answer_review.owner_id = review_owner.id
+            LEFT JOIN gc_user_info review_owner_info ON review_owner.info_id = review_owner_info.id
+            LEFT JOIN sys_file review_owner_avatar_file ON review_owner_info.avatar_file_id = review_owner_avatar_file.id
+            <choose>
+                <when test="taskType == 'SINGLE_CHOICE'">
+                    JOIN user_task_answer_choices user_task_answer_single_choice ON user_task_answer.id = user_task_answer_single_choice.user_task_answer_id
+                </when>
+                <when test="taskType == 'MULTIPLE_CHOICE'">
+                    JOIN user_task_answer_choices user_task_answer_multiple_choice ON user_task_answer.id = user_task_answer_multiple_choice.user_task_answer_id
+                </when>
+                <when test="taskType == 'PAIRING'">
+                    JOIN user_task_answer_choices_pairings user_task_answer_choice_pairing ON user_task_answer.id = user_task_answer_choice_pairing.user_task_answer_id
+                </when>
+                <when test="taskType == 'FILL_IN_THE_BLANK'">
+                    JOIN user_task_answer_choices_fill_in_blanks user_task_answer_choice_fill_in_blank ON user_task_answer.id = user_task_answer_choice_fill_in_blank.user_task_answer_id
+                </when>
+            </choose>
+        WHERE user_task_answer.task_id = #{taskId}
+            <if test="userId != null">
+                AND user_task_answer.owner_id = #{userId}
+            </if>
+        ORDER BY user_task_answer.created_time DESC
+    </select>
+</mapper>

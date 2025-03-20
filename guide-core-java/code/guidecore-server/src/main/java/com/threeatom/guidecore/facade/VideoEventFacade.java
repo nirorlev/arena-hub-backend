@@ -3,6 +3,7 @@ package com.threeatom.guidecore.facade;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
+import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface VideoEventFacade {
     AnswerKeyDto taskAnswerKey(Integer taskId, PortalUser portalUser);
 
     List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser);
+
+    UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, PortalUser portalUser);
 }

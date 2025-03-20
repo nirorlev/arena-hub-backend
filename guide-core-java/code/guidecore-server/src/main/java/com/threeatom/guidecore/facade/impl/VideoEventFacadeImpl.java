@@ -1,11 +1,13 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
+import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -15,12 +17,15 @@ import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
+import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VideoEventFacadeImpl implements VideoEventFacade {
@@ -28,6 +33,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     private final TaskService taskService;
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
+    private final UserTaskAnswerService userTaskAnswerService;
 
     @Override
     public List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser) {
@@ -85,6 +91,25 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         verifyOriginCoursePermission(portalUser, currentVersion.getVideoEvent().getVideoId(), PermitAction.EDIT);
 
         return taskService.taskVersions(currentVersion);
+    }
+
+    @Override
+    public UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        Integer videoId = task.getVideoEvent().getVideoId();
+
+        if ("all".equals(userFilter)) {
+            verifyPermission(portalUser, videoId, PermitAction.EDIT);
+            return userTaskAnswerService.findByTaskId(taskId, task.getType());
+        }
+
+        if ("me".equals(userFilter)) {
+            verifyPermission(portalUser, videoId, PermitAction.VIEW);
+            return userTaskAnswerService.findByTaskIdAndUserId(taskId, task.getType(), portalUser);
+        }
+
+        log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
+        throw new ValidationException("Invalid user filter passed: %s".formatted(userFilter));
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId) {

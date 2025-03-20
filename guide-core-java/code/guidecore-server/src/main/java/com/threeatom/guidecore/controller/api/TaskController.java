@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
+import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.facade.VideoEventFacade;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = "Video task")
@@ -70,6 +72,14 @@ public class TaskController {
     @GetMapping("/{taskId}/versions")
     public ResponseEntity<List<TaskVersionDto>> taskVersions(@PathVariable Integer taskId, HttpServletRequest request) {
         return ResponseEntity.ok(videoEventFacade.taskVersions(taskId, getPortalUser(request)));
+    }
+
+    @GetMapping("/{taskId}/answers")
+    public UserTaskAnswersDto taskAnswers(@PathVariable Integer taskId,
+                                          @RequestParam(value = "users", required = false, defaultValue = "all")
+                                          String userFilter,
+                                          HttpServletRequest request) {
+        return videoEventFacade.taskAnswers(taskId, userFilter, getPortalUser(request));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

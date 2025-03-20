@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.OffsetDateTime;
@@ -24,4 +25,7 @@ public class UserTaskAnswerReview {
     private String content;
 
     private OffsetDateTime createdTime = OffsetDateTime.now();
+
+    @TableField(exist = false)
+    private GcUser owner;
 }
