@@ -5,6 +5,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -30,7 +31,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
     @Override
     public List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser) {
-        verifyPermission(portalUser, videoId, PermitAction.VIEW);
+        verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
 
         return taskService.videoTasks(getTaskVideoEvents(videoId));
     }
@@ -40,7 +41,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public List<TaskDto> createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer videoId,
                                     PortalUser portalUser) {
         GcVideo video = videoService.findByVideoId(videoId);
-        verifyPermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
+        verifyOriginCoursePermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
 
         VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
         taskService.createTask(taskDto, taskVideoEvent, portalUser);
@@ -53,7 +54,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
                                     PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         GcVideo video = videoService.findByVideoId(task.getVideoEvent().getVideoId());
-        verifyPermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
+        verifyOriginCoursePermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
 
         videoEventService.updateTaskVideoEvent(task.getVideoEvent(), taskDto, video, portalUser);
         taskService.updateTask(task, taskDto, portalUser.getUserId());
@@ -64,7 +65,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     @Transactional
     public void deleteTask(Integer taskId, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
-        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+        verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
 
         taskService.deleteTask(task, portalUser.getUserId());
         videoEventService.removeById(task.getVideoEvent().getId());
@@ -73,21 +74,29 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     @Override
     public AnswerKeyDto taskAnswerKey(Integer taskId, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
-        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+        verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
 
         return taskService.answerKey(task);
+    }
+
+    @Override
+    public List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser) {
+        Task currentVersion = taskService.getTask(taskId);
+        verifyOriginCoursePermission(portalUser, currentVersion.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        return taskService.taskVersions(currentVersion);
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId) {
         return videoEventService.videoEventsByType(videoId, VideoEventType.TASK);
     }
 
-    private void verifyPermission(PortalUser portalUser, Integer videoId, PermitAction permitAction) {
+    private void verifyOriginCoursePermission(PortalUser portalUser, Integer videoId, PermitAction permitAction) {
         GcVideo video = videoService.findByVideoId(videoId);
-        verifyPermission(portalUser, video.getOriginCourse(), permitAction);
+        verifyOriginCoursePermission(portalUser, video.getOriginCourse(), permitAction);
     }
 
-    private void verifyPermission(PortalUser portalUser, GcSubject course, PermitAction permitAction) {
+    private void verifyOriginCoursePermission(PortalUser portalUser, GcSubject course, PermitAction permitAction) {
         if (!authorizationService.checkAccess(course, permitAction, portalUser)) {
             throw new ForbiddenException(
                 "User does not have permission to %s this course".formatted(permitAction.name()));

@@ -3,6 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.facade.VideoEventFacade;
@@ -64,6 +65,11 @@ public class TaskController {
                                                   HttpServletRequest request) {
         taskSessionService.createUpdateTaskSession(taskSessionDto, taskId, getPortalUser(request));
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{taskId}/versions")
+    public ResponseEntity<List<TaskVersionDto>> taskVersions(@PathVariable Integer taskId, HttpServletRequest request) {
+        return ResponseEntity.ok(videoEventFacade.taskVersions(taskId, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

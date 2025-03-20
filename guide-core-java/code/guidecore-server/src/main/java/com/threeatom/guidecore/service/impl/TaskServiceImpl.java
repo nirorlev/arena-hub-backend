@@ -6,11 +6,14 @@ import com.threeatom.guidecore.dto.request.QuestionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.common.exception.ValidationException;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
+import com.threeatom.guidecore.entity.TaskAudit;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.mapper.TaskMapper;
 import com.threeatom.guidecore.mapping.TaskMapping;
+import com.threeatom.guidecore.service.TaskAuditService;
 import com.threeatom.guidecore.service.TaskChoiceService;
 import com.threeatom.guidecore.service.TaskPropertiesStrategy;
 import com.threeatom.guidecore.service.TaskService;
@@ -33,6 +36,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     private final TaskChoiceService taskChoiceService;
     private final VideoAnswerStrategy videoAnswerStrategy;
     private final TaskPropertiesStrategy taskPropertiesStrategy;
+    private final TaskAuditService taskAuditService;
 
     @Override
     public List<TaskDto> videoTasks(List<VideoEvent> taskVideoEvents) {
@@ -96,8 +100,12 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setAnswer(videoAnswerStrategy.createAnswer(question, tempChoiceIdToChoiceId));
 
         if (!initialStateTask.equals(task)) {
+            OffsetDateTime dateTime = OffsetDateTime.now();
+            task.setUpdatedTime(dateTime);
             task.setVersion(task.getVersion() + 1);
+
             updateById(task);
+            taskAuditService.create(initialStateTask, userId, dateTime);
             return;
         }
 
@@ -108,16 +116,28 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Transactional
     public void deleteTask(Task task, Integer userId) {
         taskChoiceService.deleteChoices(task.getChoices());
+        OffsetDateTime dateTime = OffsetDateTime.now();
 
         task.setIsDeleted(true);
         task.setUpdatedByUserId(userId);
-        task.setUpdatedTime(OffsetDateTime.now());
+        task.setUpdatedTime(dateTime);
         updateById(task);
+
+        taskAuditService.create(task, userId, dateTime);
     }
 
     @Override
     public AnswerKeyDto answerKey(Task task) {
-        return taskMapping.toAnswerDto(task);
+        return taskMapping.toAnswerKeyDto(task);
+    }
+
+    @Override
+    public List<TaskVersionDto> taskVersions(Task currentVersion) {
+        List<TaskAudit> taskAuditList = taskAuditService.findByTaskId(currentVersion.getId());
+        List<TaskVersionDto> taskVersions = taskMapping.mapTaskVersions(taskAuditList);
+        taskVersions.add(0, taskMapping.mapTaskVersion(currentVersion));
+
+        return taskVersions;
     }
 
     private Optional<Task> findById(Integer taskId) {
