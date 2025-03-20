@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.request.TaskSessionDto;
+import com.threeatom.guidecore.dto.request.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
@@ -80,6 +81,15 @@ public class TaskController {
                                           String userFilter,
                                           HttpServletRequest request) {
         return videoEventFacade.taskAnswers(taskId, userFilter, getPortalUser(request));
+    }
+
+    @PostMapping("/{taskId}/answers")
+    public com.threeatom.guidecore.dto.response.UserTaskAnswerDto createTaskAnswer(@PathVariable Integer taskId,
+                                                                                   @RequestBody
+                                                                                   @Valid
+                                                                                   UserTaskAnswerDto userTaskAnswerDto,
+                                                                                   HttpServletRequest request) {
+        return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

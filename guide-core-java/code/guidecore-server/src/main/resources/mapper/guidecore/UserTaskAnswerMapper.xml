@@ -250,4 +250,57 @@
             </if>
         ORDER BY user_task_answer.created_time DESC
     </select>
+
+    <select id="findById" resultMap="baseResultMap">
+        SELECT
+            <include refid="userTaskAnswerColumns"/>,
+            <include refid="taskColumns"/>,
+            <include refid="ownerColumns"/>,
+            <include refid="ownerInfoColumns"/>,
+            <include refid="ownerAvatarFileColumns"/>,
+            <include refid="userTaskAnswerReviewColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerInfoColumns"/>,
+            <include refid="userTaskAnswerReviewOwnerAvatarFileColumns"/>
+
+            <choose>
+                <when test="taskType == 'SINGLE_CHOICE'">
+                    , <include refid="userTaskAnswerSingleChoiceColumns"/>
+                </when>
+                <when test="taskType == 'MULTIPLE_CHOICE'">
+                    , <include refid="userTaskAnswerMultipleChoicesColumns"/>
+                </when>
+                <when test="taskType == 'PAIRING'">
+                    , <include refid="userTaskAnswerChoicePairingsColumns"/>
+                </when>
+                <when test="taskType == 'FILL_IN_THE_BLANK'">
+                    , <include refid="userTaskAnswerChoiceFillInBlanksColumns"/>
+                </when>
+            </choose>
+        FROM user_task_answers user_task_answer
+            JOIN tasks task ON user_task_answer.task_id = task.id
+            JOIN gc_user u ON user_task_answer.owner_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+            LEFT JOIN user_task_answer_reviews user_task_answer_review ON user_task_answer.id = user_task_answer_review.user_task_answer_id
+            LEFT JOIN gc_user review_owner ON user_task_answer_review.owner_id = review_owner.id
+            LEFT JOIN gc_user_info review_owner_info ON review_owner.info_id = review_owner_info.id
+            LEFT JOIN sys_file review_owner_avatar_file ON review_owner_info.avatar_file_id = review_owner_avatar_file.id
+            <choose>
+                <when test="taskType == 'SINGLE_CHOICE'">
+                    JOIN user_task_answer_choices user_task_answer_single_choice ON user_task_answer.id = user_task_answer_single_choice.user_task_answer_id
+                </when>
+                <when test="taskType == 'MULTIPLE_CHOICE'">
+                    JOIN user_task_answer_choices user_task_answer_multiple_choice ON user_task_answer.id = user_task_answer_multiple_choice.user_task_answer_id
+                </when>
+                <when test="taskType == 'PAIRING'">
+                    JOIN user_task_answer_choices_pairings user_task_answer_choice_pairing ON user_task_answer.id = user_task_answer_choice_pairing.user_task_answer_id
+                </when>
+                <when test="taskType == 'FILL_IN_THE_BLANK'">
+                    JOIN user_task_answer_choices_fill_in_blanks user_task_answer_choice_fill_in_blank ON user_task_answer.id = user_task_answer_choice_fill_in_blank.user_task_answer_id
+                </when>
+            </choose>
+        WHERE user_task_answer.id = #{id}
+        ORDER BY user_task_answer.created_time DESC
+    </select>
 </mapper>

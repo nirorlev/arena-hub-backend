@@ -139,7 +139,7 @@ public class VideoAnswerStrategyImpl implements VideoAnswerStrategy {
             throw new ValidationException("Invalid choice id for multiple choice question");
         }
 
-        multipleChoiceAnswer.setChoiceIds(correctChoiceTempIds);
+        multipleChoiceAnswer.setChoiceIds(correctChoiceRealIds);
         return multipleChoiceAnswer;
     }
 }

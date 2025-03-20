@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserTaskAnswersDto {
-    private Map<Integer, UserTaskAnswerDetailDto> users;
+    private Map<String, UserTaskAnswerDetailDto> users;
     private TaskType taskType;
 }

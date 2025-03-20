@@ -7,11 +7,13 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
+import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
+import com.threeatom.guidecore.entity.UserTaskAnswer;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
@@ -100,16 +102,26 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         if ("all".equals(userFilter)) {
             verifyPermission(portalUser, videoId, PermitAction.EDIT);
-            return userTaskAnswerService.findByTaskId(taskId, task.getType());
+            return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType());
         }
 
         if ("me".equals(userFilter)) {
             verifyPermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findByTaskIdAndUserId(taskId, task.getType(), portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
         throw new ValidationException("Invalid user filter passed: %s".formatted(userFilter));
+    }
+
+    @Override
+    public UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
+                                              Integer taskId, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
+
+        UserTaskAnswer userTaskAnswer = userTaskAnswerService.createAnswer(userTaskAnswerDto, task, portalUser);
+        return userTaskAnswerService.findUserTaskAnswerById(userTaskAnswer.getId(), task.getType());
     }
 
     private List<VideoEvent> getTaskVideoEvents(Integer videoId) {
