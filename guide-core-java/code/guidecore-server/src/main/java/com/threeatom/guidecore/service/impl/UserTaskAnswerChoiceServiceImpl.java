@@ -20,7 +20,8 @@ public class UserTaskAnswerChoiceServiceImpl extends ServiceImpl<UserTaskAnswerC
 
     @Override
     @Transactional
-    public void createAnswer(MultipleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
+    public List<UserTaskAnswerChoice> createAnswer(MultipleChoiceAnswer userAnswer, Task task,
+                                                   Integer userTaskAnswerId) {
         List<Integer> correctChoiceIds = ((MultipleChoiceAnswer) task.getAnswer()).getChoiceIds();
 
         List<UserTaskAnswerChoice> userTaskAnswerChoices = task.getChoices().stream()
@@ -35,16 +36,20 @@ public class UserTaskAnswerChoiceServiceImpl extends ServiceImpl<UserTaskAnswerC
             .collect(Collectors.toList());
 
         saveBatch(userTaskAnswerChoices);
+
+        return userTaskAnswerChoices;
     }
 
     @Override
     @Transactional
-    public void createAnswer(SingleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
+    public UserTaskAnswerChoice createAnswer(SingleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
         Integer userChoiceId = userAnswer.getChoiceId();
         UserTaskAnswerChoice userTaskAnswerChoice = userTaskAnswerChoice(userTaskAnswerId, userChoiceId,
             true, ((SingleChoiceAnswer) task.getAnswer()).getChoiceId().equals(userChoiceId));
 
         save(userTaskAnswerChoice);
+
+        return userTaskAnswerChoice;
     }
 
     private boolean isCorrectUserChoice(Integer choiceId, List<Integer> correctChoiceIds, List<Integer> userChoiceIds) {

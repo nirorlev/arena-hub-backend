@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.entity.FillInTheBlankAnswer;
 import com.threeatom.guidecore.entity.UserTaskAnswerChoiceFillInBlank;
 import com.threeatom.guidecore.mapper.UserTaskAnswerChoiceFillInBlankMapper;
@@ -19,8 +18,9 @@ public class UserTaskAnswerChoiceFillInBlankServiceImpl
 
     @Override
     @Transactional
-    public void createAnswer(FillInTheBlankAnswer userAnswer, FillInTheBlankAnswer taskAnswer,
-                             Integer userTaskAnswerId) {
+    public List<UserTaskAnswerChoiceFillInBlank> createAnswer(FillInTheBlankAnswer userAnswer,
+                                                              FillInTheBlankAnswer taskAnswer,
+                                                              Integer userTaskAnswerId) {
         Map<String, Integer> taskKeywordToAnswer = taskAnswer.getKeywordToAnswer();
         Map<String, Integer> userKeywordToAnswer = userAnswer.getKeywordToAnswer();
 
@@ -30,6 +30,7 @@ public class UserTaskAnswerChoiceFillInBlankServiceImpl
             .collect(Collectors.toList());
 
         saveBatch(userTaskAnswers);
+        return userTaskAnswers;
     }
 
     private boolean isCorrect(String key, Integer choiceId, Map<String, Integer> keywordToAnswer) {

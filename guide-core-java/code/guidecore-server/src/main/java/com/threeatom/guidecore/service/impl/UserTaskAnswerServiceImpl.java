@@ -20,12 +20,16 @@ import com.threeatom.guidecore.entity.SingleChoiceAnswer;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskChoice;
 import com.threeatom.guidecore.entity.UserTaskAnswer;
+import com.threeatom.guidecore.entity.UserTaskAnswerChoice;
+import com.threeatom.guidecore.entity.UserTaskAnswerChoiceFillInBlank;
+import com.threeatom.guidecore.entity.UserTaskAnswerChoicePairing;
 import com.threeatom.guidecore.enums.TaskType;
 import com.threeatom.guidecore.mapper.UserTaskAnswerMapper;
 import com.threeatom.guidecore.mapping.UserTaskAnswerMapping;
 import com.threeatom.guidecore.service.UserTaskAnswerChoiceFillInBlankService;
 import com.threeatom.guidecore.service.UserTaskAnswerChoicePairingService;
 import com.threeatom.guidecore.service.UserTaskAnswerChoiceService;
+import com.threeatom.guidecore.service.UserTaskAnswerReviewService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoAnswerStrategy;
 import java.util.HashSet;
@@ -50,6 +54,7 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     private final UserTaskAnswerChoiceFillInBlankService userTaskAnswerChoiceFillInBlankService;
     private final UserTaskAnswerChoiceService userTaskAnswerChoiceService;
     private final UserTaskAnswerMapping userTaskAnswerMapping;
+    private final UserTaskAnswerReviewService userTaskAnswerReviewService;
 
     @Override
     public UserTaskAnswersDto findUserTaskAnswersByTaskIdAndUserId(Integer taskId, TaskType taskType,
@@ -143,27 +148,38 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
                 PairingAnswer userPairingAnswer = (PairingAnswer) userAnswer;
                 validateTaskChoiceIdsSameAsUserSelectedChoiceIds(taskChoiceIds, getPairingChoiceIds(userPairingAnswer),
                     task.getId());
-                userTaskAnswerChoicePairingService.createAnswer(userPairingAnswer, (PairingAnswer) task.getAnswer(),
-                    (PairingProperties) task.getProperties(), userTaskAnswerId);
+                PairingProperties pairingProperties = (PairingProperties) task.getProperties();
+                List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings =
+                    userTaskAnswerChoicePairingService.createAnswer(userPairingAnswer, (PairingAnswer) task.getAnswer(),
+                        pairingProperties, userTaskAnswerId);
+                userTaskAnswerReviewService.createPairingAnswerReview(userTaskAnswerChoicePairings, pairingProperties,
+                    userTaskAnswerId);
             }
             case MULTIPLE_CHOICE -> {
                 MultipleChoiceAnswer userMultipleChoiceAnswer = (MultipleChoiceAnswer) userAnswer;
                 validateTaskChoiceIdsContainsUserSelectedChoiceIds(taskChoiceIds,
                     new HashSet<>(userMultipleChoiceAnswer.getChoiceIds()), task.getId());
-                userTaskAnswerChoiceService.createAnswer(userMultipleChoiceAnswer, task, userTaskAnswerId);
+                List<UserTaskAnswerChoice> userTaskAnswerChoices =
+                    userTaskAnswerChoiceService.createAnswer(userMultipleChoiceAnswer, task, userTaskAnswerId);
+                userTaskAnswerReviewService.createMultipleChoiceAnswerReview(userTaskAnswerChoices, userTaskAnswerId);
             }
             case SINGLE_CHOICE -> {
                 SingleChoiceAnswer userSingleChoiceAnswer = (SingleChoiceAnswer) userAnswer;
                 validateTaskChoiceIdsContainsUserSelectedChoiceIds(taskChoiceIds,
                     Set.of(userSingleChoiceAnswer.getChoiceId()), task.getId());
-                userTaskAnswerChoiceService.createAnswer(userSingleChoiceAnswer, task, userTaskAnswerId);
+                UserTaskAnswerChoice userTaskAnswerChoice =
+                    userTaskAnswerChoiceService.createAnswer(userSingleChoiceAnswer, task, userTaskAnswerId);
+                userTaskAnswerReviewService.createSingleChoiceAnswerReview(userTaskAnswerChoice, userTaskAnswerId);
             }
             case FILL_IN_THE_BLANK -> {
                 FillInTheBlankAnswer fillInTheBlankAnswer = (FillInTheBlankAnswer) userAnswer;
                 validateTaskChoiceIdsSameAsUserSelectedChoiceIds(taskChoiceIds,
                     new HashSet<>(fillInTheBlankAnswer.getKeywordToAnswer().values()), task.getId());
-                userTaskAnswerChoiceFillInBlankService.createAnswer(fillInTheBlankAnswer,
-                    (FillInTheBlankAnswer) task.getAnswer(), userTaskAnswerId);
+                List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks =
+                    userTaskAnswerChoiceFillInBlankService.createAnswer(fillInTheBlankAnswer,
+                        (FillInTheBlankAnswer) task.getAnswer(), userTaskAnswerId);
+                userTaskAnswerReviewService.createFillInTheBlankAnswerReview(userTaskAnswerChoiceFillInBlanks,
+                    userTaskAnswerId);
             }
         }
     }

@@ -22,8 +22,10 @@ public class UserTaskAnswerChoicePairingServiceImpl
 
     @Override
     @Transactional
-    public void createAnswer(PairingAnswer userChoicePairings, PairingAnswer taskAnswerChoicePairings,
-                             PairingProperties pairingProperties, Integer userTaskAnswerId) {
+    public List<UserTaskAnswerChoicePairing> createAnswer(PairingAnswer userChoicePairings,
+                                                          PairingAnswer taskAnswerChoicePairings,
+                                                          PairingProperties pairingProperties,
+                                                          Integer userTaskAnswerId) {
         List<List<Integer>> userAnswerChoiceIds = userChoicePairings.getChoiceIds();
         verifyChoicePairsValid(userAnswerChoiceIds, pairingProperties);
 
@@ -33,6 +35,7 @@ public class UserTaskAnswerChoicePairingServiceImpl
             .collect(Collectors.toList());
 
         saveBatch(userTaskAnswerChoicePairings);
+        return userTaskAnswerChoicePairings;
     }
 
     private UserTaskAnswerChoicePairing userTaskAnswerChoicePairing(Integer userTaskAnswerId, List<Integer> choices,
