@@ -4,6 +4,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDetailDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
@@ -93,8 +94,9 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
 
     @Override
     @Transactional
-    public Map<Integer, TaskProgressDto> taskIdToProgress(List<Integer> taskIds, Integer completionThreshold,
-                                                          PortalUser portalUser) {
+    public Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds,
+                                                                              Integer completionThreshold,
+                                                                              PortalUser portalUser) {
         if (CollectionUtils.isEmpty(taskIds)) {
             return Map.of();
         }
@@ -254,14 +256,18 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
         }
     }
 
-    private TaskProgressDto taskProgressDto(Integer completionThreshold,
-                                            Map<Integer, UserTaskAnswer> taskIdToUserAnswer, Integer taskId) {
+    private ProgressDetailsDto<TaskProgressDto> taskProgressDto(Integer completionThreshold,
+                                                                Map<Integer, UserTaskAnswer> taskIdToUserAnswer,
+                                                                Integer taskId) {
         Optional<UserTaskAnswer> userTaskAnswer = Optional.ofNullable(taskIdToUserAnswer.get(taskId));
+        ProgressDetailsDto<TaskProgressDto> taskProgressDtoProgressDetailsDto = new ProgressDetailsDto<>();
         TaskProgressDto taskProgressDto = new TaskProgressDto();
         taskProgressDto.setAnswered(userTaskAnswer.isPresent());
         taskProgressDto.setCompleted(
             userTaskAnswer.isPresent() && isTaskCompleted(userTaskAnswer.get(), completionThreshold));
-        return taskProgressDto;
+        taskProgressDtoProgressDetailsDto.setProgress(taskProgressDto);
+
+        return taskProgressDtoProgressDetailsDto;
     }
 
     private boolean isTaskCompleted(UserTaskAnswer userTaskAnswer, Integer completionThreshold) {

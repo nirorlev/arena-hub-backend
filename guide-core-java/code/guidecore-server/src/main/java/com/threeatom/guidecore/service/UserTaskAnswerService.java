@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
@@ -25,6 +26,7 @@ public interface UserTaskAnswerService extends IService<UserTaskAnswer> {
     UserTaskAnswer createAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task,
                                 PortalUser portalUser);
 
-    Map<Integer, TaskProgressDto> taskIdToProgress(List<Integer> taskIds, Integer completionThreshold,
-                                                   PortalUser portalUser);
+    Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds,
+                                                                       Integer completionThreshold,
+                                                                       PortalUser portalUser);
 }
