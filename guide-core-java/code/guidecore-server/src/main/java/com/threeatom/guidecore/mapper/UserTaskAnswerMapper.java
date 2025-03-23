@@ -1,4 +1,3 @@
-
 package com.threeatom.guidecore.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -13,4 +12,6 @@ public interface UserTaskAnswerMapper extends BaseMapper<UserTaskAnswer> {
                                          OffsetDateTime endDate);
 
     UserTaskAnswer findById(Integer id, String taskType);
+
+    List<UserTaskAnswer> findTaskAnswersByTaskIds(List<Integer> taskIds, Integer userId);
 }

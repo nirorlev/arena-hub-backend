@@ -10,4 +10,5 @@ public class CourseProgressDto {
     private CourseProgressDetailsDto course;
     private Map<String, ProgressDetailsDto> sections;
     private Map<String, ProgressDetailsDto> content;
+    private Map<String, TaskProgressDto> tasks;
 }

@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -24,6 +25,15 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
     @Override
     public List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType) {
         return baseMapper.videoEventsByType(videoId, eventType);
+    }
+
+    @Override
+    public List<VideoEvent> videoEventsByType(List<Integer> videoIds, VideoEventType eventType) {
+        if (CollectionUtils.isEmpty(videoIds)) {
+            return List.of();
+        }
+
+        return baseMapper.getVideoEventsByVideoIds(videoIds, eventType);
     }
 
     @Override
@@ -44,7 +54,7 @@ public class VideoEventServiceImpl extends ServiceImpl<VideoEventMapper, VideoEv
 
     @Override
     @Transactional
-    public void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video, PortalUser portalUser) {
+    public void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video) {
         verifyTaskVideoTime(taskDto, video);
 
         List<VideoEvent> videoEvents =

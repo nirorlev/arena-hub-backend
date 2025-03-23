@@ -8,6 +8,7 @@ import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.ProgressDto;
+import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
@@ -15,16 +16,22 @@ import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.Task;
+import com.threeatom.guidecore.entity.VideoEvent;
+import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.UserTaskAnswerService;
+import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +42,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class CourseProgressServiceImpl implements CourseProgressService {
+    private static final int DEFAULT_VIDEO_VIEW_PERCENTAGE = 90;
+    private static final int DEFAULT_COURSE_GRADE_PERCENTAGE = 90;
+
     private final GcSubjectService courseService;
     private final CourseContentService courseContentService;
     private final AuthorizationService authorizationService;
@@ -42,6 +52,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private final VideoPlaySessionService videoPlaySessionService;
     private final CourseEnrollmentService courseEnrollmentService;
     private final CourseSettingService courseSettingService;
+    private final VideoEventService videoEventService;
+    private final UserTaskAnswerService userTaskAnswerService;
 
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
@@ -63,6 +75,9 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
         Integer videoViewPercentage =
             Optional.ofNullable(courseSetting).map(CourseSetting::getSingleVideoViewPercentage).orElse(90);
+        Integer courseGradePercentage =
+            Optional.ofNullable(courseSetting).map(CourseSetting::getSingleVideoViewPercentage).orElse(
+                DEFAULT_COURSE_GRADE_PERCENTAGE);
 
         Map<Integer, ProgressDetailsDto> sectionsProgress =
             sectionsProgress(videos, videoIdToViewerVideoDetails, videoViewPercentage);
@@ -75,7 +90,21 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         courseProgressDto.setCourse(courseProgressDetailsDto);
         courseProgressDto.setSections(convertKeyToString(sectionsProgress));
         courseProgressDto.setContent(convertKeyToString(contentProgress(videos, videoIdToViewerVideoDetails)));
+        courseProgressDto.setTasks(
+            convertKeyToString(courseTasks(videoIds, courseGradePercentage, portalUser)));
         return courseProgressDto;
+    }
+
+    private Map<Integer, TaskProgressDto> courseTasks(List<Integer> courseVideoIds, Integer courseGradePercentage,
+                                                      PortalUser portalUser) {
+        List<VideoEvent> taskVideoEvents = videoEventService.videoEventsByType(courseVideoIds, VideoEventType.TASK);
+        List<Integer> taskIds = taskVideoEvents.stream()
+            .map(VideoEvent::getTask)
+            .filter(Objects::nonNull)
+            .map(Task::getId)
+            .collect(Collectors.toList());
+
+        return userTaskAnswerService.taskIdToProgress(taskIds, courseGradePercentage, portalUser);
     }
 
     private List<Integer> courseVideoIds(List<GcVideo> videos) {
@@ -158,7 +187,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
         return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                long sectionViewedVideos = sectionViewedVideos(entry.getValue(), videoIdToPercentViewed, videoViewPercentage);
+                long sectionViewedVideos =
+                    sectionViewedVideos(entry.getValue(), videoIdToPercentViewed, videoViewPercentage);
                 int secondsWatched = secondsWatched(entry.getValue(), videoIdToSecondsWatched);
 
                 return sectionProgressDetails(entry.getValue(), sectionViewedVideos, secondsWatched);

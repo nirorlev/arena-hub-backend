@@ -12,4 +12,6 @@ public interface VideoEventMapper extends BaseMapper<VideoEvent> {
     List<VideoEvent> videoEventsByType(Integer videoId, VideoEventType eventType);
 
     List<VideoEvent> videoEventsByTypeAndTimestamp(Integer videoId, VideoEventType eventType, Integer timestamp);
+
+    List<VideoEvent> getVideoEventsByVideoIds(List<Integer> videoIds, VideoEventType eventType);
 }

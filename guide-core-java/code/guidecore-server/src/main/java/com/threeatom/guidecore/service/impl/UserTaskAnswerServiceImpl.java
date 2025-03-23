@@ -10,6 +10,7 @@ import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.threeatom.common.exception.ValidationException;
+import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.entity.Answer;
 import com.threeatom.guidecore.entity.FillInTheBlankAnswer;
 import com.threeatom.guidecore.entity.MultipleChoiceAnswer;
@@ -21,6 +22,7 @@ import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskChoice;
 import com.threeatom.guidecore.entity.UserTaskAnswer;
 import com.threeatom.guidecore.entity.UserTaskAnswerChoice;
+import com.threeatom.guidecore.entity.UserTaskAnswerReview;
 import com.threeatom.guidecore.entity.UserTaskAnswerChoiceFillInBlank;
 import com.threeatom.guidecore.entity.UserTaskAnswerChoicePairing;
 import com.threeatom.guidecore.enums.TaskType;
@@ -38,12 +40,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -85,6 +89,24 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
             });
 
         return userTaskAnswerMapping.mapUserAnswer(userTaskAnswer);
+    }
+
+    @Override
+    @Transactional
+    public Map<Integer, TaskProgressDto> taskIdToProgress(List<Integer> taskIds, Integer completionThreshold,
+                                                          PortalUser portalUser) {
+        if (CollectionUtils.isEmpty(taskIds)) {
+            return Map.of();
+        }
+
+        List<UserTaskAnswer> userTaskAnswers = baseMapper.findTaskAnswersByTaskIds(taskIds, portalUser.getUserId());
+        Map<Integer, UserTaskAnswer> taskIdToUserAnswer = userTaskAnswers.stream()
+            .collect(Collectors.groupingBy(UserTaskAnswer::getTaskId,
+                Collectors.collectingAndThen(Collectors.toList(), answers -> answers.get(0))));
+
+        return taskIds.stream().collect(
+            Collectors.toMap(Function.identity(),
+                taskId -> taskProgressDto(completionThreshold, taskIdToUserAnswer, taskId)));
     }
 
     @Override
@@ -230,5 +252,27 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
             log.error("Choice ids are not same as task choice ids for task {}", taskId);
             throw new ValidationException("Choice ids should have all task choice ids");
         }
+    }
+
+    private TaskProgressDto taskProgressDto(Integer completionThreshold,
+                                            Map<Integer, UserTaskAnswer> taskIdToUserAnswer, Integer taskId) {
+        Optional<UserTaskAnswer> userTaskAnswer = Optional.ofNullable(taskIdToUserAnswer.get(taskId));
+        TaskProgressDto taskProgressDto = new TaskProgressDto();
+        taskProgressDto.setAnswered(userTaskAnswer.isPresent());
+        taskProgressDto.setCompleted(
+            userTaskAnswer.isPresent() && isTaskCompleted(userTaskAnswer.get(), completionThreshold));
+        return taskProgressDto;
+    }
+
+    private boolean isTaskCompleted(UserTaskAnswer userTaskAnswer, Integer completionThreshold) {
+        List<UserTaskAnswerReview> userTaskAnswerReviews = userTaskAnswer.getUserTaskAnswerReviews();
+        if (CollectionUtils.isEmpty(userTaskAnswerReviews)) {
+            return false;
+        }
+
+        return userTaskAnswerReviews.stream()
+            .max(Comparator.comparing(UserTaskAnswerReview::getCreatedTime))
+            .filter(review -> review.getScore() >= completionThreshold)
+            .isPresent();
     }
 }
