@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.guidecore.enums.FeedbackItemType;
 import java.time.OffsetDateTime;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.ibatis.type.EnumTypeHandler;
 
@@ -31,6 +30,9 @@ public class Feedback {
 
     private OffsetDateTime createdTime = OffsetDateTime.now();
     private OffsetDateTime updatedTime = OffsetDateTime.now();
+
+    @TableField(exist = false)
+    private GcUser user;
 }
 
 

@@ -2,6 +2,7 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -13,4 +14,6 @@ public interface UserMapping {
     @Mapping(target = "lastName", source = "info.lastName")
     @Mapping(target = "thumbUrl", source = "info.avatarFile.fileUrl")
     UserDetailsDto map(GcUser user);
+
+    List<UserDetailsDto> map(List<GcUser> users);
 }

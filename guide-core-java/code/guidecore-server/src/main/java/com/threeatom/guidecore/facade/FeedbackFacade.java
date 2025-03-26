@@ -1,8 +1,10 @@
 package com.threeatom.guidecore.facade;
 
 import com.threeatom.guidecore.dto.response.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbacksDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.FeedbackItemType;
+import java.time.OffsetDateTime;
 
 public interface FeedbackFacade {
     FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
@@ -16,4 +18,6 @@ public interface FeedbackFacade {
                                              PortalUser portalUser);
 
     void deleteFeedback(Long feedbackId, PortalUser portalUser);
+
+    FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser);
 }

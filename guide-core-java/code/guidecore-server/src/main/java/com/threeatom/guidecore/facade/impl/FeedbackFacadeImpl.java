@@ -4,6 +4,7 @@ import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbacksDto;
 import com.threeatom.guidecore.entity.Feedback;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -15,6 +16,7 @@ import com.threeatom.guidecore.service.FeedbackService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -74,6 +76,11 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         feedbackService.removeById(feedbackId);
     }
 
+    @Override
+    public FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser) {
+        return feedbackService.userFeedbacks(getStartDate(startDate), getEndDate(endDate), portalUser);
+    }
+
     private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser) {
         switch (itemType) {
             case VIDEO -> validateVideoFeedback(itemId, portalUser);
@@ -109,5 +116,21 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         if (!feedback.getUserId().equals(portalUser.getUserId())) {
             throw new ForbiddenException("User don't have permission to update this feedback");
         }
+    }
+
+    private OffsetDateTime getStartDate(OffsetDateTime startDate) {
+        if (startDate == null) {
+            return OffsetDateTime.MIN;
+        }
+
+        return startDate;
+    }
+
+    private OffsetDateTime getEndDate(OffsetDateTime endDate) {
+        if (endDate == null) {
+            return OffsetDateTime.now();
+        }
+
+        return endDate;
     }
 }
