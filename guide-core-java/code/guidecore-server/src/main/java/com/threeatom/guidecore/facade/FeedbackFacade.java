@@ -14,4 +14,6 @@ public interface FeedbackFacade {
     FeedbackDto updateLatestOrCreateFeedback(FeedbackItemType itemType, Integer itemId,
                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                              PortalUser portalUser);
+
+    void deleteFeedback(Long feedbackId, PortalUser portalUser);
 }

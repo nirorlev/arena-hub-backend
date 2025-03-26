@@ -18,6 +18,7 @@ import com.threeatom.guidecore.service.TaskService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,6 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     private final GcSubjectService courseService;
     private final GcVideoService videoService;
     private final TaskService taskService;
-
 
     @Override
     public FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
@@ -42,9 +42,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     public FeedbackDto updateFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                       PortalUser portalUser) {
         Feedback feedback = feedbackService.getById(feedbackId);
-        if (!feedback.getUserId().equals(portalUser.getUserId())) {
-            throw new ForbiddenException("User don't have permission to update this feedback");
-        }
+        validateOwnership(portalUser, feedback);
 
         validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser);
 
@@ -63,6 +61,17 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         }
 
         return createFeedback(feedbackItemType, itemId, feedbackDto, portalUser);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFeedback(Long feedbackId, PortalUser portalUser) {
+        Feedback feedback = feedbackService.getById(feedbackId);
+
+        validateOwnership(portalUser, feedback);
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser);
+
+        feedbackService.removeById(feedbackId);
     }
 
     private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser) {
@@ -93,6 +102,12 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         GcVideo video = videoService.findByVideoId(videoId);
         if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
             throw new ForbiddenException("User don't have permission to view this video");
+        }
+    }
+
+    private void validateOwnership(PortalUser portalUser, Feedback feedback) {
+        if (!feedback.getUserId().equals(portalUser.getUserId())) {
+            throw new ForbiddenException("User don't have permission to update this feedback");
         }
     }
 }
