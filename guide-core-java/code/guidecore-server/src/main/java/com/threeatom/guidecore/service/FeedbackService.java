@@ -20,4 +20,9 @@ public interface FeedbackService extends IService<Feedback> {
     com.threeatom.guidecore.dto.response.FeedbackDto updateFeedback(Feedback feedback, FeedbackDto feedbackDto);
 
     FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser);
+
+    FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate, OffsetDateTime endDate,
+                           PortalUser portalUser);
+
+    FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate, OffsetDateTime endDate);
 }

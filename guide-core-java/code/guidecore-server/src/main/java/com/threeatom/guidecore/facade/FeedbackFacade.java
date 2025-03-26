@@ -20,4 +20,7 @@ public interface FeedbackFacade {
     void deleteFeedback(Long feedbackId, PortalUser portalUser);
 
     FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser);
+
+    FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate, OffsetDateTime endDate,
+                           String users, PortalUser portalUser);
 }

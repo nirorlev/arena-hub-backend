@@ -98,4 +98,22 @@
         ORDER BY feedback.updated_time
     </select>
 
+    <select id="feedbacks" resultMap="baseResultMap">
+        SELECT
+            <include refid="feedbackColumns"/>,
+            <include refid="userColumns"/>,
+            <include refid="userInfoColumns"/>,
+            <include refid="userAvatarFileColumns"/>
+        FROM feedbacks feedback
+            JOIN gc_user u ON feedback.user_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+        WHERE feedback.updated_time >= #{startDate} AND feedback.updated_time &lt;= #{endDate}
+            AND feedback.item_type = #{itemType} AND feedback.item_id = #{itemId}
+            <if test="userId != null">
+                AND feedback.user_id = #{userId}
+            </if>
+        ORDER BY feedback.updated_time
+    </select>
+
 </mapper>

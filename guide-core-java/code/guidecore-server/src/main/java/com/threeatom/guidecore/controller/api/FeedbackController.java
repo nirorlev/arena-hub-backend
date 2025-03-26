@@ -70,11 +70,24 @@ public class FeedbackController {
     }
 
     @GetMapping
-    public ResponseEntity<FeedbacksDto> feedbacks(@RequestParam(required = false) OffsetDateTime startDate,
-                                                  @RequestParam(required = false) OffsetDateTime endDate,
-                                                  @RequestParam(required = false, defaultValue = "me") String users,
-                                                  HttpServletRequest request) {
+    public ResponseEntity<FeedbacksDto> userFeedbacks(@RequestParam(required = false) OffsetDateTime startDate,
+                                                      @RequestParam(required = false) OffsetDateTime endDate,
+                                                      @RequestParam(required = false, defaultValue = "me") String users,
+                                                      HttpServletRequest request) {
         return ResponseEntity.ok(feedbackFacade.userFeedbacks(startDate, endDate, getPortalUser(request)));
+    }
+
+    @GetMapping("/{itemType}/{itemId}")
+    public ResponseEntity<FeedbacksDto> feedbacksByItemTypeAndId(@PathVariable FeedbackItemType itemType,
+                                                                 @PathVariable Integer itemId,
+                                                                 @RequestParam(required = false)
+                                                                 OffsetDateTime startDate,
+                                                                 @RequestParam(required = false) OffsetDateTime endDate,
+                                                                 @RequestParam(required = false, defaultValue = "me")
+                                                                 String users,
+                                                                 HttpServletRequest request) {
+        return ResponseEntity.ok(
+            feedbackFacade.feedbacks(itemType, itemId, startDate, endDate, users, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

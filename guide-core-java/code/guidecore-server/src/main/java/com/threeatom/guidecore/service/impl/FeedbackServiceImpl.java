@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -84,14 +85,29 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     public FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser) {
         List<Feedback> userFeedbacks = baseMapper.userFeedbacks(startDate, endDate, portalUser.getUserId());
         List<Feedback> feedbackForItemIds = getFeedbackByItemIds(getItemIds(userFeedbacks), startDate, endDate);
+        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
 
-        Map<Integer, List<Feedback>> itemIdToFeedbacks = feedbackForItemIds.stream()
-            .collect(Collectors.groupingBy(Feedback::getItemId));
+        return feedbacksDto(userFeedbacks, itemIdToFeedbacks);
+    }
 
-        FeedbacksDto feedbacksDto = new FeedbacksDto();
-        feedbacksDto.setUsers(notAnonymousUserIdToUserDetails(userFeedbacks));
-        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(userFeedbacks, itemIdToFeedbacks));
-        return feedbacksDto;
+    @Override
+    public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
+                                  OffsetDateTime endDate, PortalUser portalUser) {
+        List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, portalUser.getUserId(), itemType, itemId);
+        List<Feedback> feedbackForItemIds = getFeedbackByItemIds(List.of(itemId), startDate, endDate);
+        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
+
+        return feedbacksDto(feedbacks, itemIdToFeedbacks);
+    }
+
+    @Override
+    public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
+                                  OffsetDateTime endDate) {
+        List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, null, itemType, itemId);
+        List<Feedback> feedbackForItemIds = getFeedbackByItemIds(List.of(itemId), startDate, endDate);
+        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
+
+        return feedbacksDto(feedbacks, itemIdToFeedbacks);
     }
 
     private List<Feedback> getFeedbackByItemIds(List<Integer> feedbackItemIds, OffsetDateTime startDate,
@@ -107,6 +123,18 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         return feedbacks.stream()
             .map(Feedback::getItemId)
             .collect(Collectors.toList());
+    }
+
+    private Map<Integer, List<Feedback>> itemIdToFeedbacks(List<Feedback> feedbackForItemIds) {
+        return feedbackForItemIds.stream()
+            .collect(Collectors.groupingBy(Feedback::getItemId));
+    }
+
+    private FeedbacksDto feedbacksDto(List<Feedback> feedbacks, Map<Integer, List<Feedback>> itemIdToFeedbacks) {
+        FeedbacksDto feedbacksDto = new FeedbacksDto();
+        feedbacksDto.setUsers(notAnonymousUserIdToUserDetails(feedbacks));
+        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(feedbacks, itemIdToFeedbacks));
+        return feedbacksDto;
     }
 
     private Map<Integer, UserDetailsDto> notAnonymousUserIdToUserDetails(List<Feedback> feedbacks) {
@@ -145,8 +173,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         Map.Entry<FeedbackItemType, List<Feedback>> entry,
         Map<Integer, List<Feedback>> itemIdToFeedbacks) {
 
-        return entry.getValue().stream()
-            .collect(Collectors.groupingBy(Feedback::getItemId))
+        return itemIdToFeedbacks(entry.getValue())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey,
                 itemFeedback -> feedbackSummaryDto(itemIdToFeedbacks, itemFeedback.getValue(), itemFeedback.getKey())));
