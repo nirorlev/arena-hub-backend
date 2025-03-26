@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,6 +39,14 @@ public class FeedbackController {
                                                       com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                                       HttpServletRequest request) {
         return ResponseEntity.ok(feedbackFacade.createFeedback(itemType, itemId, feedbackDto, getPortalUser(request)));
+    }
+
+    @PutMapping("/{feedbackId}")
+    public ResponseEntity<FeedbackDto> updateFeedback(@PathVariable Integer feedbackId,
+                                                      @RequestBody @Valid
+                                                      com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                      HttpServletRequest request) {
+        return ResponseEntity.ok(feedbackFacade.updateFeedback(feedbackId, feedbackDto, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

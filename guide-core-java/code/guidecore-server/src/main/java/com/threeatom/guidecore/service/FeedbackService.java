@@ -9,4 +9,8 @@ import com.threeatom.guidecore.enums.FeedbackItemType;
 public interface FeedbackService extends IService<Feedback> {
     com.threeatom.guidecore.dto.response.FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
                                                                     FeedbackDto feedbackDto, PortalUser portalUser);
+
+    Feedback getById(Integer feedbackId);
+
+    com.threeatom.guidecore.dto.response.FeedbackDto updateFeedback(Feedback feedback, FeedbackDto feedbackDto);
 }

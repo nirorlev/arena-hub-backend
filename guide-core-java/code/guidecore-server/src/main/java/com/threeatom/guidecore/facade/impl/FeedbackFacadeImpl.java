@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
+import com.threeatom.guidecore.entity.Feedback;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -40,13 +41,31 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     public FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
                                       com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                       PortalUser portalUser) {
+        validatePermission(itemType, itemId, portalUser);
+
+        return feedbackService.createFeedback(itemType, itemId, feedbackDto, portalUser);
+    }
+
+
+    @Override
+    public FeedbackDto updateFeedback(Integer feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                      PortalUser portalUser) {
+        Feedback feedback = feedbackService.getById(feedbackId);
+        if (!feedback.getUserId().equals(portalUser.getUserId())) {
+            throw new ForbiddenException("User don't have permission to update this feedback");
+        }
+
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser);
+
+        return feedbackService.updateFeedback(feedback, feedbackDto);
+    }
+
+    private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser) {
         switch (itemType) {
             case VIDEO -> validateVideoFeedback(itemId, portalUser);
             case COURSE -> validateCourseFeedback(itemId, portalUser);
             case TASK -> validateTaskFeedback(itemId, portalUser);
         }
-
-        return feedbackService.createFeedback(itemType, itemId, feedbackDto, portalUser);
     }
 
     private void validateTaskFeedback(Integer itemId, PortalUser portalUser) {
