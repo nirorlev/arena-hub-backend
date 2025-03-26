@@ -3,29 +3,21 @@ package com.threeatom.guidecore.facade.impl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
-import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
-import com.threeatom.guidecore.dto.response.TaskDto;
-import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.Feedback;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
-import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.FeedbackItemType;
-import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.FeedbackFacade;
-import com.threeatom.guidecore.facade.VideoEventFacade;
 import com.threeatom.guidecore.service.FeedbackService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
-import com.threeatom.guidecore.service.VideoEventService;
-import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,9 +38,8 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         return feedbackService.createFeedback(itemType, itemId, feedbackDto, portalUser);
     }
 
-
     @Override
-    public FeedbackDto updateFeedback(Integer feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+    public FeedbackDto updateFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                       PortalUser portalUser) {
         Feedback feedback = feedbackService.getById(feedbackId);
         if (!feedback.getUserId().equals(portalUser.getUserId())) {
@@ -58,6 +49,20 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser);
 
         return feedbackService.updateFeedback(feedback, feedbackDto);
+    }
+
+    @Override
+    public FeedbackDto updateLatestOrCreateFeedback(FeedbackItemType feedbackItemType, Integer itemId,
+                                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                    PortalUser portalUser) {
+        Optional<Feedback> latestFeedback = feedbackService.findLatest(feedbackItemType, itemId, portalUser);
+        if (latestFeedback.isPresent()) {
+            Feedback feedback = latestFeedback.get();
+            validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser);
+            return feedbackService.updateFeedback(feedback, feedbackDto);
+        }
+
+        return createFeedback(feedbackItemType, itemId, feedbackDto, portalUser);
     }
 
     private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser) {

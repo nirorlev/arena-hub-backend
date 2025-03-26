@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
@@ -9,6 +10,7 @@ import com.threeatom.guidecore.enums.FeedbackItemType;
 import com.threeatom.guidecore.mapper.FeedbackMapper;
 import com.threeatom.guidecore.mapping.FeedbackMapping;
 import com.threeatom.guidecore.service.FeedbackService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     }
 
     @Override
-    public Feedback getById(Integer feedbackId) {
+    public Feedback getById(Long feedbackId) {
         Feedback feedback = super.getById(feedbackId);
         if (feedback == null) {
             log.error("Feedback not found by requested id: {}", feedbackId);
@@ -40,6 +42,18 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         }
 
         return feedback;
+    }
+
+    @Override
+    public Optional<Feedback> findLatest(FeedbackItemType feedbackItemType, Integer itemId, PortalUser portalUser) {
+        QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("item_type", feedbackItemType);
+        queryWrapper.eq("item_id", itemId);
+        queryWrapper.eq("user_id", portalUser.getUserId());
+        queryWrapper.orderByDesc("created_time");
+        queryWrapper.last("limit 1");
+
+        return Optional.ofNullable(getOne(queryWrapper));
     }
 
     @Override

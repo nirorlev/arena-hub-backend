@@ -42,11 +42,21 @@ public class FeedbackController {
     }
 
     @PutMapping("/{feedbackId}")
-    public ResponseEntity<FeedbackDto> updateFeedback(@PathVariable Integer feedbackId,
+    public ResponseEntity<FeedbackDto> updateFeedback(@PathVariable Long feedbackId,
                                                       @RequestBody @Valid
                                                       com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                                       HttpServletRequest request) {
         return ResponseEntity.ok(feedbackFacade.updateFeedback(feedbackId, feedbackDto, getPortalUser(request)));
+    }
+
+    @PutMapping("/{itemType}/{itemId}")
+    public ResponseEntity<FeedbackDto> updateLatestOrCreateFeedback(@PathVariable FeedbackItemType itemType,
+                                                                    @PathVariable Integer itemId,
+                                                                    @RequestBody @Valid
+                                                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                                    HttpServletRequest request) {
+        return ResponseEntity.ok(
+            feedbackFacade.updateLatestOrCreateFeedback(itemType, itemId, feedbackDto, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

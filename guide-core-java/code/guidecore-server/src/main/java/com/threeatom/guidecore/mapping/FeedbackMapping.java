@@ -17,5 +17,6 @@ public interface FeedbackMapping {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "content", source = "feedbackDto.text")
+    @Mapping(target = "updatedTime", expression = "java(java.time.OffsetDateTime.now())")
     void mapUpdate(@MappingTarget Feedback feedback, FeedbackDto feedbackDto);
 }
