@@ -19,4 +19,7 @@ public interface FeedbackFacade {
 
     FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate, OffsetDateTime endDate,
                            String users, PortalUser portalUser);
+
+    FeedbackDto patchFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                              PortalUser portalUser);
 }

@@ -14,5 +14,6 @@ public class FeedbackDto {
     @Max(value = 5, message = "Rating cannot be greater than 5")
     private Integer rating;
     private String text;
-    private boolean anonymous;
+    @NotNull(message = "Anonymous cannot be null")
+    private Boolean anonymous;
 }

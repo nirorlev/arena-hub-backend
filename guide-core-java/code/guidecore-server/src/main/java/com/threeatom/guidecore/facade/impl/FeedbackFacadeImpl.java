@@ -87,6 +87,16 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         throw new ValidationException("Invalid users parameter");
     }
 
+    @Override
+    public FeedbackDto patchFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                     PortalUser portalUser) {
+        Feedback feedback = feedbackService.getById(feedbackId);
+        validateOwnership(portalUser, feedback);
+
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
+        return feedbackService.patchFeedback(feedback, feedbackDto);
+    }
+
     private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser,
                                     PermitAction permitAction) {
         switch (itemType) {

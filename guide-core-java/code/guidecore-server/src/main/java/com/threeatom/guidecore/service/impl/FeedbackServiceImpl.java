@@ -96,6 +96,14 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         return feedbacksDto(feedbacks, itemIdToFeedbacks);
     }
 
+    @Override
+    public FeedbackDto patchFeedback(Feedback feedback, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+        feedbackMapping.mapPatch(feedback, feedbackDto);
+        updateById(feedback);
+
+        return feedbackMapping.map(feedback);
+    }
+
     private List<Feedback> getFeedbackByItemIds(List<Integer> feedbackItemIds, OffsetDateTime startDate,
                                                 OffsetDateTime endDate) {
         QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
