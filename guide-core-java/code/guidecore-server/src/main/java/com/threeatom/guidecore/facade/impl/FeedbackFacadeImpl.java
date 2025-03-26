@@ -18,7 +18,6 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,20 +51,6 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
 
         return feedbackService.updateFeedback(feedback, feedbackDto);
-    }
-
-    @Override
-    public FeedbackDto updateLatestOrCreateFeedback(FeedbackItemType feedbackItemType, Integer itemId,
-                                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                                    PortalUser portalUser) {
-        Optional<Feedback> latestFeedback = feedbackService.findLatest(feedbackItemType, itemId, portalUser);
-        if (latestFeedback.isPresent()) {
-            Feedback feedback = latestFeedback.get();
-            validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
-            return feedbackService.updateFeedback(feedback, feedbackDto);
-        }
-
-        return createFeedback(feedbackItemType, itemId, feedbackDto, portalUser);
     }
 
     @Override

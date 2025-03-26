@@ -13,10 +13,6 @@ public interface FeedbackFacade {
     FeedbackDto updateFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                PortalUser portalUser);
 
-    FeedbackDto updateLatestOrCreateFeedback(FeedbackItemType itemType, Integer itemId,
-                                             com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                             PortalUser portalUser);
-
     void deleteFeedback(Long feedbackId, PortalUser portalUser);
 
     FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser);

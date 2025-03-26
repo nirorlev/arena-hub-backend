@@ -20,13 +20,11 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -58,18 +56,6 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         }
 
         return feedback;
-    }
-
-    @Override
-    public Optional<Feedback> findLatest(FeedbackItemType feedbackItemType, Integer itemId, PortalUser portalUser) {
-        QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("item_type", feedbackItemType);
-        queryWrapper.eq("item_id", itemId);
-        queryWrapper.eq("user_id", portalUser.getUserId());
-        queryWrapper.orderByDesc("created_time");
-        queryWrapper.last("limit 1");
-
-        return Optional.ofNullable(getOne(queryWrapper));
     }
 
     @Override
