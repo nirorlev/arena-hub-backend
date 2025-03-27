@@ -24,7 +24,8 @@ public class CourseAuthorizationService
         CourseAction.UNSUBSCRIBE,
         CourseAction.ADD_CONTENT,
         CourseAction.MANAGE_CONTENT,
-        CourseAction.PUBLISH
+        CourseAction.PUBLISH,
+        CourseAction.RATE
     );
     private static final Map<CourseRole, Map<CourseAction, Predicate<PermitCourse>>> ROLE_COURSE_PERMISSIONS = Map.of(
         CourseRole.VIEWER, Map.of(
@@ -36,7 +37,8 @@ public class CourseAuthorizationService
             CourseAction.UNSUBSCRIBE, course -> true,
             CourseAction.ADD_CONTENT, course -> false,
             CourseAction.MANAGE_CONTENT, course -> false,
-            CourseAction.PUBLISH, course -> false
+            CourseAction.PUBLISH, course -> false,
+            CourseAction.RATE, course -> true
         ),
         CourseRole.ADMIN, Map.of(
             CourseAction.CREATE, course -> true,
@@ -47,7 +49,8 @@ public class CourseAuthorizationService
             CourseAction.UNSUBSCRIBE, course -> true,
             CourseAction.ADD_CONTENT, course -> true,
             CourseAction.MANAGE_CONTENT, course -> true,
-            CourseAction.PUBLISH, course -> true
+            CourseAction.PUBLISH, course -> true,
+            CourseAction.RATE, course -> true
         )
     );
 

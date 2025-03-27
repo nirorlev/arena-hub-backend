@@ -37,7 +37,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     public FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
                                       com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                       PortalUser portalUser) {
-        validatePermission(itemType, itemId, portalUser, PermitAction.VIEW);
+        validatePermission(itemType, itemId, portalUser, PermitAction.RATE);
 
         return feedbackService.createFeedback(itemType, itemId, feedbackDto, portalUser);
     }
@@ -48,7 +48,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         Feedback feedback = feedbackService.getById(feedbackId);
         validateOwnership(portalUser, feedback);
 
-        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.RATE);
 
         return feedbackService.updateFeedback(feedback, feedbackDto);
     }
@@ -59,7 +59,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         Feedback feedback = feedbackService.getById(feedbackId);
 
         validateOwnership(portalUser, feedback);
-        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.RATE);
 
         feedbackService.removeById(feedbackId);
     }
@@ -93,7 +93,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         Feedback feedback = feedbackService.getById(feedbackId);
         validateOwnership(portalUser, feedback);
 
-        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.VIEW);
+        validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.RATE);
         return feedbackService.patchFeedback(feedback, feedbackDto);
     }
 
