@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FeedbackSummaryDto {
-    private Double averageRating;
-    private Integer feedbacksCount;
+    private Double averageRating = 0.0;
+    private Integer feedbacksCount = 0;
     private List<FeedbackDto> feedbacks;
 }

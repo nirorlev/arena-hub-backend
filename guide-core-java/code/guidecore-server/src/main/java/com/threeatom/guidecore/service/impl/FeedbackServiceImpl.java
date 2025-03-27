@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
@@ -27,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -70,30 +68,24 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     @Override
     public FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser) {
         List<Feedback> userFeedbacks = baseMapper.userFeedbacks(startDate, endDate, portalUser.getUserId());
-        List<Feedback> feedbackForItemIds = getFeedbackByItemIds(getItemIds(userFeedbacks), startDate, endDate);
-        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
 
-        return feedbacksDto(userFeedbacks, itemIdToFeedbacks);
+        return feedbacksDto(userFeedbacks);
     }
 
     @Override
     public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
                                   OffsetDateTime endDate, PortalUser portalUser) {
         List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, portalUser.getUserId(), itemType, itemId);
-        List<Feedback> feedbackForItemIds = getFeedbackByItemIds(List.of(itemId), startDate, endDate);
-        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
 
-        return feedbacksDto(feedbacks, itemIdToFeedbacks);
+        return feedbacksDto(feedbacks);
     }
 
     @Override
     public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
                                   OffsetDateTime endDate) {
         List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, null, itemType, itemId);
-        List<Feedback> feedbackForItemIds = getFeedbackByItemIds(List.of(itemId), startDate, endDate);
-        Map<Integer, List<Feedback>> itemIdToFeedbacks = itemIdToFeedbacks(feedbackForItemIds);
 
-        return feedbacksDto(feedbacks, itemIdToFeedbacks);
+        return feedbacksDto(feedbacks);
     }
 
     @Override
@@ -102,15 +94,6 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         updateById(feedback);
 
         return feedbackMapping.map(feedback);
-    }
-
-    private List<Feedback> getFeedbackByItemIds(List<Integer> feedbackItemIds, OffsetDateTime startDate,
-                                                OffsetDateTime endDate) {
-        QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("item_id", feedbackItemIds);
-        queryWrapper.ge("updated_time", startDate);
-        queryWrapper.le("updated_time", endDate);
-        return list(queryWrapper);
     }
 
     private List<Integer> getItemIds(List<Feedback> feedbacks) {
@@ -124,10 +107,10 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             .collect(Collectors.groupingBy(Feedback::getItemId));
     }
 
-    private FeedbacksDto feedbacksDto(List<Feedback> feedbacks, Map<Integer, List<Feedback>> itemIdToFeedbacks) {
+    private FeedbacksDto feedbacksDto(List<Feedback> feedbacks) {
         FeedbacksDto feedbacksDto = new FeedbacksDto();
         feedbacksDto.setUsers(notAnonymousUserIdToUserDetails(feedbacks));
-        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(feedbacks, itemIdToFeedbacks));
+        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(feedbacks));
         return feedbacksDto;
     }
 
@@ -148,8 +131,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     }
 
     private EnumMap<FeedbackItemType, Map<Integer, FeedbackSummaryDto>> feedbackItemTypeToItemFeedbacks(
-        List<Feedback> feedbacks,
-        Map<Integer, List<Feedback>> itemIdToFeedbacks) {
+        List<Feedback> feedbacks) {
 
         return feedbacks.stream()
             .collect(Collectors.groupingBy(Feedback::getItemType, () -> new EnumMap<>(FeedbackItemType.class),
@@ -157,49 +139,24 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> convertToItemIdToFeedbackSummary(entry, itemIdToFeedbacks),
-                (exiting1, exiting2) -> exiting1,
+                this::convertToItemIdToFeedbackSummary,
+                (existing1, existing2) -> existing1,
                 () -> new EnumMap<>(FeedbackItemType.class)
             ));
     }
 
     private Map<Integer, FeedbackSummaryDto> convertToItemIdToFeedbackSummary(
-        Map.Entry<FeedbackItemType, List<Feedback>> entry,
-        Map<Integer, List<Feedback>> itemIdToFeedbacks) {
+        Map.Entry<FeedbackItemType, List<Feedback>> entry) {
 
         return itemIdToFeedbacks(entry.getValue())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey,
-                itemFeedback -> feedbackSummaryDto(itemIdToFeedbacks, itemFeedback.getValue(), itemFeedback.getKey())));
+                itemFeedback -> feedbackSummaryDto(itemFeedback.getValue())));
     }
 
-    private FeedbackSummaryDto feedbackSummaryDto(Map<Integer, List<Feedback>> itemIdToFeedbacks,
-                                                  List<Feedback> itemFeedbacks, Integer itemId) {
+    private FeedbackSummaryDto feedbackSummaryDto(List<Feedback> itemFeedbacks) {
         FeedbackSummaryDto feedbackSummaryDto = new FeedbackSummaryDto();
-        feedbackSummaryDto.setFeedbacksCount(itemIdFeedbacksCount(itemId, itemIdToFeedbacks));
-        feedbackSummaryDto.setAverageRating(averageItemFeedbackRating(itemId, itemIdToFeedbacks));
         feedbackSummaryDto.setFeedbacks(feedbackMapping.map(itemFeedbacks));
         return feedbackSummaryDto;
-    }
-
-    private int itemIdFeedbacksCount(Integer itemId, Map<Integer, List<Feedback>> itemIdToFeedbacks) {
-        List<Feedback> feedbacks = itemIdToFeedbacks.get(itemId);
-        if (CollectionUtils.isEmpty(feedbacks)) {
-            return 0;
-        }
-
-        return feedbacks.size();
-    }
-
-    private double averageItemFeedbackRating(Integer itemId, Map<Integer, List<Feedback>> itemIdToFeedbacks) {
-        List<Feedback> feedbacks = itemIdToFeedbacks.get(itemId);
-        if (CollectionUtils.isEmpty(feedbacks)) {
-            return 0;
-        }
-
-        return feedbacks.stream()
-            .mapToInt(Feedback::getRating)
-            .average()
-            .orElse(0);
     }
 }
