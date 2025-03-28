@@ -9,8 +9,9 @@ import com.threeatom.guidecore.enums.FeedbackItemType;
 import java.time.OffsetDateTime;
 
 public interface FeedbackService extends IService<Feedback> {
-    com.threeatom.guidecore.dto.response.FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
-                                                                    FeedbackDto feedbackDto, PortalUser portalUser);
+    com.threeatom.guidecore.dto.response.FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+                                                                            FeedbackDto feedbackDto,
+                                                                            PortalUser portalUser);
 
     Feedback getById(Long feedbackId);
 

@@ -1230,7 +1230,7 @@
 
     <changeSet id="create-feedbacks-table" author="vprokh">
         <createTable tableName="feedbacks">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="bigserial">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="user_id" type="INT">
@@ -1257,9 +1257,14 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="feedback" baseColumnNames="user_id"
+        <addUniqueConstraint
+                tableName="feedbacks"
+                columnNames="user_id, item_type, item_id"
+                constraintName="unique_user_item_type_item_id"/>
+
+        <addForeignKeyConstraint baseTableName="feedbacks" baseColumnNames="user_id"
                                  constraintName="fk_feedback_user_id"
                                  referencedTableName="gc_user" referencedColumnNames="id"
-                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+                                 onUpdate="CASCADE" onDelete="SET NULL"/>
     </changeSet>
 </databaseChangeLog>

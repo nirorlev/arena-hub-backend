@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
@@ -19,6 +20,7 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,23 +39,33 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
 
     @Override
     @Transactional
-    public FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
-                                      com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                      PortalUser portalUser) {
+    public FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                              PortalUser portalUser) {
+        Optional<Feedback> existingFeedback = findByItemTypeItemAndUserId(itemType, itemId, portalUser.getUserId());
+
+        if (existingFeedback.isEmpty()) {
+            Feedback feedback = createFeedback(itemType, itemId, feedbackDto, portalUser);
+            return feedbackMapping.map(feedback);
+        }
+
+        return patchFeedback(existingFeedback.get(), feedbackDto);
+    }
+
+    private Feedback createFeedback(FeedbackItemType itemType, Integer itemId,
+                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                    PortalUser portalUser) {
         Feedback feedback = feedbackMapping.map(feedbackDto, itemType, itemId, portalUser.getUserId());
         save(feedback);
-        return feedbackMapping.map(feedback);
+        return feedback;
     }
 
     @Override
     public Feedback getById(Long feedbackId) {
-        Feedback feedback = super.getById(feedbackId);
-        if (feedback == null) {
+        return findById(feedbackId).orElseThrow(() -> {
             log.error("Feedback not found by requested id: {}", feedbackId);
-            throw new ResourceNotFoundException("Feedback not found by requested id");
-        }
-
-        return feedback;
+            return new ResourceNotFoundException("Feedback not found by requested id");
+        });
     }
 
     @Override
@@ -96,10 +108,17 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         return feedbackMapping.map(feedback);
     }
 
-    private List<Integer> getItemIds(List<Feedback> feedbacks) {
-        return feedbacks.stream()
-            .map(Feedback::getItemId)
-            .collect(Collectors.toList());
+    private Optional<Feedback> findById(Long id) {
+        return Optional.ofNullable(super.getById(id));
+    }
+
+    private Optional<Feedback> findByItemTypeItemAndUserId(FeedbackItemType feedbackItemType, Integer itemId,
+                                                           Integer userId) {
+        QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("item_type", feedbackItemType);
+        queryWrapper.eq("item_id", itemId);
+        queryWrapper.eq("user_id", userId);
+        return Optional.ofNullable(getOne(queryWrapper));
     }
 
     private Map<Integer, List<Feedback>> itemIdToFeedbacks(List<Feedback> feedbackForItemIds) {
@@ -114,11 +133,11 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         return feedbacksDto;
     }
 
-    private Map<Integer, UserDetailsDto> notAnonymousUserIdToUserDetails(List<Feedback> feedbacks) {
+    private Map<String, UserDetailsDto> notAnonymousUserIdToUserDetails(List<Feedback> feedbacks) {
         List<GcUser> uniqueNotAnonymousUsers = uniqueNotAnonymousUsers(feedbacks);
         List<UserDetailsDto> userDetails = userMapping.map(uniqueNotAnonymousUsers);
         return userDetails.stream()
-            .collect(Collectors.toMap(UserDetailsDto::getId, Function.identity()));
+            .collect(Collectors.toMap(userDetailsDto -> String.valueOf(userDetailsDto.getId()), Function.identity()));
     }
 
     private List<GcUser> uniqueNotAnonymousUsers(List<Feedback> feedbacks) {
@@ -130,7 +149,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             .collect(Collectors.toList());
     }
 
-    private EnumMap<FeedbackItemType, Map<Integer, FeedbackSummaryDto>> feedbackItemTypeToItemFeedbacks(
+    private EnumMap<FeedbackItemType, Map<String, FeedbackSummaryDto>> feedbackItemTypeToItemFeedbacks(
         List<Feedback> feedbacks) {
 
         return feedbacks.stream()
@@ -145,13 +164,13 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             ));
     }
 
-    private Map<Integer, FeedbackSummaryDto> convertToItemIdToFeedbackSummary(
+    private Map<String, FeedbackSummaryDto> convertToItemIdToFeedbackSummary(
         Map.Entry<FeedbackItemType, List<Feedback>> entry) {
 
         return itemIdToFeedbacks(entry.getValue())
             .entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey,
-                itemFeedback -> feedbackSummaryDto(itemFeedback.getValue())));
+            .collect(Collectors.toMap(itemFeedbackEntry -> String.valueOf(itemFeedbackEntry.getKey()),
+                itemFeedbackEntry -> feedbackSummaryDto(itemFeedbackEntry.getValue())));
     }
 
     private FeedbackSummaryDto feedbackSummaryDto(List<Feedback> itemFeedbacks) {

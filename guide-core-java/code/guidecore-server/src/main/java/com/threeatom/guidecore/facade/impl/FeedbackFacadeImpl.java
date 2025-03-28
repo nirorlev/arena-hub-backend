@@ -34,12 +34,12 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     private final TaskService taskService;
 
     @Override
-    public FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
-                                      com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                      PortalUser portalUser) {
+    public FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                              PortalUser portalUser) {
         validatePermission(itemType, itemId, portalUser, PermitAction.RATE);
 
-        return feedbackService.createFeedback(itemType, itemId, feedbackDto, portalUser);
+        return feedbackService.createOrUpdateFeedback(itemType, itemId, feedbackDto, portalUser);
     }
 
     @Override

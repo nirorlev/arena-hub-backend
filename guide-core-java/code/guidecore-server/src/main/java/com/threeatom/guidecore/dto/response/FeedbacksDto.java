@@ -9,6 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FeedbacksDto {
-    private Map<Integer, UserDetailsDto> users;
-    private EnumMap<FeedbackItemType, Map<Integer, FeedbackSummaryDto>> feedbackTypes;
+    private Map<String, UserDetailsDto> users;
+    private EnumMap<FeedbackItemType, Map<String, FeedbackSummaryDto>> feedbackTypes;
 }

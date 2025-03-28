@@ -7,8 +7,8 @@ import com.threeatom.guidecore.enums.FeedbackItemType;
 import java.time.OffsetDateTime;
 
 public interface FeedbackFacade {
-    FeedbackDto createFeedback(FeedbackItemType itemType, Integer itemId,
-                               com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto, PortalUser portalUser);
+    FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+                                       com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto, PortalUser portalUser);
 
     FeedbackDto updateFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                PortalUser portalUser);

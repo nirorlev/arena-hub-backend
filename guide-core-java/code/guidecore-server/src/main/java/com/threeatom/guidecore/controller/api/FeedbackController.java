@@ -38,12 +38,13 @@ public class FeedbackController {
     private final PortalUserService portalUserService;
 
     @PostMapping("/{itemType}/{itemId}")
-    public ResponseEntity<FeedbackDto> createFeedback(@PathVariable FeedbackItemType itemType,
-                                                      @PathVariable Integer itemId,
-                                                      @RequestBody @Valid
-                                                      com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                                      HttpServletRequest request) {
-        return ResponseEntity.ok(feedbackFacade.createFeedback(itemType, itemId, feedbackDto, getPortalUser(request)));
+    public ResponseEntity<FeedbackDto> createOrUpdateFeedback(@PathVariable FeedbackItemType itemType,
+                                                              @PathVariable Integer itemId,
+                                                              @RequestBody @Valid
+                                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                              HttpServletRequest request) {
+        return ResponseEntity.ok(
+            feedbackFacade.createOrUpdateFeedback(itemType, itemId, feedbackDto, getPortalUser(request)));
     }
 
     @PutMapping("/{feedbackId}")
@@ -82,7 +83,7 @@ public class FeedbackController {
                                                                  @RequestParam(required = false)
                                                                  OffsetDateTime startDate,
                                                                  @RequestParam(required = false) OffsetDateTime endDate,
-                                                                 @RequestParam(required = false, defaultValue = "me")
+                                                                 @RequestParam(required = false, defaultValue = "all")
                                                                  String users,
                                                                  HttpServletRequest request) {
         return ResponseEntity.ok(
