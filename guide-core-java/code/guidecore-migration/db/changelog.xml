@@ -1228,4 +1228,38 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="create-feedbacks-table" author="vprokh">
+        <createTable tableName="feedbacks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_type" type="VARCHAR(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT"/>
+            <column name="anonymous" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="feedback" baseColumnNames="user_id"
+                                 constraintName="fk_feedback_user_id"
+                                 referencedTableName="gc_user" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

@@ -21,7 +21,8 @@ public enum PermitAction {
     ACCESS_ANALYTICS("accessanalytics", "accessAnalytics"),
     ACCESS_TEAMS("accessteams", "accessTeams"),
     ACCESS_SETTINGS("accesssettings", "accessSettings"),
-    ACCESS_CONFIG("accessconfig", "accessConfig");
+    ACCESS_CONFIG("accessconfig", "accessConfig"),
+    RATE("rate", "rate");
 
     private final String value;
     private final String key;

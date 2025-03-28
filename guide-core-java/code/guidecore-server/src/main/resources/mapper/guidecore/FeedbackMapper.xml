@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.FeedbackMapper">
+
+    <resultMap id="baseResultMap" type="Feedback">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="itemType" column="item_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="itemId" column="item_id"/>
+        <result property="rating" column="rating"/>
+        <result property="content" column="content"/>
+        <result property="anonymous" column="anonymous"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+
+        <association property="user" resultMap="userResultMap" columnPrefix="user_"/>
+    </resultMap>
+
+    <resultMap id="userResultMap" type="GcUser">
+        <id property="id" column="id"/>
+        <result property="sysId" column="sys_id"/>
+        <result property="username" column="username"/>
+        <result property="state" column="state"/>
+        <result property="password" column="password"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="infoId" column="info_id"/>
+        <result property="pid" column="pid"/>
+        <result property="groupName" column="group_name"/>
+        <result property="logInTime" column="log_in_time"/>
+        <result property="lastName" column="last_name"/>
+        <result property="firstName" column="first_name"/>
+        <result property="powtoonUserId" column="powtoon_user_id"/>
+
+        <association property="info" column="id" javaType="GcUserInfo" columnPrefix="info_">
+            <id property="id" column="id"/>
+            <result property="lastName" column="last_name"/>
+            <result property="firstName" column="first_name"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="avatarFileId" column="avatar_file_id"/>
+            <association property="avatarFile" column="avatarFile" javaType="SysFile" columnPrefix="avatar_file_">
+                <id property="id" column="id"/>
+                <result property="name" column="name"/>
+                <result property="fileUrl" column="url"/>
+                <result property="saveType" column="save_type"/>
+                <result property="uploadUid" column="upload_uid"/>
+                <result property="masterId" column="master_id"/>
+                <result property="fileTypeIndex" column="save_type"/>
+                <result property="updateTime" column="update_time"/>
+                <result property="createTime" column="create_time"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <sql id="feedbackColumns">
+        feedback.id, feedback.user_id, feedback.item_type, feedback.item_id, feedback.rating, feedback.content,
+        feedback.anonymous, feedback.created_time, feedback.updated_time
+    </sql>
+
+    <sql id="userColumns">
+        u.id as user_id, u.sys_id as user_sys_id, u.username as user_username, u.state as user_state, u.update_time as
+        user_update_time,
+        u.create_time as user_create_time, u.info_id as user_info_id, u.pid as user_pid, u.powtoon_user_id as
+        user_powtoon_user_id
+    </sql>
+
+    <sql id="userInfoColumns">
+        user_info.id as user_info_id, user_info.last_name as user_info_last_name, user_info.first_name as
+        user_info_first_name,
+        user_info.avatar_file_id as user_info_avatar_file_id, user_info.update_time as user_info_update_time,
+        user_info.create_time as user_info_create_time
+    </sql>
+
+    <sql id="userAvatarFileColumns">
+        user_avatar_file.id as user_info_avatar_file_id, user_avatar_file.name as user_info_avatar_file_name,
+        user_avatar_file.file_url as user_info_avatar_file_url, user_avatar_file.save_type as
+        user_info_avatar_file_save_type,
+        user_avatar_file.update_time as user_info_avatar_file_update_time, user_avatar_file.create_time as
+        user_info_avatar_file_create_time,
+        user_avatar_file.file_type as user_info_avatar_file_type, user_avatar_file.upload_uid as
+        user_info_avatar_file_upload_uid,
+        user_avatar_file.master_id as user_info_avatar_file_master_id, user_avatar_file.file_type_index as
+        user_info_avatar_file_file_type_index
+    </sql>
+
+    <select id="userFeedbacks" resultMap="baseResultMap">
+        SELECT
+            <include refid="feedbackColumns"/>,
+            <include refid="userColumns"/>,
+            <include refid="userInfoColumns"/>,
+            <include refid="userAvatarFileColumns"/>
+        FROM feedbacks feedback
+            JOIN gc_user u ON feedback.user_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+        WHERE feedback.updated_time >= #{startDate} AND feedback.updated_time &lt;= #{endDate} AND feedback.user_id = #{userId}
+        ORDER BY feedback.updated_time
+    </select>
+
+    <select id="feedbacks" resultMap="baseResultMap">
+        SELECT
+            <include refid="feedbackColumns"/>,
+            <include refid="userColumns"/>,
+            <include refid="userInfoColumns"/>,
+            <include refid="userAvatarFileColumns"/>
+        FROM feedbacks feedback
+            JOIN gc_user u ON feedback.user_id = u.id
+            JOIN gc_user_info user_info ON u.info_id = user_info.id
+            LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+        WHERE feedback.updated_time >= #{startDate} AND feedback.updated_time &lt;= #{endDate}
+            AND feedback.item_type = #{itemType} AND feedback.item_id = #{itemId}
+            <if test="userId != null">
+                AND feedback.user_id = #{userId}
+            </if>
+        ORDER BY feedback.updated_time
+    </select>
+
+</mapper>
