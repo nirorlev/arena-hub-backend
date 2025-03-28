@@ -294,6 +294,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     }
 
     private <T> Map<String, T> convertKeyToString(Map<Integer, T> sections) {
+        if (sections.isEmpty()) {
+            return null;
+        }
+
         return sections.entrySet().stream()
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
     }
