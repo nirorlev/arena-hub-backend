@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -25,6 +26,7 @@ public class Feedback {
     private Integer itemId;
 
     private Integer rating;
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String content;
     private Boolean anonymous;
 
