@@ -3,11 +3,11 @@ package com.threeatom.guidecore.service.impl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.dto.response.ContentProgressDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
-import com.threeatom.guidecore.dto.response.ProgressDto;
 import com.threeatom.guidecore.dto.response.SectionProgressDto;
 import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
@@ -101,7 +101,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
         courseProgressDto.setCourse(courseProgressDetailsDto);
         courseProgressDto.setSections(convertKeyToString(sectionsProgress));
-        courseProgressDto.setContent(convertKeyToString(contentProgress(videos, videoIdToViewerVideoDetails)));
+        courseProgressDto.setContent(convertKeyToString(
+            contentProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails)));
         courseProgressDto.setTasks(convertKeyToString(taskIdToProgressDetails));
 
         return courseProgressDto;
@@ -144,32 +145,43 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .collect(Collectors.toList());
     }
 
-    private Map<Integer, ProgressDetailsDto<ProgressDto>> contentProgress(List<GcVideo> videos,
-                                                                          Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails) {
+    private Map<Integer, ProgressDetailsDto<ContentProgressDto>> contentProgress(List<GcVideo> videos,
+                                                                                 Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails,
+                                                                                 Map<Integer, List<Task>> videoIdToTasks,
+                                                                                 Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
         return videos.stream()
             .collect(
-                Collectors.toMap(GcVideo::getId, video -> videoContentProgress(videoIdToViewerVideoDetails, video)));
+                Collectors.toMap(GcVideo::getId, video -> {
+                    List<Task> videoTasks = videoIdToTasks.getOrDefault(video.getId(), List.of());
+                    return videoContentProgress(videoIdToViewerVideoDetails, video, videoTasks,
+                        taskIdToProgressDetails);
+                }));
     }
 
-    private ProgressDetailsDto<ProgressDto> videoContentProgress(
-        Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails, GcVideo video) {
+    private ProgressDetailsDto<ContentProgressDto> videoContentProgress(
+        Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails, GcVideo video, List<Task> videoTasks,
+        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
 
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = videoIdToViewerVideoDetails.get(video.getId());
-        ProgressDetailsDto<ProgressDto> progressDetailsDto = new ProgressDetailsDto<>();
+        ProgressDetailsDto<ContentProgressDto> progressDetailsDto = new ProgressDetailsDto<>();
         if (videoViewerVideoDetailDto == null) {
-            progressDetailsDto.setProgress(new ProgressDto());
+            progressDetailsDto.setProgress(new ContentProgressDto());
             return progressDetailsDto;
         }
 
-        progressDetailsDto.setProgress(videoContentProgress(videoViewerVideoDetailDto));
+        progressDetailsDto.setProgress(
+            videoContentProgress(videoViewerVideoDetailDto, videoTasks, taskIdToProgressDetails));
         return progressDetailsDto;
     }
 
-    private ProgressDto videoContentProgress(VideoViewerVideoDetailDto videoViewerVideoDetailDto) {
-        ProgressDto progressDto = new ProgressDto();
+    private ContentProgressDto videoContentProgress(VideoViewerVideoDetailDto videoViewerVideoDetailDto,
+                                                    List<Task> videoTasks,
+                                                    Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
+        ContentProgressDto progressDto = new ContentProgressDto();
 
         progressDto.setPercentage(videoViewerVideoDetailDto.getPercentageViewed());
         progressDto.setSecondsViewed(videoViewerVideoDetailDto.getTotalViewTime());
+        progressDto.setCompletedTasksCount(correctlyAnsweredTasks(videoTasks, taskIdToProgressDetails).size());
 
         return progressDto;
     }
@@ -225,11 +237,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             }));
     }
 
-    private List<Task> videoTasks(List<GcVideo> sectionVideos, Map<Integer, List<Task>> videoEvents) {
+    private List<Task> videoTasks(List<GcVideo> sectionVideos, Map<Integer, List<Task>> videoIdToTasks) {
         return sectionVideos.stream()
             .map(GcVideo::getId)
-            .filter(videoEvents::containsKey)
-            .map(videoEvents::get)
+            .filter(videoIdToTasks::containsKey)
+            .map(videoIdToTasks::get)
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }

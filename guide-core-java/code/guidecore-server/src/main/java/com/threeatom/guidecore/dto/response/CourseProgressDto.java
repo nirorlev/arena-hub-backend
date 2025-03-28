@@ -9,6 +9,6 @@ import lombok.Setter;
 public class CourseProgressDto {
     private CourseProgressDetailsDto course;
     private Map<String, ProgressDetailsDto<SectionProgressDto>> sections;
-    private Map<String, ProgressDetailsDto<ProgressDto>> content;
+    private Map<String, ProgressDetailsDto<ContentProgressDto>> content;
     private Map<String, ProgressDetailsDto<TaskProgressDto>> tasks;
 }
