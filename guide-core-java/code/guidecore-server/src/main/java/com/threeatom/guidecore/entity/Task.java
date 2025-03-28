@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
 import com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler;
 import com.threeatom.guidecore.enums.TaskType;
@@ -37,6 +38,7 @@ public class Task {
     private String question;
 
     @TableField(typeHandler = TaskAnswerJsonTypeHandler.class)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Answer answer;
 
     private Integer retries = -1;
@@ -44,6 +46,7 @@ public class Task {
     private Boolean isDeleted = false;
 
     @TableField(typeHandler = TaskPropertiesJsonTypeHandler.class)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private TaskProperties properties;
 
     private Integer version;

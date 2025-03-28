@@ -4,6 +4,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
+import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
@@ -21,4 +22,6 @@ public interface TaskService extends IService<Task> {
     void deleteTask(Task task, Integer userId);
 
     AnswerKeyDto answerKey(Task task);
+
+    List<TaskVersionDto> taskVersions(Task currentVersion);
 }

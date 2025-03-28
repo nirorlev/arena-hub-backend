@@ -11,6 +11,7 @@ public enum VideoItemAction {
     VIEW("view"),
     EDIT("edit"),
     SHARE("share"),
+    RATE("rate"),
     COMMENT("comment");
 
     private final String action;

@@ -9,5 +9,6 @@ public enum CourseAction {
     UNSUBSCRIBE,
     ADD_CONTENT,
     MANAGE_CONTENT,
-    PUBLISH
+    PUBLISH,
+    RATE
 }

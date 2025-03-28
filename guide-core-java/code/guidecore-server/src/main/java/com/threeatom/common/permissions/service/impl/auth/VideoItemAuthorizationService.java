@@ -22,7 +22,8 @@ public class VideoItemAuthorizationService
         VideoItemAction.VIEW,
         VideoItemAction.EDIT,
         VideoItemAction.SHARE,
-        VideoItemAction.COMMENT
+        VideoItemAction.COMMENT,
+        VideoItemAction.RATE
     );
     private static final Map<VideoItemRole, Map<VideoItemAction, Predicate<PermitVideoItem>>>
         ROLE_VIDEO_ITEM_PERMISSIONS = Map.of(
@@ -32,7 +33,8 @@ public class VideoItemAuthorizationService
             VideoItemAction.VIEW, videoItem -> true,
             VideoItemAction.EDIT, videoItem -> false,
             VideoItemAction.SHARE, videoItem -> true,
-            VideoItemAction.COMMENT, videoItem -> true
+            VideoItemAction.COMMENT, videoItem -> true,
+            VideoItemAction.RATE, videoItem -> true
         ),
         VideoItemRole.ADMIN, Map.of(
             VideoItemAction.CREATE, videoItem -> true,
@@ -40,7 +42,8 @@ public class VideoItemAuthorizationService
             VideoItemAction.VIEW, videoItem -> true,
             VideoItemAction.EDIT, videoItem -> true,
             VideoItemAction.SHARE, PermitContentItem::isPublic,
-            VideoItemAction.COMMENT, videoItem -> true
+            VideoItemAction.COMMENT, videoItem -> true,
+            VideoItemAction.RATE, videoItem -> true
         )
     );
 

@@ -1228,4 +1228,60 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="create-feedbacks-table" author="vprokh">
+        <createTable tableName="feedbacks">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_type" type="VARCHAR(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT"/>
+            <column name="anonymous" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_time" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="feedbacks"
+                columnNames="user_id, item_type, item_id"
+                constraintName="unique_user_item_type_item_id"/>
+
+        <addForeignKeyConstraint baseTableName="feedbacks" baseColumnNames="user_id"
+                                 constraintName="fk_feedback_user_id"
+                                 referencedTableName="gc_user" referencedColumnNames="id"
+                                 onUpdate="CASCADE" onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="create-video-likes-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="videoLikesEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling video likes"/>
+            <column name="value" value="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="create-course-feedback-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="videoFeedbackEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling feedback for a video"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
