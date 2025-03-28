@@ -74,7 +74,6 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
                                   OffsetDateTime endDate, String users, PortalUser portalUser) {
 
         if ("me".equals(users)) {
-            validatePermission(itemType, itemId, portalUser, PermitAction.VIEW);
             return feedbackService.feedbacks(itemType, itemId, getStartDate(startDate), getEndDate(endDate),
                 portalUser);
         }
