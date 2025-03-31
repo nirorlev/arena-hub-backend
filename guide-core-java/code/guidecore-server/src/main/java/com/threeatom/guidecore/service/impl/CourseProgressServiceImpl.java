@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
@@ -13,6 +14,7 @@ import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
+import com.threeatom.guidecore.entity.CourseProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -20,6 +22,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
+import com.threeatom.guidecore.mapper.CourseProgressMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
@@ -41,7 +44,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CourseProgressServiceImpl implements CourseProgressService {
+public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper, CourseProgress>
+    implements CourseProgressService {
 
     private final GcSubjectService courseService;
     private final CourseContentService courseContentService;
@@ -263,7 +267,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     private Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails(PortalUser portalUser,
                                                                                 CourseEnrollment courseEnrollment,
                                                                                 List<Integer> videoIds) {
-        OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
+        OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getStartDate() : OffsetDateTime.MIN;
         OffsetDateTime end = courseProgressEndDate(courseEnrollment);
 
         return videoPlaySessionService.videoViewerDetails(videoIds, portalUser, start, end);
@@ -273,8 +277,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         if (courseEnrollment == null) {
             return OffsetDateTime.MAX;
         }
-        return courseEnrollment.getCompletionDate() != null
-            ? courseEnrollment.getCompletionDate()
+        return courseEnrollment.getComplianceDate() != null
+            ? courseEnrollment.getComplianceDate()
             : OffsetDateTime.MAX;
     }
 

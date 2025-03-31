@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.OffsetDateTime;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
@@ -17,7 +16,10 @@ public class CourseEnrollment {
 
     private Integer userId;
     private Integer courseId;
-    private OffsetDateTime completionDate;
-    private OffsetDateTime createTime = OffsetDateTime.now();
+
+    private OffsetDateTime startDate;
+    private OffsetDateTime endDate;
+    private OffsetDateTime complianceDate;
+
     private OffsetDateTime updateTime = OffsetDateTime.now();
 }
