@@ -67,6 +67,7 @@
         <id property="id" column="id"/>
         <result property="ownerId" column="owner_id"/>
         <result property="videoEventId" column="video_event_id"/>
+        <result property="courseId" column="course_id"/>
         <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result property="question" column="question"/>
         <result property="version" column="version"/>
@@ -119,7 +120,7 @@
     </sql>
 
     <sql id="taskColumns">
-        task.id as task_id, task.owner_id as task_owner_id, task.video_event_id as task_video_event_id, task.type as task_type,
+        task.id as task_id, task.owner_id as task_owner_id, task.video_event_id as task_video_event_id, task.course_id as task_course_id, task.type as task_type,
         task.question as task_question, task.retries as task_retries, task.allow_skip as task_allow_skip, task.is_deleted as task_is_deleted,
         task.properties as task_properties, task.created_time as task_created_time, task.updated_time as task_updated_time
     </sql>

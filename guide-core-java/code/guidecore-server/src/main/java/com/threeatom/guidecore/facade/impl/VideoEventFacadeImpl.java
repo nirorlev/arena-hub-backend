@@ -50,10 +50,11 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public List<TaskDto> createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer videoId,
                                     PortalUser portalUser) {
         GcVideo video = videoService.findByVideoId(videoId);
-        verifyOriginCoursePermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
+        GcSubject originCourse = video.getOriginCourse();
+        verifyOriginCoursePermission(portalUser, originCourse, PermitAction.EDIT);
 
         VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
-        taskService.createTask(taskDto, taskVideoEvent, portalUser);
+        taskService.createTask(taskDto, taskVideoEvent, originCourse.getId(), portalUser);
         return taskService.videoTasks(getTaskVideoEvents(videoId));
     }
 

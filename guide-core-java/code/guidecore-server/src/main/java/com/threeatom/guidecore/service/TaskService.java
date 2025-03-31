@@ -13,7 +13,8 @@ import java.util.List;
 public interface TaskService extends IService<Task> {
     List<TaskDto> videoTasks(List<VideoEvent> taskVideoEvents);
 
-    void createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, VideoEvent videoEvent, PortalUser portalUser);
+    void createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, VideoEvent videoEvent, Integer courseId,
+                    PortalUser portalUser);
 
     Task getTask(Integer taskId);
 

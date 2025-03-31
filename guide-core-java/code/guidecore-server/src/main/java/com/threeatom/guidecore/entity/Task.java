@@ -21,7 +21,7 @@ import org.apache.ibatis.type.EnumTypeHandler;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"videoEvent", "version", "updatedByUser", "createdTime", "updatedTime"})
+@EqualsAndHashCode(exclude = {"videoEvent", "version", "updatedByUser", "courseId", "createdTime", "updatedTime"})
 @TableName(value = "tasks", autoResultMap = true)
 public class Task {
 
@@ -32,6 +32,7 @@ public class Task {
     private Integer updatedByUserId;
 
     private Integer videoEventId;
+    private Integer courseId;
 
     @TableField(value = "type", typeHandler = EnumTypeHandler.class)
     private TaskType type;
@@ -72,6 +73,7 @@ public class Task {
         this.ownerId = task.getOwnerId();
         this.updatedByUserId = task.getUpdatedByUserId();
         this.videoEventId = task.getVideoEventId();
+        this.courseId = task.getCourseId();
         this.type = task.getType();
         this.question = task.getQuestion();
         this.answer = answer;
