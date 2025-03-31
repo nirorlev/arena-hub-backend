@@ -30,6 +30,12 @@ public class CourseEnrollment {
     @TableField(exist = false)
     private List<CourseProgress> courseProgress;
 
+    @TableField
+    private GcUser user;
+
+    @TableField
+    private GcSubject course;
+
     public Optional<CourseProgress> getLatestProgress() {
         return courseProgress.stream()
             .min(Comparator.comparing(CourseProgress::getCreatedTime));

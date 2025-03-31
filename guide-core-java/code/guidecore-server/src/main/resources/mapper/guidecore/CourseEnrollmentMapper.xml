@@ -45,4 +45,28 @@
         ORDER BY course_progress.created_time DESC
         LIMIT 1
     </select>
+
+    <select id="getCourseEnrollments" resultMap="baseResultMap">
+        SELECT
+            <include refid="courseProgressColumns"/>,
+            <include refid="courseEnrollmentColumns"/>
+        FROM course_enrollments course_enrollment
+            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+        WHERE course_enrollment.course_id = #{courseId}
+    </select>
+
+    <select id="getCourseEnrollmentsByUserId" resultMap="baseResultMap">
+        SELECT
+            <include refid="courseProgressColumns"/>,
+            <include refid="courseEnrollmentColumns"/>
+        FROM course_enrollments course_enrollment
+            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+        WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
+            <if test="startDate != null">
+                AND course_enrollment.start_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND course_enrollment.end_date &lt;= #{endDate}
+            </if>
+    </select>
 </mapper>

@@ -2,13 +2,16 @@ package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseDto;
+import com.threeatom.guidecore.dto.response.CourseEnrolmentDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgramTaskDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseSectionContentDto;
 import com.threeatom.guidecore.dto.response.CourseSectionDto;
+import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.CourseContent;
+import com.threeatom.guidecore.entity.CourseProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -33,6 +36,12 @@ public interface CourseMapping {
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
     CourseDto mapBasic(GcSubject course);
 
+    @Mapping(target = "title", source = "name")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
+    CourseEnrolmentDto mapCourseEnrollment(GcSubject course);
+
     @Mapping(target = "owner", source = "user")
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
     VideoSourceDto map(GcSubject course);
@@ -53,6 +62,8 @@ public interface CourseMapping {
     @Mapping(target = "name", source = "course.name")
     @Mapping(target = "sections", source = "courseContent", qualifiedByName = "mapCourseSectionContent")
     CourseProgramDto mapProgram(GcSubject course, List<CourseContent> courseContent);
+
+    CourseTotalProgressDto map(CourseProgress courseProgress, boolean isCompliant);
 
     @Named("mapCourseSectionContent")
     default List<CourseSectionDto> mapCourseSectionContent(List<CourseContent> courseContent) {

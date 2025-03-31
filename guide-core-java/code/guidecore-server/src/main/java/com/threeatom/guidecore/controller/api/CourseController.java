@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
+import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
@@ -16,6 +17,7 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
+import java.time.OffsetDateTime;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = "Course")
@@ -88,6 +91,19 @@ public class CourseController {
         PortalUser portalUser = getPortalUser(request);
 
         return ResponseEntity.ok(courseProgressService.courseProgress(courseId, portalUser));
+    }
+
+    @GetMapping("/{courseId}/enrollments")
+    public ResponseEntity<CourseEnrollmentsDto> courseEnrollments(@PathVariable Integer courseId,
+                                                                  @RequestParam(value = "startDate", required = false)
+                                                                  OffsetDateTime startDate,
+                                                                  @RequestParam(value = "endDate", required = false)
+                                                                  OffsetDateTime endDate,
+                                                                  @RequestParam(value = "users", required = false, defaultValue = "all")
+                                                                  String users,
+                                                                  HttpServletRequest request) {
+        return ResponseEntity.ok(
+            courseEnrollmentService.courseEnrollments(courseId, users, startDate, endDate, getPortalUser(request)));
     }
 
     @GetMapping("/{courseId}/program")
