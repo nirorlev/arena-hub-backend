@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.guidecore.dto.request.ChoiceDto;
 import com.threeatom.guidecore.dto.request.QuestionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
@@ -10,6 +11,7 @@ import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskAudit;
+import com.threeatom.guidecore.entity.TaskChoice;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.mapper.TaskMapper;
 import com.threeatom.guidecore.mapping.TaskMapping;
@@ -22,6 +24,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,10 +50,11 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Override
     @Transactional
     public void createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, VideoEvent videoEvent,
-                           PortalUser portalUser) {
+                           Integer courseId, PortalUser portalUser) {
         Task task = new Task();
         com.threeatom.guidecore.dto.request.QuestionDto question = taskDto.getQuestion();
         task.setVideoEventId(videoEvent.getId());
+        task.setCourseId(courseId);
         task.setQuestion(question.getText());
 
         task.setAllowSkip(taskDto.getCanSkip());
@@ -85,6 +90,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
     @Transactional
     public void updateTask(Task task, com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer userId) {
         QuestionDto question = taskDto.getQuestion();
+        validateTaskChoiceIdsUsedForUpdate(task.getChoices(), question.getChoices());
         validateTaskTypeMatches(task, question);
 
         Task initialStateTask = new Task(task
@@ -149,6 +155,21 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             log.warn("Failed to updated the task due to type mismatch. Task id {}, requested type {}, current type {}",
                 task.getId(), question.getType(), task.getType());
             throw new ValidationException("Task type cannot be changed!");
+        }
+    }
+
+    private void validateTaskChoiceIdsUsedForUpdate(List<TaskChoice> choices, List<ChoiceDto> choiceDtos) {
+        Set<Integer> taskChoiceIds = choices.stream()
+            .map(TaskChoice::getId)
+            .collect(Collectors.toSet());
+
+        boolean allPositiveChoiceIdsPresentInTask = choiceDtos.stream()
+            .map(ChoiceDto::getId)
+            .filter(choiceDtoId -> choiceDtoId > 0)
+            .allMatch(taskChoiceIds::contains);
+
+        if (!allPositiveChoiceIdsPresentInTask) {
+            throw new ValidationException("To update task choice - the existing ID values should be used");
         }
     }
 
