@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class TaskSessionDto {
     @NotNull(message = "Id must not be null")
-    private UUID id;
+    private UUID sessionId;
 
     @NotNull(message = "Start time must not be null")
     private OffsetDateTime startTime;

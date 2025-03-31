@@ -101,12 +101,12 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         Integer videoId = task.getVideoEvent().getVideoId();
 
         if ("all".equals(userFilter)) {
-            verifyPermission(portalUser, videoId, PermitAction.EDIT);
+            verifyOriginCoursePermission(portalUser, videoId, PermitAction.EDIT);
             return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType());
         }
 
         if ("me".equals(userFilter)) {
-            verifyPermission(portalUser, videoId, PermitAction.VIEW);
+            verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
             return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), portalUser);
         }
 
@@ -118,7 +118,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
                                               Integer taskId, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
-        verifyPermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
+        verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
 
         UserTaskAnswer userTaskAnswer = userTaskAnswerService.createAnswer(userTaskAnswerDto, task, portalUser);
         return userTaskAnswerService.findUserTaskAnswerById(userTaskAnswer.getId(), task.getType());

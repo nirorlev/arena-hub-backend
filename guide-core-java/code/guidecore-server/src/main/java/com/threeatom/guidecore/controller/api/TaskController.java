@@ -77,7 +77,7 @@ public class TaskController {
 
     @GetMapping("/{taskId}/answers")
     public UserTaskAnswersDto taskAnswers(@PathVariable Integer taskId,
-                                          @RequestParam(value = "users", required = false, defaultValue = "all")
+                                          @RequestParam(value = "users", required = false, defaultValue = "me")
                                           String userFilter,
                                           HttpServletRequest request) {
         return videoEventFacade.taskAnswers(taskId, userFilter, getPortalUser(request));
