@@ -248,6 +248,12 @@
             <if test="userId != null">
                 AND user_task_answer.owner_id = #{userId}
             </if>
+            <if test="startDate != null">
+                AND user_task_answer.created_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND user_task_answer.created_time &lt; #{endDate}
+            </if>
         ORDER BY user_task_answer.created_time DESC
     </select>
 

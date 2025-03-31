@@ -6,6 +6,7 @@ import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.PortalUser;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface VideoEventFacade {
@@ -24,7 +25,8 @@ public interface VideoEventFacade {
 
     List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser);
 
-    UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, PortalUser portalUser);
+    UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, OffsetDateTime startDate, OffsetDateTime endDate,
+                                   PortalUser portalUser);
 
     UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
                                        Integer taskId, PortalUser portalUser);

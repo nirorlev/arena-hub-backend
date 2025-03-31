@@ -14,6 +14,7 @@ import com.threeatom.guidecore.service.PortalUserService;
 import com.threeatom.guidecore.service.TaskSessionService;
 import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
+import java.time.OffsetDateTime;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -79,8 +80,10 @@ public class TaskController {
     public UserTaskAnswersDto taskAnswers(@PathVariable Integer taskId,
                                           @RequestParam(value = "users", required = false, defaultValue = "me")
                                           String userFilter,
+                                          @RequestParam(required = false) OffsetDateTime startDate,
+                                          @RequestParam(required = false) OffsetDateTime endDate,
                                           HttpServletRequest request) {
-        return videoEventFacade.taskAnswers(taskId, userFilter, getPortalUser(request));
+        return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request));
     }
 
     @PostMapping("/{taskId}/answers")

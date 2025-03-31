@@ -32,6 +32,8 @@ import com.threeatom.guidecore.service.UserTaskAnswerChoiceService;
 import com.threeatom.guidecore.service.UserTaskAnswerReviewService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoAnswerStrategy;
+import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -58,15 +60,18 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
 
     @Override
     public UserTaskAnswersDto findUserTaskAnswersByTaskIdAndUserId(Integer taskId, TaskType taskType,
+                                                                   OffsetDateTime startDate, OffsetDateTime endDate,
                                                                    PortalUser portalUser) {
-        List<UserTaskAnswer> taskAnswers = baseMapper.findTaskAnswers(taskId, taskType.name(), portalUser.getUserId());
+        List<UserTaskAnswer> taskAnswers = baseMapper.findTaskAnswers(taskId, taskType.name(), portalUser.getUserId(),
+            startDate, endDate);
 
         return convertUserTaskAnswersDtos(taskType, taskAnswers);
     }
 
     @Override
-    public UserTaskAnswersDto findUserTaskAnswersByTaskId(Integer taskId, TaskType taskType) {
-        List<UserTaskAnswer> taskAnswers = baseMapper.findTaskAnswers(taskId, taskType.name(), null);
+    public UserTaskAnswersDto findUserTaskAnswersByTaskId(Integer taskId, TaskType taskType, OffsetDateTime startDate,
+                                                          OffsetDateTime endDate) {
+        List<UserTaskAnswer> taskAnswers = baseMapper.findTaskAnswers(taskId, taskType.name(), null, startDate, endDate);
 
         return convertUserTaskAnswersDtos(taskType, taskAnswers);
     }

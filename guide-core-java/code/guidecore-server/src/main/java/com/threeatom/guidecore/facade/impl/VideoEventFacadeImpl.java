@@ -21,6 +21,7 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,18 +97,19 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     }
 
     @Override
-    public UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, PortalUser portalUser) {
+    public UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, OffsetDateTime startDate,
+                                          OffsetDateTime endDate, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         Integer videoId = task.getVideoEvent().getVideoId();
 
         if ("all".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.EDIT);
-            return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType());
+            return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType(), startDate, endDate);
         }
 
         if ("me".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), startDate, endDate, portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
