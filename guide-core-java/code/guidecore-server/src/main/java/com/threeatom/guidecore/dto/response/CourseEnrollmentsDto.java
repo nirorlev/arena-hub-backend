@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CourseEnrollmentsDto {
-    private List<UserDetailsDto> users;
+    private Map<String, UserDetailsDto> users;
     private Map<String, CourseEnrolmentDto> courses;
 }

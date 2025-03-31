@@ -11,6 +11,7 @@ import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseEnrolmentDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
+import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseProgress;
 import com.threeatom.guidecore.entity.GcSubject;
@@ -23,9 +24,12 @@ import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,13 +144,13 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     }
 
     private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments) {
-        List<GcUser> users = courseEnrollments.stream()
-            .map(CourseEnrollment::getUser)
-            .collect(Collectors.toList());
-
         CourseEnrollmentsDto courseEnrollmentsDto = new CourseEnrollmentsDto();
-        courseEnrollmentsDto.setUsers(userMapping.map(users));
+        courseEnrollmentsDto.setUsers(enrollmentUsers(courseEnrollments));
+        courseEnrollmentsDto.setCourses(enrollmentCourseDetails(courseEnrollments));
+        return courseEnrollmentsDto;
+    }
 
+    private Map<String, CourseEnrolmentDto> enrollmentCourseDetails(List<CourseEnrollment> courseEnrollments) {
         Map<String, CourseEnrolmentDto> courseIdToCourseEnrolmentDto = new HashMap<>();
         Map<Integer, List<CourseEnrollment>> courseIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getCourseId));
@@ -156,8 +160,18 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
                 createCourseEnrollmentDto(courseIdToCourseEnrollmentsEntry.getValue()));
         }
 
-        courseEnrollmentsDto.setCourses(courseIdToCourseEnrolmentDto);
-        return courseEnrollmentsDto;
+        return courseIdToCourseEnrolmentDto;
+    }
+
+    private Map<String, UserDetailsDto> enrollmentUsers(List<CourseEnrollment> courseEnrollments) {
+        Set<Integer> uniqueUsers = new HashSet<>();
+        List<GcUser> users = courseEnrollments.stream()
+            .filter(courseEnrollment -> uniqueUsers.add(courseEnrollment.getUserId()))
+            .map(CourseEnrollment::getUser)
+            .collect(Collectors.toList());
+
+        return userMapping.map(users).stream()
+            .collect(Collectors.toMap(details -> String.valueOf(details.getId()), Function.identity()));
     }
 
     private CourseEnrolmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments) {
