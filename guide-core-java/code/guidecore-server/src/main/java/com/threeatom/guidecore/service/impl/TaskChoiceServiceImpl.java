@@ -46,7 +46,8 @@ public class TaskChoiceServiceImpl extends ServiceImpl<TaskChoiceMapper, TaskCho
 
     @Override
     @Transactional
-    public Map<Integer, Integer> updateTaskChoices(List<TaskChoice> choices, List<ChoiceDto> choiceDtos, Integer taskId) {
+    public Map<Integer, Integer> updateTaskChoices(List<TaskChoice> choices, List<ChoiceDto> choiceDtos,
+                                                   Integer taskId) {
         if (CollectionUtils.isEmpty(choices) && CollectionUtils.isEmpty(choiceDtos)) {
             return Map.of();
         }

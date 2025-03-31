@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
 import com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler;
@@ -20,7 +21,7 @@ import org.apache.ibatis.type.EnumTypeHandler;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"videoEvent", "version", "updatedByUser", "createdTime", "updatedTime"})
+@EqualsAndHashCode(exclude = {"videoEvent", "version", "updatedByUser", "courseId", "createdTime", "updatedTime"})
 @TableName(value = "tasks", autoResultMap = true)
 public class Task {
 
@@ -31,6 +32,7 @@ public class Task {
     private Integer updatedByUserId;
 
     private Integer videoEventId;
+    private Integer courseId;
 
     @TableField(value = "type", typeHandler = EnumTypeHandler.class)
     private TaskType type;
@@ -59,9 +61,11 @@ public class Task {
     private List<TaskChoice> choices;
 
     @TableField(exist = false)
+    @JsonIgnore
     private VideoEvent videoEvent;
 
     @TableField(exist = false)
+    @JsonIgnore
     private GcUser updatedByUser;
 
     public Task(Task task, Answer answer, TaskProperties properties) {
@@ -69,6 +73,7 @@ public class Task {
         this.ownerId = task.getOwnerId();
         this.updatedByUserId = task.getUpdatedByUserId();
         this.videoEventId = task.getVideoEventId();
+        this.courseId = task.getCourseId();
         this.type = task.getType();
         this.question = task.getQuestion();
         this.answer = answer;
