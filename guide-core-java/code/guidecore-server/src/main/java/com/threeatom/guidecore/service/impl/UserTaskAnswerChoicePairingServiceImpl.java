@@ -30,6 +30,7 @@ public class UserTaskAnswerChoicePairingServiceImpl
         verifyChoicePairsValid(userAnswerChoiceIds, pairingProperties);
 
         List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings = userAnswerChoiceIds.stream()
+            .map(choices -> choices.stream().sorted().collect(Collectors.toList()))
             .map(choices -> userTaskAnswerChoicePairing(userTaskAnswerId, choices,
                 taskAnswerChoicePairings.getChoiceIds()))
             .collect(Collectors.toList());
