@@ -12,6 +12,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.CourseEnrollmentMapper;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,12 +42,8 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     }
 
     @Override
-    public CourseEnrollment getCourseEnrollment(PortalUser portalUser, Integer courseId) {
-        QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", portalUser.getUserId());
-        queryWrapper.eq("course_id", courseId);
-
-        return getOne(queryWrapper);
+    public Optional<CourseEnrollment> findCourseEnrollment(Integer courseId, PortalUser portalUser) {
+        return Optional.ofNullable(baseMapper.findCourseEnrollment(courseId));
     }
 
     private CourseEnrollment createCourseUser(PortalUser portalUser, Integer courseId) {

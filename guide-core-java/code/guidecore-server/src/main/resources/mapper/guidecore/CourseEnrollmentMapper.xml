@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.CourseEnrollmentMapper">
+
+    <resultMap id="baseResultMap" type="CourseEnrollment">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="complianceDate" column="compliance_date"/>
+        <result property="updatedTime" column="updated_time"/>
+
+        <collection property="courseProgress" ofType="com.threeatom.guidecore.entity.CourseProgress" resultMap="courseProgressResultMap" columnPrefix="progress_"/>
+    </resultMap>
+
+    <resultMap id="courseProgressResultMapper" type="CourseProgress" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="enrollmentId" column="enrollment_id"/>
+        <result property="percentage" column="percentage"/>
+        <result property="secondsViewed" column="seconds_viewed"/>
+        <result property="completedSectionsCount" column="completed_sections_count"/>
+        <result property="completedTasksCount" column="completed_tasks_count"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <sql id="courseProgressColumns">
+        course_progress.id, course_progress.enrollment_id, course_progress.percentage, course_progress.seconds_viewed,
+        course_progress.completed_sections_count,
+        course_progress.completed_tasks_count, course_progress.created_time, course_progress.updated_time
+    </sql>
+
+    <sql id="courseEnrollmentColumns">
+        course_enrollment.id, course_enrollment.user_id, course_enrollment.course_id, course_enrollment.start_date,
+        course_enrollment.end_date, course_enrollment.compliance_date, course_enrollment.updated_time
+    </sql>
+
+    <select id="findCourseEnrollment" resultMap="baseResultMap">
+        SELECT
+        <include refid="courseProgressColumns"/>,
+        <include refid="courseEnrollmentColumns"/>
+        FROM courses_progress course_progress
+        WHERE course_progress.course_id = #{courseId}
+        ORDER BY course_progress.created_time DESC
+        LIMIT 1
+    </select>
+</mapper>

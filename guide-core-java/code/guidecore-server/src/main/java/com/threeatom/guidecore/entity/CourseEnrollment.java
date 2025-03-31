@@ -1,9 +1,13 @@
 package com.threeatom.guidecore.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,5 +25,13 @@ public class CourseEnrollment {
     private OffsetDateTime endDate;
     private OffsetDateTime complianceDate;
 
-    private OffsetDateTime updateTime = OffsetDateTime.now();
+    private OffsetDateTime updatedTime = OffsetDateTime.now();
+
+    @TableField(exist = false)
+    private List<CourseProgress> courseProgress;
+
+    public Optional<CourseProgress> getLatestProgress() {
+        return courseProgress.stream()
+            .min(Comparator.comparing(CourseProgress::getCreatedTime));
+    }
 }
