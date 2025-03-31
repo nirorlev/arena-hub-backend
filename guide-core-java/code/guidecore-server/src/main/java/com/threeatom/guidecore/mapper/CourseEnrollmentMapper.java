@@ -12,4 +12,10 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
 
     List<CourseEnrollment> getCourseEnrollmentsByUserId(Integer courseId, OffsetDateTime startDate,
                                                         OffsetDateTime endDate, Integer userId);
+
+    List<CourseEnrollment> getCourseEnrollmentsByMasterId(OffsetDateTime startDate, OffsetDateTime endDate,
+                                                          Integer masterId);
+
+    List<CourseEnrollment> getCourseEnrollmentsByUserAndMasterId(OffsetDateTime startDate, OffsetDateTime endDate,
+                                                                 Integer userId, Integer masterId);
 }

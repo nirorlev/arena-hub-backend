@@ -63,7 +63,32 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     @Override
     public CourseEnrollmentsDto courseEnrollments(Integer courseId, String usersFlag, OffsetDateTime startDate,
                                                   OffsetDateTime endDate, PortalUser portalUser) {
-        List<CourseEnrollment> courseEnrollments = getCourseEnrollments(courseId, usersFlag, startDate, endDate, portalUser);
+        return courseEnrollmentsDto(getCourseEnrollments(courseId, usersFlag, startDate, endDate, portalUser));
+    }
+
+    @Override
+    public CourseEnrollmentsDto courseEnrollments(String usersFlag, OffsetDateTime startDate, OffsetDateTime endDate,
+                                                  PortalUser portalUser) {
+        return courseEnrollmentsDto(getCourseEnrollments(usersFlag, startDate, endDate, portalUser));
+    }
+
+    private List<CourseEnrollment> getCourseEnrollments(Integer courseId, String usersFlag, OffsetDateTime startDate,
+                                                        OffsetDateTime endDate, PortalUser portalUser) {
+        if ("all".equals(usersFlag)) {
+            return baseMapper.getCourseEnrollments(courseId);
+        }
+        return baseMapper.getCourseEnrollmentsByUserId(courseId, startDate, endDate, portalUser.getUserId());
+    }
+
+    private List<CourseEnrollment> getCourseEnrollments(String usersFlag, OffsetDateTime startDate,
+                                                        OffsetDateTime endDate, PortalUser portalUser) {
+        if ("all".equals(usersFlag)) {
+            return baseMapper.getCourseEnrollmentsByMasterId(startDate, endDate, portalUser.getMasterId());
+        }
+        return baseMapper.getCourseEnrollmentsByUserAndMasterId(startDate, endDate, portalUser.getUserId(), portalUser.getMasterId());
+    }
+
+    private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments) {
         List<GcUser> users = courseEnrollments.stream()
             .map(CourseEnrollment::getUser)
             .collect(Collectors.toList());
@@ -82,14 +107,6 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
         courseEnrollmentsDto.setCourses(courseIdToCourseEnrolmentDto);
         return courseEnrollmentsDto;
-    }
-
-    private List<CourseEnrollment> getCourseEnrollments(Integer courseId, String usersFlag, OffsetDateTime startDate,
-                                                        OffsetDateTime endDate, PortalUser portalUser) {
-        if ("all".equals(usersFlag)) {
-            return baseMapper.getCourseEnrollments(courseId);
-        }
-        return baseMapper.getCourseEnrollmentsByUserId(courseId, startDate, endDate, portalUser.getUserId());
     }
 
     private CourseEnrolmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments) {

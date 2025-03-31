@@ -12,5 +12,9 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
 
     Optional<CourseEnrollment> findCourseEnrollment(Integer courseId, PortalUser portalUser);
 
-    CourseEnrollmentsDto courseEnrollments(Integer courseId, String users, OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser);
+    CourseEnrollmentsDto courseEnrollments(Integer courseId, String users, OffsetDateTime startDate,
+                                           OffsetDateTime endDate, PortalUser portalUser);
+
+    CourseEnrollmentsDto courseEnrollments(String usersFlag, OffsetDateTime startDate, OffsetDateTime endDate,
+                                           PortalUser portalUser);
 }
