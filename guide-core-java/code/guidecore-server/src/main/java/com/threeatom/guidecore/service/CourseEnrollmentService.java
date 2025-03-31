@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.threeatom.guidecore.dto.request.UpdateEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.entity.CourseEnrollment;
@@ -20,4 +21,7 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
                                            PortalUser portalUser);
 
     UserCourseEnrollmentDto courseEnrollment(Integer enrollmentId, PortalUser portalUser);
+
+    UserCourseEnrollmentDto updateCourseEnrollment(Integer enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
+                                                   PortalUser portalUser);
 }

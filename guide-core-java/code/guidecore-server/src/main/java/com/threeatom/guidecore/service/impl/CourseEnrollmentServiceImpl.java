@@ -3,8 +3,10 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.common.exception.ValidationException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.dto.request.UpdateEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseEnrolmentDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
@@ -51,6 +53,10 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             throw new ForbiddenException("No permission to view this course");
         }
+        Optional<CourseEnrollment> existingCourseEnrollment = findCourseEnrollment(courseId, portalUser);
+        if (existingCourseEnrollment.isPresent() && existingCourseEnrollment.get().getEndDate() == null) {
+            throw new ValidationException("This user already has an active enrollment for this course!");
+        }
 
         CourseEnrollment courseEnrollment = createCourseEnrollment(portalUser, courseId);
         save(courseEnrollment);
@@ -78,6 +84,32 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     public UserCourseEnrollmentDto courseEnrollment(Integer enrollmentId, PortalUser portalUser) {
         CourseEnrollment enrollment = getEnrollmentById(enrollmentId);
         return createUserCourseEnrollmentDto(enrollment);
+    }
+
+    @Override
+    @Transactional
+    public UserCourseEnrollmentDto updateCourseEnrollment(Integer enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
+                                                          PortalUser portalUser) {
+        CourseEnrollment courseEnrollment = getEnrollmentById(enrollmentId);
+        if (!courseEnrollment.getUserId().equals(portalUser.getUserId())) {
+            log.error("Failed to update course enrollment with id {}. User id {} is not an owner of enrollment",
+                enrollmentId, portalUser.getUserId());
+            throw new ValidationException("Failed to update course enrollment. User is not an owner of enrollment");
+        }
+
+        updateEnrollment(courseEnrollment, updateEnrollmentDto);
+        return createUserCourseEnrollmentDto(courseEnrollment);
+    }
+
+    private void updateEnrollment(CourseEnrollment courseEnrollment, UpdateEnrollmentDto updateEnrollmentDto) {
+        if (updateEnrollmentDto.getIsActive()) {
+            courseEnrollment.setEndDate(null);
+        } else {
+            courseEnrollment.setEndDate(OffsetDateTime.now());
+        }
+
+        courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+        updateById(courseEnrollment);
     }
 
     private CourseEnrollment getEnrollmentById(Integer id) {

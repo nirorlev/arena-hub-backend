@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -23,7 +24,10 @@ public class CourseEnrollment {
     private Integer courseId;
 
     private OffsetDateTime startDate;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private OffsetDateTime endDate;
+
     private OffsetDateTime complianceDate;
 
     private OffsetDateTime updatedTime = OffsetDateTime.now();

@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
+import com.threeatom.guidecore.dto.request.UpdateEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -11,11 +12,14 @@ import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
 import java.time.OffsetDateTime;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +34,7 @@ public class CourseEnrollmentController {
     private final GcUserService userService;
     private final PortalUserService portalUserService;
 
-    @GetMapping("/enrollments")
+    @GetMapping
     public ResponseEntity<CourseEnrollmentsDto> courseEnrollments(@RequestParam(value = "startDate", required = false)
                                                                   OffsetDateTime startDate,
                                                                   @RequestParam(value = "endDate", required = false)
@@ -42,11 +46,20 @@ public class CourseEnrollmentController {
             courseEnrollmentService.courseEnrollments(usersFlag, startDate, endDate, getPortalUser(request)));
     }
 
-    @GetMapping("/enrollments/{enrollmentId}")
+    @GetMapping("/{enrollmentId}")
     public ResponseEntity<UserCourseEnrollmentDto> courseEnrollment(@PathVariable("enrollmentId") Integer enrollmentId,
                                                                     HttpServletRequest request) {
         return ResponseEntity.ok(
             courseEnrollmentService.courseEnrollment(enrollmentId, getPortalUser(request)));
+    }
+
+    @PutMapping("/{enrollmentId}")
+    public ResponseEntity<UserCourseEnrollmentDto> updateEnrollment(@PathVariable("enrollmentId") Integer enrollmentId,
+                                                                    @RequestBody @Valid
+                                                                    UpdateEnrollmentDto updateEnrollmentDto,
+                                                                    HttpServletRequest request) {
+        return ResponseEntity.ok(
+            courseEnrollmentService.updateCourseEnrollment(enrollmentId, updateEnrollmentDto, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {
