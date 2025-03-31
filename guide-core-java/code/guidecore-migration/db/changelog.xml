@@ -1284,4 +1284,8 @@
         </insert>
     </changeSet>
 
+    <changeSet id="rename-task-session-startTime-column" author="vprokh">
+        <renameColumn tableName="task_sessions" oldColumnName="startTime" newColumnName="start_time"/>
+    </changeSet>
+
 </databaseChangeLog>
