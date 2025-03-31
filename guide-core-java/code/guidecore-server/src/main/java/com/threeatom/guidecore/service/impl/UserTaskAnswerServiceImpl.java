@@ -91,7 +91,7 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
             throw new ValidationException("Task version mismatch");
         }
         List<UserTaskAnswer> answers = findByTaskIdAndUserId(task.getId(), portalUser.getUserId());
-        if (answers.size() >= task.getRetries()) {
+        if (task.getRetries() > 0 && answers.size() >= task.getRetries()) {
             log.info("Task retries exceeded for task %s".formatted(task.getId()));
             throw new ValidationException("Task retries exceeded");
         }
