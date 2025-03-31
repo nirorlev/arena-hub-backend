@@ -26,9 +26,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -72,6 +74,22 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return courseEnrollmentsDto(getCourseEnrollments(usersFlag, startDate, endDate, portalUser));
     }
 
+    @Override
+    public UserCourseEnrollmentDto courseEnrollment(Integer enrollmentId, PortalUser portalUser) {
+        CourseEnrollment enrollment = getEnrollmentById(enrollmentId);
+        return createUserCourseEnrollmentDto(enrollment);
+    }
+
+    private CourseEnrollment getEnrollmentById(Integer id) {
+        CourseEnrollment enrollment = baseMapper.getCourseEnrollmentById(id);
+        if (enrollment == null) {
+            log.error("Cannot find course enrollment using id {}", id);
+            throw new ResourceNotFoundException("Course enrollment cannot be found by requested id");
+        }
+
+        return enrollment;
+    }
+
     private List<CourseEnrollment> getCourseEnrollments(Integer courseId, String usersFlag, OffsetDateTime startDate,
                                                         OffsetDateTime endDate, PortalUser portalUser) {
         if ("all".equals(usersFlag)) {
@@ -85,7 +103,8 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         if ("all".equals(usersFlag)) {
             return baseMapper.getCourseEnrollmentsByMasterId(startDate, endDate, portalUser.getMasterId());
         }
-        return baseMapper.getCourseEnrollmentsByUserAndMasterId(startDate, endDate, portalUser.getUserId(), portalUser.getMasterId());
+        return baseMapper.getCourseEnrollmentsByUserAndMasterId(startDate, endDate, portalUser.getUserId(),
+            portalUser.getMasterId());
     }
 
     private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments) {
@@ -129,25 +148,27 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
     private List<UserCourseEnrollmentDto> createUserCourseEnrollmentsDto(List<CourseEnrollment> userCourseEnrollments) {
         return userCourseEnrollments.stream()
-            .map(userCourseEnrollment -> {
-                UserCourseEnrollmentDto userCourseEnrollmentDto = new UserCourseEnrollmentDto();
-                Optional<CourseProgress> courseProgress = userCourseEnrollment.getLatestProgress();
-
-                userCourseEnrollmentDto.setId(userCourseEnrollment.getId());
-                userCourseEnrollmentDto.setStartDate(userCourseEnrollment.getStartDate());
-                userCourseEnrollmentDto.setEndDate(userCourseEnrollment.getEndDate());
-                userCourseEnrollmentDto.setComplianceDate(userCourseEnrollment.getComplianceDate());
-
-                courseProgress.ifPresent(progress -> {
-                    CourseTotalProgressDto courseTotalProgressDto =
-                        courseMapping.map(progress, userCourseEnrollment.getComplianceDate() != null);
-                    userCourseEnrollmentDto.setProgress(courseTotalProgressDto);
-                    userCourseEnrollmentDto.setProgressDate(progress.getUpdatedTime());
-                });
-
-                return userCourseEnrollmentDto;
-            })
+            .map(this::createUserCourseEnrollmentDto)
             .collect(Collectors.toList());
+    }
+
+    private UserCourseEnrollmentDto createUserCourseEnrollmentDto(CourseEnrollment courseEnrollment) {
+        UserCourseEnrollmentDto userCourseEnrollmentDto = new UserCourseEnrollmentDto();
+
+        userCourseEnrollmentDto.setId(courseEnrollment.getId());
+        userCourseEnrollmentDto.setStartDate(courseEnrollment.getStartDate());
+        userCourseEnrollmentDto.setEndDate(courseEnrollment.getEndDate());
+        userCourseEnrollmentDto.setComplianceDate(courseEnrollment.getComplianceDate());
+
+        Optional<CourseProgress> courseProgress = courseEnrollment.getLatestProgress();
+        courseProgress.ifPresent(progress -> {
+            CourseTotalProgressDto courseTotalProgressDto =
+                courseMapping.map(progress, courseEnrollment.getComplianceDate() != null);
+            userCourseEnrollmentDto.setProgress(courseTotalProgressDto);
+            userCourseEnrollmentDto.setProgressDate(progress.getUpdatedTime());
+        });
+
+        return userCourseEnrollmentDto;
     }
 
     private CourseEnrollment createCourseUser(PortalUser portalUser, Integer courseId) {

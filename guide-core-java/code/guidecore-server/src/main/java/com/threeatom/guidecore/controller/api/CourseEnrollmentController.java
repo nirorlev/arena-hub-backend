@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
+import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
@@ -39,6 +40,13 @@ public class CourseEnrollmentController {
                                                                   HttpServletRequest request) {
         return ResponseEntity.ok(
             courseEnrollmentService.courseEnrollments(usersFlag, startDate, endDate, getPortalUser(request)));
+    }
+
+    @GetMapping("/enrollments/{enrollmentId}")
+    public ResponseEntity<UserCourseEnrollmentDto> courseEnrollment(@PathVariable("enrollmentId") Integer enrollmentId,
+                                                                    HttpServletRequest request) {
+        return ResponseEntity.ok(
+            courseEnrollmentService.courseEnrollment(enrollmentId, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

@@ -99,4 +99,13 @@
                 AND course_enrollment.end_date &lt;= #{endDate}
             </if>
     </select>
+
+    <select id="getCourseEnrollmentById" resultMap="baseResultMap">
+        SELECT
+            <include refid="courseProgressColumns"/>,
+            <include refid="courseEnrollmentColumns"/>
+        FROM course_enrollments course_enrollment
+            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+        WHERE course_enrollment.id = #{id}
+    </select>
 </mapper>

@@ -26,6 +26,7 @@ public interface GcContentGroupCourseAssignmentMapping {
 
     @Mapping(target = "group", source = "contentGroup")
     @Mapping(target = "user", source = "createdBy")
+    @Mapping(target = "course", source = "course")
     @Mapping(target = "mandatory", qualifiedByName = "convertToMandatoryBoolean")
     @Mapping(target = "updatedTime", source = "modifiedDate")
     GroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
