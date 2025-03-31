@@ -14,7 +14,7 @@
         <collection property="courseProgress" ofType="com.threeatom.guidecore.entity.CourseProgress" resultMap="courseProgressResultMap" columnPrefix="progress_"/>
     </resultMap>
 
-    <resultMap id="courseProgressResultMapper" type="CourseProgress" autoMapping="true">
+    <resultMap id="courseProgressResultMap" type="CourseProgress" autoMapping="true">
         <id property="id" column="id"/>
         <result property="enrollmentId" column="enrollment_id"/>
         <result property="percentage" column="percentage"/>
@@ -26,9 +26,11 @@
     </resultMap>
 
     <sql id="courseProgressColumns">
-        course_progress.id, course_progress.enrollment_id, course_progress.percentage, course_progress.seconds_viewed,
-        course_progress.completed_sections_count,
-        course_progress.completed_tasks_count, course_progress.created_time, course_progress.updated_time
+        course_progress.id AS progress_id, course_progress.enrollment_id AS progress_enrollment_id,
+        course_progress.percentage AS progress_percentage, course_progress.seconds_viewed AS progress_seconds_viewed,
+        course_progress.completed_sections_count AS progress_completed_sections_count,
+        course_progress.completed_tasks_count AS progress_completed_tasks_count,
+        course_progress.created_time AS progress_created_time, course_progress.updated_time AS progress_updated_time
     </sql>
 
     <sql id="courseEnrollmentColumns">
@@ -38,11 +40,12 @@
 
     <select id="findCourseEnrollment" resultMap="baseResultMap">
         SELECT
-        <include refid="courseProgressColumns"/>,
-        <include refid="courseEnrollmentColumns"/>
-        FROM courses_progress course_progress
-        WHERE course_progress.course_id = #{courseId}
-        ORDER BY course_progress.created_time DESC
+            <include refid="courseProgressColumns"/>,
+            <include refid="courseEnrollmentColumns"/>
+        FROM course_enrollments course_enrollment
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+        WHERE course_enrollment.course_id = #{courseId}
+        ORDER BY course_enrollment.start_date DESC
         LIMIT 1
     </select>
 
@@ -51,7 +54,7 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId}
     </select>
 
@@ -60,7 +63,7 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
@@ -75,8 +78,9 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
-        WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            JOIN gc_subject course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
+        WHERE 1=1
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
             </if>
@@ -90,8 +94,9 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
-        WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            JOIN gc_subject course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
+        WHERE course_enrollment.user_id = #{userId}
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
             </if>
@@ -105,7 +110,7 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.id = #{id}
     </select>
 </mapper>

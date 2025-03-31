@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 
 public interface CourseEnrollmentService extends IService<CourseEnrollment> {
-    void enrollToCourse(PortalUser portalUser, Integer courseId);
+    UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser);
 
     Optional<CourseEnrollment> findCourseEnrollment(Integer courseId, PortalUser portalUser);
 

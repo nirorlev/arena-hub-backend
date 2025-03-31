@@ -43,7 +43,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     private final AuthorizationService authorizationService;
 
     @Override
-    public void enrollToCourse(PortalUser portalUser, Integer courseId) {
+    public UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser) {
         GcSubject course = courseService.getById(courseId);
         if (course == null) {
             throw new ResourceNotFoundException("Course with specified id not found");
@@ -52,9 +52,9 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
             throw new ForbiddenException("No permission to view this course");
         }
 
-        CourseEnrollment courseEnrollment = createCourseUser(portalUser, courseId);
-
+        CourseEnrollment courseEnrollment = createCourseEnrollment(portalUser, courseId);
         save(courseEnrollment);
+        return createUserCourseEnrollmentDto(courseEnrollment);
     }
 
     @Override
@@ -171,10 +171,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return userCourseEnrollmentDto;
     }
 
-    private CourseEnrollment createCourseUser(PortalUser portalUser, Integer courseId) {
+    private CourseEnrollment createCourseEnrollment(PortalUser portalUser, Integer courseId) {
         CourseEnrollment courseEnrollment = new CourseEnrollment();
         courseEnrollment.setCourseId(courseId);
         courseEnrollment.setUserId(portalUser.getUserId());
+        courseEnrollment.setStartDate(OffsetDateTime.now());
 
         return courseEnrollment;
     }

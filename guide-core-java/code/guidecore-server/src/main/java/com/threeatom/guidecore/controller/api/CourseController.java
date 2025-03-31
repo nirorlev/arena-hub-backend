@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
+import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -46,13 +47,10 @@ public class CourseController {
     private final CourseProgressService courseProgressService;
     private final CourseSettingService courseSettingService;
 
-    @PostMapping("/{courseId}/users")
-    public ResponseEntity<Void> enrollToCourse(@PathVariable Integer courseId, HttpServletRequest request) {
-        PortalUser portalUser = getPortalUser(request);
-
-        courseEnrollmentService.enrollToCourse(portalUser, courseId);
-
-        return ResponseEntity.ok().build();
+    @PostMapping("/{courseId}/enrollments")
+    public ResponseEntity<UserCourseEnrollmentDto> addCourseEnrollment(@PathVariable Integer courseId,
+                                                                       HttpServletRequest request) {
+        return ResponseEntity.ok(courseEnrollmentService.enrollToCourse(courseId, getPortalUser(request)));
     }
 
     @PostMapping("/{courseId}/settings")
