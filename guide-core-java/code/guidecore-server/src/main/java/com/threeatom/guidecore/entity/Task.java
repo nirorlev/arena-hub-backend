@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeatom.common.mybatis.typehandler.TaskAnswerJsonTypeHandler;
 import com.threeatom.common.mybatis.typehandler.TaskPropertiesJsonTypeHandler;
@@ -59,9 +60,11 @@ public class Task {
     private List<TaskChoice> choices;
 
     @TableField(exist = false)
+    @JsonIgnore
     private VideoEvent videoEvent;
 
     @TableField(exist = false)
+    @JsonIgnore
     private GcUser updatedByUser;
 
     public Task(Task task, Answer answer, TaskProperties properties) {
