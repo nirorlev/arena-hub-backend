@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapping;
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
+import com.threeatom.guidecore.dto.response.CourseProgramTaskDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.CourseSectionContentDto;
 import com.threeatom.guidecore.dto.response.CourseSectionDto;
@@ -11,6 +12,7 @@ import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.enums.CourseContentType;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +95,23 @@ public interface CourseMapping {
         courseSectionContentDto.setType(CourseContentType.VIDEO);
         courseSectionContentDto.setId(video.getId());
         courseSectionContentDto.setDuration(video.getVideoTime());
+        courseSectionContentDto.setTasks(createCourseProgramTaskDtos(video.getTasks()));
         courseSectionContentDto.setName(video.getVideoName());
         return courseSectionContentDto;
+    }
+
+    private List<CourseProgramTaskDto> createCourseProgramTaskDtos(List<Task> tasks) {
+        if (CollectionUtils.isEmpty(tasks)) {
+            return List.of();
+        }
+
+        return tasks.stream()
+            .map(task -> {
+                CourseProgramTaskDto courseProgramTaskDto = new CourseProgramTaskDto();
+                courseProgramTaskDto.setId(task.getId());
+                courseProgramTaskDto.setType(task.getType());
+                return courseProgramTaskDto;
+            })
+            .collect(Collectors.toList());
     }
 }
