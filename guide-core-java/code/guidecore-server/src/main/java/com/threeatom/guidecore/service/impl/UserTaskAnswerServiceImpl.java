@@ -8,6 +8,7 @@ import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDetailDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.threeatom.common.exception.ValidationException;
@@ -116,13 +117,14 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     @Override
     @Transactional
     public UserTaskAnswer createAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                       Task task, PortalUser portalUser) {
+                                       Task task, CourseEnrollment activeEnrollment, PortalUser portalUser) {
         if (!task.getVersion().equals(userTaskAnswerDto.getTaskVersion())) {
             log.error("Task version mismatch for task %s".formatted(task.getId()));
             throw new ValidationException("Task version mismatch");
         }
-        List<UserTaskAnswer> answers = findByTaskIdAndUserId(task.getId(), portalUser.getUserId());
-        if (task.getRetries() > 0 && answers.size() >= task.getRetries()) {
+        if (task.getRetries() > 0 &&
+            userAnswerCountExceedsLimit(task, portalUser.getUserId(), activeEnrollment.getStartDate())) {
+
             log.info("Task retries exceeded for task %s".formatted(task.getId()));
             throw new ValidationException("Task retries exceeded");
         }
@@ -139,6 +141,11 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
             log.error("Error serializing Answer object to JSON for task %s".formatted(task.getId()), e);
             throw new ValidationException("Invalid answer format for type task " + task.getType());
         }
+    }
+
+    private boolean userAnswerCountExceedsLimit(Task task, Integer userId, OffsetDateTime startDate) {
+        int answersCount = countByTaskIdAndUserId(task.getId(), userId, startDate);
+        return answersCount >= task.getRetries();
     }
 
     private UserTaskAnswersDto convertUserTaskAnswersDtos(TaskType taskType, List<UserTaskAnswer> userTaskAnswers) {
@@ -225,11 +232,12 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
         return userTaskAnswer;
     }
 
-    private List<UserTaskAnswer> findByTaskIdAndUserId(Integer taskId, Integer userId) {
+    private int countByTaskIdAndUserId(Integer taskId, Integer userId, OffsetDateTime fromDate) {
         QueryWrapper<UserTaskAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("task_id", taskId);
         queryWrapper.eq("owner_id", userId);
-        return list(queryWrapper);
+        queryWrapper.ge("created_time", fromDate);
+        return count(queryWrapper);
     }
 
     private Set<Integer> getPairingChoiceIds(PairingAnswer pairingAnswer) {

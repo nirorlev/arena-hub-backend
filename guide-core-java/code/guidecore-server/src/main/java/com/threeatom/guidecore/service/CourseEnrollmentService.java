@@ -24,4 +24,6 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
 
     UserCourseEnrollmentDto updateCourseEnrollment(Integer enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
                                                    PortalUser portalUser);
+
+    CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId);
 }

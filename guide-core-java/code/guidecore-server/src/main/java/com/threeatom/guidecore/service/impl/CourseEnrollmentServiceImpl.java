@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
@@ -103,6 +104,24 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
         updateEnrollment(courseEnrollment, updateEnrollmentDto);
         return createUserCourseEnrollmentDto(courseEnrollment);
+    }
+
+    @Override
+    public CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId) {
+        Optional<CourseEnrollment> activeEnrollment = findActiveEnrollment(courseId, userId);
+        if (activeEnrollment.isEmpty()) {
+            throw new ValidationException("User does not have an active enrollment for this course");
+        }
+
+        return activeEnrollment.get();
+    }
+
+    private Optional<CourseEnrollment> findActiveEnrollment(Integer courseId, Integer userId) {
+        QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("course_id", courseId);
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.isNull("end_date");
+        return Optional.ofNullable(getOne(queryWrapper, false));
     }
 
     private void updateEnrollment(CourseEnrollment courseEnrollment, UpdateEnrollmentDto updateEnrollmentDto) {
