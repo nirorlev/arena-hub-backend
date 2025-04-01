@@ -6,19 +6,25 @@ import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.TaskSession;
 import com.threeatom.guidecore.mapper.TaskSessionMapper;
+import com.threeatom.guidecore.mapping.TaskMapping;
 import com.threeatom.guidecore.service.TaskSessionService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class TaskSessionServiceImpl extends ServiceImpl<TaskSessionMapper, TaskSession> implements TaskSessionService {
+
+    private final TaskMapping taskMapping;
 
     @Override
     @Transactional
     public void createUpdateTaskSession(TaskSessionDto taskSessionDto, Integer taskId, PortalUser portalUser) {
         TaskSession byId = getById(taskSessionDto.getSessionId());
         if (byId == null) {
-            createTaskSession(taskSessionDto, taskId);
+            TaskSession taskSession = taskMapping.map(taskSessionDto, taskId, portalUser.getUserId());
+            save(taskSession);
             return;
         }
 
@@ -34,14 +40,4 @@ public class TaskSessionServiceImpl extends ServiceImpl<TaskSessionMapper, TaskS
         taskSession.setDuration(taskSessionDto.getDuration());
         updateById(taskSession);
     }
-
-    private void createTaskSession(TaskSessionDto taskSessionDto, Integer taskId) {
-        TaskSession taskSession = new TaskSession();
-        taskSession.setId(taskSessionDto.getSessionId());
-        taskSession.setTaskId(taskId);
-        taskSession.setDuration(taskSessionDto.getDuration());
-        taskSession.setStartTime(taskSessionDto.getStartTime());
-        save(taskSession);
-    }
-
 }

@@ -3,6 +3,7 @@ package com.threeatom.guidecore.mapping;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.threeatom.guidecore.dto.request.TaskDto;
+import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.ChoiceDto;
 import com.threeatom.guidecore.dto.response.QuestionDto;
@@ -17,6 +18,7 @@ import com.threeatom.guidecore.entity.SingleChoiceProperties;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.TaskAudit;
 import com.threeatom.guidecore.entity.TaskChoice;
+import com.threeatom.guidecore.entity.TaskSession;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.TaskType;
 import java.util.Comparator;
@@ -71,6 +73,9 @@ public interface TaskMapping {
     @Mapping(target = "version", source = "version")
     @Mapping(target = "question", source = "task", qualifiedByName = "mapQuestion")
     com.threeatom.guidecore.dto.response.TaskDto map(Task task);
+
+    @Mapping(target = "id", source = "taskSessionDto.sessionId")
+    TaskSession map(TaskSessionDto taskSessionDto, Integer taskId, Integer userId);
 
     @Named("mapQuestion")
     default QuestionDto mapQuestion(Task task) {
