@@ -26,7 +26,6 @@
         <result property="updateTime" column="update_time"/>
         <result property="createTime" column="create_time"/>
         <result property="commentNum" column="comment_num"/>
-        <result property="tasksCount" column="tasks_count"/>
         <result property="thumbnailUrl" column="thumbnail_url"/>
         <result property="videoTime" column="time"/>
         <result property="originCourseId" column="origin_course_id"/>
@@ -176,7 +175,6 @@
             <include refid="videoColumns"/>,
             <include refid="videoFileColumns"/>,
             (SELECT COUNT(id) FROM gc_video_comment WHERE video_id = video.id) AS video_comment_num,
-            (SELECT COUNT(id) FROM video_events WHERE video_id = video.id AND type = 'TASK') AS video_tasks_count,
             <include refid="courseColumns"/>,
             <include refid="videoOriginCourseColumns"/>,
             <include refid="videoOriginCourseAvatarFileColumns"/>,
