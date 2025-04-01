@@ -75,7 +75,12 @@ public interface TaskMapping {
     com.threeatom.guidecore.dto.response.TaskDto map(Task task);
 
     @Mapping(target = "id", source = "taskSessionDto.sessionId")
-    TaskSession map(TaskSessionDto taskSessionDto, Integer taskId, Integer userId);
+    TaskSession mapTaskSession(TaskSessionDto taskSessionDto, Integer taskId, Integer userId);
+
+    @Mapping(target = "sessionId", source = "id")
+    com.threeatom.guidecore.dto.response.TaskSessionDto mapTaskSessionDto(TaskSession taskSession);
+
+    List<com.threeatom.guidecore.dto.response.TaskSessionDto> mapTaskSessions(List<TaskSession> taskSessions);
 
     @Named("mapQuestion")
     default QuestionDto mapQuestion(Task task) {
