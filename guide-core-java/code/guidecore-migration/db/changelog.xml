@@ -1310,4 +1310,12 @@
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="update-video-play-session-table" author="vprokh">
+        <addColumn tableName="video_play_session">
+            <column name="client_time" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -28,10 +28,9 @@ public class VideoPlayController {
     private final VideoPlaySegmentService videoPlaySegmentService;
 
     @PostMapping(value = "/{videoId}/play-segments", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AnalyticsResponseDto> createVideoPlay(
-        @PathVariable("videoId") Integer videoId,
-        @Valid @RequestBody VideoPlayDto videoPlayDto,
-        HttpServletRequest request) {
+    public ResponseEntity<AnalyticsResponseDto> createVideoPlay(@PathVariable("videoId") Integer videoId,
+                                                                @Valid @RequestBody VideoPlayDto videoPlayDto,
+                                                                HttpServletRequest request) {
 
         GcUser currentUser = userService.getCurrentUser(request);
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();

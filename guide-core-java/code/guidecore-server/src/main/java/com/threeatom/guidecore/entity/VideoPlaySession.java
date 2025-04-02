@@ -20,6 +20,10 @@ public class VideoPlaySession implements Serializable {
     private Integer videoId;
     private Integer masterId;
 
+    private OffsetDateTime clientTime;
+    private OffsetDateTime createTime = OffsetDateTime.now();
+    private OffsetDateTime updateTime = OffsetDateTime.now();
+
     @TableField(exist = false)
     private GcUser user;
 
@@ -31,7 +35,4 @@ public class VideoPlaySession implements Serializable {
 
     @TableField(exist = false)
     private GcMaster master;
-
-    private OffsetDateTime createTime = OffsetDateTime.now();
-    private OffsetDateTime updateTime = OffsetDateTime.now();
 }
