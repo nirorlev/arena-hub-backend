@@ -10,6 +10,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
 import com.threeatom.guidecore.mapper.VideoPlaySegmentMapper;
@@ -35,7 +36,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, GcUser user, Integer videoId, Integer masterId) {
+    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
         Optional<VideoPlaySession> videoPlaySessionOptional =
             videoPlaySessionService.getVideoPlaySession(videoPlayDto.getSessionId());
 
@@ -44,7 +45,7 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
             return;
         }
 
-        videoPlaySessionService.saveVideoPlaySession(videoPlayDto, user, videoId, masterId);
+        videoPlaySessionService.saveVideoPlaySession(videoPlayDto, videoId, portalUser);
         VideoPlaySession videoPlaySession = videoPlaySessionService.getById(videoPlayDto.getSessionId());
         this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession));
     }

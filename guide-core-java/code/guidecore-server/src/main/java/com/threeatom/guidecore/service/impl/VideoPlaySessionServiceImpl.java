@@ -39,12 +39,12 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     private final UserMapping userMapping;
 
     @Override
-    public void saveVideoPlaySession(VideoPlayDto videoPlayDto, GcUser user, Integer videoId, Integer masterId) {
+    public void saveVideoPlaySession(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
         VideoPlaySession videoPlaySession = new VideoPlaySession();
         videoPlaySession.setId(videoPlayDto.getSessionId());
-        videoPlaySession.setUserId(user.getId());
+        videoPlaySession.setUserId(portalUser.getUserId());
         videoPlaySession.setVideoId(videoId);
-        videoPlaySession.setMasterId(masterId);
+        videoPlaySession.setMasterId(portalUser.getMasterId());
         videoPlaySession.setClientTime(getClientTime(videoPlayDto));
 
         save(videoPlaySession);
