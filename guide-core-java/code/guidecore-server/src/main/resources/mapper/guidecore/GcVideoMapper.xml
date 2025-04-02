@@ -368,7 +368,6 @@
         select
             <include refid="baseColumn" />
             <include refid="fileBaseColumn" />,
-            round(avg(star_value)::numeric,2) as starvalue,
             v.order,
             course.id                         AS course_id,
             course.name                       AS course_name,
@@ -381,8 +380,7 @@
              <include refid="leftJoinSysFile" />
             left join gc_user_video_action ac on ac.content_id = v.id
         where course_content.course_id=#{subId}
-        group by course.id, v.id, f.id
-        order by v."order" asc,v.create_time asc,v.id
+        order by course_content.order, course_content.content_id
     </select>
 
     <select id="selectVideoListByTopSubIds" resultMap="baseResultMap">

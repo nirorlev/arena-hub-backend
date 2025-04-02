@@ -166,7 +166,7 @@
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
         WHERE course_content.course_id = #{courseId} OR course_content.course_id IN (SELECT id FROM gc_subject WHERE fid = #{courseId})
-        ORDER BY section.order, course_content.order
+        ORDER BY section.order, course_content.order, course_content.content_id
     </select>
 
 </mapper>
