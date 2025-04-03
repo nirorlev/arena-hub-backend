@@ -29,6 +29,7 @@ public class CourseEnrollment {
     private OffsetDateTime endDate;
 
     private OffsetDateTime complianceDate;
+    private OffsetDateTime completionDate;
 
     private OffsetDateTime updatedTime = OffsetDateTime.now();
 

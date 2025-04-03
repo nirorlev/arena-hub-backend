@@ -94,45 +94,6 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
         save(courseProgress);
     }
 
-    private void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
-                                  CourseSetting courseSetting) {
-        CourseProgress courseProgress =
-            createCourseProgress(courseEnrollment, courseProgressDto.getCourse().getProgress());
-        if (courseEnrollment.getLatestProgress().isEmpty() ||
-            !courseEnrollment.getLatestProgress().get().equals(courseProgress)) {
-            saveProgress(courseProgress);
-            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
-        }
-
-        int tasksCount = courseProgressDto.getTasks().size();
-        double taskCompletionPercentage = taskPercentage(tasksCount, courseProgress.getCompletedTasksCount());
-        double courseCompletionPercentage = courseProgress.getPercentage();
-        boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
-        boolean courseContentProgressCompliant =
-            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
-
-        if (courseEnrollment.getComplianceDate() == null && taskProgressCompliant && courseContentProgressCompliant) {
-            updateEnrollmentCompliance(courseEnrollment, OffsetDateTime.now());
-        } else if (!taskProgressCompliant || !courseContentProgressCompliant) {
-            updateEnrollmentCompliance(courseEnrollment, null);
-        }
-
-        courseEnrollmentService.updateById(courseEnrollment);
-    }
-
-    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, OffsetDateTime complianceDate) {
-        courseEnrollment.setComplianceDate(complianceDate);
-        courseEnrollment.setUpdatedTime(OffsetDateTime.now());
-    }
-
-    private boolean isCompliant(double currentPercentage, double thresholdPercent) {
-        return thresholdPercent >= currentPercentage;
-    }
-
-    private double taskPercentage(int tasksCount, Integer completedTasksCount) {
-        return (double) completedTasksCount / tasksCount * 100;
-    }
-
     private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
                                                    CourseSetting courseSetting, OffsetDateTime startDate,
                                                    PortalUser portalUser) {
@@ -175,18 +136,6 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
             .filter(videoEvent -> videoEvent.getTask() != null)
             .collect(Collectors.groupingBy(VideoEvent::getVideoId,
                 Collectors.mapping(VideoEvent::getTask, Collectors.toList())));
-    }
-
-    private CourseProgress createCourseProgress(CourseEnrollment courseEnrollment,
-                                                CourseTotalProgressDto courseTotalProgressDto) {
-        CourseProgress courseProgress = new CourseProgress();
-        courseProgress.setEnrollmentId(courseEnrollment.getId());
-        courseProgress.setPercentage(courseTotalProgressDto.getPercentage());
-        courseProgress.setCompletedSectionsCount(courseTotalProgressDto.getCompletedSectionsCount());
-        courseProgress.setCompletedTasksCount(courseTotalProgressDto.getCompletedTasksCount());
-        courseProgress.setSecondsViewed(courseTotalProgressDto.getSecondsViewed());
-
-        return courseProgress;
     }
 
     private int tasksTime(List<Task> tasks) {
@@ -354,6 +303,74 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
             .sum();
     }
 
+    private void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
+                                  CourseSetting courseSetting) {
+        CourseProgress courseProgress =
+            createCourseProgress(courseEnrollment, courseProgressDto.getCourse().getProgress());
+        if (wasProgressUpdated(courseEnrollment, courseProgress)) {
+            saveProgress(courseProgress);
+            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+        }
+
+        int tasksCount = courseProgressDto.getTasks().size();
+        double taskCompletionPercentage = taskPercentage(tasksCount, courseProgress.getCompletedTasksCount());
+        double courseCompletionPercentage = courseProgress.getPercentage();
+        boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
+        boolean courseContentProgressCompliant =
+            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
+
+        updateEnrollmentCompliance(courseEnrollment, taskProgressCompliant, courseContentProgressCompliant);
+        updateEnrollmentCompletion(courseEnrollment, courseCompletionPercentage);
+
+        courseEnrollmentService.updateById(courseEnrollment);
+    }
+
+    private CourseProgress createCourseProgress(CourseEnrollment courseEnrollment,
+                                                CourseTotalProgressDto courseTotalProgressDto) {
+        CourseProgress courseProgress = new CourseProgress();
+        courseProgress.setEnrollmentId(courseEnrollment.getId());
+        courseProgress.setPercentage(courseTotalProgressDto.getPercentage());
+        courseProgress.setCompletedSectionsCount(courseTotalProgressDto.getCompletedSectionsCount());
+        courseProgress.setCompletedTasksCount(courseTotalProgressDto.getCompletedTasksCount());
+        courseProgress.setSecondsViewed(courseTotalProgressDto.getSecondsViewed());
+
+        return courseProgress;
+    }
+
+    private void updateEnrollmentCompletion(CourseEnrollment courseEnrollment, double courseCompletionPercentage) {
+        if (courseCompletionPercentage == 100) {
+            courseEnrollment.setCompletionDate(OffsetDateTime.now());
+            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+        }
+    }
+
+    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, boolean taskProgressCompliant,
+                                            boolean courseContentProgressCompliant) {
+        if (courseEnrollment.getComplianceDate() == null && taskProgressCompliant && courseContentProgressCompliant) {
+            updateEnrollmentCompliance(courseEnrollment, OffsetDateTime.now());
+        } else if (!taskProgressCompliant || !courseContentProgressCompliant) {
+            updateEnrollmentCompliance(courseEnrollment, null);
+        }
+    }
+
+    private boolean wasProgressUpdated(CourseEnrollment courseEnrollment, CourseProgress courseProgress) {
+        return courseEnrollment.getLatestProgress().isEmpty() ||
+            !courseEnrollment.getLatestProgress().get().equals(courseProgress);
+    }
+
+    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, OffsetDateTime complianceDate) {
+        courseEnrollment.setComplianceDate(complianceDate);
+        courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+    }
+
+    private boolean isCompliant(double currentPercentage, double thresholdPercent) {
+        return thresholdPercent >= currentPercentage;
+    }
+
+    private double taskPercentage(int tasksCount, Integer completedTasksCount) {
+        return (double) completedTasksCount / tasksCount * 100;
+    }
+
     private <T> Map<String, T> convertKeyToString(Map<Integer, T> sections) {
         if (sections.isEmpty()) {
             return null;
@@ -362,4 +379,5 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
         return sections.entrySet().stream()
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
     }
+
 }
