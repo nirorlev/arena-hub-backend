@@ -33,7 +33,6 @@ import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +42,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class CourseProgressServiceImpl implements CourseProgressService {
-
-    private static final int DEFAULT_COURSE_GRADE_PERCENTAGE = 90;
 
     private final GcSubjectService courseService;
     private final CourseContentService courseContentService;
@@ -74,9 +71,6 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
             videoIdToViewerVideoDetails(portalUser, courseEnrollment, videoIds);
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
-        Integer courseGradePercentage =
-            Optional.ofNullable(courseSetting).map(CourseSetting::getSingleVideoViewPercentage).orElse(
-                DEFAULT_COURSE_GRADE_PERCENTAGE);
         List<VideoEvent> taskVideoEvents =
             videoEventService.videoEventsByType(videoIds, VideoEventType.TASK);
         Map<Integer, List<Task>> videoIdToTasks = taskVideoEvents.stream()
@@ -87,9 +81,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
-        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails =
-            courseTasks(allTasks, courseGradePercentage, portalUser);
-
+        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails = courseTasks(allTasks, portalUser);
         Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress =
             sectionsProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails);
 
@@ -122,14 +114,12 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .collect(Collectors.toList());
     }
 
-    private Map<Integer, ProgressDetailsDto<TaskProgressDto>> courseTasks(List<Task> tasks,
-                                                                          Integer courseGradePercentage,
-                                                                          PortalUser portalUser) {
+    private Map<Integer, ProgressDetailsDto<TaskProgressDto>> courseTasks(List<Task> tasks, PortalUser portalUser) {
         List<Integer> taskIds = tasks.stream()
             .map(Task::getId)
             .collect(Collectors.toList());
 
-        return userTaskAnswerService.taskIdToProgress(taskIds, courseGradePercentage, portalUser);
+        return userTaskAnswerService.taskIdToProgress(taskIds, portalUser);
     }
 
     private List<Integer> courseVideoIds(List<GcVideo> videos) {
@@ -180,7 +170,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         ContentProgressDto progressDto = new ContentProgressDto();
 
         progressDto.setPercentage(videoViewerVideoDetailDto.getPercentageViewed());
-        progressDto.setSecondsViewed(videoViewerVideoDetailDto.getTotalViewTime());
+        progressDto.setSecondsViewed(videoViewerVideoDetailDto.getUniqueViewTime());
         progressDto.setCompletedTasksCount(correctlyAnsweredTasks(videoTasks, taskIdToProgressDetails).size());
 
         return progressDto;
@@ -197,7 +187,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         }
 
         int secondsViewed = videoIdToVideoViewerDetails.values().stream()
-            .mapToInt(VideoViewerVideoDetailDto::getViewTime)
+            .mapToInt(VideoViewerVideoDetailDto::getUniqueViewTime)
             .sum();
         int sectionsCompleted = (int) sectionsProgress.values().stream()
             .filter(progressDetailsDto -> progressDetailsDto.getProgress().getPercentage() == 100)
@@ -221,13 +211,13 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                                                                                   Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
         Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
             .collect(Collectors.groupingBy(GcVideo::getSubId));
-        Map<Integer, Integer> videoIdToSecondsViewed = videoIdToVideoViewerDetails.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getViewTime()));
+        Map<Integer, Integer> videoIdToUniqueSecondsViewed = videoIdToVideoViewerDetails.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getUniqueViewTime()));
 
         return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
                 List<GcVideo> sectionVideos = entry.getValue();
-                int secondsViewed = secondsViewed(sectionVideos, videoIdToSecondsViewed);
+                int secondsViewed = secondsViewed(sectionVideos, videoIdToUniqueSecondsViewed);
                 List<Task> sectionTasks = videoTasks(sectionVideos, videoIdToTasks);
                 List<Task> correctlyAnsweredTasks = correctlyAnsweredTasks(sectionTasks, taskIdToProgressDetails);
                 int totalTaskTime = tasksTime(sectionTasks);

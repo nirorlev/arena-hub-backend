@@ -131,12 +131,13 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {
-        int videoViewedTime = getTimeViewed(mergeSegments(getAllViewSegments(playSessions)));
-        int totalVideoViewedTime = getTimeViewed(getAllViewSegments(playSessions));
+        List<VideoPlaySegment> allViewSegments = getAllViewSegments(playSessions);
+        int videoViewedTime = getTimeViewed(mergeSegments(allViewSegments));
+        int totalVideoViewedTime = getTimeViewed(allViewSegments);
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = new VideoViewerVideoDetailDto();
 
         videoViewerVideoDetailDto.setTotalViewTime(totalVideoViewedTime);
-        videoViewerVideoDetailDto.setViewTime(videoViewedTime);
+        videoViewerVideoDetailDto.setUniqueViewTime(videoViewedTime);
         videoViewerVideoDetailDto.setViewSessions(playSessions.size());
         videoViewerVideoDetailDto.setPercentageViewed(calculatePercentageViewed(
             getVideoTime(playSessions.get(0)), videoViewedTime));

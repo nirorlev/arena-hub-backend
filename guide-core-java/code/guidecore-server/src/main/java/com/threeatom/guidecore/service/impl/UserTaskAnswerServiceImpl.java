@@ -56,6 +56,8 @@ import org.springframework.util.CollectionUtils;
 public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper, UserTaskAnswer>
     implements UserTaskAnswerService {
 
+    private static final int TASK_COMPLETION_PERCENT = 60;
+
     private final VideoAnswerStrategy videoAnswerStrategy;
     private final UserTaskAnswerChoicePairingService userTaskAnswerChoicePairingService;
     private final UserTaskAnswerChoiceFillInBlankService userTaskAnswerChoiceFillInBlankService;
@@ -76,7 +78,8 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     @Override
     public UserTaskAnswersDto findUserTaskAnswersByTaskId(Integer taskId, TaskType taskType, OffsetDateTime startDate,
                                                           OffsetDateTime endDate) {
-        List<UserTaskAnswer> taskAnswers = baseMapper.findTaskAnswers(taskId, taskType.name(), null, startDate, endDate);
+        List<UserTaskAnswer> taskAnswers =
+            baseMapper.findTaskAnswers(taskId, taskType.name(), null, startDate, endDate);
 
         return convertUserTaskAnswersDtos(taskType, taskAnswers);
     }
@@ -95,7 +98,6 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     @Override
     @Transactional
     public Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds,
-                                                                              Integer completionThreshold,
                                                                               PortalUser portalUser) {
         if (CollectionUtils.isEmpty(taskIds)) {
             return Map.of();
@@ -108,7 +110,7 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
 
         return taskIds.stream().collect(
             Collectors.toMap(Function.identity(),
-                taskId -> taskProgressDto(completionThreshold, taskIdToUserAnswer, taskId)));
+                taskId -> taskProgressDto(taskIdToUserAnswer, taskId)));
     }
 
     @Override
@@ -256,21 +258,20 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
         }
     }
 
-    private ProgressDetailsDto<TaskProgressDto> taskProgressDto(Integer completionThreshold,
-                                                                Map<Integer, UserTaskAnswer> taskIdToUserAnswer,
+    private ProgressDetailsDto<TaskProgressDto> taskProgressDto(Map<Integer, UserTaskAnswer> taskIdToUserAnswer,
                                                                 Integer taskId) {
         Optional<UserTaskAnswer> userTaskAnswer = Optional.ofNullable(taskIdToUserAnswer.get(taskId));
         ProgressDetailsDto<TaskProgressDto> taskProgressDtoProgressDetailsDto = new ProgressDetailsDto<>();
         TaskProgressDto taskProgressDto = new TaskProgressDto();
         taskProgressDto.setAnswered(userTaskAnswer.isPresent());
         taskProgressDto.setCompleted(
-            userTaskAnswer.isPresent() && isTaskCompleted(userTaskAnswer.get(), completionThreshold));
+            userTaskAnswer.isPresent() && isTaskCompleted(userTaskAnswer.get()));
         taskProgressDtoProgressDetailsDto.setProgress(taskProgressDto);
 
         return taskProgressDtoProgressDetailsDto;
     }
 
-    private boolean isTaskCompleted(UserTaskAnswer userTaskAnswer, Integer completionThreshold) {
+    private boolean isTaskCompleted(UserTaskAnswer userTaskAnswer) {
         List<UserTaskAnswerReview> userTaskAnswerReviews = userTaskAnswer.getUserTaskAnswerReviews();
         if (CollectionUtils.isEmpty(userTaskAnswerReviews)) {
             return false;
@@ -278,7 +279,7 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
 
         return userTaskAnswerReviews.stream()
             .max(Comparator.comparing(UserTaskAnswerReview::getCreatedTime))
-            .filter(review -> review.getScore() >= completionThreshold)
+            .filter(review -> review.getScore() >= TASK_COMPLETION_PERCENT)
             .isPresent();
     }
 }

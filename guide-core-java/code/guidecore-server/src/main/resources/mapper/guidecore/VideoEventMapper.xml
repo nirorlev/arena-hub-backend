@@ -191,7 +191,7 @@
             JOIN gc_user_info user_info ON u.info_id = user_info.id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
             LEFT JOIN tasks task ON video_event.id = task.video_event_id AND task.is_deleted = false
-            LEFT JOIN task_choices task_choice ON task_choice.task_id = task.id
+            LEFT JOIN task_choices task_choice ON task_choice.task_id = task.id AND task_choice.is_deleted = false
             LEFT JOIN notifications notification ON video_event.id = notification.video_event_id
         WHERE video_event.type = #{eventType}
             AND video_event.video_id IN
