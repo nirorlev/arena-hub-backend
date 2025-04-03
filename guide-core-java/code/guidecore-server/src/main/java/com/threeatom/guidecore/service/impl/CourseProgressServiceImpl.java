@@ -153,12 +153,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
 
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = videoIdToViewerVideoDetails.get(video.getId());
-        ProgressDetailsDto<ContentProgressDto> progressDetailsDto = new ProgressDetailsDto<>();
-        if (videoViewerVideoDetailDto == null) {
-            progressDetailsDto.setProgress(new ContentProgressDto());
-            return progressDetailsDto;
-        }
 
+        ProgressDetailsDto<ContentProgressDto> progressDetailsDto = new ProgressDetailsDto<>();
         progressDetailsDto.setProgress(
             videoContentProgress(videoViewerVideoDetailDto, videoTasks, taskIdToProgressDetails));
         return progressDetailsDto;
@@ -169,8 +165,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                                                     Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
         ContentProgressDto progressDto = new ContentProgressDto();
 
-        progressDto.setPercentage(videoViewerVideoDetailDto.getPercentageViewed());
-        progressDto.setSecondsViewed(videoViewerVideoDetailDto.getUniqueViewTime());
+        if (videoViewerVideoDetailDto != null) {
+            progressDto.setPercentage(videoViewerVideoDetailDto.getPercentageViewed());
+            progressDto.setSecondsViewed(videoViewerVideoDetailDto.getUniqueViewTime());
+        }
         progressDto.setCompletedTasksCount(correctlyAnsweredTasks(videoTasks, taskIdToProgressDetails).size());
 
         return progressDto;
@@ -182,9 +180,6 @@ public class CourseProgressServiceImpl implements CourseProgressService {
                                                   List<Task> tasks,
                                                   Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
-        if (videoIdToVideoViewerDetails.isEmpty()) {
-            return courseTotalProgressDto;
-        }
 
         int secondsViewed = videoIdToVideoViewerDetails.values().stream()
             .mapToInt(VideoViewerVideoDetailDto::getUniqueViewTime)
