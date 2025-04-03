@@ -19,7 +19,7 @@ public class CourseProgress {
 
     private Long enrollmentId;
 
-    private Double percentage;
+    private double percentage;
 
     private Integer secondsViewed;
     private Integer completedSectionsCount;

@@ -105,26 +105,32 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
         }
 
         int tasksCount = courseProgressDto.getTasks().size();
-        if (courseEnrollment.getComplianceDate() == null
-            && isTasksPercentageCompliant(tasksCount, courseSetting.getTasksGradePercentage(),
-            courseProgress.getCompletedTasksCount())
-            &&
-            isCourseContentCompliant(courseSetting.getCourseContentStudyPercentage(), courseProgress.getPercentage())) {
+        double taskCompletionPercentage = taskPercentage(tasksCount, courseProgress.getCompletedTasksCount());
+        double courseCompletionPercentage = courseProgress.getPercentage();
+        boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
+        boolean courseContentProgressCompliant =
+            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
 
-            courseEnrollment.setComplianceDate(OffsetDateTime.now());
-            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+        if (courseEnrollment.getComplianceDate() == null && taskProgressCompliant && courseContentProgressCompliant) {
+            updateEnrollmentCompliance(courseEnrollment, OffsetDateTime.now());
+        } else if (!taskProgressCompliant || !courseContentProgressCompliant) {
+            updateEnrollmentCompliance(courseEnrollment, null);
         }
 
         courseEnrollmentService.updateById(courseEnrollment);
     }
 
-    private boolean isCourseContentCompliant(Integer courseContentStudyPercentage, Double percentage) {
-        return percentage >= courseContentStudyPercentage;
+    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, OffsetDateTime complianceDate) {
+        courseEnrollment.setComplianceDate(complianceDate);
+        courseEnrollment.setUpdatedTime(OffsetDateTime.now());
     }
 
-    private boolean isTasksPercentageCompliant(int tasksCount, Integer tasksGradePercentage,
-                                               Integer completedTasksCount) {
-        return completedTasksCount / tasksCount * 100 >= tasksGradePercentage;
+    private boolean isCompliant(double currentPercentage, double thresholdPercent) {
+        return thresholdPercent >= currentPercentage;
+    }
+
+    private double taskPercentage(int tasksCount, Integer completedTasksCount) {
+        return (double) completedTasksCount / tasksCount * 100;
     }
 
     private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
