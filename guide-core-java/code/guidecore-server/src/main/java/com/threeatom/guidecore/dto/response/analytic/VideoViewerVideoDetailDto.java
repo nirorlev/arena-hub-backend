@@ -8,5 +8,6 @@ import lombok.Setter;
 public class VideoViewerVideoDetailDto {
     private double percentageViewed;
     private int totalViewTime;
+    private int uniqueViewTime;
     private int viewSessions;
 }

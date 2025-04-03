@@ -1,4 +1,3 @@
-
 package com.threeatom.guidecore.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -14,5 +13,7 @@ public interface VideoEventService extends IService<VideoEvent> {
 
     VideoEvent createTaskVideoEvent(TaskDto taskDto, GcVideo video, PortalUser portalUser);
 
-    void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video, PortalUser portalUser);
+    List<VideoEvent> videoEventsByType(List<Integer> videoIds, VideoEventType eventType);
+
+    void updateTaskVideoEvent(VideoEvent videoEvent, TaskDto taskDto, GcVideo video);
 }

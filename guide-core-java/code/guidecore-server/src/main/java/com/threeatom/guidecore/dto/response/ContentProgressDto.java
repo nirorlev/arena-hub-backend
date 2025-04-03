@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ProgressDetailsDto<T> {
-    private T progress;
+public class ContentProgressDto extends ProgressDto {
+    private int completedTasksCount;
 }

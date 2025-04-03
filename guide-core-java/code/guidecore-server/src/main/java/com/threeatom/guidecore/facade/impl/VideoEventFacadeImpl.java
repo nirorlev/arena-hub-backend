@@ -66,7 +66,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         GcVideo video = videoService.findByVideoId(task.getVideoEvent().getVideoId());
         verifyOriginCoursePermission(portalUser, video.getOriginCourse(), PermitAction.EDIT);
 
-        videoEventService.updateTaskVideoEvent(task.getVideoEvent(), taskDto, video, portalUser);
+        videoEventService.updateTaskVideoEvent(task.getVideoEvent(), taskDto, video);
         taskService.updateTask(task, taskDto, portalUser.getUserId());
         return taskService.videoTasks(getTaskVideoEvents(task.getVideoEvent().getVideoId()));
     }
