@@ -189,7 +189,8 @@
             JOIN gc_subject section ON course_content.course_id = section.id
             JOIN gc_user course_owner ON video_origin_course.create_user = course_owner.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = video_origin_course.sub_img_id
-            LEFT JOIN tasks task ON task.course_id = video_origin_course.id
+            LEFT JOIN video_events video_event ON video_event.video_id = video.id
+            LEFT JOIN tasks task ON task.video_event_id = video_event.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
         WHERE course_content.course_id = #{courseId} OR course_content.course_id IN (SELECT id FROM gc_subject WHERE fid = #{courseId})
