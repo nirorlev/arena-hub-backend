@@ -45,6 +45,7 @@
         </association>
 
         <association property="originCourse" resultMap="courseResultMap" columnPrefix="video_origin_course_"/>
+        <collection property="tasks" ofType="com.threeatom.guidecore.entity.Task" resultMap="taskResultMap" columnPrefix="task_"/>
     </resultMap>
 
     <resultMap id="courseResultMap" type="GcSubject" autoMapping="true">
@@ -83,6 +84,22 @@
         <result property="lastName" column="last_name"/>
         <result property="avatarFileId" column="avatar_file_id"/>
         <association property="avatarFile" resultMap="avatarFileResultMap" columnPrefix="avatar_file_"/>
+    </resultMap>
+
+    <resultMap id="taskResultMap" type="Task">
+        <id property="id" column="id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="videoEventId" column="video_event_id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="question" column="question"/>
+        <result property="retries" column="retries"/>
+        <result property="allowSkip" column="allow_skip"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="version" column="version"/>
+        <result property="videoEventId" column="video_event_id"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
     </resultMap>
 
     <sql id="videoColumns">
@@ -143,6 +160,14 @@
         course_owner_avatar.file_type AS video_origin_course_user_info_avatar_filetype
     </sql>
 
+    <sql id="taskColumns">
+        task.id as video_task_id, task.owner_id as video_task_owner_id, task.video_event_id as video_task_video_event_id,
+        task.course_id as video_task_course_id, task.type as video_task_type,
+        task.question as video_task_question, task.retries as video_task_retries, task.allow_skip as video_task_allow_skip,
+        task.is_deleted as video_task_is_deleted, task.video_event_id as video_task_video_event_id,
+        task.version as video_task_version, task.created_time as video_task_created_time, task.updated_time as video_task_updated_time
+    </sql>
+
     <select id="findCourseContent" resultMap="baseResultMap">
         SELECT course_content.id, course_content.course_id, course_content.content_id, course_content.order,
             <include refid="videoColumns"/>,
@@ -152,7 +177,8 @@
             <include refid="videoOriginCourseColumns"/>,
             <include refid="videoOriginCourseAvatarFileColumns"/>,
             <include refid="videoOriginCourseOwnerColumns"/>,
-            <include refid="videoOriginCourseOwnerAvatarColumns"/>
+            <include refid="videoOriginCourseOwnerAvatarColumns"/>,
+            <include refid="taskColumns"/>
         FROM course_content
             JOIN gc_subject course ON course_content.course_id = course.id
 
@@ -163,10 +189,11 @@
             JOIN gc_subject section ON course_content.course_id = section.id
             JOIN gc_user course_owner ON video_origin_course.create_user = course_owner.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = video_origin_course.sub_img_id
+            LEFT JOIN tasks task ON task.course_id = video_origin_course.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
         WHERE course_content.course_id = #{courseId} OR course_content.course_id IN (SELECT id FROM gc_subject WHERE fid = #{courseId})
-        ORDER BY section.order, course_content.order
+        ORDER BY section.order, course_content.order, course_content.content_id
     </select>
 
 </mapper>

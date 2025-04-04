@@ -16,7 +16,7 @@ public class TaskSessionServiceImpl extends ServiceImpl<TaskSessionMapper, TaskS
     @Override
     @Transactional
     public void createUpdateTaskSession(TaskSessionDto taskSessionDto, Integer taskId, PortalUser portalUser) {
-        TaskSession byId = getById(taskSessionDto.getId());
+        TaskSession byId = getById(taskSessionDto.getSessionId());
         if (byId == null) {
             createTaskSession(taskSessionDto, taskId);
             return;
@@ -37,7 +37,7 @@ public class TaskSessionServiceImpl extends ServiceImpl<TaskSessionMapper, TaskS
 
     private void createTaskSession(TaskSessionDto taskSessionDto, Integer taskId) {
         TaskSession taskSession = new TaskSession();
-        taskSession.setId(taskSessionDto.getId());
+        taskSession.setId(taskSessionDto.getSessionId());
         taskSession.setTaskId(taskId);
         taskSession.setDuration(taskSessionDto.getDuration());
         taskSession.setStartTime(taskSessionDto.getStartTime());

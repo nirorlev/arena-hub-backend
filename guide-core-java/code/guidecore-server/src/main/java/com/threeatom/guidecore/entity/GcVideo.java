@@ -204,6 +204,9 @@ public class GcVideo implements Serializable {
     private Integer viewsCount;
 
     @TableField(exist = false)
+    private List<Task> tasks;
+
+    @TableField(exist = false)
     private Integer oldVideoFileId;
 
     @TableField(exist = false)

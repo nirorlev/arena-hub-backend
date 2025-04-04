@@ -7,4 +7,6 @@ import lombok.Setter;
 @Setter
 public class CourseTotalProgressDto extends ProgressDto {
     private int completedSectionsCount;
+    private int completedTasksCount;
+    private boolean isCompliant;
 }

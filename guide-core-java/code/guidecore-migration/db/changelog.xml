@@ -1284,4 +1284,16 @@
         </insert>
     </changeSet>
 
+    <changeSet id="rename-task-session-startTime-column" author="vprokh">
+        <renameColumn tableName="task_sessions" oldColumnName="startTime" newColumnName="start_time"/>
+    </changeSet>
+
+    <changeSet id="add-course-id-to-tasks" author="vprokh">
+        <addColumn tableName="tasks" schemaName="arena_hub">
+            <column name="course_id" type="integer"/>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="tasks" baseColumnNames="course_id"
+                                 constraintName="tasks_gc_subject_id_fk" referencedTableName="gc_subject"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

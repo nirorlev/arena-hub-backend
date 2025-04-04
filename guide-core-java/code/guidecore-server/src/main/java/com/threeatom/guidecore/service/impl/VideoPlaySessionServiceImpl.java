@@ -131,11 +131,16 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     private VideoViewerVideoDetailDto calculateVideoViewerDetails(List<VideoPlaySession> playSessions) {
+        List<VideoPlaySegment> allViewSegments = getAllViewSegments(playSessions);
+        int videoViewedTime = getTimeViewed(mergeSegments(allViewSegments));
+        int totalVideoViewedTime = getTimeViewed(allViewSegments);
         VideoViewerVideoDetailDto videoViewerVideoDetailDto = new VideoViewerVideoDetailDto();
-        videoViewerVideoDetailDto.setTotalViewTime(getTotalTimeViewed(getAllViewSegments(playSessions)));
+
+        videoViewerVideoDetailDto.setTotalViewTime(totalVideoViewedTime);
+        videoViewerVideoDetailDto.setUniqueViewTime(videoViewedTime);
         videoViewerVideoDetailDto.setViewSessions(playSessions.size());
-        videoViewerVideoDetailDto.setPercentageViewed(calculatePercentageViewed(playSessions,
-            getVideoTime(playSessions.get(0))));
+        videoViewerVideoDetailDto.setPercentageViewed(calculatePercentageViewed(
+            getVideoTime(playSessions.get(0)), videoViewedTime));
         return videoViewerVideoDetailDto;
     }
 
@@ -143,9 +148,8 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         return playSession.getVideo().getVideoTime();
     }
 
-    private double calculatePercentageViewed(List<VideoPlaySession> playSessions, int totalVideoTime) {
-        int totalTimeViewed = getTotalTimeViewed(mergeSegments(getAllViewSegments(playSessions)));
-        return Double.parseDouble(String.format("%.2f", ((double) totalTimeViewed / totalVideoTime) * 100));
+    private double calculatePercentageViewed(int totalVideoTime, int videoTimeViewed) {
+        return Double.parseDouble(String.format("%.2f", ((double) videoTimeViewed / totalVideoTime) * 100));
     }
 
     private List<VideoPlaySegment> getAllViewSegments(List<VideoPlaySession> playSessions) {
@@ -180,7 +184,7 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
             .collect(Collectors.toList());
     }
 
-    private int getTotalTimeViewed(List<VideoPlaySegment> viewSegments) {
+    private int getTimeViewed(List<VideoPlaySegment> viewSegments) {
         return viewSegments.stream()
             .mapToInt(this::getTimeViewed)
             .sum();
