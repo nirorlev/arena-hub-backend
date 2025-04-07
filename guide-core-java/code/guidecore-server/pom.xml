@@ -34,6 +34,7 @@
         <spotless.google.format.version>1.17.0</spotless.google.format.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
+        <junit.surface.report.version>2.22.2</junit.surface.report.version>
         <postgresql.version>42.7.3</postgresql.version>
 
         <junit.version>5.10.0</junit.version>
@@ -662,6 +663,16 @@
                     </compilerArgs>
                     <source>15</source>
                     <target>15</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${junit.surface.report.version}</version>
+                <configuration>
+                    <useFile>true</useFile>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>

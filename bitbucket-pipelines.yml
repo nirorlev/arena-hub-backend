@@ -40,6 +40,12 @@ definitions:
                 AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
                 IMAGE_NAME: arena/api
                 TAGS: $(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
+        artifacts:
+          - guide-core-java/code/guidecore-server/target/surefire-reports/**
+        test:
+          reports:
+            junit:
+              - guide-core-java/code/guidecore-server/target/surefire-reports/*.xml
         services:
           - docker
 
