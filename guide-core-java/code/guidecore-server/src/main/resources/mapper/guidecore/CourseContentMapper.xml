@@ -75,6 +75,7 @@
 
     <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
         <id property="id" column="id"/>
+        <result property="username" column="username"/>
         <association property="info" resultMap="userInfoResultMap" columnPrefix="info_"/>
     </resultMap>
 
@@ -148,6 +149,7 @@
 
     <sql id="videoOriginCourseOwnerColumns">
         course_owner.id               AS video_origin_course_user_id,
+        course_owner.username         AS video_origin_course_user_username,
         course_owner_info.id          AS video_origin_course_user_info_id,
         course_owner_info.first_name  AS video_origin_course_user_info_first_name,
         course_owner_info.last_name   AS video_origin_course_user_info_last_name

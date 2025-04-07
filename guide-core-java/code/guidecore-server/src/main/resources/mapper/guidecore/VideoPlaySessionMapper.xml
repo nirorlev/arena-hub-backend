@@ -22,6 +22,7 @@
 
     <resultMap id="userResultMap" type="com.threeatom.guidecore.entity.GcUser">
         <id property="id" column="id"/>
+        <result property="username" column="username"/>
         <association property="info" resultMap="userInfoResultMap" columnPrefix="info_"/>
     </resultMap>
 
@@ -148,6 +149,7 @@
             video_viewed.video_name as video_name,
             video_viewed.video_time as video_time,
             u.id as user_id,
+            u.username as user_username,
             user_info.first_name as user_info_first_name,
             user_info.last_name as user_info_last_name,
             user_info.avatar_file_id as user_info_avatar_file_id,

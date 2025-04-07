@@ -20,6 +20,7 @@
 
 	<resultMap id="createdByUserResultMap" type="GcUser" autoMapping="true">
 		<result property="infoId" column="info_id"/>
+		<result property="username" column="username"/>
 		<association columnPrefix="info_" property="info" column="info_id" javaType="GcUserInfo" autoMapping="true">
 			<id property="id" column="join_id"/>
 			<association columnPrefix="avatarFile_" property="avatarFile" column="avatar_file_id" javaType="SysFile" autoMapping="true" />

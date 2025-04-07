@@ -18,6 +18,9 @@ public class UserDetailsDto {
     @ApiModelProperty(value = "Last name of the Owner")
     private String lastName;
 
+    @ApiModelProperty(value = "User's username")
+    private String username;
+
     @ApiModelProperty(value = "URL of the Owner's avatar")
     private String thumbUrl;
 }
