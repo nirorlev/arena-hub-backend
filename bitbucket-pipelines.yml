@@ -26,7 +26,7 @@ definitions:
           - cd ./guide-core-java/code/guidecore-migration
           - mvn package
           - cd ./../guidecore-server
-          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package
           - cd ../
           - |- 
             echo '{ "backend": "'${ARENA_BACKEND_VERSION}'" }' > guidecore-server/target/version.json
