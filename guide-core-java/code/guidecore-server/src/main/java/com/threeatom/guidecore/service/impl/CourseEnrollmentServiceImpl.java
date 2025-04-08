@@ -9,7 +9,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.request.UpdateEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
-import com.threeatom.guidecore.dto.response.CourseEnrolmentDto;
+import com.threeatom.guidecore.dto.response.CourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
@@ -180,8 +180,8 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return courseEnrollmentsDto;
     }
 
-    private Map<String, CourseEnrolmentDto> enrollmentCourseDetails(List<CourseEnrollment> courseEnrollments) {
-        Map<String, CourseEnrolmentDto> courseIdToCourseEnrolmentDto = new HashMap<>();
+    private Map<String, CourseEnrollmentDto> enrollmentCourseDetails(List<CourseEnrollment> courseEnrollments) {
+        Map<String, CourseEnrollmentDto> courseIdToCourseEnrolmentDto = new HashMap<>();
         Map<Integer, List<CourseEnrollment>> courseIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getCourseId));
 
@@ -204,9 +204,9 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
             .collect(Collectors.toMap(details -> String.valueOf(details.getId()), Function.identity()));
     }
 
-    private CourseEnrolmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments) {
+    private CourseEnrollmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments) {
         GcSubject course = courseEnrollments.get(0).getCourse();
-        CourseEnrolmentDto courseEnrolmentDto = courseMapping.mapCourseEnrollment(course);
+        CourseEnrollmentDto courseEnrollmentDto = courseMapping.mapCourseEnrollment(course);
 
         Map<Integer, List<CourseEnrollment>> userIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getUserId));
@@ -218,8 +218,8 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
                 createUserCourseEnrollmentsDto(userCourseEnrollments));
         }
 
-        courseEnrolmentDto.setUserEnrollments(userIdToCourseEnrollmentsDto);
-        return courseEnrolmentDto;
+        courseEnrollmentDto.setUserEnrollments(userIdToCourseEnrollmentsDto);
+        return courseEnrollmentDto;
     }
 
     private List<UserCourseEnrollmentDto> createUserCourseEnrollmentsDto(List<CourseEnrollment> userCourseEnrollments) {

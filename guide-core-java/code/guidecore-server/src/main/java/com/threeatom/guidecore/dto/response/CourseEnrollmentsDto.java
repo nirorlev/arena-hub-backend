@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.dto.response;
 
-import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class CourseEnrollmentsDto {
     private Map<String, UserDetailsDto> users;
-    private Map<String, CourseEnrolmentDto> courses;
+    private Map<String, CourseEnrollmentDto> courses;
 }

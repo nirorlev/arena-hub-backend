@@ -7,6 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CourseEnrolmentDto extends CourseDto {
+public class CourseEnrollmentDto extends CourseDto {
     private Map<String, List<UserCourseEnrollmentDto>> userEnrollments;
 }
