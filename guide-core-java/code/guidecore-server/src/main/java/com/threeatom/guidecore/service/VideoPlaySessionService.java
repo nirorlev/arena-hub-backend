@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface VideoPlaySessionService extends IService<VideoPlaySession> {
-    void saveVideoPlaySession(VideoPlayDto videoPlayDto, GcUser user, Integer videoId, Integer masterId);
+    void saveVideoPlaySession(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser);
 
     Optional<VideoPlaySession> getVideoPlaySession(UUID sessionId);
 

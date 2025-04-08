@@ -16,7 +16,12 @@ public class TaskSession {
     private UUID id;
 
     private Integer taskId;
+    private Integer userId;
     private Integer duration;
 
     private OffsetDateTime startTime;
+    private OffsetDateTime clientTime;
+
+    private OffsetDateTime createdTime = OffsetDateTime.now();
+    private OffsetDateTime updatedTime = OffsetDateTime.now();
 }

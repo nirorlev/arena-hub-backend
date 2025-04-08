@@ -1296,4 +1296,24 @@
                                  constraintName="tasks_gc_subject_id_fk" referencedTableName="gc_subject"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
+
+    <changeSet id="update-task-sessions-table" author="vprokh">
+        <addColumn tableName="task_sessions">
+            <column name="user_id" type="integer"/>
+            <column name="client_time" type="timestamp with time zone"/>
+            <column name="created_time" type="timestamp with time zone" defaultValueComputed="now()"/>
+            <column name="updated_time" type="timestamp with time zone" defaultValueComputed="now()"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="task_sessions" baseColumnNames="user_id"
+                                 constraintName="fk_task_sessions_user_id" referencedTableName="gc_user"
+                                 referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="update-video-play-session-table" author="vprokh">
+        <addColumn tableName="video_play_session">
+            <column name="client_time" type="timestamp with time zone" />
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -16,6 +16,9 @@ public class TaskSessionDto {
     @NotNull(message = "Start time must not be null")
     private OffsetDateTime startTime;
 
+    @NotNull(message = "Client time must not be null")
+    private OffsetDateTime clientTime;
+
     @NotNull(message = "Task duration must not be null")
     @Min(value = 0, message = "Duration must be greater than or equal to 0")
     private Integer duration;

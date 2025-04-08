@@ -3,6 +3,7 @@ package com.threeatom.guidecore.dto.request;
 import com.threeatom.common.validation.annotation.ValidateTimeOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -23,6 +24,9 @@ public class VideoPlayDto {
     @Min(value = 0, message = "Segment ID should be positive or 0")
     @ApiModelProperty(value = "Segment ID", required = true)
     private Integer segmentId;
+
+    @ApiModelProperty(value = "Client's time")
+    private OffsetDateTime clientTime;
 
     @NotNull(message = "startWatchTimeInSeconds cannot be null")
     @Min(value = 0, message = "Start Watch Time in Seconds should be positive or 0")

@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.request.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
+import com.threeatom.guidecore.dto.response.TaskSessionsDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.GcUser;
@@ -16,6 +17,7 @@ import com.threeatom.guidecore.util.RequestUtil;
 import io.swagger.annotations.Api;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,12 @@ public class TaskController {
                                                   HttpServletRequest request) {
         taskSessionService.createUpdateTaskSession(taskSessionDto, taskId, getPortalUser(request));
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{taskId}/sessions")
+    public ResponseEntity<Map<String, TaskSessionsDto>> userTaskSessions(@PathVariable Integer taskId,
+                                                                         HttpServletRequest request) {
+        return ResponseEntity.ok(taskSessionService.userIdToTaskSessions(taskId, getPortalUser(request)));
     }
 
     @GetMapping("/{taskId}/versions")
