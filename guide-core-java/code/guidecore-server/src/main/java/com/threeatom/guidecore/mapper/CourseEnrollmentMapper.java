@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
-    CourseEnrollment findCourseEnrollment(Integer courseId);
+    CourseEnrollment findCourseEnrollment(Integer courseId, Integer userId, boolean active);
 
     List<CourseEnrollment> getCourseEnrollments(Integer courseId);
 
@@ -19,5 +19,5 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
     List<CourseEnrollment> getCourseEnrollmentsByUserAndMasterId(OffsetDateTime startDate, OffsetDateTime endDate,
                                                                  Integer userId, Integer masterId);
 
-    CourseEnrollment getCourseEnrollmentById(Integer id);
+    CourseEnrollment getCourseEnrollmentById(Long id);
 }

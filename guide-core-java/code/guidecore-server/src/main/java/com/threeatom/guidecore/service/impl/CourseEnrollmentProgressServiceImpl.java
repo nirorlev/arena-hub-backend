@@ -69,7 +69,7 @@ public class CourseEnrollmentProgressServiceImpl
             throw new ForbiddenException("You have no access to this course");
         }
         Optional<CourseEnrollment> courseEnrollment =
-            courseEnrollmentService.findCourseEnrollment(courseId, portalUser);
+            courseEnrollmentService.findActiveCourseEnrollment(courseId, portalUser);
 
         if (courseEnrollment.isEmpty()) {
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
@@ -339,7 +339,7 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private void updateEnrollmentCompletion(CourseEnrollment courseEnrollment, double courseCompletionPercentage) {
-        if (courseCompletionPercentage == 100) {
+        if (courseEnrollment.getCompletionDate() == null && courseCompletionPercentage == 100) {
             courseEnrollment.setCompletionDate(OffsetDateTime.now());
             courseEnrollment.setUpdatedTime(OffsetDateTime.now());
         }
@@ -349,8 +349,6 @@ public class CourseEnrollmentProgressServiceImpl
                                             boolean courseContentProgressCompliant) {
         if (courseEnrollment.getComplianceDate() == null && taskProgressCompliant && courseContentProgressCompliant) {
             updateEnrollmentCompliance(courseEnrollment, OffsetDateTime.now());
-        } else if (!taskProgressCompliant || !courseContentProgressCompliant) {
-            updateEnrollmentCompliance(courseEnrollment, null);
         }
     }
 

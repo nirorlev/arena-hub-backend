@@ -97,7 +97,7 @@ public class CourseController {
                                                                   OffsetDateTime startDate,
                                                                   @RequestParam(value = "endDate", required = false)
                                                                   OffsetDateTime endDate,
-                                                                  @RequestParam(value = "users", required = false, defaultValue = "all")
+                                                                  @RequestParam(value = "users", required = false, defaultValue = "me")
                                                                   String users,
                                                                   HttpServletRequest request) {
         return ResponseEntity.ok(

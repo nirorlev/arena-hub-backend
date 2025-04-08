@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface CourseEnrollmentService extends IService<CourseEnrollment> {
     UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser);
 
-    Optional<CourseEnrollment> findCourseEnrollment(Integer courseId, PortalUser portalUser);
+    Optional<CourseEnrollment> findActiveCourseEnrollment(Integer courseId, PortalUser portalUser);
 
     CourseEnrollmentsDto courseEnrollments(Integer courseId, String users, OffsetDateTime startDate,
                                            OffsetDateTime endDate, PortalUser portalUser);
@@ -20,9 +20,9 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
     CourseEnrollmentsDto courseEnrollments(String usersFlag, OffsetDateTime startDate, OffsetDateTime endDate,
                                            PortalUser portalUser);
 
-    UserCourseEnrollmentDto courseEnrollment(Integer enrollmentId, PortalUser portalUser);
+    UserCourseEnrollmentDto courseEnrollment(Long enrollmentId, PortalUser portalUser);
 
-    UserCourseEnrollmentDto updateCourseEnrollment(Integer enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
+    UserCourseEnrollmentDto updateCourseEnrollment(Long enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
                                                    PortalUser portalUser);
 
     CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId);

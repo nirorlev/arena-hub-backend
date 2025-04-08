@@ -47,14 +47,14 @@ public class CourseEnrollmentController {
     }
 
     @GetMapping("/{enrollmentId}")
-    public ResponseEntity<UserCourseEnrollmentDto> courseEnrollment(@PathVariable("enrollmentId") Integer enrollmentId,
+    public ResponseEntity<UserCourseEnrollmentDto> courseEnrollment(@PathVariable("enrollmentId") Long enrollmentId,
                                                                     HttpServletRequest request) {
         return ResponseEntity.ok(
             courseEnrollmentService.courseEnrollment(enrollmentId, getPortalUser(request)));
     }
 
     @PutMapping("/{enrollmentId}")
-    public ResponseEntity<UserCourseEnrollmentDto> updateEnrollment(@PathVariable("enrollmentId") Integer enrollmentId,
+    public ResponseEntity<UserCourseEnrollmentDto> updateEnrollment(@PathVariable("enrollmentId") Long enrollmentId,
                                                                     @RequestBody @Valid
                                                                     UpdateEnrollmentDto updateEnrollmentDto,
                                                                     HttpServletRequest request) {

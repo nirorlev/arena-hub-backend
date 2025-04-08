@@ -13,5 +13,6 @@ public class UserCourseEnrollmentDto {
     private CourseTotalProgressDto progress;
     private OffsetDateTime progressDate;
     private OffsetDateTime complianceDate;
+    private OffsetDateTime completionDate;
     private Integer certificateId;
 }

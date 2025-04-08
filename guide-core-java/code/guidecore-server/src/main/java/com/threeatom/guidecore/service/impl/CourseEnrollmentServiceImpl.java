@@ -50,6 +50,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     private final AuthorizationService authorizationService;
 
     @Override
+    @Transactional
     public UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser) {
         GcSubject course = courseService.getById(courseId);
         if (course == null) {
@@ -58,9 +59,9 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             throw new ForbiddenException("No permission to view this course");
         }
-        Optional<CourseEnrollment> existingCourseEnrollment = findCourseEnrollment(courseId, portalUser);
+        Optional<CourseEnrollment> existingCourseEnrollment = findActiveCourseEnrollment(courseId, portalUser);
         if (existingCourseEnrollment.isPresent() && existingCourseEnrollment.get().getEndDate() == null) {
-            throw new ValidationException("This user already has an active enrollment for this course!");
+            updateCourseEnrollment(existingCourseEnrollment.get().getId(), getUpdateEnrollmentDto(false), portalUser);
         }
 
         CourseEnrollment courseEnrollment = createCourseEnrollment(portalUser, courseId);
@@ -69,8 +70,8 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     }
 
     @Override
-    public Optional<CourseEnrollment> findCourseEnrollment(Integer courseId, PortalUser portalUser) {
-        return Optional.ofNullable(baseMapper.findCourseEnrollment(courseId));
+    public Optional<CourseEnrollment> findActiveCourseEnrollment(Integer courseId, PortalUser portalUser) {
+        return Optional.ofNullable(baseMapper.findCourseEnrollment(courseId, portalUser.getUserId(), true));
     }
 
     @Override
@@ -86,14 +87,14 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     }
 
     @Override
-    public UserCourseEnrollmentDto courseEnrollment(Integer enrollmentId, PortalUser portalUser) {
+    public UserCourseEnrollmentDto courseEnrollment(Long enrollmentId, PortalUser portalUser) {
         CourseEnrollment enrollment = getEnrollmentById(enrollmentId);
         return createUserCourseEnrollmentDto(enrollment);
     }
 
     @Override
     @Transactional
-    public UserCourseEnrollmentDto updateCourseEnrollment(Integer enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
+    public UserCourseEnrollmentDto updateCourseEnrollment(Long enrollmentId, UpdateEnrollmentDto updateEnrollmentDto,
                                                           PortalUser portalUser) {
         CourseEnrollment courseEnrollment = getEnrollmentById(enrollmentId);
         if (!courseEnrollment.getUserId().equals(portalUser.getUserId())) {
@@ -135,7 +136,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         updateById(courseEnrollment);
     }
 
-    private CourseEnrollment getEnrollmentById(Integer id) {
+    private CourseEnrollment getEnrollmentById(Long id) {
         CourseEnrollment enrollment = baseMapper.getCourseEnrollmentById(id);
         if (enrollment == null) {
             log.error("Cannot find course enrollment using id {}", id);
@@ -150,7 +151,12 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         if ("all".equals(usersFlag)) {
             return baseMapper.getCourseEnrollments(courseId);
         }
-        return baseMapper.getCourseEnrollmentsByUserId(courseId, startDate, endDate, portalUser.getUserId());
+        if ("me".equals(usersFlag)) {
+            return baseMapper.getCourseEnrollmentsByUserId(courseId, startDate, endDate, portalUser.getUserId());
+        }
+
+        log.error("Invalid users parameter: {}", usersFlag);
+        throw new ValidationException("Invalid users parameter");
     }
 
     private List<CourseEnrollment> getCourseEnrollments(String usersFlag, OffsetDateTime startDate,
@@ -158,8 +164,13 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         if ("all".equals(usersFlag)) {
             return baseMapper.getCourseEnrollmentsByMasterId(startDate, endDate, portalUser.getMasterId());
         }
-        return baseMapper.getCourseEnrollmentsByUserAndMasterId(startDate, endDate, portalUser.getUserId(),
-            portalUser.getMasterId());
+        if ("me".equals(usersFlag)) {
+            return baseMapper.getCourseEnrollmentsByUserAndMasterId(startDate, endDate, portalUser.getUserId(),
+                portalUser.getMasterId());
+        }
+
+        log.error("Invalid users parameter: {}", usersFlag);
+        throw new ValidationException("Invalid users parameter");
     }
 
     private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments) {
@@ -224,6 +235,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         userCourseEnrollmentDto.setStartDate(courseEnrollment.getStartDate());
         userCourseEnrollmentDto.setEndDate(courseEnrollment.getEndDate());
         userCourseEnrollmentDto.setComplianceDate(courseEnrollment.getComplianceDate());
+        userCourseEnrollmentDto.setCompletionDate(courseEnrollment.getCompletionDate());
 
         Optional<CourseEnrollmentProgress> courseProgress = courseEnrollment.getLatestProgress();
         courseProgress.ifPresent(progress -> {
@@ -243,5 +255,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         courseEnrollment.setStartDate(OffsetDateTime.now());
 
         return courseEnrollment;
+    }
+
+    private UpdateEnrollmentDto getUpdateEnrollmentDto(boolean isActive) {
+        UpdateEnrollmentDto updateEnrollmentDto = new UpdateEnrollmentDto();
+        updateEnrollmentDto.setIsActive(isActive);
+        return updateEnrollmentDto;
     }
 }
