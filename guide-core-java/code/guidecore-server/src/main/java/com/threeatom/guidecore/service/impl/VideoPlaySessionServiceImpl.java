@@ -45,14 +45,9 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         videoPlaySession.setUserId(portalUser.getUserId());
         videoPlaySession.setVideoId(videoId);
         videoPlaySession.setMasterId(portalUser.getMasterId());
-        videoPlaySession.setClientTime(getClientTime(videoPlayDto));
+        videoPlaySession.setClientTime(videoPlayDto.getClientTime());
 
         save(videoPlaySession);
-    }
-
-    private OffsetDateTime getClientTime(VideoPlayDto videoPlayDto) {
-        OffsetDateTime clientTime = videoPlayDto.getClientTime();
-        return clientTime == null ? OffsetDateTime.now() : clientTime;
     }
 
     @Override

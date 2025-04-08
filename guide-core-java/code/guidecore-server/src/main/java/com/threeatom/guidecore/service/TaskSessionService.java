@@ -10,5 +10,5 @@ import java.util.Map;
 public interface TaskSessionService extends IService<TaskSession> {
     void createUpdateTaskSession(TaskSessionDto taskSessionDto, Integer taskId, PortalUser portalUser);
 
-    Map<String, TaskSessionsDto> taskSession(Integer taskId, PortalUser portalUser);
+    Map<String, TaskSessionsDto> userIdToTaskSessions(Integer taskId, PortalUser portalUser);
 }

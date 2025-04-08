@@ -41,7 +41,7 @@ public class TaskSessionServiceImpl extends ServiceImpl<TaskSessionMapper, TaskS
     }
 
     @Override
-    public Map<String, TaskSessionsDto> taskSession(Integer taskId, PortalUser portalUser) {
+    public Map<String, TaskSessionsDto> userIdToTaskSessions(Integer taskId, PortalUser portalUser) {
         if (!authorizationService.checkAccess(PortalAction.ACCESS_ANALYTICS, portalUser)) {
             throw new ForbiddenException("No permission to access task sessions");
         }

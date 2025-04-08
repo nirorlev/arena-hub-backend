@@ -74,8 +74,9 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}/sessions")
-    public ResponseEntity<Map<String, TaskSessionsDto>> taskSession(@PathVariable Integer taskId, HttpServletRequest request) {
-        return ResponseEntity.ok(taskSessionService.taskSession(taskId, getPortalUser(request)));
+    public ResponseEntity<Map<String, TaskSessionsDto>> userTaskSessions(@PathVariable Integer taskId,
+                                                                         HttpServletRequest request) {
+        return ResponseEntity.ok(taskSessionService.userIdToTaskSessions(taskId, getPortalUser(request)));
     }
 
     @GetMapping("/{taskId}/versions")

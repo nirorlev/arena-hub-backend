@@ -1312,9 +1312,7 @@
 
     <changeSet id="update-video-play-session-table" author="vprokh">
         <addColumn tableName="video_play_session">
-            <column name="client_time" type="timestamp with time zone" defaultValueComputed="now()">
-                <constraints nullable="false" />
-            </column>
+            <column name="client_time" type="timestamp with time zone" />
         </addColumn>
     </changeSet>
 
