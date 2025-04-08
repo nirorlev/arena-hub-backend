@@ -14,7 +14,7 @@ import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.entity.CourseEnrollment;
-import com.threeatom.guidecore.entity.CourseProgress;
+import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -225,7 +225,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         userCourseEnrollmentDto.setEndDate(courseEnrollment.getEndDate());
         userCourseEnrollmentDto.setComplianceDate(courseEnrollment.getComplianceDate());
 
-        Optional<CourseProgress> courseProgress = courseEnrollment.getLatestProgress();
+        Optional<CourseEnrollmentProgress> courseProgress = courseEnrollment.getLatestProgress();
         courseProgress.ifPresent(progress -> {
             CourseTotalProgressDto courseTotalProgressDto =
                 courseMapping.map(progress, courseEnrollment.getComplianceDate() != null);

@@ -11,8 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(exclude = {"id", "createdTime", "updatedTime"})
-@TableName(value = "courses_progress", autoResultMap = true)
-public class CourseProgress {
+@TableName(value = "course_enrollments_progress", autoResultMap = true)
+public class CourseEnrollmentProgress {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;

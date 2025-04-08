@@ -11,7 +11,7 @@ import com.threeatom.guidecore.dto.response.CourseSectionDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.entity.CourseContent;
-import com.threeatom.guidecore.entity.CourseProgress;
+import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -64,7 +64,7 @@ public interface CourseMapping {
     @Mapping(target = "sections", source = "courseContent", qualifiedByName = "mapCourseSectionContent")
     CourseProgramDto mapProgram(GcSubject course, List<CourseContent> courseContent);
 
-    CourseTotalProgressDto map(CourseProgress courseProgress, boolean isCompliant);
+    CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean isCompliant);
 
     @Named("mapCourseSectionContent")
     default List<CourseSectionDto> mapCourseSectionContent(List<CourseContent> courseContent) {

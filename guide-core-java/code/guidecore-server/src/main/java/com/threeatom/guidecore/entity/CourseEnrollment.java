@@ -34,7 +34,7 @@ public class CourseEnrollment {
     private OffsetDateTime updatedTime = OffsetDateTime.now();
 
     @TableField(exist = false)
-    private List<CourseProgress> courseProgress = new ArrayList<>();
+    private List<CourseEnrollmentProgress> courseEnrollmentProgresses = new ArrayList<>();
 
     @TableField(exist = false)
     private GcUser user;
@@ -42,8 +42,8 @@ public class CourseEnrollment {
     @TableField(exist = false)
     private GcSubject course;
 
-    public Optional<CourseProgress> getLatestProgress() {
-        return courseProgress.stream()
-            .min(Comparator.comparing(CourseProgress::getCreatedTime));
+    public Optional<CourseEnrollmentProgress> getLatestProgress() {
+        return courseEnrollmentProgresses.stream()
+            .min(Comparator.comparing(CourseEnrollmentProgress::getCreatedTime));
     }
 }

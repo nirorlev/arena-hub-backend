@@ -1317,8 +1317,8 @@
     </changeSet>
 
 
-    <changeSet id="create-courses-progress-table" author="vprokh">
-        <createTable tableName="courses_progress">
+    <changeSet id="create-course-enrollments-progress-table" author="vprokh">
+        <createTable tableName="course_enrollments_progress">
             <column name="id" type="SERIAL">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

@@ -14,7 +14,7 @@ import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
-import com.threeatom.guidecore.entity.CourseProgress;
+import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -22,11 +22,11 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
-import com.threeatom.guidecore.mapper.CourseProgressMapper;
+import com.threeatom.guidecore.mapper.CourseEnrollmentProgressMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
-import com.threeatom.guidecore.service.CourseProgressService;
+import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
@@ -47,8 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper, CourseProgress>
-    implements CourseProgressService {
+public class CourseEnrollmentProgressServiceImpl
+    extends ServiceImpl<CourseEnrollmentProgressMapper, CourseEnrollmentProgress>
+    implements CourseEnrollmentProgressService {
 
     private final GcSubjectService courseService;
     private final CourseContentService courseContentService;
@@ -90,8 +91,8 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
     }
 
     @Transactional
-    void saveProgress(CourseProgress courseProgress) {
-        save(courseProgress);
+    void saveProgress(CourseEnrollmentProgress courseEnrollmentProgress) {
+        save(courseEnrollmentProgress);
     }
 
     private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
@@ -305,16 +306,16 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
 
     private void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
                                   CourseSetting courseSetting) {
-        CourseProgress courseProgress =
+        CourseEnrollmentProgress courseEnrollmentProgress =
             createCourseProgress(courseEnrollment, courseProgressDto.getCourse().getProgress());
-        if (wasProgressUpdated(courseEnrollment, courseProgress)) {
-            saveProgress(courseProgress);
+        if (wasProgressUpdated(courseEnrollment, courseEnrollmentProgress)) {
+            saveProgress(courseEnrollmentProgress);
             courseEnrollment.setUpdatedTime(OffsetDateTime.now());
         }
 
         int tasksCount = courseProgressDto.getTasks().size();
-        double taskCompletionPercentage = taskPercentage(tasksCount, courseProgress.getCompletedTasksCount());
-        double courseCompletionPercentage = courseProgress.getPercentage();
+        double taskCompletionPercentage = taskPercentage(tasksCount, courseEnrollmentProgress.getCompletedTasksCount());
+        double courseCompletionPercentage = courseEnrollmentProgress.getPercentage();
         boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
         boolean courseContentProgressCompliant =
             isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
@@ -325,16 +326,16 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
         courseEnrollmentService.updateById(courseEnrollment);
     }
 
-    private CourseProgress createCourseProgress(CourseEnrollment courseEnrollment,
-                                                CourseTotalProgressDto courseTotalProgressDto) {
-        CourseProgress courseProgress = new CourseProgress();
-        courseProgress.setEnrollmentId(courseEnrollment.getId());
-        courseProgress.setPercentage(courseTotalProgressDto.getPercentage());
-        courseProgress.setCompletedSectionsCount(courseTotalProgressDto.getCompletedSectionsCount());
-        courseProgress.setCompletedTasksCount(courseTotalProgressDto.getCompletedTasksCount());
-        courseProgress.setSecondsViewed(courseTotalProgressDto.getSecondsViewed());
+    private CourseEnrollmentProgress createCourseProgress(CourseEnrollment courseEnrollment,
+                                                          CourseTotalProgressDto courseTotalProgressDto) {
+        CourseEnrollmentProgress courseEnrollmentProgress = new CourseEnrollmentProgress();
+        courseEnrollmentProgress.setEnrollmentId(courseEnrollment.getId());
+        courseEnrollmentProgress.setPercentage(courseTotalProgressDto.getPercentage());
+        courseEnrollmentProgress.setCompletedSectionsCount(courseTotalProgressDto.getCompletedSectionsCount());
+        courseEnrollmentProgress.setCompletedTasksCount(courseTotalProgressDto.getCompletedTasksCount());
+        courseEnrollmentProgress.setSecondsViewed(courseTotalProgressDto.getSecondsViewed());
 
-        return courseProgress;
+        return courseEnrollmentProgress;
     }
 
     private void updateEnrollmentCompletion(CourseEnrollment courseEnrollment, double courseCompletionPercentage) {
@@ -353,9 +354,10 @@ public class CourseProgressServiceImpl extends ServiceImpl<CourseProgressMapper,
         }
     }
 
-    private boolean wasProgressUpdated(CourseEnrollment courseEnrollment, CourseProgress courseProgress) {
+    private boolean wasProgressUpdated(CourseEnrollment courseEnrollment,
+                                       CourseEnrollmentProgress courseEnrollmentProgress) {
         return courseEnrollment.getLatestProgress().isEmpty() ||
-            !courseEnrollment.getLatestProgress().get().equals(courseProgress);
+            !courseEnrollment.getLatestProgress().get().equals(courseEnrollmentProgress);
     }
 
     private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, OffsetDateTime complianceDate) {
