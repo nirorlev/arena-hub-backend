@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
@@ -32,4 +33,6 @@ public interface VideoPlaySegmentService extends IService<VideoPlaySegment> {
 
     List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
                                                                          Integer masterId);
+
+    CourseVideoBookmarkDto videoBookmark(List<Integer> videoIds, OffsetDateTime startDate);
 }

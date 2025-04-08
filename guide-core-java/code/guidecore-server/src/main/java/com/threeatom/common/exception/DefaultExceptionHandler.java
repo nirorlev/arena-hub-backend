@@ -75,10 +75,10 @@ public class DefaultExceptionHandler {
     }
 
     @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ResourceNotFoundException.class)
     public Message handleResourceNotFoundException(ResourceNotFoundException e) {
-        return new Message().commonError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+        return new Message().commonError(HttpStatus.NOT_FOUND.value(), e.getMessage(), e);
     }
 
     @ResponseBody

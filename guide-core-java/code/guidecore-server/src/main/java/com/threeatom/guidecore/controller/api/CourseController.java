@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
+import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
@@ -109,6 +110,11 @@ public class CourseController {
         PortalUser portalUser = getPortalUser(request);
 
         return ResponseEntity.ok(courseService.courseProgram(courseId, portalUser));
+    }
+
+    @GetMapping("/{courseId}/bookmarks/last-viewed")
+    public ResponseEntity<CourseVideoBookmarkDto> lastViewedBookmark(@PathVariable Integer courseId, HttpServletRequest request) {
+        return ResponseEntity.ok(courseService.lastViewedBookmark(courseId, getPortalUser(request)));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

@@ -4,11 +4,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
+import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.utils.data.TreeNode;
@@ -209,4 +211,8 @@ public interface GcSubjectService extends IService<GcSubject> {
     CourseProgramDto courseProgram(Integer courseId, PortalUser portalUser);
 
     void updateUrls(GcSubject course);
+
+    CourseVideoBookmarkDto lastViewedBookmark(Integer courseId, PortalUser portalUser);
+
+    List<GcVideo> courseVideos(Integer courseId);
 }

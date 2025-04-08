@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
@@ -17,7 +18,9 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
+import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.CourseContent;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
@@ -39,6 +42,7 @@ import com.threeatom.guidecore.mapper.GcSubjectMapper;
 import com.threeatom.guidecore.mapper.NewUiGcSubjectMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcEventService;
@@ -50,6 +54,7 @@ import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
+import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
@@ -66,6 +71,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -126,6 +132,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private CourseMapping courseMapping;
     @Autowired
     private CourseContentService courseContentService;
+    @Autowired
+    private VideoPlaySegmentService playSegmentService;
+    @Autowired
+    @Lazy
+    private CourseEnrollmentService courseEnrollmentService;
 
     public static List<Map<String, Object>> removeRepeatMapByKey(List<Map<String, Object>> list, String mapKey) {
         if (list == null || list.size() == 0) {
@@ -841,7 +852,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 }
 
                 if (CollectionUtils.isNotEmpty(gcVideos)) {
-                    List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
+                    List<Integer> videoIds = videoIds(gcVideos);
                     //2、视频播放分钟数和总的时长
                     //查询视频总时长
                     totals.setVideoTotalProgress(videoService.sumVideoLongByIdUser(videoIds, userId));
@@ -867,6 +878,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
         }
         return totals;
+    }
+
+    private List<Integer> videoIds(List<GcVideo> videos) {
+        return videos.stream()
+            .map(GcVideo::getId)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -1512,5 +1529,26 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         subImgFile.setFullFileUrl(sysFileService.getFullFileUrl(subImgFile.getFileUrl()));
         subImgFile.setSnapshotUrl(sysFileService.getFullFileUrl(subImgFile.getThumbNailUrl()));
+    }
+
+    @Override
+    public CourseVideoBookmarkDto lastViewedBookmark(Integer courseId, PortalUser portalUser) {
+        List<GcVideo> courseVideos = courseVideos(courseId);
+        Optional<CourseEnrollment> activeCourseEnrollment =
+            courseEnrollmentService.findActiveCourseEnrollment(courseId, portalUser);
+        if (activeCourseEnrollment.isEmpty()) {
+            log.error("User {} is not enrolled in course {}", portalUser.getUserId(), courseId);
+            throw new ForbiddenException("User is not enrolled in this course");
+        }
+
+        return playSegmentService.videoBookmark(videoIds(courseVideos), activeCourseEnrollment.get().getStartDate());
+    }
+
+    @Override
+    public List<GcVideo> courseVideos(Integer courseId) {
+        return courseContentService.findCourseContent(courseId).stream()
+            .map(CourseContent::getVideo)
+            .filter(video -> video.getSubId() != null)
+            .collect(Collectors.toList());
     }
 }

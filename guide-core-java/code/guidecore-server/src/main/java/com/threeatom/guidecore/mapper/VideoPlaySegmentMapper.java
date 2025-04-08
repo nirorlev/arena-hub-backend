@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -47,4 +48,7 @@ public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
     List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(
         @Param("filter") VideoViewPerSecondDto filter,
         @Param("masterId") Integer masterId);
+
+    VideoPlaySegment findLatestPlaySegment(@Param("videoIds") List<Integer> videoIds,
+                                           @Param("startDate") OffsetDateTime startDate);
 }
