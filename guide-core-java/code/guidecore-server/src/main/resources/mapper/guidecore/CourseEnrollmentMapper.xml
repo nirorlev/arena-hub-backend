@@ -105,7 +105,7 @@
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
         FROM course_enrollments course_enrollment
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
             <if test="active">
                 AND course_enrollment.end_date IS NOT NULL
@@ -130,7 +130,7 @@
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId}
     </select>
 
@@ -147,7 +147,7 @@
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
@@ -170,7 +170,7 @@
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE 1=1
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
@@ -193,7 +193,7 @@
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.user_id = #{userId}
             <if test="startDate != null">
                 AND course_enrollment.start_date >= #{startDate}
@@ -216,7 +216,7 @@
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
-            LEFT JOIN courses_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
+            LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.id = #{id}
     </select>
 </mapper>
