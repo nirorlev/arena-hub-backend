@@ -13,7 +13,7 @@
 
         <association property="course" resultMap="courseResultMap" columnPrefix="course_" />
         <association property="user" resultMap="userResultMap" columnPrefix="user_"/>
-        <collection property="courseEnrollmentProgress" ofType="com.threeatom.guidecore.entity.CourseEnrollmentProgress" resultMap="courseProgressResultMap" columnPrefix="progress_"/>
+        <collection property="courseEnrollmentProgresses" ofType="com.threeatom.guidecore.entity.CourseEnrollmentProgress" resultMap="courseProgressResultMap" columnPrefix="progress_"/>
     </resultMap>
 
     <resultMap id="courseProgressResultMap" type="CourseEnrollmentProgress" autoMapping="true">
