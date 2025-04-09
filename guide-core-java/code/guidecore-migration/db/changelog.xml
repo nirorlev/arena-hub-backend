@@ -1345,8 +1345,8 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="courses_progress" baseColumnNames="enrollment_id"
-                                 constraintName="fk_courses_progress_enrollment"
+        <addForeignKeyConstraint baseTableName="course_enrollments_progress" baseColumnNames="enrollment_id"
+                                 constraintName="fk_course_enrollments_progress_enrollment"
                                  referencedTableName="course_enrollments"
                                  referencedColumnNames="id" onUpdate="CASCADE" onDelete="CASCADE"/>
     </changeSet>
