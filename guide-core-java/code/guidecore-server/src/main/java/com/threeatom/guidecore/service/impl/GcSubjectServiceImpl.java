@@ -1534,14 +1534,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseVideoBookmarkDto lastViewedBookmark(Integer courseId, PortalUser portalUser) {
         List<GcVideo> courseVideos = courseVideos(courseId);
-        Optional<CourseEnrollment> activeCourseEnrollment =
-            courseEnrollmentService.findActiveCourseEnrollment(courseId, portalUser);
-        if (activeCourseEnrollment.isEmpty()) {
-            log.error("User {} is not enrolled in course {}", portalUser.getUserId(), courseId);
-            throw new ForbiddenException("User is not enrolled in this course");
-        }
+        CourseEnrollment activeCourseEnrollment =
+            courseEnrollmentService.getActiveEnrollment(courseId, portalUser.getUserId());
 
-        return playSegmentService.videoBookmark(videoIds(courseVideos), activeCourseEnrollment.get().getStartDate());
+        return playSegmentService.videoBookmark(videoIds(courseVideos), activeCourseEnrollment.getStartDate());
     }
 
     @Override
