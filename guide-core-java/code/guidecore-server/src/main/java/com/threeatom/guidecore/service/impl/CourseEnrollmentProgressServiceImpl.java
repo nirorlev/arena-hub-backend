@@ -85,9 +85,7 @@ public class CourseEnrollmentProgressServiceImpl
                     updateEnrollment(courseProgressDto, enrollment, courseSetting);
                     return courseProgressDto;
                 })
-            .orElseGet(() -> calculateProgressDto(course, videos, courseSetting,
-                course.getCreateTime().toInstant().atOffset(ZoneOffset.UTC),
-                portalUser));
+            .orElseGet(() -> emptyCourseProgressDto(course, courseSetting));
     }
 
     @Transactional
@@ -374,6 +372,12 @@ public class CourseEnrollmentProgressServiceImpl
     private <T> Map<String, T> convertKeyToString(Map<Integer, T> sections) {
         return sections.entrySet().stream()
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private CourseProgressDto emptyCourseProgressDto(GcSubject course, CourseSetting courseSetting) {
+        CourseProgressDto courseProgressDto = new CourseProgressDto();
+        courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, courseSetting));
+        return courseProgressDto;
     }
 
 }
