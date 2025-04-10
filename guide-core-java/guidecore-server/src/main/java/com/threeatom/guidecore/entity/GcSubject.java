@@ -10,11 +10,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
-import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -24,7 +22,6 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "GcSubject对象", description = "")
 @TableName(autoResultMap = true)
 public class GcSubject implements Serializable, TreeNodeEntity {
 
@@ -37,7 +34,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @JSONField(deserialize = false)
     private Integer id2;
 
-    @JSONField(deserialize = true)
     private Integer masterId;
 
     @ApiModelProperty(value = "主题name")
@@ -307,11 +303,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray subjectOrder;
 
-    @ApiModelProperty("课程详情页封面id")
-    @TableField(
-            value = "subdetail_img_id",
-            typeHandler = FastJsonObjectTypeHandler.class,
-            exist = true)
+    @TableField(value = "subdetail_img_id", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject subdetail_img_id = new JSONObject();
 
     @TableField(exist = false)
@@ -406,11 +398,11 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     private JSONArray mayJsonArray;
 
     /**
-     *  0 to do 新发布的没有开始的must课程
-     *  1 overdue 暂无
-     *  2 completed 完成
-     *  3 draft 草稿
-     *  4 Earn a Certificate 有证书下载的课程
+     * 0 to do 新发布的没有开始的must课程
+     * 1 overdue 暂无
+     * 2 completed 完成
+     * 3 draft 草稿
+     * 4 Earn a Certificate 有证书下载的课程
      */
     @TableField(exist = false)
     private Integer identifying;
@@ -449,8 +441,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     }
 
     public boolean isPublic() {
-        return CourseState.CERTAIN_TEAMS.getValue().equals(state)
-            && CourseAvailabilityType.PUBLIC.getValue().equals(availableType);
+        return CourseState.PUBLIC.getValue().equals(state) || CourseState.CERTAIN_TEAMS.getValue().equals(state);
     }
 
     public boolean isPrivate() {
