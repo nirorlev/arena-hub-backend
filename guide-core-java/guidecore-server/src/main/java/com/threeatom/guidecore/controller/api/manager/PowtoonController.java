@@ -56,6 +56,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.BiEventAction;
+import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
@@ -98,11 +99,8 @@ import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import io.permit.sdk.api.PermitApiError;
-import io.permit.sdk.api.PermitContextError;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -648,8 +646,6 @@ public class PowtoonController extends GuideCoreController {
             if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
                 throw new PermitException("No permission for this!");
             }
-
-            user.setIsOrgAdmin(portalUser.isOrgAdmin());
 
             return gvgMasterService.navigation(params, request, system, portalUser, EnvType.PT.getCode());
         }
@@ -1687,97 +1683,52 @@ public class PowtoonController extends GuideCoreController {
             .addData("DiscoverNew", DiscoverNew);
     }
 
-    @ApiOperation(value = "添加课程或者话题", httpMethod = "POST")
     @PostMapping("/saveSub")
-    public Message saveSub(@RequestBody @ApiParam(name = "创建主题", value = "主题结构") GcSubject course,
-                           HttpServletRequest request) throws IOException, PermitApiError, PermitContextError {
-        GcMaster master = this.getMaster();
-        Integer masterId = null;
-        GcUser user = this.getGcUser();
+    public Message saveSub(@RequestBody GcSubject course, HttpServletRequest request) {
+        GcUser user = userService.getCurrentUser(request);
+        PortalUser portalUser = getPortalUser(request, user);
+        GcMaster master = masterService.getById(portalUser.getMasterId());
 
-        if (null == master && null != request.getHeader("masterId")) {
-            masterId = Integer.parseInt(request.getHeader("masterId"));
-        } else {
-            masterId = master.getId().intValue();
-        }
-        master = masterService.getById(masterId);
         boolean isFlag = false;
-        List<String> ids = new ArrayList<>();
-        PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-        user.setIsOrgAdmin(portalUser.isOrgAdmin());
         gcSubjectService.populateUserId(course, user);
 
         if (null != course.getId() && null == course.getMoveDrafts()) {
             GcSubject oldSubject = gcSubjectService.getById(course.getId());
-            List<String> mustAccessList = new ArrayList<>();
-            List<String> accessListMay = new ArrayList<>();
-            if (null != course.getAllPublished() && course.getAllPublished() == TableConstant.COMMON_ZERO) {
-                if (user.getIsOrgAdmin()) {
-                    accessListMay = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
-                } else {
-                    accessListMay = getContentGroupCodes(gcAccessService.listAccess(null, masterId, user.getId()));
-                }
-                if (accessListMay.size() != TableConstant.COMMON_ZERO) {
-                    ids.addAll(accessListMay);
-                }
-            }
-            if (null != course.getAllPublishedMay() && course.getAllPublishedMay().equals(TableConstant.COMMON_ZERO)) {
-                if (user.getIsOrgAdmin()) {
-                    mustAccessList = getContentGroupCodes(gcAccessService.findAccessListByMasterId(masterId));
-                } else {
-                    mustAccessList = getContentGroupCodes(gcAccessService.listAccess(null, masterId, user.getId()));
-                }
-                if (mustAccessList.size() != TableConstant.COMMON_ZERO) {
-                    ids.addAll(mustAccessList);
-                }
-            }
-
-            if (null != course.getAccessIds() && course.getAccessIds().size() != TableConstant.COMMON_ZERO &&
-                null == course.getAllPublishedMay()) {
-                ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getAccessIds())));
-            }
-            if (null != course.getMustAccessIds() && course.getMustAccessIds().size() != TableConstant.COMMON_ZERO &&
-                null == course.getAllPublished()) {
-                ids.addAll(getContentGroupCodes(gcAccessService.listByIds(course.getMustAccessIds())));
-            }
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
                 isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
-                if (null == oldSubject.getPublishedTime() && course.getState().equals(TableConstant.COMMON_ONE)) {
+                if (oldSubject.getPublishedTime() == null
+                    && CourseState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
                     course.setPublishedTime(new Date());
                     course.setPublishedUserId(user.getId());
                 }
             } else {
-                //修改
                 eventPublisherService.publishCourseUpdated(course.getId());
                 isFlag = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
             }
         } else if (null != course.getMoveDrafts()) {
-            //移动回发布前
             GcSubject subject = gcSubjectService.getById(course.getId());
-            if ((user.getIsOrgAdmin() && null != course.getMoveDrafts()) ||
-                (user.getId().equals(subject.getCreateUser()))) {
+            if (portalUser.isOrgAdmin() && null != course.getMoveDrafts() || user.getId().equals(subject.getCreateUser())) {
                 isFlag = true;
             }
         } else {
-            //创建
             isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
         }
         if (!isFlag) {
             throw new PermitException("No permission for this!");
         }
-        if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(TableConstant.COMMON_ZERO)) {
+        if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CourseState.PRIVATE.getValue())) {
             course = gcSubjectService.getById(course.getId());
-            course.setState(TableConstant.COMMON_ZERO);
-            gcAccessService.deleteSubIdAccess(masterId, course.getId());
-            contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, course.getId());
+            course.setState(CourseState.PRIVATE.getValue());
+            gcAccessService.deleteSubIdAccess(portalUser.getMasterId(), course.getId());
+            contentGroupCourseAssignmentService.removeByMasterAndCourseId(portalUser.getMasterId(), course.getId());
         }
-        if (course.getState() != null && course.getState() == TableConstant.COMMON_ONE) {
+        if (CourseState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
             contentGroupCourseAssignmentService.save(user, course, CourseType.MANDATORY);
             contentGroupCourseAssignmentService.save(user, course, CourseType.OPTIONAL);
         }
         gcSubjectService.saveSubInfo(course, null, master, user, request);
 
-        return new Message().ok("添加成功！").addData("sync", course);
+        return new Message().addData("sync", course);
     }
 
     @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
@@ -2656,6 +2607,11 @@ public class PowtoonController extends GuideCoreController {
         } else {
             return new Message().error("删除失败");
         }
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request, GcUser currentUser) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }
 

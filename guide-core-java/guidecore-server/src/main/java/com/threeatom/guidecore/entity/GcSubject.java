@@ -18,7 +18,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -453,11 +452,11 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     }
 
     public Boolean getIsPrivate() {
-        return CourseState.DRAFT.getValue().equals(state);
+        return CourseState.PRIVATE.getValue().equals(state);
     }
 
     public boolean isPublic() {
-        return CourseState.PUBLISHED.getValue().equals(state)
+        return CourseState.CERTAIN_TEAMS.getValue().equals(state)
             && CourseAvailabilityType.PUBLIC.getValue().equals(availableType);
     }
 
