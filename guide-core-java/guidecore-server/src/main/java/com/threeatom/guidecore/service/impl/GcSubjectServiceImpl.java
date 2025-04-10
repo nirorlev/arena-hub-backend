@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
-import com.threeatom.common.ApiAssert;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.SystemException;
@@ -32,8 +31,8 @@ import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
+import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
@@ -78,7 +77,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -194,7 +192,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
             queryWrapper.eq("master_id", sub.getMasterId());
             queryWrapper.eq("fid", sub.getFid());
-            queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
             orderList = this.list(queryWrapper);
             sub.setOrder((orderList.size() + 1));
         }
@@ -268,7 +266,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
 
-        Integer state = TableConstant.gcSubject_state_visible_1;
+        Integer state = CourseState.CERTAIN_TEAMS.getValue();
         if (null != request.getAttribute("state")) {
             state = Integer.parseInt(request.getAttribute("state").toString());
         }
@@ -503,7 +501,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
             }
 
-            if (null == subject.getState() || subject.getState().equals(TableConstant.COMMON_ZERO)) {
+            if (subject.getState() == null || subject.isPrivate()) {
                 identifyings.add(TableConstant.COMMON_THREE);
             }
 
@@ -937,7 +935,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1078,13 +1076,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 1);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         if (subIds != null && subIds.size() != TableConstant.COMMON_ZERO) {
             queryWrapper.in(true, "fid", subIds);
         }
         //查询导入课程的topic数量
         Integer importedTopicNum = this.baseMapper.countImportedToicNum(masterId, TableConstant.COMMON_ONE,
-            TableConstant.gcSubject_state_hidden_0, subIds, managerId);
+            CourseState.PRIVATE.getValue(), subIds, managerId);
         return this.count(queryWrapper) + importedTopicNum;
 
 
@@ -1102,7 +1100,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("master_id", masterId).eq("type", TableConstant.gcSubject_type_subject0);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
 
@@ -1116,7 +1114,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("fid", subId);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
@@ -1126,7 +1124,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1135,7 +1133,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public GcSubject getSubNameBysubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("id", subId);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         return this.getOne(queryWrapper);
     }
 
@@ -1154,7 +1152,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> getChildSubjectBySubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1205,7 +1203,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
         if (subIds.size() != 0) {
             queryWrapper.in("id", subIds);
-            queryWrapper.ne("state", TableConstant.gcSubject_state_hidden_0);//不显示隐藏
+            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
             PageParam pageParam = new PageParam(request);
             Integer pageNum = pageParam.getPageNum();
             Integer pageSize = pageParam.getPageSize();
@@ -1345,122 +1343,83 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public GcSubject saveSubInfo(GcSubject sub, GcManager manager, GcMaster master, GcUser user,
+    public GcSubject saveSubInfo(GcSubject course, GcManager manager, GcMaster master, GcUser user,
                                  HttpServletRequest request) {
         Integer masterId = master.getId();
-        //是否是一级课程
-        if (sub.getFid() == null || sub.getFid().intValue() == 0) {
-            sub.setFid(null);
+        if (course.getFid() == 0) {
+            course.setFid(null);
         }
-        //1级课程不可添加重命名关联课程
-        if (sub.getFid() == null && sub.getAliasSubId() != null) {
-            throw new SystemException("1级课程不可添加重命名关联课程");
-        }
-        GcSubject fullSub = this.getById(sub.getId());
-        if (Objects.isNull(sub.getTagType())) {
-            if (sub.getMasterId() != null && sub.getMasterId().intValue() != masterId) {
+        GcSubject fullCourse = this.getById(course.getId());
+        if (Objects.isNull(course.getTagType())) {
+            if (course.getMasterId() != null && course.getMasterId().intValue() != masterId) {
                 throw new SystemException("该课程不属于该门户，不可修改状态");
             }
 
-            if (sub.getId() != null && sub.getMasterId() == null) {
-                if (fullSub.getMasterId().intValue() != masterId) {
+            if (course.getId() != null && course.getMasterId() == null) {
+                if (fullCourse.getMasterId().intValue() != masterId) {
                     throw new SystemException("该课程不属于该门户，不可修改状态");
                 }
             }
         }
-        //判断state
-        if (sub.getState() != null) {
-            ApiAssert.jsonValueIntegerIn(sub.getState(), TableConstant.gcSubject_state_jsonStr,
-                "state值必须为通用枚举中的一个");
-        } else {
-            sub.setState(TableConstant.gcSubject_state_visible_1);
-        }
 
-        //判断更新时的token
+        course.setState(CourseState.CERTAIN_TEAMS.getValue());
 
-        if (sub.getMasterId() == null) {
-            sub.setMasterId(masterId);
+        if (course.getMasterId() == null) {
+            course.setMasterId(masterId);
         }
-        if (sub.getName() == null) {
+        if (course.getName() == null) {
             throw new SystemException("名字name不可空");
         }
 
-        int c = this.countCourseForName(sub);
-        if (c > 0) {
+        int courseWithSameNameCount = this.countCourseForName(course);
+        if (courseWithSameNameCount > 0) {
             throw new SystemException(10000,
-                "'" + sub.getName() + "'- " + I18NUtil.get("guidecore.master.sameCourseNameNotice"));
+                "'" + course.getName() + "'- " + I18NUtil.get("guidecore.master.sameCourseNameNotice"));
         }
 
-
-        if (sub.getToken() != null && !StringUtils.isBlank(sub.getToken())) {//插入时，如果token不为空，
-            if (fullSub != null && !sub.getToken().equals(fullSub.getToken())) {//则判断可导入，判断token是否与db中的值一致
-                if (redisOperator.get(masterRandomToken + master.getId()) == null) {//重新从redis获取token
-                    throw new SystemException("请重新生成token");
-                }
-                sub.setToken((String) redisOperator.get(masterRandomToken + master.getId()));
-            }
-        }
-
-        if (null == sub.getId() && null == sub.getOrder()) {
+        if (null == course.getId() && null == course.getOrder()) {
             List<GcSubject> subjectList = this.getSubList(masterId, null);
-            if (null != subjectList && TableConstant.COMMON_ZERO != subjectList.size()) {
-                Integer max = subjectList.stream().mapToInt(GcSubject::getOrder).max().getAsInt();
-                sub.setOrder(max + 1);
-
+            if (!org.springframework.util.CollectionUtils.isEmpty(subjectList)) {
+                int max = subjectList.stream().mapToInt(GcSubject::getOrder).max().getAsInt();
+                course.setOrder(max + 1);
             }
         }
-        if (null != user) {
-            sub.setCreateUser(user.getId());
-        }
-        if (null != sub.getId()) {
-            sub.setUpdateTime(new Date());
-        }
-        this.saveSub(sub);
-        GcSubject subs = this.getById(sub.getId());
-        sub.setCreateTime(subs.getCreateTime());
-        sub.setUpdateTime(subs.getUpdateTime());
 
-        sub.setSubImgFile(sysFileService.getById(sub.getSubImgId()));
-        sysFileService.getResFullUrl(sub.getSubImgFile(), request);
-        if (null == sub.getFid() && null != manager) {
+        if (null != user) {
+            course.setCreateUser(user.getId());
+        }
+        if (null != course.getId()) {
+            course.setUpdateTime(new Date());
+        }
+
+        this.saveSub(course);
+
+        GcSubject subs = this.getById(course.getId());
+        course.setCreateTime(subs.getCreateTime());
+        course.setUpdateTime(subs.getUpdateTime());
+
+        course.setSubImgFile(sysFileService.getById(course.getSubImgId()));
+        sysFileService.getResFullUrl(course.getSubImgFile(), request);
+
+        if (course.getFid() == null && manager != null) {
             GcUserAccess gcUserAccess = userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), masterId);
-            if (null != gcUserAccess) {
+            if (gcUserAccess != null) {
                 List<Integer> courseIds =
                     courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
-                if (!courseIds.contains(sub.getId())) {
-                    courseAssignmentService.save(user, sub, CourseType.OPTIONAL);
+                if (!courseIds.contains(course.getId())) {
+                    courseAssignmentService.save(user, course, CourseType.OPTIONAL);
                 }
             }
         }
 
-        if (null != sub.getSubdetail_img_id() && sub.getSubdetail_img_id().size() != 0) {
-            Integer subDetailImgId = Integer.parseInt(sub.getSubdetail_img_id().get("subDetailImgId").toString());
+        if (!org.springframework.util.CollectionUtils.isEmpty(course.getSubdetail_img_id())) {
+            Integer subDetailImgId = Integer.parseInt(course.getSubdetail_img_id().get("subDetailImgId").toString());
             SysFile sysFile = sysFileService.getById(subDetailImgId);
             sysFileService.getResFullUrl(sysFile, request);
-            sub.setSubDetailImgUrl(sysFile.getFullFileUrl());
-        }
-        if (null != sub.getCourseTags()) {
-            QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("subject_id", sub.getId());
-            queryWrapper.in("master_id", masterId);
-            queryWrapper.in("type", TableConstant.COMMON_ONE);
-            ptTagsService.remove(queryWrapper);
-            List<String> tagList = sub.getCourseTags().toJavaList(String.class);
-            List<PtTags> ptTagsList = new ArrayList<>();
-            Integer finalMasterId = masterId;
-            tagList.forEach(i -> {
-                PtTags newTags = new PtTags();
-                newTags.setMasterId(finalMasterId);
-                newTags.setTagText(i);
-                newTags.setSubjectId(sub.getId());
-                newTags.setType(TableConstant.COMMON_ONE);
-                newTags.setOrder(TableConstant.COMMON_ZERO);
-                ptTagsList.add(newTags);
-            });
-            ptTagsService.saveOrUpdateBatch(ptTagsList);
+            course.setSubDetailImgUrl(sysFile.getFullFileUrl());
         }
 
-        return sub;
+        return course;
     }
 
     @Override

@@ -355,10 +355,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<Integer> accessIds;
 
-    /**
-     * 发布选项
-     * 公共选项1
-     */
     private Integer availableType;
 
     /**
@@ -402,9 +398,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
      */
     @TableField(exist = false)
     private Integer moveDrafts;
-
-    @TableField(exist = false)
-    private Integer courseState;
 
     @TableField(exist = false)
     private JSONArray mustJsonArray;

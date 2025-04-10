@@ -1652,7 +1652,7 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
             UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, TableConstant.gcSubject_state_visible_1,
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CourseState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
@@ -1669,7 +1669,7 @@ public class PowtoonController extends GuideCoreController {
         });
 
         Integer DiscoverNew =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, TableConstant.gcSubject_state_visible_1,
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CourseState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
 
         return new Message().ok()
@@ -1689,31 +1689,30 @@ public class PowtoonController extends GuideCoreController {
         PortalUser portalUser = getPortalUser(request, user);
         GcMaster master = masterService.getById(portalUser.getMasterId());
 
-        boolean isFlag = false;
+        boolean accessAllowed = false;
         gcSubjectService.populateUserId(course, user);
 
         if (null != course.getId() && null == course.getMoveDrafts()) {
             GcSubject oldSubject = gcSubjectService.getById(course.getId());
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
-                isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
-                if (oldSubject.getPublishedTime() == null
-                    && CourseState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
+                accessAllowed = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
+                if (oldSubject.getPublishedTime() == null && course.isPublic()) {
                     course.setPublishedTime(new Date());
                     course.setPublishedUserId(user.getId());
                 }
             } else {
                 eventPublisherService.publishCourseUpdated(course.getId());
-                isFlag = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
+                accessAllowed = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
             }
         } else if (null != course.getMoveDrafts()) {
             GcSubject subject = gcSubjectService.getById(course.getId());
             if (portalUser.isOrgAdmin() && null != course.getMoveDrafts() || user.getId().equals(subject.getCreateUser())) {
-                isFlag = true;
+                accessAllowed = true;
             }
         } else {
-            isFlag = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
+            accessAllowed = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
         }
-        if (!isFlag) {
+        if (!accessAllowed) {
             throw new PermitException("No permission for this!");
         }
         if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CourseState.PRIVATE.getValue())) {
