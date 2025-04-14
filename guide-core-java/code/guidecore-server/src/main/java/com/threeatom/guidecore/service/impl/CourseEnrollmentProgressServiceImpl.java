@@ -361,7 +361,7 @@ public class CourseEnrollmentProgressServiceImpl
         courseEnrollment.setUpdatedTime(OffsetDateTime.now());
     }
 
-    private boolean isCompliant(double currentPercentage, double thresholdPercent) {
+    private boolean isCompliant(double thresholdPercent, double currentPercentage) {
         return thresholdPercent >= currentPercentage;
     }
 
