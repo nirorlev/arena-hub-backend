@@ -102,7 +102,7 @@
     </select>
 
 	<sql id="where_gcSubject_state_not_hidden">
-    	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    	and s.state !=0
     </sql>
     
     <select id="getAllUnReadMessage" resultType="Map">

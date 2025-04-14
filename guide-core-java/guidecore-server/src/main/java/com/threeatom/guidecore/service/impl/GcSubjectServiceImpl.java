@@ -1346,7 +1346,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public GcSubject saveSubInfo(GcSubject course, GcManager manager, GcMaster master, GcUser user,
                                  HttpServletRequest request) {
         Integer masterId = master.getId();
-        if (course.getFid() == 0) {
+        if (course.getFid() == null || course.getFid() == 0) {
             course.setFid(null);
         }
         GcSubject fullCourse = this.getById(course.getId());

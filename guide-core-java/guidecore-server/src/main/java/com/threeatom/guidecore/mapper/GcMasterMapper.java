@@ -19,16 +19,11 @@ public interface GcMasterMapper extends BaseMapper<GcMaster> {
 
     boolean updateSourceNull(Integer id);
 
-    List<GcMaster> selectMasterPublicSubject();
-
     GcMaster getMasterByContext(String context);
 
     List<GcMaster> gcMasterList(@Param("masterIds") List<Integer> masterIds);
 
     boolean updateEmailById(@Param("id") Integer id, @Param("email") JSONArray email);
-
-    List<GcMaster> selectMasterPublicSubjectByTag(
-            @Param("masterId") Integer masterId, @Param("tag") String tag);
 
     List<GcMaster> selectMasterAndManager(@Param("searchFilter") String searchFilter);
 
