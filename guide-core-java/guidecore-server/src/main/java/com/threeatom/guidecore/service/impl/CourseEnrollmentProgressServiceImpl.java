@@ -32,13 +32,13 @@ import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,7 +78,7 @@ public class CourseEnrollmentProgressServiceImpl
         return courseEnrollment.map(
                 enrollment -> {
                     CourseProgressDto courseProgressDto =
-                        calculateProgressDto(course, videos, courseSetting, enrollment.getStartDate(), portalUser);
+                        calculateProgressDto(course, videos, courseSetting, enrollment, portalUser);
                     updateEnrollment(courseProgressDto, enrollment, courseSetting);
                     return courseProgressDto;
                 })
@@ -91,7 +91,7 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
-                                                   CourseSetting courseSetting, OffsetDateTime startDate,
+                                                   CourseSetting courseSetting, CourseEnrollment enrollment,
                                                    PortalUser portalUser) {
         List<Integer> videoIds = courseVideoIds(videos);
         Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
@@ -101,14 +101,16 @@ public class CourseEnrollmentProgressServiceImpl
             taskIdToProgress(courseTasks, portalUser);
 
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
-            videoPlaySessionService.videoViewerDetails(videoIds, portalUser, startDate, OffsetDateTime.now());
+            videoPlaySessionService.videoViewerDetails(videoIds, portalUser, enrollment.getStartDate(),
+                OffsetDateTime.now());
         Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress =
             sectionsProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto =
-            courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, courseTasks, taskIdToProgressDetails);
+            courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, courseTasks, taskIdToProgressDetails,
+                enrollment.getComplianceDate() != null);
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
 
         courseProgressDto.setCourse(courseProgressDetailsDto);
@@ -206,7 +208,8 @@ public class CourseEnrollmentProgressServiceImpl
                                                   Map<Integer, VideoViewerVideoDetailDto> videoIdToVideoViewerDetails,
                                                   Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress,
                                                   List<Task> tasks,
-                                                  Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails) {
+                                                  Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails,
+                                                  boolean isCompliant) {
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
 
         int secondsViewed = videoIdToVideoViewerDetails.values().stream()
@@ -222,6 +225,7 @@ public class CourseEnrollmentProgressServiceImpl
         courseTotalProgressDto.setSecondsViewed(secondsViewed);
         courseTotalProgressDto.setCompletedSectionsCount(sectionsCompleted);
         courseTotalProgressDto.setCompletedTasksCount(correctlyAnsweredTasks.size());
+        courseTotalProgressDto.setCompliant(isCompliant);
         courseTotalProgressDto.setPercentage(
             progressPercent(getTotalVideoTime(videos), secondsViewed, totalTaskTime, correctTaskTime));
 

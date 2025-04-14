@@ -64,7 +64,7 @@ public interface CourseMapping {
     @Mapping(target = "sections", source = "courseContent", qualifiedByName = "mapCourseSectionContent")
     CourseProgramDto mapProgram(GcSubject course, List<CourseContent> courseContent);
 
-    CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean isCompliant);
+    CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean compliant);
 
     @Named("mapCourseSectionContent")
     default List<CourseSectionDto> mapCourseSectionContent(List<CourseContent> courseContent) {
