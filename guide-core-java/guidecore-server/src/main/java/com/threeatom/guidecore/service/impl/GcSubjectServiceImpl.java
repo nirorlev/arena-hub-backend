@@ -1590,6 +1590,42 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return createCourseListDto(ownedCourses);
     }
 
+    @Override
+    public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
+        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+        Set<Integer> courseIds = courseIds(publicCourses);
+
+        List<CourseDto> discoverableCourses = new ArrayList<>();
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds);
+        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
+            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
+        Set<Integer> userActiveEnrollmentCourseIds =
+            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
+
+        for (GcSubject publicCourse : publicCourses) {
+            if (userActiveEnrollmentCourseIds.contains(publicCourse.getId())) {
+                continue;
+            }
+
+            List<CourseContent> courseContent =
+                courseTopicsContent(courseContentService.findCourseContent(publicCourse.getId()));
+            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
+            Map<String, Boolean> permissions = authorizationService.listPermissions(publicCourse, portalUser);
+
+            discoverableCourses.add(createCourseDto(publicCourse, courseContent, studentsCount, permissions));
+        }
+
+        return createCourseListDto(discoverableCourses);
+    }
+
+    private List<GcSubject> getPublicCourses(PortalUser portalUser) {
+        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("master_id", portalUser.getMasterId());
+        queryWrapper.eq("state", CoursePublishState.PUBLIC.getValue());
+        queryWrapper.isNull("fid");
+        return list(queryWrapper);
+    }
+
     private List<GcSubject> ownedCourses(PortalUser portalUser) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("create_user", portalUser.getUserId());
@@ -1626,6 +1662,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         assignedCourseDto.setDeadline(courseAssignment.getDeadline());
         assignedCourseDto.setIsMandatory(courseAssignment.getMandatory() == 1);
         return assignedCourseDto;
+    }
+
+    private Set<Integer> courseIds(List<GcSubject> publicCourses) {
+        return publicCourses.stream().map(GcSubject::getId).collect(Collectors.toSet());
     }
 
     private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,

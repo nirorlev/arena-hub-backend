@@ -63,6 +63,12 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getOwnedCourses(portalUser));
     }
 
+    @GetMapping("/discoverable")
+    public ResponseEntity<CourseListDto> discoverableCourses(HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+        return ResponseEntity.ok(courseService.getDiscoverableCourses(portalUser));
+    }
+
     @PostMapping("/{courseId}/enrollments")
     public ResponseEntity<UserCourseEnrollmentDto> addCourseEnrollment(@PathVariable Integer courseId,
                                                                        HttpServletRequest request) {
