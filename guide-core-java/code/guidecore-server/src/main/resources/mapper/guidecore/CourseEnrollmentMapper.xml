@@ -108,10 +108,10 @@
             LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId} AND course_enrollment.user_id = #{userId}
             <if test="active">
-                AND course_enrollment.end_date IS NOT NULL
+                AND course_enrollment.end_date IS NULL
             </if>
             <if test="!active">
-                AND course_enrollment.end_date IS NULL
+                AND course_enrollment.end_date IS NOT NULL
             </if>
         ORDER BY course_enrollment.start_date DESC
         LIMIT 1

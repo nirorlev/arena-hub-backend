@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.VideoPlaySegmentNotUpdatedException;
 import com.threeatom.config.AnalyticsConfiguration;
 import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
@@ -9,6 +10,7 @@ import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
 import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
@@ -17,6 +19,7 @@ import com.threeatom.guidecore.mapper.VideoPlaySegmentMapper;
 import com.threeatom.guidecore.mapping.VideoPlaySegmentMapping;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +97,20 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
     public List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(VideoViewPerSecondDto filter,
                                                                                 Integer masterId) {
         return baseMapper.videoViewsPerSecondAnalytics(filter, masterId);
+    }
+
+    @Override
+    public CourseVideoBookmarkDto videoBookmark(List<Integer> videoIds, OffsetDateTime startDate) {
+        return findLatestPlaySegment(videoIds, startDate).map(videoPlaySegmentMapping::map)
+            .orElseThrow(() -> new ResourceNotFoundException("Latest view video bookmark has not been found"));
+    }
+
+    private Optional<VideoPlaySegment> findLatestPlaySegment(List<Integer> videoIds, OffsetDateTime startDate) {
+        if (videoIds.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(baseMapper.findLatestPlaySegment(videoIds, startDate));
     }
 
     private void updateVideoPlaySegment(VideoPlayDto videoPlayDto, VideoPlaySession videoPlaySession) {

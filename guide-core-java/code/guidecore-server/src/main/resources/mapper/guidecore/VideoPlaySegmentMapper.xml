@@ -5,11 +5,34 @@
     <resultMap id="baseResultMap" type="VideoPlaySegment">
         <id property="id.segmentId" column="segment_id"/>
         <id property="id.sessionId" column="session_id" javaType="java.util.UUID" />
-        <result property="startWatchTimeInSeconds" column="startWatchTime"/>
-        <result property="endWatchTimeInSeconds" column="endWatchTime"/>
+        <result property="startWatchTimeInSeconds" column="start_watch_time_in_seconds"/>
+        <result property="endWatchTimeInSeconds" column="end_watch_time_in_seconds"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+
+        <association property="session" resultMap="playSessionResultMap" columnPrefix="session_" />
     </resultMap>
+
+    <resultMap id="playSessionResultMap" type="com.threeatom.guidecore.entity.VideoPlaySession">
+        <id property="id" column="id" javaType="java.util.UUID" />
+        <result property="userId" column="user_id" />
+        <result property="videoId" column="video_id" />
+        <result property="masterId" column="master_id" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="playSegmentColumns">
+        play_segment.segment_id, play_segment.session_id,
+        lower(play_segment.segment) as start_watch_time_in_seconds,
+        upper(play_segment.segment) as end_watch_time_in_seconds,
+        play_segment.create_time, play_segment.update_time
+    </sql>
+
+    <sql id="playSessionColumns">
+        play_session.id as session_id, play_session.user_id as session_user_id, play_session.video_id as session_video_id,
+        play_session.master_id as session_master_id, play_session.create_time as session_create_time, play_session.update_time as session_update_time
+    </sql>
 
     <insert id="saveOrUpdateSegment" parameterType="VideoPlaySegment">
         INSERT INTO video_play_segment (segment_id, session_id, segment, create_time, update_time)
@@ -227,5 +250,19 @@
             b.bucket_end
         ORDER BY
             b.bucket_start;
+    </select>
+
+    <select id="findLatestPlaySegment" resultMap="baseResultMap">
+        SELECT <include refid="playSegmentColumns" />,
+            <include refid="playSessionColumns" />
+        FROM video_play_segment play_segment
+            JOIN video_play_session play_session ON play_session.id = play_segment.session_id
+        WHERE play_session.video_id IN
+            <foreach item="videoId" collection="videoIds" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+            AND play_session.create_time >= #{startDate}
+        ORDER BY play_segment.update_time DESC
+        LIMIT 1
     </select>
 </mapper>

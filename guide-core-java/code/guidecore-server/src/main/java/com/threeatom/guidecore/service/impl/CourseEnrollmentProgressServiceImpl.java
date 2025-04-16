@@ -12,7 +12,6 @@ import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.SectionProgressDto;
 import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
-import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
@@ -24,7 +23,6 @@ import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.mapper.CourseEnrollmentProgressMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
-import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
@@ -52,7 +50,6 @@ public class CourseEnrollmentProgressServiceImpl
     implements CourseEnrollmentProgressService {
 
     private final GcSubjectService courseService;
-    private final CourseContentService courseContentService;
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
     private final VideoPlaySessionService videoPlaySessionService;
@@ -75,7 +72,7 @@ public class CourseEnrollmentProgressServiceImpl
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
-        List<GcVideo> videos = courseVideos(courseId);
+        List<GcVideo> videos = courseService.courseVideos(courseId);
         CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
 
         return courseEnrollment.map(
@@ -163,13 +160,6 @@ public class CourseEnrollmentProgressServiceImpl
     private List<Integer> courseVideoIds(List<GcVideo> videos) {
         return videos.stream()
             .map(GcVideo::getId)
-            .collect(Collectors.toList());
-    }
-
-    private List<GcVideo> courseVideos(Integer courseId) {
-        return courseContentService.findCourseContent(courseId).stream()
-            .map(CourseContent::getVideo)
-            .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
     }
 
