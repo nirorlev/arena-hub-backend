@@ -56,7 +56,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.PtViewSubject;
 import com.threeatom.guidecore.entity.SysMenu;
 import com.threeatom.guidecore.enums.BiEventAction;
-import com.threeatom.guidecore.enums.CourseState;
+import com.threeatom.guidecore.enums.CoursePublishState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.exception.LicenseLimitExceededException;
@@ -1652,7 +1652,7 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
             UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CourseState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
@@ -1669,7 +1669,7 @@ public class PowtoonController extends GuideCoreController {
         });
 
         Integer DiscoverNew =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CourseState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
 
         return new Message().ok()
@@ -1712,12 +1712,12 @@ public class PowtoonController extends GuideCoreController {
         if (!accessAllowed) {
             throw new PermitException("No permission for this!");
         }
-        if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CourseState.PRIVATE.getValue())) {
+        if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CoursePublishState.PRIVATE.getValue())) {
             course = gcSubjectService.getById(course.getId());
-            course.setState(CourseState.PRIVATE.getValue());
+            course.setState(CoursePublishState.PRIVATE.getValue());
             gcAccessService.deleteSubIdAccess(portalUser.getMasterId(), course.getId());
         }
-        if (CourseState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
+        if (CoursePublishState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
             contentGroupCourseAssignmentService.save(user, course, CourseType.MANDATORY);
             contentGroupCourseAssignmentService.save(user, course, CourseType.OPTIONAL);
         }

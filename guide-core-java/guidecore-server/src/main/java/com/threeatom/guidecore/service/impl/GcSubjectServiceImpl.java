@@ -36,7 +36,7 @@ import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.entity.Task;
-import com.threeatom.guidecore.enums.CourseState;
+import com.threeatom.guidecore.enums.CoursePublishState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
@@ -82,7 +82,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -198,7 +197,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
             queryWrapper.eq("master_id", sub.getMasterId());
             queryWrapper.eq("fid", sub.getFid());
-            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+            queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
             orderList = this.list(queryWrapper);
             sub.setOrder((orderList.size() + 1));
         }
@@ -272,7 +271,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
 
-        Integer state = CourseState.CERTAIN_TEAMS.getValue();
+        Integer state = CoursePublishState.CERTAIN_TEAMS.getValue();
         if (null != request.getAttribute("state")) {
             state = Integer.parseInt(request.getAttribute("state").toString());
         }
@@ -941,7 +940,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1082,13 +1081,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 1);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         if (subIds != null && subIds.size() != TableConstant.COMMON_ZERO) {
             queryWrapper.in(true, "fid", subIds);
         }
         //查询导入课程的topic数量
         Integer importedTopicNum = this.baseMapper.countImportedToicNum(masterId, TableConstant.COMMON_ONE,
-            CourseState.PRIVATE.getValue(), subIds, managerId);
+            CoursePublishState.PRIVATE.getValue(), subIds, managerId);
         return this.count(queryWrapper) + importedTopicNum;
 
 
@@ -1106,7 +1105,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("master_id", masterId).eq("type", TableConstant.gcSubject_type_subject0);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
 
@@ -1120,7 +1119,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
@@ -1130,7 +1129,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1139,7 +1138,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public GcSubject getSubNameBysubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("id", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         return this.getOne(queryWrapper);
     }
 
@@ -1158,7 +1157,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> getChildSubjectBySubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1209,7 +1208,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
         if (subIds.size() != 0) {
             queryWrapper.in("id", subIds);
-            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+            queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
             PageParam pageParam = new PageParam(request);
             Integer pageNum = pageParam.getPageNum();
             Integer pageSize = pageParam.getPageSize();
@@ -1369,7 +1368,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         if (course.getState() == null) {
-            course.setState(course.isTopic() ? CourseState.PUBLIC.getValue() : CourseState.PRIVATE.getValue());
+            course.setState(course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
         }
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);
@@ -1540,19 +1539,20 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
 
             List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
-            List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
 
-            Optional<GcContentGroupCourseAssignment> relevantAssignment = findRelevantAssignment(assignments);
-            if (relevantAssignment.isEmpty()) {
+            Optional<GcContentGroupCourseAssignment> strongestAssignment = findStrongestAssignment(assignments);
+            if (strongestAssignment.isEmpty()) {
                 continue;
             }
 
-            GcSubject course = relevantAssignment.get().getCourse();
+            GcSubject course = strongestAssignment.get().getCourse();
             updateUrls(course);
             Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
             Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
+            List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
+
             assignedCourses.add(
-                createAssignedCourseDto(course, courseContent, relevantAssignment.get(), studentsCount, permissions));
+                createAssignedCourseDto(course, courseContent, strongestAssignment.get(), studentsCount, permissions));
         }
 
         CourseListDto<AssignedCourseDto> courseListDto = new CourseListDto<>();
@@ -1584,7 +1584,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             Collectors.toSet());
     }
 
-    private Optional<GcContentGroupCourseAssignment> findRelevantAssignment(
+    private Optional<GcContentGroupCourseAssignment> findStrongestAssignment(
         List<GcContentGroupCourseAssignment> assignments) {
         List<GcContentGroupCourseAssignment> mandatoryAssignments = assignments.stream()
             .filter(contentGroupCourseAssignment -> contentGroupCourseAssignment.getMandatory() == 1)

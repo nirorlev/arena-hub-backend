@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum CourseState {
+public enum CoursePublishState {
     PRIVATE(0),
     PUBLIC(1),
     CERTAIN_TEAMS(2);
