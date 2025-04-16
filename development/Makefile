@@ -25,7 +25,7 @@ export OTEL_TRACES_EXPORTER=none
 export OTEL_METRICS_EXPORTER=none
 
 # Paths
-PROJECT_PATH := ../guide-core-java/code/guidecore-server
+PROJECT_PATH := ../guide-core-java/guidecore-server
 
 .PHONY: pull_sql_dump build run
 

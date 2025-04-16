@@ -560,7 +560,7 @@
                         <configuration>
                             <resources>
                                 <resource>
-                                    <directory>../../../deployment/</directory>
+                                    <directory>../../deployment/</directory>
                                     <includes>
                                         <include>**/*</include>
                                     </includes>

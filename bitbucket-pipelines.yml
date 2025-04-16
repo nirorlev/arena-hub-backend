@@ -10,14 +10,14 @@ definitions:
         caches:
           - maven
         script:
-          - cd ./guide-core-java/code/guidecore-server
+          - cd ./guide-core-java/guidecore-server
           - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean test
         artifacts:
-          - guide-core-java/code/guidecore-server/target/surefire-reports/**
+          - guide-core-java/guidecore-server/target/surefire-reports/**
         test:
           reports:
             junit:
-              - guide-core-java/code/guidecore-server/target/surefire-reports/*.xml
+              - guide-core-java/guidecore-server/target/surefire-reports/*.xml
 
     - step: &build_and_push
         name: Build an image, push to ECR
@@ -27,7 +27,7 @@ definitions:
         #   - docker
         script:
           - export ARENA_BACKEND_VERSION=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
-          - cd ./guide-core-java/code/guidecore-migration
+          - cd ./guide-core-java/guidecore-migration
           - mvn package
           - cd ./../guidecore-server
           - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -DskipTests
