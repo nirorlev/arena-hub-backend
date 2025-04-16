@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.ForbiddenException;
-import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
@@ -70,7 +69,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -1362,7 +1360,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
         }
 
-        course.setState(CourseState.CERTAIN_TEAMS.getValue());
+        if (course.getState() == null && course.isTopic()) {
+            course.setState(CourseState.PUBLIC.getValue());
+        } else if (course.getState() == null) {
+            course.setState(CourseState.PRIVATE.getValue());
+        }
 
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);

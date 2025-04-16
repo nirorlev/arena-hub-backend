@@ -441,7 +441,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     }
 
     public boolean isPublic() {
-        return CourseState.PUBLIC.getValue().equals(state) || CourseState.CERTAIN_TEAMS.getValue().equals(state);
+        return CourseState.PUBLIC.getValue().equals(state);
     }
 
     public boolean isPrivate() {

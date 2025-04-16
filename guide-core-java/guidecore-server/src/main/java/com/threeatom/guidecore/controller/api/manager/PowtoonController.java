@@ -1696,7 +1696,7 @@ public class PowtoonController extends GuideCoreController {
             GcSubject oldSubject = gcSubjectService.getById(course.getId());
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
                 accessAllowed = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
-                if (oldSubject.getPublishedTime() == null && course.isPublic()) {
+                if (oldSubject.getPublishedTime() == null && !course.isPrivate()) {
                     course.setPublishedTime(new Date());
                     course.setPublishedUserId(user.getId());
                 }
@@ -1727,7 +1727,7 @@ public class PowtoonController extends GuideCoreController {
         }
         gcSubjectService.saveSubInfo(course, null, master, user, request);
 
-        return new Message().addData("sync", course);
+        return new Message().ok().addData("sync", course);
     }
 
     @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
