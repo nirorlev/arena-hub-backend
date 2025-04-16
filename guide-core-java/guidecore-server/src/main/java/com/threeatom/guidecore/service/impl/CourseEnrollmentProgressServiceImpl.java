@@ -327,7 +327,7 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private void updateEnrollmentCompletion(CourseEnrollment courseEnrollment, double courseCompletionPercentage) {
-        if (courseEnrollment.getCompletionDate() == null && courseCompletionPercentage == 100) {
+        if (courseEnrollment.getCompletionDate() == null && courseCompletionPercentage > 99) {
             courseEnrollment.setCompletionDate(OffsetDateTime.now());
             courseEnrollment.setUpdatedTime(OffsetDateTime.now());
         }
