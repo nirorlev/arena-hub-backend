@@ -1695,7 +1695,7 @@ public class PowtoonController extends GuideCoreController {
         if (null != course.getId() && null == course.getMoveDrafts()) {
             GcSubject oldSubject = gcSubjectService.getById(course.getId());
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
-                accessAllowed = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
+                accessAllowed = authorizationService.checkAccess(course, PermitAction.PUBLISH, portalUser);
                 if (oldSubject.getPublishedTime() == null && !course.isPrivate()) {
                     course.setPublishedTime(new Date());
                     course.setPublishedUserId(user.getId());
@@ -1705,10 +1705,7 @@ public class PowtoonController extends GuideCoreController {
                 accessAllowed = authorizationService.checkAccess(course, PermitAction.EDIT, portalUser);
             }
         } else if (null != course.getMoveDrafts()) {
-            GcSubject subject = gcSubjectService.getById(course.getId());
-            if (portalUser.isOrgAdmin() && null != course.getMoveDrafts() || user.getId().equals(subject.getCreateUser())) {
-                accessAllowed = true;
-            }
+            accessAllowed = authorizationService.checkAccess(course, PermitAction.PUBLISH, portalUser);
         } else {
             accessAllowed = authorizationService.checkAccess(course, PermitAction.ADD_CONTENT, portalUser);
         }
