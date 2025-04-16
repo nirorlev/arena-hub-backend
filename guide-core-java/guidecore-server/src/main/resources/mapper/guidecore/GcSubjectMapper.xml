@@ -19,7 +19,6 @@
 		<result property="introOnOff" column="intro_on_off"/>
 
 		<result property="state" column="state"/>
-		<result property="token" column="token"/>
 		<result property="isPublic" column="is_public"/>
 		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="starUsers" column="subjectStarUsers"/>
@@ -170,7 +169,6 @@
 		<result property="introOnOff" column="intro_on_off"/>
 
 		<result property="state" column="state"/>
-		<result property="token" column="token"/>
 		<result property="isPublic" column="is_public"/>
 		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="starUsers" column="subjectStarUsers"/>

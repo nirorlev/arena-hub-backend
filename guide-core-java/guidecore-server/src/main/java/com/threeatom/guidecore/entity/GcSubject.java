@@ -110,10 +110,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray courseTags = new JSONArray();
 
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
-    @ApiModelProperty(value = "其他课程导入该课程的密匙token")
-    private String token;
-
     @ApiModelProperty(value = "该课程是否是公共课程，1=是，如是其他课程导入该课程不需要token")
     private Integer isPublic;
 
