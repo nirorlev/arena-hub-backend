@@ -8,7 +8,6 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +35,7 @@ class CourseProgressServiceImplTest {
     private UserTaskAnswerService userTaskAnswerService;
 
     @InjectMocks
-    private CourseProgressServiceImpl courseProgressService;
+    private CourseEnrollmentProgressServiceImpl courseProgressService;
 
     @Test
     void test() {
