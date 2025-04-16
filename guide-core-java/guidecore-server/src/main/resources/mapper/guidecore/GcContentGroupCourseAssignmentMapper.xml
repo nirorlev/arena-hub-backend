@@ -28,6 +28,14 @@
 	</resultMap>
 
 	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true">
+		<id property="id" column="id"/>
+
+		<result property="availableType" column="available_type"/>
+		<result property="state" column="state"/>
+		<result property="name" column="name"/>
+		<result property="createUser" column="create_user"/>
+		<result property="subImgId" column="img_id"/>
+
 		<association columnPrefix="subImgFile_" property="subImgFile" column="sub_img_id" javaType="SysFile" autoMapping="true"/>
 	</resultMap>
 
@@ -165,5 +173,26 @@
 		FROM gc_user_access ua
 			LEFT JOIN gc_content_group_course_assignment gcgca on gcgca.content_group_id = ua.access_id
 		WHERE ua.master_id = #{masterId} AND ua.user_id = #{userId} AND ua.role_json::text like concat('%',#{roleName},'%')
+	</select>
+
+	<select id="userCourseAssignments" resultMap="baseResultMap">
+		SELECT
+			cgca.id AS id,
+			cgca.is_mandatory AS is_mandatory,
+			cgca.deadline AS deadline,
+			cgca.created_date AS created_date,
+			cgca.modified_date AS modified_date,
+			<include refid="createdByUserColumns"/>,
+			<include refid="courseColumns"/>,
+			<include refid="contentGroupColumns"/>
+		FROM gc_content_group_course_assignment cgca
+			JOIN gc_subject s ON cgca.course_id = s.id
+			JOIN gc_access a ON cgca.content_group_id = a.id
+			JOIN gc_user_access ua ON ua.access_id = a.id
+			JOIN gc_user u ON cgca.created_by_user_id = u.id
+			JOIN gc_user_info ui ON u.info_id = ui.id
+			LEFT JOIN sys_file sfs ON sfs.ID = s.sub_img_id
+			LEFT JOIN sys_file sfui ON sfui.ID = ui.avatar_file_id
+		WHERE a.master_id = #{masterId} AND ua.user_id = #{userId}
 	</select>
 </mapper>

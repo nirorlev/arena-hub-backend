@@ -15,11 +15,15 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
+import com.threeatom.guidecore.dto.response.AssignedCourseDto;
+import com.threeatom.guidecore.dto.response.CourseDto;
+import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
@@ -31,6 +35,7 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SubjectTotals;
+import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
@@ -54,6 +59,7 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.TaskTimingUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -69,12 +75,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1471,11 +1479,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             throw new ForbiddenException("User is not authorized to view this course");
         }
 
-        List<CourseContent> courseTopicsContent = courseContentService.findCourseContent(courseId).stream()
+        return courseMapping.mapProgram(course, courseTopicsContent(courseContentService.findCourseContent(courseId)));
+    }
+
+    private List<CourseContent> courseTopicsContent(List<CourseContent> courseContent) {
+        return courseContent.stream()
             .filter(content -> content.getCourse().isTopic())
             .collect(Collectors.toList());
-
-        return courseMapping.mapProgram(course, courseTopicsContent);
     }
 
     @Override
@@ -1504,5 +1514,152 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
+        List<GcContentGroupCourseAssignment> courseAssignments =
+            courseAssignmentService.userCourseAssignments(portalUser);
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments =
+            courseAssignments.stream().collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
+
+        List<CourseEnrollment> courseEnrollments =
+            courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
+        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
+            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
+
+        Set<Integer> userActiveEnrollmentCourseIds =
+            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
+
+        List<AssignedCourseDto> assignedCourses = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<GcContentGroupCourseAssignment>> courseAssignmentEntry : courseIdToAssignments.entrySet()) {
+            Integer courseId = courseAssignmentEntry.getKey();
+            if (userActiveEnrollmentCourseIds.contains(courseId)) {
+                continue;
+            }
+
+            List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
+            List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
+
+            Optional<GcContentGroupCourseAssignment> relevantAssignment = findRelevantAssignment(assignments);
+            if (relevantAssignment.isEmpty()) {
+                continue;
+            }
+
+            GcSubject course = relevantAssignment.get().getCourse();
+            updateUrls(course);
+            Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
+            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
+            assignedCourses.add(
+                createAssignedCourseDto(course, courseContent, relevantAssignment.get(), studentsCount, permissions));
+        }
+
+        CourseListDto<AssignedCourseDto> courseListDto = new CourseListDto<>();
+        courseListDto.setCourses(assignedCourses);
+        return courseListDto;
+    }
+
+    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .collect(Collectors.groupingBy(
+                CourseEnrollment::getCourseId,
+                Collectors.collectingAndThen(
+                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
+                    Set::size
+                )
+            ));
+    }
+
+    private Set<Integer> getUserActiveEnrollmentCourseIds(List<CourseEnrollment> courseEnrollments, Integer userId) {
+        return courseEnrollments.stream()
+            .filter(courseEnrollment -> courseEnrollment.getUserId().equals(userId))
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .map(CourseEnrollment::getCourseId)
+            .collect(Collectors.toSet());
+    }
+
+    private Set<Integer> getCourseIds(List<CourseEnrollment> activeCourseEnrollments) {
+        return activeCourseEnrollments.stream().map(CourseEnrollment::getCourseId).collect(
+            Collectors.toSet());
+    }
+
+    private Optional<GcContentGroupCourseAssignment> findRelevantAssignment(
+        List<GcContentGroupCourseAssignment> assignments) {
+        List<GcContentGroupCourseAssignment> mandatoryAssignments = assignments.stream()
+            .filter(contentGroupCourseAssignment -> contentGroupCourseAssignment.getMandatory() == 1)
+            .collect(Collectors.toList());
+
+        Optional<GcContentGroupCourseAssignment> assignmentWithEarliestDeadLineDate =
+            getAssignmentWithEarliestDeadLineDate(mandatoryAssignments);
+
+        if (assignmentWithEarliestDeadLineDate.isEmpty()) {
+            return assignments.stream()
+                .max(Comparator.comparing(GcContentGroupCourseAssignment::getModifiedDate));
+        }
+
+        return assignmentWithEarliestDeadLineDate;
+    }
+
+    private Optional<GcContentGroupCourseAssignment> getAssignmentWithEarliestDeadLineDate(
+        List<GcContentGroupCourseAssignment> assignments) {
+
+        return assignments.stream()
+            .filter(assignment -> assignment.getDeadline() != null)
+            .min(Comparator.comparing(GcContentGroupCourseAssignment::getDeadline));
+    }
+
+    private AssignedCourseDto createAssignedCourseDto(GcSubject course, List<CourseContent> courseContent,
+                                                      GcContentGroupCourseAssignment courseAssignment,
+                                                      int studentsCount, Map<String, Boolean> permissions) {
+        AssignedCourseDto assignedCourseDto =
+            new AssignedCourseDto(createCourseDto(course, courseContent, studentsCount, permissions));
+        assignedCourseDto.setDeadline(courseAssignment.getDeadline());
+        assignedCourseDto.setIsMandatory(courseAssignment.getMandatory() == 1);
+        return assignedCourseDto;
+    }
+
+    private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,
+                                      int studentsCount, Map<String, Boolean> permissions) {
+        List<Task> courseTasks = courseTasks(courseContent);
+        CourseDto courseDto = new CourseDto();
+
+        courseDto.setId(course.getId());
+        courseDto.setTitle(course.getName());
+        courseDto.setDescription(course.getDescription());
+        courseDto.setThumbUrl(course.getSubImgFile() == null ? null : course.getSubImgFile().getFullFileUrl());
+        courseDto.setIsPublic(course.isPublic());
+        courseDto.setIsPrivate(course.isPrivate());
+        courseDto.setVideosCount(courseContent.size());
+        courseDto.setVideosDuration(videoTotalDuration(courseContent));
+        courseDto.setTasksCount(courseTasks.size());
+        courseDto.setTasksDuration(taskDuration(courseTasks));
+        courseDto.setStudentsCount(studentsCount);
+        courseDto.setAverageRating(0);
+        courseDto.setPermissions(permissions);
+
+        return courseDto;
+    }
+
+    private int taskDuration(List<Task> courseTasks) {
+        return courseTasks.stream()
+            .map(Task::getType)
+            .mapToInt(TaskTimingUtil::getTaskTiming)
+            .sum();
+    }
+
+    private List<Task> courseTasks(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .map(GcVideo::getTasks)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+
+    private int videoTotalDuration(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .mapToInt(GcVideo::getVideoTime)
+            .sum();
     }
 }

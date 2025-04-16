@@ -117,6 +117,13 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return activeEnrollment.get();
     }
 
+    @Override
+    public List<CourseEnrollment> courseEnrollments(Set<Integer> courseIds) {
+        QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("course_id", courseIds);
+        return list(queryWrapper);
+    }
+
     private Optional<CourseEnrollment> findActiveEnrollment(Integer courseId, Integer userId) {
         QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", courseId);

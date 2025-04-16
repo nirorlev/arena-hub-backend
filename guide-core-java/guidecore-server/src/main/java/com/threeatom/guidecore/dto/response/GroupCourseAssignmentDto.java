@@ -12,7 +12,7 @@ import lombok.Setter;
 public class GroupCourseAssignmentDto {
 
     @ApiModelProperty(notes = "Course basic information")
-    private CourseDto course;
+    private BasicCourseDto course;
 
     @ApiModelProperty(notes = "Group basic information")
     private BasicGroupDto group;
