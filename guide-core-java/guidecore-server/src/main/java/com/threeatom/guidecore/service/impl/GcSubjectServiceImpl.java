@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
@@ -162,6 +163,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             listMap.add(newMap);
         }
         return listMap;
+    }
+
+    private Optional<GcContentGroupCourseAssignment> getAssignmentWithLatestDate(
+        List<GcContentGroupCourseAssignment> assignments) {
+
+        return assignments.stream()
+            .max(Comparator.comparing(GcContentGroupCourseAssignment::getModifiedDate));
     }
 
     @Override
@@ -1540,19 +1548,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
             List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
 
-            Optional<GcContentGroupCourseAssignment> strongestAssignment = findStrongestAssignment(assignments);
-            if (strongestAssignment.isEmpty()) {
-                continue;
-            }
-
-            GcSubject course = strongestAssignment.get().getCourse();
+            GcContentGroupCourseAssignment strongestAssignment = findStrongestAssignment(assignments);
+            GcSubject course = strongestAssignment.getCourse();
             updateUrls(course);
             Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
             Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
             List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
 
             assignedCourses.add(
-                createAssignedCourseDto(course, courseContent, strongestAssignment.get(), studentsCount, permissions));
+                createAssignedCourseDto(course, courseContent, strongestAssignment, studentsCount, permissions));
         }
 
         CourseListDto<AssignedCourseDto> courseListDto = new CourseListDto<>();
@@ -1579,26 +1583,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .collect(Collectors.toSet());
     }
 
-    private Set<Integer> getCourseIds(List<CourseEnrollment> activeCourseEnrollments) {
-        return activeCourseEnrollments.stream().map(CourseEnrollment::getCourseId).collect(
-            Collectors.toSet());
-    }
-
-    private Optional<GcContentGroupCourseAssignment> findStrongestAssignment(
+    private GcContentGroupCourseAssignment findStrongestAssignment(
         List<GcContentGroupCourseAssignment> assignments) {
         List<GcContentGroupCourseAssignment> mandatoryAssignments = assignments.stream()
             .filter(contentGroupCourseAssignment -> contentGroupCourseAssignment.getMandatory() == 1)
             .collect(Collectors.toList());
 
-        Optional<GcContentGroupCourseAssignment> assignmentWithEarliestDeadLineDate =
-            getAssignmentWithEarliestDeadLineDate(mandatoryAssignments);
-
-        if (assignmentWithEarliestDeadLineDate.isEmpty()) {
-            return assignments.stream()
-                .max(Comparator.comparing(GcContentGroupCourseAssignment::getModifiedDate));
-        }
-
-        return assignmentWithEarliestDeadLineDate;
+        return getAssignmentWithEarliestDeadLineDate(mandatoryAssignments)
+            .or(() -> getAssignmentWithLatestDate(mandatoryAssignments))
+            .or(() -> getAssignmentWithLatestDate(assignments))
+            .orElseThrow(() -> new ResourceNotFoundException("Cannot find course assignment!"));
     }
 
     private Optional<GcContentGroupCourseAssignment> getAssignmentWithEarliestDeadLineDate(
