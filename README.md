@@ -64,7 +64,7 @@ Detailed instructions for both methods are provided below:
     ```bash
     make build
     ```
-   As a result guide-core-java/code/guidecore-server/target folder should be created
+   As a result guide-core-java/guidecore-server/target folder should be created
 
 5. Run the project:
     ```bash

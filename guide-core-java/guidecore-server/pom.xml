@@ -28,14 +28,19 @@
         <shiro.version>1.3.2</shiro.version>
         <sentry.jdbc.version>7.20.0</sentry.jdbc.version>
         <sentry.version>7.17.0</sentry.version>
-        <skipTests>true</skipTests>
         <aws.java.sdk1.version>1.12.31</aws.java.sdk1.version>
 
         <spotless.version>2.43.0</spotless.version>
         <spotless.google.format.version>1.17.0</spotless.google.format.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
+        <junit.surface.report.version>2.22.2</junit.surface.report.version>
         <postgresql.version>42.7.3</postgresql.version>
+
+        <junit.version>5.10.0</junit.version>
+        <mockito.version>5.10.0</mockito.version>
+        <bytebuddy.version>1.14.12</bytebuddy.version>
+        <assertj.version>3.25.3</assertj.version>
     </properties>
 
     <dependencies>
@@ -149,11 +154,6 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.75</version>
@@ -178,9 +178,44 @@
             <artifactId>springfox-swagger-ui</artifactId>
             <version>${swagger.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${bytebuddy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${bytebuddy.version}</version>
         </dependency>
 
         <dependency>
@@ -525,7 +560,7 @@
                         <configuration>
                             <resources>
                                 <resource>
-                                    <directory>../../../deployment/</directory>
+                                    <directory>../../deployment/</directory>
                                     <includes>
                                         <include>**/*</include>
                                     </includes>
@@ -628,6 +663,16 @@
                     </compilerArgs>
                     <source>15</source>
                     <target>15</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${junit.surface.report.version}</version>
+                <configuration>
+                    <useFile>true</useFile>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>

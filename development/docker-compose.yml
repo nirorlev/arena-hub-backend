@@ -55,14 +55,14 @@ services:
     depends_on:
       - postgres-db
     volumes:
-      - ../guide-core-java/code/guidecore-migration/:/usr/src/mymaven
+      - ../guide-core-java/guidecore-migration/:/usr/src/mymaven
     working_dir: /usr/src/mymaven
 
   java-app:
     image: arena-be-java:2.1
     platform: linux/amd64
     build:
-      context: ../guide-core-java/code/guidecore-server
+      context: ../guide-core-java/guidecore-server
       dockerfile: ./Dockerfile.local
     container_name: arena-java-app
     # restart: unless-stopped
