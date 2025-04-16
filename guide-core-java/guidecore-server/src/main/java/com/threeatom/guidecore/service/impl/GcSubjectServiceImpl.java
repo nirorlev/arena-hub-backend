@@ -17,6 +17,7 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
 import com.threeatom.guidecore.dto.response.AssignedCourseDto;
+import com.threeatom.guidecore.dto.response.BasicCourseDto;
 import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
@@ -1552,9 +1553,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 createAssignedCourseDto(course, courseContent, strongestAssignment, studentsCount, permissions));
         }
 
-        CourseListDto<AssignedCourseDto> courseListDto = new CourseListDto<>();
-        courseListDto.setCourses(assignedCourses);
-        return courseListDto;
+        return createCourseListDto(assignedCourses);
     }
 
     private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
@@ -1566,6 +1565,37 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     Set::size
                 )
             ));
+    }
+
+    @Override
+    public CourseListDto<CourseDto> getOwnedCourses(PortalUser portalUser) {
+        List<GcSubject> courses = ownedCourses(portalUser);
+        Set<Integer> courseIds = courses.stream().map(GcSubject::getId).collect(Collectors.toSet());
+
+        List<CourseEnrollment> courseEnrollments =
+            courseEnrollmentService.courseEnrollments(courseIds);
+        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
+            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
+
+        List<CourseDto> ownedCourses = courses.stream()
+            .map(ownedCourse -> {
+                List<CourseContent> courseContent = courseContentService.findCourseContent(ownedCourse.getId());
+                Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(ownedCourse.getId(), 0);
+                Map<String, Boolean> permissions = authorizationService.listPermissions(ownedCourse, portalUser);
+
+                return createCourseDto(ownedCourse, courseContent, studentsCount, permissions);
+            })
+            .collect(Collectors.toList());
+
+        return createCourseListDto(ownedCourses);
+    }
+
+    private List<GcSubject> ownedCourses(PortalUser portalUser) {
+        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("create_user", portalUser.getUserId());
+        queryWrapper.eq("master_id", portalUser.getMasterId());
+        queryWrapper.isNull("fid");
+        return list(queryWrapper);
     }
 
     private GcContentGroupCourseAssignment findStrongestAssignment(
@@ -1640,5 +1670,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .map(CourseContent::getVideo)
             .mapToInt(GcVideo::getVideoTime)
             .sum();
+    }
+
+    private <T extends BasicCourseDto> CourseListDto<T> createCourseListDto(List<T> courses) {
+        CourseListDto<T> courseListDto = new CourseListDto<>();
+        courseListDto.setCourses(courses);
+        return courseListDto;
     }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.response.AssignedCourseDto;
+import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
@@ -218,4 +219,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<GcVideo> courseVideos(Integer courseId);
 
     CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser);
+
+    CourseListDto<CourseDto> getOwnedCourses(PortalUser portalUser);
 }
