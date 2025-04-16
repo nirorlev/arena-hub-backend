@@ -5,6 +5,7 @@ import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.UserTaskAnswer;
@@ -24,7 +25,7 @@ public interface UserTaskAnswerService extends IService<UserTaskAnswer> {
     UserTaskAnswerDto findUserTaskAnswerById(Integer userTaskAnswerId, TaskType taskType);
 
     UserTaskAnswer createAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task,
-                                PortalUser portalUser);
+                                CourseEnrollment activeEnrollment, PortalUser portalUser);
 
     Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds, PortalUser portalUser);
 }

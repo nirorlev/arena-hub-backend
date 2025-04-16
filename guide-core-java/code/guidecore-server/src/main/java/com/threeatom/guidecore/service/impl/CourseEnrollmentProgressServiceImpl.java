@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
@@ -13,6 +14,7 @@ import com.threeatom.guidecore.dto.response.TaskProgressDto;
 import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
+import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -20,10 +22,11 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
+import com.threeatom.guidecore.mapper.CourseEnrollmentProgressMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
-import com.threeatom.guidecore.service.CourseProgressService;
+import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
@@ -31,17 +34,22 @@ import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
 import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CourseProgressServiceImpl implements CourseProgressService {
+public class CourseEnrollmentProgressServiceImpl
+    extends ServiceImpl<CourseEnrollmentProgressMapper, CourseEnrollmentProgress>
+    implements CourseEnrollmentProgressService {
 
     private final GcSubjectService courseService;
     private final CourseContentService courseContentService;
@@ -60,35 +68,50 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
             throw new ForbiddenException("You have no access to this course");
         }
-        CourseEnrollment courseEnrollment = courseEnrollmentService.getCourseEnrollment(portalUser, courseId);
-        if (courseEnrollment == null) {
+        Optional<CourseEnrollment> courseEnrollment =
+            courseEnrollmentService.findActiveCourseEnrollment(courseId, portalUser);
+
+        if (courseEnrollment.isEmpty()) {
             log.error("User {} is not enrolled to course {}", portalUser.getUserId(), courseId);
         }
 
         List<GcVideo> videos = courseVideos(courseId);
+        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
+
+        return courseEnrollment.map(
+                enrollment -> {
+                    CourseProgressDto courseProgressDto =
+                        calculateProgressDto(course, videos, courseSetting, enrollment.getStartDate(), portalUser);
+                    updateEnrollment(courseProgressDto, enrollment, courseSetting);
+                    return courseProgressDto;
+                })
+            .orElseGet(() -> emptyCourseProgressDto(course, courseSetting));
+    }
+
+    @Transactional
+    void saveProgress(CourseEnrollmentProgress courseEnrollmentProgress) {
+        save(courseEnrollmentProgress);
+    }
+
+    private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
+                                                   CourseSetting courseSetting, OffsetDateTime startDate,
+                                                   PortalUser portalUser) {
         List<Integer> videoIds = courseVideoIds(videos);
+        Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
+        List<Task> courseTasks = getCourseTasks(videoIdToTasks);
+
+        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails =
+            taskIdToProgress(courseTasks, portalUser);
 
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
-            videoIdToViewerVideoDetails(portalUser, courseEnrollment, videoIds);
-        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
-        List<VideoEvent> taskVideoEvents =
-            videoEventService.videoEventsByType(videoIds, VideoEventType.TASK);
-        Map<Integer, List<Task>> videoIdToTasks = taskVideoEvents.stream()
-            .filter(videoEvent -> videoEvent.getTask() != null)
-            .collect(Collectors.groupingBy(VideoEvent::getVideoId,
-                Collectors.mapping(VideoEvent::getTask, Collectors.toList())));
-        List<Task> allTasks = videoIdToTasks.values().stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
-
-        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails = courseTasks(allTasks, portalUser);
+            videoPlaySessionService.videoViewerDetails(videoIds, portalUser, startDate, OffsetDateTime.now());
         Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress =
             sectionsProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails);
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto =
-            courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, allTasks, taskIdToProgressDetails);
+            courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, courseTasks, taskIdToProgressDetails);
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
 
         courseProgressDto.setCourse(courseProgressDetailsDto);
@@ -98,6 +121,20 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         courseProgressDto.setTasks(convertKeyToString(taskIdToProgressDetails));
 
         return courseProgressDto;
+    }
+
+    private List<Task> getCourseTasks(Map<Integer, List<Task>> videoIdToTasks) {
+        return videoIdToTasks.values().stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+
+    private Map<Integer, List<Task>> getVideoIdToTasks(List<Integer> videoIds) {
+        List<VideoEvent> taskVideoEvents = videoEventService.videoEventsByType(videoIds, VideoEventType.TASK);
+        return taskVideoEvents.stream()
+            .filter(videoEvent -> videoEvent.getTask() != null)
+            .collect(Collectors.groupingBy(VideoEvent::getVideoId,
+                Collectors.mapping(VideoEvent::getTask, Collectors.toList())));
     }
 
     private int tasksTime(List<Task> tasks) {
@@ -114,7 +151,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .collect(Collectors.toList());
     }
 
-    private Map<Integer, ProgressDetailsDto<TaskProgressDto>> courseTasks(List<Task> tasks, PortalUser portalUser) {
+    private Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Task> tasks,
+                                                                               PortalUser portalUser) {
         List<Integer> taskIds = tasks.stream()
             .map(Task::getId)
             .collect(Collectors.toList());
@@ -195,7 +233,7 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         courseTotalProgressDto.setCompletedSectionsCount(sectionsCompleted);
         courseTotalProgressDto.setCompletedTasksCount(correctlyAnsweredTasks.size());
         courseTotalProgressDto.setPercentage(
-            ((double) (secondsViewed + correctTaskTime)) / (getTotalVideoTime(videos) + totalTaskTime) * 100);
+            progressPercent(getTotalVideoTime(videos), secondsViewed, totalTaskTime, correctTaskTime));
 
         return courseTotalProgressDto;
     }
@@ -245,13 +283,17 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         SectionProgressDto progressDto = new SectionProgressDto();
 
         progressDto.setPercentage(
-            (sectionVideosSecondsViewed + tasksTime(correctlyAnsweredTasks)) /
-                ((double) (totalSectionVideoTime + totalTaskTime)) * 100);
+            progressPercent(totalSectionVideoTime, sectionVideosSecondsViewed, totalTaskTime,
+                tasksTime(correctlyAnsweredTasks)));
         progressDto.setSecondsViewed(sectionVideosSecondsViewed);
         progressDto.setCompletedTasksCount(correctlyAnsweredTasks.size());
         progressDetailsDto.setProgress(progressDto);
 
         return progressDetailsDto;
+    }
+
+    private double progressPercent(int totalTime, int viewedTime, int totalTaskTime, int correctTasksTime) {
+        return (viewedTime + correctTasksTime) / ((double) (totalTime + totalTaskTime)) * 100;
     }
 
     private int secondsViewed(List<GcVideo> videos, Map<Integer, Integer> videoIdToSecondsWatched) {
@@ -260,30 +302,82 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             .sum();
     }
 
-    private Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails(PortalUser portalUser,
-                                                                                CourseEnrollment courseEnrollment,
-                                                                                List<Integer> videoIds) {
-        OffsetDateTime start = courseEnrollment != null ? courseEnrollment.getCreateTime() : OffsetDateTime.MIN;
-        OffsetDateTime end = courseProgressEndDate(courseEnrollment);
+    private void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
+                                  CourseSetting courseSetting) {
+        CourseEnrollmentProgress courseEnrollmentProgress =
+            createCourseProgress(courseEnrollment, courseProgressDto.getCourse().getProgress());
+        if (wasProgressUpdated(courseEnrollment, courseEnrollmentProgress)) {
+            saveProgress(courseEnrollmentProgress);
+            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+        }
 
-        return videoPlaySessionService.videoViewerDetails(videoIds, portalUser, start, end);
+        int tasksCount = courseProgressDto.getTasks().size();
+        double taskCompletionPercentage = taskPercentage(tasksCount, courseEnrollmentProgress.getCompletedTasksCount());
+        double courseCompletionPercentage = courseEnrollmentProgress.getPercentage();
+        boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
+        boolean courseContentProgressCompliant =
+            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
+
+        updateEnrollmentCompliance(courseEnrollment, taskProgressCompliant, courseContentProgressCompliant);
+        updateEnrollmentCompletion(courseEnrollment, courseCompletionPercentage);
+
+        courseEnrollmentService.updateById(courseEnrollment);
     }
 
-    private OffsetDateTime courseProgressEndDate(CourseEnrollment courseEnrollment) {
-        if (courseEnrollment == null) {
-            return OffsetDateTime.MAX;
+    private CourseEnrollmentProgress createCourseProgress(CourseEnrollment courseEnrollment,
+                                                          CourseTotalProgressDto courseTotalProgressDto) {
+        CourseEnrollmentProgress courseEnrollmentProgress = new CourseEnrollmentProgress();
+        courseEnrollmentProgress.setEnrollmentId(courseEnrollment.getId());
+        courseEnrollmentProgress.setPercentage(courseTotalProgressDto.getPercentage());
+        courseEnrollmentProgress.setCompletedSectionsCount(courseTotalProgressDto.getCompletedSectionsCount());
+        courseEnrollmentProgress.setCompletedTasksCount(courseTotalProgressDto.getCompletedTasksCount());
+        courseEnrollmentProgress.setSecondsViewed(courseTotalProgressDto.getSecondsViewed());
+
+        return courseEnrollmentProgress;
+    }
+
+    private void updateEnrollmentCompletion(CourseEnrollment courseEnrollment, double courseCompletionPercentage) {
+        if (courseEnrollment.getCompletionDate() == null && courseCompletionPercentage == 100) {
+            courseEnrollment.setCompletionDate(OffsetDateTime.now());
+            courseEnrollment.setUpdatedTime(OffsetDateTime.now());
         }
-        return courseEnrollment.getCompletionDate() != null
-            ? courseEnrollment.getCompletionDate()
-            : OffsetDateTime.MAX;
+    }
+
+    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, boolean taskProgressCompliant,
+                                            boolean courseContentProgressCompliant) {
+        if (courseEnrollment.getComplianceDate() == null && taskProgressCompliant && courseContentProgressCompliant) {
+            updateEnrollmentCompliance(courseEnrollment, OffsetDateTime.now());
+        }
+    }
+
+    private boolean wasProgressUpdated(CourseEnrollment courseEnrollment,
+                                       CourseEnrollmentProgress courseEnrollmentProgress) {
+        return courseEnrollment.getLatestProgress().isEmpty() ||
+            !courseEnrollment.getLatestProgress().get().equals(courseEnrollmentProgress);
+    }
+
+    private void updateEnrollmentCompliance(CourseEnrollment courseEnrollment, OffsetDateTime complianceDate) {
+        courseEnrollment.setComplianceDate(complianceDate);
+        courseEnrollment.setUpdatedTime(OffsetDateTime.now());
+    }
+
+    private boolean isCompliant(double thresholdPercent, double currentPercentage) {
+        return thresholdPercent >= currentPercentage;
+    }
+
+    private double taskPercentage(int tasksCount, Integer completedTasksCount) {
+        return (double) completedTasksCount / tasksCount * 100;
     }
 
     private <T> Map<String, T> convertKeyToString(Map<Integer, T> sections) {
-        if (sections.isEmpty()) {
-            return null;
-        }
-
         return sections.entrySet().stream()
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
     }
+
+    private CourseProgressDto emptyCourseProgressDto(GcSubject course, CourseSetting courseSetting) {
+        CourseProgressDto courseProgressDto = new CourseProgressDto();
+        courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, courseSetting));
+        return courseProgressDto;
+    }
+
 }

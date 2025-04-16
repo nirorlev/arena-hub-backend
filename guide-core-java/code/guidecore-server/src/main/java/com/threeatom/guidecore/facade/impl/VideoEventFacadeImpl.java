@@ -9,6 +9,7 @@ import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
+import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -17,12 +18,14 @@ import com.threeatom.guidecore.entity.UserTaskAnswer;
 import com.threeatom.guidecore.entity.VideoEvent;
 import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
     private final UserTaskAnswerService userTaskAnswerService;
+    private final CourseEnrollmentService courseEnrollmentService;
 
     @Override
     public List<TaskDto> videoTasks(Integer videoId, PortalUser portalUser) {
@@ -110,7 +114,8 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         if ("me".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), startDate, endDate, portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), startDate,
+                endDate, portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
@@ -123,7 +128,11 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         Task task = taskService.getTask(taskId);
         verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
 
-        UserTaskAnswer userTaskAnswer = userTaskAnswerService.createAnswer(userTaskAnswerDto, task, portalUser);
+        CourseEnrollment activeEnrollment =
+            courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());
+        UserTaskAnswer userTaskAnswer =
+            userTaskAnswerService.createAnswer(userTaskAnswerDto, task, activeEnrollment, portalUser);
+
         return userTaskAnswerService.findUserTaskAnswerById(userTaskAnswer.getId(), task.getType());
     }
 
