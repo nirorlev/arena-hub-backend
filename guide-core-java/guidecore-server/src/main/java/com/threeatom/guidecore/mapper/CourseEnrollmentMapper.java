@@ -20,4 +20,6 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
                                                                  Integer userId, Integer masterId);
 
     CourseEnrollment getCourseEnrollmentById(Long id);
+
+    int countDistinctUsersByCourse(Integer courseId);
 }

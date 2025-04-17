@@ -30,4 +30,6 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
     CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId);
 
     List<CourseEnrollment> courseEnrollments(Set<Integer> courseIds);
+
+    int countUniqueUsersInCourseEnrollments(Integer courseId);
 }

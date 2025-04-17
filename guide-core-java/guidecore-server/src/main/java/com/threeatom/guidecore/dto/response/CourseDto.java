@@ -7,8 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CourseDto extends BasicCourseDto {
-    private Boolean isPublic;
-    private Boolean isPrivate;
     private int videosCount;
     private int videosDuration;
     private int tasksCount;

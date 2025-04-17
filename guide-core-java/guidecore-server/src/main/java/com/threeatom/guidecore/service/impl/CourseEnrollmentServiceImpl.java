@@ -8,21 +8,26 @@ import com.threeatom.common.exception.ValidationException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.request.UpdateEnrollmentDto;
-import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentDto;
+import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
+import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.mapper.CourseEnrollmentMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.mapping.UserMapping;
+import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +50,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     CourseEnrollmentService {
 
     private final GcSubjectService courseService;
+    private final CourseContentService courseContentService;
     private final UserMapping userMapping;
     private final CourseMapping courseMapping;
     private final AuthorizationService authorizationService;
@@ -77,13 +83,14 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     @Override
     public CourseEnrollmentsDto courseEnrollments(Integer courseId, String usersFlag, OffsetDateTime startDate,
                                                   OffsetDateTime endDate, PortalUser portalUser) {
-        return courseEnrollmentsDto(getCourseEnrollments(courseId, usersFlag, startDate, endDate, portalUser));
+        return courseEnrollmentsDto(getCourseEnrollments(courseId, usersFlag, startDate, endDate, portalUser),
+            portalUser);
     }
 
     @Override
     public CourseEnrollmentsDto courseEnrollments(String usersFlag, OffsetDateTime startDate, OffsetDateTime endDate,
                                                   PortalUser portalUser) {
-        return courseEnrollmentsDto(getCourseEnrollments(usersFlag, startDate, endDate, portalUser));
+        return courseEnrollmentsDto(getCourseEnrollments(usersFlag, startDate, endDate, portalUser), portalUser);
     }
 
     @Override
@@ -122,6 +129,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("course_id", courseIds);
         return list(queryWrapper);
+    }
+
+    @Override
+    public int countUniqueUsersInCourseEnrollments(Integer courseId) {
+        return baseMapper.countDistinctUsersByCourse(courseId);
     }
 
     private Optional<CourseEnrollment> findActiveEnrollment(Integer courseId, Integer userId) {
@@ -180,21 +192,22 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         throw new ValidationException("Invalid users parameter");
     }
 
-    private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments) {
+    private CourseEnrollmentsDto courseEnrollmentsDto(List<CourseEnrollment> courseEnrollments, PortalUser portalUser) {
         CourseEnrollmentsDto courseEnrollmentsDto = new CourseEnrollmentsDto();
         courseEnrollmentsDto.setUsers(enrollmentUsers(courseEnrollments));
-        courseEnrollmentsDto.setCourses(enrollmentCourseDetails(courseEnrollments));
+        courseEnrollmentsDto.setCourses(enrollmentCourseDetails(courseEnrollments, portalUser));
         return courseEnrollmentsDto;
     }
 
-    private Map<String, CourseEnrollmentDto> enrollmentCourseDetails(List<CourseEnrollment> courseEnrollments) {
+    private Map<String, CourseEnrollmentDto> enrollmentCourseDetails(List<CourseEnrollment> courseEnrollments,
+                                                                     PortalUser portalUser) {
         Map<String, CourseEnrollmentDto> courseIdToCourseEnrolmentDto = new HashMap<>();
         Map<Integer, List<CourseEnrollment>> courseIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getCourseId));
 
         for (Map.Entry<Integer, List<CourseEnrollment>> courseIdToCourseEnrollmentsEntry : courseIdToCourseEnrollments.entrySet()) {
             courseIdToCourseEnrolmentDto.put(String.valueOf(courseIdToCourseEnrollmentsEntry.getKey()),
-                createCourseEnrollmentDto(courseIdToCourseEnrollmentsEntry.getValue()));
+                createCourseEnrollmentDto(courseIdToCourseEnrollmentsEntry.getValue(), portalUser));
         }
 
         return courseIdToCourseEnrolmentDto;
@@ -211,9 +224,14 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
             .collect(Collectors.toMap(details -> String.valueOf(details.getId()), Function.identity()));
     }
 
-    private CourseEnrollmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments) {
+    private CourseEnrollmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments,
+                                                          PortalUser portalUser) {
         GcSubject course = courseEnrollments.get(0).getCourse();
-        CourseEnrollmentDto courseEnrollmentDto = courseMapping.mapCourseEnrollment(course);
+        List<CourseContent> courseContent = courseContentService.findCourseContent(course.getId());
+        Map<String, Boolean> coursePermissions = authorizationService.listPermissions(course, portalUser);
+        CourseEnrollmentDto courseEnrollmentDto =
+            convertToCourseEnrollmentDto(course, courseContent, courseTasks(courseContent), coursePermissions,
+                countUniqueUsersInCourseEnrollments(course.getId()));
 
         Map<Integer, List<CourseEnrollment>> userIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getUserId));
@@ -226,6 +244,21 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         }
 
         courseEnrollmentDto.setUserEnrollments(userIdToCourseEnrollmentsDto);
+        return courseEnrollmentDto;
+    }
+
+    private CourseEnrollmentDto convertToCourseEnrollmentDto(GcSubject course, List<CourseContent> courseContent,
+                                                             List<Task> courseTasks, Map<String, Boolean> permissions,
+                                                             int studentsCount) {
+        CourseEnrollmentDto courseEnrollmentDto = courseMapping.mapCourseEnrollment(course);
+        courseEnrollmentDto.setVideosCount(courseContent.size());
+        courseEnrollmentDto.setVideosDuration(videoTotalDuration(courseContent));
+        courseEnrollmentDto.setTasksCount(courseTasks.size());
+        courseEnrollmentDto.setTasksDuration(taskDuration(courseTasks));
+        courseEnrollmentDto.setStudentsCount(studentsCount);
+        courseEnrollmentDto.setAverageRating(0);
+        courseEnrollmentDto.setPermissions(permissions);
+
         return courseEnrollmentDto;
     }
 
@@ -268,5 +301,27 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         UpdateEnrollmentDto updateEnrollmentDto = new UpdateEnrollmentDto();
         updateEnrollmentDto.setIsActive(isActive);
         return updateEnrollmentDto;
+    }
+
+    private int taskDuration(List<Task> courseTasks) {
+        return courseTasks.stream()
+            .map(Task::getType)
+            .mapToInt(TaskTimingUtil::getTaskTiming)
+            .sum();
+    }
+
+    private List<Task> courseTasks(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .map(GcVideo::getTasks)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+
+    private int videoTotalDuration(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .mapToInt(GcVideo::getVideoTime)
+            .sum();
     }
 }

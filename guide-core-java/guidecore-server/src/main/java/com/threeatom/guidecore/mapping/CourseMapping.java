@@ -66,6 +66,11 @@ public interface CourseMapping {
 
     CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean compliant);
 
+    @Named("mapIsPublic")
+    default Boolean mapIsPublic(GcSubject course) {
+        return course.isPublic();
+    }
+
     @Named("mapCourseSectionContent")
     default List<CourseSectionDto> mapCourseSectionContent(List<CourseContent> courseContent) {
         if (courseContent == null) {
