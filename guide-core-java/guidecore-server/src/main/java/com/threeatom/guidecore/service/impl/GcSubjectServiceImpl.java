@@ -1526,11 +1526,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
-        List<GcContentGroupCourseAssignment> courseAssignments =
-            courseAssignmentService.userCourseAssignments(portalUser);
-        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments =
-            courseAssignments.stream().collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
-
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
         List<CourseEnrollment> courseEnrollments =
             courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
@@ -1556,17 +1552,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return createCourseListDto(assignedCourses);
     }
 
-    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
-        return courseEnrollments.stream()
-            .collect(Collectors.groupingBy(
-                CourseEnrollment::getCourseId,
-                Collectors.collectingAndThen(
-                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
-                    Set::size
-                )
-            ));
-    }
-
     @Override
     public CourseListDto<CourseDto> getOwnedCourses(PortalUser portalUser) {
         List<GcSubject> courses = ownedCourses(portalUser);
@@ -1590,11 +1575,87 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return createCourseListDto(ownedCourses);
     }
 
+    @Override
+    public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
+        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
+        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
+
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
+        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
+            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
+        Set<Integer> userActiveEnrollmentCourseIds =
+            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
+
+        List<CourseDto> discoverableCourses = new ArrayList<>();
+        for (GcSubject publicCourse : publicCourses) {
+            if (courseIdsWithAssignment.contains(publicCourse.getId())
+                || userActiveEnrollmentCourseIds.contains(publicCourse.getId())
+                || anyNotActiveEnrollmentsFinished(courseEnrollments)) {
+                continue;
+            }
+
+            List<CourseContent> courseContent =
+                courseTopicsContent(courseContentService.findCourseContent(publicCourse.getId()));
+            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
+            Map<String, Boolean> permissions = authorizationService.listPermissions(publicCourse, portalUser);
+
+            discoverableCourses.add(createCourseDto(publicCourse, courseContent, studentsCount, permissions));
+        }
+
+        return createCourseListDto(discoverableCourses);
+    }
+
+    private boolean anyNotActiveEnrollmentsFinished(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .map(CourseEnrollment::getLatestProgress)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .anyMatch(courseEnrollmentProgress -> courseEnrollmentProgress.getPercentage() >= 99);
+    }
+
+    private Map<Integer, List<GcContentGroupCourseAssignment>> getCourseIdToAssignments(PortalUser portalUser) {
+        List<GcContentGroupCourseAssignment> courseAssignments =
+            courseAssignmentService.userCourseAssignments(portalUser);
+        return courseAssignments.stream()
+            .collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
+    }
+
+    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .collect(Collectors.groupingBy(
+                CourseEnrollment::getCourseId,
+                Collectors.collectingAndThen(
+                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
+                    Set::size
+                )
+            ));
+    }
+
+    private Set<Integer> getUserActiveEnrollmentCourseIds(List<CourseEnrollment> courseEnrollments, Integer userId) {
+        return courseEnrollments.stream()
+            .filter(courseEnrollment -> courseEnrollment.getUserId().equals(userId))
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .map(CourseEnrollment::getCourseId)
+            .collect(Collectors.toSet());
+    }
+
+    private List<GcSubject> getPublicCourses(PortalUser portalUser) {
+        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("master_id", portalUser.getMasterId());
+        queryWrapper.eq("state", CoursePublishState.PUBLIC.getValue());
+        queryWrapper.isNull("fid");
+        queryWrapper.orderByDesc("create_time");
+        return list(queryWrapper);
+    }
+
     private List<GcSubject> ownedCourses(PortalUser portalUser) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("create_user", portalUser.getUserId());
         queryWrapper.eq("master_id", portalUser.getMasterId());
         queryWrapper.isNull("fid");
+        queryWrapper.orderByDesc("create_time");
         return list(queryWrapper);
     }
 
@@ -1626,6 +1687,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         assignedCourseDto.setDeadline(courseAssignment.getDeadline());
         assignedCourseDto.setIsMandatory(courseAssignment.getMandatory() == 1);
         return assignedCourseDto;
+    }
+
+    private Set<Integer> courseIds(List<GcSubject> publicCourses) {
+        return publicCourses.stream().map(GcSubject::getId).collect(Collectors.toSet());
     }
 
     private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,
