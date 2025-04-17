@@ -94,7 +94,7 @@ public class GroupFacadeImpl implements GroupFacade {
 
         return contentGroupOptional.map(contentGroup -> {
                 checkPermission(contentGroup, portalUser, PermitAction.VIEW);
-                return convertCourseIdToCourseAssignment(contentGroup);
+                return courseAssignmentService.findByContentGroupId(contentGroup.getId());
             })
             .orElseGet(Map::of);
     }
@@ -107,7 +107,7 @@ public class GroupFacadeImpl implements GroupFacade {
 
         return contentGroupOptional.map(contentGroup -> {
                 checkPermission(contentGroup, portalUser, PermitAction.VIEW);
-                return convertChannelIdToChannelSubscription(contentGroup);
+                return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId());
             })
             .orElseGet(Map::of);
     }
@@ -133,19 +133,6 @@ public class GroupFacadeImpl implements GroupFacade {
             checkPermission(contentGroup, portalUser, PermitAction.MANAGE_CONTENT);
             channelSubscriptionService.removeChannelSubscriptions(List.of(contentGroup), List.of(channelId));
         });
-    }
-
-    private Map<String, List<GroupCourseAssignmentDto>> convertCourseIdToCourseAssignment(GcAccess contentGroup) {
-        return courseAssignmentService.findByContentGroupId(contentGroup.getId()).stream()
-            .collect(Collectors.groupingBy(courseAssignment -> String.valueOf(courseAssignment.getCourse().getId())));
-    }
-
-    private Map<String, List<GroupChannelSubscriptionDto>> convertChannelIdToChannelSubscription(
-        GcAccess contentGroup) {
-
-        return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId()).stream()
-            .collect(
-                Collectors.groupingBy(channelSubscription -> String.valueOf(channelSubscription.getChannel().getId())));
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

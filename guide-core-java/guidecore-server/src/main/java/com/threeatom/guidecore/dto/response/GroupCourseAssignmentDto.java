@@ -11,9 +11,6 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a group course assignment")
 public class GroupCourseAssignmentDto {
 
-    @ApiModelProperty(notes = "Course basic information")
-    private BasicCourseDto course;
-
     @ApiModelProperty(notes = "Group basic information")
     private BasicGroupDto group;
 

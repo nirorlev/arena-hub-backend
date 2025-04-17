@@ -14,6 +14,7 @@ import com.threeatom.guidecore.mapping.ContentGroupChannelSubscriptionMapping;
 import com.threeatom.guidecore.service.ContentGroupChannelSubscriptionService;
 import com.threeatom.guidecore.service.PtChannelService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -94,16 +95,16 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId) {
+    public Map<String, List<GroupChannelSubscriptionDto>> getContentGroupSubscriptions(Integer contentGroupId) {
         List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions =
             baseMapper.findByContentGroupId(contentGroupId, null);
 
         return contentGroupChannelSubscriptions.stream()
-            .map(contentGroupChannelSubscription -> {
-                channelService.updateUrls(contentGroupChannelSubscription.getChannel());
-                return contentGroupChannelSubscriptionMapping.map(contentGroupChannelSubscription);
-            })
-            .collect(Collectors.toList());
+            .peek(contentGroupChannelSubscription -> channelService.updateUrls(
+                contentGroupChannelSubscription.getChannel()))
+            .collect(Collectors.groupingBy(ContentGroupChannelSubscription::getChannelId)).entrySet().stream()
+            .collect(Collectors.toMap(subscriptionEntry -> String.valueOf(subscriptionEntry.getKey()),
+                subscriptionEntry -> contentGroupChannelSubscriptionMapping.map(subscriptionEntry.getValue())));
     }
 
     @Override

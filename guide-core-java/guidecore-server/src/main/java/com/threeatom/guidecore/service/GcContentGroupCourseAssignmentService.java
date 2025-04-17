@@ -11,13 +11,14 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface GcContentGroupCourseAssignmentService extends IService<GcContentGroupCourseAssignment> {
     @Deprecated(forRemoval = true)
     List<ContentGroupCourseAssignmentDto> deprecatedFindByContentGroupId(Integer contentGroupId);
 
-    List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId);
+    Map<String, List<GroupCourseAssignmentDto>> findByContentGroupId(Integer contentGroupId);
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 

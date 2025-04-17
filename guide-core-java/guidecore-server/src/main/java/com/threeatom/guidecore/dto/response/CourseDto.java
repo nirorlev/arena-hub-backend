@@ -13,5 +13,4 @@ public class CourseDto extends BasicCourseDto {
     private int tasksDuration;
     private int studentsCount;
     private double averageRating;
-    private Map<String, Boolean> permissions;
 }

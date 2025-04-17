@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -26,10 +27,11 @@ public interface GcContentGroupCourseAssignmentMapping {
 
     @Mapping(target = "group", source = "contentGroup")
     @Mapping(target = "user", source = "createdBy")
-    @Mapping(target = "course", source = "course")
     @Mapping(target = "mandatory", qualifiedByName = "convertToMandatoryBoolean")
     @Mapping(target = "updatedTime", source = "modifiedDate")
     GroupCourseAssignmentDto map(GcContentGroupCourseAssignment contentGroupCourseAssignment);
+
+    List<GroupCourseAssignmentDto> map(List<GcContentGroupCourseAssignment> contentGroupCourseAssignments);
 
     @Mapping(target = "mandatory", qualifiedByName = "convertToMandatoryInt")
     GcContentGroupCourseAssignment map(AssignCourseDto assignCourseDto, Integer createdByUserId);

@@ -4,6 +4,7 @@ import com.threeatom.guidecore.dto.request.SubscribeChannelDto;
 import com.threeatom.guidecore.dto.response.ContentGroupChannelSubscriptionDto;
 import com.threeatom.guidecore.dto.response.GroupChannelSubscriptionDto;
 import com.threeatom.guidecore.entity.ContentGroupChannelSubscription;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -13,8 +14,9 @@ public interface ContentGroupChannelSubscriptionMapping {
 
     @Mapping(target = "user", source = "createdBy")
     @Mapping(target = "group", source = "contentGroup")
-    @Mapping(target = "channel", source = "channel", qualifiedByName = "mapBasic")
     GroupChannelSubscriptionDto map(ContentGroupChannelSubscription contentGroupChannelSubscription);
+
+    List<GroupChannelSubscriptionDto> map(List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions);
 
     @Mapping(target = "modifiedDate", expression = "java(java.time.OffsetDateTime.now())")
     @Mapping(target = "autoSubscribe", source = "autoSubscribe")
