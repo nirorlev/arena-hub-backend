@@ -1526,11 +1526,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
-        List<GcContentGroupCourseAssignment> courseAssignments =
-            courseAssignmentService.userCourseAssignments(portalUser);
-        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments =
-            courseAssignments.stream().collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
-
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
         List<CourseEnrollment> courseEnrollments =
             courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
@@ -1554,17 +1550,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         return createCourseListDto(assignedCourses);
-    }
-
-    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
-        return courseEnrollments.stream()
-            .collect(Collectors.groupingBy(
-                CourseEnrollment::getCourseId,
-                Collectors.collectingAndThen(
-                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
-                    Set::size
-                )
-            ));
     }
 
     @Override
@@ -1593,17 +1578,20 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
         List<GcSubject> publicCourses = getPublicCourses(portalUser);
-        Set<Integer> courseIds = courseIds(publicCourses);
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
+        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
 
         List<CourseDto> discoverableCourses = new ArrayList<>();
-        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds);
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
         Set<Integer> userActiveEnrollmentCourseIds =
             getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
 
         for (GcSubject publicCourse : publicCourses) {
-            if (userActiveEnrollmentCourseIds.contains(publicCourse.getId())) {
+            if (courseIdsWithAssignment.contains(publicCourse.getId())
+                || userActiveEnrollmentCourseIds.contains(publicCourse.getId())
+                || anyNotActiveEnrollmentsFinished(courseEnrollments)) {
                 continue;
             }
 
@@ -1616,6 +1604,41 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         return createCourseListDto(discoverableCourses);
+    }
+
+    private boolean anyNotActiveEnrollmentsFinished(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .map(CourseEnrollment::getLatestProgress)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .anyMatch(courseEnrollmentProgress -> courseEnrollmentProgress.getPercentage() > 99);
+    }
+
+    private Map<Integer, List<GcContentGroupCourseAssignment>> getCourseIdToAssignments(PortalUser portalUser) {
+        List<GcContentGroupCourseAssignment> courseAssignments =
+            courseAssignmentService.userCourseAssignments(portalUser);
+        return courseAssignments.stream()
+            .collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
+    }
+
+    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .collect(Collectors.groupingBy(
+                CourseEnrollment::getCourseId,
+                Collectors.collectingAndThen(
+                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
+                    Set::size
+                )
+            ));
+    }
+
+    private Set<Integer> getUserActiveEnrollmentCourseIds(List<CourseEnrollment> courseEnrollments, Integer userId) {
+        return courseEnrollments.stream()
+            .filter(courseEnrollment -> courseEnrollment.getUserId().equals(userId))
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .map(CourseEnrollment::getCourseId)
+            .collect(Collectors.toSet());
     }
 
     private List<GcSubject> getPublicCourses(PortalUser portalUser) {
