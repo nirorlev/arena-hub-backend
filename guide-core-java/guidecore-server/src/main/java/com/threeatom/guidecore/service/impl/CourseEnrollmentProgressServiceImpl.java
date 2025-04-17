@@ -216,7 +216,7 @@ public class CourseEnrollmentProgressServiceImpl
             .mapToInt(VideoViewerVideoDetailDto::getUniqueViewTime)
             .sum();
         int sectionsCompleted = (int) sectionsProgress.values().stream()
-            .filter(progressDetailsDto -> progressDetailsDto.getProgress().getPercentage() == 100)
+            .filter(progressDetailsDto -> progressDetailsDto.getProgress().getPercentage() >= 99)
             .count();
         List<Task> correctlyAnsweredTasks = correctlyAnsweredTasks(tasks, taskIdToProgressDetails);
         int correctTaskTime = tasksTime(correctlyAnsweredTasks);
