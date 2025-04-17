@@ -150,7 +150,8 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     }
 
     private double calculatePercentageViewed(int totalVideoTime, int videoTimeViewed) {
-        return Double.parseDouble(String.format("%.2f", ((double) videoTimeViewed / totalVideoTime) * 100));
+        double percent = Double.parseDouble(String.format("%.2f", ((double) videoTimeViewed / totalVideoTime) * 100));
+        return percent > 100 ? 100 : percent;
     }
 
     private List<VideoPlaySegment> getAllViewSegments(List<VideoPlaySession> playSessions) {
