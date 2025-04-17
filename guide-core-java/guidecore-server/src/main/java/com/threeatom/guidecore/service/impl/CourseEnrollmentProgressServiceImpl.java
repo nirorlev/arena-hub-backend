@@ -296,7 +296,8 @@ public class CourseEnrollmentProgressServiceImpl
             .sum();
     }
 
-    private void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
+    @Transactional
+    public void updateEnrollment(CourseProgressDto courseProgressDto, CourseEnrollment courseEnrollment,
                                   CourseSetting courseSetting) {
         CourseEnrollmentProgress courseEnrollmentProgress =
             createCourseProgress(courseEnrollment, courseProgressDto.getCourse().getProgress());
