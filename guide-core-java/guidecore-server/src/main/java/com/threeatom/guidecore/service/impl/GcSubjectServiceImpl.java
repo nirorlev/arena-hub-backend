@@ -1581,13 +1581,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
         Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
 
-        List<CourseDto> discoverableCourses = new ArrayList<>();
         List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
         Set<Integer> userActiveEnrollmentCourseIds =
             getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
 
+        List<CourseDto> discoverableCourses = new ArrayList<>();
         for (GcSubject publicCourse : publicCourses) {
             if (courseIdsWithAssignment.contains(publicCourse.getId())
                 || userActiveEnrollmentCourseIds.contains(publicCourse.getId())
@@ -1612,7 +1612,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .map(CourseEnrollment::getLatestProgress)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .anyMatch(courseEnrollmentProgress -> courseEnrollmentProgress.getPercentage() > 99);
+            .anyMatch(courseEnrollmentProgress -> courseEnrollmentProgress.getPercentage() >= 99);
     }
 
     private Map<Integer, List<GcContentGroupCourseAssignment>> getCourseIdToAssignments(PortalUser portalUser) {
@@ -1646,6 +1646,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         queryWrapper.eq("master_id", portalUser.getMasterId());
         queryWrapper.eq("state", CoursePublishState.PUBLIC.getValue());
         queryWrapper.isNull("fid");
+        queryWrapper.orderByDesc("create_time");
         return list(queryWrapper);
     }
 
@@ -1654,6 +1655,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         queryWrapper.eq("create_user", portalUser.getUserId());
         queryWrapper.eq("master_id", portalUser.getMasterId());
         queryWrapper.isNull("fid");
+        queryWrapper.orderByDesc("create_time");
         return list(queryWrapper);
     }
 
