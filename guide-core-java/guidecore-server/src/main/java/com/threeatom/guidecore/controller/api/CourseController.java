@@ -2,6 +2,7 @@ package com.threeatom.guidecore.controller.api;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.AssignedCourseDto;
+import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
@@ -54,6 +55,12 @@ public class CourseController {
     public ResponseEntity<CourseListDto<AssignedCourseDto>> userAssignedCourses(HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
         return ResponseEntity.ok(courseService.getAssignedCourses(portalUser));
+    }
+
+    @GetMapping("/owned")
+    public ResponseEntity<CourseListDto<CourseDto>> userOwnedCourses(HttpServletRequest request) {
+        PortalUser portalUser = getPortalUser(request);
+        return ResponseEntity.ok(courseService.getOwnedCourses(portalUser));
     }
 
     @PostMapping("/{courseId}/enrollments")
