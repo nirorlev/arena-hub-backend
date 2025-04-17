@@ -1535,17 +1535,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
 
-        Set<Integer> userActiveEnrollmentCourseIds =
-            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
-
         List<AssignedCourseDto> assignedCourses = new ArrayList<>();
 
         for (Map.Entry<Integer, List<GcContentGroupCourseAssignment>> courseAssignmentEntry : courseIdToAssignments.entrySet()) {
             Integer courseId = courseAssignmentEntry.getKey();
-            if (userActiveEnrollmentCourseIds.contains(courseId)) {
-                continue;
-            }
-
             List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
 
             GcContentGroupCourseAssignment strongestAssignment = findStrongestAssignment(assignments);
@@ -1573,14 +1566,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     Set::size
                 )
             ));
-    }
-
-    private Set<Integer> getUserActiveEnrollmentCourseIds(List<CourseEnrollment> courseEnrollments, Integer userId) {
-        return courseEnrollments.stream()
-            .filter(courseEnrollment -> courseEnrollment.getUserId().equals(userId))
-            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
-            .map(CourseEnrollment::getCourseId)
-            .collect(Collectors.toSet());
     }
 
     private GcContentGroupCourseAssignment findStrongestAssignment(
