@@ -44,6 +44,6 @@ public class CourseEnrollment {
 
     public Optional<CourseEnrollmentProgress> getLatestProgress() {
         return courseEnrollmentProgresses.stream()
-            .min(Comparator.comparing(CourseEnrollmentProgress::getCreatedTime));
+            .max(Comparator.comparing(CourseEnrollmentProgress::getCreatedTime));
     }
 }
