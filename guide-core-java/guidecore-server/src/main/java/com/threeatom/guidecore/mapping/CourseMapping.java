@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
-import com.threeatom.guidecore.dto.response.CourseDto;
+import com.threeatom.guidecore.dto.response.BasicCourseDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgramTaskDto;
@@ -34,7 +34,7 @@ public interface CourseMapping {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
-    CourseDto mapBasic(GcSubject course);
+    BasicCourseDto mapBasic(GcSubject course);
 
     @Named("mapCourseEnrollment")
     @Mapping(target = "title", source = "name")

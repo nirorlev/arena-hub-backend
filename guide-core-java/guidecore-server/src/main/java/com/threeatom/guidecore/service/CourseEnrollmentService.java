@@ -7,7 +7,9 @@ import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface CourseEnrollmentService extends IService<CourseEnrollment> {
     UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser);
@@ -26,4 +28,6 @@ public interface CourseEnrollmentService extends IService<CourseEnrollment> {
                                                    PortalUser portalUser);
 
     CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId);
+
+    List<CourseEnrollment> courseEnrollments(Set<Integer> courseIds);
 }

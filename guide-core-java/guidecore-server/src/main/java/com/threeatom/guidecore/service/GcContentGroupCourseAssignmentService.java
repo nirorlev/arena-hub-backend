@@ -7,6 +7,7 @@ import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import java.util.List;
@@ -47,4 +48,6 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
     Set<Integer> getContentGroupIds(Integer courseId);
 
     void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
+
+    List<GcContentGroupCourseAssignment> userCourseAssignments(PortalUser portalUser);
 }

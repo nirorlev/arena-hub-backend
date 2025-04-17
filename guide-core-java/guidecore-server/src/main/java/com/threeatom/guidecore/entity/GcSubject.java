@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
-import com.threeatom.guidecore.enums.CourseState;
+import com.threeatom.guidecore.enums.CoursePublishState;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
 import io.swagger.annotations.ApiModelProperty;
@@ -433,11 +433,11 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     }
 
     public Boolean getIsPrivate() {
-        return CourseState.PRIVATE.getValue().equals(state);
+        return CoursePublishState.PRIVATE.getValue().equals(state);
     }
 
     public boolean isPublic() {
-        return CourseState.PUBLIC.getValue().equals(state);
+        return CoursePublishState.PUBLIC.getValue().equals(state);
     }
 
     public boolean isPrivate() {

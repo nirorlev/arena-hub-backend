@@ -8,6 +8,7 @@ import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
@@ -204,6 +205,11 @@ public class GcContentGroupCourseAssignmentServiceImpl
         }
 
         updateCourseAssignment(contentGroupCourseAssignment.getId(), userId, assignCourseDto);
+    }
+
+    @Override
+    public List<GcContentGroupCourseAssignment> userCourseAssignments(PortalUser portalUser) {
+        return baseMapper.userCourseAssignments(portalUser.getUserId(), portalUser.getMasterId());
     }
 
     private List<Integer> getCourseIdsByContentGroupIdAndPredicate(

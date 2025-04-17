@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.common.redis.RedisOperator;
@@ -15,11 +16,15 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.videoLongVo;
+import com.threeatom.guidecore.dto.response.AssignedCourseDto;
+import com.threeatom.guidecore.dto.response.CourseDto;
+import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
@@ -31,7 +36,8 @@ import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.SubjectTotals;
-import com.threeatom.guidecore.enums.CourseState;
+import com.threeatom.guidecore.entity.Task;
+import com.threeatom.guidecore.enums.CoursePublishState;
 import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
@@ -54,6 +60,7 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoPlaySegmentService;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.TaskTimingUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -69,6 +76,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -157,6 +165,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return listMap;
     }
 
+    private Optional<GcContentGroupCourseAssignment> getAssignmentWithLatestDate(
+        List<GcContentGroupCourseAssignment> assignments) {
+
+        return assignments.stream()
+            .max(Comparator.comparing(GcContentGroupCourseAssignment::getModifiedDate));
+    }
+
     @Override
     public boolean saveSub(GcSubject sub) {
         this.formatSub(sub);
@@ -190,7 +205,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
             queryWrapper.eq("master_id", sub.getMasterId());
             queryWrapper.eq("fid", sub.getFid());
-            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+            queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
             orderList = this.list(queryWrapper);
             sub.setOrder((orderList.size() + 1));
         }
@@ -264,7 +279,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
 
-        Integer state = CourseState.CERTAIN_TEAMS.getValue();
+        Integer state = CoursePublishState.CERTAIN_TEAMS.getValue();
         if (null != request.getAttribute("state")) {
             state = Integer.parseInt(request.getAttribute("state").toString());
         }
@@ -933,7 +948,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1074,13 +1089,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 1);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         if (subIds != null && subIds.size() != TableConstant.COMMON_ZERO) {
             queryWrapper.in(true, "fid", subIds);
         }
         //查询导入课程的topic数量
         Integer importedTopicNum = this.baseMapper.countImportedToicNum(masterId, TableConstant.COMMON_ONE,
-            CourseState.PRIVATE.getValue(), subIds, managerId);
+            CoursePublishState.PRIVATE.getValue(), subIds, managerId);
         return this.count(queryWrapper) + importedTopicNum;
 
 
@@ -1098,7 +1113,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("master_id", masterId).eq("type", TableConstant.gcSubject_type_subject0);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
 
@@ -1112,7 +1127,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.select("id").eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
     }
@@ -1122,7 +1137,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         // TODO Auto-generated method stub
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1131,7 +1146,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public GcSubject getSubNameBysubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("id", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         return this.getOne(queryWrapper);
     }
 
@@ -1150,7 +1165,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public List<GcSubject> getChildSubjectBySubId(Integer subId) {
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
         queryWrapper.eq("fid", subId);
-        queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+        queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
@@ -1201,7 +1216,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
         if (subIds.size() != 0) {
             queryWrapper.in("id", subIds);
-            queryWrapper.ne("state", CourseState.PRIVATE.getValue());//不显示隐藏
+            queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
             PageParam pageParam = new PageParam(request);
             Integer pageNum = pageParam.getPageNum();
             Integer pageSize = pageParam.getPageSize();
@@ -1361,7 +1376,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         if (course.getState() == null) {
-            course.setState(course.isTopic() ? CourseState.PUBLIC.getValue() : CourseState.PRIVATE.getValue());
+            course.setState(course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
         }
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);
@@ -1471,11 +1486,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             throw new ForbiddenException("User is not authorized to view this course");
         }
 
-        List<CourseContent> courseTopicsContent = courseContentService.findCourseContent(courseId).stream()
+        return courseMapping.mapProgram(course, courseTopicsContent(courseContentService.findCourseContent(courseId)));
+    }
+
+    private List<CourseContent> courseTopicsContent(List<CourseContent> courseContent) {
+        return courseContent.stream()
             .filter(content -> content.getCourse().isTopic())
             .collect(Collectors.toList());
-
-        return courseMapping.mapProgram(course, courseTopicsContent);
     }
 
     @Override
@@ -1504,5 +1521,124 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .map(CourseContent::getVideo)
             .filter(video -> video.getSubId() != null)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
+        List<GcContentGroupCourseAssignment> courseAssignments =
+            courseAssignmentService.userCourseAssignments(portalUser);
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments =
+            courseAssignments.stream().collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId));
+
+        List<CourseEnrollment> courseEnrollments =
+            courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
+        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
+            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
+
+        List<AssignedCourseDto> assignedCourses = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<GcContentGroupCourseAssignment>> courseAssignmentEntry : courseIdToAssignments.entrySet()) {
+            Integer courseId = courseAssignmentEntry.getKey();
+            List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
+
+            GcContentGroupCourseAssignment strongestAssignment = findStrongestAssignment(assignments);
+            GcSubject course = strongestAssignment.getCourse();
+            updateUrls(course);
+            Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
+            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
+            List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
+
+            assignedCourses.add(
+                createAssignedCourseDto(course, courseContent, strongestAssignment, studentsCount, permissions));
+        }
+
+        CourseListDto<AssignedCourseDto> courseListDto = new CourseListDto<>();
+        courseListDto.setCourses(assignedCourses);
+        return courseListDto;
+    }
+
+    private Map<Integer, Integer> getCourseIdToUserUniqueEnrollmentCount(List<CourseEnrollment> courseEnrollments) {
+        return courseEnrollments.stream()
+            .collect(Collectors.groupingBy(
+                CourseEnrollment::getCourseId,
+                Collectors.collectingAndThen(
+                    Collectors.mapping(CourseEnrollment::getUserId, Collectors.toSet()),
+                    Set::size
+                )
+            ));
+    }
+
+    private GcContentGroupCourseAssignment findStrongestAssignment(
+        List<GcContentGroupCourseAssignment> assignments) {
+        List<GcContentGroupCourseAssignment> mandatoryAssignments = assignments.stream()
+            .filter(contentGroupCourseAssignment -> contentGroupCourseAssignment.getMandatory() == 1)
+            .collect(Collectors.toList());
+
+        return getAssignmentWithEarliestDeadLineDate(mandatoryAssignments)
+            .or(() -> getAssignmentWithLatestDate(mandatoryAssignments))
+            .or(() -> getAssignmentWithLatestDate(assignments))
+            .orElseThrow(() -> new ResourceNotFoundException("Cannot find course assignment!"));
+    }
+
+    private Optional<GcContentGroupCourseAssignment> getAssignmentWithEarliestDeadLineDate(
+        List<GcContentGroupCourseAssignment> assignments) {
+
+        return assignments.stream()
+            .filter(assignment -> assignment.getDeadline() != null)
+            .min(Comparator.comparing(GcContentGroupCourseAssignment::getDeadline));
+    }
+
+    private AssignedCourseDto createAssignedCourseDto(GcSubject course, List<CourseContent> courseContent,
+                                                      GcContentGroupCourseAssignment courseAssignment,
+                                                      int studentsCount, Map<String, Boolean> permissions) {
+        AssignedCourseDto assignedCourseDto =
+            new AssignedCourseDto(createCourseDto(course, courseContent, studentsCount, permissions));
+        assignedCourseDto.setDeadline(courseAssignment.getDeadline());
+        assignedCourseDto.setIsMandatory(courseAssignment.getMandatory() == 1);
+        return assignedCourseDto;
+    }
+
+    private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,
+                                      int studentsCount, Map<String, Boolean> permissions) {
+        List<Task> courseTasks = courseTasks(courseContent);
+        CourseDto courseDto = new CourseDto();
+
+        courseDto.setId(course.getId());
+        courseDto.setTitle(course.getName());
+        courseDto.setDescription(course.getDescription());
+        courseDto.setThumbUrl(course.getSubImgFile() == null ? null : course.getSubImgFile().getFullFileUrl());
+        courseDto.setIsPublic(course.isPublic());
+        courseDto.setIsPrivate(course.isPrivate());
+        courseDto.setVideosCount(courseContent.size());
+        courseDto.setVideosDuration(videoTotalDuration(courseContent));
+        courseDto.setTasksCount(courseTasks.size());
+        courseDto.setTasksDuration(taskDuration(courseTasks));
+        courseDto.setStudentsCount(studentsCount);
+        courseDto.setAverageRating(0);
+        courseDto.setPermissions(permissions);
+
+        return courseDto;
+    }
+
+    private int taskDuration(List<Task> courseTasks) {
+        return courseTasks.stream()
+            .map(Task::getType)
+            .mapToInt(TaskTimingUtil::getTaskTiming)
+            .sum();
+    }
+
+    private List<Task> courseTasks(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .map(GcVideo::getTasks)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+    }
+
+    private int videoTotalDuration(List<CourseContent> courseContent) {
+        return courseContent.stream()
+            .map(CourseContent::getVideo)
+            .mapToInt(GcVideo::getVideoTime)
+            .sum();
     }
 }
