@@ -1360,12 +1360,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             }
         }
 
-        if (course.getState() == null && course.isTopic()) {
-            course.setState(CourseState.PUBLIC.getValue());
-        } else if (course.getState() == null) {
-            course.setState(CourseState.PRIVATE.getValue());
+        if (course.getState() == null) {
+            course.setState(course.isTopic() ? CourseState.PUBLIC.getValue() : CourseState.PRIVATE.getValue());
         }
-
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);
         }
