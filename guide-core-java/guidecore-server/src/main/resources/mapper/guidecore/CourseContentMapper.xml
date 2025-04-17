@@ -52,6 +52,8 @@
         <id property="id" column="id"/>
 
         <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
         <result property="createUser" column="user_id"/>
         <result property="fid" column="fid"/>
         <result property="availableType" column="available_type"/>
@@ -120,6 +122,7 @@
     <sql id="videoOriginCourseColumns">
         video_origin_course.id                         AS video_origin_course_id,
         video_origin_course.name                       AS video_origin_course_name,
+        video_origin_course.description                AS video_origin_course_description,
         video_origin_course.fid                        AS video_origin_course_fid,
         video_origin_course.state                      AS video_origin_course_state,
         video_origin_course.available_type             AS video_origin_course_available_type,
@@ -131,6 +134,7 @@
     <sql id="courseColumns">
         course.id                         AS course_id,
         course.name                       AS course_name,
+        course.description                AS course_description,
         course.fid                        AS course_fid,
         course.state                      AS course_state,
         course.available_type             AS course_available_type,

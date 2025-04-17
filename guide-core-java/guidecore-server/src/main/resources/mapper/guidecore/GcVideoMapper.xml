@@ -103,6 +103,8 @@
 
     <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
         <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
         <result property="createUser" column="user_id"/>
         <result property="fid" column="fid"/>
         <result property="availableType" column="available_type"/>
@@ -186,6 +188,7 @@
     <sql id="courseColumns">
         gs.id                         AS course_id,
         gs.name                       AS course_name,
+        gs.description                AS course_description,
         gs.fid                        AS course_fid,
         gs.state                      AS course_state,
         gs.available_type             AS course_available_type,

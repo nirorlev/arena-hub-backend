@@ -266,7 +266,8 @@
 	</sql>
 
 	<sql id="originVideoCourseColumns">
-		,s.id as course_user_id, s.fid as course_fid, s.available_type as course_available_type, s.state as course_state
+		,s.id as course_user_id, s.fid as course_fid, s.name as course_name, s.description as course_description,
+		s.available_type as course_available_type, s.state as course_state
 	</sql>
 
 	<sql id="baseColumnAsso">
