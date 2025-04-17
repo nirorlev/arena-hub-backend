@@ -10,4 +10,6 @@ public class BasicCourseDto {
     private String title;
     private String description;
     private String thumbUrl;
+    private Boolean isPrivate;
+    private Boolean isPublic;
 }

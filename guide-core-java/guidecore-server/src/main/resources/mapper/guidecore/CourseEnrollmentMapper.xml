@@ -219,4 +219,10 @@
             LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.id = #{id}
     </select>
+
+    <select id="countDistinctUsersByCourse" resultType="int">
+        SELECT COUNT(DISTINCT user_id)
+        FROM course_enrollments
+        WHERE course_id = #{courseId}
+    </select>
 </mapper>

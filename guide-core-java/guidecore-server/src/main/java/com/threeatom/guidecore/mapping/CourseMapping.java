@@ -34,6 +34,7 @@ public interface CourseMapping {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
+    @Mapping(target = "isPublic", source = "isPublic", qualifiedByName = "mapIsPublic")
     BasicCourseDto mapBasic(GcSubject course);
 
     @Named("mapCourseEnrollment")
@@ -41,6 +42,7 @@ public interface CourseMapping {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
+    @Mapping(target = "isPublic", source = "isPublic", qualifiedByName = "mapIsPublic")
     CourseEnrollmentDto mapCourseEnrollment(GcSubject course);
 
     @Mapping(target = "owner", source = "user")
@@ -65,6 +67,11 @@ public interface CourseMapping {
     CourseProgramDto mapProgram(GcSubject course, List<CourseContent> courseContent);
 
     CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean compliant);
+
+    @Named("mapIsPublic")
+    default Boolean mapIsPublic(Integer isPublic) {
+        return isPublic != null && isPublic == 1;
+    }
 
     @Named("mapCourseSectionContent")
     default List<CourseSectionDto> mapCourseSectionContent(List<CourseContent> courseContent) {
