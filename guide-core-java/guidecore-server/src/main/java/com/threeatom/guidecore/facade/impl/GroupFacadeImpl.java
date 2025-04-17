@@ -136,8 +136,7 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     private Map<String, List<GroupCourseAssignmentDto>> convertCourseIdToCourseAssignment(GcAccess contentGroup) {
-        return courseAssignmentService.findByContentGroupId(contentGroup.getId()).stream()
-            .collect(Collectors.groupingBy(courseAssignment -> String.valueOf(courseAssignment.getCourse().getId())));
+        return courseAssignmentService.findByContentGroupId(contentGroup.getId());
     }
 
     private Map<String, List<GroupChannelSubscriptionDto>> convertChannelIdToChannelSubscription(

@@ -16,7 +16,9 @@ import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -62,20 +64,19 @@ public class GcContentGroupCourseAssignmentServiceImpl
 
     @Override
     @Transactional(readOnly = true)
-    public List<GroupCourseAssignmentDto> findByContentGroupId(Integer contentGroupId) {
+    public Map<String, List<GroupCourseAssignmentDto>> findByContentGroupId(Integer contentGroupId) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.findByContentGroupId(contentGroupId);
 
         if (CollectionUtils.isEmpty(contentGroupCourseAssignments)) {
-            return new ArrayList<>();
+            return new HashMap<>();
         }
 
         return contentGroupCourseAssignments.stream()
-            .map(contentGroupCourseAssignment -> {
-                courseService.updateUrls(contentGroupCourseAssignment.getCourse());
-                return gcContentGroupCourseAssignmentMapping.map(contentGroupCourseAssignment);
-            })
-            .collect(Collectors.toList());
+            .peek(contentGroupCourseAssignment -> courseService.updateUrls(contentGroupCourseAssignment.getCourse()))
+            .collect(Collectors.groupingBy(GcContentGroupCourseAssignment::getCourseId)).entrySet().stream()
+            .collect(Collectors.toMap(assignmentEntry -> String.valueOf(assignmentEntry.getKey()),
+                assignmentEntry -> gcContentGroupCourseAssignmentMapping.map(assignmentEntry.getValue())));
     }
 
     @Override
