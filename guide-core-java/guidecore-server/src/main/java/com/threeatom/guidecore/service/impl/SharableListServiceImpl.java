@@ -77,7 +77,7 @@ public class SharableListServiceImpl implements SharableListService {
 
         AccessSourceDto accessSourceDto = getAccessSourceDto(courseId, course.getCreateUser(), SourceType.COURSE,
             portalUser.getUserId());
-        if (isCoursePrivate(course)) {
+        if (course.isPrivate()) {
             return getGroupAccessDto(false, true, Collections.emptyList(), accessSourceDto);
         }
 
@@ -140,9 +140,5 @@ public class SharableListServiceImpl implements SharableListService {
         return courseAcccessList.stream()
             .map(sharableListMapping::map)
             .collect(Collectors.toList());
-    }
-
-    private boolean isCoursePrivate(GcSubject course) {
-        return course.getState() == 0;
     }
 }

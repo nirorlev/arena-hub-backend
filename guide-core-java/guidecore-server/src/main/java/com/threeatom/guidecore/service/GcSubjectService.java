@@ -111,8 +111,7 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<GcSubject> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId);
 
-    GcSubject saveSubInfo(
-        GcSubject sub, GcManager manager, GcMaster master, GcUser user, HttpServletRequest request);
+    GcSubject saveSubInfo(GcSubject sub, GcManager manager, GcMaster master, GcUser user, HttpServletRequest request);
 
     Integer selectSubjectPt(
         String subjectName,

@@ -10,22 +10,18 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
 import com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler;
-import com.threeatom.guidecore.enums.CourseAvailabilityType;
 import com.threeatom.guidecore.enums.CourseState;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.utils.data.TreeNodeEntity;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "GcSubject对象", description = "")
 @TableName(autoResultMap = true)
 public class GcSubject implements Serializable, TreeNodeEntity {
 
@@ -38,7 +34,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @JSONField(deserialize = false)
     private Integer id2;
 
-    @JSONField(deserialize = true)
     private Integer masterId;
 
     @ApiModelProperty(value = "主题name")
@@ -114,10 +109,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @ApiModelProperty("课程tag标签")
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray courseTags = new JSONArray();
-
-    @TableField(updateStrategy = FieldStrategy.IGNORED)
-    @ApiModelProperty(value = "其他课程导入该课程的密匙token")
-    private String token;
 
     @ApiModelProperty(value = "该课程是否是公共课程，1=是，如是其他课程导入该课程不需要token")
     private Integer isPublic;
@@ -308,11 +299,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(value = "course_tags", typeHandler = FastJsonArrayTypeHandler.class, exist = false)
     private JSONArray subjectOrder;
 
-    @ApiModelProperty("课程详情页封面id")
-    @TableField(
-            value = "subdetail_img_id",
-            typeHandler = FastJsonObjectTypeHandler.class,
-            exist = true)
+    @TableField(value = "subdetail_img_id", typeHandler = FastJsonObjectTypeHandler.class)
     private JSONObject subdetail_img_id = new JSONObject();
 
     @TableField(exist = false)
@@ -356,10 +343,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<Integer> accessIds;
 
-    /**
-     * 发布选项
-     * 公共选项1
-     */
     private Integer availableType;
 
     /**
@@ -405,20 +388,17 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     private Integer moveDrafts;
 
     @TableField(exist = false)
-    private Integer courseState;
-
-    @TableField(exist = false)
     private JSONArray mustJsonArray;
 
     @TableField(exist = false)
     private JSONArray mayJsonArray;
 
     /**
-     *  0 to do 新发布的没有开始的must课程
-     *  1 overdue 暂无
-     *  2 completed 完成
-     *  3 draft 草稿
-     *  4 Earn a Certificate 有证书下载的课程
+     * 0 to do 新发布的没有开始的must课程
+     * 1 overdue 暂无
+     * 2 completed 完成
+     * 3 draft 草稿
+     * 4 Earn a Certificate 有证书下载的课程
      */
     @TableField(exist = false)
     private Integer identifying;
@@ -453,12 +433,11 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     }
 
     public Boolean getIsPrivate() {
-        return CourseState.DRAFT.getValue().equals(state);
+        return CourseState.PRIVATE.getValue().equals(state);
     }
 
     public boolean isPublic() {
-        return CourseState.PUBLISHED.getValue().equals(state)
-            && CourseAvailabilityType.PUBLIC.getValue().equals(availableType);
+        return CourseState.PUBLIC.getValue().equals(state);
     }
 
     public boolean isPrivate() {

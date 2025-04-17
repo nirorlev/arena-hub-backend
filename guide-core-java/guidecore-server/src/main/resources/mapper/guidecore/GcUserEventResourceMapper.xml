@@ -94,10 +94,10 @@
 	</sql>
 
 	<sql id="where_gcSubject_state_not_hidden">
-    	and s.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    	and s.state !=0
     </sql>
     <sql id="where_gcSubject_state_not_hidden_s0">
-    	and s0.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
+    	and s0.state !=0
     </sql>
 
     <select id="getEventResListForWorkBook" resultMap="baseResultMap">

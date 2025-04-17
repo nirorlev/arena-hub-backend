@@ -1040,13 +1040,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			boolean isMyView = courseIds.stream()
 				.anyMatch(courseId -> Objects.equals(courseId, subject.getId()));
 			subject.setIsMyView(isMyView ? TableConstant.COMMON_ZERO : TableConstant.COMMON_ONE);
-			if (subject.getState()==TableConstant.COMMON_ZERO){
-				subject.setCourseState(TableConstant.COMMON_ONE);
-			}else {
-				subject.setCourseState(TableConstant.COMMON_ZERO);
-			}
 
-			if ((subject.getCreateUser().equals(userId)|| portalUser.isOrgAdmin())&&subject.getState().equals(TableConstant.COMMON_ZERO)){
+			if ((subject.getCreateUser().equals(userId) || portalUser.isOrgAdmin()) && subject.isPrivate()){
 				subject.setMode(TableConstant.COMMON_ONE);
 			}else {
 				subject.setMode(TableConstant.COMMON_ZERO);

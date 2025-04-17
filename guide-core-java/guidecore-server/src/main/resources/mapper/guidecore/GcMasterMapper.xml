@@ -101,17 +101,6 @@
 		where m.manager_id=#{uid} or man.id =#{uid}
 	</select>
 
-	<select id="selectMasterPublicSubject" resultMap="baseResultMap">
-		select
-		m.id , m.org_name, m.logo_id,m.portal_name
-		<include refid="gcSubjectColumns" />
-		from gc_master m
-		<include refid="leftJoinGcSubject" />
-		where gcSubject.type = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_type_subject0}
-		and gcSubject.is_public = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_isPublic_1}
-		and gcSubject.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
-	</select>
-
 	<update id="updateIntroVideoIdNull">
 		UPDATE gc_master
 		SET intro_video_id = NULL
@@ -166,26 +155,6 @@
 			#{masterId}
 		</foreach>
         group by m.id,a.id
-	</select>
-
-	<select id="selectMasterPublicSubjectByTag" resultMap="baseResultMap">
-		select
-		m.id , m.org_name, m.logo_id,m.portal_name,
-		concat('[', STRING_AGG(tags.tag_text, '","') ,']') as course_tags
-		<include refid="gcSubjectColumns" />
-		from gc_master m
-		<include refid="leftJoinGcSubject" />
-		left join gc_subject_tags tags on tags.subject_id = gcSubject.id and tags.master_id = m.id and tags."status" = 0 and tags.type = 1
-		where gcSubject.type = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_type_subject0}
-		and gcSubject.is_public = ${@com.threeatom.guidecore.constant.TableConstant@gcSubject_isPublic_1}
-		and gcSubject.state !=${@com.threeatom.guidecore.constant.TableConstant@gcSubject_state_hidden_0}
-		<if test="null!=masterId">
-			and m.id = #{masterId}
-		</if>
-		<if test="null!=tag and ''!=tag">
-			and tags.tag_text = #{tag}
-		</if>
-		GROUP BY gcSubject.id, m.id
 	</select>
 
 	<select id="selectMasterAndManager" resultType="com.threeatom.guidecore.entity.GcMaster">

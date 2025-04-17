@@ -108,9 +108,6 @@ public class GcUser implements Serializable {
     private String avatarFullFileUrl;
 
     @TableField(exist = false)
-    private Boolean isOrgAdmin;
-
-    @TableField(exist = false)
     private Date logInTime;
 
     @TableField(exist = false)
