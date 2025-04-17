@@ -141,10 +141,7 @@ public class GroupFacadeImpl implements GroupFacade {
 
     private Map<String, List<GroupChannelSubscriptionDto>> convertChannelIdToChannelSubscription(
         GcAccess contentGroup) {
-
-        return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId()).stream()
-            .collect(
-                Collectors.groupingBy(channelSubscription -> String.valueOf(channelSubscription.getChannel().getId())));
+        return channelSubscriptionService.getContentGroupSubscriptions(contentGroup.getId());
     }
 
     private GroupResponseDto createGroupResponse(Map<String, GroupDto> groupDtos) {

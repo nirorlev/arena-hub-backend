@@ -9,6 +9,7 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,7 +30,7 @@ public interface ContentGroupChannelSubscriptionService extends IService<Content
 
     void removeChannelSubscriptions(List<GcAccess> contentGroups, List<Integer> channelIds);
 
-    List<GroupChannelSubscriptionDto> getContentGroupSubscriptions(Integer contentGroupId);
+    Map<String, List<GroupChannelSubscriptionDto>> getContentGroupSubscriptions(Integer contentGroupId);
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
 

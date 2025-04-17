@@ -11,9 +11,6 @@ import lombok.Setter;
 @ApiModel(description = "Data Transfer Object representing a content group channel subscription")
 public class GroupChannelSubscriptionDto {
 
-    @ApiModelProperty(notes = "Channel details")
-    private BasicChannelDto channel;
-
     @ApiModelProperty(notes = "Group basic information")
     private BasicGroupDto group;
 
