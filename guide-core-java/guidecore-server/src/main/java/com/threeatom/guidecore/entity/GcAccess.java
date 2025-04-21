@@ -13,7 +13,9 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ApiModel(value = "GcAccess对象", description = "")
 @TableName(autoResultMap = true)
 public class GcAccess implements Serializable {
@@ -22,15 +24,19 @@ public class GcAccess implements Serializable {
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @JSONField(deserialize = false)
+    @EqualsAndHashCode.Include
     private Integer masterId;
 
     @ApiModelProperty(value = "角色类型")
+    @EqualsAndHashCode.Include
     private Integer roleType;
 
     @ApiModelProperty(value = "code")
+    @EqualsAndHashCode.Include
     private String code;
 
     @ApiModelProperty(value = "对应的adminId")

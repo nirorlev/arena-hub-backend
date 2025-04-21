@@ -16,8 +16,13 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ApiModel(value = "GcVideo对象", description = "")
 public class GcVideo implements Serializable {
 
@@ -25,12 +30,16 @@ public class GcVideo implements Serializable {
 
     @ApiModelProperty(value = "id")
     @TableId(value = "id", type = IdType.AUTO)
+    @EqualsAndHashCode.Include
     private Integer id;
 
+    @EqualsAndHashCode.Include
     private Integer originChannelId;
 
+    @EqualsAndHashCode.Include
     private Integer originCourseId;
 
+    @EqualsAndHashCode.Include
     @ApiModelProperty(value = "视频名称")
     private String videoName;
 
@@ -50,9 +59,11 @@ public class GcVideo implements Serializable {
     private String videoNameIndex;
 
     @ApiModelProperty(value = "视频描述")
+    @EqualsAndHashCode.Include
     private String videoDesc;
 
     @ApiModelProperty(value = "视频文件id")
+    @EqualsAndHashCode.Include
     private Integer fileId;
 
     @ApiModelProperty(value = "视频文件描述")
@@ -78,9 +89,11 @@ public class GcVideo implements Serializable {
     private String sourceUrl;
 
     @ApiModelProperty(value = "视频总时长")
+    @EqualsAndHashCode.Include
     private Integer videoTime;
 
     @ApiModelProperty(value = "课程组织下面")
+    @EqualsAndHashCode.Include
     private Integer subId;
 
     @TableField(exist = false)
@@ -183,6 +196,7 @@ public class GcVideo implements Serializable {
     private Integer permissionId;
 
     @TableField(exist = false)
+    @EqualsAndHashCode.Include
     private Integer userId;
 
     @TableField(exist = false)

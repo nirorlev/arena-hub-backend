@@ -11,8 +11,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ApiModel(value = "GcUserSaveFolder", description = "用户保存的视频的文件夹")
 public class GcUserSaveFolder implements Serializable {
 
@@ -20,21 +25,27 @@ public class GcUserSaveFolder implements Serializable {
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ApiModelProperty(value = "文件夹名称")
+    @EqualsAndHashCode.Include
     private String name;
 
     @ApiModelProperty(value = "用户Id")
+    @EqualsAndHashCode.Include
     private Integer userId;
 
     @ApiModelProperty(value = "用户Id")
+    @EqualsAndHashCode.Include
     private Integer fileId;
 
     @ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
+    @EqualsAndHashCode.Include
     private Integer state;
 
     @ApiModelProperty(value = "门户id")
+    @EqualsAndHashCode.Include
     private Integer masterId;
 
     private Date updateTime;
@@ -53,6 +64,7 @@ public class GcUserSaveFolder implements Serializable {
     private Boolean isPrivate = false;
 
     @TableField(exist = false)
+    @EqualsAndHashCode.Include
     private Integer followFlag;
 
     @TableField(exist = false)
@@ -65,6 +77,7 @@ public class GcUserSaveFolder implements Serializable {
     private List<Integer> folderId;
 
     @TableField(exist = false)
+    @EqualsAndHashCode.Include
     private Integer videoId;
 
     @TableField(exist = false)
@@ -75,6 +88,7 @@ public class GcUserSaveFolder implements Serializable {
     private List<GcUserSaveContent> saveContentList;
 
     @TableField(exist = false)
+    @EqualsAndHashCode.Include
     private OffsetDateTime subscriptionTime;
 
     @TableField(exist = false)

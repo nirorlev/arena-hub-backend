@@ -20,8 +20,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @TableName(autoResultMap = true)
 public class GcSubject implements Serializable, TreeNodeEntity {
 
@@ -30,40 +35,50 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     Integer currentStudentUserId;
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
+    @EqualsAndHashCode.Include
     private Integer id;
     @JSONField(deserialize = false)
     private Integer id2;
+    @EqualsAndHashCode.Include
     private Integer masterId;
     @ApiModelProperty(value = "主题name")
+    @EqualsAndHashCode.Include
     private String name;
     @ApiModelProperty(value = "课程index，单个门户内唯一")
+    @EqualsAndHashCode.Include
     private String nameIndex;
     @ApiModelProperty(value = "课程语言")
     private String language;
     @ApiModelProperty(value = "课程语言")
     private Integer cateId;
     @ApiModelProperty(value = "描述信息")
+    @EqualsAndHashCode.Include
     private String description;
     @JSONField(deserialize = false)
     @ApiModelProperty(value = "主题类型")
+    @EqualsAndHashCode.Include
     private Integer type;
     @JSONField(deserialize = false)
     @ApiModelProperty(value = "主题Id") // 后续层级关联都用fid，后续将弃用subId
     @Deprecated
     private Integer subId;
     @TableField(value = "\"order\"")
+    @EqualsAndHashCode.Include
     private Integer order;
     @ApiModelProperty(value = "subject科目图片id")
+    @EqualsAndHashCode.Include
     private Integer subImgId;
     @ApiModelProperty(value = "subject科目图片文件")
     @TableField(exist = false)
     private SysFile subImgFile;
     @ApiModelProperty(value = "父级ID") // 后续层级关联都用fid，后续将弃用subId
+    @EqualsAndHashCode.Include
     private Integer fid;
     @ApiModelProperty(value = "父级ID")
     private Integer aliasSubId;
     @JSONField(deserialize = false)
     @ApiModelProperty(value = "树状结构层")
+    @EqualsAndHashCode.Include
     private Integer level;
     @JSONField(deserialize = false)
     private Date updateTime;
@@ -78,6 +93,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @ApiModelProperty(value = "首页样式id")
     private Integer templateId;
     @ApiModelProperty(value = "状态: 0=隐藏，1或空=开")
+    @EqualsAndHashCode.Include
     private Integer state;
     @TableField(exist = false)
     private Boolean isPrivate;
@@ -194,6 +210,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     private Integer enableCertificatesFlag;
     @ApiModelProperty(value = "用户id")
     @TableField(exist = false)
+    @EqualsAndHashCode.Include
     private Integer userId;
     @ApiModelProperty(value = "用户id")
     @TableField(exist = false)

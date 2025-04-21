@@ -17,8 +17,13 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ApiModel(value = "PtChannel", description = "")
 @TableName(autoResultMap = true)
 public class PtChannel implements Serializable, TreeNodeEntity {
@@ -27,17 +32,23 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     @ApiModelProperty(value = "主键")
     @TableId(value = "id", type = IdType.AUTO)
+    @EqualsAndHashCode.Include
     private Integer id;
 
+    @EqualsAndHashCode.Include
     private String channelName;
 
+    @EqualsAndHashCode.Include
     private Integer channelImgFileId;
 
     @TableField(value = "\"desc\"")
+    @EqualsAndHashCode.Include
     private String desc;
 
+    @EqualsAndHashCode.Include
     private Integer createUserId;
 
+    @EqualsAndHashCode.Include
     private Integer visibleFlag;
 
     @TableField(exist = false)
@@ -46,8 +57,10 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     private Integer categoryId;
 
     @TableField(value = "\"level\"")
+    @EqualsAndHashCode.Include
     private Integer level;
 
+    @EqualsAndHashCode.Include
     private Integer fid;
 
     @TableField(value = "\"order\"")
@@ -55,6 +68,7 @@ public class PtChannel implements Serializable, TreeNodeEntity {
 
     private Integer masterId;
 
+    @EqualsAndHashCode.Include
     private String channelSlug;
 
     private Integer channelAvatarFileId;

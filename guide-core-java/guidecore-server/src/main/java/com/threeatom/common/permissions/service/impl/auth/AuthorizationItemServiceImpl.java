@@ -35,7 +35,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     private final GcAccessService contentGroupService;
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.CHANNEL, key = "#channel.id", condition = "#channel.id != null")
+    @Cacheable(value = AuthorizationItemCacheName.CHANNEL, key = "#channel.hashCode()", condition = "#channel.id != null")
     public PermitChannel create(PtChannel channel) {
         PermitChannel permitChannel = new PermitChannel();
         permitChannel.setOwnerId(String.valueOf(channel.getCreateUserId()));
@@ -51,7 +51,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     }
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.PORTAL_USER, key = "#portalUser.userId + '-' + #portalUser.masterId")
+    @Cacheable(value = AuthorizationItemCacheName.PORTAL_USER, key = "#portalUser.hashCode()")
     public PermitUser create(PortalUser portalUser) {
         PermitUser permitUser = new PermitUser();
         permitUser.setId(portalUser.getUserId().toString());
@@ -69,7 +69,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     }
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.VIDEO, key = "#video.id", condition = "#video.id != null")
+    @Cacheable(value = AuthorizationItemCacheName.VIDEO, key = "#video.hashCode()", condition = "#video.id != null")
     public PermitVideoItem create(GcVideo video) {
         PermitVideoItem permitVideoItem = new PermitVideoItem();
         permitVideoItem.setOwnerId(String.valueOf(video.getUserId()));
@@ -85,7 +85,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     }
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.PLAYLIST, key = "#playlist.id", condition = "#playlist.id != null")
+    @Cacheable(value = AuthorizationItemCacheName.PLAYLIST, key = "#playlist.hashCode()", condition = "#playlist.id != null")
     public PermitPlaylist create(GcUserSaveFolder playlist) {
         PermitPlaylist permitPlaylist = new PermitPlaylist();
         permitPlaylist.setOwnerId(String.valueOf(playlist.getUserId()));
@@ -104,7 +104,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     }
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.COURSE, key = "#course.id", condition = "#course.id != null")
+    @Cacheable(value = AuthorizationItemCacheName.COURSE, key = "#course.hashCode()", condition = "#course.id != null")
     public PermitCourse create(GcSubject course) {
         PermitCourse permitCourse = new PermitCourse();
         permitCourse.setOwnerId(String.valueOf(course.getCreateUser()));
@@ -120,7 +120,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
     }
 
     @Override
-    @Cacheable(value = AuthorizationItemCacheName.CONTENT_GROUP, key = "#contentGroup.id", condition = "#contentGroup.id != null")
+    @Cacheable(value = AuthorizationItemCacheName.CONTENT_GROUP, key = "#contentGroup.hashCode()", condition = "#contentGroup.id != null")
     public PermitContentGroup create(GcAccess contentGroup) {
         PermitContentGroup permitContentGroup = new PermitContentGroup();
         permitContentGroup.setId(String.valueOf(contentGroup.getId()));
