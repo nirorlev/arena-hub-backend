@@ -307,14 +307,13 @@ public class CourseEnrollmentProgressServiceImpl
         }
 
         int tasksCount = courseProgressDto.getTasks().size();
-        double taskCompletionPercentage = taskPercentage(tasksCount, courseEnrollmentProgress.getCompletedTasksCount());
-        double courseCompletionPercentage = courseEnrollmentProgress.getPercentage();
-        boolean taskProgressCompliant = isCompliant(courseSetting.getTasksGradePercentage(), taskCompletionPercentage);
+        boolean taskProgressCompliant = tasksCount == 0 || isCompliant(courseSetting.getTasksGradePercentage(),
+            taskPercentage(tasksCount, courseEnrollmentProgress.getCompletedTasksCount()));
         boolean courseContentProgressCompliant =
-            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseCompletionPercentage);
+            isCompliant(courseSetting.getCourseContentStudyPercentage(), courseEnrollmentProgress.getPercentage());
 
         updateEnrollmentCompliance(courseEnrollment, taskProgressCompliant, courseContentProgressCompliant);
-        updateEnrollmentCompletion(courseEnrollment, courseCompletionPercentage);
+        updateEnrollmentCompletion(courseEnrollment, courseEnrollmentProgress.getPercentage());
 
         courseEnrollmentService.updateById(courseEnrollment);
     }
@@ -357,10 +356,13 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private boolean isCompliant(double thresholdPercent, double currentPercentage) {
-        return thresholdPercent >= currentPercentage;
+        return currentPercentage >= thresholdPercent;
     }
 
     private double taskPercentage(int tasksCount, Integer completedTasksCount) {
+        if (tasksCount == 0) {
+            return 0;
+        }
         return (double) completedTasksCount / tasksCount * 100;
     }
 

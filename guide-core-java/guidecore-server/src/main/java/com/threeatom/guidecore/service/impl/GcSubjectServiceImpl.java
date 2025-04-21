@@ -1636,7 +1636,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     private Set<Integer> getUserActiveEnrollmentCourseIds(List<CourseEnrollment> courseEnrollments, Integer userId) {
         return courseEnrollments.stream()
             .filter(courseEnrollment -> courseEnrollment.getUserId().equals(userId))
-            .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
+            .filter(courseEnrollment -> courseEnrollment.getEndDate() == null)
             .map(CourseEnrollment::getCourseId)
             .collect(Collectors.toSet());
     }

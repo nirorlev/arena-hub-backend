@@ -103,7 +103,7 @@
         user_avatar_file.master_id as user_info_avatar_file_master_id, user_avatar_file.file_type_index as user_info_avatar_file_file_type_index
     </sql>
 
-    <select id="findCourseEnrollment" resultMap="baseResultMap">
+    <select id="findCourseEnrollments" resultMap="baseResultMap">
         SELECT
             <include refid="courseProgressColumns"/>,
             <include refid="courseEnrollmentColumns"/>
@@ -117,7 +117,6 @@
                 AND course_enrollment.end_date IS NOT NULL
             </if>
         ORDER BY course_enrollment.start_date DESC
-        LIMIT 1
     </select>
 
     <select id="getCourseEnrollments" resultMap="baseResultMap">

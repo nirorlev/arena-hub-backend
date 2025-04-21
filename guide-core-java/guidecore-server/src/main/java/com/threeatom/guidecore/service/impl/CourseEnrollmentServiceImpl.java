@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -77,7 +78,13 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
     @Override
     public Optional<CourseEnrollment> findActiveCourseEnrollment(Integer courseId, PortalUser portalUser) {
-        return Optional.ofNullable(baseMapper.findCourseEnrollment(courseId, portalUser.getUserId(), true));
+        List<CourseEnrollment> courseEnrollments =
+            baseMapper.findCourseEnrollments(courseId, portalUser.getUserId(), true);
+        if (CollectionUtils.isEmpty(courseEnrollments)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(courseEnrollments.get(0));
     }
 
     @Override

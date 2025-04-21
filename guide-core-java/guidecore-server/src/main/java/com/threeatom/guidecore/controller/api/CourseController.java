@@ -64,7 +64,7 @@ public class CourseController {
     }
 
     @GetMapping("/discoverable")
-    public ResponseEntity<CourseListDto> discoverableCourses(HttpServletRequest request) {
+    public ResponseEntity<CourseListDto<CourseDto>> discoverableCourses(HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
         return ResponseEntity.ok(courseService.getDiscoverableCourses(portalUser));
     }
