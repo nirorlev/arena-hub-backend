@@ -31,7 +31,7 @@
         <id property="id" column="id" />
         <result property="name" column="name"/>
         <result property="description" column="description"/>
-        <result property="userId" column="user_id"/>
+        <result property="createUser" column="create_user"/>
         <result property="fid" column="fid"/>
         <result property="availableType" column="available_type"/>
         <result property="state" column="state"/>
@@ -81,7 +81,7 @@
 
     <sql id="courseColumns">
         course.id as course_id, course.name as course_name, course.description as course_description, course.fid as course_fid,
-        course.available_type as course_available_type, course.state as course_state
+        course.available_type as course_available_type, course.state as course_state, course.create_user as course_create_user
     </sql>
 
     <sql id="userColumns">

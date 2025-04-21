@@ -146,6 +146,7 @@
 
 	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
 		<result property="userId" column="user_id"/>
+		<result property="createUser" column="user_id"/>
 		<result property="fid" column="fid"/>
 		<result property="availableType" column="available_type"/>
 		<result property="state" column="state"/>

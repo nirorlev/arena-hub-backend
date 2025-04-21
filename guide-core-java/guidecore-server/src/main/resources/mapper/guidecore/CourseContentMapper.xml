@@ -54,7 +54,7 @@
         <result property="userId" column="user_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
-        <result property="createUser" column="user_id"/>
+        <result property="createUser" column="create_user"/>
         <result property="fid" column="fid"/>
         <result property="availableType" column="available_type"/>
         <result property="state" column="state"/>
@@ -139,6 +139,7 @@
         course.state                      AS course_state,
         course.available_type             AS course_available_type,
         course.sub_img_id                 AS course_img_id,
+        course.create_user                AS course_create_user,
         course.create_time                AS course_create_time,
         course.update_time                AS course_update_time
     </sql>
