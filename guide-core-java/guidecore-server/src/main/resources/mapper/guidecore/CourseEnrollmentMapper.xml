@@ -134,6 +134,9 @@
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
             LEFT JOIN course_enrollments_progress course_progress ON course_enrollment.id = course_progress.enrollment_id
         WHERE course_enrollment.course_id = #{courseId}
+        ORDER BY
+            CASE WHEN course_enrollment.end_date IS NOT NULL THEN 1 ELSE 0 END,
+            course_enrollment.start_date DESC
     </select>
 
     <select id="getCourseEnrollmentsByUserId" resultMap="baseResultMap">
@@ -157,6 +160,9 @@
             <if test="endDate != null">
                 AND course_enrollment.end_date &lt;= #{endDate}
             </if>
+        ORDER BY
+            CASE WHEN course_enrollment.end_date IS NOT NULL THEN 1 ELSE 0 END,
+            course_enrollment.start_date DESC
     </select>
 
     <select id="getCourseEnrollmentsByMasterId" resultMap="baseResultMap">
@@ -180,6 +186,9 @@
             <if test="endDate != null">
                 AND course_enrollment.end_date &lt;= #{endDate}
             </if>
+        ORDER BY
+            CASE WHEN course_enrollment.end_date IS NOT NULL THEN 1 ELSE 0 END,
+            course_enrollment.start_date DESC
     </select>
 
     <select id="getCourseEnrollmentsByUserAndMasterId" resultMap="baseResultMap">
@@ -203,6 +212,9 @@
             <if test="endDate != null">
                 AND course_enrollment.end_date &lt;= #{endDate}
             </if>
+        ORDER BY
+            CASE WHEN course_enrollment.end_date IS NOT NULL THEN 1 ELSE 0 END,
+            course_enrollment.start_date DESC
     </select>
 
     <select id="getCourseEnrollmentById" resultMap="baseResultMap">
