@@ -68,7 +68,9 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         }
         Optional<CourseEnrollment> existingCourseEnrollment = findActiveCourseEnrollment(courseId, portalUser);
         if (existingCourseEnrollment.isPresent() && existingCourseEnrollment.get().getEndDate() == null) {
-            updateCourseEnrollment(existingCourseEnrollment.get().getId(), getUpdateEnrollmentDto(false), portalUser);
+            CourseEnrollment courseEnrollment = existingCourseEnrollment.get();
+            courseEnrollment.setEndDate(OffsetDateTime.now());
+            updateById(courseEnrollment);
         }
 
         CourseEnrollment courseEnrollment = createCourseEnrollment(portalUser, courseId);
@@ -125,6 +127,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     public CourseEnrollment getActiveEnrollment(Integer courseId, Integer userId) {
         Optional<CourseEnrollment> activeEnrollment = findActiveEnrollment(courseId, userId);
         if (activeEnrollment.isEmpty()) {
+            log.error("User {} does not have an active enrollment for course {}", userId, courseId);
             throw new ValidationException("User does not have an active enrollment for this course");
         }
 
@@ -148,6 +151,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         queryWrapper.eq("course_id", courseId);
         queryWrapper.eq("user_id", userId);
         queryWrapper.isNull("end_date");
+        queryWrapper.orderByDesc("start_date");
         return Optional.ofNullable(getOne(queryWrapper, false));
     }
 

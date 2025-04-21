@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,8 +96,7 @@ public class CourseEnrollmentProgressServiceImpl
         Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
         List<Task> courseTasks = getCourseTasks(videoIdToTasks);
 
-        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails =
-            taskIdToProgress(courseTasks, portalUser);
+        Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails = taskIdToProgress(courseTasks, enrollment.getStartDate(), portalUser);
 
         Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails =
             videoPlaySessionService.videoViewerDetails(videoIds, portalUser, enrollment.getStartDate(),
@@ -151,12 +149,12 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Task> tasks,
-                                                                               PortalUser portalUser) {
+                                                                               OffsetDateTime startDate, PortalUser portalUser) {
         List<Integer> taskIds = tasks.stream()
             .map(Task::getId)
             .collect(Collectors.toList());
 
-        return userTaskAnswerService.taskIdToProgress(taskIds, portalUser);
+        return userTaskAnswerService.taskIdToProgress(taskIds, startDate, portalUser);
     }
 
     private List<Integer> courseVideoIds(List<GcVideo> videos) {

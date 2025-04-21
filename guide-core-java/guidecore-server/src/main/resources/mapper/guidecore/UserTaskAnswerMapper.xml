@@ -344,6 +344,9 @@
             <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
                 #{taskId}
             </foreach>
+            <if test="startDate != null">
+                AND user_task_answer.created_time >= #{startDate}
+            </if>
         ORDER BY user_task_answer.created_time DESC
     </select>
 

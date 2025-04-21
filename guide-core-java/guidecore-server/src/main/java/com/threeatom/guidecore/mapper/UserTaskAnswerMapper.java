@@ -13,5 +13,5 @@ public interface UserTaskAnswerMapper extends BaseMapper<UserTaskAnswer> {
 
     UserTaskAnswer findById(Integer id, String taskType);
 
-    List<UserTaskAnswer> findTaskAnswersByTaskIds(List<Integer> taskIds, Integer userId);
+    List<UserTaskAnswer> findTaskAnswersByTaskIds(List<Integer> taskIds, OffsetDateTime startDate, Integer userId);
 }
