@@ -14,6 +14,7 @@ import com.threeatom.guidecore.mapper.CourseSettingMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
         if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             throw new ForbiddenException("No permission to edit this course");
         }
-        if (findByCourseId(courseId) != null) {
+        if (findByCourseId(courseId).isPresent()) {
             throw new ForbiddenException("Course setting already exists");
         }
 
@@ -47,16 +48,16 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
 
     @Override
     @Transactional(readOnly = true)
-    public CourseSetting findByCourseId(Integer courseId) {
+    public Optional<CourseSetting> findByCourseId(Integer courseId) {
         QueryWrapper<CourseSetting> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", courseId);
-        return getOne(queryWrapper);
+        return Optional.ofNullable(getOne(queryWrapper));
     }
 
     @Override
     public void update(Integer courseId, CourseSettingDto courseSettingDto, PortalUser portalUser) {
-        CourseSetting courseSetting = findByCourseId(courseId);
-        if (courseSetting == null) {
+        Optional<CourseSetting> courseSetting = findByCourseId(courseId);
+        if (courseSetting.isEmpty()) {
             this.save(courseId, courseSettingDto, portalUser);
             return;
         }
@@ -66,8 +67,9 @@ public class CourseSettingServiceImpl extends ServiceImpl<CourseSettingMapper, C
             throw new ForbiddenException("No permission to edit this course");
         }
 
-        courseMapping.mapToUpdateSetting(courseSetting, courseSettingDto);
-        updateById(courseSetting);
+        CourseSetting existingCourseSetting = courseSetting.get();
+        courseMapping.mapToUpdateSetting(existingCourseSetting, courseSettingDto);
+        updateById(existingCourseSetting);
     }
 
 }

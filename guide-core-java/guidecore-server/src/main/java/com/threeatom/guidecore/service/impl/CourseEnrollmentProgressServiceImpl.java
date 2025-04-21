@@ -72,7 +72,7 @@ public class CourseEnrollmentProgressServiceImpl
         }
 
         List<GcVideo> videos = courseService.courseVideos(courseId);
-        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId);
+        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId).orElseGet(CourseSetting::new);
 
         return courseEnrollment.map(
                 enrollment -> {
