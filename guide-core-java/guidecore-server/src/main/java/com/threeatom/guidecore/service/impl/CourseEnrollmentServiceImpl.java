@@ -136,6 +136,9 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
     @Override
     public List<CourseEnrollment> courseEnrollments(Set<Integer> courseIds) {
+        if (CollectionUtils.isEmpty(courseIds)) {
+            return List.of();
+        }
         QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("course_id", courseIds);
         return list(queryWrapper);
