@@ -4,16 +4,20 @@
 
 definitions:
   steps:
-    - step: &compile
-        name: Compile
+    - step: &build_and_test
+        name: Build and Test
         image: maven:3.8.3
         caches:
           - maven
         script:
-          - cd ./guide-core-java/code/guidecore-server
-          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
-          - cd ./../guidecore-migration
-          - mvn package
+          - cd ./guide-core-java/guidecore-server
+          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean test
+        artifacts:
+          - guide-core-java/guidecore-server/target/surefire-reports/**
+        test:
+          reports:
+            junit:
+              - guide-core-java/guidecore-server/target/surefire-reports/*.xml
 
     - step: &build_and_push
         name: Build an image, push to ECR
@@ -23,10 +27,10 @@ definitions:
         #   - docker
         script:
           - export ARENA_BACKEND_VERSION=$(echo ${BITBUCKET_BRANCH}-${BITBUCKET_COMMIT::7} | tr '/_' '-')
-          - cd ./guide-core-java/code/guidecore-migration
+          - cd ./guide-core-java/guidecore-migration
           - mvn package
           - cd ./../guidecore-server
-          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -Dmaven.test.skip=true
+          - mvn -B -Dmaven.compiler.source=15 -Dmaven.compiler.target=15 clean package -DskipTests
           - cd ../
           - |- 
             echo '{ "backend": "'${ARENA_BACKEND_VERSION}'" }' > guidecore-server/target/version.json
@@ -51,6 +55,8 @@ pipelines:
         script:
           - exit 0
     - step:
+        <<: *build_and_test
+    - step:
         <<: *build_and_push
         trigger: manual
     - step:
@@ -61,15 +67,11 @@ pipelines:
         script:
           - .ci/deploy.sh --env develop
 
-    # For feature/** branches: automatically compile. Optionally build container image, push it to ECR,
+    # For feature/** branches: automatically compile and run tests. Optionally build container image, push it to ECR,
     # deploy an image to one of develop, staging-ec environments
     '{feature/**,bugfix/**}':
-    # - step: *compile
     - step:
-        # We need this step because in Bitbucket first step must be automatic
-        name: Activate build buttons
-        script:
-        - exit 0
+        <<: *build_and_test
     - step:
         <<: *build_and_push
         trigger: manual
@@ -99,6 +101,7 @@ pipelines:
     # For release/**,hotfix/** branches: automatically compile, build container image, push it to ECR,
     # deploy an image to staging-ec environment. Optionally deploy an image to prod-ec environment
     '{release/**,hotfix/**}':
+    - step: *build_and_test
     - step: *build_and_push
     - step:
         name: Deploy to staging-ec

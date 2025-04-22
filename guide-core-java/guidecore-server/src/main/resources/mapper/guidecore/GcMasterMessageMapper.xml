@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcMasterMessageMapper">
+    <select id="selectGetUnReadMessageByUserIds" resultType="Map">
+        SELECT user_id ,COUNT(id) AS nunms
+        FROM gc_master_message
+        WHERE target_user_id = #{userId} AND read_state = 0 AND master_id = #{masterId}
+        <if test="type == 1">
+            AND event_type = ${@com.threeatom.guidecore.constant.MessageEventType@VIDEO_2}
+        </if>
+         AND user_id IN
+        <foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+        GROUP BY user_id
+    </select>
+
+    <select id="selectGetMasterMessageResIdsById" resultType="Integer">
+    SELECT res_id
+    FROM gc_master_message
+    WHERE user_id = #{studentId} AND target_user_id = #{userId} AND master_id = #{masterId} AND event_type = ${@com.threeatom.guidecore.constant.MessageEventType@VIDEO_2}
+    ORDER BY update_time DESC
+    </select>
+
+    <update id="selectSetIsRead">
+        UPDATE gc_master_message
+        SET read_state = 1
+        WHERE user_id = #{studentId} AND target_user_id = #{userId} AND master_id = #{masterId}
+        <if test="type == 1">
+            AND event_type = ${@com.threeatom.guidecore.constant.MessageEventType@VIDEO_2}
+        </if>
+    </update>
+    
+    <update id="updateMessageRead">
+        UPDATE gc_master_message
+        SET read_state = 1
+        <where> 1=1
+	        <if test="masterMessage.targetUserId != null">
+					AND target_user_id = #{masterMessage.targetUserId}
+			</if>
+			<if test="masterMessage.userScheduleId != null">
+					AND user_schedule_id = #{masterMessage.userScheduleId}
+			</if>
+		</where>
+    </update>
+    
+    <update id="deleteMessageForSchedule">
+		DELETE FROM gc_master_message 
+		WHERE target_user_id IN
+        <foreach collection="userIdsList" item="userId" index="index" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+		and master_id = #{masterMessage.masterId} 
+		and event_type  = #{masterMessage.eventType} 
+	</update>
+	
+    <update id="deleteMessageCommon">
+		DELETE FROM gc_master_message 
+		WHERE 
+		target_user_id =#{masterMessage.targetUserId} 
+		and master_id = #{masterMessage.masterId} 
+		and event_type  = #{masterMessage.eventType} 
+		and user_schedule_id=#{masterMessage.userScheduleId} 
+	</update>
+
+    <select id="getUnReadMessageCountByResourceIds" resultType="map">
+        SELECT
+            uer.event_id,
+            COUNT( mm.id ) as nums
+        FROM
+            gc_master_message as mm
+            LEFT JOIN gc_user_event_resource as uer on uer.id = mm.res_id
+        WHERE
+            mm.res_id IN  <foreach collection="ResourceIds" item="ResourceId" index="index" open="(" close=")" separator=",">#{ResourceId}</foreach>
+            <if test="teacherId != null">
+                AND mm.read_state = 0 AND mm.user_id = #{userId} AND mm.master_id = #{masterId} AND mm.target_user_id = #{teacherId}
+            </if>
+            <if test="teacherId == null">
+                AND mm.read_state = 0 AND mm.target_user_id = #{userId} AND mm.master_id = #{masterId}
+            </if>
+        GROUP BY
+            uer.event_id
+    </select>
+
+    <select id="getAllReadMessageCountByResourceIds" resultType="map">
+        SELECT
+        uer.event_id,
+        COUNT( mm.id ) as nums
+        FROM
+        gc_master_message as mm
+        LEFT JOIN gc_user_event_resource as uer on uer.id = mm.res_id
+        WHERE
+        mm.res_id IN  <foreach collection="ResourceIds" item="ResourceId" index="index" open="(" close=")" separator=",">#{ResourceId}</foreach>
+        <if test="teacherId != null">
+            AND mm.user_id = #{userId} AND mm.master_id = #{masterId} AND mm.target_user_id = #{teacherId}
+        </if>
+        <if test="teacherId == null">
+            AND mm.target_user_id = #{userId} AND mm.master_id = #{masterId}
+        </if>
+        GROUP BY
+        uer.event_id
+    </select>
+
+	<sql id="where_gcSubject_state_not_hidden">
+    	and s.state !=0
+    </sql>
+    
+    <select id="getAllUnReadMessage" resultType="Map">
+        SELECT
+        s.sub_id,COUNT(mm.id) AS nums
+        FROM gc_master_message AS mm
+        LEFT JOIN gc_user_event_resource AS ue ON  ue.id= mm.res_id
+        inner JOIN gc_event AS e ON  ue.event_id=e.id
+        LEFT JOIN gc_video AS v ON e.video_id=v.id
+        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        WHERE mm.target_user_id = #{userId} AND mm.master_id = #{masterId} AND mm.read_state = 0 
+        AND mm.event_type!=${@com.threeatom.guidecore.constant.MessageEventType@QUESTION_5}
+        <include refid="where_gcSubject_state_not_hidden" />
+        GROUP BY s.sub_id
+    </select>
+
+    <select id="selectGetLastMessageByStudentIds" resultType="GcMasterMessage">
+        SELECT
+        *
+        FROM gc_master_message
+        WHERE id IN (
+        SELECT
+        MAX(id)
+        FROM gc_master_message
+        WHERE
+        <if test="studentIds == null">
+            user_id = 0
+        </if>
+        <if test="studentIds != null">
+            user_id IN
+            <foreach collection="studentIds" item="studentId" index="index" open="(" close=")" separator=",">
+                #{studentId}
+            </foreach>
+        </if>
+        AND target_user_id = #{teacherId}
+        AND master_id = #{masterId}
+        GROUP BY user_id
+        )
+    </select>
+
+    <select id="selectGetMasterMessageListDetailByMessageIds" resultType="Map">
+        SELECT mm.user_id,mm.event_type,uer.content,ua.answer_json,ua.event_id as answer_event_id,uer.event_id as er_event_id
+        FROM gc_master_message AS mm
+        LEFT JOIN gc_user_answer ua ON ( mm.event_type = ${@com.threeatom.guidecore.constant.MessageEventType@QUESTION_5} AND mm.user_answer_id = ua.id )
+        <!-- notQuestion= (0,1,2,3,4) -->
+        LEFT JOIN gc_user_event_resource uer ON ( mm.event_type in ( ${@com.threeatom.guidecore.constant.MessageEventType@notQuestion} ) AND mm.res_id = uer.id )
+        WHERE mm.id IN
+        <if test="messageIds == null or  messageIds.size == 0 ">
+            (0)
+        </if>
+        <if test="messageIds != null and messageIds.size >0">
+            <foreach collection="messageIds" item="messageId" index="index" open="(" close=")" separator=",">
+                #{messageId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectGetAllEventUnMessageDetail" resultType="Map">
+        SELECT mm.id AS message_id,s.id AS child_sub_id,s.sub_id AS sub_id
+        FROM gc_master_message AS mm
+        LEFT JOIN gc_user_answer AS ua ON mm.user_answer_id = ua.id
+        LEFT JOIN gc_event AS e ON e.id = ua.event_id
+        LEFT JOIN gc_video AS v ON v.id = e.video_id
+        LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        WHERE mm.master_id = #{masterId} 
+        AND mm.event_type = ${@com.threeatom.guidecore.constant.MessageEventType@QUESTION_5} 
+        AND mm.user_id = #{userId} AND mm.target_user_id = #{targetUserId} 
+        AND mm.read_state = 0 AND s.id != ""
+        <include refid="where_gcSubject_state_not_hidden" />
+    </select>
+
+    <select id="selectGetAllSubUnMessageDetail" resultType="Map">
+        SELECT mm.id AS message_id,s.id AS child_sub_id,s.sub_id AS sub_id
+        FROM gc_master_message AS mm
+        LEFT JOIN gc_user_event_resource AS uer ON mm.res_id = uer.id
+        LEFT JOIN gc_event AS e ON e.id = uer.event_id
+        LEFT JOIN gc_video AS v ON v.id = e.video_id
+        LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        WHERE mm.master_id = #{masterId} 
+        AND mm.event_type != ${@com.threeatom.guidecore.constant.MessageEventType@QUESTION_5} 
+        AND mm.user_id = #{userId} AND mm.target_user_id = #{targetUserId} AND mm.read_state = 0 AND s.id != ""
+        <include refid="where_gcSubject_state_not_hidden" />
+    </select>
+
+    <update id="selectSetAnswerIsRead">
+        WITH ua AS (
+        SELECT id
+        FROM gc_user_answer
+        WHERE event_id IN
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+            #{eventId}
+        </foreach>
+        )
+        UPDATE gc_master_message AS mm
+        SET read_state = 1
+        FROM ua
+        WHERE mm.user_answer_id = ua.id AND mm.user_id = #{userId} AND mm.target_user_id = #{targetUserId} AND mm.master_id = #{masterId}
+    </update>
+
+    <update id="selectSetResourceIsRead">
+        UPDATE gc_master_message
+        SET read_state = #{readMarker}
+        WHERE id IN
+        <foreach collection="messageIds" item="messageId" index="index" open="(" close=")" separator=",">
+            #{messageId}
+        </foreach>
+    </update>
+
+    <select id="selectGetEventAnswerUnReadList" resultType="map">
+        SELECT mm.id,mm.res_id,ua.event_id
+        FROM gc_master_message AS mm
+        LEFT JOIN gc_user_answer AS ua ON ua.id = mm.user_answer_id
+        WHERE ua.event_id IN
+        <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+            #{eventId}
+        </foreach>
+        AND mm.master_id = #{masterId} AND mm.event_type = ${@com.threeatom.guidecore.constant.MessageEventType@QUESTION_5} AND mm.user_id = #{studentId} AND mm.target_user_id = #{teacherId} AND mm.read_state = 0
+    </select>
+
+    <select id="countVideoMessage" resultType="java.lang.Integer">
+        select
+            count(0)
+        FROM
+            gc_video_comment AS gvc
+                LEFT JOIN gc_user AS u ON u.id = gvc.user_id
+                LEFT JOIN sys_file AS f2 ON f2.id = gvc.file_id
+                LEFT JOIN gc_master_message AS m ON m.video_comment_id = gvc.id
+                LEFT JOIN gc_video AS gv ON gv.id = gvc.video_id
+                LEFT JOIN gc_user_info ui ON ui.id = u.info_id
+                LEFT JOIN sys_file AS f ON ui.avatar_file_id = f.id
+                left join gc_video_comment g2 on g2.id = gvc.reply_comment_id
+                left join sys_file as f3 on f3.id = g2.file_id
+        where
+            m.master_id=#{masterId} and m.target_user_id = #{thisUserId}
+        <if test="readState != null">
+            and m.read_state = #{readState}
+        </if>
+    </select>
+
+    <select id="countNoteCommentMessage" resultType="java.lang.Integer">
+        SELECT count(0)
+        FROM gc_user_note_comment AS unc
+        LEFT JOIN gc_user AS u ON u.id = unc.user_id
+        LEFT JOIN sys_file AS f2 ON f2.id = unc.file_id
+        LEFT JOIN gc_master_message AS m ON m.user_note_comment_id = unc.id
+        LEFT JOIN gc_user_info ui ON ui.id = u.info_id
+        LEFT JOIN sys_file AS f ON ui.avatar_file_id = f.id
+        LEFT JOIN gc_event AS e ON e.id = unc.event_id
+        WHERE
+        m.master_id = #{masterId} and m.target_user_id = #{thisUserId}
+        <if test="readState != null">
+            and m.read_state = #{readState}
+        </if>
+    </select>
+
+    <select id="selectScheduleNotifications" resultType="java.util.Map">
+       select sch.name,sch.create_time,info.last_name,info.first_name,message.read_state,message.id as message_id
+       ,message.user_schedule_id as scheduleId
+       from gc_master_message message
+       left join gc_user teacherUser on teacherUser.id = message.user_id
+       left join gc_user_info info on teacherUser.info_id = info.id
+       left join gc_user_schedule sch on sch.id = message.user_schedule_id
+       where message.target_user_id = #{userId} and message.event_type = 10
+       <if test="readState!=null">
+         and message.read_state = #{readState}
+       </if>
+       order by message.create_time desc
+    </select>
+</mapper>

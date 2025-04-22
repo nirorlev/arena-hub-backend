@@ -1,0 +1,54 @@
+package com.threeatom.guidecore.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.threeatom.guidecore.dto.DbAnalyticsResultDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultVideoIdDto;
+import com.threeatom.guidecore.dto.DbAnalyticsResultViewPerSecondDto;
+import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
+import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
+import com.threeatom.guidecore.entity.VideoPlaySegment;
+import java.time.OffsetDateTime;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+public interface VideoPlaySegmentMapper extends BaseMapper<VideoPlaySegment> {
+
+    Integer saveOrUpdateSegment(VideoPlaySegment videoPlaySegment);
+
+    List<DbAnalyticsResultDto> getVideoWatchingTimeAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getVideoWatchingTimeByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultDto> getAverageVideoWatchingTimeAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultDto> getDropOffRateAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId,
+        @Param("dropOffThreshold") double dropOffThreshold);
+
+    List<DbAnalyticsResultDto> getEngagementRateAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultVideoIdDto> getDropOffRateByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId,
+        @Param("dropOffThreshold") double dropOffThreshold);
+
+    List<DbAnalyticsResultVideoIdDto> getEngagementRateByVideoAnalytics(
+        @Param("filter") AnalyticsFilterDto filter,
+        @Param("masterId") Integer masterId);
+
+    List<DbAnalyticsResultViewPerSecondDto> videoViewsPerSecondAnalytics(
+        @Param("filter") VideoViewPerSecondDto filter,
+        @Param("masterId") Integer masterId);
+
+    VideoPlaySegment findLatestPlaySegment(@Param("videoIds") List<Integer> videoIds,
+                                           @Param("startDate") OffsetDateTime startDate);
+}

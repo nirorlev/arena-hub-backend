@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.NewUiGcSubjectMapper">
+
+	<resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcSubject">
+		<id property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="name" column="name"  />
+		<result property="description" column="description"  />
+		<result property="subId" column="sub_id"/>
+		<result property="type" column="type"/>
+		<result property="level" column="level"/>
+		<result property="fid" column="fid"/>
+		<result property="order" column="order"/>
+		<result property="subImgId" column="sub_img_id"/>
+
+		<result property="templateId" column="template_id"/>
+		<result property="introOnOff" column="intro_on_off"/>
+
+		<result property="state" column="state"/>
+		<result property="token" column="token"/>
+		<result property="isPublic" column="is_public"/>
+
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+		<result property="videosTotalNum" column="videos_total_num"/>
+		<result property="videosTotalLong" column="sumVideoLong"/>
+		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+
+		<result property="subjectAssociationId" column="subject_association_id"/>
+		<result property="userId" column="userId"/>
+		<result property="tagText" column="tag_text"/>
+		<result property="total" column="total"/>
+		<result property="badgeId" column="badge_id"/>
+		<result property="badgeContent" column="badge_content"/>
+		<result property="certificatesFlag" column="certificates_flag"/>
+
+		<result property="tagId" column="tagId"/>
+		<!-- 排序相关 -->
+		<result property="subjectAssociationOrder" column="subjectAssociation_order"/>
+		<!-- 文件相关 -->
+		<association property="subImgFile" column="sub_img_id" javaType="SysFile">
+			<id property="id" column="f_id"/>
+			<result property="name" column="f_name"/>
+			<result property="fileUrl" column="f_file_url"/>
+			<result property="saveType" column="f_save_type"/>
+			<result property="thumbNailUrl" column="thumb_nail_url"/>
+		</association>
+	</resultMap>
+
+
+	<resultMap id="tagResultMap" type="com.threeatom.guidecore.entity.GcSubject">
+		<result property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="name" column="name"  />
+		<result property="description" column="description"  />
+		<result property="subId" column="sub_id"/>
+		<result property="type" column="type"/>
+		<result property="level" column="level"/>
+		<result property="fid" column="fid"/>
+		<result property="order" column="order"/>
+		<result property="subImgId" column="sub_img_id"/>
+
+		<result property="templateId" column="template_id"/>
+		<result property="introOnOff" column="intro_on_off"/>
+
+		<result property="state" column="state"/>
+		<result property="token" column="token"/>
+		<result property="isPublic" column="is_public"/>
+
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+		<result property="videosTotalNum" column="videos_total_num"/>
+		<result property="videosTotalLong" column="sumVideoLong"/>
+		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+
+		<result property="subjectAssociationId" column="subject_association_id"/>
+		<result property="userId" column="userId"/>
+		<result property="tagText" column="tag_text"/>
+		<result property="total" column="total"/>
+		<result property="certificatesFlag" column="certificates_flag"/>
+		<!-- 排序相关 -->
+		<result property="subjectAssociationOrder" column="subjectAssociation_order"/>
+		<result property="subjectOrder" column="subject_order" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<!-- 文件相关 -->
+		<association property="subImgFile" column="sub_img_id" javaType="SysFile">
+			<id property="id" column="f_id"/>
+			<result property="name" column="f_name"/>
+			<result property="fileUrl" column="f_file_url"/>
+			<result property="saveType" column="f_save_type"/>
+			<result property="thumbNailUrl" column="thumb_nail_url"/>
+		</association>
+	</resultMap>
+
+	<sql id="where_gcSubject_state_not_hidden">
+		and s.state !=0
+	</sql>
+	<!--
+		分页查询课程和课程的文件信息
+	-->
+	<select id="findSubjects" resultMap="baseResultMap">
+		SELECT
+		DISTINCT
+		S.ID,
+		S.MASTER_ID,
+		S.NAME,
+		S.DESCRIPTION,
+		S.TYPE,
+		S.SUB_ID,
+		S.LEVEL,
+		S.FID,
+		S.ALIAS_SUB_ID,
+		S.ORDER,
+		S.SUB_IMG_ID,
+		S.STATE,
+		S.TOKEN,
+		S.IS_PUBLIC,
+		S.UPDATE_TIME,
+		S.CREATE_TIME,
+		S.INTRO_ON_OFF,
+		S.TEMPLATE_ID,
+		S.CERTIFICATES_FLAG,
+		S.badge_id,
+		S.badge_content,
+		F.ID AS F_ID,
+		F.NAME AS F_NAME,
+		F.FILE_URL AS F_FILE_URL,
+		F.SAVE_TYPE AS F_SAVE_TYPE,
+		CASE WHEN s.master_id = #{masterId} THEN s.order ELSE sa.order END as orders,
+		COALESCE(sum(sys.video_long),0) as sumVideoLong,
+		sa.order as subjectAssociation_order,
+		concat( '[', string_agg(distinct '"' || tags.tag_text || '"', ',' ), ']' ) AS course_tags,
+		s.cpd_hours
+		FROM
+		GC_SUBJECT S
+		<if test="userId != null and userId !='' and gvgFlag == null">
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+			LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id AND ua.master_id = #{masterId}
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
+		</if>
+		<if test="userId != null and userId !='' and gvgFlag != null">
+			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+			LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
+			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
+		</if>
+		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
+		left join gc_subject sub1 on sub1.fid = s.id
+		LEFT JOIN gc_video v ON v.sub_id= sub1.id
+		LEFT JOIN sys_file sys on sys.id=v.file_id
+		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
+		AND sa.master_id = #{masterId}
+		left join gc_subject_tags tags on tags.subject_id = s.id and(
+		(sa.subject_id = tags.subject_id and tags.type = 1 and s.master_id = tags.master_id)
+		or(tags.master_id = #{masterId}))
+		and tags."status" = 0
+		<where>
+			1=1
+			and UA.role_json::text like concat('%','groupMember','%')
+			<include refid="where_gcSubject_state_not_hidden" />
+			<!--<if test="params.state != null and params.state !=''">
+                AND s.state =#{params.state}
+            </if>-->
+			<if test="fid != null">
+				and s.fid =#{fid}<!--一级视频课程id 查询二级课程-->
+			</if>
+			<if test="userId != null and userId !=''">
+				AND "user".id =#{userId}
+			</if>
+
+			<if test="videoIds != null and videoIds !=''">
+				AND v.id in
+				<foreach collection="videoIds" item="videoId" separator="," open="(" close=")">
+					#{videoId}
+				</foreach>
+			</if>
+			<if test="subjectIds != null and subjectIds.size != 0">
+				AND( s.id in
+				<foreach collection="subjectIds" item="subjectId" separator="," open="(" close=")">
+					#{subjectId}
+				</foreach>
+				or s.available_type = 1)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				AND (S.name LIKE CONCAT( CONCAT( '%', #{subjectName}), '%' )
+				<if test="videoInCourseName != null and videoInCourseName != ''">
+					or ( V.VIDEO_NAME LIKE CONCAT( CONCAT( '%', #{videoInCourseName}), '%' ))
+				</if>
+				)
+
+			</if>
+			<if test="videoName != null and videoName != ''">
+				AND V.VIDEO_NAME LIKE CONCAT(CONCAT('%', #{videoName}),'%')
+			</if>
+			<if test=" null !=channelIdList and channelIdList.size >0">
+				AND s.id not in
+				<foreach collection="channelIdList" item="channelId" separator="," open="(" close=")">
+					#{channelId}
+				</foreach>
+			</if>
+			<if test="tag != null and tag != ''">
+				and tags.tag_text = #{tag}
+				<if test="subIds != null and subIds.size !=0">
+					AND s.id in
+					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
+						#{subId}
+					</foreach>
+				</if>
+				<if test="subIds == null or subIds.size ==0">
+					and s.id is null
+				</if>
+			</if>
+			<if test="tagList != null and tagList.size !=0">
+				and tags.tag_text in
+				<foreach collection="tagList" item="tagList" separator="," open="(" close=")">
+					#{tagList}
+				</foreach>
+				<if test="subIds != null and subIds.size !=0">
+					AND s.id in
+					<foreach collection="subIds" item="subId" separator="," open="(" close=")">
+						#{subId}
+					</foreach>
+				</if>
+			</if>
+			GROUP BY s.id, F.ID, sa.order
+			<if test="durationMax1 != null or durationMax2 !=null or durationMax3 !=null or durationMin4 !=null">
+				HAVING 1=2 or(
+				1=2
+				<if test="durationMax1 != null and durationMax1 != ''">
+					or (sumVideoLong &gt;=#{durationMin1} and sumVideoLong&lt;=#{durationMax1})
+				</if>
+				<if test="durationMax2 != null and durationMax2 != ''">
+					or (sumVideoLong &gt;#{durationMin2} and sumVideoLong&lt;=#{durationMax2})
+				</if>
+				<if test="durationMax3 != null and durationMax3 != ''">
+					or (sumVideoLong &gt;#{durationMin3} and sumVideoLong&lt;=#{durationMax3})
+				</if>
+				<if test="durationMax4 != null and durationMax4 != ''">
+					or (sumVideoLong &gt;#{durationMin1})
+				</if>
+				)
+			</if>
+		</where>
+		ORDER BY
+		orders,s.id
+	</select>
+
+	<select id="listByFid" resultMap="baseResultMap">
+		SELECT
+		DISTINCT
+		S.ID,
+		S.MASTER_ID,
+		S.NAME,
+		S.DESCRIPTION,
+		S.TYPE,
+		S.SUB_ID,
+		S.LEVEL,
+		S.FID,
+		S.ALIAS_SUB_ID,
+		S.ORDER,
+		S.SUB_IMG_ID,
+		S.STATE,
+		S.TOKEN,
+		S.IS_PUBLIC,
+		S.UPDATE_TIME,
+		S.CREATE_TIME,
+		S.INTRO_ON_OFF,
+		S.TEMPLATE_ID,
+		F.ID AS F_ID,
+		F.NAME AS F_NAME,
+		F.FILE_URL AS F_FILE_URL,
+		F.SAVE_TYPE AS F_SAVE_TYPE
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
+		LEFT JOIN gc_video v ON v.sub_id= s.id
+		where s.state !=0 and s.fid =#{fid}
+        order by S.order asc,s.create_time asc,s.id
+
+	</select>
+
+	<select id="sumSubjectDuration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select
+		S.ID, SUM(F.VIDEO_LONG)  as "subjectVideoDuration"
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		LEFT JOIN GC_VIDEO V ON V.SUB_ID = S0.ID
+		LEFT JOIN SYS_FILE F ON F.ID = V.FILE_ID
+		WHERE
+		f.video_long <![CDATA[ >= ]]> 0
+		<if test="ids!=null and ids.size != 0">
+		and S.ID IN
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+		</if>
+		GROUP BY S.ID
+	</select>
+
+	<select id="sumSubject1Duration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select
+		S.ID, SUM(F.VIDEO_LONG)  as "subjectVideoDuration"
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN GC_VIDEO V ON V.SUB_ID = s.ID
+		LEFT JOIN SYS_FILE F ON F.ID = V.FILE_ID
+		WHERE
+		f.video_long <![CDATA[ >= ]]> 0
+		and S.ID IN
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+		GROUP BY S.ID
+	</select>
+
+	<select id="listByIds" resultMap="baseResultMap">
+		SELECT
+		DISTINCT ON (s.id)
+		S.ID,
+		S.MASTER_ID,
+		S.NAME,
+		S.DESCRIPTION,
+		S.TYPE,
+		S.SUB_ID,
+		S.LEVEL,
+		S.FID,
+		S.ALIAS_SUB_ID,
+		S.ORDER,
+		S.SUB_IMG_ID,
+		S.STATE,
+		S.TOKEN,
+		S.IS_PUBLIC,
+		S.UPDATE_TIME,
+		S.CREATE_TIME,
+		S.INTRO_ON_OFF,
+		S.TEMPLATE_ID,
+		F.ID AS F_ID,
+		F.NAME AS F_NAME,
+		F.FILE_URL AS F_FILE_URL,
+		F.SAVE_TYPE AS F_SAVE_TYPE,
+		f.thumb_nail_url as thumb_nail_url,
+		(SELECT count( 1 ) FROM gc_video WHERE sub_id = s.id) AS videos_total_num
+		FROM
+		GC_SUBJECT S
+		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
+		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
+		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
+		LEFT JOIN GC_USER "user" ON "user".ID = ua.USER_ID
+		LEFT JOIN gc_video v ON v.sub_id= s.id
+		left join sys_file f on v.file_id = f.id
+		<where>
+			s.state !=0
+			<if test="ids != null and ids.size != 0">
+				AND s.id in
+				<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
+					#{subjectId}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+	<select id="getVideoNumByIds" resultMap="baseResultMap">
+		select  g.fid,g.id,count(1)as videos_total_num
+		from  gc_subject g
+		LEFT JOIN gc_video v on v.sub_id = g.id
+		where 1=1
+		<if test="ids != null and ids.size != 0">
+			AND g.id in
+			<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
+				#{subjectId}
+			</foreach>
+		</if>
+		group by g.id
+	</select>
+
+	<select id="countSessions" resultType="java.lang.Integer">
+		select s.id from  gc_subject s
+		<where>
+			<if test="ids != null and !ids.isEmpty">
+				AND s.sub_id in
+				<foreach collection="ids" item="subjectId" separator="," open="(" close=")">
+					#{subjectId}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+	<select id="select" resultType="com.threeatom.guidecore.entity.GcSubject">
+		select * from  gc_subject
+		<where>
+			<if test="subIds != null and subIds.size != 0">
+				AND sub_id in
+				<foreach collection="subIds" item="subId" separator="," open="(" close=")">
+					#{subId}
+				</foreach>
+			</if>
+		</where>
+		order by "order"
+	</select>
+
+	<select id="selectSubjectsByVids" resultMap="baseResultMap">
+		SELECT * from gc_subject s
+		left join gc_video v on v.sub_id=s.id
+		where v.id in
+		<foreach collection="vids" item="vid" separator="," open="(" close=")">
+			#{vid}
+		</foreach>
+	</select>
+
+	<select id="selectSubjectsByIds" resultMap="baseResultMap">
+		SELECT s.*,F.ID AS F_ID,
+		F.NAME AS F_NAME,
+		F.FILE_URL AS F_FILE_URL,
+		F.SAVE_TYPE AS F_SAVE_TYPE from gc_subject s
+		left join sys_file f on f.id = s.sub_img_id
+		where s.id in
+		<foreach collection="ids" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	</select>
+
+	<select id="getSubjectNum" resultType="java.lang.Integer">
+		select count(1) from  gc_subject
+		<where>
+			<if test="ids != null and ids.size != 0">
+				AND id in
+				<foreach collection="ids" item="subId" separator="," open="(" close=")">
+					#{subId}
+				</foreach>
+			</if>
+		</where>
+	</select>
+</mapper>

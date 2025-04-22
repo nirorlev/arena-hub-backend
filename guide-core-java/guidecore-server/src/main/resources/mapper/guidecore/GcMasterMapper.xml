@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeatom.guidecore.mapper.GcMasterMapper">
+
+	<resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcMaster">
+		<id property="id" column="id"/>
+		<result property="managerId" column="manager_id"  />
+		<result property="orgName" column="org_name"  />
+		<result property="portalName" column="portal_name"  />
+		<result property="context" column="context"/>
+		<result property="state" column="state"/>
+		<result property="logoId" column="logo_id" />
+		<result property="extVar" column="ext_var" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
+		<result property="introDoneStep" column="intro_done_step" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
+		<result property="introVideoId" column="intro_video_id" />
+		<result property="calendarLink" column="calendar_link" />
+		<result property="sourceType" column="source_type" />
+		<result property="sourceUrl" column="source_url" />
+		<result property="templateId" column="template_id" />
+		<result property="redirectUrl" column="redirect_url" />
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+		<result property="profilePhotoId" column="profile_photo_id" />
+		<result property="color" column="color" />
+		<result property="brandDescription" column="brand_description" />
+		<result property="brandTagline" column="brand_tagline" />
+		<result property="answerShowFlag" column="answer_show_flag" />
+		<result property="managerUsername" column="managerUsername" />
+		<result property="userLastLoginTime" column="userLastLoginTime" />
+		<result property="adminLogoFileId" column="admin_logo_file_id" />
+		<result property="faviconLogoFileId" column="favicon_logo_file_id" />
+		<result property="brandDescription" column="brand_description" />
+		<association property="logoFile" column="logo_id" javaType="SysFile">
+			<id property="id" column="f_id"/>
+			<result property="name" column="f_name"/>
+			<result property="fileUrl" column="f_file_url"/>
+			<result property="saveType" column="f_save_type"/>
+		</association>
+
+		<association property="introVideoFile" column="intro_video_id" javaType="SysFile">
+			<id property="id" column="f2_id"/>
+			<result property="name" column="f2_name"/>
+			<result property="fileUrl" column="f2_file_url"/>
+			<result property="saveType" column="f2_save_type"/>
+		</association>
+
+		<collection property="gcSubjectList" javaType="ArrayList" column="master_id" ofType="GcSubject">
+			<id property="id" column="master_id" />
+			<result property="id" column="gcSubject.id" />
+			<result property="name" column="gcSubject.name" />
+			<result property="description" column="gcSubject.description" />
+			<result property="type" column="gcSubject.type" />
+			<result property="subImgId" column="gcSubject.subImgId" />
+			<result property="isPublic" column="gcSubject.isPublic" />
+			<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		</collection>
+
+		<collection property="accessList" javaType="ArrayList" column="master_id" ofType="GcAccess">
+			<id property="id" column="master_id" />
+			<result property="id" column="accessId" />
+			<result property="code" column="accessCode" />
+		</collection>
+	</resultMap>
+
+	<sql id="baseColumn">
+		m.id , m.manager_id, m.state, m.org_name, m.logo_id,m.portal_name, m.context, m.update_time, m.create_time,m.ext_var
+	    ,m.intro_video_id,m.source_type,m.source_url
+	    ,m.template_id,m.intro_done_step,m.calendar_link,m.profile_photo_id,m.color,m.answer_show_flag,m.admin_logo_file_id,m.favicon_logo_file_id,m.brand_description,m.redirect_url
+	</sql>
+	<sql id="joinColumn">
+		,f.id as f_id,f.name as f_name,f.file_url as f_file_url,f.save_type as f_save_type
+	    ,f2.id as f2_id,f2.name as f2_name,f2.file_url as f2_file_url,f2.save_type as f2_save_type
+        ,a.activate_size,a.id,a.type,a.master_id,a.ret_id,a.video_id
+	</sql>
+	<sql id="leftJoin">
+		left join sys_file f on m.logo_id=f.id
+	    left join sys_file f2 on m.intro_video_id=f2.id
+        left join gc_master_active a on a.master_id=m.id
+	</sql>
+	<sql id="leftJoinGcSubject">
+		left join  gc_subject gcSubject on m.id = gcSubject.master_id
+	</sql>
+	<sql id="gcSubjectColumns">
+		,
+		gcSubject.id AS "gcSubject.id",
+		gcSubject.name AS "gcSubject.name",
+		gcSubject.description AS "gcSubject.description",
+		gcSubject.type AS "gcSubject.type",
+		gcSubject.sub_img_id AS "gcSubject.subImgId",
+		gcSubject.is_public AS "gcSubject.isPublic"
+	</sql>
+
+	<select id="selectMasterByUid" resultMap="baseResultMap">
+		select
+		<include refid="baseColumn" />
+		<include refid="joinColumn" />
+		from
+		gc_master m
+		<include refid="leftJoin" />
+		left join gc_manager man on man.master_id=m.id
+		where m.manager_id=#{uid} or man.id =#{uid}
+	</select>
+
+	<update id="updateIntroVideoIdNull">
+		UPDATE gc_master
+		SET intro_video_id = NULL
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateSourceNull">
+		UPDATE gc_master
+		SET source_type = NULL, source_url=NULL
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateEmailById">
+		update gc_master
+		set email_cc = #{email,typeHandler=com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler}
+		where id = #{id}
+	</update>
+
+	<select id="selectMasterByContext" resultMap="baseResultMap">
+		select
+		<include refid="baseColumn" />
+		<include refid="joinColumn" />
+		from
+		gc_master m
+		<include refid="leftJoin" />
+		where m.context=#{context}
+
+	</select>
+	<select id="selectMasterById" resultMap="baseResultMap">
+		select
+		m.*
+		<include refid="joinColumn" />
+		from
+		gc_master m
+		<include refid="leftJoin" />
+		where m.id=#{id}
+	</select>
+
+	<select id="getMasterByContext" resultType="com.threeatom.guidecore.entity.GcMaster">
+		select *
+		from
+			gc_master
+		where context=#{context}
+	</select>
+
+	<select id="gcMasterList" resultMap="baseResultMap">
+		select m.*,a.id as accessId,a.code as accessCode from
+		gc_master m
+		left join gc_access a on a.master_id = m.id
+		where m.id in
+		<foreach collection="masterIds" item="masterId" index="index" open="(" close=")" separator=",">
+			#{masterId}
+		</foreach>
+        group by m.id,a.id
+	</select>
+
+	<select id="selectMasterAndManager" resultType="com.threeatom.guidecore.entity.GcMaster">
+		SELECT
+		m.*,
+		ma.username AS managerUsername,
+		a.maxLoginTime ,
+		a.masterId as masterId,
+		a.maxLoginTime as userLastLoginTime
+		FROM
+		gc_master m
+		LEFT JOIN gc_manager ma ON ma.id = m.manager_id
+		LEFT JOIN (select access.master_id as masterId, MAX(ext.log_in_time) as maxLoginTime from  gc_user_access_ext ext LEFT JOIN gc_user_access access on access.id = ext.user_access_id GROUP BY access.master_id )a on a.masterId=m.id
+		WHERE m.context IS NOT NULL
+		<if test="null!=searchFilter and ''!=searchFilter">
+			and concat(m.context,',',m.org_name) like concat('%',#{searchFilter},'%')
+		</if>
+		GROUP BY m.id, ma.username, a.maxLoginTime, a.masterId, a.maxLoginTime
+	</select>
+
+	<select id="subjectAdmins" resultType="map">
+		select acc.code,
+		acc.id          as accessId,
+		m.id            as managerId,
+		m.last_name,
+		m.first_name,
+		m.level,
+		m.master_id,
+		m.create_time   as dateSignedUp,
+		m.username      as email,
+		a.lastLoginTime as lastLoginTime
+		from gc_master ma
+		LEFT JOIN gc_manager m on m.master_id = ma.id
+		LEFT JOIN gc_user_access gua on gua.master_id = m.master_id and gua.manager_id = m.id
+		LEFT JOIN gc_access acc on acc.id = gua.access_id
+		left join (select max(log_in_time) as lastLoginTime, manager_id, user_access_id
+		from gc_user_access_ext
+		group by manager_id, user_access_id) a on m.id = a.manager_id
+		where m.level=1
+		<if test="null!=masterId and ''!=masterId">
+			and m.master_id = #{masterId}
+		</if>
+		<if test="searchFilter != null">
+			and concat_ws(',',m.last_name,m.first_name,m.username,acc.code) like concat('%',#{searchFilter},'%')
+		</if>
+	</select>
+
+</mapper>
