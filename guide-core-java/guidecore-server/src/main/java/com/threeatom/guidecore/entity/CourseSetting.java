@@ -17,9 +17,9 @@ public class CourseSetting implements Serializable {
     @TableId
     private Integer courseId;
 
-    private Integer courseContentStudyPercentage;
-    private Integer singleVideoViewPercentage;
-    private Integer tasksGradePercentage;
+    private Integer courseContentStudyPercentage = 90;
+    private Integer singleVideoViewPercentage = 90;
+    private Integer tasksGradePercentage = 90;
 
     private OffsetDateTime createdTime = OffsetDateTime.now();
     private OffsetDateTime updatedTime = OffsetDateTime.now();

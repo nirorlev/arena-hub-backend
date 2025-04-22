@@ -1557,8 +1557,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<GcSubject> courses = ownedCourses(portalUser);
         Set<Integer> courseIds = courses.stream().map(GcSubject::getId).collect(Collectors.toSet());
 
-        List<CourseEnrollment> courseEnrollments =
-            courseEnrollmentService.courseEnrollments(courseIds);
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds);
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
 

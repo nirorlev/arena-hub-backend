@@ -258,6 +258,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     /**
      * 创建人id
      */
+    @EqualsAndHashCode.Include
     private Integer createUser;
     /**
      * 是否是pt课程

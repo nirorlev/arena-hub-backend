@@ -106,16 +106,18 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
                                           OffsetDateTime endDate, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         Integer videoId = task.getVideoEvent().getVideoId();
+        CourseEnrollment activeEnrollment =
+            courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());
+        OffsetDateTime answersStartDate = startDate == null ? activeEnrollment.getStartDate() : startDate;
 
         if ("all".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.EDIT);
-            return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType(), startDate, endDate);
+            return userTaskAnswerService.findUserTaskAnswersByTaskId(taskId, task.getType(), answersStartDate, endDate);
         }
 
         if ("me".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), startDate,
-                endDate, portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), answersStartDate, endDate, portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);

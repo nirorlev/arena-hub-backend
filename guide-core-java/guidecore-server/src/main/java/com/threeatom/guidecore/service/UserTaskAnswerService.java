@@ -27,5 +27,6 @@ public interface UserTaskAnswerService extends IService<UserTaskAnswer> {
     UserTaskAnswer createAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task,
                                 CourseEnrollment activeEnrollment, PortalUser portalUser);
 
-    Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds, PortalUser portalUser);
+    Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds, OffsetDateTime startDate,
+                                                                       PortalUser portalUser);
 }

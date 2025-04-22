@@ -99,12 +99,12 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     @Override
     @Transactional
     public Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgress(List<Integer> taskIds,
-                                                                              PortalUser portalUser) {
+                                                                              OffsetDateTime startDate, PortalUser portalUser) {
         if (CollectionUtils.isEmpty(taskIds)) {
             return Map.of();
         }
 
-        List<UserTaskAnswer> userTaskAnswers = baseMapper.findTaskAnswersByTaskIds(taskIds, portalUser.getUserId());
+        List<UserTaskAnswer> userTaskAnswers = baseMapper.findTaskAnswersByTaskIds(taskIds, startDate, portalUser.getUserId());
         Map<Integer, UserTaskAnswer> taskIdToUserAnswer = userTaskAnswers.stream()
             .collect(Collectors.groupingBy(UserTaskAnswer::getTaskId,
                 Collectors.collectingAndThen(Collectors.toList(), answers -> answers.get(0))));
