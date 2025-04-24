@@ -255,6 +255,10 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     private List<String> allTags;
     @TableField(exist = false)
     private Integer tagId;
+    @TableField(exist = false)
+    private Integer studentsCount;
+    @TableField(exist = false)
+    private Integer activeStudentsCount;
     /**
      * 创建人id
      */

@@ -149,6 +149,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return baseMapper.countDistinctUsersByCourse(courseId);
     }
 
+    @Override
+    public int countActiveUniqueUsersInCourseEnrollments(Integer courseId) {
+        return baseMapper.countActiveDistinctUsersByCourse(courseId);
+    }
+
     private Optional<CourseEnrollment> findActiveEnrollment(Integer courseId, Integer userId) {
         QueryWrapper<CourseEnrollment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("course_id", courseId);

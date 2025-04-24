@@ -44,6 +44,7 @@ import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.FeatureToggleService;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
@@ -103,6 +104,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -234,6 +236,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private FeatureToggleService featureToggleService;
+	@Autowired
+	@Lazy
+	private CourseEnrollmentService courseEnrollmentService;
 
 	private final String COURSE_SEARCH_FEATURE_TOGGLE = "coursesEnabled";
 
@@ -753,6 +758,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			throw new SystemException(I18NUtil.get("一级课程id fid不可空"));
 		}
 		GcSubject subject=subjectService.getById(Integer.parseInt(params.get("fid").toString()));
+		subject.setActiveStudentsCount(courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(subject.getId()));
+		subject.setStudentsCount(courseEnrollmentService.countUniqueUsersInCourseEnrollments(subject.getId()));
 		SysFile imgFile = sysFileService.getById(subject.getSubImgId());
 		sysFileService.getResFullUrl(imgFile,request);
 		subject.setSubImgFile(imgFile);
