@@ -227,4 +227,6 @@ public interface GcSubjectService extends IService<GcSubject> {
     List<GcSubject> searchCourses(String searchName, PortalUser portalUser);
 
     List<GcSubject> searchSuggestedCourses(PortalUser portalUser);
+
+    CourseDto getCourseDetails(Integer courseId, PortalUser portalUser);
 }

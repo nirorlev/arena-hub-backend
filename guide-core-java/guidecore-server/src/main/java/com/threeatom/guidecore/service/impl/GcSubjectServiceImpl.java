@@ -1627,6 +1627,20 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return discoverableCourses(publicCourses, courseEnrollments, portalUser);
     }
 
+    @Override
+    public CourseDto getCourseDetails(Integer courseId, PortalUser portalUser) {
+        GcSubject course = baseMapper.getCourseById(courseId);
+        if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("User has no access to the course");
+        }
+
+        Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
+        List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
+        int uniqueUsersInCourseEnrollmentCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(courseId);
+
+        return createCourseDto(course, courseContent, uniqueUsersInCourseEnrollmentCount, permissions);
+    }
+
     private boolean anyNotActiveEnrollmentsFinished(List<CourseEnrollment> courseEnrollments) {
         return courseEnrollments.stream()
             .filter(courseEnrollment -> courseEnrollment.getEndDate() != null)
