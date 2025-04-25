@@ -118,20 +118,29 @@ public class CourseEnrollmentProgressServiceImpl
         Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress =
             sectionsProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails);
 
-        CourseProgressDto courseProgressDto = new CourseProgressDto();
+        return getCourseProgressDto(
+            convertKeyToString(taskIdToProgressDetails)
+            , convertKeyToString(
+                contentProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails))
+            , convertKeyToString(sectionsProgress)
+            , getCourseProgress(course, videos, courseSetting, videoIdToViewerVideoDetails,
+                sectionsProgress, courseTasks, taskIdToProgressDetails, enrollment.getComplianceDate() != null)
+        );
+    }
+
+    private CourseProgressDetailsDto getCourseProgress(GcSubject course, List<GcVideo> videos,
+                                                       CourseSetting courseSetting,
+                                                       Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails,
+                                                       Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress,
+                                                       List<Task> courseTasks,
+                                                       Map<Integer, ProgressDetailsDto<TaskProgressDto>> taskIdToProgressDetails,
+                                                       boolean isCompliant) {
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto =
             courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, courseTasks, taskIdToProgressDetails,
-                enrollment.getComplianceDate() != null);
+                isCompliant);
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
-
-        courseProgressDto.setCourse(courseProgressDetailsDto);
-        courseProgressDto.setSections(convertKeyToString(sectionsProgress));
-        courseProgressDto.setContent(convertKeyToString(
-            contentProgress(videos, videoIdToViewerVideoDetails, videoIdToTasks, taskIdToProgressDetails)));
-        courseProgressDto.setTasks(convertKeyToString(taskIdToProgressDetails));
-
-        return courseProgressDto;
+        return courseProgressDetailsDto;
     }
 
     private CourseProgressDto calculatePreviewProgressDto(GcSubject course, List<GcVideo> videos,
@@ -140,14 +149,25 @@ public class CourseEnrollmentProgressServiceImpl
         Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
         List<Task> courseTasks = getCourseTasks(videoIdToTasks);
 
-        Map<String, ProgressDetailsDto<TaskProgressDto>> tasksProgress = courseTasks.stream()
+        return getCourseProgressDto(
+            getPreviewTaskProgress(courseTasks)
+            , getPreviewContentProgress(videos)
+            , getPreviewSectionProgress(videos)
+            , getPreviewCourseProgress(course, videos, courseSetting)
+        );
+    }
+
+    private Map<String, ProgressDetailsDto<TaskProgressDto>> getPreviewTaskProgress(List<Task> courseTasks) {
+        return courseTasks.stream()
             .collect(Collectors.toMap(task -> String.valueOf(task.getId()), task -> {
                 ProgressDetailsDto<TaskProgressDto> taskProgress = new ProgressDetailsDto<>();
                 taskProgress.setProgress(new TaskProgressDto());
                 return taskProgress;
             }));
+    }
 
-        Map<String, ProgressDetailsDto<ContentProgressDto>> contentProgress = videos.stream()
+    private Map<String, ProgressDetailsDto<ContentProgressDto>> getPreviewContentProgress(List<GcVideo> videos) {
+        return videos.stream()
             .collect(Collectors.toMap(video -> String.valueOf(video.getId()), video -> {
                 ProgressDetailsDto<ContentProgressDto> videoProgress = new ProgressDetailsDto<>();
                 ContentProgressDto contentProgressDto = new ContentProgressDto();
@@ -156,9 +176,13 @@ public class CourseEnrollmentProgressServiceImpl
                 videoProgress.setProgress(contentProgressDto);
                 return videoProgress;
             }));
+    }
+
+    private Map<String, ProgressDetailsDto<SectionProgressDto>> getPreviewSectionProgress(
+        List<GcVideo> videos) {
         Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
             .collect(Collectors.groupingBy(GcVideo::getSubId));
-        Map<String, ProgressDetailsDto<SectionProgressDto>> sectionsProgress = courseSectionIdToVideos.entrySet().stream()
+        return courseSectionIdToVideos.entrySet().stream()
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), entry -> {
                 ProgressDetailsDto<SectionProgressDto> sectionProgressDetails = new ProgressDetailsDto<>();
                 SectionProgressDto sectionProgressDto = new SectionProgressDto();
@@ -168,11 +192,23 @@ public class CourseEnrollmentProgressServiceImpl
                 sectionProgressDetails.setProgress(sectionProgressDto);
                 return sectionProgressDetails;
             }));
+    }
+
+    private CourseProgressDetailsDto getPreviewCourseProgress(GcSubject course, List<GcVideo> videos,
+                                                              CourseSetting courseSetting) {
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
         courseTotalProgressDto.setPercentage(50);
         courseTotalProgressDto.setSecondsViewed(videos.stream().mapToInt(GcVideo::getVideoTime).sum() / 2);
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
+        return courseProgressDetailsDto;
+    }
+
+    private CourseProgressDto getCourseProgressDto(
+        Map<String, ProgressDetailsDto<TaskProgressDto>> tasksProgress,
+        Map<String, ProgressDetailsDto<ContentProgressDto>> contentProgress,
+        Map<String, ProgressDetailsDto<SectionProgressDto>> sectionsProgress,
+        CourseProgressDetailsDto courseProgressDetailsDto) {
 
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         courseProgressDto.setTasks(tasksProgress);
