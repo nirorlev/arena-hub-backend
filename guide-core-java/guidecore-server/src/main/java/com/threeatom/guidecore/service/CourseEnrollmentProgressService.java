@@ -7,4 +7,6 @@ import com.threeatom.guidecore.entity.PortalUser;
 
 public interface CourseEnrollmentProgressService extends IService<CourseEnrollmentProgress> {
     CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser);
+
+    CourseProgressDto coursePreviewProgress(Integer courseId, PortalUser portalUser);
 }

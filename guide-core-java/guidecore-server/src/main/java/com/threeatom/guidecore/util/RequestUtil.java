@@ -88,4 +88,8 @@ public class RequestUtil {
             }
         }
     }
+
+    public static boolean isCoursePreviewMode(HttpServletRequest request) {
+        return true;
+    }
 }
