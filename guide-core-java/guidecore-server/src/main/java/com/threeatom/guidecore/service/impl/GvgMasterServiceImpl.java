@@ -1115,8 +1115,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		Integer masterId = portalUser.getMasterId();
 		GcMaster gcMaster = gcMasterService.getMasterById(masterId);
 		//当前视频
-		GcVideo video = gcVideoService.getById(videoId);
 		GcVideo thisVideo = gcVideoService.findByVideoId(videoId);
+		videoService.updateVideoFile(request, thisVideo, portalUser);
 
 		Integer userId = portalUser.getUserId();
 		GcVideo videoPlay = gcVideoService.selectVideoPlayByVideo(thisVideo.getId(), userId);
@@ -1125,7 +1125,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
-		GcSubject subject = subjectService.getById(video.getSubId());
+		GcSubject subject = subjectService.getById(thisVideo.getSubId());
 
 		GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(userId, masterId);
 		List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
