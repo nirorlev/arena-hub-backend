@@ -11,5 +11,6 @@ public class CourseDto extends BasicCourseDto {
     private int tasksCount;
     private int tasksDuration;
     private int studentsCount;
+    private int activeStudentsCount;
     private double averageRating;
 }

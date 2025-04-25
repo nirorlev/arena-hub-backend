@@ -247,10 +247,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
                                                           PortalUser portalUser) {
         GcSubject course = courseEnrollments.get(0).getCourse();
         List<CourseContent> courseContent = courseContentService.findCourseContent(course.getId());
+        int activeUniqueUsersInCourseEnrollmentCount = countActiveUniqueUsersInCourseEnrollments(course.getId());
         Map<String, Boolean> coursePermissions = authorizationService.listPermissions(course, portalUser);
         CourseEnrollmentDto courseEnrollmentDto =
             convertToCourseEnrollmentDto(course, courseContent, courseTasks(courseContent), coursePermissions,
-                countUniqueUsersInCourseEnrollments(course.getId()));
+                countUniqueUsersInCourseEnrollments(course.getId()), activeUniqueUsersInCourseEnrollmentCount);
 
         Map<Integer, List<CourseEnrollment>> userIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getUserId));
@@ -268,13 +269,14 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
     private CourseEnrollmentDto convertToCourseEnrollmentDto(GcSubject course, List<CourseContent> courseContent,
                                                              List<Task> courseTasks, Map<String, Boolean> permissions,
-                                                             int studentsCount) {
+                                                             int studentsCount, int activeStudentsCount) {
         CourseEnrollmentDto courseEnrollmentDto = courseMapping.mapCourseEnrollment(course);
         courseEnrollmentDto.setVideosCount(courseContent.size());
         courseEnrollmentDto.setVideosDuration(videoTotalDuration(courseContent));
         courseEnrollmentDto.setTasksCount(courseTasks.size());
         courseEnrollmentDto.setTasksDuration(taskDuration(courseTasks));
         courseEnrollmentDto.setStudentsCount(studentsCount);
+        courseEnrollmentDto.setActiveStudentsCount(activeStudentsCount);
         courseEnrollmentDto.setAverageRating(0);
         courseEnrollmentDto.setPermissions(permissions);
 
