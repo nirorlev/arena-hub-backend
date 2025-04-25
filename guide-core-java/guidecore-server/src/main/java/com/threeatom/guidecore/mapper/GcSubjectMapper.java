@@ -215,4 +215,7 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
 
     List<Integer> getNewAssignments(
         @Param("userId") Integer userId, @Param("masterId") Integer masterId);
+
+    List<GcSubject> searchCourses(@Param("searchName") String searchName, @Param("userId") Integer userId,
+                                  @Param("masterId") Integer masterId);
 }

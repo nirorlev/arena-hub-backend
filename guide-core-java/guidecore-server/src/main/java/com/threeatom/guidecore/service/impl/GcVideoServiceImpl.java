@@ -254,14 +254,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			List<GcVideo> gcVideos = this.baseMapper.selectVideoListBySubId(subjectId);
 			Integer userId = (Integer) params.get("userId");
 			PageInfo pageInfo = new PageInfo<>(gcVideos);
-			List<GcVideo> newVideos = buildVideoInfo(userId, sys, gcVideos,masterId,request, EnvType.GC.getCode());
+			List<GcVideo> newVideos = buildVideoInfo(userId, gcVideos,masterId, EnvType.GC.getCode());
 			pageInfo.setList(newVideos);
 			return new Message().ok().addData("videos",pageInfo);
 		}else {
 			Integer masterId = request.getIntHeader("masterId");
 			List<GcVideo> gcVideos = this.baseMapper.selectVideoListBySubId(subjectId);
 			Integer userId = (Integer) params.get("userId");
-			List<GcVideo> newGcVideos = buildVideoInfo(userId, sys, gcVideos,masterId,request,EnvType.GC.getCode());
+			List<GcVideo> newGcVideos = buildVideoInfo(userId, gcVideos,masterId, EnvType.GC.getCode());
 			return new Message().ok().addData("videos",newGcVideos);
 		}
 	}
@@ -348,7 +348,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 
-	public List<GcVideo> buildVideoInfoByListUsAge(List<Integer> userIdList,List<GcVideo> gcVideos,Integer masterId,Boolean isAccessId,List<Integer> permissionList,HttpServletRequest request){
+	public List<GcVideo> buildVideoInfoByListUsAge(List<Integer> userIdList,List<GcVideo> gcVideos,Integer masterId,Boolean isAccessId,List<Integer> permissionList){
 		List<GcVideo> newGcVideos = new ArrayList<>();
 
 		if (CollectionUtils.isNotEmpty(gcVideos)){
@@ -403,7 +403,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 										}
 									}
 								}
-								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList,request,EnvType.GC.getCode()));
+								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList));
 							}
 						}
 					}
@@ -494,7 +494,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 										}
 									}
 								}
-								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList,request,EnvType.GC.getCode()));
+								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList));
 							}
 						}
 					}
@@ -957,7 +957,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public List<GcVideo> buildVideoInfo(Integer userId, SysSystem sys, List<GcVideo> gcVideos,Integer masterId,HttpServletRequest request,Integer envFlag) {
+	public List<GcVideo> buildVideoInfo(Integer userId, List<GcVideo> gcVideos, Integer masterId, Integer envFlag) {
         if (!CollectionUtils.isNotEmpty(gcVideos)) {
             return new ArrayList<>();
         }
@@ -1025,7 +1025,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
             SysFile videoFile = video.getVideoFile();
             if(videoFile != null){
                 video.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(video));
-                video.getVideoFile().setFullFileUrl(sysFileService.getResFullUrl(videoFile,request));
+                video.getVideoFile().setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
                 video.setVideoTime(videoFile.getVideoLong());
                 videoFile.setVideoId(video.getId());
             }
@@ -1035,7 +1035,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
             if(gcUserVideoPlay != null){
                 Integer playState = gcUserVideoPlay.getPlayState();
                 video.setPlayState(playState  == null ? null : String.valueOf(playState));//视频播放状态
-                video.setCompleteStatus(buildCompleteStatus(playState,  answers,eventList,request,envFlag));
+                video.setCompleteStatus(buildCompleteStatus(playState,  answers,eventList));
             }
 
             newGcVideos.add(video);
@@ -1043,7 +1043,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
         return newGcVideos;
     }
 
-	private short buildCompleteStatus(Integer playState, List<GcEvent> answers,List<GcEvent> eventList,HttpServletRequest request,Integer envFlag) {
+	private short buildCompleteStatus(Integer playState, List<GcEvent> answers, List<GcEvent> eventList) {
 		if(playState == null){//没有播放记录
 			return TableConstant.VIDEO_COMPLETE_STATUS0;
 		}
@@ -1090,7 +1090,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			if (null!=gcVideoIdSubList&&gcVideoIdSubList.size()!=0){
 				gcVideoss = this.baseMapper.selectVideosSubIds(gcVideoIdSubList);
 			}
-			List<GcVideo> gcVideos = this.buildVideoInfo(userId, null, gcVideoss,masterId,request,envFlag);
+			List<GcVideo> gcVideos = this.buildVideoInfo(userId, gcVideoss,masterId, envFlag);
 			return gcVideos;
 		}
 		return new ArrayList<GcVideo>(0);
@@ -1100,7 +1100,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	public  List<GcVideo> getVideoIdListBySubId0(List<Integer> subIds,Integer userId,Integer masterId,HttpServletRequest request,Integer envFlag) {
 		if(CollectionUtils.isNotEmpty(subIds)){
 			List<GcVideo> gcVideoss = this.baseMapper.getVideoIdListBySubId0(subIds);//公共方法，查询出来在进行groupby
-			List<GcVideo> gcVideos = this.buildVideoInfo(userId, null, gcVideoss,masterId,request,envFlag);
+			List<GcVideo> gcVideos = this.buildVideoInfo(userId, gcVideoss,masterId, envFlag);
 			return gcVideos;
 		}
 		return new ArrayList<GcVideo>(0);
@@ -1110,12 +1110,12 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public List<GcVideo> getVideoListByUserIdAndSubject(List<Integer> userId,Integer subjectId,Integer masterId,HttpServletRequest request){
 		List<GcVideo> videos = this.baseMapper.getVideoListByUserIdsAndSubjectId(userId,subjectId,masterId);
-		List<GcVideo> gcVideoList = this.buildVideoInfoByListPt(subjectId,userId,videos,masterId,request);
+		List<GcVideo> gcVideoList = this.buildVideoInfoByListPt(subjectId,userId,videos,masterId);
 		return gcVideoList;
 	}
 
 
-	public List<GcVideo> buildVideoInfoByListPt(Integer subjectId,List<Integer> userIdList,List<GcVideo> gcVideos,Integer masterId,HttpServletRequest request){
+	public List<GcVideo> buildVideoInfoByListPt(Integer subjectId,List<Integer> userIdList,List<GcVideo> gcVideos,Integer masterId){
 		List<GcVideo> newGcVideos = new ArrayList<>();
 
 		if (CollectionUtils.isNotEmpty(gcVideos)){
@@ -1192,7 +1192,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 										}
 									}
 								}
-								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList,request,EnvType.GC.getCode()));
+								gcVideo.setCompleteStatus(buildCompleteStatus(playState, answereds,eventList));
 							}
 						}
 					}
@@ -1242,8 +1242,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		}
 
 		Integer userId = (Integer) searchParameters.get("userId");
-		pageInfo.setList(this.buildVideoInfo(userId, system, videos, masterId, request, EnvType.GC.getCode()));
+		pageInfo.setList(this.buildVideoInfo(userId, videos, masterId, EnvType.GC.getCode()));
 		return pageInfo;
+	}
+
+	@Override
+	public List<GcVideo> searchCourseVideos(String searchName, PortalUser portalUser) {
+		List<GcVideo> videos = this.baseMapper.searchCourseVideos(searchName, portalUser.getUserId(), portalUser.getMasterId());
+		return videos;
 	}
 
 	@Override

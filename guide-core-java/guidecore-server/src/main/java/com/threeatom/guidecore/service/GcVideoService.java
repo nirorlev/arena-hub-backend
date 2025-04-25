@@ -84,6 +84,8 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     PageInfo<GcVideo> page(Map<String, Object> searchParameters, SysSystem system, HttpServletRequest request);
 
+    List<GcVideo> searchCourseVideos(String searchName, PortalUser portalUser);
+
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
         String videoName, String subName, Integer masterId);
 
@@ -91,10 +93,8 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     List<GcVideo> buildVideoInfo(
         Integer userId,
-        SysSystem sys,
         List<GcVideo> gcVideos,
         Integer masterId,
-        HttpServletRequest request,
         Integer envFlag);
 
     @Async

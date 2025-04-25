@@ -80,4 +80,7 @@ public interface PtchannelMapper extends BaseMapper<PtChannel> {
         @Param("userId") Integer userId,
         @Param("masterId") Integer masterId);
 
+    List<PtChannel> searchChannelVideos(String searchName, Integer userId, Integer masterId);
+
+    List<PtChannel> searchChannels(String searchName, Integer userId, Integer masterId);
 }

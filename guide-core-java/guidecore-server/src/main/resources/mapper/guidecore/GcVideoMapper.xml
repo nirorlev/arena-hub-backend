@@ -589,7 +589,6 @@
         ) T
     </select>
 
-
     <select id="searchVideo" parameterType="java.util.Map" resultMap="baseResultMap">
         select DISTINCT ON (v.id)
             <include refid="baseColumn" />
@@ -613,6 +612,33 @@
             AND channel_subscription.id is not null
         </where>
         order by v.id desc, v.create_time desc
+    </select>
+
+    <select id="searchCourseVideos" parameterType="java.util.Map" resultMap="baseResultMap">
+        select <include refid="baseColumn" />
+            <include refid="fileBaseColumn" />,
+            <include refid="courseColumns" />,
+            <include refid="courseAvatarFileColumns" />,
+            <include refid="courseOwnerColumns" />,
+            <include refid="courseOwnerAvatarColumns" />,
+            gs.name as subjectName
+        FROM course_content
+            JOIN gc_subject gs on gs.id = course_content.course_id AND gs.master_id = #{masterId}
+            JOIN gc_subject course on gs.sub_id = course.id
+            JOIN gc_user course_owner ON gs.create_user = course_owner.id
+            JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
+            JOIN gc_video v ON course_content.content_id = v.id
+            JOIN sys_file f ON v.file_id = f.id
+
+            LEFT JOIN sys_file course_avatar ON course_avatar.id = course.sub_img_id
+            LEFT JOIN sys_file course_owner_avatar ON course_owner_info.avatar_file_id = course_owner_avatar.id
+            LEFT JOIN gc_content_group_course_assignment course_assignement ON course.id = course_assignement.course_id
+            LEFT JOIN gc_user_access user_content_group
+                ON course_assignement.content_group_id = user_content_group.access_id AND
+                user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId}
+        WHERE v.video_name ilike concat('%', #{searchName}, '%')
+            AND (course.create_user = #{userId} OR course.state = 1 OR (course.state = 2 AND user_content_group.id IS NOT NULL))
+        ORDER BY v.create_time DESC
     </select>
 
     <select id="countVideosBySubId" resultType="java.lang.Integer">

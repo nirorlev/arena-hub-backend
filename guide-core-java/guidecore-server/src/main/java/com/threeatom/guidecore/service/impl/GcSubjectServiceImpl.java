@@ -699,7 +699,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<Integer> videoIdlist = videoService.getVideoIdListBySubId(level0subIds);
         List<GcVideo> videoList = videoService.getVideoLongListByVideoId(videoIdlist);
         if (null != userId) {
-            videoList = videoService.buildVideoInfo(userId, null, videoList, masterId, request, EnvType.PT.getCode());
+            videoList = videoService.buildVideoInfo(userId, videoList, masterId, EnvType.PT.getCode());
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -1377,7 +1377,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         if (course.getState() == null) {
-            course.setState(course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
+            course.setState(
+                course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
         }
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);
@@ -1577,23 +1578,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
         List<GcSubject> publicCourses = getPublicCourses(portalUser);
-        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
-        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
-
         List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
-        Set<Integer> userActiveEnrollmentCourseIds =
-            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
 
         List<CourseDto> discoverableCourses = new ArrayList<>();
-        for (GcSubject publicCourse : publicCourses) {
-            if (courseIdsWithAssignment.contains(publicCourse.getId())
-                || userActiveEnrollmentCourseIds.contains(publicCourse.getId())
-                || anyNotActiveEnrollmentsFinished(courseEnrollments)) {
-                continue;
-            }
-
+        for (GcSubject publicCourse : discoverableCourses(publicCourses, courseEnrollments, portalUser)) {
             List<CourseContent> courseContent =
                 courseTopicsContent(courseContentService.findCourseContent(publicCourse.getId()));
             Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
@@ -1603,6 +1593,34 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         return createCourseListDto(discoverableCourses);
+    }
+
+    private List<GcSubject> discoverableCourses(List<GcSubject> courses, List<CourseEnrollment> courseEnrollments,
+                                                PortalUser portalUser) {
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
+        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
+
+        Set<Integer> userActiveEnrollmentCourseIds =
+            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
+
+        return courses.stream()
+            .filter(publicCourse -> !courseIdsWithAssignment.contains(publicCourse.getId()))
+            .filter(publicCourse -> !userActiveEnrollmentCourseIds.contains(publicCourse.getId()))
+            .filter(publicCourse -> !anyNotActiveEnrollmentsFinished(courseEnrollments))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GcSubject> searchCourses(String searchName, PortalUser portalUser) {
+        return baseMapper.searchCourses(searchName, portalUser.getUserId(), portalUser.getMasterId());
+    }
+
+    @Override
+    public List<GcSubject> searchSuggestedCourses(PortalUser portalUser) {
+        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
+
+        return discoverableCourses(publicCourses, courseEnrollments, portalUser);
     }
 
     private boolean anyNotActiveEnrollmentsFinished(List<CourseEnrollment> courseEnrollments) {

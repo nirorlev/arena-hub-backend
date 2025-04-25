@@ -1837,4 +1837,21 @@
 		  and s.master_id = #{masterId}
 	</select>
 
+	<select id="searchCourses" resultMap="baseResultMap">
+		SELECT
+		    <include refid="baseColumn" />
+			<include refid="fileJoinColumn" />
+
+		FROM gc_subject s
+			 JOIN gc_user course_owner ON s.create_user = course_owner.id
+			 LEFT JOIN sys_file f ON s.sub_img_id = f.id
+
+			 LEFT JOIN gc_content_group_course_assignment course_assignement ON s.id = course_assignement.course_id
+			 LEFT JOIN gc_user_access user_content_group
+					   ON course_assignement.content_group_id = user_content_group.access_id AND
+						  user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId}
+		WHERE s.master_id = #{masterId} AND s.sub_id IS NULL AND s.name ilike concat('%', #{searchName}, '%')
+  			AND (s.create_user = #{userId} OR s.state = 1 OR (s.state = 2 AND user_content_group.id IS NOT NULL));
+	</select>
+
 </mapper>

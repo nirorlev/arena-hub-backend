@@ -263,7 +263,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
 			List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
 
-			videoList = gcVideoService.buildVideoInfo(portalUser.getUserId(),null,videoList,gcMaster.getId(),request,EnvType.PT.getCode());
+			videoList = gcVideoService.buildVideoInfo(portalUser.getUserId(), videoList,gcMaster.getId(), EnvType.PT.getCode());
 			Map<Integer,List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null!=e.getSubjectSubId()).collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
 
 			List<SysFile> sysFileList = new ArrayList<>();
@@ -680,64 +680,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 			}
 
-			Map<Integer, GcUser> courseIdToCourseUsers = gcUserService.getWatchedUserNum(courseIds, masterId);
-			List<Integer> courseVideoIds = gcVideoService.getVideoIdListBySubId(courseIds);
-			List<GcVideo> courseVideos = gcVideoService.getVideoLongListByVideoId(courseVideoIds);
-			if (null != user) {
-				courseVideos = gcVideoService.buildVideoInfo(user.getId(), null, courseVideos, masterId, request,
-					EnvType.PT.getCode());
-			}
-			Map<Integer, List<GcVideo>> courseIdToVideos =
-				courseVideos.stream().filter(e -> null != e.getSubjectSubId())
-					.collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
-
-			for (GcSubject course : courses) {
-				if (CollectionUtils.isNotEmpty(courseIdToCourseUsers)) {
-					GcUser courseUser = courseIdToCourseUsers.get(course.getId());
-					if (null != courseUser) {
-						course.setSubjectUsers(courseUser.getSubjectUsers());
-					} else {
-						course.setSubjectUsers(TableConstant.COMMON_ZERO);
-					}
-				}
-			}
-
-			Map<String, Object> videoParams = new HashMap<>(2);
-			Integer ids = TableConstant.COMMON_ZERO;
-			videoParams.put("ids", ids);
-			videoParams.put("subjectIds", courseIds);
-			Map<Integer, GcUserVideoAction> courseIdToVideoAction = videoActionService.getSubjectUserStar(videoParams);
-			for (GcSubject course : courses) {
-				if (courseIdToVideos.get(course.getId()) != null) {
-					Integer courseTotalSeconds =
-						courseIdToVideos.get(course.getId()).stream()
-							.filter(a -> a.getVideoTime() != null)
-							.mapToInt(GcVideo::getVideoTime)
-							.sum();
-					course.setVideosTotalLong(courseTotalSeconds);
-				}
-
-				GcUserVideoAction videoActions = courseIdToVideoAction.get(course.getId());
-				if (videoActions != null) {
-					course.setStarValue(videoActions.getSubjectStarAvg());
-					course.setStarUsers(videoActions.getSubjectStarUsers());
-				} else {
-					course.setStarValue(TableConstant.starValue0);
-					course.setStarUsers(TableConstant.starUsers);
-				}
-
-				if (null != user) {
-					if (null != courseIdToVideos.get(course.getId())) {
-						Map<Integer, List<GcVideo>> sub1Map = courseIdToVideos.get(course.getId()).stream()
-							.collect(Collectors.groupingBy(GcVideo::getSubId));
-						List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-						SubjectTotals subjectTotals =
-							calcTotals(twoSubject, user.getId(), true, masterId, EnvType.PT.getCode());
-						course.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-					}
-				}
-			}
-
 			coursePageInfo = new PageInfo<>(courses);
 			return message.addData("subjectNullPage", coursePageInfo);
 		}
@@ -746,7 +688,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			coursePageInfo.getList().stream().map(GcSubject::getId).collect(Collectors.toList()));
 		List<GcVideo> videos = gcVideoService.getVideoLongListByVideoId(courseVideoIds);
 		if (null != user) {
-			videos = gcVideoService.buildVideoInfo(user.getId(), null, videos, masterId, request,
+			videos = gcVideoService.buildVideoInfo(user.getId(), videos, masterId,
 				EnvType.PT.getCode());
 		}
 		Map<Integer, List<GcVideo>> courseIdToVideos =
@@ -777,9 +719,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		searchParameters.put("pageSize", request.getHeader("pageSize"));
 		request.setAttribute("searchName", searchParameters.get("searchName"));
 
-		Boolean loadVideoSuggestions = true;
+		boolean loadVideoSuggestions = true;
 
-		List<PtChannel> channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+		List<PtChannel> channels = ptChannelService.searchChannelVideos(userId, request, masterId);
 		PageInfo<PtChannel> channelVideosPage = new PageInfo<>(channels);
 		if (!channelVideosPage.getList().isEmpty()) {
 			message.addData("channelVideoPage", channelVideosPage);
@@ -796,7 +738,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		if (loadVideoSuggestions) {
 			request.removeAttribute("searchName");
-			channels = ptChannelService.searchChannelsBySysFile(userId, request, masterId);
+			channels = ptChannelService.searchChannelVideos(userId, request, masterId);
 			message.addData("videoNullPage", new PageInfo<>(channels));
 		}
 		return message;
@@ -1308,7 +1250,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			List<Integer> suboList = new ArrayList<>();
 			subIdList.add(suboId);
 			List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-			List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), system, gcVideoList, masterId, request, EnvType.GC.getCode());
+			List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), gcVideoList, masterId, EnvType.GC.getCode());
 			Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 			for (Integer key : videoMap.keySet()) {
 				List<GcVideo> videoList = videoMap.get(key);
@@ -1554,7 +1496,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				List<Integer> suboList = new ArrayList<>();
 				subIdList.add(suboId);
 				List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), system, gcVideoList, masterId, request, envFlag);
+				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), gcVideoList, masterId,
+					envFlag);
 				Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 				for (Integer key : videoMap.keySet()) {
 					List<GcVideo> videoList = videoMap.get(key);
@@ -1672,7 +1615,8 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				List<Integer> suboList = new ArrayList<>();
 				subIdList.add(suboId);
 				List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), system, gcVideoList, masterId, request, EnvType.GC.getCode());
+				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), gcVideoList, masterId,
+					EnvType.GC.getCode());
 				Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
 				for (Integer key : videoMap.keySet()) {
 					List<GcVideo> videoList = videoMap.get(key);

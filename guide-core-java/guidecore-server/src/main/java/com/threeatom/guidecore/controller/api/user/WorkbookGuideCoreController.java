@@ -147,7 +147,7 @@ public class WorkbookGuideCoreController extends GuideCoreController {
         List<GcEvent> events = gcEventService.getEventListByVideoIds(videoIdList, getGcUser().getId());
         List<GcVideo> videos =
                 gcVideoService.buildVideoInfo(
-                        getGcUser().getId(), getSystem(), videoList, masterId, request, envFlag);
+                        getGcUser().getId(), videoList, masterId, envFlag);
 
         for (GcVideo video : videos) {
             GcUserVideoPlay gcUserVideoPlay = videoPalyStateByVideos.get(video.getId());

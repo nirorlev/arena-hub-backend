@@ -90,6 +90,7 @@ import com.threeatom.guidecore.service.PtConfigService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
+import com.threeatom.guidecore.service.SearchService;
 import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
@@ -280,23 +281,13 @@ public class PowtoonController extends GuideCoreController {
     private EventPublisherService eventPublisherService;
     @Autowired
     private PowtoonClient powtoonClient;
+    @Autowired
+    private SearchService searchService;
 
     @ApiOperation(value = "Search videos", httpMethod = "POST")
     @PostMapping("search")
     public Message searchVideo(@RequestBody @Valid SearchDto searchDto, HttpServletRequest request) {
-        RequestUtil.getMasterId(request)
-            .orElseThrow(() -> new SystemException(I18NUtil.get("guidecore.unlogin.error")));
-
-        String token = RequestUtil.getRequestAuthHeader(request);
-        SysSystem system = this.getSystem();
-
-        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
-            GcUser gcUser = this.getGcUser();
-            return gvgMasterService.search(searchDto, request, gcUser, system)
-                .addData("date:::", new Date());
-        }
-
-        return gvgMasterService.search(searchDto, request, null, system);
+        return searchService.search(searchDto, getPortalUser(request)).addData("date:::", new Date());
     }
 
     @ApiOperation(value = "New UI course homepage - including course name query interface", notes = "New UI Course Home", httpMethod = "POST")
@@ -1197,7 +1188,7 @@ public class PowtoonController extends GuideCoreController {
         List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
         if (null != user) {
             videoList =
-                gcVideoService.buildVideoInfo(user.getId(), null, videoList, masterId, request, EnvType.PT.getCode());
+                gcVideoService.buildVideoInfo(user.getId(), videoList, masterId, EnvType.PT.getCode());
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -2606,6 +2597,13 @@ public class PowtoonController extends GuideCoreController {
 
     private PortalUser getPortalUser(HttpServletRequest request, GcUser currentUser) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+
         return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }
