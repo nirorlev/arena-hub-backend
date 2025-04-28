@@ -84,19 +84,6 @@ public class CourseEnrollmentProgressServiceImpl
             .orElseGet(() -> emptyCourseProgressDto(course, courseSetting));
     }
 
-    @Override
-    public CourseProgressDto coursePreviewProgress(Integer courseId, PortalUser portalUser) {
-        GcSubject course = courseService.getById(courseId);
-        if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
-            log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
-            throw new ForbiddenException("You have no access to this course");
-        }
-        List<GcVideo> videos = courseService.courseVideos(courseId);
-        CourseSetting courseSetting = courseSettingService.findByCourseId(courseId).orElseGet(CourseSetting::new);
-
-        return calculatePreviewProgressDto(course, videos, courseSetting);
-    }
-
     @Transactional
     void saveProgress(CourseEnrollmentProgress courseEnrollmentProgress) {
         save(courseEnrollmentProgress);
@@ -139,67 +126,6 @@ public class CourseEnrollmentProgressServiceImpl
         CourseTotalProgressDto courseTotalProgressDto =
             courseProgress(videos, videoIdToViewerVideoDetails, sectionsProgress, courseTasks, taskIdToProgressDetails,
                 isCompliant);
-        courseProgressDetailsDto.setProgress(courseTotalProgressDto);
-        return courseProgressDetailsDto;
-    }
-
-    private CourseProgressDto calculatePreviewProgressDto(GcSubject course, List<GcVideo> videos,
-                                                          CourseSetting courseSetting) {
-        List<Integer> videoIds = courseVideoIds(videos);
-        Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
-        List<Task> courseTasks = getCourseTasks(videoIdToTasks);
-
-        return getCourseProgressDto(
-            getPreviewTaskProgress(courseTasks)
-            , getPreviewContentProgress(videos)
-            , getPreviewSectionProgress(videos)
-            , getPreviewCourseProgress(course, videos, courseSetting)
-        );
-    }
-
-    private Map<String, ProgressDetailsDto<TaskProgressDto>> getPreviewTaskProgress(List<Task> courseTasks) {
-        return courseTasks.stream()
-            .collect(Collectors.toMap(task -> String.valueOf(task.getId()), task -> {
-                ProgressDetailsDto<TaskProgressDto> taskProgress = new ProgressDetailsDto<>();
-                taskProgress.setProgress(new TaskProgressDto());
-                return taskProgress;
-            }));
-    }
-
-    private Map<String, ProgressDetailsDto<ContentProgressDto>> getPreviewContentProgress(List<GcVideo> videos) {
-        return videos.stream()
-            .collect(Collectors.toMap(video -> String.valueOf(video.getId()), video -> {
-                ProgressDetailsDto<ContentProgressDto> videoProgress = new ProgressDetailsDto<>();
-                ContentProgressDto contentProgressDto = new ContentProgressDto();
-                contentProgressDto.setPercentage(50);
-                contentProgressDto.setSecondsViewed(video.getVideoTime() / 2);
-                videoProgress.setProgress(contentProgressDto);
-                return videoProgress;
-            }));
-    }
-
-    private Map<String, ProgressDetailsDto<SectionProgressDto>> getPreviewSectionProgress(
-        List<GcVideo> videos) {
-        Map<Integer, List<GcVideo>> courseSectionIdToVideos = videos.stream()
-            .collect(Collectors.groupingBy(GcVideo::getSubId));
-        return courseSectionIdToVideos.entrySet().stream()
-            .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), entry -> {
-                ProgressDetailsDto<SectionProgressDto> sectionProgressDetails = new ProgressDetailsDto<>();
-                SectionProgressDto sectionProgressDto = new SectionProgressDto();
-                sectionProgressDto.setPercentage(50);
-                sectionProgressDto.setSecondsViewed(
-                    entry.getValue().stream().mapToInt(GcVideo::getVideoTime).sum() / 2);
-                sectionProgressDetails.setProgress(sectionProgressDto);
-                return sectionProgressDetails;
-            }));
-    }
-
-    private CourseProgressDetailsDto getPreviewCourseProgress(GcSubject course, List<GcVideo> videos,
-                                                              CourseSetting courseSetting) {
-        CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
-        CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
-        courseTotalProgressDto.setPercentage(50);
-        courseTotalProgressDto.setSecondsViewed(videos.stream().mapToInt(GcVideo::getVideoTime).sum() / 2);
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
         return courseProgressDetailsDto;
     }

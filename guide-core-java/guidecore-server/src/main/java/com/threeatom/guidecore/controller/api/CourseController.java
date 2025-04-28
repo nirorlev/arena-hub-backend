@@ -13,6 +13,7 @@ import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.facade.CourseFacade;
 import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseSettingService;
@@ -45,6 +46,7 @@ public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
     private final GcSubjectService courseService;
+    private final CourseFacade courseFacade;
     private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
@@ -108,12 +110,8 @@ public class CourseController {
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<CourseProgressDto> courseProgress(@PathVariable Integer courseId,
                                                             HttpServletRequest request) {
-        if (RequestUtil.isCoursePreviewMode(request)) {
-            return ResponseEntity.ok(
-                courseEnrollmentProgressService.coursePreviewProgress(courseId, getPortalUser(request)));
-        }
-
-        return ResponseEntity.ok(courseEnrollmentProgressService.courseProgress(courseId, getPortalUser(request)));
+        return ResponseEntity.ok(
+            courseFacade.progress(courseId, getPortalUser(request), RequestUtil.isCoursePreviewMode(request)));
     }
 
     @GetMapping("/{courseId}/enrollments")
