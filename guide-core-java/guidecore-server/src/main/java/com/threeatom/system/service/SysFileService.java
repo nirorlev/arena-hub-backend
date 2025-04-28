@@ -89,8 +89,6 @@ public interface SysFileService extends IService<SysFile> {
 
     Map<Integer, SysFile> getFilesUploadByFileIds(List<Integer> fileIds);
 
-    String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request);
-
     void updateVideoInformation(SysFile sysFile, PortalUser portalUser);
 
     void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo);

@@ -1116,7 +1116,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		GcMaster gcMaster = gcMasterService.getMasterById(masterId);
 		//当前视频
 		GcVideo thisVideo = gcVideoService.findByVideoId(videoId);
-		videoService.updateVideoFile(request, thisVideo, portalUser);
+		videoService.updateVideoFile(thisVideo, portalUser);
 
 		Integer userId = portalUser.getUserId();
 		GcVideo videoPlay = gcVideoService.selectVideoPlayByVideo(thisVideo.getId(), userId);

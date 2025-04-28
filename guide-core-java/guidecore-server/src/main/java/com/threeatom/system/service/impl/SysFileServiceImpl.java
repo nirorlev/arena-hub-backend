@@ -14,7 +14,6 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PowtoonExternalVideo;
-import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.service.AwsS3StorageService;
 import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
@@ -26,9 +25,6 @@ import com.threeatom.system.mapper.SysFileMapper;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.system.service.SysSystemService;
 import com.threeatom.utils.FileUtil;
-
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,10 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jets3t.service.CloudFrontService;
@@ -99,61 +95,73 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
 
 
     @Override
+    @Transactional
     public void updateVideoInformation(SysFile sysFile, PowtoonExternalVideo powtoonExternalVideo) {
-        updateVideoInformation(sysFile, Optional.empty(), Optional.of(powtoonExternalVideo));
+        if (isNotPowtoonVideoFileType(sysFile)) {
+            return;
+        }
+        updateSysFileFromExternalVideo(sysFile, powtoonExternalVideo, null);
     }
 
     @Override
+    @Transactional
     public void updateVideoInformation(SysFile sysFile, PortalUser portalUser) {
-        updateVideoInformation(sysFile, Optional.of(portalUser), Optional.empty());
-    }
-
-    private void updateVideoInformation(SysFile sysFile, Optional<PortalUser> optionalPortalUser, Optional<PowtoonExternalVideo> powtoonExternalVideo) {
-        Integer storedHostingProvider = sysFile.getFileTypeIndex();
-
-        if (!EventUnifyType.powtoonVideoFileTypes.contains(storedHostingProvider)) {
+        if (isNotPowtoonVideoFileType(sysFile)) {
             return;
         }
 
-        PowtoonExternalVideo externalVideo;
-        if (powtoonExternalVideo.isPresent()) {
-            externalVideo = powtoonExternalVideo.get();
-        } else {
-            externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
-            if (externalVideo == null) {
-                if (storedHostingProvider.equals(EventUnifyType.POWTOON_KALTURA_FILE_TYPE_INDEX)) {
-                    return;
-                }
-                throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
+        PowtoonExternalVideo externalVideo = powtoonExternalVideoService.getBySysFileId(sysFile.getId());
+        if (externalVideo == null) {
+            if (sysFile.getFileTypeIndex().equals(EventUnifyType.POWTOON_KALTURA_FILE_TYPE_INDEX)) {
+                return;
             }
+            throw new SystemException("No external video entry found for SysFile. File ID: " + sysFile.getId());
         }
 
+        updateSysFileFromExternalVideo(sysFile, externalVideo, portalUser);
+    }
+
+    private boolean isNotPowtoonVideoFileType(SysFile sysFile) {
+        Integer fileTypeIndex = sysFile.getFileTypeIndex();
+        if (!EventUnifyType.powtoonVideoFileTypes.contains(fileTypeIndex)) {
+            log.error("Failed to update video file: the video file type is not Powtoon related. Type: {}",
+                fileTypeIndex);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateSysFileFromExternalVideo(SysFile sysFile, PowtoonExternalVideo externalVideo,
+                                                PortalUser portalUser) {
         JSONObject videoData = powtoonVideoProviderService.getVideoDataFromExternalVideo(externalVideo);
+
         sysFile.setFileUrl(videoData.getString("url"));
 
         Integer currentHostingProvider = videoData.getInteger("hostingProvider");
         String currentVersion = videoData.getJSONObject("source").getString("version");
         String storedVersion = externalVideo.getVersion();
-        if (currentHostingProvider.equals(storedHostingProvider) && currentVersion.equals(storedVersion)){
+
+        if (currentHostingProvider.equals(sysFile.getFileTypeIndex()) && currentVersion.equals(storedVersion)) {
             sysFileService.updateById(sysFile);
             return;
         }
 
         sysFile.setFileTypeIndex(currentHostingProvider);
         sysFile.setVideoLong(Math.round(videoData.getFloat("duration")));
-        optionalPortalUser.ifPresent(portalUser -> {
+
+        if (portalUser != null) {
             sysFile.setThumbNailUrl(videoData.getString("thumbNail"));
             uploadThumbnailToS3(sysFile, portalUser.getUserId(), portalUser.getMasterId());
             externalVideo.setVersion(currentVersion);
-        });
+        }
 
         sysFileService.updateById(sysFile);
         powtoonExternalVideoService.updateById(externalVideo);
     }
 
     private AliyunOssService getCurrentOssService(SysSystem sys) {
-        AliyunOssService ossService = null;
-        return ossService;
+        return null;
     }
 
     public String saveSysFileToProfile(String folder, String fileName, InputStream fileIs) {
@@ -696,12 +704,7 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
     }
 
     @Override
-    public String getVideoPlayerUrl(SysFile sysFile, HttpServletRequest request) {
-        return getResFullUrl(sysFile, request);
-    }
-
-    @Override
-    public void uploadThumbnailToS3 (SysFile sysFile, Integer userId, Integer masterId) {
+    public void uploadThumbnailToS3(SysFile sysFile, Integer userId, Integer masterId) {
         String thumbnailUrl = sysFile.getThumbNailUrl();
         String fileKey = awsS3StorageService.uploadFileToS3(thumbnailUrl, userId, masterId);
         sysFile.setThumbNailUrl(fileKey);

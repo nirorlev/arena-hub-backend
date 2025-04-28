@@ -770,15 +770,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser) {
+	public SysFile updateVideoFile(GcVideo video, PortalUser portalUser) {
 		Integer contentId = video.getId();
 		SysFile videoFile = sysFileService.getById(video.getFileId());
 		sysFileService.updateVideoInformation(videoFile, portalUser);
 		video.setVideoFile(videoFile);
 		syncVideoInformationWithFile(video, videoFile);
 		String snapShotUrl = sysFileService.getVideoSnapshotUrl(video);
-		String fullFileUrl = sysFileService.getVideoPlayerUrl(videoFile, request);
-		videoFile.setFullFileUrl(fullFileUrl);
+		videoFile.setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
 		videoFile.setSnapshotUrl(snapShotUrl);
 		videoFile.setVideoId(contentId);
 		videoFile.setIsLiked(videoActionService.isLikedByUser(contentId, portalUser.getUserId()) ? 1 : 0);
@@ -797,7 +796,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			throw new ForbiddenException("No permission to view the video");
 		}
 
-		updateVideoFile(request, video, portalUser);
+		updateVideoFile(video, portalUser);
 		return videoMapping.map(video);
 	}
 

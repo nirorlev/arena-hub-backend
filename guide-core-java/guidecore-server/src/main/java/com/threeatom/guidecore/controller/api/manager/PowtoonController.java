@@ -2462,7 +2462,7 @@ public class PowtoonController extends GuideCoreController {
 
         channelCreator.setInfo(gcUserInfo);
         ptchannel.setCreateUser(channelCreator);
-        SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
+        SysFile videoFile = gcVideoService.updateVideoFile(channelVideoContent, portalUser);
         GcUserVideoAction gcUserVideoAction =
             gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(), currentUser.getId(),
                 TableConstant.COMMON_ONE);
