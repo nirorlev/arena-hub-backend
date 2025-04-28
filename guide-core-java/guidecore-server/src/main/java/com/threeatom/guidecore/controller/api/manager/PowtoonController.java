@@ -129,6 +129,7 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
+import org.bouncycastle.cert.ocsp.Req;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1486,7 +1487,7 @@ public class PowtoonController extends GuideCoreController {
     @ApiOperation(value = "getToken", httpMethod = "GET")
     @PostMapping("/getToken")
     public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
-                            HttpServletRequest request)
+                            HttpServletRequest request, HttpServletResponse response)
         throws IOException, ClientException {
         Integer masterId = getMaster(request).getId();
         PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1506,6 +1507,8 @@ public class PowtoonController extends GuideCoreController {
             }
         } catch (AuthenticationException e) {
             return new Message().error(401, e.getMessage());
+        } finally {
+            RequestUtil.deleteCookie(request, response, RequestUtil.COURSE_MODE_COOCKIE_NAME);
         }
 
         return new Message().error(400, "Invalid code");

@@ -6,16 +6,19 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @UtilityClass
+@Slf4j
 public class RequestUtil {
 
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
     private static final String REQUESTED_FRONTEND_VERSION_NAME = "frontendVersion";
+    public static final String COURSE_MODE_COOCKIE_NAME = "course_mode";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
@@ -62,5 +65,27 @@ public class RequestUtil {
 
     public static String getCurrentHost(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName();
+    }
+
+    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
+        if (request.getCookies() == null) {
+            log.warn("Cannot delete coockie {} since request does not have coockies set", cookieName);
+            return;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (cookieName.equals(cookie.getName())) {
+                Cookie deleteCookie = new Cookie(cookieName, "");
+                deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
+                deleteCookie.setMaxAge(0);
+
+                if (cookie.getDomain() != null) {
+                    deleteCookie.setDomain(cookie.getDomain());
+                }
+
+                response.addCookie(deleteCookie);
+                break;
+            }
+        }
     }
 }
