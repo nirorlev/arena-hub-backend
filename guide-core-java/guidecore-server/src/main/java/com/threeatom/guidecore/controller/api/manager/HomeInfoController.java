@@ -477,8 +477,7 @@ public class HomeInfoController extends GuideCoreController {
 
         //视频数量
         List<GcVideo> videoList =
-            gcVideoService.getVideosBySubjectIds0(contentGroupIds, TableConstant.COMMON_ZERO, masterId, request,
-                EnvType.GC.getCode());
+            gcVideoService.getVideosBySubjectIds0(contentGroupIds, TableConstant.COMMON_ZERO, masterId);
         Map<Integer, List<GcVideo>> videoMap = videoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
         //星级
         Map<String, Object> videoParams = new HashMap<>(2);

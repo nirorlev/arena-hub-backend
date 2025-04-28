@@ -65,19 +65,12 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
 
-    List<GcVideo> getVideosBySubjectIds0(
-        List<Integer> subjectIds,
-        Integer userId,
-        Integer masterId,
-        HttpServletRequest request,
-        Integer envFlag);
+    List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId, Integer masterId);
 
     List<GcVideo> getVideoIdListBySubId0(
         List<Integer> subIds,
         Integer userId,
-        Integer masterId,
-        HttpServletRequest request,
-        Integer envFlag);
+        Integer masterId);
 
     List<GcVideo> getVideoListByUserIdAndSubject(
         List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
@@ -94,8 +87,7 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<GcVideo> buildVideoInfo(
         Integer userId,
         List<GcVideo> gcVideos,
-        Integer masterId,
-        Integer envFlag);
+        Integer masterId);
 
     @Async
     void asyncMethodSaveVideo(GcVideo video, HttpServletRequest request);

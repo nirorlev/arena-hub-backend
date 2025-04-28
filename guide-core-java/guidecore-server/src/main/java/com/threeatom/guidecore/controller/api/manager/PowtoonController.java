@@ -721,21 +721,13 @@ public class PowtoonController extends GuideCoreController {
 
     @GetMapping("/videoDetailPt")
     public Message videoDetailPt(HttpServletRequest request, Integer videoId) {
-        SysSystem system = this.getSystem();
-        String token = RequestUtil.getRequestAuthHeader(request);
-        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
-            GcUser user = this.getGcUser();
-            GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
-            GcVideo video = gcVideoService.findByVideoId(videoId);
-            PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-
-            if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
-                throw new PermitException("No permission for this!");
-            }
-            return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.PT.getCode());
+        GcVideo video = gcVideoService.findByVideoId(videoId);
+        PortalUser portalUser = getPortalUser(request);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new PermitException("No permission for this!");
         }
 
-        return gvgMasterService.videoDetail(request, videoId, null, system, EnvType.PT.getCode());
+        return gvgMasterService.videoDetail(request, videoId, portalUser);
     }
 
     @PostMapping("/selectVideosAndEvents")
@@ -1188,7 +1180,7 @@ public class PowtoonController extends GuideCoreController {
         List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
         if (null != user) {
             videoList =
-                gcVideoService.buildVideoInfo(user.getId(), videoList, masterId, EnvType.PT.getCode());
+                gcVideoService.buildVideoInfo(user.getId(), videoList, masterId);
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -1643,7 +1635,8 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
             UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+                CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
@@ -1660,7 +1653,8 @@ public class PowtoonController extends GuideCoreController {
         });
 
         Integer DiscoverNew =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+                CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
 
         return new Message().ok()

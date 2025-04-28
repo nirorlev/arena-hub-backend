@@ -2,7 +2,6 @@ package com.threeatom.guidecore.controller.api.user.newUI;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.aliyuncs.exceptions.ClientException;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
@@ -14,15 +13,14 @@ import com.threeatom.guidecore.controller.user.vo.UserNoteCommentVo;
 import com.threeatom.guidecore.entity.*;
 import com.threeatom.guidecore.service.*;
 import com.threeatom.guidecore.util.I18NUtil;
+import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
-import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.SimpleHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +32,16 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "用户端数据管理")
 public class NewUIUserController extends GuideCoreController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NewUIUserController.class);
-
     @Autowired private GcMasterService masterService;
     @Autowired private GcEventService eventService;
     @Autowired private GcUserAccessService userAccessService;
     @Autowired private SysFileService sysFileService;
     @Autowired private GcMasterMessageService masterMessageService;
     @Autowired private GcUserService userService;
+    @Autowired private PortalUserService portalUserService;
     @Autowired private GcSubjectService subjectService;
     @Autowired private GcUserAnswerService userAnswerService;
     @Autowired private GcUserNoteService userNoteService;
-    @Autowired private GcUserService gcUserService;
     @Autowired private GcUserInfoService gcUserInfoService;
     @Autowired private GcUserEventResourceService gcUserEventResourceService;
     @Autowired private GcUserNoteCommentService gcUserNoteCommentService;
@@ -58,17 +54,11 @@ public class NewUIUserController extends GuideCoreController {
     @ApiOperation(value = "视频详情页", httpMethod = "GET")
     @GetMapping("/videoDetail")
     public Message videoDetail(HttpServletRequest request, Integer videoId) {
-        SysSystem system = this.getSystem();
         if (Objects.isNull(videoId)) {
             throw new SystemException(I18NUtil.get("guidecore.video.detail.error"));
         }
-        String token = request.getHeader("Authorization");
-        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
-            GcUser user = this.getGcUser();
-            return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.GC.getCode());
-        } else {
-            return gvgMasterService.videoDetail(request, videoId, null, system, EnvType.GC.getCode());
-        }
+
+        return gvgMasterService.videoDetail(request, videoId, getPortalUser(request));
     }
 
     @ApiOperation(value = "视频详情页-问题详情框", httpMethod = "GET")
@@ -249,7 +239,7 @@ public class NewUIUserController extends GuideCoreController {
         }
         // 学生自己的回答
         // 用户信息
-        GcUser studentUser = gcUserService.getUserByIdCache(jsonRequest.getInteger("studentId"));
+        GcUser studentUser = userService.getUserByIdCache(jsonRequest.getInteger("studentId"));
         if (studentUser != null) {
             Integer imgFileId = studentUser.getInfo().getAvatarFileId();
             if (imgFileId != null) {
@@ -290,7 +280,7 @@ public class NewUIUserController extends GuideCoreController {
         if (TableConstant.COMMON_ONE == gcManager.getSuperAdminFlag()) {
             return new Message()
                     .ok()
-                    .addData("", this.gcUserService.updateById(gcUser))
+                    .addData("", this.userService.updateById(gcUser))
                     .addData("newEmail", gcUser);
         } else {
             List<GcUserAccess> gcUserAccessList = gcUserAccessService.getAccessListByUser(gcUser.getId());
@@ -301,7 +291,7 @@ public class NewUIUserController extends GuideCoreController {
                     && masterIdList.contains(master.getId())) {
                 return new Message()
                         .ok()
-                        .addData("", this.gcUserService.updateById(gcUser))
+                        .addData("", this.userService.updateById(gcUser))
                         .addData("newEmail", gcUser);
             } else {
                 return new Message().error("the user does not belong to the master");
@@ -380,10 +370,10 @@ public class NewUIUserController extends GuideCoreController {
     public Message changeUserInfo(@RequestBody GcUserInfo info, HttpServletRequest request) {
         String username = info.getUsername();
         if (username != null) {
-            gcUserService.verifyUsernameNotExists(username, I18NUtil.get("guidecore.user.emailExist"));
+            userService.verifyUsernameNotExists(username, I18NUtil.get("guidecore.user.emailExist"));
             GcUser user = this.getGcUser();
             user.setUsername(username);
-            gcUserService.updateById(user);
+            userService.updateById(user);
         }
 
         info.setId(this.getGcUser().getInfoId());
@@ -400,7 +390,7 @@ public class NewUIUserController extends GuideCoreController {
         String newPassword = requestParams.getString("newPassword");
         user = userService.getUserByUsername(user.getUsername());
 
-        gcUserService.checkGcUser(user.getUsername(), oldPassword);
+        userService.checkGcUser(user.getUsername(), oldPassword);
 
         String pwdHash =
                 new SimpleHash("MD5", newPassword, user.getSalt() + SysConstant.PASS_SALT).toHex();
@@ -447,5 +437,10 @@ public class NewUIUserController extends GuideCoreController {
             return new Message().ok("评论成功").addData("userNoteComment", userNoteComment);
         }
         return new Message().error("评论失败");
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
+        GcUser user = userService.getCurrentUser(request);
+        return portalUserService.getByUserAndMasterId(user.getId(), RequestUtil.getMasterId(request).orElseThrow());
     }
 }

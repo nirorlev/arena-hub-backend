@@ -137,17 +137,14 @@ public class WorkbookGuideCoreController extends GuideCoreController {
         }
         Map<Integer, GcUserVideoPlay> videoPalyStateByVideos =
                 userVideoPlayService.findVideoPalyStateByVideos(videoIdList, getGcUser().getId(), masterId);
-        List<GcEvent> eventAnswers =
-                gcEventService.findEventAnswerByVideoIdsUser(
-                        videoIdList, getGcUser().getId(), masterId, envFlag);
+        List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(
+            videoIdList, getGcUser().getId(), masterId);
         Map<Integer, List<GcEvent>> eventAnswerMap = new HashMap<>(0);
         if (CollectionUtils.isNotEmpty(eventAnswers)) {
             eventAnswerMap = eventAnswers.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
         }
         List<GcEvent> events = gcEventService.getEventListByVideoIds(videoIdList, getGcUser().getId());
-        List<GcVideo> videos =
-                gcVideoService.buildVideoInfo(
-                        getGcUser().getId(), videoList, masterId, envFlag);
+        List<GcVideo> videos = gcVideoService.buildVideoInfo(getGcUser().getId(), videoList, masterId);
 
         for (GcVideo video : videos) {
             GcUserVideoPlay gcUserVideoPlay = videoPalyStateByVideos.get(video.getId());

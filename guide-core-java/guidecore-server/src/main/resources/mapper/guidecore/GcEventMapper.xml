@@ -346,9 +346,6 @@
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID
         left join gc_video v on v.id = e.video_id
         left join gc_subject s on s.id = v.sub_id
-        <if test="userId != null and 3!=envFlag">
-            AND UA.USER_ID = #{userId}
-        </if>
         WHERE
         UE.master_id=#{masterId}
             AND UA.USER_ID = #{userId}

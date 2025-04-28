@@ -34,8 +34,7 @@ public interface GcEventService extends IService<GcEvent> {
 
     List<GcEvent> getEventListByVideoIds(List<Integer> videoIds, Integer uid);
 
-    List<GcEvent> findEventAnswerByVideoIdsUser(
-            List<Integer> videoIds, Integer userId, Integer masterId, Integer envFlag);
+    List<GcEvent> findEventAnswerByVideoIdsUser(List<Integer> videoIds, Integer userId, Integer masterId);
 
     List<GcEvent> findEventUserByVideoIdsUser(
             List<Integer> videoIds, Integer userId, Integer masterId, Integer envFlag);

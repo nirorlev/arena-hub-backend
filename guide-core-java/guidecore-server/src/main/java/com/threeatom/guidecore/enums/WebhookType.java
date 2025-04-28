@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.enums;
 
+import java.util.Arrays;
 import java.util.Optional;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,9 @@ public enum WebhookType {
 
     private final String type;
 
-    public static Optional<WebhookType> fromString(String string) {
-        for (WebhookType t: values()) {
-            if (t.type.equals(string)) {
-                return Optional.of(t);
-            }
-        }
-        return Optional.empty();
+    public static Optional<WebhookType> fromString(String type) {
+        return Arrays.stream(values())
+            .filter(value -> value.getType().equals(type))
+            .findFirst();
     }
 }

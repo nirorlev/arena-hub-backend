@@ -699,7 +699,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<Integer> videoIdlist = videoService.getVideoIdListBySubId(level0subIds);
         List<GcVideo> videoList = videoService.getVideoLongListByVideoId(videoIdlist);
         if (null != userId) {
-            videoList = videoService.buildVideoInfo(userId, videoList, masterId, EnvType.PT.getCode());
+            videoList = videoService.buildVideoInfo(userId, videoList, masterId);
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -877,8 +877,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     List<GcEvent> eventList = eventService.getEventListByVideoIds(videoIds, userId);
                     totals.setTaskTotalProgress(eventList.size());//问题总数
                     if (Objects.nonNull(userId)) {
-                        List<GcEvent> eventAnswers =
-                            eventService.findEventAnswerByVideoIdsUser(videoIds, userId, masterId, envFlag);//查询视频
+                        List<GcEvent> eventAnswers = eventService.findEventAnswerByVideoIdsUser(videoIds, userId, masterId);//查询视频
                         if (CollectionUtils.isNotEmpty(eventAnswers)) {
                             Set<GcEvent> collect = eventAnswers.stream().filter(
                                     e -> com.baomidou.mybatisplus.core.toolkit.StringUtils.isNotBlank(e.getAnswerJson()))

@@ -155,7 +155,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			log.info("3、查询出话题list");//课程下视频播放进度
 			Map<Integer,Object> lastVideoPlayMap = gcUserVideoPlayService.getLastVideoPlayList(subjectIds,userId,masterId);
 
-			List<GcVideo> videosBySubjectIds0 = gcVideoService.getVideosBySubjectIds0(subjectIds, userId,masterId,request, envFlag);
+			List<GcVideo> videosBySubjectIds0 = gcVideoService.getVideosBySubjectIds0(subjectIds, userId,masterId);
 			Map<Integer, List<GcVideo>> sub0Map = new HashMap<>(0);
 			if(CollectionUtils.isNotEmpty(videosBySubjectIds0)){
 				//按一级课程id
@@ -191,7 +191,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 					sub.setSubjects(subjects1);//二级课程 没有视频也需要设置二级课程的值
 					sub.setGcVideos(gcVideos);
 					//整体百分比进度
-					SubjectTotals subjectTotals = gvgMasterService.calcTotals(subjects1,userId,true,masterId,envFlag);
+					SubjectTotals subjectTotals = gvgMasterService.calcTotals(subjects1,userId,true,masterId);
 					sub.setVideoProgressPercent(subjectTotals.getTotalProgressPercent());
 					gcVideos.forEach(i->{
 						if (null != i.getPlayState()){
@@ -346,7 +346,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	@Override
-	public PageInfo<GcSubject> listSubjectByFid(Map<String, Object> params, SysSystem sys, HttpServletRequest request,boolean ifLogin,List<Integer> subIds,Integer envFlag) {
+	public PageInfo<GcSubject> listSubjectByFid(Map<String, Object> params, HttpServletRequest request,boolean ifLogin,List<Integer> subIds) {
 		Object idObj = new Object();
 		List<GcSubject> subjects = new ArrayList<>();
 		PageInfo<GcSubject> page = new PageInfo<>();
@@ -378,10 +378,10 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			Map<Integer, List<GcVideo>> videoCompleteStatus = new HashMap<>();
 			//二级课程对应的视频列表
 			if(ifLogin) {
-				gcVideos = gcVideoService.getVideosBySubjectIds0(Arrays.asList(Integer.parseInt(idObj.toString())), userId,masterId,request,envFlag);
+				gcVideos = gcVideoService.getVideosBySubjectIds0(Arrays.asList(Integer.parseInt(idObj.toString())), userId,masterId);
 				videoCompleteStatus = gcVideos.stream().filter(GcVideo -> Objects.nonNull(GcVideo.getId())).collect(Collectors.groupingBy(GcVideo::getSubId));//根据二级课程分组
 			}else {
-				gcVideos = gcVideoService.getVideoIdListBySubId0(subIds, userId,masterId,request,envFlag);
+				gcVideos = gcVideoService.getVideoIdListBySubId0(subIds, userId,masterId);
 				videoCompleteStatus = gcVideos.stream().filter(GcVideo -> Objects.nonNull(GcVideo.getId())).collect(Collectors.groupingBy(GcVideo::getSubId));//根据二级课程分组
 			}
 			List<GcSubject> vos = new ArrayList<>(subjects.size());

@@ -18,11 +18,9 @@ public interface NewUiGcSubjectService {
 
     PageInfo<GcSubject> listSubjectByFid(
             Map<String, Object> params,
-            SysSystem sys,
             HttpServletRequest request,
             boolean ifLogin,
-            List<Integer> subIds,
-            Integer envFlag);
+            List<Integer> subIds);
 
     List<GcSubject> selectBuildSubject(Map<String, Object> params, HttpServletRequest request);
 
