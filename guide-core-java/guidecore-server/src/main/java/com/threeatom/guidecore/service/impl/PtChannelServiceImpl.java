@@ -54,7 +54,6 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -319,16 +318,20 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     public List<PtChannel> searchChannelVideos(String searchName, PortalUser portalUser) {
         List<PtChannel> channels = this.baseMapper.searchChannelVideos(
             searchName, portalUser.getUserId(), portalUser.getMasterId());
+        List<PtChannel> channelVideos = channelVideos(channels);
+        updateChannelVideoUrls(channelVideos);
 
-        return channels;
+        return channelVideos;
     }
 
     @Override
     public List<PtChannel> searchSuggestedChannelsVideos(PortalUser portalUser) {
         List<PtChannel> channels = this.baseMapper.searchChannelsBySysFile(
             null, portalUser.getUserId(), portalUser.getMasterId());
+        List<PtChannel> suggestedChannelVideos = channelVideos(channels);
+        updateChannelVideoUrls(suggestedChannelVideos);
 
-        return channelVideos(channels);
+        return suggestedChannelVideos;
     }
 
     private List<PtChannel> channelVideos(List<PtChannel> channels) {
@@ -725,7 +728,11 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     @Override
     public List<PtChannel> searchChannels(String searchName, PortalUser portalUser) {
-        return baseMapper.searchChannels(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        List<PtChannel> channels =
+            baseMapper.searchChannels(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        channels.forEach(this::updateUrls);
+
+        return channels;
     }
 
     @Override
@@ -791,5 +798,15 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return channels.stream()
             .map(channelMapping::map)
             .collect(Collectors.toList());
+    }
+
+    private void updateChannelVideoUrls(List<PtChannel> channels) {
+        channels.forEach(channel -> videoService.updateVideoFileUrls(channel.getVideoFile()));
+
+        channels.stream()
+            .map(PtChannel::getVideoList)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .forEach(videoFile -> videoService.updateVideoFileUrls(videoFile));
     }
 }

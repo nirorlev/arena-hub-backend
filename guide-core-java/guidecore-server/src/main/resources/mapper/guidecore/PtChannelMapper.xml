@@ -45,7 +45,6 @@
 
                 <association property="avatarFile" column="avatar_file_id" javaType="SysFile" columnPrefix="avatar_file_" resultMap="fileResultMap" />
             </association>
-
         </association>
         <association property="videoFile" javaType="SysFile" columnPrefix="file_">
             <id property="id" column="channel_file_id" />
@@ -538,6 +537,14 @@
         coalesce(ch2.channel_name,channel.channel_name) as channel_name,
         video_content.id as video_id,
         video_content.file_id as fileId,
+        video_file.save_type as channel_video_f_save_type,
+        video_file.thumb_nail_id as channel_thumb_nail_id,
+        video_file.thumb_nail_url as channel_thumb_nail_url,
+        video_file.name as channel_video_f_name,
+        video_file.file_url as channel_video_file_url,
+        video_file.file_type as channel_video_f_file_type,
+        video_file.file_type_index as channel_video_f_file_index,
+        video_file.video_long as channel_video_long,
         info.last_name AS createUserLastName,
         info.first_name AS createUserFirstName,
         info.avatar_file_id as userInfo_avatar_file_id,
@@ -546,6 +553,7 @@
         case when vac.user_id=#{userId} then 1 else 0 end as isLiked,
         pcc.id as channelContentId
         from gc_video video_content
+        join sys_file video_file ON video_content.file_id = video_file.id
         left join pt_channel_content pcc on video_content.id = pcc.content_id
         left join pt_channel channel on pcc.channel_id = channel.id
         left join pt_channel ch2 on ch2.id = channel.fid
@@ -568,7 +576,7 @@
             OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
             and pcc.id is not null
         )
-        GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id
+        GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id, video_file.id
         order by video_content.update_time desc
     </select>
 
@@ -921,7 +929,8 @@
                               section_main_channel_user_content_group.access_id AND
                               section_main_channel_user_content_group.user_id = #{userId} AND
                               section_main_channel_user_content_group.master_id = #{masterId}
-        WHERE video.video_name ilike concat('%', #{searchName}, '%')
+        WHERE video.video_name ilike concat('%', #{searchName}
+            , '%')
           AND (channel.create_user_id = #{userId}
            OR channel_section.create_user_id = #{userId}
            OR channel.visible_flag = 1

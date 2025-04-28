@@ -2,6 +2,100 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.GcSubjectMapper">
 
+	<resultMap id="courseResultMap" type="GcSubject">
+		<id property="id" column="id"/>
+		<result property="masterId" column="master_id"  />
+		<result property="name" column="name"  />
+		<result property="nameIndex" column="name_index"  />
+		<result property="description" column="description"  />
+		<result property="subId" column="sub_id"/>
+		<result property="type" column="type"/>
+		<result property="level" column="level"/>
+		<result property="fid" column="fid"/>
+		<result property="order" column="order"/>
+		<result property="subImgId" column="sub_img_id"/>
+
+		<result property="templateId" column="template_id"/>
+		<result property="introOnOff" column="intro_on_off"/>
+
+		<result property="state" column="state"/>
+		<result property="isPublic" column="is_public"/>
+		<result property="videosTotalLong" column="sumVideoLong"/>
+		<result property="starUsers" column="subjectStarUsers"/>
+		<result property="starValue" column="subjectStarAvg"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="cateId" column="cate_id"/>
+		<result property="language" column="language"/>
+		<result property="lastActivityTime" column="lastActivityTime"/>
+		<result property="courseTagline" column="course_tagline"/>
+		<result property="sub0Name" column="sub0Name"/>
+		<result property="sub0Id" column="sub0Id"/>
+		<result property="videosTotalNum" column="videosTotalNum"/>
+
+		<result property="updateTime" column="update_time" />
+		<result property="createTime" column="create_time" />
+
+		<result property="subjectAssociationId" column="subjectAssociation_id" />
+		<result property="subjectAssociationOrder" column="subjectAssociation_order" />
+		<result property="subjectAssociationRelationType" column="subjectAssociation_relationType" />
+		<result property="orderNum" column="orderNum"/>
+		<result property="certificatesFlag" column="certificates_flag"/>
+		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
+		<result property="subdetail_img_id" column="subdetail_img_id" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonObjectTypeHandler"/>
+		<result property="cpdHours" column="cpd_hours"/>
+		<result property="userId" column="user_id"/>
+		<result property="badgeId" column="badge_id"/>
+		<result property="badgeContent" column="badge_content"/>
+		<result property="createUser" column="create_user"/>
+		<result property="publishedTime" column="published_time"/>
+		<result property="videoProgressPercent" column="videoProgressPercent"/>
+		<result property="identifying" column="identifying"/>
+
+		<association property="subImgFile" column="sub_img_id" javaType="SysFile" columnPrefix="course_image_">
+			<id property="id" column="id" />
+			<result property="name" column="name"/>
+			<result property="fileUrl" column="file_url"/>
+			<result property="saveType" column="save_type"/>
+			<result property="fileTypeIndex" column="file_index"/>
+			<result property="fileType" column="file_type"/>
+			<result property="thumbNailId" column="thumb_nail_id"/>
+			<result property="thumbNailUrl" column="thumb_nail_url"/>
+			<result property="videoLong" column="video_long"/>
+		</association>
+
+		<association property="user" column="create_user" javaType="GcUser" columnPrefix="course_owner_" resultMap="userResultMap" />
+
+	</resultMap>
+
+	<resultMap id="userResultMap" type="GcUser">
+		<id property="id" column="id"/>
+		<result property="username" column="username"/>
+		<result property="state" column="state"/>
+		<result property="updateTime" column="update_time"/>
+		<result property="createTime" column="create_time"/>
+		<result property="infoId" column="info_id"/>
+		<result property="pid" column="pid"/>
+		<result property="powtoonUserId" column="powtoon_user_id"/>
+
+		<association property="info" column="id" javaType="GcUserInfo" columnPrefix="info_">
+			<id property="id" column="id"/>
+			<result property="lastName" column="last_name"/>
+			<result property="firstName" column="first_name"/>
+			<result property="avatarFileId" column="avatar_file_id"/>
+			<association property="avatarFile" column="avatarFile" javaType="SysFile" columnPrefix="avatar_file_">
+				<id property="id" column="id"/>
+				<result property="name" column="name"/>
+				<result property="fileUrl" column="url"/>
+				<result property="saveType" column="save_type"/>
+				<result property="uploadUid" column="upload_uid"/>
+				<result property="masterId" column="master_id"/>
+				<result property="fileTypeIndex" column="save_type"/>
+				<result property="updateTime" column="update_time"/>
+				<result property="createTime" column="create_time"/>
+			</association>
+		</association>
+	</resultMap>
+
 	<resultMap id="baseResultMap" type="GcSubject">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
@@ -68,7 +162,7 @@
 			<result property="lang" column="lang"/>
 			<result property="videoSource" column="video_source"/>
 
-			<association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
+			<association property="originCourse" resultMap="originCourseResultMap" columnPrefix="course_" />
 
 			<association property="videoFile" column="file_id" javaType="SysFile">
 				<id property="id" column="video_f_id"/>
@@ -144,7 +238,7 @@
 		</collection>
 	</resultMap>
 
-	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+	<resultMap id="originCourseResultMap" type="GcSubject" autoMapping="true" >
 		<result property="userId" column="user_id"/>
 		<result property="createUser" column="user_id"/>
 		<result property="fid" column="fid"/>
@@ -232,7 +326,7 @@
 			<result property="answeredSumNums" column="answeredSumNums"/>
 			<result property="playState" column="play_state"/>
 
-			<association property="originCourse" resultMap="courseResultMap" columnPrefix="course_" />
+			<association property="originCourse" resultMap="originCourseResultMap" columnPrefix="course_" />
 
 			<association property="videoFile" column="file_id" javaType="SysFile">
 				<id property="id" column="video_f_id"/>
@@ -346,6 +440,69 @@
 
 	<sql id="where_gcSubject_state_not_hidden_s0">
 		and s0.state !=0
+	</sql>
+
+	<sql id="courseColumns">
+		course.id AS id,
+		course.master_id AS master_id,
+		course.name AS "name",
+		course.name_index AS name_index,
+		course.description AS "description",
+		course.sub_id AS sub_id,
+ 		course.sub_img_id AS sub_img_id,
+		course.type AS type,
+		course.level AS "level",
+		course.fid AS fid,
+		course.order AS "order",
+		course.state AS state,
+		course.token AS token,
+		course.is_public AS is_public,
+		course.language AS "language",
+		course.update_time AS update_time,
+		course.create_time AS create_time,
+		course.certificates_flag AS certificates_flag,
+		course.create_user AS create_user,
+		course.published_time AS published_time
+	</sql>
+
+	<sql id="courseOwnerColumns">
+		u.id as course_owner_id,
+		u.username as course_owner_username,
+		u.state as course_owner_state,
+		u.update_time as course_owner_update_time,
+        u.create_time as course_owner_create_time,
+		u.info_id as course_owner_info_id,
+		u.pid as course_owner_pid,
+		u.powtoon_user_id as course_owner_powtoon_user_id
+	</sql>
+
+	<sql id="courseOwnerInfoColumns">
+		user_info.id as course_owner_info_id,
+		user_info.last_name as course_owner_info_last_name,
+		user_info.first_name as course_owner_info_first_name,
+        user_info.avatar_file_id as course_owner_info_avatar_file_id,
+		user_info.update_time as course_owner_info_update_time,
+        user_info.create_time as course_owner_info_create_time
+	</sql>
+
+	<sql id="courseOwnerAvatarFileColumns">
+		user_avatar_file.id as course_owner_info_avatar_file_id, user_avatar_file.name as course_owner_info_avatar_file_name,
+        user_avatar_file.file_url as course_owner_info_avatar_file_url, user_avatar_file.save_type as course_owner_info_avatar_file_save_type,
+        user_avatar_file.update_time as course_owner_info_avatar_file_update_time, user_avatar_file.create_time as course_owner_info_avatar_file_create_time,
+        user_avatar_file.file_type as course_owner_info_avatar_file_type, user_avatar_file.upload_uid as course_owner_info_avatar_file_upload_uid,
+        user_avatar_file.master_id as course_owner_info_avatar_file_master_id, user_avatar_file.file_type_index as course_owner_info_avatar_file_file_type_index
+	</sql>
+
+	<sql id="courseImageColumns">
+		course_image.id AS course_image_id,
+		course_image.save_type as course_image_save_type,
+        course_image.thumb_nail_id as course_image_thumb_nail_id,
+        course_image.thumb_nail_url as course_image_thumb_nail_url,
+        course_image.name as course_image_name,
+        course_image.file_url as course_image_file_url,
+        course_image.file_type as course_image_file_type,
+        course_image.file_type_index as course_image_file_type_index,
+        course_image.video_long as course_image_video_long
 	</sql>
 
 	<select id="getSubVideoEventList" resultMap="baseResultMap" >
@@ -1835,6 +1992,38 @@
 		  and s."level" = 0
 		  and s.state = 1
 		  and s.master_id = #{masterId}
+	</select>
+
+	<select id="coursesByState" resultMap="courseResultMap">
+		SELECT
+		    <include refid="courseColumns" />,
+			<include refid="courseImageColumns" />,
+			<include refid="courseOwnerColumns" />,
+			<include refid="courseOwnerInfoColumns" />,
+			<include refid="courseOwnerAvatarFileColumns" />
+		FROM gc_subject course
+			JOIN gc_user u ON course.create_user = u.id
+			JOIN gc_user_info user_info ON user_info.id = u.info_id
+			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
+			LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+		WHERE course.fid IS NULL AND course.state = #{state} AND course.master_id = #{masterId}
+		ORDER BY course.create_time DESC
+	</select>
+
+	<select id="ownedCourses" resultMap="courseResultMap">
+		SELECT
+		    <include refid="courseColumns" />,
+			<include refid="courseImageColumns" />,
+			<include refid="courseOwnerColumns" />,
+			<include refid="courseOwnerInfoColumns" />,
+			<include refid="courseOwnerAvatarFileColumns" />
+		FROM gc_subject course
+			JOIN gc_user u ON course.create_user = u.id
+			JOIN gc_user_info user_info ON user_info.id = u.info_id
+			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
+			LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+		WHERE course.fid IS NULL AND course.create_user = #{userId} AND course.master_id = #{masterId}
+		ORDER BY course.create_time DESC
 	</select>
 
 	<select id="searchCourses" resultMap="baseResultMap">

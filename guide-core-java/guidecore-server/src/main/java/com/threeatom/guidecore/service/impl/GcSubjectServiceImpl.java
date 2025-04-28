@@ -1504,7 +1504,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return;
         }
 
-        subImgFile.setFullFileUrl(sysFileService.getFullFileUrl(subImgFile.getFileUrl()));
+        String fullFileUrl = sysFileService.getFullFileUrl(subImgFile.getFileUrl());
+        subImgFile.setFileUrl(fullFileUrl);
+        subImgFile.setFullFileUrl(fullFileUrl);
         subImgFile.setSnapshotUrl(sysFileService.getFullFileUrl(subImgFile.getThumbNailUrl()));
     }
 
@@ -1612,7 +1614,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<GcSubject> searchCourses(String searchName, PortalUser portalUser) {
-        return baseMapper.searchCourses(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        List<GcSubject> courses =
+            baseMapper.searchCourses(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
     }
 
     @Override
@@ -1659,21 +1664,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     private List<GcSubject> getPublicCourses(PortalUser portalUser) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("master_id", portalUser.getMasterId());
-        queryWrapper.eq("state", CoursePublishState.PUBLIC.getValue());
-        queryWrapper.isNull("fid");
-        queryWrapper.orderByDesc("create_time");
-        return list(queryWrapper);
+        List<GcSubject> courses =
+            baseMapper.coursesByState(CoursePublishState.PUBLIC.getValue(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
     }
 
     private List<GcSubject> ownedCourses(PortalUser portalUser) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("create_user", portalUser.getUserId());
-        queryWrapper.eq("master_id", portalUser.getMasterId());
-        queryWrapper.isNull("fid");
-        queryWrapper.orderByDesc("create_time");
-        return list(queryWrapper);
+        List<GcSubject> courses = baseMapper.ownedCourses(portalUser.getUserId(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
     }
 
     private GcContentGroupCourseAssignment findStrongestAssignment(

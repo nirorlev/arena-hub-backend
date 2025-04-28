@@ -129,6 +129,10 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     GcVideo findByVideoId(Integer videoId);
 
+    void updateVideoUrls(GcVideo video);
+
+    void updateVideoFileUrls(SysFile videoFile);
+
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<GcVideo> selectVideoPlayListBySubId(Integer subId, Integer userId);

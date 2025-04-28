@@ -276,12 +276,18 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public List<GcUserSaveFolder> searchPlaylists(String searchName, PortalUser portalUser) {
-        return baseMapper.searchPlaylists(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        List<GcUserSaveFolder> playlists =
+            baseMapper.searchPlaylists(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        playlists.forEach(this::setFirstVideoSnapshotUrl);
+        return playlists;
     }
 
     @Override
     public List<GcUserSaveFolder> searchSuggestedPlaylist(PortalUser portalUser) {
-        return baseMapper.discoverablePlaylists(portalUser.getUserId(), portalUser.getMasterId());
+        List<GcUserSaveFolder> playlists =
+            baseMapper.discoverablePlaylists(portalUser.getUserId(), portalUser.getMasterId());
+        playlists.forEach(this::setFirstVideoSnapshotUrl);
+        return playlists;
     }
 
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {

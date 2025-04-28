@@ -905,11 +905,10 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		video.setThumbnailUrl(videoThumbnailProvider.getThumbnailUrl(videoFile));
 	}
 
-	private void updateVideoUrls(GcVideo video) {
+	@Override
+	public void updateVideoUrls(GcVideo video) {
 		SysFile videoFile = video.getVideoFile();
-
-		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
-		videoFile.setFullFileUrl(sysFileService.getFullFileUrl(videoFile.getFileUrl()));
+		updateVideoFileUrls(videoFile);
 
 		String thumbnailUrl = videoThumbnailProvider.getThumbnailUrl(videoFile);
 		video.setThumbnailUrl(sysFileService.getFullFileUrl(thumbnailUrl));
@@ -923,6 +922,20 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			video.getOriginChannel().getAvatarFile().setFullFileUrl(
 				sysFileService.getFullFileUrl(video.getOriginChannel().getAvatarFile().getFileUrl()));
 		}
+	}
+
+	@Override
+	public void updateVideoFileUrls(SysFile videoFile) {
+		if (videoFile == null) {
+			return;
+		}
+
+		String fullFileUrl = sysFileService.getFullFileUrl(videoFile.getFileUrl());
+
+		videoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(videoFile));
+		videoFile.setFullFileUrl(fullFileUrl);
+		videoFile.setFileUrl(fullFileUrl);
+		videoFile.setThumbNailUrl(sysFileService.getFullFileUrl(videoFile.getThumbNailUrl()));
 	}
 
 	private VideoSearchResponseDto createVideoSearchResponse(List<VideoSearchResultDto> searchResult) {
@@ -1249,6 +1262,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	public List<GcVideo> searchCourseVideos(String searchName, PortalUser portalUser) {
 		List<GcVideo> videos = this.baseMapper.searchCourseVideos(searchName, portalUser.getUserId(), portalUser.getMasterId());
+		videos.forEach(this::updateVideoUrls);
 		return videos;
 	}
 
