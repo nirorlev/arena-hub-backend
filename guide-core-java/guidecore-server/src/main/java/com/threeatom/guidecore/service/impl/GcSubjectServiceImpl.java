@@ -1529,10 +1529,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
         Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
-        List<CourseEnrollment> courseEnrollments =
-            courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
-        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
-            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
 
         List<AssignedCourseDto> assignedCourses = new ArrayList<>();
 
@@ -1544,7 +1540,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             GcSubject course = strongestAssignment.getCourse();
             updateUrls(course);
             Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
-            int studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
+            int studentsCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(courseId);
             int activeStudentsCount = courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(courseId);
             List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
 
@@ -1561,14 +1557,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<GcSubject> courses = ownedCourses(portalUser);
         Set<Integer> courseIds = courses.stream().map(GcSubject::getId).collect(Collectors.toSet());
 
-        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds);
-        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
-            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
-
         List<CourseDto> ownedCourses = courses.stream()
             .map(ownedCourse -> {
                 List<CourseContent> courseContent = courseContentService.findCourseContent(ownedCourse.getId());
-                int studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(ownedCourse.getId(), 0);
+                int studentsCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(ownedCourse.getId());
                 int activeStudentsCount =
                     courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(ownedCourse.getId());
                 Map<String, Boolean> permissions = authorizationService.listPermissions(ownedCourse, portalUser);
