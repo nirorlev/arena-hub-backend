@@ -20,6 +20,7 @@ import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PreviewUserTaskAnswerService;
 import com.threeatom.guidecore.service.TaskService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
@@ -40,6 +41,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
     private final UserTaskAnswerService userTaskAnswerService;
+    private final PreviewUserTaskAnswerService previewUserTaskAnswerService;
     private final CourseEnrollmentService courseEnrollmentService;
 
     @Override
@@ -110,10 +112,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         if (coursePreviewMode(task.getCourseId(), courseModeCookie)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-
-            UserTaskAnswersDto userTaskAnswersDto = new UserTaskAnswersDto();
-            userTaskAnswersDto.setTaskType(task.getType());
-            return userTaskAnswersDto;
+            return previewUserTaskAnswerService.getTaskAnswers(task.getType());
         }
 
         CourseEnrollment activeEnrollment =
@@ -127,7 +126,8 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         if ("me".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), answersStartDate, endDate, portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), answersStartDate,
+                endDate, portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
@@ -142,7 +142,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
 
         if (coursePreviewMode(task.getCourseId(), courseModeCookie)) {
-            return userTaskAnswerService.createCoursePreviewAnswer(userTaskAnswerDto, task, portalUser);
+            return previewUserTaskAnswerService.getAnswer(userTaskAnswerDto, task, portalUser);
         }
 
         CourseEnrollment activeEnrollment =
