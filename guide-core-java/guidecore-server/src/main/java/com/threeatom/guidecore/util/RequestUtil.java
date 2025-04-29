@@ -75,11 +75,11 @@ public class RequestUtil {
             .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
             .findFirst()
             .ifPresent(cookie -> {
-                response.addCookie(createDeleteCoockie(COURSE_MODE_COOKIE_NAME, cookie));
+                response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie));
             });
     }
 
-    public static Map<String, Boolean> getCourseModeCoockie(HttpServletRequest request) {
+    public static Map<String, Boolean> getCourseModeCookie(HttpServletRequest request) {
         return Arrays.stream(getCookies(request))
             .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
             .findFirst()
@@ -97,7 +97,7 @@ public class RequestUtil {
         return cookies;
     }
 
-    private static Cookie createDeleteCoockie(String cookieName, Cookie cookie) {
+    private static Cookie createDeleteCookie(String cookieName, Cookie cookie) {
         Cookie deleteCookie = new Cookie(cookieName, "");
         deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
         deleteCookie.setMaxAge(0);

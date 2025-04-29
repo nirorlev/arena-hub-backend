@@ -111,7 +111,7 @@ public class CourseController {
     public ResponseEntity<CourseProgressDto> courseProgress(@PathVariable Integer courseId,
                                                             HttpServletRequest request) {
         return ResponseEntity.ok(
-            courseFacade.progress(courseId, getPortalUser(request), RequestUtil.getCourseModeCoockie(request)));
+            courseFacade.progress(courseId, getPortalUser(request), RequestUtil.getCourseModeCookie(request)));
     }
 
     @GetMapping("/{courseId}/enrollments")
