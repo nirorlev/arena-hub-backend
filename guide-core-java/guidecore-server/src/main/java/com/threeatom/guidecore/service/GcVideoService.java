@@ -111,7 +111,7 @@ public interface GcVideoService extends GcVideoServiceBll {
         List<Integer> permissionList,
         HttpServletRequest request);
 
-    SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser);
+    SysFile updateVideoFile(GcVideo video, PortalUser portalUser);
 
     Integer countPlaylistLatestVideos(PortalUser portalUser);
 
