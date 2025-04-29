@@ -2026,6 +2026,22 @@
 		ORDER BY course.create_time DESC
 	</select>
 
+	<select id="getCourseById" resultMap="courseResultMap">
+		SELECT
+		    <include refid="courseColumns" />,
+			<include refid="courseImageColumns" />,
+			<include refid="courseOwnerColumns" />,
+			<include refid="courseOwnerInfoColumns" />,
+			<include refid="courseOwnerAvatarFileColumns" />
+		FROM gc_subject course
+			JOIN gc_user u ON course.create_user = u.id
+			JOIN gc_user_info user_info ON user_info.id = u.info_id
+			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
+			LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
+		WHERE course.id = #{courseId}
+		ORDER BY course.create_time DESC
+	</select>
+
 	<select id="searchCourses" resultMap="baseResultMap">
 		SELECT
 		    <include refid="baseColumn" />

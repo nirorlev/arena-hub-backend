@@ -222,4 +222,6 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
                                   @Param("masterId") Integer masterId);
 
     List<GcSubject> ownedCourses(Integer userId, Integer masterId);
+
+    GcSubject getCourseById(Integer courseId);
 }

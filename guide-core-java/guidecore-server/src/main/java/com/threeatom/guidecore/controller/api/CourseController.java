@@ -138,6 +138,11 @@ public class CourseController {
         return ResponseEntity.ok(courseService.lastViewedBookmark(courseId, getPortalUser(request)));
     }
 
+    @GetMapping("/{courseId}")
+    public ResponseEntity<CourseDto> courseDetails(@PathVariable Integer courseId, HttpServletRequest request) {
+        return ResponseEntity.ok(courseService.getCourseDetails(courseId, getPortalUser(request)));
+    }
+
     private PortalUser getPortalUser(HttpServletRequest request) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         GcUser currentUser = userService.getCurrentUser(request);
