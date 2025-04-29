@@ -91,7 +91,8 @@ public class TaskController {
                                           @RequestParam(required = false) OffsetDateTime startDate,
                                           @RequestParam(required = false) OffsetDateTime endDate,
                                           HttpServletRequest request) {
-        return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request));
+        return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request),
+            RequestUtil.getCourseModeCookie(request));
     }
 
     @PostMapping("/{taskId}/answers")

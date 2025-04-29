@@ -8,6 +8,7 @@ import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface VideoEventFacade {
 
@@ -26,7 +27,7 @@ public interface VideoEventFacade {
     List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser);
 
     UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, OffsetDateTime startDate, OffsetDateTime endDate,
-                                   PortalUser portalUser);
+                                   PortalUser portalUser, Map<String, Boolean> courseModeCookie);
 
     UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
                                        Integer taskId, PortalUser portalUser);
