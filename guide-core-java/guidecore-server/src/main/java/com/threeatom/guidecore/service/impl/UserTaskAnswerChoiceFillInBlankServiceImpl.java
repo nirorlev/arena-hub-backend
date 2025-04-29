@@ -21,16 +21,21 @@ public class UserTaskAnswerChoiceFillInBlankServiceImpl
     public List<UserTaskAnswerChoiceFillInBlank> createAnswer(FillInTheBlankAnswer userAnswer,
                                                               FillInTheBlankAnswer taskAnswer,
                                                               Integer userTaskAnswerId) {
+        List<UserTaskAnswerChoiceFillInBlank> userTaskAnswers = getAnswer(userAnswer, taskAnswer, userTaskAnswerId);
+        saveBatch(userTaskAnswers);
+        return userTaskAnswers;
+    }
+
+    @Override
+    public List<UserTaskAnswerChoiceFillInBlank> getAnswer(FillInTheBlankAnswer userAnswer,
+                                                           FillInTheBlankAnswer taskAnswer, Integer userTaskAnswerId) {
         Map<String, Integer> taskKeywordToAnswer = taskAnswer.getKeywordToAnswer();
         Map<String, Integer> userKeywordToAnswer = userAnswer.getKeywordToAnswer();
 
-        List<UserTaskAnswerChoiceFillInBlank> userTaskAnswers = userKeywordToAnswer.entrySet().stream()
+        return userKeywordToAnswer.entrySet().stream()
             .map(entry -> userTaskAnswerChoiceFillInBlank(userTaskAnswerId, entry.getKey(), entry.getValue(),
                 isCorrect(entry.getKey(), entry.getValue(), taskKeywordToAnswer)))
             .collect(Collectors.toList());
-
-        saveBatch(userTaskAnswers);
-        return userTaskAnswers;
     }
 
     private boolean isCorrect(String key, Integer choiceId, Map<String, Integer> keywordToAnswer) {

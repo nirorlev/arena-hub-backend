@@ -101,7 +101,8 @@ public class TaskController {
                                                                                    @Valid
                                                                                    UserTaskAnswerDto userTaskAnswerDto,
                                                                                    HttpServletRequest request) {
-        return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request));
+        return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request),
+            RequestUtil.getCourseModeCookie(request));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

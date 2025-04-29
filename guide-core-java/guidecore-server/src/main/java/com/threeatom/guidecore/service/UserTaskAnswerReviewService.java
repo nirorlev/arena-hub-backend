@@ -19,4 +19,18 @@ public interface UserTaskAnswerReviewService extends IService<UserTaskAnswerRevi
 
     void createFillInTheBlankAnswerReview(List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks,
                                           Integer userTaskAnswerId);
+
+    UserTaskAnswerReview getMultipleChoiceAnswerReview(List<UserTaskAnswerChoice> userTaskAnswerChoices,
+                                                       Integer userTaskAnswerId);
+
+    UserTaskAnswerReview getPairingAnswerReview(List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings,
+                                                PairingProperties pairingProperties,
+                                                Integer userTaskAnswerId);
+
+    UserTaskAnswerReview getSingleChoiceAnswerReview(UserTaskAnswerChoice userTaskAnswerChoice,
+                                                     Integer userTaskAnswerId);
+
+    UserTaskAnswerReview getFillInTheBlankAnswerReview(
+        List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks,
+        Integer userTaskAnswerId);
 }

@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -115,19 +116,28 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     }
 
     @Override
+    public UserTaskAnswerDto createCoursePreviewAnswer(
+        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task, PortalUser portalUser) {
+        verifyTaskVersion(userTaskAnswerDto, task);
+
+        try {
+            Answer answer = videoAnswerStrategy.createAnswer(task.getType(), userTaskAnswerDto.getAnswer());
+            UserTaskAnswer userTaskAnswer = userTaskAnswer(portalUser, task, answer);
+            populateUserTaskAnswerByTaskType(task, answer, userTaskAnswer);
+
+            return userTaskAnswerMapping.mapUserAnswer(userTaskAnswer);
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing Answer object to JSON for task %s".formatted(task.getId()), e);
+            throw new ValidationException("Invalid answer format for type task " + task.getType());
+        }
+    }
+
+    @Override
     @Transactional
     public UserTaskAnswer createAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
                                        Task task, CourseEnrollment activeEnrollment, PortalUser portalUser) {
-        if (!task.getVersion().equals(userTaskAnswerDto.getTaskVersion())) {
-            log.error("Task version mismatch for task %s".formatted(task.getId()));
-            throw new ValidationException("Task version mismatch");
-        }
-        if (task.getRetries() > 0 &&
-            userAnswerCountExceedsLimit(task, portalUser.getUserId(), activeEnrollment.getStartDate())) {
-
-            log.info("Task retries exceeded for task %s".formatted(task.getId()));
-            throw new ValidationException("Task retries exceeded");
-        }
+        verifyTaskVersion(userTaskAnswerDto, task);
+        verifyAnswersCountInEnrollment(task, activeEnrollment, portalUser);
 
         try {
             Answer answer = videoAnswerStrategy.createAnswer(task.getType(), userTaskAnswerDto.getAnswer());
@@ -140,6 +150,22 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
         } catch (JsonProcessingException e) {
             log.error("Error serializing Answer object to JSON for task %s".formatted(task.getId()), e);
             throw new ValidationException("Invalid answer format for type task " + task.getType());
+        }
+    }
+
+    private void verifyAnswersCountInEnrollment(Task task, CourseEnrollment activeEnrollment, PortalUser portalUser) {
+        if (task.getRetries() > 0 &&
+            userAnswerCountExceedsLimit(task, portalUser.getUserId(), activeEnrollment.getStartDate())) {
+
+            log.info("Task retries exceeded for task %s".formatted(task.getId()));
+            throw new ValidationException("Task retries exceeded");
+        }
+    }
+
+    private void verifyTaskVersion(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task) {
+        if (!task.getVersion().equals(userTaskAnswerDto.getTaskVersion())) {
+            log.error("Task version mismatch for task %s".formatted(task.getId()));
+            throw new ValidationException("Task version mismatch");
         }
     }
 
@@ -177,9 +203,7 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
     }
 
     private void createUserTaskAnswerByType(Task task, Answer userAnswer, Integer userTaskAnswerId) {
-        Set<Integer> taskChoiceIds = task.getChoices().stream()
-            .map(TaskChoice::getId)
-            .collect(Collectors.toSet());
+        Set<Integer> taskChoiceIds = getTaskChoiceIds(task);
 
         switch (task.getType()) {
             case PAIRING -> {
@@ -220,6 +244,73 @@ public class UserTaskAnswerServiceImpl extends ServiceImpl<UserTaskAnswerMapper,
                     userTaskAnswerId);
             }
         }
+    }
+
+    private void populateUserTaskAnswerByTaskType(Task task, Answer userAnswer, UserTaskAnswer userTaskAnswer) {
+        Set<Integer> taskChoiceIds = getTaskChoiceIds(task);
+        Integer userTaskAnswerId = userTaskAnswer.getId();
+
+        switch (task.getType()) {
+            case PAIRING -> {
+                PairingAnswer userPairingAnswer = (PairingAnswer) userAnswer;
+                validateTaskChoiceIdsSameAsUserSelectedChoiceIds(taskChoiceIds, getPairingChoiceIds(userPairingAnswer),
+                    task.getId());
+                PairingProperties pairingProperties = (PairingProperties) task.getProperties();
+                List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings =
+                    userTaskAnswerChoicePairingService.getAnswer(userPairingAnswer, (PairingAnswer) task.getAnswer(),
+                        pairingProperties, userTaskAnswerId);
+                UserTaskAnswerReview pairingAnswerReview =
+                    userTaskAnswerReviewService.getPairingAnswerReview(userTaskAnswerChoicePairings, pairingProperties,
+                        userTaskAnswerId);
+
+                userTaskAnswer.setUserTaskAnswerChoicePairings(userTaskAnswerChoicePairings);
+                userTaskAnswer.setUserTaskAnswerReviews(List.of(pairingAnswerReview));
+            }
+            case MULTIPLE_CHOICE -> {
+                MultipleChoiceAnswer userMultipleChoiceAnswer = (MultipleChoiceAnswer) userAnswer;
+                validateTaskChoiceIdsContainsUserSelectedChoiceIds(taskChoiceIds,
+                    new HashSet<>(userMultipleChoiceAnswer.getChoiceIds()), task.getId());
+                List<UserTaskAnswerChoice> userTaskAnswerChoices =
+                    userTaskAnswerChoiceService.getAnswer(userMultipleChoiceAnswer, task, userTaskAnswerId);
+                UserTaskAnswerReview multipleChoiceAnswerReview =
+                    userTaskAnswerReviewService.getMultipleChoiceAnswerReview(userTaskAnswerChoices, userTaskAnswerId);
+
+                userTaskAnswer.setUserTaskAnswerMultipleChoices(userTaskAnswerChoices);
+                userTaskAnswer.setUserTaskAnswerReviews(List.of(multipleChoiceAnswerReview));
+            }
+            case SINGLE_CHOICE -> {
+                SingleChoiceAnswer userSingleChoiceAnswer = (SingleChoiceAnswer) userAnswer;
+                validateTaskChoiceIdsContainsUserSelectedChoiceIds(taskChoiceIds,
+                    Set.of(userSingleChoiceAnswer.getChoiceId()), task.getId());
+                UserTaskAnswerChoice userTaskAnswerChoice =
+                    userTaskAnswerChoiceService.getAnswer(userSingleChoiceAnswer, task, userTaskAnswerId);
+                UserTaskAnswerReview singleChoiceAnswerReview =
+                    userTaskAnswerReviewService.getSingleChoiceAnswerReview(userTaskAnswerChoice, userTaskAnswerId);
+
+                userTaskAnswer.setUserTaskAnswerSingleChoice(userTaskAnswerChoice);
+                userTaskAnswer.setUserTaskAnswerReviews(List.of(singleChoiceAnswerReview));
+            }
+            case FILL_IN_THE_BLANK -> {
+                FillInTheBlankAnswer fillInTheBlankAnswer = (FillInTheBlankAnswer) userAnswer;
+                validateTaskChoiceIdsSameAsUserSelectedChoiceIds(taskChoiceIds,
+                    new HashSet<>(fillInTheBlankAnswer.getKeywordToAnswer().values()), task.getId());
+                List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks =
+                    userTaskAnswerChoiceFillInBlankService.getAnswer(fillInTheBlankAnswer,
+                        (FillInTheBlankAnswer) task.getAnswer(), userTaskAnswerId);
+                UserTaskAnswerReview fillInTheBlankAnswerReview =
+                    userTaskAnswerReviewService.getFillInTheBlankAnswerReview(userTaskAnswerChoiceFillInBlanks,
+                        userTaskAnswerId);
+
+                userTaskAnswer.setUserTaskAnswerChoiceFillInBlanks(userTaskAnswerChoiceFillInBlanks);
+                userTaskAnswer.setUserTaskAnswerReviews(List.of(fillInTheBlankAnswerReview));
+            }
+        }
+    }
+
+    private Set<Integer> getTaskChoiceIds(Task task) {
+        return task.getChoices().stream()
+            .map(TaskChoice::getId)
+            .collect(Collectors.toSet());
     }
 
     private UserTaskAnswer userTaskAnswer(PortalUser portalUser, Task task, Answer answer)

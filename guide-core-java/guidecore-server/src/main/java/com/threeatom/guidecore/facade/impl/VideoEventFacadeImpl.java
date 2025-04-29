@@ -136,9 +136,14 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
     @Override
     public UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                              Integer taskId, PortalUser portalUser) {
+                                              Integer taskId, PortalUser portalUser,
+                                              Map<String, Boolean> courseModeCookie) {
         Task task = taskService.getTask(taskId);
         verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
+
+        if (coursePreviewMode(task.getCourseId(), courseModeCookie)) {
+            return userTaskAnswerService.createCoursePreviewAnswer(userTaskAnswerDto, task, portalUser);
+        }
 
         CourseEnrollment activeEnrollment =
             courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());

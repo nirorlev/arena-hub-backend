@@ -30,5 +30,5 @@ public interface VideoEventFacade {
                                    PortalUser portalUser, Map<String, Boolean> courseModeCookie);
 
     UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                       Integer taskId, PortalUser portalUser);
+                                       Integer taskId, PortalUser portalUser, Map<String, Boolean> courseModeCookie);
 }
