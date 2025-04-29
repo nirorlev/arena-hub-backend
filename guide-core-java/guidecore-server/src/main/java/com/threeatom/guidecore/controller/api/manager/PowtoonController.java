@@ -129,7 +129,6 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
-import org.bouncycastle.cert.ocsp.Req;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1508,7 +1507,7 @@ public class PowtoonController extends GuideCoreController {
         } catch (AuthenticationException e) {
             return new Message().error(401, e.getMessage());
         } finally {
-            RequestUtil.deleteCookie(request, response, RequestUtil.COURSE_MODE_COOCKIE_NAME);
+            RequestUtil.resetSessionState(request, response);
         }
 
         return new Message().error(400, "Invalid code");

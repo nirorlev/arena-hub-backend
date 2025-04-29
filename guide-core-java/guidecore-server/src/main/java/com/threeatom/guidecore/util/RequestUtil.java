@@ -18,7 +18,7 @@ public class RequestUtil {
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
     private static final String REQUESTED_FRONTEND_VERSION_NAME = "frontendVersion";
-    public static final String COURSE_MODE_COOCKIE_NAME = "course_mode";
+    public static final String COURSE_MODE_COOKIE_NAME = "course_mode";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
@@ -67,15 +67,15 @@ public class RequestUtil {
         return request.getScheme() + "://" + request.getServerName();
     }
 
-    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
+    public static void resetSessionState(HttpServletRequest request, HttpServletResponse response) {
         if (request.getCookies() == null) {
-            log.warn("Cannot delete coockie {} since request does not have coockies set", cookieName);
+            log.warn("Cannot delete cookie {} since request does not have cookies set", COURSE_MODE_COOKIE_NAME);
             return;
         }
 
         for (Cookie cookie : request.getCookies()) {
-            if (cookieName.equals(cookie.getName())) {
-                Cookie deleteCookie = new Cookie(cookieName, "");
+            if (COURSE_MODE_COOKIE_NAME.equals(cookie.getName())) {
+                Cookie deleteCookie = new Cookie(COURSE_MODE_COOKIE_NAME, "");
                 deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
                 deleteCookie.setMaxAge(0);
 
