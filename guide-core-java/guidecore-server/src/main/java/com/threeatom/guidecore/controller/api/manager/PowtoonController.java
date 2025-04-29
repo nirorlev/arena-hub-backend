@@ -1486,7 +1486,7 @@ public class PowtoonController extends GuideCoreController {
     @ApiOperation(value = "getToken", httpMethod = "GET")
     @PostMapping("/getToken")
     public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
-                            HttpServletRequest request)
+                            HttpServletRequest request, HttpServletResponse response)
         throws IOException, ClientException {
         Integer masterId = getMaster(request).getId();
         PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1506,6 +1506,8 @@ public class PowtoonController extends GuideCoreController {
             }
         } catch (AuthenticationException e) {
             return new Message().error(401, e.getMessage());
+        } finally {
+            RequestUtil.resetSessionState(request, response);
         }
 
         return new Message().error(400, "Invalid code");
