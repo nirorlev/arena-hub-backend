@@ -248,10 +248,11 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         GcSubject course = courseEnrollments.get(0).getCourse();
         List<CourseContent> courseContent = courseContentService.findCourseContent(course.getId());
         int activeUniqueUsersInCourseEnrollmentCount = countActiveUniqueUsersInCourseEnrollments(course.getId());
+        int uniqueUsersInCourseEnrollmentCount = countUniqueUsersInCourseEnrollments(course.getId());
         Map<String, Boolean> coursePermissions = authorizationService.listPermissions(course, portalUser);
         CourseEnrollmentDto courseEnrollmentDto =
             convertToCourseEnrollmentDto(course, courseContent, courseTasks(courseContent), coursePermissions,
-                countUniqueUsersInCourseEnrollments(course.getId()), activeUniqueUsersInCourseEnrollmentCount);
+                uniqueUsersInCourseEnrollmentCount, activeUniqueUsersInCourseEnrollmentCount);
 
         Map<Integer, List<CourseEnrollment>> userIdToCourseEnrollments = courseEnrollments.stream()
             .collect(Collectors.groupingBy(CourseEnrollment::getUserId));
@@ -316,12 +317,6 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         courseEnrollment.setStartDate(OffsetDateTime.now());
 
         return courseEnrollment;
-    }
-
-    private UpdateEnrollmentDto getUpdateEnrollmentDto(boolean isActive) {
-        UpdateEnrollmentDto updateEnrollmentDto = new UpdateEnrollmentDto();
-        updateEnrollmentDto.setIsActive(isActive);
-        return updateEnrollmentDto;
     }
 
     private int taskDuration(List<Task> courseTasks) {
