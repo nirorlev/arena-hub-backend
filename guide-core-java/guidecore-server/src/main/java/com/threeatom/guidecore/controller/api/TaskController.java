@@ -94,7 +94,7 @@ public class TaskController {
         return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request));
     }
 
-    @GetMapping("/{taskId}/answers/preview")
+    @GetMapping("/{taskId}/answers-preview")
     public UserTaskAnswersDto taskAnswers(@PathVariable Integer taskId, HttpServletRequest request) {
         return videoEventFacade.taskAnswersPreview(taskId, getPortalUser(request));
     }
@@ -108,7 +108,7 @@ public class TaskController {
         return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request));
     }
 
-    @PostMapping("/{taskId}/answers/preview")
+    @PostMapping("/{taskId}/answers-preview")
     public com.threeatom.guidecore.dto.response.UserTaskAnswerDto createTaskAnswerPreview(@PathVariable Integer taskId,
                                                                                           @RequestBody
                                                                                           @Valid
