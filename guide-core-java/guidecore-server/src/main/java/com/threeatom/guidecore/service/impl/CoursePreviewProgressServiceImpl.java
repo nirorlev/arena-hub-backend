@@ -80,12 +80,21 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
         return videos.stream()
             .collect(Collectors.toMap(video -> String.valueOf(video.getId()), video -> {
                 ProgressDetailsDto<ContentProgressDto> videoProgress = new ProgressDetailsDto<>();
+                double percentage = getRandomPercentage();
                 ContentProgressDto contentProgressDto = new ContentProgressDto();
-                contentProgressDto.setPercentage(50);
-                contentProgressDto.setSecondsViewed(video.getVideoTime() / 2);
+                contentProgressDto.setPercentage(percentage);
+                contentProgressDto.setSecondsViewed(getSecondsViewed(video.getVideoTime(), percentage));
                 videoProgress.setProgress(contentProgressDto);
                 return videoProgress;
             }));
+    }
+
+    private int getSecondsViewed(Integer videoTime, double percentage) {
+        return (int) (videoTime * percentage / 100);
+    }
+
+    private double getRandomPercentage() {
+        return Math.min(1.0, Math.random() + Double.MIN_VALUE);
     }
 
     private Map<String, ProgressDetailsDto<SectionProgressDto>> getPreviewSectionProgress(List<GcVideo> videos) {
@@ -95,20 +104,25 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), entry -> {
                 ProgressDetailsDto<SectionProgressDto> sectionProgressDetails = new ProgressDetailsDto<>();
                 SectionProgressDto sectionProgressDto = new SectionProgressDto();
-                sectionProgressDto.setPercentage(50);
-                sectionProgressDto.setSecondsViewed(
-                    entry.getValue().stream().mapToInt(GcVideo::getVideoTime).sum() / 2);
+                double percentage = getRandomPercentage();
+                sectionProgressDto.setPercentage(percentage);
+                sectionProgressDto.setSecondsViewed(getSecondsViewed(totalVideoTime(entry.getValue()), percentage));
                 sectionProgressDetails.setProgress(sectionProgressDto);
                 return sectionProgressDetails;
             }));
+    }
+
+    private int totalVideoTime(List<GcVideo> videos) {
+        return videos.stream().mapToInt(GcVideo::getVideoTime).sum();
     }
 
     private CourseProgressDetailsDto getPreviewCourseProgress(GcSubject course, List<GcVideo> videos,
                                                               CourseSetting courseSetting) {
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();
-        courseTotalProgressDto.setPercentage(50);
-        courseTotalProgressDto.setSecondsViewed(videos.stream().mapToInt(GcVideo::getVideoTime).sum() / 2);
+        double percentage = getRandomPercentage();
+        courseTotalProgressDto.setPercentage(percentage);
+        courseTotalProgressDto.setSecondsViewed(getSecondsViewed(totalVideoTime(videos), percentage));
         courseProgressDetailsDto.setProgress(courseTotalProgressDto);
         return courseProgressDetailsDto;
     }
