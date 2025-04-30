@@ -114,7 +114,7 @@ public class CourseController {
             courseEnrollmentProgressService.courseProgress(courseId, getPortalUser(request)));
     }
 
-    @GetMapping("/{courseId}/progress/preview")
+    @GetMapping("/{courseId}/progress-preview")
     public ResponseEntity<CourseProgressDto> courseProgressPreview(@PathVariable Integer courseId,
                                                                    HttpServletRequest request) {
         return ResponseEntity.ok(
