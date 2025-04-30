@@ -95,7 +95,7 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
     }
 
     private double getRandomPercentage() {
-        return Math.min(1.0, Math.random() + Double.MIN_VALUE);
+        return Math.min(1.0, Math.random() + Double.MIN_VALUE) * 100;
     }
 
     private Map<String, ProgressDetailsDto<SectionProgressDto>> getPreviewSectionProgress(List<GcVideo> videos) {
