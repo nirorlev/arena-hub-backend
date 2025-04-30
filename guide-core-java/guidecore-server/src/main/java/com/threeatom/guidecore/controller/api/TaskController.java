@@ -91,8 +91,12 @@ public class TaskController {
                                           @RequestParam(required = false) OffsetDateTime startDate,
                                           @RequestParam(required = false) OffsetDateTime endDate,
                                           HttpServletRequest request) {
-        return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request),
-            RequestUtil.getCourseModeCookie(request));
+        return videoEventFacade.taskAnswers(taskId, userFilter, startDate, endDate, getPortalUser(request));
+    }
+
+    @GetMapping("/{taskId}/answers/preview")
+    public UserTaskAnswersDto taskAnswers(@PathVariable Integer taskId, HttpServletRequest request) {
+        return videoEventFacade.taskAnswersPreview(taskId, getPortalUser(request));
     }
 
     @PostMapping("/{taskId}/answers")
@@ -101,8 +105,16 @@ public class TaskController {
                                                                                    @Valid
                                                                                    UserTaskAnswerDto userTaskAnswerDto,
                                                                                    HttpServletRequest request) {
-        return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request),
-            RequestUtil.getCourseModeCookie(request));
+        return videoEventFacade.createTaskAnswer(userTaskAnswerDto, taskId, getPortalUser(request));
+    }
+
+    @PostMapping("/{taskId}/answers/preview")
+    public com.threeatom.guidecore.dto.response.UserTaskAnswerDto createTaskAnswerPreview(@PathVariable Integer taskId,
+                                                                                          @RequestBody
+                                                                                          @Valid
+                                                                                          UserTaskAnswerDto userTaskAnswerDto,
+                                                                                          HttpServletRequest request) {
+        return videoEventFacade.createTaskAnswerPreview(userTaskAnswerDto, taskId, getPortalUser(request));
     }
 
     private PortalUser getPortalUser(HttpServletRequest request) {

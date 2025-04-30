@@ -71,9 +71,7 @@ public class RequestUtil {
         Arrays.stream(getCookies(request))
             .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
             .findFirst()
-            .ifPresent(cookie -> {
-                response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie));
-            });
+            .ifPresent(cookie -> response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie)));
     }
 
     private static Cookie[] getCookies(HttpServletRequest request) {

@@ -26,7 +26,6 @@ import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -105,15 +104,9 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
     @Override
     public UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, OffsetDateTime startDate,
-                                          OffsetDateTime endDate, PortalUser portalUser,
-                                          Map<String, Boolean> courseModeCookie) {
+                                          OffsetDateTime endDate, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         Integer videoId = task.getVideoEvent().getVideoId();
-
-        if (coursePreviewMode(task.getCourseId(), courseModeCookie)) {
-            verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return previewUserTaskAnswerService.getTaskAnswers(task.getType());
-        }
 
         CourseEnrollment activeEnrollment =
             courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());
@@ -135,15 +128,30 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     }
 
     @Override
+    public UserTaskAnswersDto taskAnswersPreview(Integer taskId, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        Integer videoId = task.getVideoEvent().getVideoId();
+
+        verifyOriginCoursePermission(portalUser, videoId, PermitAction.EDIT);
+        return previewUserTaskAnswerService.getTaskAnswers(task.getType());
+    }
+
+    @Override
+    public UserTaskAnswerDto createTaskAnswerPreview(
+        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Integer taskId,
+        PortalUser portalUser) {
+
+        Task task = taskService.getTask(taskId);
+        verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        return previewUserTaskAnswerService.getAnswer(userTaskAnswerDto, task, portalUser);
+    }
+
+    @Override
     public UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                              Integer taskId, PortalUser portalUser,
-                                              Map<String, Boolean> courseModeCookie) {
+                                              Integer taskId, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.VIEW);
-
-        if (coursePreviewMode(task.getCourseId(), courseModeCookie)) {
-            return previewUserTaskAnswerService.getAnswer(userTaskAnswerDto, task, portalUser);
-        }
 
         CourseEnrollment activeEnrollment =
             courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());
@@ -167,9 +175,5 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
             throw new ForbiddenException(
                 "User does not have permission to %s this course".formatted(permitAction.name()));
         }
-    }
-
-    private boolean coursePreviewMode(Integer courseId, Map<String, Boolean> courseModeCookie) {
-        return courseModeCookie.getOrDefault(String.valueOf(courseId), false);
     }
 }

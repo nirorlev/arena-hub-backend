@@ -27,8 +27,14 @@ public interface VideoEventFacade {
     List<TaskVersionDto> taskVersions(Integer taskId, PortalUser portalUser);
 
     UserTaskAnswersDto taskAnswers(Integer taskId, String userFilter, OffsetDateTime startDate, OffsetDateTime endDate,
-                                   PortalUser portalUser, Map<String, Boolean> courseModeCookie);
+                                   PortalUser portalUser);
+
+    UserTaskAnswersDto taskAnswersPreview(Integer taskId, PortalUser portalUser);
+
+    UserTaskAnswerDto createTaskAnswerPreview(
+        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Integer taskId,
+        PortalUser portalUser);
 
     UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                       Integer taskId, PortalUser portalUser, Map<String, Boolean> courseModeCookie);
+                                       Integer taskId, PortalUser portalUser);
 }
