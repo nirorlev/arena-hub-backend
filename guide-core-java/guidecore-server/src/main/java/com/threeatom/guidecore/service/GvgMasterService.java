@@ -24,8 +24,7 @@ public interface GvgMasterService extends IService<GcMaster> {
     Message newPtIndexHome(
             JSONObject requestParams, HttpServletRequest request, SysSystem system, PortalUser portalUser);
 
-    Message search(
-        SearchDto searchDto, HttpServletRequest request, GcUser user, SysSystem system);
+    Message search(SearchDto searchDto, HttpServletRequest request, GcUser user, SysSystem system);
 
     Message navigation(
             Map<String, Object> params,
@@ -44,11 +43,9 @@ public interface GvgMasterService extends IService<GcMaster> {
             List<GcSubject> subjects,
             Integer userId,
             boolean ifStudent,
-            Integer masterId,
-            Integer envFlag);
+            Integer masterId);
 
-    Message videoDetail(
-            HttpServletRequest request, Integer videoId, GcUser user, SysSystem system, Integer envFlag);
+    Message videoDetail(HttpServletRequest request, Integer videoId, PortalUser portalUser);
 
     Message eventAnswerList(JSONObject jsonRequest, HttpServletRequest request, GcUser user);
 

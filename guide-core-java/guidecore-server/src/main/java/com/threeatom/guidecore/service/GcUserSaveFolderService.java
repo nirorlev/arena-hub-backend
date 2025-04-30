@@ -54,4 +54,8 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
                                                                                                Integer pageSize);
 
     List<VideoWithSourceDetailsDto<VideoSourceDto>> findPlaylistLatestVideos(PortalUser portalUser, Integer playlistId);
+
+    List<GcUserSaveFolder> searchPlaylists(String searchName, PortalUser portalUser);
+
+    List<GcUserSaveFolder> searchSuggestedPlaylist(PortalUser portalUser);
 }

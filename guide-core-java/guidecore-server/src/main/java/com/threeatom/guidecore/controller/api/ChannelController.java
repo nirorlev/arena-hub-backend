@@ -66,7 +66,7 @@ public class ChannelController {
         GcUser currentUser = userService.getCurrentUser(request);
         PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
 
-        return channelService.getDiscoverableChannels(portalUser, request);
+        return channelService.getDiscoverableChannels(portalUser);
     }
 
     @PostMapping("/sections/order")

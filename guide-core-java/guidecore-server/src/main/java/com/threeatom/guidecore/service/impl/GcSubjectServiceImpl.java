@@ -699,7 +699,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<Integer> videoIdlist = videoService.getVideoIdListBySubId(level0subIds);
         List<GcVideo> videoList = videoService.getVideoLongListByVideoId(videoIdlist);
         if (null != userId) {
-            videoList = videoService.buildVideoInfo(userId, null, videoList, masterId, request, EnvType.PT.getCode());
+            videoList = videoService.buildVideoInfo(userId, videoList, masterId);
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -877,8 +877,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     List<GcEvent> eventList = eventService.getEventListByVideoIds(videoIds, userId);
                     totals.setTaskTotalProgress(eventList.size());//问题总数
                     if (Objects.nonNull(userId)) {
-                        List<GcEvent> eventAnswers =
-                            eventService.findEventAnswerByVideoIdsUser(videoIds, userId, masterId, envFlag);//查询视频
+                        List<GcEvent> eventAnswers = eventService.findEventAnswerByVideoIdsUser(videoIds, userId, masterId);//查询视频
                         if (CollectionUtils.isNotEmpty(eventAnswers)) {
                             Set<GcEvent> collect = eventAnswers.stream().filter(
                                     e -> com.baomidou.mybatisplus.core.toolkit.StringUtils.isNotBlank(e.getAnswerJson()))
@@ -1377,7 +1376,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         if (course.getState() == null) {
-            course.setState(course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
+            course.setState(
+                course.isTopic() ? CoursePublishState.PUBLIC.getValue() : CoursePublishState.PRIVATE.getValue());
         }
         if (course.getMasterId() == null) {
             course.setMasterId(masterId);
@@ -1503,7 +1503,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return;
         }
 
-        subImgFile.setFullFileUrl(sysFileService.getFullFileUrl(subImgFile.getFileUrl()));
+        String fullFileUrl = sysFileService.getFullFileUrl(subImgFile.getFileUrl());
+        subImgFile.setFileUrl(fullFileUrl);
+        subImgFile.setFullFileUrl(fullFileUrl);
         subImgFile.setSnapshotUrl(sysFileService.getFullFileUrl(subImgFile.getThumbNailUrl()));
     }
 
@@ -1527,10 +1529,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseListDto<AssignedCourseDto> getAssignedCourses(PortalUser portalUser) {
         Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
-        List<CourseEnrollment> courseEnrollments =
-            courseEnrollmentService.courseEnrollments(courseIdToAssignments.keySet());
-        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
-            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
 
         List<AssignedCourseDto> assignedCourses = new ArrayList<>();
 
@@ -1542,11 +1540,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             GcSubject course = strongestAssignment.getCourse();
             updateUrls(course);
             Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
-            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(courseId, 0);
+            int studentsCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(courseId);
+            int activeStudentsCount = courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(courseId);
             List<CourseContent> courseContent = courseTopicsContent(courseContentService.findCourseContent(courseId));
 
             assignedCourses.add(
-                createAssignedCourseDto(course, courseContent, strongestAssignment, studentsCount, permissions));
+                createAssignedCourseDto(course, courseContent, strongestAssignment, studentsCount, activeStudentsCount,
+                    permissions));
         }
 
         return createCourseListDto(assignedCourses);
@@ -1557,17 +1557,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         List<GcSubject> courses = ownedCourses(portalUser);
         Set<Integer> courseIds = courses.stream().map(GcSubject::getId).collect(Collectors.toSet());
 
-        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds);
-        Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
-            getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
-
         List<CourseDto> ownedCourses = courses.stream()
             .map(ownedCourse -> {
                 List<CourseContent> courseContent = courseContentService.findCourseContent(ownedCourse.getId());
-                Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(ownedCourse.getId(), 0);
+                int studentsCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(ownedCourse.getId());
+                int activeStudentsCount =
+                    courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(ownedCourse.getId());
                 Map<String, Boolean> permissions = authorizationService.listPermissions(ownedCourse, portalUser);
 
-                return createCourseDto(ownedCourse, courseContent, studentsCount, permissions);
+                return createCourseDto(ownedCourse, courseContent, studentsCount, activeStudentsCount, permissions);
             })
             .collect(Collectors.toList());
 
@@ -1577,32 +1575,72 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
         List<GcSubject> publicCourses = getPublicCourses(portalUser);
-        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
-        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
-
         List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
-        Set<Integer> userActiveEnrollmentCourseIds =
-            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
 
         List<CourseDto> discoverableCourses = new ArrayList<>();
-        for (GcSubject publicCourse : publicCourses) {
-            if (courseIdsWithAssignment.contains(publicCourse.getId())
-                || userActiveEnrollmentCourseIds.contains(publicCourse.getId())
-                || anyNotActiveEnrollmentsFinished(courseEnrollments)) {
-                continue;
-            }
-
+        for (GcSubject publicCourse : discoverableCourses(publicCourses, courseEnrollments, portalUser)) {
             List<CourseContent> courseContent =
                 courseTopicsContent(courseContentService.findCourseContent(publicCourse.getId()));
-            Integer studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
+            int studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
+            int activeStudentsCount =
+                courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(publicCourse.getId());
             Map<String, Boolean> permissions = authorizationService.listPermissions(publicCourse, portalUser);
 
-            discoverableCourses.add(createCourseDto(publicCourse, courseContent, studentsCount, permissions));
+            discoverableCourses.add(
+                createCourseDto(publicCourse, courseContent, studentsCount, activeStudentsCount, permissions));
         }
 
         return createCourseListDto(discoverableCourses);
+    }
+
+    private List<GcSubject> discoverableCourses(List<GcSubject> courses, List<CourseEnrollment> courseEnrollments,
+                                                PortalUser portalUser) {
+        Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
+        Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
+
+        Set<Integer> userActiveEnrollmentCourseIds =
+            getUserActiveEnrollmentCourseIds(courseEnrollments, portalUser.getUserId());
+
+        return courses.stream()
+            .filter(publicCourse -> !courseIdsWithAssignment.contains(publicCourse.getId()))
+            .filter(publicCourse -> !userActiveEnrollmentCourseIds.contains(publicCourse.getId()))
+            .filter(publicCourse -> !anyNotActiveEnrollmentsFinished(courseEnrollments))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GcSubject> searchCourses(String searchName, PortalUser portalUser) {
+        List<GcSubject> courses =
+            baseMapper.searchCourses(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
+    }
+
+    @Override
+    public List<GcSubject> searchSuggestedCourses(PortalUser portalUser) {
+        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+        List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
+
+        return discoverableCourses(publicCourses, courseEnrollments, portalUser);
+    }
+
+    @Override
+    public CourseDto getCourseDetails(Integer courseId, PortalUser portalUser) {
+        GcSubject course = baseMapper.getCourseById(courseId);
+        if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+            throw new ForbiddenException("User has no access to the course");
+        }
+
+        Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
+        List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
+        int uniqueUsersInCourseEnrollmentCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(courseId);
+        int activeStudentsCount =
+            courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(courseId);
+
+        return createCourseDto(course, courseContent, uniqueUsersInCourseEnrollmentCount, activeStudentsCount,
+            permissions);
     }
 
     private boolean anyNotActiveEnrollmentsFinished(List<CourseEnrollment> courseEnrollments) {
@@ -1641,21 +1679,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     private List<GcSubject> getPublicCourses(PortalUser portalUser) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("master_id", portalUser.getMasterId());
-        queryWrapper.eq("state", CoursePublishState.PUBLIC.getValue());
-        queryWrapper.isNull("fid");
-        queryWrapper.orderByDesc("create_time");
-        return list(queryWrapper);
+        List<GcSubject> courses =
+            baseMapper.coursesByState(CoursePublishState.PUBLIC.getValue(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
     }
 
     private List<GcSubject> ownedCourses(PortalUser portalUser) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("create_user", portalUser.getUserId());
-        queryWrapper.eq("master_id", portalUser.getMasterId());
-        queryWrapper.isNull("fid");
-        queryWrapper.orderByDesc("create_time");
-        return list(queryWrapper);
+        List<GcSubject> courses = baseMapper.ownedCourses(portalUser.getUserId(), portalUser.getMasterId());
+        courses.forEach(this::updateUrls);
+        return courses;
     }
 
     private GcContentGroupCourseAssignment findStrongestAssignment(
@@ -1680,9 +1713,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     private AssignedCourseDto createAssignedCourseDto(GcSubject course, List<CourseContent> courseContent,
                                                       GcContentGroupCourseAssignment courseAssignment,
-                                                      int studentsCount, Map<String, Boolean> permissions) {
+                                                      int studentsCount, int activeStudentsCount,
+                                                      Map<String, Boolean> permissions) {
         AssignedCourseDto assignedCourseDto =
-            new AssignedCourseDto(createCourseDto(course, courseContent, studentsCount, permissions));
+            new AssignedCourseDto(
+                createCourseDto(course, courseContent, studentsCount, activeStudentsCount, permissions));
         assignedCourseDto.setDeadline(courseAssignment.getDeadline());
         assignedCourseDto.setIsMandatory(courseAssignment.getMandatory() == 1);
         return assignedCourseDto;
@@ -1693,7 +1728,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,
-                                      int studentsCount, Map<String, Boolean> permissions) {
+                                      int studentsCount, int activeStudentsCount, Map<String, Boolean> permissions) {
         List<Task> courseTasks = courseTasks(courseContent);
         CourseDto courseDto = new CourseDto();
 
@@ -1708,6 +1743,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         courseDto.setTasksCount(courseTasks.size());
         courseDto.setTasksDuration(taskDuration(courseTasks));
         courseDto.setStudentsCount(studentsCount);
+        courseDto.setActiveStudentsCount(activeStudentsCount);
         courseDto.setAverageRating(0);
         courseDto.setPermissions(permissions);
 

@@ -233,7 +233,9 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
         if (Objects.nonNull(channel.getCreateUser())) {
             SysFile createUserAvatar = sysFileService.getById(channel.getCreateUser().getAvatarFileId());
-            if (createUserAvatar == null) return;
+            if (createUserAvatar == null) {
+                return;
+            }
             String imgFullFileUrl = sysFileService.getFullFileUrl(createUserAvatar.getFileUrl());
             channel.getCreateUser().setAvatarFullFileUrl(imgFullFileUrl);
         }
@@ -303,15 +305,36 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<PtChannel> searchChannelsBySysFile(Integer userId, HttpServletRequest request, Integer masterId) {
-        List<PtChannel> channels;
-        if (request.getAttribute("searchName") != null) {
-            channels = this.baseMapper.searchChannelsBySysFile(
-                request.getAttribute("searchName").toString(), userId, masterId);
-        } else {
-            channels = this.baseMapper.searchChannelsBySysFile(null, userId, masterId);
+    public List<PtChannel> searchChannelVideos(Integer userId, HttpServletRequest request, Integer masterId) {
+        String searchName = request.getAttribute("searchName").toString();
+        if (searchName != null) {
+            return channelVideos(this.baseMapper.searchChannelsBySysFile(searchName, userId, masterId));
         }
 
+        return channelVideos(this.baseMapper.searchChannelsBySysFile(null, userId, masterId));
+    }
+
+    @Override
+    public List<PtChannel> searchChannelVideos(String searchName, PortalUser portalUser) {
+        List<PtChannel> channels = this.baseMapper.searchChannelVideos(
+            searchName, portalUser.getUserId(), portalUser.getMasterId());
+        List<PtChannel> channelVideos = channelVideos(channels);
+        updateChannelVideoUrls(channelVideos);
+
+        return channelVideos;
+    }
+
+    @Override
+    public List<PtChannel> searchSuggestedChannelsVideos(PortalUser portalUser) {
+        List<PtChannel> channels = this.baseMapper.searchChannelsBySysFile(
+            null, portalUser.getUserId(), portalUser.getMasterId());
+        List<PtChannel> suggestedChannelVideos = channelVideos(channels);
+        updateChannelVideoUrls(suggestedChannelVideos);
+
+        return suggestedChannelVideos;
+    }
+
+    private List<PtChannel> channelVideos(List<PtChannel> channels) {
         List<Integer> channelFileId = channels.stream().map(PtChannel::getFileId).collect(Collectors.toList());
         if (channelFileId.isEmpty()) {
             return new ArrayList<>();
@@ -338,7 +361,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
             if (channelVideoFile != null) {
                 channel.setVideoFile(channelVideoFile);
                 channelVideoFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(channelVideoFile));
-                channelVideoFile.setFullFileUrl(sysFileService.getResFullUrl(channelVideoFile, request));
+                channelVideoFile.setFullFileUrl(sysFileService.getFullFileUrl(channelVideoFile.getFileUrl()));
                 videoService.getVideoContent(channelVideoFile.getId())
                     .ifPresent(videoContent -> channelVideoFile.setVideoId(videoContent.getId()));
             }
@@ -536,14 +559,20 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
-    public List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request) {
+    public List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser) {
+        List<PtChannel> channels = discoverableChannels(portalUser);
+        return convert(channels);
+    }
+
+    private List<PtChannel> discoverableChannels(PortalUser portalUser) {
         List<PtChannel> channels =
             baseMapper.selectDiscoverableChannels(portalUser.getUserId(), portalUser.getMasterId());
         channels.forEach(channel -> {
             updateUrls(channel);
             channel.setPermissions(authorizationService.listPermissions(channel, portalUser));
         });
-        return convert(channels);
+
+        return channels;
     }
 
     private void updateUserAvatar(HttpServletRequest request, PtChannel ptChannel) {
@@ -697,6 +726,20 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return videoWithDetails;
     }
 
+    @Override
+    public List<PtChannel> searchChannels(String searchName, PortalUser portalUser) {
+        List<PtChannel> channels =
+            baseMapper.searchChannels(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        channels.forEach(this::updateUrls);
+
+        return channels;
+    }
+
+    @Override
+    public List<PtChannel> searchSuggestedChannels(PortalUser portalUser) {
+        return discoverableChannels(portalUser);
+    }
+
     private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
         int index = availableVideoIds.indexOf(videoId);
         if (index == -1 || index == 0) {
@@ -755,5 +798,15 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         return channels.stream()
             .map(channelMapping::map)
             .collect(Collectors.toList());
+    }
+
+    private void updateChannelVideoUrls(List<PtChannel> channels) {
+        channels.forEach(channel -> videoService.updateVideoFileUrls(channel.getVideoFile()));
+
+        channels.stream()
+            .map(PtChannel::getVideoList)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .forEach(videoFile -> videoService.updateVideoFileUrls(videoFile));
     }
 }

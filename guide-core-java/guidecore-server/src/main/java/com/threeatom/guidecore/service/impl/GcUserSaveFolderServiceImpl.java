@@ -39,7 +39,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -229,7 +228,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Override
     public PageableDto<PlaylistWithDetailsDto> discoverable(PortalUser portalUser, CursorDto cursor, Integer pageSize) {
-        List<GcUserSaveFolder> playlists = this.baseMapper.discoverablePlaylists(portalUser, cursor);
+        List<GcUserSaveFolder> playlists = this.baseMapper.paginatedDiscoverablePlaylists(portalUser, cursor);
         Integer totalCount = this.baseMapper.countDiscoverablePlaylists(portalUser);
 
         return PaginationUtil.createPageableDto(playlists, totalCount, pageSize,
@@ -273,6 +272,22 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
         List<GcVideo> playlistLatestVideos = gcVideoService.findPlaylistLatestVideos(playlistId, portalUser);
         unavailableVideoService.nullifyVideoData(portalUser, playlistLatestVideos);
         return convertVideoDetails(playlistLatestVideos);
+    }
+
+    @Override
+    public List<GcUserSaveFolder> searchPlaylists(String searchName, PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists =
+            baseMapper.searchPlaylists(searchName, portalUser.getUserId(), portalUser.getMasterId());
+        playlists.forEach(this::setFirstVideoSnapshotUrl);
+        return playlists;
+    }
+
+    @Override
+    public List<GcUserSaveFolder> searchSuggestedPlaylist(PortalUser portalUser) {
+        List<GcUserSaveFolder> playlists =
+            baseMapper.discoverablePlaylists(portalUser.getUserId(), portalUser.getMasterId());
+        playlists.forEach(this::setFirstVideoSnapshotUrl);
+        return playlists;
     }
 
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {

@@ -34,8 +34,12 @@ public interface GcUserSaveFolderMapper extends BaseMapper<GcUserSaveFolder> {
 
     List<GcUserSaveFolder> subscribedPlaylists(@Param("portalUser") PortalUser portalUser);
 
-    List<GcUserSaveFolder> discoverablePlaylists(@Param("portalUser") PortalUser portalUser,
-                                                 @Param("cursor") CursorDto cursor);
+    List<GcUserSaveFolder> paginatedDiscoverablePlaylists(@Param("portalUser") PortalUser portalUser,
+                                                          @Param("cursor") CursorDto cursor);
+
+    List<GcUserSaveFolder> discoverablePlaylists(Integer userId, Integer masterId);
 
     Integer countDiscoverablePlaylists(@Param("portalUser") PortalUser portalUser);
+
+    List<GcUserSaveFolder> searchPlaylists(String searchName, Integer userId, Integer masterId);
 }

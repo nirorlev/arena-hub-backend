@@ -10,12 +10,13 @@ import com.threeatom.guidecore.service.PowtoonExternalVideoService;
 import com.threeatom.system.entity.SysFile;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternalVideoMapper, PowtoonExternalVideo>
 	implements PowtoonExternalVideoService {
 
-	private PowtoonExternalVideo createNewExternalVideo (Integer sysFileId, String origin, String externalId, String version, String publicToken) {
+	private void createNewExternalVideo (Integer sysFileId, String origin, String externalId, String version, String publicToken) {
 		PowtoonExternalVideo externalVideo = new PowtoonExternalVideo();
 		externalVideo.setSysFileId(sysFileId);
 		externalVideo.setExternalId(externalId);
@@ -23,7 +24,6 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 		externalVideo.setVersion(version);
 		externalVideo.setPublicToken(publicToken);
 		save(externalVideo);
-		return externalVideo;
 	}
 
 	@Override
@@ -41,17 +41,18 @@ public class PowtoonExternalVideoServiceImpl extends ServiceImpl<PowtoonExternal
 	}
 
 	@Override
-	public PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile) {
+	@Transactional
+	public void createExternalVideoForSysFile(SysFile sysFile) {
 		Integer sysFileId = sysFile.getId();
 		JSONObject source = sysFile.getSource();
 		if (source == null || getBySysFileId(sysFileId) != null) {
-			return null;
+			return;
 		}
 
 		String externalId = source.getString("id");
 		String origin = source.getString("origin");
 		String version = source.getString("version");
 		String publicToken = source.getString("publicToken");
-		return createNewExternalVideo(sysFileId, origin, externalId, version, publicToken);
+		createNewExternalVideo(sysFileId, origin, externalId, version, publicToken);
     }
 }

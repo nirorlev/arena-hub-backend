@@ -70,6 +70,8 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> searchVideo(Map<String, Object> params);
 
+    List<GcVideo> searchCourseVideos(String searchName, Integer userId, Integer masterId);
+
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
         String videoNameIndex, String subNameIndex, Integer masterId);
 

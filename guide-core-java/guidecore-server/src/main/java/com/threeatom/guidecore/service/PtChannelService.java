@@ -42,8 +42,12 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<PtChannel> newIndexHomeChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<PtChannel> searchChannelsBySysFile(
+    List<PtChannel> searchChannelVideos(
         Integer userId, HttpServletRequest request, Integer masterId);
+
+    List<PtChannel> searchChannelVideos(String searchName, PortalUser portalUser);
+
+    List<PtChannel> searchSuggestedChannelsVideos(PortalUser portalUser);
 
     List<PtChannel> searchChannelsBySysFileNew(PortalUser portalUser, HttpServletRequest request);
 
@@ -57,7 +61,7 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<ChannelWithDetailsDto> getSubscribedChannels(PortalUser portalUser, HttpServletRequest request);
 
-    List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser, HttpServletRequest request);
+    List<ChannelWithDetailsDto> getDiscoverableChannels(PortalUser portalUser);
 
     void updateSectionOrder(IdsDto sectionIds, Integer masterId);
 
@@ -77,4 +81,8 @@ public interface PtChannelService extends IService<PtChannel> {
 
     VideoWithSourceDetailsDto<VideoSourceDto> channelVideoPlayerPage(Integer videoId, Integer channelId,
                                                                      PortalUser portalUser);
+
+    List<PtChannel> searchChannels(String searchName, PortalUser portalUser);
+
+    List<PtChannel> searchSuggestedChannels(PortalUser portalUser);
 }

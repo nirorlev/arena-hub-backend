@@ -1,6 +1,5 @@
 package com.threeatom.guidecore.dto.response;
 
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,5 +11,6 @@ public class CourseDto extends BasicCourseDto {
     private int tasksCount;
     private int tasksDuration;
     private int studentsCount;
+    private int activeStudentsCount;
     private double averageRating;
 }

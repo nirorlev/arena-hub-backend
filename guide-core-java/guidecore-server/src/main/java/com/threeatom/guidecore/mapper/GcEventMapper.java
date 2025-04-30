@@ -45,8 +45,7 @@ public interface GcEventMapper extends BaseMapper<GcEvent> {
     List<GcEvent> findEventAnswerByVideoIdsUser(
             @Param("videoIds") List<Integer> videoIds,
             @Param("userId") Integer userId,
-            @Param("masterId") Integer masterId,
-            @Param("envFlag") Integer envFlag);
+            @Param("masterId") Integer masterId);
 
     List<GcEvent> findEventUserByVideoIdsUser(
             @Param("videoIds") List<Integer> videoIds,

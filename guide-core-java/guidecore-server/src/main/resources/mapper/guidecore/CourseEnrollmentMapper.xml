@@ -239,4 +239,10 @@
         FROM course_enrollments
         WHERE course_id = #{courseId}
     </select>
+
+    <select id="countActiveDistinctUsersByCourse" resultType="int">
+        SELECT COUNT(DISTINCT user_id)
+        FROM course_enrollments
+        WHERE course_id = #{courseId} AND end_date IS NULL
+    </select>
 </mapper>

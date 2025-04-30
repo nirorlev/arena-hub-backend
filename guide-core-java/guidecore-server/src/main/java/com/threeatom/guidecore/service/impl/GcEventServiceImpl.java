@@ -190,9 +190,8 @@ public class GcEventServiceImpl extends ServiceImpl<GcEventMapper, GcEvent>
     }
 
     @Override
-    public List<GcEvent> findEventAnswerByVideoIdsUser(
-            List<Integer> videoIds, Integer userId, Integer masterId, Integer envFlag) {
-        return this.baseMapper.findEventAnswerByVideoIdsUser(videoIds, userId, masterId, envFlag);
+    public List<GcEvent> findEventAnswerByVideoIdsUser(List<Integer> videoIds, Integer userId, Integer masterId) {
+        return this.baseMapper.findEventAnswerByVideoIdsUser(videoIds, userId, masterId);
     }
 
     @Override

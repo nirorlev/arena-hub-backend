@@ -45,7 +45,18 @@
 
                 <association property="avatarFile" column="avatar_file_id" javaType="SysFile" columnPrefix="avatar_file_" resultMap="fileResultMap" />
             </association>
-
+        </association>
+        <association property="videoFile" javaType="SysFile" columnPrefix="file_">
+            <id property="id" column="channel_file_id" />
+            <result property="name" column="channel_video_f_name"/>
+            <result property="fileUrl" column="channel_video_file_url"/>
+            <result property="saveType" column="channel_video_f_save_type"/>
+            <result property="fileTypeIndex" column="channel_video_f_file_index"/>
+            <result property="fileType" column="channel_video_f_file_type"/>
+            <result property="thumbNailId" column="channel_thumb_nail_id"/>
+            <result property="thumbNailUrl" column="channel_thumb_nail_url"/>
+            <result property="videoLong" column="channel_video_long"/>
+            <result property="ptChannelContentId" column="pt_channel_content_id"/>
         </association>
         <collection property="videoList" javaType="ArrayList" column="id" ofType="com.threeatom.system.entity.SysFile">
             <id property="id" column="channel_file_id" />
@@ -526,6 +537,14 @@
         coalesce(ch2.channel_name,channel.channel_name) as channel_name,
         video_content.id as video_id,
         video_content.file_id as fileId,
+        video_file.save_type as channel_video_f_save_type,
+        video_file.thumb_nail_id as channel_thumb_nail_id,
+        video_file.thumb_nail_url as channel_thumb_nail_url,
+        video_file.name as channel_video_f_name,
+        video_file.file_url as channel_video_file_url,
+        video_file.file_type as channel_video_f_file_type,
+        video_file.file_type_index as channel_video_f_file_index,
+        video_file.video_long as channel_video_long,
         info.last_name AS createUserLastName,
         info.first_name AS createUserFirstName,
         info.avatar_file_id as userInfo_avatar_file_id,
@@ -534,6 +553,7 @@
         case when vac.user_id=#{userId} then 1 else 0 end as isLiked,
         pcc.id as channelContentId
         from gc_video video_content
+        join sys_file video_file ON video_content.file_id = video_file.id
         left join pt_channel_content pcc on video_content.id = pcc.content_id
         left join pt_channel channel on pcc.channel_id = channel.id
         left join pt_channel ch2 on ch2.id = channel.fid
@@ -556,7 +576,7 @@
             OR ( channel.create_user_id =#{userId} AND channel.master_id = #{masterId} )
             and pcc.id is not null
         )
-        GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id
+        GROUP BY video_content.id, channel.id, ch2.id, info.id, us2.id, vac.id, pcc.id, video_file.id
         order by video_content.update_time desc
     </select>
 
@@ -846,6 +866,97 @@
           AND pcs_subscribed.id IS NULL
           AND (pc.create_user_id = #{userId} OR pc.visible_flag = 1 OR (pc.visible_flag = 2 AND ua.id IS NOT NULL))
         ORDER BY cgc.modified_date DESC
+    </select>
+
+    <select id="searchChannelVideos" resultMap="baseResultMap">
+        SELECT coalesce(channel.channel_img_file_id, channel_section.channel_img_file_id) as channel_img_file_id,
+               coalesce(channel."desc", channel_section."desc")                           as "desc",
+               coalesce(channel.create_user_id, channel_section.create_user_id)           as create_user_id,
+               coalesce(channel.visible_flag, channel_section.visible_flag)               as visible_flag,
+               coalesce(channel.category_id, channel_section.category_id)                 as category_id,
+               coalesce(channel.level, channel_section.level)                             as level,
+               coalesce(channel.fid, channel_section.fid)                                 as fid,
+               coalesce(channel."order", channel_section."order")                         as "order",
+               coalesce(channel.master_id, channel_section.master_id)                     as master_id,
+               coalesce(channel.channel_slug, channel_section.channel_slug)               as channel_slug,
+               coalesce(channel.create_time, channel_section.create_time)                 as create_time,
+               coalesce(channel.update_time, channel_section.update_time)                 as update_time,
+               coalesce(channel.channel_avatar_file_id,
+                        channel_section.channel_avatar_file_id)                           as channel_avatar_file_id,
+               coalesce(channel.id, channel_section.id)                                   as id,
+               coalesce(channel.channel_name, channel_section.channel_name)               as channel_name,
+               video.id                                                                   as video_id,
+               video.file_id                                                              as fileId,
+               owner_info.last_name                                                       AS createUserLastName,
+               owner_info.first_name                                                      AS createUserFirstName,
+               owner_info.avatar_file_id                                                  as userInfo_avatar_file_id,
+               channel_content.id                                                         as channelContentId,
+               video_file.id                                                              as file_channel_file_id,
+               video_file.name                                                            as file_channel_video_f_name,
+               video_file.file_url                                                        as file_channel_video_file_url,
+               video_file.save_type                                                       as file_channel_video_f_save_type,
+               video_file.file_type_index                                                 as file_channel_video_f_file_index,
+               video_file.file_type                                                       as file_channel_video_f_file_type,
+               video_file.thumb_nail_id                                                   as file_channel_thumb_nail_id,
+               video_file.thumb_nail_url                                                  as file_channel_thumb_nail_url,
+               video_file.video_long                                                      as file_channel_video_long,
+               channel_content.id                                                         as file_pt_channel_content_id
+        FROM pt_channel_content channel_content
+                 LEFT JOIN pt_channel channel
+                           ON channel_content.channel_id = channel.id AND channel.master_id = #{masterId} AND
+                              channel.fid IS NULL
+                 LEFT JOIN pt_channel channel_section
+                           ON channel_content.channel_id = channel_section.id AND
+                              channel_section.master_id = #{masterId} AND
+                              channel_section.fid IS NOT NULL
+
+                 JOIN gc_user channel_owner
+                      ON channel.create_user_id = channel_owner.id OR channel_section.create_user_id = channel_owner.id
+                 JOIN gc_user_info owner_info ON channel_owner.info_id = owner_info.id
+                 JOIN gc_video video ON channel_content.content_id = video.id
+                 JOIN sys_file video_file ON video.file_id = video_file.id
+
+                 LEFT JOIN content_group_channel_subscription channel_subscription
+                           ON channel.id = channel_subscription.channel_id
+                 LEFT JOIN gc_user_access user_content_group
+                           ON channel_subscription.content_group_id = user_content_group.access_id AND
+                              user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId}
+
+                 LEFT JOIN content_group_channel_subscription section_main_channel_subscription
+                           ON channel_section.fid = channel_subscription.channel_id
+                 LEFT JOIN gc_user_access section_main_channel_user_content_group
+                           ON section_main_channel_subscription.content_group_id =
+                              section_main_channel_user_content_group.access_id AND
+                              section_main_channel_user_content_group.user_id = #{userId} AND
+                              section_main_channel_user_content_group.master_id = #{masterId}
+        WHERE video.video_name ilike concat('%', #{searchName}
+            , '%')
+          AND (channel.create_user_id = #{userId}
+           OR channel_section.create_user_id = #{userId}
+           OR channel.visible_flag = 1
+           OR channel_section.visible_flag = 1
+           OR (channel.visible_flag = 2
+          AND user_content_group.id IS NOT NULL)
+           OR (section_main_channel_user_content_group.id IS NOT NULL)
+            );
+    </select>
+
+    <select id="searchChannels" resultMap="baseResultMap">
+        SELECT channel.*,
+               channel_avatar.file_url AS img_full_file_url
+        FROM pt_channel channel
+             JOIN gc_user channel_owner
+                  ON channel.create_user_id = channel_owner.id OR channel.create_user_id = channel_owner.id
+             JOIN gc_user_info owner_info ON channel_owner.info_id = owner_info.id
+             LEFT JOIN sys_file channel_avatar ON channel.channel_img_file_id = channel_avatar.id
+
+             LEFT JOIN content_group_channel_subscription channel_subscription
+                       ON channel.id = channel_subscription.channel_id
+             LEFT JOIN gc_user_access user_content_group
+                       ON channel_subscription.content_group_id = user_content_group.access_id AND
+                          user_content_group.user_id = #{userId} AND user_content_group.master_id = #{masterId}
+        WHERE channel.master_id = #{masterId} AND channel.channel_name ilike concat('%', #{searchName}, '%')
+            AND (channel.create_user_id = #{userId} OR channel.visible_flag = 1 OR channel.visible_flag = 2);
     </select>
 </mapper>
 

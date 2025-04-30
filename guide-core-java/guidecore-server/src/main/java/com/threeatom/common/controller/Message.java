@@ -100,6 +100,15 @@ public class Message {
         return this;
     }
 
+    public Message addData(Map<String, Object> data) {
+        if (this.data == null) {
+            return this;
+        }
+
+        this.data.putAll(data);
+        return this;
+    }
+
     public Message ok() {
         this.addMeta("success", Boolean.TRUE);
         this.addMeta("code", 200);

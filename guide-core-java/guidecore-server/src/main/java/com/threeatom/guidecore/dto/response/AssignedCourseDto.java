@@ -25,6 +25,7 @@ public class AssignedCourseDto extends CourseDto {
         this.setTasksCount(courseDto.getTasksCount());
         this.setTasksDuration(courseDto.getTasksDuration());
         this.setStudentsCount(courseDto.getStudentsCount());
+        this.setActiveStudentsCount(courseDto.getActiveStudentsCount());
         this.setAverageRating(courseDto.getAverageRating());
         this.setPermissions(courseDto.getPermissions());
     }

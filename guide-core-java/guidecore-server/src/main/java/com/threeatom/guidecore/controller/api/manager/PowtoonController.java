@@ -90,6 +90,7 @@ import com.threeatom.guidecore.service.PtConfigService;
 import com.threeatom.guidecore.service.PtLoginConfigService;
 import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.PtViewSubjectService;
+import com.threeatom.guidecore.service.SearchService;
 import com.threeatom.guidecore.service.SysMenuService;
 import com.threeatom.guidecore.service.UserLicenseService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
@@ -280,23 +281,13 @@ public class PowtoonController extends GuideCoreController {
     private EventPublisherService eventPublisherService;
     @Autowired
     private PowtoonClient powtoonClient;
+    @Autowired
+    private SearchService searchService;
 
     @ApiOperation(value = "Search videos", httpMethod = "POST")
     @PostMapping("search")
     public Message searchVideo(@RequestBody @Valid SearchDto searchDto, HttpServletRequest request) {
-        RequestUtil.getMasterId(request)
-            .orElseThrow(() -> new SystemException(I18NUtil.get("guidecore.unlogin.error")));
-
-        String token = RequestUtil.getRequestAuthHeader(request);
-        SysSystem system = this.getSystem();
-
-        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
-            GcUser gcUser = this.getGcUser();
-            return gvgMasterService.search(searchDto, request, gcUser, system)
-                .addData("date:::", new Date());
-        }
-
-        return gvgMasterService.search(searchDto, request, null, system);
+        return searchService.search(searchDto, getPortalUser(request)).addData("date:::", new Date());
     }
 
     @ApiOperation(value = "New UI course homepage - including course name query interface", notes = "New UI Course Home", httpMethod = "POST")
@@ -730,21 +721,13 @@ public class PowtoonController extends GuideCoreController {
 
     @GetMapping("/videoDetailPt")
     public Message videoDetailPt(HttpServletRequest request, Integer videoId) {
-        SysSystem system = this.getSystem();
-        String token = RequestUtil.getRequestAuthHeader(request);
-        if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
-            GcUser user = this.getGcUser();
-            GcMaster master = masterService.getById(RequestUtil.getMasterId(request).orElseThrow());
-            GcVideo video = gcVideoService.findByVideoId(videoId);
-            PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-
-            if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
-                throw new PermitException("No permission for this!");
-            }
-            return gvgMasterService.videoDetail(request, videoId, user, system, EnvType.PT.getCode());
+        GcVideo video = gcVideoService.findByVideoId(videoId);
+        PortalUser portalUser = getPortalUser(request);
+        if (!authorizationService.checkAccess(video, PermitAction.VIEW, portalUser)) {
+            throw new PermitException("No permission for this!");
         }
 
-        return gvgMasterService.videoDetail(request, videoId, null, system, EnvType.PT.getCode());
+        return gvgMasterService.videoDetail(request, videoId, portalUser);
     }
 
     @PostMapping("/selectVideosAndEvents")
@@ -1197,7 +1180,7 @@ public class PowtoonController extends GuideCoreController {
         List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
         if (null != user) {
             videoList =
-                gcVideoService.buildVideoInfo(user.getId(), null, videoList, masterId, request, EnvType.PT.getCode());
+                gcVideoService.buildVideoInfo(user.getId(), videoList, masterId);
         }
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
@@ -1503,7 +1486,7 @@ public class PowtoonController extends GuideCoreController {
     @ApiOperation(value = "getToken", httpMethod = "GET")
     @PostMapping("/getToken")
     public Message getToken(@RequestBody(required = false) AuthTokenDto authTokenDto,
-                            HttpServletRequest request)
+                            HttpServletRequest request, HttpServletResponse response)
         throws IOException, ClientException {
         Integer masterId = getMaster(request).getId();
         PtLoginConfig loginConfig = ptLoginConfigService.getPopulatedPtLoginConfig(masterId);
@@ -1523,6 +1506,8 @@ public class PowtoonController extends GuideCoreController {
             }
         } catch (AuthenticationException e) {
             return new Message().error(401, e.getMessage());
+        } finally {
+            RequestUtil.resetSessionState(request, response);
         }
 
         return new Message().error(400, "Invalid code");
@@ -1652,7 +1637,8 @@ public class PowtoonController extends GuideCoreController {
         List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
             UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+                CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
             gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
@@ -1669,7 +1655,8 @@ public class PowtoonController extends GuideCoreController {
         });
 
         Integer DiscoverNew =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR, CoursePublishState.CERTAIN_TEAMS.getValue(),
+            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+                CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
 
         return new Message().ok()
@@ -2475,7 +2462,7 @@ public class PowtoonController extends GuideCoreController {
 
         channelCreator.setInfo(gcUserInfo);
         ptchannel.setCreateUser(channelCreator);
-        SysFile videoFile = gcVideoService.updateVideoFile(request, channelVideoContent, portalUser);
+        SysFile videoFile = gcVideoService.updateVideoFile(channelVideoContent, portalUser);
         GcUserVideoAction gcUserVideoAction =
             gcUserVideoActionService.getOldChannelVideoAction(ptChannelContent.getContentId(), currentUser.getId(),
                 TableConstant.COMMON_ONE);
@@ -2606,6 +2593,13 @@ public class PowtoonController extends GuideCoreController {
 
     private PortalUser getPortalUser(HttpServletRequest request, GcUser currentUser) {
         Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+    }
+
+    private PortalUser getPortalUser(HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+
         return portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
     }
 }

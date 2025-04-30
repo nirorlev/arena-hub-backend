@@ -213,6 +213,15 @@ public interface GcSubjectMapper extends BaseMapper<GcSubject> {
         @Param("subjectState") Integer subjectState,
         @Param("orgMaySubjectIds") List<Integer> orgMaySubjectIds);
 
+    List<GcSubject> coursesByState(Integer state, Integer masterId);
+
     List<Integer> getNewAssignments(
         @Param("userId") Integer userId, @Param("masterId") Integer masterId);
+
+    List<GcSubject> searchCourses(@Param("searchName") String searchName, @Param("userId") Integer userId,
+                                  @Param("masterId") Integer masterId);
+
+    List<GcSubject> ownedCourses(Integer userId, Integer masterId);
+
+    GcSubject getCourseById(Integer courseId);
 }

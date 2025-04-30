@@ -9,5 +9,5 @@ import com.threeatom.system.entity.SysFile;
 public interface PowtoonExternalVideoService extends IService<PowtoonExternalVideo> {
     PowtoonExternalVideo getBySysFileId(Integer sysFileId);
     List<PowtoonExternalVideo> getByExternalId(String externalId);
-    PowtoonExternalVideo createExternalVideoForSysFile(SysFile sysFile);
+    void createExternalVideoForSysFile(SysFile sysFile);
 }

@@ -65,24 +65,19 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
 
-    List<GcVideo> getVideosBySubjectIds0(
-        List<Integer> subjectIds,
-        Integer userId,
-        Integer masterId,
-        HttpServletRequest request,
-        Integer envFlag);
+    List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId, Integer masterId);
 
     List<GcVideo> getVideoIdListBySubId0(
         List<Integer> subIds,
         Integer userId,
-        Integer masterId,
-        HttpServletRequest request,
-        Integer envFlag);
+        Integer masterId);
 
     List<GcVideo> getVideoListByUserIdAndSubject(
         List<Integer> userId, Integer subjectId, Integer masterId, HttpServletRequest request);
 
     PageInfo<GcVideo> page(Map<String, Object> searchParameters, SysSystem system, HttpServletRequest request);
+
+    List<GcVideo> searchCourseVideos(String searchName, PortalUser portalUser);
 
     List<GcVideo> selectVideoByVideoAndSub0NameIndex(
         String videoName, String subName, Integer masterId);
@@ -91,11 +86,8 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     List<GcVideo> buildVideoInfo(
         Integer userId,
-        SysSystem sys,
         List<GcVideo> gcVideos,
-        Integer masterId,
-        HttpServletRequest request,
-        Integer envFlag);
+        Integer masterId);
 
     @Async
     void asyncMethodSaveVideo(GcVideo video, HttpServletRequest request);
@@ -119,7 +111,7 @@ public interface GcVideoService extends GcVideoServiceBll {
         List<Integer> permissionList,
         HttpServletRequest request);
 
-    SysFile updateVideoFile(HttpServletRequest request, GcVideo video, PortalUser portalUser);
+    SysFile updateVideoFile(GcVideo video, PortalUser portalUser);
 
     Integer countPlaylistLatestVideos(PortalUser portalUser);
 
@@ -128,6 +120,10 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<Integer> getVideoOriginSubscriberIds(GcVideo video, Integer masterId);
 
     GcVideo findByVideoId(Integer videoId);
+
+    void updateVideoUrls(GcVideo video);
+
+    void updateVideoFileUrls(SysFile videoFile);
 
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
