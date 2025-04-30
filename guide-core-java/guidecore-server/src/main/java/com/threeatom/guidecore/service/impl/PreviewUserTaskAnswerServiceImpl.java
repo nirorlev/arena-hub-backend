@@ -79,7 +79,7 @@ public class PreviewUserTaskAnswerServiceImpl implements PreviewUserTaskAnswerSe
             case PAIRING -> populateUserTaskAnswerForPairing(
                 task, (PairingAnswer) userAnswer, userTaskAnswer, taskChoiceIds, userTaskAnswerId);
             case MULTIPLE_CHOICE ->
-                populateUserTaskAnswerForMultipleChoise(task, (MultipleChoiceAnswer) userAnswer, userTaskAnswer,
+                populateUserTaskAnswerForMultipleChoice(task, (MultipleChoiceAnswer) userAnswer, userTaskAnswer,
                     taskChoiceIds, userTaskAnswerId);
             case SINGLE_CHOICE ->
                 populateUserTaskAnswerForSingleChoice(task, (SingleChoiceAnswer) userAnswer, userTaskAnswer,
@@ -121,7 +121,7 @@ public class PreviewUserTaskAnswerServiceImpl implements PreviewUserTaskAnswerSe
         userTaskAnswer.setUserTaskAnswerReviews(List.of(singleChoiceAnswerReview));
     }
 
-    private void populateUserTaskAnswerForMultipleChoise(Task task, MultipleChoiceAnswer userAnswer,
+    private void populateUserTaskAnswerForMultipleChoice(Task task, MultipleChoiceAnswer userAnswer,
                                                          UserTaskAnswer userTaskAnswer,
                                                          Set<Integer> taskChoiceIds, Integer userTaskAnswerId) {
         TaskAnswerChoiceValidator.validateTaskChoiceIdsContainsUserSelectedChoiceIds(taskChoiceIds,
@@ -157,6 +157,7 @@ public class PreviewUserTaskAnswerServiceImpl implements PreviewUserTaskAnswerSe
             .map(TaskChoice::getId)
             .collect(Collectors.toSet());
     }
+
     private void verifyTaskVersion(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task) {
         if (!task.getVersion().equals(userTaskAnswerDto.getTaskVersion())) {
             log.error("Task version mismatch for task %s".formatted(task.getId()));
