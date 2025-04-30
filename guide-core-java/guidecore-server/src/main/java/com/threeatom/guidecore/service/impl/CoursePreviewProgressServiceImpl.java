@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -45,7 +44,7 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
         GcSubject course = courseService.getById(courseId);
-        if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
+        if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
             throw new ForbiddenException("You have no access to this course");
         }
