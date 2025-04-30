@@ -22,11 +22,13 @@ import com.threeatom.guidecore.service.CoursePreviewProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.VideoEventService;
+import com.threeatom.guidecore.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -142,22 +144,16 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
     }
 
     private List<Task> getCourseTasks(Map<Integer, List<Task>> videoIdToTasks) {
-        return videoIdToTasks.values().stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+        return CollectionUtils.flattenValues(videoIdToTasks);
     }
 
     private Map<Integer, List<Task>> getVideoIdToTasks(List<Integer> videoIds) {
         List<VideoEvent> taskVideoEvents = videoEventService.videoEventsByType(videoIds, VideoEventType.TASK);
-        return taskVideoEvents.stream()
-            .filter(videoEvent -> videoEvent.getTask() != null)
-            .collect(Collectors.groupingBy(VideoEvent::getVideoId,
-                Collectors.mapping(VideoEvent::getTask, Collectors.toList())));
+        return CollectionUtils.groupByAndMap(
+            taskVideoEvents, VideoEvent::getVideoId, VideoEvent::getTask, event -> event.getTask() != null);
     }
 
     private List<Integer> courseVideoIds(List<GcVideo> videos) {
-        return videos.stream()
-            .map(GcVideo::getId)
-            .collect(Collectors.toList());
+        return CollectionUtils.mapToList(videos, GcVideo::getId);
     }
 }

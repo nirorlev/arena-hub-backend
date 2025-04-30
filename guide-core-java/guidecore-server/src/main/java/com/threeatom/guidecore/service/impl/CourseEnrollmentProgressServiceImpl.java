@@ -30,6 +30,7 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
+import com.threeatom.guidecore.util.CollectionUtils;
 import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -145,17 +146,13 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private List<Task> getCourseTasks(Map<Integer, List<Task>> videoIdToTasks) {
-        return videoIdToTasks.values().stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+        return CollectionUtils.flattenValues(videoIdToTasks);
     }
 
     private Map<Integer, List<Task>> getVideoIdToTasks(List<Integer> videoIds) {
         List<VideoEvent> taskVideoEvents = videoEventService.videoEventsByType(videoIds, VideoEventType.TASK);
-        return taskVideoEvents.stream()
-            .filter(videoEvent -> videoEvent.getTask() != null)
-            .collect(Collectors.groupingBy(VideoEvent::getVideoId,
-                Collectors.mapping(VideoEvent::getTask, Collectors.toList())));
+        return CollectionUtils.groupByAndMap(
+            taskVideoEvents, VideoEvent::getVideoId, VideoEvent::getTask, event -> event.getTask() != null);
     }
 
     private int tasksTime(List<Task> tasks) {
@@ -183,9 +180,7 @@ public class CourseEnrollmentProgressServiceImpl
     }
 
     private List<Integer> courseVideoIds(List<GcVideo> videos) {
-        return videos.stream()
-            .map(GcVideo::getId)
-            .collect(Collectors.toList());
+        return CollectionUtils.mapToList(videos, GcVideo::getId);
     }
 
     private Map<Integer, ProgressDetailsDto<ContentProgressDto>> contentProgress(List<GcVideo> videos,
