@@ -1,9 +1,6 @@
 package com.threeatom.guidecore.util;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -77,14 +74,6 @@ public class RequestUtil {
             .ifPresent(cookie -> {
                 response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie));
             });
-    }
-
-    public static Map<String, Boolean> getCourseModeCookie(HttpServletRequest request) {
-        return Arrays.stream(getCookies(request))
-            .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
-            .findFirst()
-            .map(cookie -> JSONObject.parseObject(cookie.getValue(), new TypeReference<Map<String, Boolean>>() {}))
-            .orElseGet(Map::of);
     }
 
     private static Cookie[] getCookies(HttpServletRequest request) {

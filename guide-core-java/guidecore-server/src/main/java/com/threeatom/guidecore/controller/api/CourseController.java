@@ -13,9 +13,9 @@ import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.facade.CourseFacade;
 import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
+import com.threeatom.guidecore.service.CoursePreviewProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
@@ -46,12 +46,12 @@ public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
     private final GcSubjectService courseService;
-    private final CourseFacade courseFacade;
     private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
-    private final CourseEnrollmentProgressService courseEnrollmentProgressService;
     private final CourseSettingService courseSettingService;
+    private final CourseEnrollmentProgressService courseEnrollmentProgressService;
+    private final CoursePreviewProgressService coursePreviewProgressService;
 
     @GetMapping("/assigned")
     public ResponseEntity<CourseListDto<AssignedCourseDto>> userAssignedCourses(HttpServletRequest request) {
@@ -111,7 +111,14 @@ public class CourseController {
     public ResponseEntity<CourseProgressDto> courseProgress(@PathVariable Integer courseId,
                                                             HttpServletRequest request) {
         return ResponseEntity.ok(
-            courseFacade.progress(courseId, getPortalUser(request), RequestUtil.getCourseModeCookie(request)));
+            courseEnrollmentProgressService.courseProgress(courseId, getPortalUser(request)));
+    }
+
+    @GetMapping("/{courseId}/progress/preview")
+    public ResponseEntity<CourseProgressDto> courseProgressPreview(@PathVariable Integer courseId,
+                                                                   HttpServletRequest request) {
+        return ResponseEntity.ok(
+            coursePreviewProgressService.courseProgress(courseId, getPortalUser(request)));
     }
 
     @GetMapping("/{courseId}/enrollments")
