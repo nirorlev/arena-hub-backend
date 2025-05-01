@@ -20,12 +20,12 @@ import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.facade.VideoEventFacade;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PreviewUserTaskAnswerService;
 import com.threeatom.guidecore.service.TaskService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,6 +40,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     private final GcVideoService videoService;
     private final AuthorizationService authorizationService;
     private final UserTaskAnswerService userTaskAnswerService;
+    private final PreviewUserTaskAnswerService previewUserTaskAnswerService;
     private final CourseEnrollmentService courseEnrollmentService;
 
     @Override
@@ -106,6 +107,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
                                           OffsetDateTime endDate, PortalUser portalUser) {
         Task task = taskService.getTask(taskId);
         Integer videoId = task.getVideoEvent().getVideoId();
+
         CourseEnrollment activeEnrollment =
             courseEnrollmentService.getActiveEnrollment(task.getCourseId(), portalUser.getUserId());
         OffsetDateTime answersStartDate = startDate == null ? activeEnrollment.getStartDate() : startDate;
@@ -117,11 +119,32 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
 
         if ("me".equals(userFilter)) {
             verifyOriginCoursePermission(portalUser, videoId, PermitAction.VIEW);
-            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), answersStartDate, endDate, portalUser);
+            return userTaskAnswerService.findUserTaskAnswersByTaskIdAndUserId(taskId, task.getType(), answersStartDate,
+                endDate, portalUser);
         }
 
         log.error("Invalid user filter passed: {} for task {}", userFilter, taskId);
         throw new ValidationException("Invalid user filter passed: %s".formatted(userFilter));
+    }
+
+    @Override
+    public UserTaskAnswersDto taskAnswersPreview(Integer taskId, PortalUser portalUser) {
+        Task task = taskService.getTask(taskId);
+        Integer videoId = task.getVideoEvent().getVideoId();
+
+        verifyOriginCoursePermission(portalUser, videoId, PermitAction.EDIT);
+        return previewUserTaskAnswerService.getTaskAnswers(task.getType());
+    }
+
+    @Override
+    public UserTaskAnswerDto createTaskAnswerPreview(
+        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Integer taskId,
+        PortalUser portalUser) {
+
+        Task task = taskService.getTask(taskId);
+        verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);
+
+        return previewUserTaskAnswerService.getAnswer(userTaskAnswerDto, task, portalUser);
     }
 
     @Override

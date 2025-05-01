@@ -1,4 +1,3 @@
-
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -22,9 +21,25 @@ public class UserTaskAnswerChoiceServiceImpl extends ServiceImpl<UserTaskAnswerC
     @Transactional
     public List<UserTaskAnswerChoice> createAnswer(MultipleChoiceAnswer userAnswer, Task task,
                                                    Integer userTaskAnswerId) {
+        List<UserTaskAnswerChoice> userTaskAnswerChoices = getAnswer(userAnswer, task, userTaskAnswerId);
+        saveBatch(userTaskAnswerChoices);
+        return userTaskAnswerChoices;
+    }
+
+    @Override
+    @Transactional
+    public UserTaskAnswerChoice createAnswer(SingleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
+        UserTaskAnswerChoice answer = getAnswer(userAnswer, task, userTaskAnswerId);
+        save(answer);
+
+        return answer;
+    }
+
+    @Override
+    public List<UserTaskAnswerChoice> getAnswer(MultipleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
         List<Integer> correctChoiceIds = ((MultipleChoiceAnswer) task.getAnswer()).getChoiceIds();
 
-        List<UserTaskAnswerChoice> userTaskAnswerChoices = task.getChoices().stream()
+        return task.getChoices().stream()
             .map(TaskChoice::getId)
             .map(choiceId -> userTaskAnswerChoice(
                     userTaskAnswerId
@@ -34,15 +49,10 @@ public class UserTaskAnswerChoiceServiceImpl extends ServiceImpl<UserTaskAnswerC
                 )
             )
             .collect(Collectors.toList());
-
-        saveBatch(userTaskAnswerChoices);
-
-        return userTaskAnswerChoices;
     }
 
     @Override
-    @Transactional
-    public UserTaskAnswerChoice createAnswer(SingleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
+    public UserTaskAnswerChoice getAnswer(SingleChoiceAnswer userAnswer, Task task, Integer userTaskAnswerId) {
         Integer userChoiceId = userAnswer.getChoiceId();
         UserTaskAnswerChoice userTaskAnswerChoice = userTaskAnswerChoice(userTaskAnswerId, userChoiceId,
             true, ((SingleChoiceAnswer) task.getAnswer()).getChoiceId().equals(userChoiceId));

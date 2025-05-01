@@ -1,4 +1,3 @@
-
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -21,47 +20,76 @@ public class UserTaskAnswerReviewServiceImpl extends ServiceImpl<UserTaskAnswerR
     @Transactional
     public void createMultipleChoiceAnswerReview(List<UserTaskAnswerChoice> userTaskAnswerChoices,
                                                  Integer userTaskAnswerId) {
-
-        if (userTaskAnswerChoices.stream().allMatch(UserTaskAnswerChoice::getIsCorrect)) {
-            createTaskAnswerReview(userTaskAnswerId, 100);
-            return;
-        }
-
-        createTaskAnswerReview(userTaskAnswerId, 0);
+        save(getMultipleChoiceAnswerReview(userTaskAnswerChoices, userTaskAnswerId));
     }
 
     @Override
+    @Transactional
     public void createPairingAnswerReview(List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings,
                                           PairingProperties pairingProperties,
                                           Integer userTaskAnswerId) {
+        save(getPairingAnswerReview(userTaskAnswerChoicePairings, pairingProperties, userTaskAnswerId));
+    }
+
+    @Override
+    @Transactional
+    public void createSingleChoiceAnswerReview(UserTaskAnswerChoice userTaskAnswerChoice, Integer userTaskAnswerId) {
+        save(getSingleChoiceAnswerReview(userTaskAnswerChoice, userTaskAnswerId));
+    }
+
+    @Override
+    @Transactional
+    public void createFillInTheBlankAnswerReview(List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks,
+                                                 Integer userTaskAnswerId) {
+        save(getFillInTheBlankAnswerReview(userTaskAnswerChoiceFillInBlanks, userTaskAnswerId));
+    }
+
+    @Override
+    public UserTaskAnswerReview getMultipleChoiceAnswerReview(List<UserTaskAnswerChoice> userTaskAnswerChoices,
+                                                              Integer userTaskAnswerId) {
+
+        if (userTaskAnswerChoices.stream().allMatch(UserTaskAnswerChoice::getIsCorrect)) {
+            return createTaskAnswerReview(userTaskAnswerId, 100);
+        }
+
+        return createTaskAnswerReview(userTaskAnswerId, 0);
+    }
+
+    @Override
+    public UserTaskAnswerReview getPairingAnswerReview(List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings,
+                                                       PairingProperties pairingProperties,
+                                                       Integer userTaskAnswerId) {
         long correctPairingsCount = userTaskAnswerChoicePairings.stream()
             .filter(UserTaskAnswerChoicePairing::getIsCorrect)
             .count();
 
         double score = correctPairingsCount >= pairingProperties.getMinRequiredPairs() ? 100 : 0;
-        createTaskAnswerReview(userTaskAnswerId, score);
+        return createTaskAnswerReview(userTaskAnswerId, score);
     }
 
     @Override
-    public void createSingleChoiceAnswerReview(UserTaskAnswerChoice userTaskAnswerChoice, Integer userTaskAnswerId) {
+    public UserTaskAnswerReview getSingleChoiceAnswerReview(UserTaskAnswerChoice userTaskAnswerChoice,
+                                                            Integer userTaskAnswerId) {
         double score = userTaskAnswerChoice.getIsCorrect() ? 100 : 0;
-        createTaskAnswerReview(userTaskAnswerId, score);
+        return createTaskAnswerReview(userTaskAnswerId, score);
     }
 
     @Override
-    public void createFillInTheBlankAnswerReview(List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks,
-                                                 Integer userTaskAnswerId) {
+    public UserTaskAnswerReview getFillInTheBlankAnswerReview(
+        List<UserTaskAnswerChoiceFillInBlank> userTaskAnswerChoiceFillInBlanks,
+        Integer userTaskAnswerId) {
+
         boolean areAllFillingsCorrect = userTaskAnswerChoiceFillInBlanks.stream()
             .allMatch(UserTaskAnswerChoiceFillInBlank::getIsCorrect);
         double score = areAllFillingsCorrect ? 100.0 : 0;
 
-        createTaskAnswerReview(userTaskAnswerId, score);
+        return createTaskAnswerReview(userTaskAnswerId, score);
     }
 
-    private void createTaskAnswerReview(Integer userTaskAnswerId, double score) {
+    private UserTaskAnswerReview createTaskAnswerReview(Integer userTaskAnswerId, double score) {
         UserTaskAnswerReview userTaskAnswerReview = new UserTaskAnswerReview();
         userTaskAnswerReview.setUserTaskAnswerId(userTaskAnswerId);
         userTaskAnswerReview.setScore(score);
-        save(userTaskAnswerReview);
+        return userTaskAnswerReview;
     }
 }
