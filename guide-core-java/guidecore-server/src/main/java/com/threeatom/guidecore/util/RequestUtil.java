@@ -15,10 +15,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 public class RequestUtil {
 
+    public static final String COURSE_MODE_COOKIE_NAME = "course_mode";
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
     private static final String REQUESTED_FRONTEND_VERSION_NAME = "frontendVersion";
-    public static final String COURSE_MODE_COOKIE_NAME = "course_mode";
 
     public static String getRequestAuthHeader(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION);
@@ -68,24 +68,32 @@ public class RequestUtil {
     }
 
     public static void resetSessionState(HttpServletRequest request, HttpServletResponse response) {
-        if (request.getCookies() == null) {
-            log.warn("Cannot delete cookie {} since request does not have cookies set", COURSE_MODE_COOKIE_NAME);
-            return;
+        Arrays.stream(getCookies(request))
+            .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
+            .findFirst()
+            .ifPresent(cookie -> {
+                response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie));
+            });
+    }
+
+    private static Cookie[] getCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            log.warn("Request has no cookies set");
+            return new Cookie[] {};
         }
 
-        for (Cookie cookie : request.getCookies()) {
-            if (COURSE_MODE_COOKIE_NAME.equals(cookie.getName())) {
-                Cookie deleteCookie = new Cookie(COURSE_MODE_COOKIE_NAME, "");
-                deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
-                deleteCookie.setMaxAge(0);
+        return cookies;
+    }
 
-                if (cookie.getDomain() != null) {
-                    deleteCookie.setDomain(cookie.getDomain());
-                }
+    private static Cookie createDeleteCookie(String cookieName, Cookie cookie) {
+        Cookie deleteCookie = new Cookie(cookieName, "");
+        deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
+        deleteCookie.setMaxAge(0);
 
-                response.addCookie(deleteCookie);
-                break;
-            }
+        if (cookie.getDomain() != null) {
+            deleteCookie.setDomain(cookie.getDomain());
         }
+        return deleteCookie;
     }
 }

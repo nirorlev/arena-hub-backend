@@ -3,8 +3,8 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.CourseSettingDto;
 import com.threeatom.guidecore.dto.response.AssignedCourseDto;
 import com.threeatom.guidecore.dto.response.CourseDto;
-import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
+import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseProgressDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
@@ -13,8 +13,9 @@ import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
+import com.threeatom.guidecore.service.CourseEnrollmentService;
+import com.threeatom.guidecore.service.CoursePreviewProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserService;
@@ -48,8 +49,9 @@ public class CourseController {
     private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;
-    private final CourseEnrollmentProgressService courseEnrollmentProgressService;
     private final CourseSettingService courseSettingService;
+    private final CourseEnrollmentProgressService courseEnrollmentProgressService;
+    private final CoursePreviewProgressService coursePreviewProgressService;
 
     @GetMapping("/assigned")
     public ResponseEntity<CourseListDto<AssignedCourseDto>> userAssignedCourses(HttpServletRequest request) {
@@ -108,9 +110,15 @@ public class CourseController {
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<CourseProgressDto> courseProgress(@PathVariable Integer courseId,
                                                             HttpServletRequest request) {
-        PortalUser portalUser = getPortalUser(request);
+        return ResponseEntity.ok(
+            courseEnrollmentProgressService.courseProgress(courseId, getPortalUser(request)));
+    }
 
-        return ResponseEntity.ok(courseEnrollmentProgressService.courseProgress(courseId, portalUser));
+    @GetMapping("/{courseId}/progress-preview")
+    public ResponseEntity<CourseProgressDto> courseProgressPreview(@PathVariable Integer courseId,
+                                                                   HttpServletRequest request) {
+        return ResponseEntity.ok(
+            coursePreviewProgressService.courseProgress(courseId, getPortalUser(request)));
     }
 
     @GetMapping("/{courseId}/enrollments")
@@ -134,7 +142,8 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/bookmarks/last-viewed")
-    public ResponseEntity<CourseVideoBookmarkDto> lastViewedBookmark(@PathVariable Integer courseId, HttpServletRequest request) {
+    public ResponseEntity<CourseVideoBookmarkDto> lastViewedBookmark(@PathVariable Integer courseId,
+                                                                     HttpServletRequest request) {
         return ResponseEntity.ok(courseService.lastViewedBookmark(courseId, getPortalUser(request)));
     }
 
