@@ -1506,8 +1506,6 @@ public class PowtoonController extends GuideCoreController {
             }
         } catch (AuthenticationException e) {
             return new Message().error(401, e.getMessage());
-        } finally {
-            RequestUtil.resetSessionState(request, response);
         }
 
         return new Message().error(400, "Invalid code");

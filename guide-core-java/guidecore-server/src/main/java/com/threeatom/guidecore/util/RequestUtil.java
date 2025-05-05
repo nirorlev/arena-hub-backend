@@ -15,7 +15,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 public class RequestUtil {
 
-    public static final String COURSE_MODE_COOKIE_NAME = "course_mode";
     private static final String MASTER_ID = "masterId";
     private static final String AUTHORIZATION = "Authorization";
     private static final String REQUESTED_FRONTEND_VERSION_NAME = "frontendVersion";
@@ -65,33 +64,5 @@ public class RequestUtil {
 
     public static String getCurrentHost(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName();
-    }
-
-    public static void resetSessionState(HttpServletRequest request, HttpServletResponse response) {
-        Arrays.stream(getCookies(request))
-            .filter(cookie -> COURSE_MODE_COOKIE_NAME.equals(cookie.getName()))
-            .findFirst()
-            .ifPresent(cookie -> response.addCookie(createDeleteCookie(COURSE_MODE_COOKIE_NAME, cookie)));
-    }
-
-    private static Cookie[] getCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            log.warn("Request has no cookies set");
-            return new Cookie[] {};
-        }
-
-        return cookies;
-    }
-
-    private static Cookie createDeleteCookie(String cookieName, Cookie cookie) {
-        Cookie deleteCookie = new Cookie(cookieName, "");
-        deleteCookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
-        deleteCookie.setMaxAge(0);
-
-        if (cookie.getDomain() != null) {
-            deleteCookie.setDomain(cookie.getDomain());
-        }
-        return deleteCookie;
     }
 }
