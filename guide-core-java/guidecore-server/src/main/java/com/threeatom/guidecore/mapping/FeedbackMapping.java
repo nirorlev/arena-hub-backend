@@ -1,7 +1,9 @@
 package com.threeatom.guidecore.mapping;
 
 import com.threeatom.guidecore.dto.request.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbackAverageDto;
 import com.threeatom.guidecore.entity.Feedback;
+import com.threeatom.guidecore.entity.FeedbackAverage;
 import com.threeatom.guidecore.enums.FeedbackItemType;
 import java.util.List;
 import org.mapstruct.BeanMapping;
@@ -22,6 +24,19 @@ public interface FeedbackMapping {
     com.threeatom.guidecore.dto.response.FeedbackDto map(Feedback feedback);
 
     List<com.threeatom.guidecore.dto.response.FeedbackDto> map(List<Feedback> feedbacks);
+
+    @Mapping(target = "id", source = "feedback.id")
+    @Mapping(target = "userId", source = "feedback", qualifiedByName = "mapUserId")
+    @Mapping(target = "rating", source = "feedback.rating")
+    @Mapping(target = "text", source = "feedback.content")
+    @Mapping(target = "creationDate", source = "feedback.createdTime")
+    @Mapping(target = "anonymous", source = "feedback.anonymous")
+    @Mapping(target = "averageRating", source = "feedbackAverage.averageRating")
+    @Mapping(target = "feedbacksCount", source = "feedbackAverage.feedbacksCount")
+    FeedbackAverageDto map(Feedback feedback, FeedbackAverage feedbackAverage);
+
+    @Mapping(target = "id", ignore = true)
+    FeedbackAverageDto map(FeedbackAverage feedbackAverage);
 
     @Mapping(target = "content", source = "text")
     @Mapping(target = "updatedTime", expression = "java(java.time.OffsetDateTime.now())")

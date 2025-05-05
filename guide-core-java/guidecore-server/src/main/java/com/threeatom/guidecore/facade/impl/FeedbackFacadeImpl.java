@@ -4,7 +4,7 @@ import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ValidationException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
-import com.threeatom.guidecore.dto.response.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbackAverageDto;
 import com.threeatom.guidecore.dto.response.FeedbacksDto;
 import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.Feedback;
@@ -21,7 +21,6 @@ import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -34,7 +33,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     private final TaskService taskService;
 
     @Override
-    public FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+    public FeedbackAverageDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
                                               com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                               PortalUser portalUser) {
         validatePermission(itemType, itemId, portalUser, PermitAction.RATE);
@@ -43,8 +42,9 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     }
 
     @Override
-    public FeedbackDto updateFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                      PortalUser portalUser) {
+    public FeedbackAverageDto updateFeedback(Long feedbackId,
+                                             com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                             PortalUser portalUser) {
         Feedback feedback = feedbackService.getById(feedbackId);
         validateOwnership(portalUser, feedback);
 
@@ -54,14 +54,13 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     }
 
     @Override
-    @Transactional
-    public void deleteFeedback(Long feedbackId, PortalUser portalUser) {
+    public FeedbackAverageDto deleteFeedback(Long feedbackId, PortalUser portalUser) {
         Feedback feedback = feedbackService.getById(feedbackId);
 
         validateOwnership(portalUser, feedback);
         validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.RATE);
 
-        feedbackService.removeById(feedbackId);
+        return feedbackService.deleteFeedback(feedback);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     }
 
     @Override
-    public FeedbackDto patchFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+    public FeedbackAverageDto patchFeedback(Long feedbackId, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
                                      PortalUser portalUser) {
         Feedback feedback = feedbackService.getById(feedbackId);
         validateOwnership(portalUser, feedback);

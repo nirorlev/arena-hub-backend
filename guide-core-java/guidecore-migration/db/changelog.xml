@@ -1378,6 +1378,9 @@
 
     <changeSet id="create-feedbacks-average-table" author="vprokh">
         <createTable tableName="feedbacks_average">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
             <column name="item_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
@@ -1395,7 +1398,9 @@
             </column>
         </createTable>
 
-        <addPrimaryKey columnNames="item_type, item_id" tableName="feedbacks_average" constraintName="pk_feedbacks_average"/>
+        <addUniqueConstraint tableName="feedbacks_average"
+                             columnNames="item_type, item_id"
+                             constraintName="unique_item_type_item_id"/>
     </changeSet>
 
 </databaseChangeLog>

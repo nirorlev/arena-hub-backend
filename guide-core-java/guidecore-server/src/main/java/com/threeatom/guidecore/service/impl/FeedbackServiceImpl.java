@@ -3,17 +3,19 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
-import com.threeatom.guidecore.dto.response.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbackAverageDto;
 import com.threeatom.guidecore.dto.response.FeedbackSummaryDto;
 import com.threeatom.guidecore.dto.response.FeedbacksDto;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
 import com.threeatom.guidecore.entity.Feedback;
+import com.threeatom.guidecore.entity.FeedbackAverage;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.FeedbackItemType;
 import com.threeatom.guidecore.mapper.FeedbackMapper;
 import com.threeatom.guidecore.mapping.FeedbackMapping;
 import com.threeatom.guidecore.mapping.UserMapping;
+import com.threeatom.guidecore.service.FeedbackAverageService;
 import com.threeatom.guidecore.service.FeedbackService;
 import java.time.OffsetDateTime;
 import java.util.EnumMap;
@@ -36,28 +38,23 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
 
     private final FeedbackMapping feedbackMapping;
     private final UserMapping userMapping;
+    private final FeedbackAverageService feedbackAverageService;
 
     @Override
     @Transactional
-    public FeedbackDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
-                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                              PortalUser portalUser) {
-        Optional<Feedback> existingFeedback = findByItemTypeItemAndUserId(itemType, itemId, portalUser.getUserId());
-
-        if (existingFeedback.isEmpty()) {
+    public FeedbackAverageDto createOrUpdateFeedback(FeedbackItemType itemType, Integer itemId,
+                                                     com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                     PortalUser portalUser) {
+        List<Feedback> existingFeedbacks = findByItemTypeAndId(itemType, itemId);
+        Optional<Feedback> userExistingFeedback = findUserFeedback(existingFeedbacks, portalUser.getUserId());
+        if (userExistingFeedback.isEmpty()) {
             Feedback feedback = createFeedback(itemType, itemId, feedbackDto, portalUser);
-            return feedbackMapping.map(feedback);
+            FeedbackAverage feedbackAverage =
+                createUpdateFeedbackAverage(itemType, itemId, existingFeedbacks, feedback);
+            return feedbackMapping.map(feedback, feedbackAverage);
         }
 
-        return patchFeedback(existingFeedback.get(), feedbackDto);
-    }
-
-    private Feedback createFeedback(FeedbackItemType itemType, Integer itemId,
-                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                    PortalUser portalUser) {
-        Feedback feedback = feedbackMapping.map(feedbackDto, itemType, itemId, portalUser.getUserId());
-        save(feedback);
-        return feedback;
+        return patchFeedback(userExistingFeedback.get(), feedbackDto);
     }
 
     @Override
@@ -70,55 +67,116 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
 
     @Override
     @Transactional
-    public FeedbackDto updateFeedback(Feedback feedback, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+    public FeedbackAverageDto updateFeedback(Feedback feedback,
+                                             com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
         feedbackMapping.mapUpdate(feedback, feedbackDto);
         updateById(feedback);
-
-        return feedbackMapping.map(feedback);
+        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, feedback.getRating());
+        return feedbackMapping.map(feedback, feedbackAverage);
     }
 
     @Override
     public FeedbacksDto userFeedbacks(OffsetDateTime startDate, OffsetDateTime endDate, PortalUser portalUser) {
         List<Feedback> userFeedbacks = baseMapper.userFeedbacks(startDate, endDate, portalUser.getUserId());
+        Map<FeedbackItemType, Map<Integer, FeedbackAverage>> feedbackTypeToItemIdAndAverage =
+            feedbackAverageService.getByFeedbackItemTypeAndItemId(getFeedbackItemTypeToItemIds(userFeedbacks));
 
-        return feedbacksDto(userFeedbacks);
+        return feedbacksDto(userFeedbacks, feedbackTypeToItemIdAndAverage);
     }
 
     @Override
     public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
                                   OffsetDateTime endDate, PortalUser portalUser) {
         List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, portalUser.getUserId(), itemType, itemId);
+        Map<FeedbackItemType, Map<Integer, FeedbackAverage>> feedbackTypeToItemIdAndAverage =
+            feedbackAverageService.getByFeedbackItemTypeAndItemId(getFeedbackItemTypeToItemIds(feedbacks));
 
-        return feedbacksDto(feedbacks);
+        return feedbacksDto(feedbacks, feedbackTypeToItemIdAndAverage);
     }
 
     @Override
     public FeedbacksDto feedbacks(FeedbackItemType itemType, Integer itemId, OffsetDateTime startDate,
                                   OffsetDateTime endDate) {
         List<Feedback> feedbacks = baseMapper.feedbacks(startDate, endDate, null, itemType, itemId);
+        Map<FeedbackItemType, Map<Integer, FeedbackAverage>> feedbackTypeToItemIdAndAverage =
+            feedbackAverageService.getByFeedbackItemTypeAndItemId(getFeedbackItemTypeToItemIds(feedbacks));
 
-        return feedbacksDto(feedbacks);
+        return feedbacksDto(feedbacks, feedbackTypeToItemIdAndAverage);
     }
 
     @Override
-    public FeedbackDto patchFeedback(Feedback feedback, com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+    @Transactional
+    public FeedbackAverageDto deleteFeedback(Feedback feedback) {
+        removeById(feedback.getId());
+
+        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, -feedback.getRating());
+        if (feedbackAverage == null) {
+            return new FeedbackAverageDto();
+        }
+
+        return feedbackMapping.map(feedbackAverage);
+    }
+
+    @Override
+    @Transactional
+    public FeedbackAverageDto patchFeedback(Feedback feedback,
+                                            com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
         feedbackMapping.mapPatch(feedback, feedbackDto);
         updateById(feedback);
 
-        return feedbackMapping.map(feedback);
+        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, feedback.getRating());
+        return feedbackMapping.map(feedback, feedbackAverage);
+    }
+
+    private Optional<Feedback> findUserFeedback(List<Feedback> feedbacks, Integer userId) {
+        return feedbacks.stream()
+            .filter(feedback -> feedback.getUserId().equals(userId))
+            .findFirst();
+    }
+
+    private Feedback createFeedback(FeedbackItemType itemType, Integer itemId,
+                                    com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                    PortalUser portalUser) {
+        Feedback feedback = feedbackMapping.map(feedbackDto, itemType, itemId, portalUser.getUserId());
+        save(feedback);
+        return feedback;
+    }
+
+    private FeedbackAverage createUpdateFeedbackAverage(FeedbackItemType itemType, Integer itemId,
+                                                        List<Feedback> existingFeedbacks, Feedback feedback) {
+        Optional<FeedbackAverage> feedbackAverageOptional =
+            feedbackAverageService.findByItemTypeAndId(itemType, itemId);
+        if (feedbackAverageOptional.isEmpty()) {
+            return feedbackAverageService.createFeedbackAverage(itemType, itemId, existingFeedbacks);
+        }
+
+        FeedbackAverage feedbackAverage = feedbackAverageOptional.get();
+        return feedbackAverageService.updateFeedbackAverage(feedbackAverage, feedback.getRating(),
+            feedbackAverage.getFeedbacksCount() + 1);
+    }
+
+    private FeedbackAverage updateFeedbackAverage(Feedback feedback, Integer rating) {
+        FeedbackAverage feedbackAverage =
+            feedbackAverageService.getByItemTypeAndId(feedback.getItemType(), feedback.getItemId());
+        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
+        return feedbackAverageService.updateFeedbackAverage(feedbackAverage, rating, feedbacksCount);
     }
 
     private Optional<Feedback> findById(Long id) {
         return Optional.ofNullable(super.getById(id));
     }
 
-    private Optional<Feedback> findByItemTypeItemAndUserId(FeedbackItemType feedbackItemType, Integer itemId,
-                                                           Integer userId) {
+    private List<Feedback> findByItemTypeAndId(FeedbackItemType feedbackItemType, Integer itemId) {
         QueryWrapper<Feedback> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("item_type", feedbackItemType);
         queryWrapper.eq("item_id", itemId);
-        queryWrapper.eq("user_id", userId);
-        return Optional.ofNullable(getOne(queryWrapper));
+        return list(queryWrapper);
+    }
+
+    private Map<FeedbackItemType, List<Integer>> getFeedbackItemTypeToItemIds(List<Feedback> feedbacks) {
+        return feedbacks.stream()
+            .collect(Collectors.groupingBy(Feedback::getItemType,
+                Collectors.mapping(Feedback::getItemId, Collectors.toList())));
     }
 
     private Map<Integer, List<Feedback>> itemIdToFeedbacks(List<Feedback> feedbackForItemIds) {
@@ -126,10 +184,11 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             .collect(Collectors.groupingBy(Feedback::getItemId));
     }
 
-    private FeedbacksDto feedbacksDto(List<Feedback> feedbacks) {
+    private FeedbacksDto feedbacksDto(List<Feedback> feedbacks,
+                                      Map<FeedbackItemType, Map<Integer, FeedbackAverage>> feedbackTypeToItemIdAndAverage) {
         FeedbacksDto feedbacksDto = new FeedbacksDto();
         feedbacksDto.setUsers(notAnonymousUserIdToUserDetails(feedbacks));
-        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(feedbacks));
+        feedbacksDto.setFeedbackTypes(feedbackItemTypeToItemFeedbacks(feedbacks, feedbackTypeToItemIdAndAverage));
         return feedbacksDto;
     }
 
@@ -150,7 +209,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     }
 
     private EnumMap<FeedbackItemType, Map<String, FeedbackSummaryDto>> feedbackItemTypeToItemFeedbacks(
-        List<Feedback> feedbacks) {
+        List<Feedback> feedbacks, Map<FeedbackItemType, Map<Integer, FeedbackAverage>> feedbackTypeToItemIdAndAverage) {
 
         return feedbacks.stream()
             .collect(Collectors.groupingBy(Feedback::getItemType, () -> new EnumMap<>(FeedbackItemType.class),
@@ -158,23 +217,32 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                this::convertToItemIdToFeedbackSummary,
-                (existing1, existing2) -> existing1,
+                entry -> {
+                    Map<Integer, FeedbackAverage> itemIdToFeedbackAverage =
+                        feedbackTypeToItemIdAndAverage.getOrDefault(entry.getKey(), Map.of());
+                    return convertToItemIdToFeedbackSummary(itemIdToFeedbackAverage, entry.getValue());
+                },
+                (exiting1, exiting2) -> exiting1,
                 () -> new EnumMap<>(FeedbackItemType.class)
             ));
     }
 
     private Map<String, FeedbackSummaryDto> convertToItemIdToFeedbackSummary(
-        Map.Entry<FeedbackItemType, List<Feedback>> entry) {
+        Map<Integer, FeedbackAverage> itemIdToFeedbackAverage, List<Feedback> itemTypeFeedbacks) {
 
-        return itemIdToFeedbacks(entry.getValue())
+        return itemIdToFeedbacks(itemTypeFeedbacks)
             .entrySet().stream()
-            .collect(Collectors.toMap(itemFeedbackEntry -> String.valueOf(itemFeedbackEntry.getKey()),
-                itemFeedbackEntry -> feedbackSummaryDto(itemFeedbackEntry.getValue())));
+            .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()),
+                itemFeedbacksEntry -> feedbackSummaryDto(itemIdToFeedbackAverage, itemFeedbacksEntry.getValue(),
+                    itemFeedbacksEntry.getKey())));
     }
 
-    private FeedbackSummaryDto feedbackSummaryDto(List<Feedback> itemFeedbacks) {
+    private FeedbackSummaryDto feedbackSummaryDto(Map<Integer, FeedbackAverage> itemIdToAverageFeedback,
+                                                  List<Feedback> itemFeedbacks, Integer itemId) {
+        FeedbackAverage feedbackAverage = itemIdToAverageFeedback.get(itemId);
         FeedbackSummaryDto feedbackSummaryDto = new FeedbackSummaryDto();
+        feedbackSummaryDto.setFeedbacksCount(feedbackAverage.getFeedbacksCount());
+        feedbackSummaryDto.setAverageRating(feedbackAverage.getAverageRating());
         feedbackSummaryDto.setFeedbacks(feedbackMapping.map(itemFeedbacks));
         return feedbackSummaryDto;
     }

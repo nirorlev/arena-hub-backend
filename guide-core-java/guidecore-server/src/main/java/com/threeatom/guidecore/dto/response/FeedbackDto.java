@@ -12,5 +12,5 @@ public class FeedbackDto {
     private Integer rating;
     private String text;
     private OffsetDateTime creationDate;
-    private boolean anonymous;
+    private Boolean anonymous;
 }
