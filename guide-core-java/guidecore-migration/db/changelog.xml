@@ -1375,4 +1375,27 @@
     <changeSet id="update-course-table-name" author="vprokh">
         <renameTable schemaName="arena_hub" oldTableName="gc_subject" newTableName="courses"/>
     </changeSet>
+
+    <changeSet id="create-feedbacks-average-table" author="vprokh">
+        <createTable tableName="feedbacks_average">
+            <column name="item_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_rating" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="feedbacks_count" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="item_type, item_id" tableName="feedbacks_average" constraintName="pk_feedbacks_average"/>
+    </changeSet>
+
 </databaseChangeLog>
