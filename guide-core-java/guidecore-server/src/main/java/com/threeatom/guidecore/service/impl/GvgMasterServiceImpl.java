@@ -35,11 +35,9 @@ import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.entity.GcUserFabulous;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
-import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
-import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.entity.PtTags;
 import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.enums.SearchType;
@@ -64,7 +62,6 @@ import com.threeatom.guidecore.service.GcUserNoteService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
-import com.threeatom.guidecore.service.GcUserVideoPlayService;
 import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.GvgMasterService;
@@ -116,7 +113,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private SysFileService sysFileService;
-
 
 	@Autowired
 	private GcMasterHomeInfoService iGcMasterHomeInfoService;
@@ -187,9 +183,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private SysFileCaptionService sysFileCaptionService;
 
 	@Autowired
-	private GcUserVideoPlayService userVideoPlayService;
-
-	@Autowired
 	private GcUserService userService;
 
 	@Autowired
@@ -215,9 +208,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private PtTagsService ptTagsService;
-
-	@Autowired
-	private GcUserVideoPlayService gcUserVideoPlayService;
 
 	@Autowired
 	private GcSubjectCompleteService completeService;
@@ -889,67 +879,17 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			List<GcSubject> subjects1 = subjects.stream().filter(e->null!=e.getGcVideos()).collect(Collectors.toList());
 			SubjectTotals subjectTotals = calcTotals(subjects1, userId,true,masterId);
 
-			if(envFlag.equals(EnvType.GC.getCode())) {
-				List<GcVideo> videos = videoService.selectVideoPlayListBySubId(subject.getId(), portalUser.getUserId());
-				List<Integer> vids = videos.stream().map(GcVideo::getId).collect(Collectors.toList());
-				Map<Integer, GcUserVideoPlay> playMap = gcUserVideoPlayService.findVideoPalyStateByVideos(vids, portalUser.getUserId(), masterId);
-				List<GcEvent> eventList = eventService.selectEventByUserIdAndSubjectId(portalUser.getUserId(), subject.getId(), masterId);
-				List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(vids, portalUser.getUserId(), masterId);
-				Collection<GcUserVideoPlay> collection = playMap.values();
-				List<GcUserVideoPlay> list = new ArrayList<GcUserVideoPlay>(collection);
-				List<GcUserVideoPlay> sortedVideoList = list.stream().filter(e->e.getUpdateTime()!=null).sorted(Comparator.comparing(GcUserVideoPlay::getUpdateTime).reversed()).collect(Collectors.toList());
-				List<GcEvent> sortedEventList = eventAnswers.stream().filter(e->e.getAnswerCreateTime()!=null).sorted(Comparator.comparing(GcEvent::getAnswerCreateTime).reversed()).collect(Collectors.toList());
-				Integer compare = null;
-				if (CollectionUtils.isNotEmpty(sortedEventList) && CollectionUtils.isNotEmpty(sortedVideoList)) {
-					compare = sortedVideoList.get(0).getUpdateTime().compareTo(sortedEventList.get(0).getAnswerCreateTime());
-				}
-				DateFormat format = new SimpleDateFormat("MMMMM dd, yyyy", Locale.ENGLISH);
-				if(Objects.nonNull(subjectTotals.getTotalProgressPercent())) {
-					if (subjectTotals.getTotalProgressPercent().equals(100)) {
-						if (Objects.nonNull(compare)) {
-							if (compare < 0) {
-								subjectTotals.setCompletionDate(format.format(sortedEventList.get(0).getAnswerCreateTime()));
-							} else {
-								subjectTotals.setCompletionDate(format.format(sortedVideoList.get(0).getUpdateTime()));
-							}
-						} else if (CollectionUtils.isNotEmpty(sortedEventList) && CollectionUtils.isEmpty(sortedVideoList)) {
-							subjectTotals.setCompletionDate(format.format(sortedEventList.get(0).getAnswerCreateTime()));
-						} else if (CollectionUtils.isEmpty(sortedEventList) && CollectionUtils.isNotEmpty(sortedVideoList)) {
-							subjectTotals.setCompletionDate(format.format(sortedVideoList.get(0).getUpdateTime()));
-						}
-					}
-				}
-				//查询开始时间start
-				List<GcUserVideoPlay> sortedStartVideoList = list.stream().filter(e->e.getUpdateTime()!=null).sorted(Comparator.comparing(GcUserVideoPlay::getUpdateTime)).collect(Collectors.toList());
-				List<GcEvent> sortedStartEventList = eventAnswers.stream().filter(e->e.getAnswerCreateTime()!=null).sorted(Comparator.comparing(GcEvent::getAnswerCreateTime)).collect(Collectors.toList());
-				Integer startCompare = null;
-				if (CollectionUtils.isNotEmpty(sortedEventList) && CollectionUtils.isNotEmpty(sortedVideoList)) {
-					startCompare = sortedVideoList.get(0).getUpdateTime().compareTo(sortedEventList.get(0).getAnswerCreateTime());
-				}
-				if (Objects.nonNull(startCompare)) {
-					if (startCompare < 0) {
-						subjectTotals.setStartTime(format.format(sortedStartEventList.get(0).getAnswerCreateTime()));
-					} else {
-						subjectTotals.setStartTime(format.format(sortedStartVideoList.get(0).getUpdateTime()));
-					}
-				} else if (CollectionUtils.isNotEmpty(sortedStartEventList) && CollectionUtils.isEmpty(sortedStartVideoList)) {
-					subjectTotals.setStartTime(format.format(sortedStartEventList.get(0).getAnswerCreateTime()));
-				} else if (CollectionUtils.isEmpty(sortedStartEventList) && CollectionUtils.isNotEmpty(sortedStartVideoList)) {
-					subjectTotals.setStartTime(format.format(sortedStartVideoList.get(0).getUpdateTime()));
-				}
-			}
-
 			//给二级课程排序
 			List<GcSubject> orderSubList = subjectTotals.getSubjects();
 			List<GcSubject> order = new ArrayList<>();
-			if (Objects.nonNull(orderSubList)&&orderSubList.size()!=0){
+			if (Objects.nonNull(orderSubList)&& !orderSubList.isEmpty()){
 				order = orderSubList.stream().sorted(Comparator.comparing(GcSubject::getOrder)).collect(Collectors.toList());
 			}
 			subjectTotals.setSubjects(order);
 			msg.addData("subjectTotals",subjectTotals);
 
 			Integer lastVideoId = newUiGcSubjectService.selectLastVideoId(Integer.parseInt(params.get("fid").toString()),userId,masterId);
-			if(null==lastVideoId && null!=order && TableConstant.COMMON_ZERO!=order.size()){
+			if(null == lastVideoId && !order.isEmpty()){
 				Map<String, Object> subParam =  new HashMap<>(1);
 				Integer firstSubId = order.get(0).getId();
 				params.put("subjectId",firstSubId);
@@ -1441,123 +1381,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		gcUserFabulous.setTargetUserId(otherUserId);
 		gcUserFabulous.setEventId(eventId);
 		return gcUserFabulous;
-	}
-
-	@Override
-	public Message createVideoPlayRecordAndNode(@RequestBody GcUserVideoPlay userVideoPlay, HttpServletRequest request,Integer envFlag,GcUser user,Integer masterId,SysSystem system) {
-		if (null!=userVideoPlay.getFileId()){
-			return saveChannelContentVideoPlay(userVideoPlay, user, masterId, userVideoPlay.getFileId());
-		}
-
-		GcVideo thisVideo = gcVideoService.getVideoById(userVideoPlay.getVideoId());
-
-		Optional<PtChannelContent> channelContent = ptChannelContentService.getChannelContent(thisVideo.getId());
-		if (channelContent.isPresent()) {
-			return saveChannelContentVideoPlay(userVideoPlay, user, masterId, thisVideo.getFileId());
-		}
-
-		ApiAssert.notNull(masterId, "masterId is missing");
-		Message message = new Message();
-
-		userVideoPlay.setUserId(user.getId());
-		userVideoPlay.setMasterId(masterId);
-		GcUserVideoPlay videoPlay = userVideoPlayService.saveVideoPlayAndVideoPlaysNode(userVideoPlay);
-
-
-		List<Integer> subIdList = new ArrayList<>();
-		Map<String, Object> params = new HashMap<>();
-		params.put("masterId", masterId);
-		params.put("pageSize", 1000);
-		params.put("fid", thisVideo.getSubId0());
-		params.put("userId", user.getId());
-
-		SubjectTotals subjectTotals = null;
-		//Progress is calculated after each viewing
-		if(TableConstant.COMMON_THREE==envFlag) {
-			PageInfo<GcSubject> page = newUiGcSubjectService.listSubjectByFid(params, request, true, subIdList);
-			List<GcSubject> orderSubject = page.getList();
-			//Level 1 Course Overall Progress
-			if (Objects.nonNull(user.getId())) {
-				List<Integer> subId = new ArrayList<>();
-				GcSubject gcSubject = subjectService.getById(thisVideo.getSubId0());
-				thisVideo.setSubjectName(gcSubject.getName());
-				subId.add(thisVideo.getSubId0());
-				List<GcSubject> subjects = subjectService.getChildSubjectBySubId(thisVideo.getSubId0());
-				List<GcVideo> gcVideos = gcVideoService.getVideoIdListBySubId0(subId, user.getId(), masterId);
-				Map<Integer, List<GcVideo>> map = gcVideos.stream().filter(e -> null != e.getSubId()).collect(Collectors.groupingBy(GcVideo::getSubId));
-				for (GcSubject gcSubject1 : subjects) {
-					List<GcVideo> list = map.get(gcSubject1.getId());
-					if (null != list && !list.isEmpty()) {
-						gcSubject1.setGcVideos(list);
-					}
-				}
-				subjectTotals = calcTotals(subjects, user.getId(), false, masterId);
-				message.addData("subjectTotal", subjectTotals);
-
-				//Level 2 Course Progress
-				Integer suboId = thisVideo.getSubId0();
-				List<Integer> suboList = new ArrayList<>();
-				subIdList.add(suboId);
-				List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), gcVideoList, masterId);
-				Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-				for (Integer key : videoMap.keySet()) {
-					List<GcVideo> videoList = videoMap.get(key);
-					for (GcSubject gcSubject2 : orderSubject) {
-						if (key.equals(gcSubject2.getId())) {
-							Integer sumTasks = videoList.stream().filter(e -> null != e.getAnsweredSumNums()).mapToInt(GcVideo::getAnsweredSumNums).sum();
-							Integer sumVideos = videoList.size();
-							Integer answeredTaksNum = videoList.stream().filter(e -> null != e.getAnsweredNums()).mapToInt(GcVideo::getAnsweredNums).sum();
-							List<GcVideo> videos = videoList.stream().filter(e -> null != e.getPlayState() & ("1").equals(e.getPlayState())).collect(Collectors.toList());
-							BigDecimal percent = new BigDecimal(answeredTaksNum + videos.size()).divide(new BigDecimal(sumTasks + sumVideos), 2, BigDecimal.ROUND_DOWN);
-							gcSubject2.setTotalPercent(percent);
-						}
-					}
-				}
-				Optional<GcSubject> gcSubject2 = orderSubject.stream().filter(e->e.getId().equals(thisVideo.getSubId())).findFirst();
-				message.ok().addData("subject",gcSubject2);
-				page.setList(orderSubject);
-			}
-		}
-
-		//Add course completion progress data
-		GcSubjectComplete complete = subjectCompleteService.getSubjectCompleteInfo(masterId,user.getId(),thisVideo.getSubId0());
-		if (null==complete){
-			complete = new GcSubjectComplete();
-			complete.setCreateTime(new Date());
-		}
-		if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)){
-			complete.setInProgress(TableConstant.SUBJECT_COMPLETE_PERCENT0);
-			complete.setSubjectState(TableConstant.COMMON_ONE);
-		}else if (null!=subjectTotals&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-			complete.setInProgress(subjectTotals.getTotalProgressPercent());
-			complete.setSubjectState(TableConstant.COMMON_TWO);
-		}else if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-			complete.setInProgress(subjectTotals.getTotalProgressPercent());
-			complete.setSubjectState(TableConstant.COMMON_ZERO);
-		}
-		complete.setMasterId(masterId);
-		complete.setSubjectId(thisVideo.getSubId0());
-		complete.setUpdateTime(new Date());
-		complete.setUserId(user.getId());
-		subjectCompleteService.saveOrUpdate(complete);
-
-		return  message.ok("Get Success")
-				.addData("videoPlayNode", videoPlay.getVideoPlaysNode())
-				.addData("videoPlay", videoPlay);
-	}
-
-	private Message saveChannelContentVideoPlay(GcUserVideoPlay userVideoPlay, GcUser user, Integer masterId,
-												Integer thisVideo) {
-		userVideoPlay.setUserId(user.getId());
-		userVideoPlay.setMasterId(masterId);
-		SysFile file = sysFileService.getById(thisVideo);
-		GcUserVideoPlay videoPlay = userVideoPlayService.saveVideoPlayAndVideoPlaysNode(userVideoPlay);
-
-		return new Message().ok("Get Success")
-			.addData("videoPlayNode", videoPlay.getVideoPlaysNode())
-			.addData("videoPlay", videoPlay)
-			.addData("file", file);
 	}
 
 	@Override

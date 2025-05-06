@@ -28,8 +28,6 @@ public interface NewUiGcSubjectService {
 
     Integer selectLastVideoId(Integer subId, Integer userId, Integer masterId);
 
-    List<GcSubject> selectSubjects(List<Integer> subIds);
-
     Map<Integer, GcUserVideoAction> getStarActions(List<Integer> subjectIds);
 
     List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map);

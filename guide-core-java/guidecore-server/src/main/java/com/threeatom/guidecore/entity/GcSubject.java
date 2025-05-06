@@ -119,16 +119,12 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     private Integer subjectAssociationOrder;
     @TableField(exist = false)
     private Integer subjectAssociationRelationType;
-    @TableField(exist = false)
-    private GcUserVideoPlay userVideoPlay;
     // 观看状态
     @TableField(exist = false)
     private Integer watchedStatus;
     // add by 20210815
     @TableField(exist = false)
     private Long subjectVideoDuration; // 课程视频时长，单位秒
-    @TableField(exist = false)
-    private List<GcUserVideoPlay> userVideoPlays; // 课程下的视频播放进度list
     @TableField(exist = false)
     private List<GcVideo> gcVideos; // 课程下的视频
     @TableField(exist = false)

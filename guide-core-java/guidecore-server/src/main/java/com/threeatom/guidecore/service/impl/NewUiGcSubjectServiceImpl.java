@@ -1,14 +1,12 @@
 package com.threeatom.guidecore.service.impl;
 
 import com.threeatom.guidecore.util.RequestUtil;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.alibaba.fastjson.JSONArray;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.entity.*;
@@ -52,14 +50,8 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	@Autowired
 	GcVideoMapper gcVideoMapper;
 
-	@Autowired
-	GcUserVideoPlayService gcUserVideoPlayService;
-
 	@Resource
 	NewUiGcSubjectMapper newUiGcSubjectMapper;
-
-	@Autowired
-	private GcSubjectService gcSubjectService;
 
 	@Autowired
 	@Lazy
@@ -151,9 +143,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			List<Integer> subjectIds = subjects.stream().map(GcSubject::getId).collect(Collectors.toList());
 			log.info("2、统计课程时长 单位秒");
 			Map<Integer, GcSubject> subjectsDurationMap = sumSubjectDuration(subjectIds);
-			//3、查询出话题list
-			log.info("3、查询出话题list");//课程下视频播放进度
-			Map<Integer,Object> lastVideoPlayMap = gcUserVideoPlayService.getLastVideoPlayList(subjectIds,userId,masterId);
 
 			List<GcVideo> videosBySubjectIds0 = gcVideoService.getVideosBySubjectIds0(subjectIds, userId,masterId);
 			Map<Integer, List<GcVideo>> sub0Map = new HashMap<>(0);
@@ -239,12 +228,9 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 					sub.setStarUsers(n);
 				}
 				
-				Integer videoNum  = gcSubjects.stream().filter(GcSubject -> sub.getId().equals(GcSubject.getFid())).collect(Collectors.toList()).stream().collect(Collectors.summingInt(GcSubject::getVideosTotalNum));
+				Integer videoNum  = gcSubjects.stream().filter(GcSubject -> sub.getId().equals(GcSubject.getFid()))
+                    .collect(Collectors.toList()).stream().mapToInt(GcSubject::getVideosTotalNum).sum();
 				sub.setVideosTotalNum(videoNum);
-				Map map = (Map) lastVideoPlayMap.get(sub.getId());
-				if (null != map){
-					sub.setLastVideoId((Integer) map.get("videoId"));
-				}
 				newSubjects.add(sub);
 			}
 		}
@@ -258,31 +244,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		Map<String, Object> videoParams = new HashMap<>(2);
 		videoParams.put("subjectIds", subjectIds);
 		videoParams.put("type", TableConstant.gcUserVideoAction_type_star3);
-		Map<Integer, GcUserVideoAction> subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
-		return subjectUserStar;
-	}
-
-	public List<GcSubject> orderUpdate(List<GcSubject> list, JSONArray jsonArray){
-		List<GcSubject> subList = new ArrayList<>();
-		List<GcSubject> newSubList = new ArrayList<>();
-		if (null!=jsonArray){
-		for (Object o : jsonArray) {
-			for (GcSubject subject : list) {
-				if (subject.getId().equals(o)){
-					subList.add(subject);
-				}
-			}
-		}
-		for (GcSubject subject : list) {
-			if (!jsonArray.contains(subject.getId())){
-				newSubList.add(subject);
-			}
-		}
-			subList.addAll(newSubList);
-		}else {
-			subList = list;
-		}
-		return subList;
+		return videoActionService.getSubjectUserStar(videoParams);
 	}
 
 	@Override
@@ -307,37 +269,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	@Override
 	public Integer getSubjectNum(List<Integer> subIds) {
 		return this.baseMapper.getSubjectNum(subIds);
-	}
-
-	private int calcVideoProgressPercent(List<GcVideo> userVideoPlays) {
-		if(CollectionUtils.isEmpty(userVideoPlays)){
-			return 0;
-		}
-
-		List<GcVideo> finishs = userVideoPlays.stream().filter(e -> TableConstant.VIDEO_COMPLETE_STATUS2 == e.getCompleteStatus()).collect(Collectors.toList());
-
-		List<GcVideo> harfs = userVideoPlays.stream().filter(e -> TableConstant.SUBJECT_COMPLETE_STATUS1 == e.getCompleteStatus()).collect(Collectors.toList());
-		int harfSize = 0;
-		if(CollectionUtils.isNotEmpty(harfs)){
-			harfSize = harfs.size();
-		}
-		return calcPercent(userVideoPlays.size(), finishs.size(), harfSize);
-	}
-
-	private int calcPercent(int size, int finishsSize, int harfSize) {
-		int sub = size - finishsSize;
-		//全部看完了
-		if (sub == 0) {
-			return 100;
-		}
-		//部分看完 直接用总的-看完的
-		//进度=play_state=1的数量*100%+play_state=0的数量*50% 比如看完2条，看过2条，一共10条，则进度为 30%
-		//已完成的数量/总的数量，保留两位在乘以100
-		//看完的百分比 绿色的
-		BigDecimal playState1 = new BigDecimal(finishsSize).divide(new BigDecimal(size), 2, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal("100"));
-		//看过的百分比 黄色的,进度新计算方式：只计算已经看完的视频数量占的百分比
-		BigDecimal playState0 = new BigDecimal(harfSize).divide(new BigDecimal(size), 2, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal("50"));
-		return playState1.intValue();
 	}
 
 	@Override
@@ -404,17 +335,8 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return page;
 	}
 
-
-
 	@Override
 	public Integer selectLastVideoId(Integer subId,Integer userId,Integer masterId) {
 		return gcVideoMapper.selectLastVideoIdBySubjectId(subId,userId,masterId);
 	}
-
-	@Override
-	public List<GcSubject> selectSubjects(List<Integer> subIds) {
-		return newUiGcSubjectMapper.select(subIds);
-	}
-
-
 }

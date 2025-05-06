@@ -95,21 +95,11 @@ public interface GcVideoService extends GcVideoServiceBll {
     @Async
     void asyncMethodUpdateVideo(GcVideo video, HttpServletRequest request, SysSystem system);
 
-    List<StudentInfoVO> getStudentSubTimeNum(List<Map<String, Object>> mapList, Integer masterId);
-
     List<Integer> getVideoIdListBySubId(List<Integer> subIds);
 
     List<GcVideo> getVideoListBySubId(List<Integer> subIds);
 
     List<GcVideo> getVideoLongListByVideoId(List<Integer> subIds);
-
-    List<GcVideo> buildVideoInfoByList(
-        List<Integer> userIdList,
-        List<GcVideo> gcVideos,
-        Integer masterId,
-        Boolean isAccessId,
-        List<Integer> permissionList,
-        HttpServletRequest request);
 
     SysFile updateVideoFile(GcVideo video, PortalUser portalUser);
 

@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 public interface GvgMasterService extends IService<GcMaster> {
 
-    // 复用 gc的接口
-
     Message portalInfosUnlogin(
         JSONObject requestParams,
         GcUser user, HttpServletRequest request);
@@ -48,14 +46,6 @@ public interface GvgMasterService extends IService<GcMaster> {
     Message videoDetail(HttpServletRequest request, Integer videoId, PortalUser portalUser);
 
     Message eventAnswerList(JSONObject jsonRequest, HttpServletRequest request, GcUser user);
-
-    Message createVideoPlayRecordAndNode(
-            GcUserVideoPlay userVideoPlay,
-            HttpServletRequest request,
-            Integer envFlag,
-            GcUser gcUser,
-            Integer masterId,
-            SysSystem system);
 
     Message answerQuestion(
             JSONObject jsonObject,
