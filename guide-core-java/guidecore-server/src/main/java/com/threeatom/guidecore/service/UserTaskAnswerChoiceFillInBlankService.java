@@ -6,5 +6,9 @@ import com.threeatom.guidecore.entity.UserTaskAnswerChoiceFillInBlank;
 import java.util.List;
 
 public interface UserTaskAnswerChoiceFillInBlankService extends IService<UserTaskAnswerChoiceFillInBlank> {
-    List<UserTaskAnswerChoiceFillInBlank> createAnswer(FillInTheBlankAnswer userAnswer, FillInTheBlankAnswer taskAnswer, Integer userTaskAnswerId);
+    List<UserTaskAnswerChoiceFillInBlank> createAnswer(FillInTheBlankAnswer userAnswer, FillInTheBlankAnswer taskAnswer,
+                                                       Integer userTaskAnswerId);
+
+    List<UserTaskAnswerChoiceFillInBlank> getAnswer(FillInTheBlankAnswer userAnswer, FillInTheBlankAnswer taskAnswer,
+                                                    Integer userTaskAnswerId);
 }

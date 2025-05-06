@@ -1,4 +1,3 @@
-
 package com.threeatom.guidecore.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -26,17 +25,24 @@ public class UserTaskAnswerChoicePairingServiceImpl
                                                           PairingAnswer taskAnswerChoicePairings,
                                                           PairingProperties pairingProperties,
                                                           Integer userTaskAnswerId) {
+        List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings =
+            getAnswer(userChoicePairings, taskAnswerChoicePairings, pairingProperties, userTaskAnswerId);
+        saveBatch(userTaskAnswerChoicePairings);
+        return userTaskAnswerChoicePairings;
+    }
+
+    @Override
+    public List<UserTaskAnswerChoicePairing> getAnswer(PairingAnswer userChoicePairings,
+                                                       PairingAnswer taskAnswerChoicePairings,
+                                                       PairingProperties pairingProperties, Integer userTaskAnswerId) {
         List<List<Integer>> userAnswerChoiceIds = userChoicePairings.getChoiceIds();
         verifyChoicePairsValid(userAnswerChoiceIds, pairingProperties);
 
-        List<UserTaskAnswerChoicePairing> userTaskAnswerChoicePairings = userAnswerChoiceIds.stream()
+        return userAnswerChoiceIds.stream()
             .map(choices -> choices.stream().sorted().collect(Collectors.toList()))
             .map(choices -> userTaskAnswerChoicePairing(userTaskAnswerId, choices,
                 taskAnswerChoicePairings.getChoiceIds()))
             .collect(Collectors.toList());
-
-        saveBatch(userTaskAnswerChoicePairings);
-        return userTaskAnswerChoicePairings;
     }
 
     private UserTaskAnswerChoicePairing userTaskAnswerChoicePairing(Integer userTaskAnswerId, List<Integer> choices,

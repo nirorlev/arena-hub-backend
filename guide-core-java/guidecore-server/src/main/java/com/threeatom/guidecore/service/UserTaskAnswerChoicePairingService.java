@@ -10,4 +10,7 @@ import java.util.List;
 public interface UserTaskAnswerChoicePairingService extends IService<UserTaskAnswerChoicePairing> {
     List<UserTaskAnswerChoicePairing> createAnswer(PairingAnswer userChoicePairings, PairingAnswer taskAnswerChoicePairings,
                                                    PairingProperties pairingProperties, Integer userTaskAnswerId);
+
+    List<UserTaskAnswerChoicePairing> getAnswer(PairingAnswer userChoicePairings, PairingAnswer taskAnswerChoicePairings,
+                                                   PairingProperties pairingProperties, Integer userTaskAnswerId);
 }
