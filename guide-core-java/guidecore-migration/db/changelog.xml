@@ -1367,4 +1367,9 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="remove-old-analytics-tables" author="vprokh">
+        <dropTable tableName="gc_user_video_plays_node"/>
+        <dropTable tableName="gc_user_video_play"/>
+    </changeSet>
+
 </databaseChangeLog>
