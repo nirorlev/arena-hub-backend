@@ -3,6 +3,7 @@ package com.threeatom.guidecore.controller.api;
 import com.threeatom.guidecore.dto.request.TaskDto;
 import com.threeatom.guidecore.dto.request.TaskSessionDto;
 import com.threeatom.guidecore.dto.request.UserTaskAnswerDto;
+import com.threeatom.guidecore.dto.request.UserTaskAnswerPreviewDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskSessionsDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
@@ -112,7 +113,7 @@ public class TaskController {
     public com.threeatom.guidecore.dto.response.UserTaskAnswerDto createTaskAnswerPreview(@PathVariable Integer taskId,
                                                                                           @RequestBody
                                                                                           @Valid
-                                                                                          UserTaskAnswerDto userTaskAnswerDto,
+                                                                                          UserTaskAnswerPreviewDto userTaskAnswerDto,
                                                                                           HttpServletRequest request) {
         return videoEventFacade.createTaskAnswerPreview(userTaskAnswerDto, taskId, getPortalUser(request));
     }

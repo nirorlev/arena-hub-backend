@@ -4,6 +4,7 @@ import com.threeatom.common.exception.ForbiddenException;
 import com.threeatom.common.exception.ValidationException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.dto.request.UserTaskAnswerPreviewDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
@@ -137,9 +138,8 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     }
 
     @Override
-    public UserTaskAnswerDto createTaskAnswerPreview(
-        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Integer taskId,
-        PortalUser portalUser) {
+    public UserTaskAnswerDto createTaskAnswerPreview(UserTaskAnswerPreviewDto userTaskAnswerDto, Integer taskId,
+                                                     PortalUser portalUser) {
 
         Task task = taskService.getTask(taskId);
         verifyOriginCoursePermission(portalUser, task.getVideoEvent().getVideoId(), PermitAction.EDIT);

@@ -2,6 +2,7 @@ package com.threeatom.guidecore.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.threeatom.common.exception.ValidationException;
+import com.threeatom.guidecore.dto.request.UserTaskAnswerPreviewDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.Answer;
@@ -48,8 +49,7 @@ public class PreviewUserTaskAnswerServiceImpl implements PreviewUserTaskAnswerSe
     private final UserTaskAnswerReviewService userTaskAnswerReviewService;
 
     @Override
-    public UserTaskAnswerDto getAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
-                                       Task task, PortalUser portalUser) {
+    public UserTaskAnswerDto getAnswer(UserTaskAnswerPreviewDto userTaskAnswerDto, Task task, PortalUser portalUser) {
         verifyTaskVersion(userTaskAnswerDto, task);
 
         try {
@@ -158,7 +158,7 @@ public class PreviewUserTaskAnswerServiceImpl implements PreviewUserTaskAnswerSe
             .collect(Collectors.toSet());
     }
 
-    private void verifyTaskVersion(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Task task) {
+    private void verifyTaskVersion(UserTaskAnswerPreviewDto userTaskAnswerDto, Task task) {
         if (!task.getVersion().equals(userTaskAnswerDto.getTaskVersion())) {
             log.error("Task version mismatch for task %s".formatted(task.getId()));
             throw new ValidationException("Task version mismatch");

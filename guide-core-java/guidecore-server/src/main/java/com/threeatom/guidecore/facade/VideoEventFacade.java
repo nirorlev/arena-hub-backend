@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.facade;
 
+import com.threeatom.guidecore.dto.request.UserTaskAnswerPreviewDto;
 import com.threeatom.guidecore.dto.response.AnswerKeyDto;
 import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
@@ -8,7 +9,6 @@ import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
 import com.threeatom.guidecore.entity.PortalUser;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 public interface VideoEventFacade {
 
@@ -31,9 +31,8 @@ public interface VideoEventFacade {
 
     UserTaskAnswersDto taskAnswersPreview(Integer taskId, PortalUser portalUser);
 
-    UserTaskAnswerDto createTaskAnswerPreview(
-        com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto, Integer taskId,
-        PortalUser portalUser);
+    UserTaskAnswerDto createTaskAnswerPreview(UserTaskAnswerPreviewDto userTaskAnswerDto, Integer taskId,
+                                              PortalUser portalUser);
 
     UserTaskAnswerDto createTaskAnswer(com.threeatom.guidecore.dto.request.UserTaskAnswerDto userTaskAnswerDto,
                                        Integer taskId, PortalUser portalUser);
