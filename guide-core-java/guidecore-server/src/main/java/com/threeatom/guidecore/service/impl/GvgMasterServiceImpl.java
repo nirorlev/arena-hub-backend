@@ -16,7 +16,6 @@ import com.threeatom.common.exception.SystemException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.AccessRoleType;
 import com.threeatom.guidecore.constant.EnvType;
-import com.threeatom.guidecore.constant.MessageEventType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.SearchDto;
@@ -24,10 +23,8 @@ import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
-import com.threeatom.guidecore.entity.GcMasterMessage;
 import com.threeatom.guidecore.entity.GcResource;
 import com.threeatom.guidecore.entity.GcSubject;
-import com.threeatom.guidecore.entity.GcSubjectComplete;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAnswer;
@@ -51,7 +48,6 @@ import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterMessageService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcResourceService;
-import com.threeatom.guidecore.service.GcSubjectCompleteService;
 import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserAnswerService;
@@ -82,16 +78,13 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,7 +95,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -195,9 +187,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcUserSaveFolderService gcUserSaveFolderService;
 
 	@Autowired
-	private GcSubjectCompleteService subjectCompleteService;
-
-	@Autowired
 	private GcSubjectService gcSubjectService;
 
 	@Autowired
@@ -208,9 +197,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	@Autowired
 	private PtTagsService ptTagsService;
-
-	@Autowired
-	private GcSubjectCompleteService completeService;
 
 	@Autowired
 	private AuthorizationService authorizationService;
@@ -1383,150 +1369,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		return gcUserFabulous;
 	}
 
-	@Override
-	public Message answerQuestion(@RequestBody JSONObject jsonRequest, HttpServletRequest request,Integer masterId,GcUser user,Integer envFlag,SysSystem system) {
-		Message message = new Message();
-		ApiAssert.assertId(masterId, "缺少空间id");
-		Integer eventId = jsonRequest.getInteger("eventId");
-		GcEvent event = eventService.getById(eventId);
-		String answerJsonString = jsonRequest.get("answerJson").toString();
-		GcUserAnswer answer = new GcUserAnswer();
-		GcUserAnswer history = new GcUserAnswer();
-		history = userAnswerService.getMyEventAnswerByEventId(eventId, user.getId(), masterId);
-		if (history != null)
-			answer.setId(history.getId());
-		answer.setMasterId(masterId);
-		answer.setEventId(eventId);
-		answer.setUserId(user.getId());
-		answer.setAnswerJson(JSONObject.parseObject(answerJsonString));
-
-
-		if (!userAnswerService.saveUserAnswer(answer)) {
-			throw new SystemException("没有成功！");
-		}
-		SubjectTotals subjectTotals = null;
-		Integer sub0Id = null;
-		if(TableConstant.COMMON_THREE==envFlag && Objects.isNull(history)) {
-			GcVideo gcVideo = gcVideoService.getById(event.getVideoId());
-			GcSubject gcSubject = gcSubjectService.getById(gcVideo.getSubId());
-			sub0Id = gcSubject.getFid();
-			List<Integer> subIdList = new ArrayList<>();
-			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("masterId", masterId);
-			params.put("pageSize", 1000);
-			params.put("fid", gcSubject.getFid());
-			params.put("userId", user.getId());
-			PageInfo<GcSubject> page = newUiGcSubjectService.listSubjectByFid(params, request, true, subIdList);
-			List<GcSubject> orderSubject = page.getList();
-			//一级课程总进度
-			if (Objects.nonNull(user.getId())) {
-				List<Integer> subId = new ArrayList<>();
-				subId.add(gcSubject.getFid());
-				List<GcSubject> subjects = subjectService.getChildSubjectBySubId(gcSubject.getFid());
-				List<GcVideo> gcVideos = gcVideoService.getVideoIdListBySubId0(subId, user.getId(), masterId);
-				Map<Integer, List<GcVideo>> map = gcVideos.stream().filter(e -> null != e.getSubId()).collect(Collectors.groupingBy(GcVideo::getSubId));
-				for (GcSubject gcSubject1 : subjects) {
-					List<GcVideo> list = map.get(gcSubject1.getId());
-					if (null != list && TableConstant.COMMON_ZERO != list.size()) {
-						gcSubject1.setGcVideos(list);
-					}
-				}
-				subjectTotals = calcTotals(subjects, user.getId(), false, masterId);
-				message.addData("subjectTotal", subjectTotals);
-
-				//二级课程进度
-				GcSubject gcSubject1 = subjectService.getById(gcVideo.getSubId());
-				Integer suboId = gcSubject.getFid();
-				List<Integer> suboList = new ArrayList<>();
-				subIdList.add(suboId);
-				List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-				List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(user.getId(), gcVideoList, masterId);
-				Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-				for (Integer key : videoMap.keySet()) {
-					List<GcVideo> videoList = videoMap.get(key);
-					for (GcSubject gcSubject2 : orderSubject) {
-						if (key.equals(gcSubject2.getId())) {
-							Integer sumTasks = videoList.stream().filter(e -> null != e.getAnsweredSumNums()).mapToInt(GcVideo::getAnsweredSumNums).sum();
-							Integer sumVideos = videoList.size();
-							Integer answeredTaksNum = videoList.stream().filter(e -> null != e.getAnsweredNums()).mapToInt(GcVideo::getAnsweredNums).sum();
-							List<GcVideo> videos = videoList.stream().filter(e -> null != e.getPlayState() & ("1").equals(e.getPlayState())).collect(Collectors.toList());
-							BigDecimal percent = new BigDecimal(answeredTaksNum + videos.size()).divide(new BigDecimal(sumTasks + sumVideos), 2, BigDecimal.ROUND_DOWN);
-							gcSubject2.setTotalPercent(percent);
-						}
-					}
-				}
-				Optional<GcSubject> gcSubject2 = orderSubject.stream().filter(e->e.getId().equals(gcVideo.getSubId())).findFirst();
-				message.ok().addData("subject",gcSubject2);
-				page.setList(orderSubject);
-			}
-		}
-
-		//加入课程完成进度数据
-		GcSubjectComplete complete = subjectCompleteService.getSubjectCompleteInfo(masterId,user.getId(),sub0Id);
-		if (null==complete){
-			complete = new GcSubjectComplete();
-			complete.setCreateTime(new Date());
-		}
-		if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)){
-			complete.setInProgress(TableConstant.SUBJECT_COMPLETE_PERCENT0);
-			complete.setSubjectState(TableConstant.COMMON_ONE);
-		}else if (null!=subjectTotals&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-			complete.setInProgress(subjectTotals.getTotalProgressPercent());
-			complete.setSubjectState(TableConstant.COMMON_TWO);
-		}else if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-			complete.setInProgress(subjectTotals.getTotalProgressPercent());
-			complete.setSubjectState(TableConstant.COMMON_ZERO);
-		}
-		complete.setMasterId(masterId);
-		complete.setSubjectId(sub0Id);
-		complete.setUpdateTime(new Date());
-		complete.setUserId(user.getId());
-		subjectCompleteService.saveOrUpdate(complete);
-
-
-
-		if(envFlag!=TableConstant.COMMON_THREE){
-			//群发老师通知
-			List<GcMasterMessage> masterMessageList = new ArrayList<>();
-			List<Integer> sendIds = userService.getTalkerIds(user.getId(), masterId);
-			if (sendIds.size() > 0) {
-				for (Integer sendId : sendIds) {
-					GcMasterMessage masterMessage = new GcMasterMessage();
-					masterMessage.setEventType(MessageEventType.QUESTION_5);
-					masterMessage.setMasterId(masterId);
-					masterMessage.setUserId(user.getId());
-					masterMessage.setTargetUserId(sendId);
-					masterMessage.setUserAnswerId(answer.getId());
-					masterMessageList.add(masterMessage);
-					masterMessageService.deleteAnswerMessage(masterMessage);
-				}
-				masterMessageService.saveBatchMasterMessage(masterMessageList);
-			}
-		}
-		//判断学生选择题是否回答正确
-		List<String> rightAnswer = new ArrayList<>();
-		if(TableConstant.COMMON_ONE==event.getEventType()){
-			String ext = event.getExt();
-			JSONArray jsonArray = JSONArray.parseArray(ext);
-			for(Object obj : jsonArray){
-				JSONObject jsonObject = (JSONObject) JSONObject.toJSON(obj);
-				if(Boolean.parseBoolean(jsonObject.get("checked").toString())){
-					rightAnswer.add(jsonObject.get("value").toString());
-				}
-			}
-			JSONArray jsonArray1 = JSONArray.parseArray(jsonRequest.getString("answerJson"));
-			if(Objects.nonNull(event.getAnswerMessageFlag()) && event.getAnswerMessageFlag().equals(TableConstant.COMMON_ONE)) {
-				if (JSONObject.parseArray(jsonArray1.toJSONString(), String.class).containsAll(rightAnswer) && rightAnswer.containsAll(JSONObject.parseArray(jsonArray1.toJSONString(), String.class))) {
-					message.ok().addData("ifRightAnswer", TableConstant.COMMON_ONE);
-				}else {
-					message.ok().addData("ifRightAnswer", TableConstant.COMMON_ZERO);
-				}
-			}
-		}
-		return message.ok("回答成功！");
-
-	}
-
 	@ApiOperation(value = "删除分类", httpMethod = "DELETE")
 	@DeleteMapping("/delSub/{id}/{sub0Id}")
 	public Message deleteSub(@PathVariable("id") Integer subId, @PathVariable(value = "sub0Id",required = false)Integer sub0Id, HttpServletRequest request,GcMaster master,Integer envFlag) {
@@ -1577,58 +1419,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		return page;
 	}
 
-	@Async
-	@Override
-	public void saveInProgress(Integer subject,Integer masterId,HttpServletRequest request){
-
-		List<GcSubjectComplete> completes = completeService.selectBySubjectId(masterId,subject);
-
-		List<Integer> userIds = completes.stream().map(GcSubjectComplete::getUserId).collect(Collectors.toList());
-
-		List<SubjectTotals> subjectTotalsList = new ArrayList<>();
-
-		//一级课程总进度
-		if (CollectionUtils.isNotEmpty(userIds)) {
-			List<Integer> subId = new ArrayList<>();
-			subId.add(subject);
-			List<GcSubject> subjects = subjectService.getChildSubjectBySubId(subject);
-			List<GcVideo> gcVideos = gcVideoService.getVideoListByUserIdAndSubject(userIds,subject,masterId,request);
-
-			Map<Integer,List<GcVideo>> map = gcVideos.stream().filter(e->null!=e.getSubId()).collect(Collectors.groupingBy(GcVideo::getUserId));
-
-			for (Integer userId : userIds) {
-				List<GcVideo> list = map.get(userId);
-				for(GcSubject gcSubject1 : subjects){
-					if(null != list && TableConstant.COMMON_ZERO!=list.size()){
-						gcSubject1.setGcVideos(list);
-					}
-				}
-				SubjectTotals  subjectTotals = new SubjectTotals();
-				//计算进度
-				subjectTotals = calcTotals(subjects,userId,false,masterId);
-				subjectTotalsList.add(subjectTotals);
-			}
-		}
-		Map<Integer,GcSubjectComplete> completeMap = completes.stream().collect(Collectors.toMap(GcSubjectComplete::getUserId, (p) -> p));
-		for (SubjectTotals subjectTotals : subjectTotalsList) {
-			GcSubjectComplete complete = completeMap.get(subjectTotals.getUserId());
-			if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)){
-				complete.setInProgress(TableConstant.SUBJECT_COMPLETE_PERCENT0);
-				complete.setSubjectState(TableConstant.COMMON_ONE);
-			}else if (null!=subjectTotals&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.SUBJECT_COMPLETE_PERCENT0)&&!subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-				complete.setInProgress(subjectTotals.getTotalProgressPercent());
-				complete.setSubjectState(TableConstant.COMMON_TWO);
-			}else if (null!=subjectTotals&&subjectTotals.getTotalProgressPercent().equals(TableConstant.COMMON_ZERO)){
-				complete.setInProgress(subjectTotals.getTotalProgressPercent());
-				complete.setSubjectState(TableConstant.COMMON_ZERO);
-			}
-			complete.setUpdateTime(new Date());
-			completeService.saveOrUpdate(complete);
-		}
-	}
-
-
-
 	public Message deleteVideoPt(Integer vid,Integer envFlag,Integer userId,Integer masterId,HttpServletRequest request) {
 		if(envFlag==EnvType.GC.getCode()) {
 			if (videoService.deleteVideo(vid)){
@@ -1641,9 +1431,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				subject = subjectService.getById(video.getSubId());
 			}
 			videoService.deleteVideo(vid);
-			if (null!=subject&&null!=subject.getFid()){
-				saveInProgress(subject.getFid(),masterId,request);
-			}
 			return new Message().ok();
 		}
 		return new Message().error();

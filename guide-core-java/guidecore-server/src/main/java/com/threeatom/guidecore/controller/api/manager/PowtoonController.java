@@ -1792,21 +1792,6 @@ public class PowtoonController extends GuideCoreController {
         return new Message().ok();
     }
 
-    @ApiOperation(value = "回答问题", httpMethod = "POST")
-    @PostMapping("/answerQuestion")
-    public Message answerQuestion(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        Integer eventId = jsonRequest.getInteger("eventId");
-        if (Objects.isNull(eventId)) {
-            throw new SystemException(I18NUtil.get("powtoon.answer.error"));
-        }
-        return gvgMasterService.answerQuestion(jsonRequest, request, request.getIntHeader("masterId"), this.getGcUser(),
-            EnvType.PT.getCode(), this.getSystem());
-    }
-
     @ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")
     @PostMapping("/getContentFromOneFolder")
     public Message getContentFromOneFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {

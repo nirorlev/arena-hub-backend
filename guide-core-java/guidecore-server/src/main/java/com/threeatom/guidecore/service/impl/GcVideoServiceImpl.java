@@ -117,9 +117,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	private PtTagsService ptTagsService;
 
 	@Autowired
-	private GcSubjectCompleteService subjectCompleteService;
-
-	@Autowired
 	private VideoMapping videoMapping;
 
 	@Autowired
@@ -376,8 +373,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			video.setOrder(max + 1);
 		}
 		boolean savedSuccessfully = this.saveVideo(video);
-		// New videos cancel the previously completed course progress
-		subjectCompleteService.updateStateByVideoId(video.getId(), masterId);
 
 		SysFile sysFile = new SysFile();
 		if (null != video.getIfCaption() && TableConstant.COMMON_ONE == video.getIfCaption()) {

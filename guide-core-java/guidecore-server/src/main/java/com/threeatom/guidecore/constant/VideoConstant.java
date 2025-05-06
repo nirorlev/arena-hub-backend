@@ -2,11 +2,6 @@ package com.threeatom.guidecore.constant;
 
 public class VideoConstant {
 
-    public static final int LOCAL = 1;
-
-    public static final int TECENT = 2;
-    public static final int SCREENROCK = 3;
-
     // 1 - oss
     // 2 - tencent
     // 3 - screenRock
