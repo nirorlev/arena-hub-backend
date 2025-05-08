@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.threeatom.guidecore.mapper.NewUiGcSubjectMapper">
 
-	<resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.GcSubject">
+	<resultMap id="baseResultMap" type="com.threeatom.guidecore.entity.Course">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -47,7 +47,7 @@
 	</resultMap>
 
 
-	<resultMap id="tagResultMap" type="com.threeatom.guidecore.entity.GcSubject">
+	<resultMap id="tagResultMap" type="com.threeatom.guidecore.entity.Course">
 		<result property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -128,7 +128,7 @@
 		concat( '[', string_agg(distinct '"' || tags.tag_text || '"', ',' ), ']' ) AS course_tags,
 		s.cpd_hours
 		FROM
-		GC_SUBJECT S
+		courses S
 		<if test="userId != null and userId !='' and gvgFlag == null">
 			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
@@ -142,7 +142,7 @@
 			LEFT JOIN GC_USER "user" ON "user".ID = UA.USER_ID
 		</if>
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
-		left join gc_subject sub1 on sub1.fid = s.id
+		left join courses sub1 on sub1.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id= sub1.id
 		LEFT JOIN sys_file sys on sys.id=v.file_id
 		LEFT JOIN gc_subject_association sa ON ( S.id = sa.subject_id OR s.fid = sa.subject_id )
@@ -268,7 +268,7 @@
 		F.FILE_URL AS F_FILE_URL,
 		F.SAVE_TYPE AS F_SAVE_TYPE
 		FROM
-		GC_SUBJECT S
+		courses S
 		LEFT JOIN SYS_FILE F ON F.ID = S.SUB_IMG_ID
 		LEFT JOIN gc_video v ON v.sub_id= s.id
 		where s.state !=0 and s.fid =#{fid}
@@ -276,12 +276,12 @@
 
 	</select>
 
-	<select id="sumSubjectDuration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.GcSubject">
+	<select id="sumSubjectDuration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.Course">
 		select
 		S.ID, SUM(F.VIDEO_LONG)  as "subjectVideoDuration"
 		FROM
-		GC_SUBJECT S
-		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		courses S
+		LEFT JOIN courses S0 ON S0.FID=S.ID
 		LEFT JOIN GC_VIDEO V ON V.SUB_ID = S0.ID
 		LEFT JOIN SYS_FILE F ON F.ID = V.FILE_ID
 		WHERE
@@ -295,11 +295,11 @@
 		GROUP BY S.ID
 	</select>
 
-	<select id="sumSubject1Duration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.GcSubject">
+	<select id="sumSubject1Duration" parameterType ="java.util.List" resultType="com.threeatom.guidecore.entity.Course">
 		select
 		S.ID, SUM(F.VIDEO_LONG)  as "subjectVideoDuration"
 		FROM
-		GC_SUBJECT S
+		courses S
 		LEFT JOIN GC_VIDEO V ON V.SUB_ID = s.ID
 		LEFT JOIN SYS_FILE F ON F.ID = V.FILE_ID
 		WHERE
@@ -339,7 +339,7 @@
 		f.thumb_nail_url as thumb_nail_url,
 		(SELECT count( 1 ) FROM gc_video WHERE sub_id = s.id) AS videos_total_num
 		FROM
-		GC_SUBJECT S
+		courses S
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -359,7 +359,7 @@
 
 	<select id="getVideoNumByIds" resultMap="baseResultMap">
 		select  g.fid,g.id,count(1)as videos_total_num
-		from  gc_subject g
+		from  courses g
 		LEFT JOIN gc_video v on v.sub_id = g.id
 		where 1=1
 		<if test="ids != null and ids.size != 0">
@@ -372,7 +372,7 @@
 	</select>
 
 	<select id="countSessions" resultType="java.lang.Integer">
-		select s.id from  gc_subject s
+		select s.id from  courses s
 		<where>
 			<if test="ids != null and !ids.isEmpty">
 				AND s.sub_id in
@@ -383,8 +383,8 @@
 		</where>
 	</select>
 
-	<select id="select" resultType="com.threeatom.guidecore.entity.GcSubject">
-		select * from  gc_subject
+	<select id="select" resultType="com.threeatom.guidecore.entity.Course">
+		select * from  courses
 		<where>
 			<if test="subIds != null and subIds.size != 0">
 				AND sub_id in
@@ -397,7 +397,7 @@
 	</select>
 
 	<select id="selectSubjectsByVids" resultMap="baseResultMap">
-		SELECT * from gc_subject s
+		SELECT * from courses s
 		left join gc_video v on v.sub_id=s.id
 		where v.id in
 		<foreach collection="vids" item="vid" separator="," open="(" close=")">
@@ -409,7 +409,7 @@
 		SELECT s.*,F.ID AS F_ID,
 		F.NAME AS F_NAME,
 		F.FILE_URL AS F_FILE_URL,
-		F.SAVE_TYPE AS F_SAVE_TYPE from gc_subject s
+		F.SAVE_TYPE AS F_SAVE_TYPE from courses s
 		left join sys_file f on f.id = s.sub_img_id
 		where s.id in
 		<foreach collection="ids" item="id" separator="," open="(" close=")">
@@ -418,7 +418,7 @@
 	</select>
 
 	<select id="getSubjectNum" resultType="java.lang.Integer">
-		select count(1) from  gc_subject
+		select count(1) from  courses
 		<where>
 			<if test="ids != null and ids.size != 0">
 				AND id in

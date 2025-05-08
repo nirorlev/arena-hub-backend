@@ -15,7 +15,7 @@ import com.threeatom.guidecore.dto.response.PageableDto;
 import com.threeatom.guidecore.dto.response.PlaylistWithDetailsDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
 import com.threeatom.guidecore.dto.response.VideoWithSourceDetailsDto;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -23,7 +23,7 @@ import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.mapper.GcUserSaveFolderMapper;
 import com.threeatom.guidecore.mapping.PlaylistMapping;
 import com.threeatom.guidecore.mapping.VideoMapping;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserSaveContentService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -66,7 +66,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
 
     @Autowired
     @Lazy
-    private GcSubjectService gcSubjectService;
+    private CourseService courseService;
 
     @Autowired
     private PlaylistMapping playlistMapping;
@@ -160,7 +160,7 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
                     }
 
                     if (Objects.nonNull(gcUserSaveContent.getSubId())) {
-                        GcSubject subject = gcSubjectService.getById(gcUserSaveContent.getSubId());
+                        Course subject = courseService.getById(gcUserSaveContent.getSubId());
                         SysFile sysFile = sysFileService.getById(subject.getSubImgId());
                         sysFile.setFullFileUrl(sysFileService.getResFullUrl(sysFile, request));
                         sysFile.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(sysFile));

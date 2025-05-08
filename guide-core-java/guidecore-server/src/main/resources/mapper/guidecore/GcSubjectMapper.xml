@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.threeatom.guidecore.mapper.GcSubjectMapper">
+<mapper namespace="com.threeatom.guidecore.mapper.CoursetMapper">
 
-	<resultMap id="courseResultMap" type="GcSubject">
+	<resultMap id="courseResultMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -92,7 +92,7 @@
 		</association>
 	</resultMap>
 
-	<resultMap id="baseResultMap" type="GcSubject">
+	<resultMap id="baseResultMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -230,7 +230,7 @@
 		</collection>
 	</resultMap>
 
-	<resultMap id="originCourseResultMap" type="GcSubject" autoMapping="true" >
+	<resultMap id="originCourseResultMap" type="Course" autoMapping="true" >
 		<result property="userId" column="user_id"/>
 		<result property="createUser" column="user_id"/>
 		<result property="fid" column="fid"/>
@@ -238,7 +238,7 @@
 		<result property="state" column="state"/>
 	</resultMap>
 
-	<resultMap id="baseResultVoMap" type="GcSubject">
+	<resultMap id="baseResultVoMap" type="Course">
 		<result property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="sub0Name" column="sub0Name"/>
@@ -329,15 +329,15 @@
 			</association>
 		</collection>
 	</resultMap>
-	<resultMap id="idMap" type="GcSubject">
+	<resultMap id="idMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="id2" column="id2"  />
 	</resultMap>
-	<resultMap id="subjectOrderMap" type="GcSubject">
+	<resultMap id="subjectOrderMap" type="Course">
 		<result property="subjectOrder" column="subject_order" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 	</resultMap>
 
-	<resultMap id="JsonArray" type="GcSubject">
+	<resultMap id="JsonArray" type="Course">
 		<result property="mustJsonArray" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="mayJsonArray" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 	</resultMap>
@@ -514,7 +514,7 @@
 		count(resource.id) as gcEvent_resourceNum,
 		count(fab.id) as userAnserFabulousNum
 
-		from gc_subject s
+		from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join sys_file vFile on vFile.id=gcVideo.file_id
 		left join sys_file vFile2 on vFile2.id = vFile.thumb_nail_id
@@ -550,7 +550,7 @@
 			<include refid="messageJoinColumn" />
 		</if>
 		<include refid="originVideoCourseColumns" />
-		from gc_subject s
+		from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
 		left join gc_user_answer answer on answer.event_id=gcEvent.id and answer.user_id=#{userId}
@@ -579,7 +579,7 @@
 
 						 LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
 						 LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
-						 LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+						 LEFT JOIN courses sub on sub.id=gcVideo.sub_id
 
 				where sub.id = #{subId}  and (eventRes.target_user_id=#{userId} or eventRes.user_id=#{userId}) group by eventRes.id, mm.read_state
 
@@ -599,7 +599,7 @@
 						 LEFT JOIN gc_master_message mm on mm.res_id = eventRes.id AND (mm.target_user_id = eventRes.target_user_id or eventRes.target_user_id is null) and mm.target_user_id=#{teacherId}
 						 LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
 						 LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
-						 LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+						 LEFT JOIN courses sub on sub.id=gcVideo.sub_id
 				where sub.id = #{subId}
 				  and (
 						(eventRes.user_id=#{teacherId} and eventRes.target_user_id=#{studentId}) or
@@ -610,7 +610,7 @@
 	</select>
 
 	<select id="getAnswerMessageMapForTeacherWorkbook" resultType="map">
-		select gcEvent.id as eventId, mm.read_state as readState from gc_subject s
+		select gcEvent.id as eventId, mm.read_state as readState from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
 		left join gc_user_answer answer on answer.event_id=gcEvent.id
@@ -623,7 +623,7 @@
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
 		,concat('[',string_agg(tags.tag_text, ','),']') as course_tags
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
 		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
 		WHERE s.master_id = #{masterId}
@@ -686,7 +686,7 @@
 		v.id as video_id,
 		v."video_name"
 		FROM
-		gc_subject s
+		courses s
 		<if test="type == null and createUser == null">
 			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
@@ -711,7 +711,7 @@
 		</if>
 		LEFT JOIN gc_user_access ua ON ua.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		WHERE
 		1 = 1
@@ -762,11 +762,11 @@
 		b.language, b.certificates_flag, b.course_tagline, b.cpd_hours, b.badge_id, b.subdetail_img_id::jsonb,
 		b.badge_content, b.create_user, b.available_type) as s
 		left join sys_file f on s.sub_img_id=f.id
-		left join gc_subject sub1 on sub1.fid = s.id
+		left join courses sub1 on sub1.fid = s.id
 		left join gc_video v on v.sub_id = sub1.id
 
-		left join (select count(v.id) as videoNum,s.id as id   from gc_subject  s
-		left join gc_subject s2 on s2.fid = s.id
+		left join (select count(v.id) as videoNum,s.id as id   from courses  s
+		left join courses s2 on s2.fid = s.id
 		left join gc_video v on v.sub_id = s2.id
 		GROUP BY s.id ) vNum on
 		<if test="type == 2">
@@ -1010,7 +1010,7 @@
 		order by s11.order asc
 	</select>
 
-	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.GcSubject" >
+	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.Course" >
 		select  * from gc_subject where fid in
 		<foreach collection="fids" item="fid" index="index" open="(" close=")" separator=",">
 			#{fid}
@@ -1077,7 +1077,7 @@
 		</choose>
 	</select>
 
-	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.GcSubject">
+	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.Course">
 		SELECT gc.*, string_agg(tags.tag_text, ',') as course_tags
 		FROM gc_subject gc
 				 LEFT JOIN gc_subject_tags tags ON tags.subject_id = gc.id AND tags.master_id = #{masterId}

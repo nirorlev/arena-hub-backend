@@ -25,7 +25,7 @@ import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcProblemService;
 import com.threeatom.guidecore.service.GcResourceService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.I18NUtil;
@@ -67,7 +67,7 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired private GcManagerService managerService;
     @Autowired private GcMasterService masterService;
     @Autowired private SysFileService sysFileService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
     @Autowired private GcVideoService videoService;
     @Autowired private GcResourceService resourceService;
     @Autowired private GcUserAccessService userAccessService;

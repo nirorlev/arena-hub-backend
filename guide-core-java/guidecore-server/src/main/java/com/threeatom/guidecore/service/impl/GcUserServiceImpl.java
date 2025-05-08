@@ -19,7 +19,7 @@ import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.entity.PtLoginConfig;
 import com.threeatom.guidecore.mapper.GcUserMapper;
 import com.threeatom.guidecore.service.GcAccessService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserInfoService;
 import com.threeatom.guidecore.service.GcUserService;
@@ -58,7 +58,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
     private final GcUserInfoService infoService;
     private final PowtoonClient powtoonClient;
     private final GcAccessService accessService;
-    private final GcSubjectService gcSubjectService;
+    private final CourseService courseService;
     private final PortalUserService portalUserService;
     private final UserAvatarService userAvatarService;
     private final UserGroupService userGroupService;
@@ -221,7 +221,7 @@ public class GcUserServiceImpl extends ServiceImpl<GcUserMapper, GcUser> impleme
             powtoonClient.getUserInfo(URI.create(ptLoginConfig.getPtRootUrl()), bearerToken);
         GcUser user = getUserByUsername(powtoonUserInfo.getProfile().getEmail());
 
-        List<Integer> courseIds = gcSubjectService.getCourseIds(masterId);
+        List<Integer> courseIds = courseService.getCourseIds(masterId);
         GcAccess studentContentGroup = accessService.getStudentContentGroup(courseIds, masterId);
 
         user = saveOrUpdateUser(user, powtoonUserInfo, studentContentGroup, masterId);

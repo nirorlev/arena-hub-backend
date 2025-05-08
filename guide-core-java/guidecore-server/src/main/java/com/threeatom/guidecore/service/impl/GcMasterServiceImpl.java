@@ -130,7 +130,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
             Integer envFlag) {
         Message m = new Message();
         Map<String, Object> params = new HashMap<>();
-        List<GcSubject> twoList = new ArrayList<>();
+        List<Course> twoList = new ArrayList<>();
         int masterId = request.getIntHeader("masterId");
 
         Integer userId = null;
@@ -178,10 +178,10 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         List<Integer> oneSubIdList = this.gcUserSaveContentService.getOneSubIdList(content);
         if (!oneSubIdList.isEmpty()) {
             params.put("subjectIds", oneSubIdList);
-            List<GcSubject> oneList = subjectService.selectBuildSubject(params, request);
+            List<Course> oneList = subjectService.selectBuildSubject(params, request);
             newUiGcSubjectService.buildSubject2(
                     oneList, user.getId(), new SysSystem(), request, EnvType.GC.getCode());
-            PageInfo<GcSubject> subjectPageInfo = new PageInfo<>(oneList);
+            PageInfo<Course> subjectPageInfo = new PageInfo<>(oneList);
             m.addData("oneLevelList", subjectPageInfo);
         }
 
@@ -190,7 +190,7 @@ public class GcMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster>
         if (!twoSubIdList.isEmpty()) {
             twoList = subjectService.selectTwoSubjectByIds(twoSubIdList, request);
         }
-        PageInfo<GcSubject> gcSubjectPageInfo = new PageInfo<>(twoList);
+        PageInfo<Course> gcSubjectPageInfo = new PageInfo<>(twoList);
         m.addData("twoLevelList", gcSubjectPageInfo);
         // 获取视频
         List<GcUserSaveContent> list =

@@ -17,7 +17,7 @@ import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CoursePreviewProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PortalUserService;
@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
 
     private final CourseEnrollmentService courseEnrollmentService;
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final GcVideoService videoService;
     private final GcUserService userService;
     private final PortalUserService portalUserService;

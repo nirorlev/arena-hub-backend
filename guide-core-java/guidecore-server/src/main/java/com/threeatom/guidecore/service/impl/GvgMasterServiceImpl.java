@@ -18,12 +18,12 @@ import com.threeatom.guidecore.constant.EnvType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.SearchDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
 import com.threeatom.guidecore.entity.GcResource;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAnswer;
@@ -46,7 +46,7 @@ import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterMessageService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcResourceService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserAnswerService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
@@ -106,7 +106,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcMasterHomeInfoService iGcMasterHomeInfoService;
 
 	@Autowired
-	private GcSubjectService subjectService;
+	private CourseService subjectService;
 
 	@Autowired
 	private GcVideoService gcVideoService;
@@ -183,10 +183,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	private GcUserSaveFolderService gcUserSaveFolderService;
 
 	@Autowired
-	private GcSubjectService gcSubjectService;
+	private CourseService courseService;
 
 	@Autowired
-	private GcSubjectService subService;
+	private CourseService subService;
 
 	@Autowired
 	private GcVideoService videoService;
@@ -222,21 +222,21 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		if (null!=portalUser){
 		ExecutorService executor = Executors.newFixedThreadPool(3);//做3个线程
 		executor.submit(() -> {
-			List<GcSubject> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
+			List<Course> subjectList = subjectService.selectSubjectByNewIndexHome(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 			PageParam pageParam = new PageParam(request);
 			if (subjectList.size()>=pageParam.getPageSize()){
 				subjectList =subjectList.subList(TableConstant.COMMON_ZERO,pageParam.getPageSize());
 			}
-			List<GcSubject> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
+			List<Course> myMaySubject = subjectService.selectSubjectMay(gcMaster.getId(),portalUser.getUserId(),new PageParam(request));
 
 			//两个课程都要进度等详细信息,放一起查询,避免两次查
-			List<GcSubject> subjectInfo = new ArrayList<>();
+			List<Course> subjectInfo = new ArrayList<>();
 			subjectInfo.addAll(subjectList);
 			subjectInfo.addAll(myMaySubject);
 
 			//课程进度评分等查询
-			List<Integer> allLevel0subIds = subjectInfo.stream().map(GcSubject::getId).collect(Collectors.toList());
-			List<Integer> imageSubIds = subjectInfo.stream().map(GcSubject::getSubImgId).collect(Collectors.toList());
+			List<Integer> allLevel0subIds = subjectInfo.stream().map(Course::getId).collect(Collectors.toList());
+			List<Integer> imageSubIds = subjectInfo.stream().map(Course::getSubImgId).collect(Collectors.toList());
 			List<Integer> videoIdlist = gcVideoService.getVideoIdListBySubId(allLevel0subIds);
 			List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
 
@@ -258,7 +258,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
 
 			if(myMaySubject != null && myMaySubject.size() > 0){
-				for(GcSubject li:myMaySubject) {
+				for(Course li:myMaySubject) {
 					if (null !=li.getSubImgId()&&null!=sysFileMap.get(li.getSubImgId())){
 						SysFile file = sysFileMap.get(li.getSubImgId());
 						file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
@@ -305,12 +305,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 			}
 			String json = JSON.toJSONString(myMaySubject,SerializerFeature.DisableCircularReferenceDetect);
-			myMaySubject =JSONArray.parseArray(json,GcSubject.class);
+			myMaySubject =JSONArray.parseArray(json, Course.class);
 
 			//subjectList的循环
 			if(subjectList != null && subjectList.size() > 0){
 				System.out.println("????????");
-				for(GcSubject li:subjectList) {
+				for(Course li:subjectList) {
 					if (null !=li.getSubImgId()&&null!=sysFileMap.get(li.getSubImgId())){
 						SysFile file = sysFileMap.get(li.getSubImgId());
 						file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
@@ -355,9 +355,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					li.setIdentifyings(identifyingList);
 				}
 			}
-			PageInfo<GcSubject> subjectPageInfo = new PageInfo<>(subjectList);
+			PageInfo<Course> subjectPageInfo = new PageInfo<>(subjectList);
 			message.ok().addData("subjectList", subjectPageInfo);
-			PageInfo<GcSubject> myMaySubjectPage = new PageInfo<>(myMaySubject);
+			PageInfo<Course> myMaySubjectPage = new PageInfo<>(myMaySubject);
 			message.addData("discoverCourses",myMaySubjectPage);
 
 			//已订阅的channel视频,自己上传的不显示
@@ -597,13 +597,13 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 		searchParameters.remove("videoName");
 		searchParameters.put("subjectName", searchParameters.get("searchName"));
-		PageInfo<GcSubject> coursePageInfo =
+		PageInfo<Course> coursePageInfo =
 			newUiGcSubjectService.list(searchParameters, system, request, EnvType.PT.getCode());
 		if (CollectionUtils.isEmpty(coursePageInfo.getList())) {
-			List<GcSubject> courses =
+			List<Course> courses =
 				subjectService.getLevel0SubListWithImg(masterId, request, null);
 			List<Integer> courseIds =
-				courses.stream().map(GcSubject::getId).collect(Collectors.toList());
+				courses.stream().map(Course::getId).collect(Collectors.toList());
 			List<SysFile> courseFiles = new ArrayList<>();
 			if (!courseIds.isEmpty()) {
 				courseFiles = sysFileService.listByIds(courseIds);
@@ -613,7 +613,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				Collectors.toMap(SysFile::getId, Function.identity(), (key1, key2) -> key2, LinkedHashMap::new));
 
 			if (CollectionUtils.isNotEmpty(courses)) {
-				for (GcSubject course : courses) {
+				for (Course course : courses) {
 					if (course.getSubImgId() == null) {
 						continue;
 					}
@@ -633,7 +633,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 
 		List<Integer> courseVideoIds = gcVideoService.getVideoIdListBySubId(
-			coursePageInfo.getList().stream().map(GcSubject::getId).collect(Collectors.toList()));
+			coursePageInfo.getList().stream().map(Course::getId).collect(Collectors.toList()));
 		List<GcVideo> videos = gcVideoService.getVideoLongListByVideoId(courseVideoIds);
 		if (null != user) {
 			videos = gcVideoService.buildVideoInfo(user.getId(), videos, masterId);
@@ -686,7 +686,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		if(params.get("fid")==null) {
 			throw new SystemException(I18NUtil.get("一级课程id fid不可空"));
 		}
-		GcSubject subject=subjectService.getById(Integer.parseInt(params.get("fid").toString()));
+		Course subject=subjectService.getById(Integer.parseInt(params.get("fid").toString()));
 		subject.setActiveStudentsCount(courseEnrollmentService.countActiveUniqueUsersInCourseEnrollments(subject.getId()));
 		subject.setStudentsCount(courseEnrollmentService.countUniqueUsersInCourseEnrollments(subject.getId()));
 		SysFile imgFile = sysFileService.getById(subject.getSubImgId());
@@ -731,10 +731,10 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			Integer userId = gcUser.getId();
 			params.put("userId", userId);
 			List<Integer> subIdList = new ArrayList<>();
-			PageInfo<GcSubject> page = newUiGcSubjectService.listSubjectByFid(params, request,true,subIdList);
+			PageInfo<Course> page = newUiGcSubjectService.listSubjectByFid(params, request,true,subIdList);
 			if(page.getSize()==0) {//可能是没权限，可能二级课程是时空，还需优化
 
-				QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
+				QueryWrapper<Course> queryWrapper = new QueryWrapper<>();
 				queryWrapper.eq("fid",params.get("fid"));
 				queryWrapper.ne("state",0);
 				int c = subjectService.count(queryWrapper);
@@ -743,9 +743,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 				}
 			}
 
-			List<GcSubject> orderSubject = page.getList();
+			List<Course> orderSubject = page.getList();
             List<Integer> videoIds = new ArrayList<>();
-			List<Integer> orderTwoSubIds = orderSubject.stream().map(GcSubject::getId).collect(Collectors.toList());
+			List<Integer> orderTwoSubIds = orderSubject.stream().map(Course::getId).collect(Collectors.toList());
 			if (null!=orderTwoSubIds&&TableConstant.COMMON_ZERO!=orderTwoSubIds.size()){
 				videoIds = videoService.getIdsBySubIds(orderTwoSubIds);
 			}
@@ -836,7 +836,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		Integer userId = portalUser.getUserId();
 
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
-		GcSubject subject = subjectService.getById(thisVideo.getSubId());
+		Course subject = subjectService.getById(thisVideo.getSubId());
 
 		GcUserAccess gcUserAccess = gcUserAccessService.getAccessByUserIdMaster(userId, masterId);
 		List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(gcUserAccess.getAccessId());
@@ -861,7 +861,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		}
 
 		//获取一级课程信息
-		GcSubject subject0 = subjectService.getById(subject.getFid());
+		Course subject0 = subjectService.getById(subject.getFid());
 		thisVideo.setFSubjectName(subject0.getName());
 		if(null!=subject0.getCertificatesFlag() && TableConstant.COMMON_ONE==subject0.getCertificatesFlag()){
 			subject0.setEnableCertificatesFlag(TableConstant.COMMON_ONE);
@@ -871,9 +871,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 //    	第几个单元
 		int unitNum=1;
-		List<GcSubject> l= subjectService.selecUnitNumForVideo(videoId);
+		List<Course> l= subjectService.selecUnitNumForVideo(videoId);
 		for(int i = 0; i < l.size(); i++) {
-			GcSubject s= l.get(i);
+			Course s= l.get(i);
 			if(s.getId().intValue()==s.getId2().intValue()) {
 				unitNum=i+1;
 				break;
@@ -924,7 +924,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		params.put("masterId", masterId);
 		params.put("fid", thisVideo.getSubId0());
 		params.put("userId", userId);
-		PageInfo<GcSubject> page = new PageInfo<>();
+		PageInfo<Course> page = new PageInfo<>();
 		if(null== userId) {
 			page = newUiGcSubjectService.listSubjectByFid(params, request, false, subIdList);
 		}else {
@@ -933,30 +933,30 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 
 		//通过order给视频排序
-		List<GcSubject> orderSubject = page.getList();
-		for(GcSubject gcSubject : orderSubject){
-			List<GcVideo> VideoList = gcSubject.getGcVideos();
+		List<Course> orderSubject = page.getList();
+		for(Course course : orderSubject){
+			List<GcVideo> VideoList = course.getGcVideos();
 			List<GcVideo> orderVideoList = new ArrayList<>();
-			if (Objects.nonNull(gcSubject.getGcVideos())){
+			if (Objects.nonNull(course.getGcVideos())){
 				orderVideoList = VideoList.stream().sorted(Comparator.comparing(GcVideo::getOrder)).collect(Collectors.toList());
 			}
-			gcSubject.setGcVideos(orderVideoList);
+			course.setGcVideos(orderVideoList);
 		}
 
 
 		//一级课程总进度
 		if(Objects.nonNull(userId)) {
 			List<Integer> subId = new ArrayList<>();
-			GcSubject gcSubject = subjectService.getById(thisVideo.getSubId0());
-			thisVideo.setSubjectName(gcSubject.getName());
+			Course course = subjectService.getById(thisVideo.getSubId0());
+			thisVideo.setSubjectName(course.getName());
 			subId.add(thisVideo.getSubId0());
-			List<GcSubject> subjects = subjectService.getChildSubjectBySubId(thisVideo.getSubId0());
+			List<Course> subjects = subjectService.getChildSubjectBySubId(thisVideo.getSubId0());
 			List<GcVideo> gcVideos = gcVideoService.getVideoIdListBySubId0(subId, userId,masterId);
 			Map<Integer,List<GcVideo>> map = gcVideos.stream().filter(e->null!=e.getSubId()).collect(Collectors.groupingBy(GcVideo::getSubId));
-			for(GcSubject gcSubject1 : subjects){
-				List<GcVideo> list = map.get(gcSubject1.getId());
+			for(Course course1 : subjects){
+				List<GcVideo> list = map.get(course1.getId());
 				if(null != list && TableConstant.COMMON_ZERO!=list.size()){
-					gcSubject1.setGcVideos(list);
+					course1.setGcVideos(list);
 				}
 			}
 			m.addData("subjectTotal",null);
@@ -969,14 +969,14 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		//任务list,pt环境中task页面的数据，并返回问题回答的进度百分比
 		if(Objects.nonNull(userId)) {
-			GcSubject gcSubject2 = gcSubjectService.getSubByVid(videoId);
-			List<GcVideo> videos = gcVideoService.getVideoListBySubId(gcSubject2.getId());
+			Course course2 = courseService.getSubByVid(videoId);
+			List<GcVideo> videos = gcVideoService.getVideoListBySubId(course2.getId());
 			List<Integer> videoIdList = videos.stream().map(GcVideo::getId).collect(Collectors.toList());
 			List<GcEvent> eventlist = gcEventService.getEventListByVideoIds(videoIdList, userId);
 			Map<Integer, List<GcEvent>> map1 = eventlist.stream().collect(Collectors.groupingBy(GcEvent::getVideoId));
-			for (GcSubject gcSubject3 : orderSubject) {
-				if (thisVideo.getSubId().equals(gcSubject3.getId())) {
-					List<GcVideo> gcVideoList1 = gcSubject3.getGcVideos();
+			for (Course course3 : orderSubject) {
+				if (thisVideo.getSubId().equals(course3.getId())) {
+					List<GcVideo> gcVideoList1 = course3.getGcVideos();
 					if (null != gcVideoList1 && TableConstant.COMMON_ZERO != gcVideoList1.size()) {
 						for (GcVideo gcVideo : gcVideoList1) {
 							List<GcEvent> gcEvents = map1.get(gcVideo.getId());
@@ -1148,12 +1148,12 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			if (subService.deleteSub(subId, master.getId())) return new Message().ok();
 		}else if(EnvType.PT.getCode()==envFlag){
 			if(Objects.nonNull(sub0Id)){
-				GcSubject gcSubject0 = subService.getById(sub0Id);
-				if(!gcSubject0.getType().equals(TableConstant.COMMON_ZERO))return new Message().error("Can't move topic to another topic");
-				GcSubject gcSubject = subService.getById(subId);
-				gcSubject.setFid(sub0Id);
-				gcSubject.setSubId(sub0Id);
-				subService.saveOrUpdate(gcSubject);
+				Course course0 = subService.getById(sub0Id);
+				if(!course0.getType().equals(TableConstant.COMMON_ZERO))return new Message().error("Can't move topic to another topic");
+				Course course = subService.getById(subId);
+				course.setFid(sub0Id);
+				course.setSubId(sub0Id);
+				subService.saveOrUpdate(course);
 				return new Message().ok();
 			}else {
 				subService.deleteSub(subId, master.getId());
@@ -1192,7 +1192,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 		}else if(envFlag==EnvType.PT.getCode()){
 			GcVideo video = videoService.getById(vid);
-			GcSubject subject = new GcSubject();
+			Course subject = new Course();
 			if (null!=video){
 				subject = subjectService.getById(video.getSubId());
 			}
@@ -1205,7 +1205,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 	public Message deleteVideo(Integer vid,Integer envFlag,Integer userId,Integer masterId) {
 		if(envFlag==EnvType.GC.getCode()) {
 			GcVideo video = videoService.getById(vid);
-			GcSubject subject = new GcSubject();
+			Course subject = new Course();
 			if (null!=video){
 				subject = subjectService.getById(vid);
 			}

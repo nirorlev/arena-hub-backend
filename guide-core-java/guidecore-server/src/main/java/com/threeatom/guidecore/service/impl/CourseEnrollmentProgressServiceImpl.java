@@ -15,7 +15,7 @@ import com.threeatom.guidecore.dto.response.analytic.VideoViewerVideoDetailDto;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
@@ -26,7 +26,7 @@ import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseEnrollmentProgressService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseSettingService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
@@ -49,7 +49,7 @@ public class CourseEnrollmentProgressServiceImpl
     extends ServiceImpl<CourseEnrollmentProgressMapper, CourseEnrollmentProgress>
     implements CourseEnrollmentProgressService {
 
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
     private final VideoPlaySessionService videoPlaySessionService;
@@ -60,7 +60,7 @@ public class CourseEnrollmentProgressServiceImpl
 
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
-        GcSubject course = courseService.getById(courseId);
+        Course course = courseService.getById(courseId);
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
             throw new ForbiddenException("You have no access to this course");
@@ -90,7 +90,7 @@ public class CourseEnrollmentProgressServiceImpl
         save(courseEnrollmentProgress);
     }
 
-    private CourseProgressDto calculateProgressDto(GcSubject course, List<GcVideo> videos,
+    private CourseProgressDto calculateProgressDto(Course course, List<GcVideo> videos,
                                                    CourseSetting courseSetting, CourseEnrollment enrollment,
                                                    PortalUser portalUser) {
         List<Integer> videoIds = courseVideoIds(videos);
@@ -116,7 +116,7 @@ public class CourseEnrollmentProgressServiceImpl
         );
     }
 
-    private CourseProgressDetailsDto getCourseProgress(GcSubject course, List<GcVideo> videos,
+    private CourseProgressDetailsDto getCourseProgress(Course course, List<GcVideo> videos,
                                                        CourseSetting courseSetting,
                                                        Map<Integer, VideoViewerVideoDetailDto> videoIdToViewerVideoDetails,
                                                        Map<Integer, ProgressDetailsDto<SectionProgressDto>> sectionsProgress,
@@ -389,7 +389,7 @@ public class CourseEnrollmentProgressServiceImpl
             .collect(Collectors.toMap(entry -> String.valueOf(entry.getKey()), Map.Entry::getValue));
     }
 
-    private CourseProgressDto emptyCourseProgressDto(GcSubject course, CourseSetting courseSetting) {
+    private CourseProgressDto emptyCourseProgressDto(Course course, CourseSetting courseSetting) {
         CourseProgressDto courseProgressDto = new CourseProgressDto();
         courseProgressDto.setCourse(courseMapping.mapToCourseProgress(course, courseSetting));
         return courseProgressDto;

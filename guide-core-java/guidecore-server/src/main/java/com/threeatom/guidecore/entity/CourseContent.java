@@ -22,7 +22,7 @@ public class CourseContent implements Serializable {
     private Integer order;
 
     @TableField(exist = false)
-    private GcSubject course;
+    private Course course;
 
     @TableField(exist = false)
     private GcVideo video;

@@ -180,7 +180,7 @@
         LEFT JOIN gc_user_event_resource ur ON u.id=ur.user_id
         LEFT JOIN gc_event e on ur.event_id=e.id
         LEFT JOIN gc_video v on e.video_id=v.id
-        LEFT JOIN gc_subject s ON v.sub_id=s.id
+        LEFT JOIN courses s ON v.sub_id=s.id
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         WHERE 1=1
         <include refid="where_gcSubject_state_not_hidden" />
@@ -204,7 +204,7 @@
         FROM gc_user_event_resource AS vr
         LEFT JOIN gc_event AS e ON e.id = vr.event_id
         LEFT JOIN gc_video AS v ON v.id = e.video_id
-        LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+        LEFT JOIN courses AS s ON s.id = v.sub_id
         WHERE
         s.master_id = #{masterId} AND
         (vr.target_user_id = 0 or vr.target_user_id is null)
@@ -347,8 +347,8 @@
     
     <sql id="messageCommonJoin">
         LEFT JOIN gc_video AS gv ON gv.id = e.video_id
-        LEFT JOIN gc_subject AS s ON s.id=gv.sub_id
-        LEFT JOIN gc_subject AS s0 ON s0.id=s.fid        
+        LEFT JOIN courses AS s ON s.id=gv.sub_id
+        LEFT JOIN courses AS s0 ON s0.id=s.fid
         LEFT JOIN gc_user_info ui on ui.id=u.info_id
         LEFT JOIN sys_file AS f on ui.avatar_file_id=f.id
         LEFT join sys_file AS sys on sys.id=s0.sub_img_id

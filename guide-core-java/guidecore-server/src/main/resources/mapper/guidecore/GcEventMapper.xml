@@ -102,7 +102,7 @@
 
     </resultMap>
 
-    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+    <resultMap id="courseResultMap" type="Course" autoMapping="true" >
         <result property="userId" column="user_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
@@ -164,7 +164,7 @@
         from gc_event e 
 		left join sys_file linkFile on e.link_file_id = linkFile.id 
 		left join gc_video linkVideo on e.link_video_id =linkVideo.id
-        left join gc_subject course ON course.id = linkVideo.origin_course_id
+        left join courses course ON course.id = linkVideo.origin_course_id
 		left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
 		left join gc_user_answer answer on answer.event_id=futurePreEvent.id and answer.user_id = #{userId}
 		where e.id = #{id} order by e.create_time
@@ -181,7 +181,7 @@
         from gc_event e
 		left join sys_file linkFile on e.link_file_id = linkFile.id
         left join gc_video linkVideo on e.link_video_id =linkVideo.id
-        left join gc_subject course ON course.id = linkVideo.origin_course_id
+        left join courses course ON course.id = linkVideo.origin_course_id
         left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
         left join gc_user_event ue on ue.event_id = e.id
         left join gc_user_answer answer on answer.event_id=futurePreEvent.id
@@ -201,7 +201,7 @@
         from gc_event e
         left join sys_file linkFile on e.link_file_id = linkFile.id
         left join gc_video linkVideo on e.link_video_id =linkVideo.id
-        left join gc_subject course ON course.id = linkVideo.origin_course_id
+        left join courses course ON course.id = linkVideo.origin_course_id
         left join gc_event futurePreEvent on e.future_pre_event_id=futurePreEvent.id
         left join gc_user_event ue on ue.event_id=e.id
         left join gc_user_answer answer on futurePreEvent.id=answer.event_id
@@ -276,7 +276,7 @@
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID AND UE.user_id=#{userId}
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID AND UA.master_id=#{masterId}
         left join gc_video v on v.id = e.video_id
-        left join gc_subject s on s.id = v.sub_id
+        left join courses s on s.id = v.sub_id
         <if test="userId != null">
         AND UA.USER_ID = #{userId}
         </if>
@@ -309,7 +309,7 @@
         </if>
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID AND UA.master_id=#{masterId}
         left join gc_video v on v.id = e.video_id
-        left join gc_subject s on s.id = v.sub_id
+        left join courses s on s.id = v.sub_id
         <if test="userId != null">
             AND UA.USER_ID = #{userId}
         </if>
@@ -345,7 +345,7 @@
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID AND UE.user_id=#{userId}
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID
         left join gc_video v on v.id = e.video_id
-        left join gc_subject s on s.id = v.sub_id
+        left join courses s on s.id = v.sub_id
         WHERE
         UE.master_id=#{masterId}
             AND UA.USER_ID = #{userId}
@@ -421,7 +421,7 @@
     <select id="selectEventSubIdsByEventId" resultType="Integer">
         select s.sub_id from gc_event e
         LEFT JOIN gc_video v on e.video_id=v.id
-        LEFT JOIN gc_subject s on s.id=v.sub_id
+        LEFT JOIN courses s on s.id=v.sub_id
         WHERE e.id in
         <foreach collection="list" item="eid" index="index" open="(" close=")" separator=",">
             #{eid}
@@ -433,7 +433,7 @@
     <select id="selectSubIdByEventId" resultType="Integer">
         select s.sub_id from gc_event e
         LEFT JOIN gc_video v on e.video_id=v.id
-        LEFT JOIN gc_subject s on s.id=v.sub_id
+        LEFT JOIN courses s on s.id=v.sub_id
         WHERE e.id=#{eid}
         <include refid="where_gcSubject_state_not_hidden" />
         GROUP BY s.sub_id
@@ -468,7 +468,7 @@
         from
         gc_event e
         LEFT JOIN gc_video v ON v.id=e.video_id
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN courses s ON s.id=v.sub_id
         where s.master_id=#{masterId}
         <include refid="where_gcSubject_state_not_hidden" />
     </select>
@@ -509,8 +509,8 @@
         ,max(answer.update_time) as lastAnswerTime
         from  gc_event e
         left join gc_video video on video.id=e.video_id
-        left join gc_subject sub1 on sub1.id = video.sub_id
-        left join gc_subject sub0 on sub0.id = sub1.fid
+        left join courses sub1 on sub1.id = video.sub_id
+        left join courses sub0 on sub0.id = sub1.fid
         left join gc_user_answer answer on answer.event_id = e.id
         left join gc_master_message message on message.user_answer_id=answer.id and message.target_user_id=#{userId}
         where answer.master_id = #{masterId} and message.read_state=0 and sub0.id in
@@ -550,7 +550,7 @@
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
         LEFT JOIN GC_USER_ANSWER UA ON UA.EVENT_ID=E.ID
         left join gc_video v on v.id = e.video_id
-        left join gc_subject s on s.id = v.sub_id
+        left join courses s on s.id = v.sub_id
         <if test="userIdList != null and userIdList.size !=0">
             AND UA.USER_ID in
             <foreach collection="userIdList" item="userId" open="(" separator="," close=")">
@@ -607,8 +607,8 @@
 
     <select id="selectEventBySubjectIdUserIds" resultType="com.threeatom.guidecore.entity.GcEvent">
         select E.ID, E.VIDEO_ID , E.UPLOAD_TYPE, UA.ANSWER_JSON,ua.user_id
-        from GC_SUBJECT s
-        left join gc_subject s2 on s2.fid = s.id
+        from courses s
+        left join courses s2 on s2.fid = s.id
         left join gc_video v on v.sub_id = s2.id
         left join gc_event e on e.video_id = v.id
         LEFT JOIN GC_USER_EVENT UE ON UE.EVENT_ID = E.ID
@@ -623,8 +623,8 @@
 
     <select id="selectEventByUserIdAndSubjectId" resultType="com.threeatom.guidecore.entity.GcEvent">
         select an.answer_json as answerJson,e.id as id,e.event_type,e.ext,e.video_id as videoId from
-        gc_subject s
-        left join gc_subject s2 on s2.fid = s.id
+        courses s
+        left join courses s2 on s2.fid = s.id
         left join gc_video v on s2.id = v.sub_id
         left join gc_event e on e.video_id = v.id
         left join gc_user_event ue on ue.event_id = e.id and ue.user_id = #{userId}

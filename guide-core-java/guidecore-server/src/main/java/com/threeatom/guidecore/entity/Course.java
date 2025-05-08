@@ -26,8 +26,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-@TableName(autoResultMap = true)
-public class GcSubject implements Serializable, TreeNodeEntity {
+@TableName(value = "courses", autoResultMap = true)
+public class Course implements Serializable, TreeNodeEntity {
 
     private static final long serialVersionUID = 1L;
     @TableField(exist = false)
@@ -64,10 +64,8 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(value = "\"order\"")
     @EqualsAndHashCode.Include
     private Integer order;
-    @ApiModelProperty(value = "subject科目图片id")
     @EqualsAndHashCode.Include
     private Integer subImgId;
-    @ApiModelProperty(value = "subject科目图片文件")
     @TableField(exist = false)
     private SysFile subImgFile;
     @ApiModelProperty(value = "父级ID") // 后续层级关联都用fid，后续将弃用subId
@@ -127,7 +125,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<GcVideo> gcVideos; // 课程下的视频
     @TableField(exist = false)
-    private List<GcSubject> subjects; // 一级课程下的二级课程
+    private List<Course> subjects; // 一级课程下的二级课程
     @TableField(exist = false)
     private Integer subjectUsers; // 课程下的参与人数
     @TableField(exist = false)
@@ -196,7 +194,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer firstVideoId;
     @TableField(exist = false)
-    private GcSubject firstTopic;
+    private Course firstTopic;
     @TableField(exist = false)
     private Integer subjectsSize;
     @TableField(exist = false)

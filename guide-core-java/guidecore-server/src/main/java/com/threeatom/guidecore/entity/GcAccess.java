@@ -106,7 +106,7 @@ public class GcAccess implements Serializable {
 
     @ApiModelProperty(value = "套餐下的课程详情")
     @TableField(exist = false)
-    private List<GcSubject> subjects;
+    private List<Course> subjects;
 
     @ApiModelProperty(value = "免费code标志")
     @TableField(exist = false)
@@ -540,11 +540,11 @@ public class GcAccess implements Serializable {
         this.times = times;
     }
 
-    public List<GcSubject> getSubjects() {
+    public List<Course> getSubjects() {
         return subjects;
     }
 
-    public void setSubjects(List<GcSubject> subjects) {
+    public void setSubjects(List<Course> subjects) {
         this.subjects = subjects;
     }
 

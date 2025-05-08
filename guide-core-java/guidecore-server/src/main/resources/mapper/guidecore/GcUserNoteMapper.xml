@@ -53,7 +53,7 @@
 		v.id,v.video_name as videoName,s.master_id
 		from gc_user_note n 
 		left join gc_video v on v.id=n.video_id
-		left join gc_subject s on s.id=v.sub_id
+		left join courses s on s.id=v.sub_id
 		where n.user_id =#{userId}
         group by n.video_id, n.user_id, v.id, s.master_id
     </select>

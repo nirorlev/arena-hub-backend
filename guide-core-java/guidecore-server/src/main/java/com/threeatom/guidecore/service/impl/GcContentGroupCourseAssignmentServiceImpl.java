@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.CourseType;
@@ -14,7 +14,7 @@ import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +43,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     private final GcContentGroupCourseAssignmentMapping gcContentGroupCourseAssignmentMapping;
     @Lazy
     @Autowired
-    private GcSubjectService courseService;
+    private CourseService courseService;
 
     @Override
     public List<ContentGroupCourseAssignmentDto> deprecatedFindByContentGroupId(Integer contentGroupId) {
@@ -118,7 +118,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void save(GcUser user, GcSubject course, CourseType type) {
+    public void save(GcUser user, Course course, CourseType type) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             new ArrayList<>(createCoursesAssignment(user, course, type));
 
@@ -236,7 +236,7 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     private List<GcContentGroupCourseAssignment> createCoursesAssignment(
-        GcUser user, GcSubject course, CourseType type) {
+        GcUser user, Course course, CourseType type) {
         List<Integer> courseIds = type.isMandatory() ? course.getMustAccessIds() : course.getAccessIds();
 
         if (CollectionUtils.isEmpty(courseIds)) {

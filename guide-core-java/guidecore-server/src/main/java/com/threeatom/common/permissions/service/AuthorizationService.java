@@ -2,8 +2,8 @@ package com.threeatom.common.permissions.service;
 
 import com.threeatom.common.permissions.enums.PortalAction;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -18,7 +18,7 @@ public interface AuthorizationService {
 
     boolean checkAccess(PtChannel channel, PermitAction action, PortalUser portalUser);
 
-    boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser);
+    boolean checkAccess(Course course, PermitAction action, PortalUser portalUser);
 
     boolean checkAccess(GcUserSaveFolder playlist, PermitAction action, PortalUser portalUser);
 
@@ -26,7 +26,7 @@ public interface AuthorizationService {
 
     Map<String, Boolean> listPortalPermissions(PortalUser portalUser);
 
-    Map<String, Boolean> listPermissions(GcSubject course, PortalUser portalUser);
+    Map<String, Boolean> listPermissions(Course course, PortalUser portalUser);
 
     Map<String, Boolean> listPermissions(GcUserSaveFolder playlist, PortalUser portalUser);
 

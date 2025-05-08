@@ -93,8 +93,8 @@
         select * from gc_user_answer answer
         LEFT JOIN gc_event event on event.id = answer.event_id
         LEFT JOIN gc_video video on video.id = event.video_id
-        LEFT JOIN gc_subject sub1 on sub1.id = video.sub_id
-        LEFT JOIN gc_subject sub0 on sub0.id = sub1.fid
+        LEFT JOIN courses sub1 on sub1.id = video.sub_id
+        LEFT JOIN courses sub0 on sub0.id = sub1.fid
         where answer.user_id=#{userId} and answer.master_id=#{masterId}
         <if test="videoId!=null">
             and video.id=#{videoId}

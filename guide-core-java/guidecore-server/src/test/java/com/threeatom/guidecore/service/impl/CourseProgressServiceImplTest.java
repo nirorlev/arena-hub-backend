@@ -4,7 +4,7 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
 import com.threeatom.guidecore.service.CourseSettingService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.UserTaskAnswerService;
 import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.service.VideoPlaySessionService;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CourseProgressServiceImplTest {
 
     @Mock
-    private GcSubjectService courseService;
+    private CourseService courseService;
     @Mock
     private AuthorizationService authorizationService;
     @Mock

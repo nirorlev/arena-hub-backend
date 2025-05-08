@@ -12,7 +12,7 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.dto.response.CommentDto;
 import com.threeatom.guidecore.entity.GcEvent;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -22,7 +22,7 @@ import com.threeatom.guidecore.mapper.GcEventMapper;
 import com.threeatom.guidecore.mapper.GcVideoCommentMapper;
 import com.threeatom.guidecore.mapping.CommentMapping;
 import com.threeatom.guidecore.service.GcResourceService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
 import com.threeatom.guidecore.service.GcVideoCommentService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -46,7 +46,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
 
     private final GcUserVideoActionService videoActionService;
     private final GcVideoService videoService;
-    private final GcSubjectService subjectService;
+    private final CourseService subjectService;
     private final SysFileService fileService;
     private final GcResourceService resourceService;
     private final GcEventMapper gcEventMapper;
@@ -174,7 +174,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
 
     @Override
     public Message getCommentStream(
-        Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request) {
+        Integer subId, GcUser user, Course sub, SysSystem sys, HttpServletRequest request) {
         List<Integer> subIds = new ArrayList<>();
         List<GcVideo> videoList;
         if (sub.getSubId() != null) {
@@ -191,7 +191,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         List<GcUserVideoAction> userVideoActions =
             videoActionService.getVideoActionListByUserId(user.getId());
 
-        List<GcSubject> childSub = subjectService.getSubListByIds(subIds, request);
+        List<Course> childSub = subjectService.getSubListByIds(subIds, request);
         List<GcEvent> allEvent = null;
         if (videoIds != null && videoIds.size() > 0) {
             allEvent = gcEventMapper.getEventListByVideoIds(videoIds, user.getId());
@@ -204,7 +204,7 @@ public class GcVideoCommentServiceImpl extends ServiceImpl<GcVideoCommentMapper,
         }
 
         JSONArray jsonSubArray = new JSONArray();
-        for (GcSubject childSubject : childSub) {
+        for (Course childSubject : childSub) {
             JSONArray jsonVideoArray = new JSONArray();
             for (GcVideo video : videoList) {
                 if (childSubject.getId().equals(video.getSubId())) {

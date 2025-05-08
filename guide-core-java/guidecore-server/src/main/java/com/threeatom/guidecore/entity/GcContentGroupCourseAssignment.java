@@ -23,7 +23,7 @@ public class GcContentGroupCourseAssignment implements Serializable {
     private Integer createdByUserId;
 
     @TableField(exist = false)
-    private GcSubject course;
+    private Course course;
     @TableField(exist = false)
     private GcUser createdBy;
     @TableField(exist = false)

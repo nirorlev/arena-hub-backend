@@ -4,8 +4,8 @@ import com.threeatom.common.exception.ValidationException;
 import com.threeatom.guidecore.dto.response.AccessGroupDetailsDto;
 import com.threeatom.guidecore.dto.response.AccessSourceDto;
 import com.threeatom.guidecore.dto.response.GroupAccessDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -13,7 +13,7 @@ import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.SourceType;
 import com.threeatom.guidecore.mapping.SharableListMapping;
 import com.threeatom.guidecore.service.GcAccessService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -33,7 +33,7 @@ public class SharableListServiceImpl implements SharableListService {
     private final GcVideoService videoService;
     private final GcAccessService accessService;
     private final PtChannelService channelService;
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final SharableListMapping sharableListMapping;
     private final GcUserSaveFolderService playlistService;
 
@@ -68,7 +68,7 @@ public class SharableListServiceImpl implements SharableListService {
 
     @Override
     public GroupAccessDto getSharableListByCourseId(Integer courseId, PortalUser portalUser) {
-        GcSubject course = courseService.getById(courseId);
+        Course course = courseService.getById(courseId);
 
         if (course == null) {
             log.error("Course with id {} not found", courseId);

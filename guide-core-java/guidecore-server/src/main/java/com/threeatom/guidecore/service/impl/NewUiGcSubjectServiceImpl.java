@@ -31,7 +31,7 @@ import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
 
 @Service
-public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper, GcSubject> implements NewUiGcSubjectService{
+public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper, Course> implements NewUiGcSubjectService{
 
 	private static final Logger log = LoggerFactory.getLogger(NewUiGcSubjectServiceImpl.class);
 
@@ -58,14 +58,14 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	private GvgMasterService gvgMasterService;
 
 	@Override
-	public PageInfo<GcSubject> list(Map<String, Object> params, SysSystem system, HttpServletRequest request,Integer envFlag) {
-		PageInfo<GcSubject> pageInfo = page(params, request);
+	public PageInfo<Course> list(Map<String, Object> params, SysSystem system, HttpServletRequest request, Integer envFlag) {
+		PageInfo<Course> pageInfo = page(params, request);
 		Integer userId = (Integer) params.get("userId");
 		buildSubject(pageInfo, userId, system, request,envFlag);
 		return pageInfo;
 	}
 
-	private PageInfo<GcSubject> page(Map<String, Object> params, HttpServletRequest request) {
+	private PageInfo<Course> page(Map<String, Object> params, HttpServletRequest request) {
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
@@ -78,24 +78,24 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return new PageInfo<>(this.baseMapper.findSubjects(params));
 	}
 
-	private PageInfo<GcSubject> listByFid(Map<String, Object> params, HttpServletRequest request) {
+	private PageInfo<Course> listByFid(Map<String, Object> params, HttpServletRequest request) {
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
 		Integer pageSize=pageParam.getPageSize();
 
 		Integer masterId = RequestUtil.getMasterId(request).get();
 		params.put("masterId", masterId);
-		Page<GcSubject> page = PageHelper.startPage(pageNum, pageSize, true);
+		Page<Course> page = PageHelper.startPage(pageNum, pageSize, true);
 		this.baseMapper.listByFid(params);
 		return new PageInfo<>(page);
 	}
 
-	public void buildSubject(PageInfo<GcSubject> page, Integer userId, SysSystem sys, HttpServletRequest request,Integer envFlag){
-		List<GcSubject> list = buildSubject2(page.getList(),userId,sys,request,envFlag);
+	public void buildSubject(PageInfo<Course> page, Integer userId, SysSystem sys, HttpServletRequest request, Integer envFlag){
+		List<Course> list = buildSubject2(page.getList(),userId,sys,request,envFlag);
 		page.setList(list);
 	}
 
-	public List<GcSubject> selectBuildSubject(Map<String, Object> params, HttpServletRequest request){
+	public List<Course> selectBuildSubject(Map<String, Object> params, HttpServletRequest request){
 		String masterId = request.getHeader("masterId");
 		if(Objects.isNull(masterId)){
 			throw new SystemException(I18NUtil.get("powtoon.portal.id.notfound"));
@@ -111,7 +111,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	@Override
-	public List<GcSubject> selectTwoSubjectByIds(List<Integer> subjectIds,HttpServletRequest request) {
+	public List<Course> selectTwoSubjectByIds(List<Integer> subjectIds, HttpServletRequest request) {
 		Integer masterId = Integer.parseInt(request.getHeader("masterId"));
 		PageParam pageParam = new PageParam(request);
 		Integer pageNum = pageParam.getPageNum();
@@ -119,30 +119,30 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		if (pageNum > 0 && pageSize > 0) {
 			PageHelper.startPage(pageNum, pageSize);
 		}
-		List<GcSubject> subjectList = this.baseMapper.listByIds(subjectIds,masterId);
-		List<GcVideo> videoList = gcVideoService.selectVideoInfoBySubId(subjectList.stream().map(GcSubject::getId).collect(Collectors.toList()));
-		for (GcSubject gcSubject : subjectList) {
-			SysFile file=gcSubject.getSubImgFile();
+		List<Course> subjectList = this.baseMapper.listByIds(subjectIds,masterId);
+		List<GcVideo> videoList = gcVideoService.selectVideoInfoBySubId(subjectList.stream().map(Course::getId).collect(Collectors.toList()));
+		for (Course course : subjectList) {
+			SysFile file= course.getSubImgFile();
 			if(file!=null){
-				gcSubject.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
+				course.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(file));
 			}
 			//获取二级课程视频
-			gcSubject.setGcVideos(videoList.stream().filter(GcVideo -> gcSubject.getId().equals(GcVideo.getSubId())).collect(Collectors.toList()));
+			course.setGcVideos(videoList.stream().filter(GcVideo -> course.getId().equals(GcVideo.getSubId())).collect(Collectors.toList()));
 		}
 		return subjectList;
 	}
 
 	@Override
-	public List<GcSubject> buildSubject2(List<GcSubject> subjects, Integer userId, SysSystem sys, HttpServletRequest request,Integer envFlag){
-		List<GcSubject> newSubjects = null;
+	public List<Course> buildSubject2(List<Course> subjects, Integer userId, SysSystem sys, HttpServletRequest request, Integer envFlag){
+		List<Course> newSubjects = null;
 		Integer masterId = Integer.parseInt(request.getHeader("masterId"));
 		//课程列表
 		if(CollectionUtils.isNotEmpty(subjects)) {
 			//根据空间id、用户id查询出来的课程，后面直接根据课程id去查询，可以不用带空间id和userId也可以带,根据情况而定
 			log.info("开始组装显示内容");
-			List<Integer> subjectIds = subjects.stream().map(GcSubject::getId).collect(Collectors.toList());
+			List<Integer> subjectIds = subjects.stream().map(Course::getId).collect(Collectors.toList());
 			log.info("2、统计课程时长 单位秒");
-			Map<Integer, GcSubject> subjectsDurationMap = sumSubjectDuration(subjectIds);
+			Map<Integer, Course> subjectsDurationMap = sumSubjectDuration(subjectIds);
 
 			List<GcVideo> videosBySubjectIds0 = gcVideoService.getVideosBySubjectIds0(subjectIds, userId,masterId);
 			Map<Integer, List<GcVideo>> sub0Map = new HashMap<>(0);
@@ -161,28 +161,28 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			newSubjects = new ArrayList<>(subjects.size());
 			//获取二级视频下视频数量
 			List<Integer> twoLevelSubId = this.baseMapper.getTwoLevelSubByIds(subjectIds);
-			List<GcSubject> gcSubjects = this.baseMapper.getVideoNumByIds(twoLevelSubId);
+			List<Course> courses = this.baseMapper.getVideoNumByIds(twoLevelSubId);
 
-			for(GcSubject sub : subjects) {
+			for(Course sub : subjects) {
 				Integer subjectId = sub.getId();
 				SysFile subImgFile = sub.getSubImgFile();
 				sysFileService.getResFullUrl(subImgFile,request);
 				sub.setSubImgFile(subImgFile);
 				//设置课程的时长 单位秒
-				GcSubject subjectVL = subjectsDurationMap.get(subjectId);
+				Course subjectVL = subjectsDurationMap.get(subjectId);
 				if(subjectVL != null){
 					sub.setSubjectVideoDuration(subjectVL.getSubjectVideoDuration());
 				}
 				List<GcVideo> gcVideos = sub0Map.get(subjectId);
 				if(CollectionUtils.isNotEmpty(gcVideos)) {
 					Map<Integer, List<GcVideo>> sub1Map = gcVideos.stream().collect(Collectors.groupingBy(GcVideo::getSubId));//根据视频中的二级课程id在进行分组
-					List<GcSubject> subjects1 = buildSubject1(sub1Map);
+					List<Course> subjects1 = buildSubject1(sub1Map);
 					sub.setSubjects(subjects1);//二级课程 没有视频也需要设置二级课程的值
 					sub.setGcVideos(gcVideos);
 				}
 
 				if(CollectionUtils.isNotEmpty(sub.getSubjects())){
-					for (GcSubject subject:sub.getSubjects()){
+					for (Course subject:sub.getSubjects()){
 						subject.setGcVideos(null);
 					}
 				}
@@ -237,10 +237,10 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	@Override
-	public List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map) {
-		List<GcSubject> subjects = new ArrayList<>(sub1Map.keySet().size());
+	public List<Course> buildSubject1(Map<Integer, List<GcVideo>> sub1Map) {
+		List<Course> subjects = new ArrayList<>(sub1Map.keySet().size());
 		for(Map.Entry<Integer, List<GcVideo>> sub1 : sub1Map.entrySet()){
-			GcSubject subject = new GcSubject();
+			Course subject = new Course();
 			subject.setId(sub1.getKey());//二级课程id
 			List<GcVideo> value = sub1.getValue();
 			subject.setGcVideos(value);//视频列表
@@ -255,15 +255,15 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 	}
 
 	@Override
-	public Map<Integer, GcSubject> sumSubjectDuration(List<Integer> subjectIds) {
+	public Map<Integer, Course> sumSubjectDuration(List<Integer> subjectIds) {
 		return  this.baseMapper.sumSubjectDuration(subjectIds);
 	}
 
 	@Override
-	public PageInfo<GcSubject> listSubjectByFid(Map<String, Object> params, HttpServletRequest request,boolean ifLogin,List<Integer> subIds) {
+	public PageInfo<Course> listSubjectByFid(Map<String, Object> params, HttpServletRequest request, boolean ifLogin, List<Integer> subIds) {
 		Object idObj = new Object();
-		List<GcSubject> subjects = new ArrayList<>();
-		PageInfo<GcSubject> page = new PageInfo<>();
+		List<Course> subjects = new ArrayList<>();
+		PageInfo<Course> page = new PageInfo<>();
 		if(ifLogin) {
 			idObj = params.get("fid");//一级课程id
 			if (idObj == null) {
@@ -298,8 +298,8 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 				gcVideos = gcVideoService.getVideoIdListBySubId0(subIds, userId,masterId);
 				videoCompleteStatus = gcVideos.stream().filter(GcVideo -> Objects.nonNull(GcVideo.getId())).collect(Collectors.groupingBy(GcVideo::getSubId));//根据二级课程分组
 			}
-			List<GcSubject> vos = new ArrayList<>(subjects.size());
-			for(GcSubject subject  : subjects){
+			List<Course> vos = new ArrayList<>(subjects.size());
+			for(Course subject  : subjects){
 				Integer id = subject.getId();
 				List<GcVideo> tmpGcvideos = videoCompleteStatus.get(id);
 				if(CollectionUtils.isNotEmpty(tmpGcvideos)){
