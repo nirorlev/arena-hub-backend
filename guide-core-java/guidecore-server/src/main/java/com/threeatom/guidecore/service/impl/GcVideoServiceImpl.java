@@ -1306,12 +1306,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		List<GcVideo> videoList = new ArrayList<>();
 		Integer order = 1;
 		for (Integer videoId:videoIds) {
-			GcVideo newSubject = new GcVideo();
-			newSubject.setId(videoId);
-			newSubject.setOrder(order);
-			videoList.add(newSubject);
+			GcVideo video = new GcVideo();
+			video.setId(videoId);
+			video.setOrder(order);
+			videoList.add(video);
 			order++;
 		}
+
+		courseContentService.updateOrder(videoIds);
 		return this.updateBatchById(videoList);
 	}
 

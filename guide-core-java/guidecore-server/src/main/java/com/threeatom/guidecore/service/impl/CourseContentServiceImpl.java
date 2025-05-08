@@ -1,5 +1,6 @@
 package com.threeatom.guidecore.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -33,6 +34,24 @@ public class CourseContentServiceImpl extends ServiceImpl<CourseContentMapper, C
     @Transactional(readOnly = true)
     public List<CourseContent> findCourseContent(Integer courseId) {
         return baseMapper.findCourseContent(courseId);
+    }
+
+    @Override
+    @Transactional
+    public void updateOrder(List<Integer> videoIds) {
+        List<CourseContent> courseContent = getVideoContentByIds(videoIds);
+        List<CourseContent> updatedContent = courseContent.stream()
+            .filter(content -> videoIds.contains(content.getContentId()))
+            .peek(content -> content.setOrder(videoIds.indexOf(content.getContentId())))
+            .collect(Collectors.toList());
+
+        updateBatchById(updatedContent);
+    }
+
+    private List<CourseContent> getVideoContentByIds(List<Integer> videoIds) {
+        QueryWrapper<CourseContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("content_id", videoIds);
+        return list(queryWrapper);
     }
 
     private CourseContent createCourseContent(GcVideo video) {

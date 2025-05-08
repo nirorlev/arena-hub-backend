@@ -9,4 +9,6 @@ public interface CourseContentService extends IService<CourseContent> {
     void saveCourseContents(List<GcVideo> videos);
 
     List<CourseContent> findCourseContent(Integer courseId);
+
+    void updateOrder(List<Integer> videoIds);
 }

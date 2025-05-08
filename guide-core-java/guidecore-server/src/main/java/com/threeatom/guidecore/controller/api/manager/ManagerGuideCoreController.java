@@ -553,14 +553,11 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @PostMapping("/changeVideoOrder")
     public Message changeVideoOrder(@RequestBody JSONObject requestParams) {
         List<Integer> videoIds = JSONObject.parseArray(requestParams.getString("videoIds"), Integer.class);
-        if (videoIds.size() < 0) {
-            throw new SystemException("缺少排序参数");
-        }
         if (videoService.changeVideoOrder(videoIds)) {
             return new Message().ok("修改成功！");
-        } else {
-            return new Message().error("修改失败！");
         }
+
+        return new Message().error("修改失败！");
     }
 
 
