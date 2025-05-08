@@ -1419,24 +1419,24 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			.collect(Collectors.toList());
 	}
 
-	private Function<VideoSearchResultDto, String> getComparingField(AnalyticsType sortBy) {
+	private Function<VideoSearchResultDto, Integer> getComparingField(AnalyticsType sortBy) {
 		if (AnalyticsType.VIDEO_VIEW_COUNT.equals(sortBy)) {
-			return VideoSearchResultDto::getVideoViewCount;
+			return videoSearchResult -> Integer.parseInt(videoSearchResult.getVideoViewCount());
 		}
 		if (AnalyticsType.VIEWERS_COUNT.equals(sortBy)) {
-			return VideoSearchResultDto::getViewersCount;
+			return videoSearchResult -> Integer.parseInt(videoSearchResult.getViewersCount());
 		}
 		if (AnalyticsType.ENGAGEMENT_RATE.equals(sortBy)) {
-			return VideoSearchResultDto::getEngagementRate;
+			return videoSearchResult -> (int) Double.parseDouble(videoSearchResult.getEngagementRate());
 		}
 		if (AnalyticsType.DROP_OFF_RATE.equals(sortBy)) {
-			return VideoSearchResultDto::getDropOffRate;
+			return videoSearchResult -> (int) Double.parseDouble(videoSearchResult.getDropOffRate());
 		}
 		if (AnalyticsType.LIKES.equals(sortBy)) {
-			return VideoSearchResultDto::getVideoLikesCount;
+			return videoSearchResult -> Integer.parseInt(videoSearchResult.getVideoLikesCount());
 		}
 
-		return VideoSearchResultDto::getVideoWatchingTime;
+		return videoSearchResult -> Integer.parseInt(videoSearchResult.getVideoWatchingTime());
 	}
 
 	@Override
