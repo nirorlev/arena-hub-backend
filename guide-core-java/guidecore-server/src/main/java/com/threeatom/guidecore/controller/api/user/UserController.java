@@ -41,9 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = "User")
 @RestController
-@RequestMapping(
-    value = "/api/v2/users",
-    produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v2/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class UserController {
 
@@ -61,16 +59,13 @@ public class UserController {
     @ApiOperation(value = "Get publish permissions of the current user according to org license limits")
     @GetMapping("/me/permissions")
     public ResponseEntity<UserPermissionsDto> getPermissions(HttpServletRequest request) {
-        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
         return ResponseEntity.ok().body(userFacade.getPermissions(getPortalUser(request)));
     }
 
     @ApiOperation(value = "Get usage of the current user according to org license limits")
     @GetMapping("/me/usage")
     public ResponseEntity<LicenseUsageDto> getUsage(HttpServletRequest request) {
-        PortalUser portalUser = getPortalUser(request);
-
-        return ResponseEntity.ok().body(userLicenseService.getLicenseUsage(portalUser));
+        return ResponseEntity.ok().body(userLicenseService.getLicenseUsage(getPortalUser(request)));
     }
 
     @ApiOperation(value = "Verify user token, authentication and return user info")

@@ -64,10 +64,6 @@ public class UserLicenseServiceImpl implements UserLicenseService {
     public LicenseUsageDto getLicenseUsage(PortalUser portalUser) {
         LicenseUsageDto licenseUsage = new LicenseUsageDto();
 
-        if (!isLimitedMember(portalUser.getRole())) {
-            return licenseUsage;
-        }
-
         Integer userId = portalUser.getUserId();
         Integer masterId = portalUser.getMasterId();
         licenseUsage.setPrivateChannelCount(channelService.countUserPrivateChannels(userId, masterId));
@@ -79,7 +75,8 @@ public class UserLicenseServiceImpl implements UserLicenseService {
         return licenseUsage;
     }
 
-    private boolean isLimitedMember(UserOrgRole orgRole) {
+    @Override
+    public boolean isLimitedMember(UserOrgRole orgRole) {
         return UserOrgRole.LIMITED_MEMBER.equals(orgRole);
     }
 }
