@@ -720,7 +720,7 @@
     </select>
 
     <select id="indexVideoNowChannel" resultMap="baseResultSearchMap">
-        select b.*,count(play.id) as playNum from (
+        select b.* from (
                                                       select channel.channel_img_file_id,channel."desc",channel.create_user_id,channel.visible_flag,channel.category_id,
                                                              channel.level,channel.fid,channel."order",channel.master_id,coalesce(channel.channel_slug,ch2.channel_slug) as channel_slug,channel.create_time,
                                                              channel.update_time,
@@ -760,13 +760,12 @@
                                                       GROUP BY file.id, channel.id, ch2.id, us2.id, pcc.id, info.id
                                                       order by file.update_time desc
                                                   ) as b
-                                                      left join gc_user_video_play play on play.file_id = b.fileId
         GROUP BY b.fileId, b.channel_img_file_id, b."desc", b.create_user_id, b.visible_flag, b.category_id, b.level, b.fid,
                  b."order", b.master_id, b.channel_slug, b.create_time, b.update_time, b.channel_avatar_file_id, b.id,
                  b.channel_name, b.file_create_time, b.file_update_time, b.createUserLastName, b.createUserFirstName,
                  b.userInfo_avatar_file_id, b.userInfo_lastName, b.userInfo_firstName,
                  b.channel_create_uid, b.channel_create_user_username, b.channelContentId, b.video_id
-        order by count(play.id) desc,file_update_time desc
+        order by file_update_time desc
     </select>
 
     <select id="getChannelsCountAnalytics" parameterType="map" resultType="com.threeatom.guidecore.dto.DbAnalyticsResultDto">

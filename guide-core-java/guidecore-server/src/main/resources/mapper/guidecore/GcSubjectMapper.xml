@@ -657,7 +657,6 @@
 		from (
 		select count(case when b.play_state=1 then 1 end) as nums, b.* from(
 		SELECT
-		max(p.play_state) as play_state,
 		a.id,
 		a.user_id,
 		a.info_id,
@@ -757,10 +756,8 @@
 		u.id,
 		s.id
 		) AS a
-		LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id AND p.user_id = a.user_id AND p.play_state = 1  AND p.play_state IS NOT NULL
 		GROUP BY a.id,
 		a.user_id,
-		p.video_id,
 		a.info_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id, a.level, a.fid,
 		a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
 		a.master_type_id::jsonb, a.template_id, a.intro_on_off, a.update_time, a.create_time, a.cate_id,
@@ -1230,8 +1227,8 @@
 		f.save_type AS f_save_type
 		<include refid="originVideoCourseColumns" />
 
-		FROM (SELECT count(CASE WHEN b.play_state = 1 THEN 1 END) AS nums, b.*
-		FROM(SELECT max(p.play_state) AS play_state,
+		FROM (SELECT b.*
+		FROM(
 		a.id,
 		a.info_id,
 		a.user_id,
@@ -1289,10 +1286,6 @@
 		u.id,
 		s.id
 		) AS a
-		LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id
-		AND p.user_id = a.user_id
-		AND p.play_state = 1
-		AND p.play_state IS NOT NULL
 		GROUP BY a.id, a.info_id, a.user_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id,
 		a.level, a.fid, a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
 		a.master_type_id::jsonb, a.cate_id,
@@ -1308,8 +1301,7 @@
 		a.template_id,
 		a.intro_on_off,
 		a.update_time,
-		a.create_time,
-		p.video_id) AS b
+		a.create_time) AS b
 		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
 		b.sub_id,
 		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
@@ -1496,10 +1488,6 @@
 		AND ua.role_json::text like concat( '%', 'groupMember', '%' )
 		GROUP BY v.id, u.id, s.id
 		) AS a
-		LEFT JOIN gc_user_video_play p ON p.video_id = a.video_id
-		AND p.user_id = a.user_id
-		AND p.play_state = 1
-		AND p.play_state IS NOT NULL
 		GROUP BY a.id, a.info_id, a.user_id, a.master_id, a.name, a.name_index, a.description, a.type, a.sub_id,
 		a.level, a.fid, a.alias_sub_id, a."order", a.sub_img_id, a.state, a.token, a.is_public,
 		a.master_type_id::jsonb, a.cate_id,
@@ -1515,8 +1503,7 @@
 		a.template_id,
 		a.intro_on_off,
 		a.update_time,
-		a.create_time,
-		p.video_id) AS b
+		a.create_time) AS b
 		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
 		b.sub_id,
 		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,

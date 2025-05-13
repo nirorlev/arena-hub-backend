@@ -868,10 +868,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                     //2、视频播放分钟数和总的时长
                     //查询视频总时长
                     totals.setVideoTotalProgress(videoService.sumVideoLongByIdUser(videoIds, userId));
-                    //查询已看分钟数 一个视频多次看取endtime最大的一个，一个视频可能看多次
-                    if (Objects.nonNull(userId)) {
-                        totals.setVideoCompleteProgress(videoService.sumPlayVideoLongByIdUser(videoIds, userId));
-                    }
 
                     //4、已回答问题数和问题总数
                     List<GcEvent> eventList = eventService.getEventListByVideoIds(videoIds, userId);

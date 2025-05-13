@@ -54,8 +54,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> selectLikeVideoByUserId(Integer userId, Integer masterId);
 
-    List<GcVideo> selectSeenVideoListByTopSubIds(@Param("subIds") List<Integer> subIds, Integer uid);
-
     Integer countVideoNameInSub0(GcVideo v);
 
     Long sumVideoLongByIdUser(
@@ -64,9 +62,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     Long sumVideoLong(@Param("videoIds") List<Integer> videoIds);
 
     List<videoLongVo> sumVideoLongBySubId(@Param("subIds") List<Integer> subIds);
-
-    Long sumPlayVideoLongByIdUser(
-        @Param("videoIds") List<Integer> videoIds, @Param("userId") Integer userId);
 
     List<GcVideo> searchVideo(Map<String, Object> params);
 
@@ -78,10 +73,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
     Integer countVideosBySubId(@Param("ids") List<Integer> ids);
 
     List<GcVideo> selectVideoInfoBySubId(@Param("list") List<Integer> list);
-
-    Integer selectLastVideoIdBySubjectId(Integer subId, Integer userId, Integer masterId);
-
-    List<StudentInfoVO> getStudentSubTimeNum(List<Integer> videoList, List<Integer> userIdList);
 
     List<Integer> getVideoIdListBySubId(@Param("subIds") List<Integer> subId);
 
@@ -103,8 +94,6 @@ public interface GcVideoMapper extends BaseMapper<GcVideo> {
 
     List<GcVideo> selectVideoPlayListBySubId(
         @Param("subId") Integer subId, @Param("userId") Integer userId);
-
-    GcVideo selectVideoPlayByVideo(@Param("video") Integer video, @Param("userId") Integer userId);
 
     List<videoLongVo> getVideoLongMapBySubjectId(@Param("subjectIds") List<Integer> subjectIds);
 

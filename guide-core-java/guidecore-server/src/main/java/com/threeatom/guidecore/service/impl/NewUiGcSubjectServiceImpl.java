@@ -335,8 +335,4 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 		return page;
 	}
 
-	@Override
-	public Integer selectLastVideoId(Integer subId,Integer userId,Integer masterId) {
-		return gcVideoMapper.selectLastVideoIdBySubjectId(subId,userId,masterId);
-	}
 }

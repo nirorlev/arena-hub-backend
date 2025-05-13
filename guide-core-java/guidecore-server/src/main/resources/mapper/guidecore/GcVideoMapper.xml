@@ -564,30 +564,6 @@
         </foreach>
         ))
     </select>
-      <!--计算视频的播放时长-->
-    <select id="sumPlayVideoLongByIdUser" resultType="java.lang.Long">
-        SELECT
-            SUM(END_TIME) - SUM(START_TIME) AS SUB_TIME
-        FROM (
-            SELECT
-                T.VIDEO_ID, T.USER_ID, MAX(T.END_TIME) AS END_TIME, MIN(T.START_TIME) AS START_TIME
-            FROM (
-                SELECT
-                    UVP.VIDEO_ID, UVP.USER_ID, UVPN.END_TIME, UVPN.START_TIME
-                FROM
-                    GC_USER_VIDEO_PLAY UVP
-                LEFT JOIN GC_USER_VIDEO_PLAYS_NODE UVPN ON UVPN.VIDEOPLAY_ID = UVP.ID
-                WHERE
-                    VIDEO_ID IN
-                    <foreach collection="videoIds" item="videoId" index="index" open="(" close=")" separator="," >
-                        #{videoId}
-                    </foreach>
-                    AND UVPN.END_TIME > UVPN.START_TIME
-                    AND USER_ID=#{userId} AND UVPN.START_TIME>= 0 AND UVPN.END_TIME>=0
-            ) T
-            GROUP BY T.VIDEO_ID, T.USER_ID
-        ) T
-    </select>
 
     <select id="searchVideo" parameterType="java.util.Map" resultMap="baseResultMap">
         select DISTINCT ON (v.id)
@@ -667,38 +643,6 @@
             </foreach>
         </if>
         order by v."order"
-    </select>
-
-    <select id="selectLastVideoIdBySubjectId" resultType="integer" >
-        select vp.video_id from gc_user_video_play vp
-                left join gc_video v on v.id = vp.video_id
-                left join gc_subject s1 on v.sub_id=s1.id
-                left join gc_subject s0 on s1.fid=s0.id
-        where s0.id=#{subId}
-        and vp.user_id = #{userId}
-        and vp.master_id = #{masterId}
-        order by vp.update_time desc limit 1
-    </select>
-
-    <select id="getStudentSubTimeNum" resultType="com.threeatom.guidecore.entity.StudentInfoVO">
-        SELECT
-            sum(uvpn.end_time - uvpn.start_time) as subTime,uvp.user_id as userId
-        FROM
-            gc_user_video_play uvp
-            LEFT JOIN gc_user_video_plays_node uvpn ON uvpn.videoplay_id = uvp.ID
-        WHERE
-          uvpn.end_time > uvpn.start_time
-          AND uvp.user_id in
-        <foreach collection="userIdList" item="userIdList" separator="," open="(" close=")">
-            #{userIdList}
-        </foreach>
-          AND uvpn.start_time>= 0 AND uvpn.end_time>=0
-        and
-        video_id IN
-        <foreach collection="videoList" item="videoList" separator="," open="(" close=")">
-            #{videoList}
-        </foreach>
-        group by uvp.user_id
     </select>
 
     <select id="getVideoIdListBySubId" resultType="integer">
@@ -781,26 +725,15 @@
     </select>
 
     <select id="selectVideoPlayListBySubId" resultType="com.threeatom.guidecore.entity.GcVideo">
-        select max(p.play_state) as play_state,v.id as id
+        select v.id as id
         from gc_subject s
         left join gc_subject s2 on s2.fid = s.id
         left join gc_video v on v.sub_id = s2.id
-        left join gc_user_video_play p on p.video_id = v.id and user_id = #{userId}
         where s.id = #{subId}
         and v.id is not null
         GROUP BY v.id
     </select>
-    <select id="selectVideoPlayByVideo" resultType="com.threeatom.guidecore.entity.GcVideo">
-        SELECT
-            max( p.play_state ) AS play_state,
-            v.id AS id
-        FROM
-            gc_video v
-            LEFT JOIN gc_user_video_play p ON p.video_id = v.id AND user_id = #{userId}
-        WHERE
-            v.id = #{video}
-        GROUP BY v.id
-    </select>
+
     <select id="getIdsBySubIds" resultType="java.lang.Integer">
         select id from gc_video where sub_id in
         <foreach collection="subIds" item="subIds" separator="," open="(" close=")">

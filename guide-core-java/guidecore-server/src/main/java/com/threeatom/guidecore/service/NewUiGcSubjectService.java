@@ -26,8 +26,6 @@ public interface NewUiGcSubjectService {
 
     List<GcSubject> selectTwoSubjectByIds(List<Integer> subjectIds, HttpServletRequest request);
 
-    Integer selectLastVideoId(Integer subId, Integer userId, Integer masterId);
-
     Map<Integer, GcUserVideoAction> getStarActions(List<Integer> subjectIds);
 
     List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map);

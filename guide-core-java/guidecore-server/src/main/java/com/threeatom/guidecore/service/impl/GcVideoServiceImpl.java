@@ -317,11 +317,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	}
 
 	@Override
-	public GcVideo selectVideoPlayByVideo(Integer video, Integer userId) {
-		return this.baseMapper.selectVideoPlayByVideo(video,userId);
-	}
-
-	@Override
 	public boolean saveVideoInfo(SysSystem sys, GcVideo video, Integer masterId, HttpServletRequest request) {
 		if (null != video.getId()) {
 			Message message = new Message();
@@ -816,15 +811,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
         }
         return newGcVideos;
     }
-
-	@Override
-	public Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId) {
-		Long l= this.baseMapper.sumPlayVideoLongByIdUser(videoIds, userId);
-		if(l==null) {
-			l=new Long(0);
-		}
-		return l;
-	}
 
 	@Override
 	public  List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId,Integer masterId) {

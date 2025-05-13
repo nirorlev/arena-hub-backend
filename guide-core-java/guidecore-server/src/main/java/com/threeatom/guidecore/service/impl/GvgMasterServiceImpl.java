@@ -873,25 +873,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			}
 			subjectTotals.setSubjects(order);
 			msg.addData("subjectTotals",subjectTotals);
-
-			Integer lastVideoId = newUiGcSubjectService.selectLastVideoId(Integer.parseInt(params.get("fid").toString()),userId,masterId);
-			if(null == lastVideoId && !order.isEmpty()){
-				Map<String, Object> subParam =  new HashMap<>(1);
-				Integer firstSubId = order.get(0).getId();
-				params.put("subjectId",firstSubId);
-				params.put("userId", portalUser.getUserId());
-				params.put("masterId",masterId);
-				Message message =  service.getVideosBySubIds(firstSubId, subParam, system, request);
-				List<GcVideo> videoList = new ArrayList<>();
-				Map<String,Object> map = message.getData();
-				PageInfo pageInfo = (PageInfo) map.get("videos");
-				videoList = pageInfo.getList();
-				if(CollectionUtils.isNotEmpty(videoList)) {
-					Integer startVideoId = videoList.get(0).getId();
-					msg.addData("startVideoId", startVideoId);
-				}
-			}
-			msg.addData("lastVideoId",lastVideoId);
+			msg.addData("lastVideoId",null);
 
 			if (envFlag.equals(EnvType.PT.getCode())){
 				QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
@@ -997,10 +979,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					//2、视频播放分钟数和总的时长
 					//查询视频总时长
 					totals.setVideoTotalProgress(gcVideoService.sumVideoLongByIdUser(videoIds, userId));
-					//查询已看分钟数 一个视频多次看取endtime最大的一个，一个视频可能看多次
-					if(Objects.nonNull(userId)) {
-						totals.setVideoCompleteProgress(gcVideoService.sumPlayVideoLongByIdUser(videoIds, userId));
-					}
 
 
 					//4、已回答问题数和问题总数
@@ -1045,10 +1023,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		videoService.updateVideoFile(thisVideo, portalUser);
 
 		Integer userId = portalUser.getUserId();
-		GcVideo videoPlay = gcVideoService.selectVideoPlayByVideo(thisVideo.getId(), userId);
-		if (null!=videoPlay.getPlayState()){
-			thisVideo.setPlayState(videoPlay.getPlayState());
-		}
 
 		thisVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(thisVideo));
 		GcSubject subject = subjectService.getById(thisVideo.getSubId());

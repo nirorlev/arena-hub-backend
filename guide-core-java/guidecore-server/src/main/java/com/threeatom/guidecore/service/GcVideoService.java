@@ -63,8 +63,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     Message getVideosBySubIds(
         Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
-    Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
-
     List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId, Integer masterId);
 
     List<GcVideo> getVideoIdListBySubId0(
@@ -118,8 +116,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<GcVideo> selectVideoPlayListBySubId(Integer subId, Integer userId);
-
-    GcVideo selectVideoPlayByVideo(Integer video, Integer userId);
 
     boolean saveVideoInfo(SysSystem sys, GcVideo video, Integer masterId, HttpServletRequest request);
 
