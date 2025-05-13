@@ -763,8 +763,8 @@
         u.id as userId
         from gc_video v
         left join sys_file f on f.id = v.file_id
-        left join gc_subject s2 on s2.id = v.sub_id
-        left join gc_subject s1 on s1.id = s2.fid
+        left join courses s2 on s2.id = v.sub_id
+        left join courses s1 on s1.id = s2.fid
         left join gc_user u on u.id in
         <foreach collection="userIdList" item="userId" separator="," open="(" close=")">
             #{userId}
@@ -824,7 +824,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -863,7 +863,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -914,7 +914,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -960,7 +960,7 @@
             LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
         WHERE playlist_follow.user_id = #{portalUser.userId} AND (playlist_follow.update_time &lt; #{cursor.updateTime}
@@ -1054,7 +1054,7 @@
             LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
         WHERE playlist.id = #{playlistId}

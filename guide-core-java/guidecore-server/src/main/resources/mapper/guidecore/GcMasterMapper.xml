@@ -44,7 +44,7 @@
 			<result property="saveType" column="f2_save_type"/>
 		</association>
 
-		<collection property="courseList" javaType="ArrayList" column="master_id" oftype="Course">
+		<collection property="courseList" javaType="ArrayList" column="master_id" ofType="Course">
 			<id property="id" column="master_id" />
 			<result property="id" column="course.id" />
 			<result property="name" column="course.name" />

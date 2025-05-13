@@ -42,7 +42,7 @@
 				<result property="contentId" column="content_id" />
 				<result property="createTime" column="sc_create_time" />
 				<result property="updateTime" column="sc_update_time" />
-			    <association property="subject" javatype="Course" column="sub_id" >
+			    <association property="subject" javaType="Course" column="sub_id" >
 					<result property="id" column="s_id" />
 					<result property="name" column="s_name" />
 					<result property="name" column="s_name_index" />
