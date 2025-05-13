@@ -2250,8 +2250,7 @@ public class PowtoonController extends GuideCoreController {
 
     @ApiOperation(value = "查询section中的视频list")
     @PostMapping("/selectVideosInSection")
-    public Message selectVideosInChannel(@RequestBody PtChannel ptChannel, HttpServletRequest request)
-        throws IOException {
+    public Message selectVideosInChannel(@RequestBody PtChannel ptChannel, HttpServletRequest request) {
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(masterId)) {
             throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
@@ -2400,10 +2399,11 @@ public class PowtoonController extends GuideCoreController {
         String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
         sysFile.setFullFileUrl(fullFileUrl);
         sysFile.setSnapshotUrl(snapShotUrl);
+        sysFile.setThumbNailUrl(snapShotUrl);
         sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
         channelContent.setVideoFile(sysFile);
 
-        if (null != sysFile.getGcUser().getAvatarFileId()) {
+        if (sysFile.getGcUser().getAvatarFileId() != null) {
             SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
             sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
         }
