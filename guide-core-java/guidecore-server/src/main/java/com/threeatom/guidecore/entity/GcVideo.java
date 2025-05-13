@@ -240,6 +240,7 @@ public class GcVideo implements Serializable {
     private JSONArray courseTags = new JSONArray();
 
     // considered as public if everybody in the organization can access it
+    @EqualsAndHashCode.Include
     public boolean isPublic() {
         if (originChannel != null) {
             return originChannel.isPublic();
@@ -249,6 +250,7 @@ public class GcVideo implements Serializable {
     }
 
     // considered as private if only owner can access it
+    @EqualsAndHashCode.Include
     public boolean isPrivate() {
         if (originChannel != null) {
             return originChannel.isPrivate();

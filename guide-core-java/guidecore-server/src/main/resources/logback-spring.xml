@@ -88,7 +88,7 @@
     </springProfile>
 
     <!-- 控制台默认全局输出日志级别 -->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="infodemolog"/>
         <appender-ref ref="errordemolog"/>
