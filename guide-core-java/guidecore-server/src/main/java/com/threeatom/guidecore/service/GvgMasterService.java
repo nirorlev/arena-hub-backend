@@ -9,7 +9,6 @@ import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
-import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import java.util.List;
@@ -40,12 +39,6 @@ public interface GvgMasterService extends IService<GcMaster> {
         @RequestBody Map<String, Object> param,
         HttpServletRequest request,
         SysSystem system);
-
-    SubjectTotals calcTotals(
-        List<GcSubject> subjects,
-        Integer userId,
-        boolean ifStudent,
-        Integer masterId);
 
     Message videoDetail(HttpServletRequest request, Integer videoId, PortalUser portalUser);
 

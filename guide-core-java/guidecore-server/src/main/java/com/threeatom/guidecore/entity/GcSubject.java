@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -130,12 +129,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<GcSubject> subjects; // 一级课程下的二级课程
     @TableField(exist = false)
-    private Short subjectCompleteStatus; // 一级课程下的二级课程完成状态
-    @TableField(exist = false)
-    private List<GcVideo> gcVideoCompletes; // 课程下的视频
-    @TableField(exist = false)
-    private Integer videoProgressPercent; // 视频进度百分比
-    @TableField(exist = false)
     private Integer subjectUsers; // 课程下的参与人数
     @TableField(exist = false)
     private Double starValue; // 星级评价值
@@ -146,25 +139,7 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Long giveLike; // 点赞数
     @TableField(exist = false)
-    private Short completeStatus; // 课程完成状态
-    @TableField(exist = false)
-    private Integer videosTotalNum; // 其下视频总数量;
-    @TableField(exist = false)
-    private Integer videosTotalLong; // 其下视频总时长;
-    @TableField(exist = false)
-    private Integer eventTotalNum; // 其下视频其下的总问题数event;
-    @TableField(exist = false)
-    private Integer answeredEventNum; // 其下视频其下的总问题的已回答数answer;
-    @TableField(exist = false)
-    private Long videoFinishedNum; // 课程下已观看完的视频
-    @TableField(exist = false)
     private String snapshotUrl; // 快照
-    @TableField(exist = false)
-    private Integer lastVideoId;
-    @TableField(exist = false)
-    private Integer subPlayState;
-    @TableField(exist = false)
-    private SubjectTotals subjectTotals;
     @TableField(exist = false)
     private GcMaster gcMaster;
     @ApiModelProperty(value = "未来事件的前置事件")
@@ -214,9 +189,6 @@ public class GcSubject implements Serializable, TreeNodeEntity {
     @ApiModelProperty(value = "用户信息")
     @TableField(exist = false)
     private GcUser userInfo;
-    @ApiModelProperty(value = "进度")
-    @TableField(exist = false)
-    private BigDecimal totalPercent;
     @ApiModelProperty(value = "课程标题描述的字体颜色")
     private String color;
     @TableField(exist = false)

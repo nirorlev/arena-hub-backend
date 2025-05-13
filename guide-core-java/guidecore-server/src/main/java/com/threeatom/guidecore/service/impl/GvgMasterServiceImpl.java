@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -36,7 +35,6 @@ import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.entity.PtTags;
-import com.threeatom.guidecore.entity.SubjectTotals;
 import com.threeatom.guidecore.enums.SearchType;
 import com.threeatom.guidecore.mapper.GcMasterMapper;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
@@ -85,14 +83,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -278,13 +274,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						}
 					}
 
-					//
-					if(groupBySubId.get(li.getId())!=null){
-						List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
-						li.setVideosTotalLong(totalSeconds);
-					}
-
 					GcUserVideoAction videoActions = subjectUserStar.get(li.getId());
 					if(videoActions != null) {
 						//按type 进行分组
@@ -295,14 +284,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}else {
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
-					}
-					if (null!=portalUser) {
-						if (null!=groupBySubId.get(li.getId())){
-							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId());
-							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-						}
 					}
 
 					List<Integer> identifyingList = new ArrayList<>();
@@ -345,12 +326,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 						}
 					}
 
-					if(groupBySubId.get(li.getId())!=null){
-						List<GcVideo> gcVideos = groupBySubId.get(li.getId());
-						Integer totalSeconds = gcVideos.stream().filter(a -> a.getVideoTime()!=null).mapToInt(GcVideo::getVideoTime).sum();
-						li.setVideosTotalLong(totalSeconds);
-					}
-
 					GcUserVideoAction videoActions = subjectUserStar.get(li.getId());
 					if(videoActions != null) {
 						//按type 进行分组
@@ -361,14 +336,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					}else {
 						li.setStarValue(TableConstant.starValue0);//星级平均值
 						li.setStarUsers(TableConstant.starUsers);
-					}
-					if (null!=portalUser) {
-						if (null!=groupBySubId.get(li.getId())){
-							Map<Integer, List<GcVideo>> sub1Map = groupBySubId.get(li.getId()).stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-							List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-							SubjectTotals subjectTotals = calcTotals(twoSubject, portalUser.getUserId(), true, gcMaster.getId());
-							li.setPercents(new BigDecimal(subjectTotals.getTotalProgressPercent()));
-						}
 					}
 					List<Integer> identifyingList = new ArrayList<>();
 					//完成
@@ -675,20 +642,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			videos.stream().filter(e -> null != e.getSubjectSubId())
 				.collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
 
-		if (user != null) {
-			for (GcSubject course : coursePageInfo.getList()) {
-				if (courseIdToVideos.get(course.getId()) == null) {
-					continue;
-				}
-				Map<Integer, List<GcVideo>> sub1Map = courseIdToVideos.get(course.getId()).stream()
-					.collect(Collectors.groupingBy(GcVideo::getSubId));
-				List<GcSubject> twoSubject = newUiGcSubjectService.buildSubject1(sub1Map);
-				SubjectTotals courseTotals =
-					calcTotals(twoSubject, user.getId(), true, masterId);
-				course.setPercents(new BigDecimal(courseTotals.getTotalProgressPercent()));
-			}
-		}
-
 		return message.addData("subjectPage", coursePageInfo);
 	}
 
@@ -768,18 +721,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		if(!subjectUsers.isEmpty()) {
 			subject.setSubjectUsers(subjectUsers.get(Integer.parseInt(params.get("fid").toString())).getSubjectUsers());
 		}
-		if(null!=videosBySubjectIds0 && TableConstant.COMMON_ZERO!=videosBySubjectIds0.size()) {
-			subject.setVideosTotalNum(videosBySubjectIds0.size());
-		}
-		if(null!=videosBySubjectIds0 && TableConstant.COMMON_ZERO!=videosBySubjectIds0.size()) {
-			Integer eventTotalNum = videosBySubjectIds0.stream().filter(e -> null != e.getEventNum()).mapToInt(GcVideo::getEventNum).sum();
-			Integer answeredEventNum = videosBySubjectIds0.stream().filter(e -> null != e.getAnsweredNums()).mapToInt(GcVideo::getAnsweredNums).sum();
-			subject.setEventTotalNum(eventTotalNum);
-			subject.setAnsweredEventNum(answeredEventNum);
-		}else {
-			subject.setEventTotalNum(TableConstant.COMMON_ZERO);
-			subject.setAnsweredEventNum(TableConstant.COMMON_ZERO);
-		}
 		if(null!=subjectUserStar.get(Integer.parseInt(params.get("fid").toString()))) {
 			subject.setStarValue(subjectUserStar.get(Integer.parseInt(params.get("fid").toString())).getSubjectStarAvg());
 		}else {
@@ -820,14 +761,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			Map<Integer, List<PtTags>> finalTagListMap = tagListMap;
 			orderSubject.forEach(sub->{
 				List<GcVideo> videos = sub.getGcVideos();
-				if(null!=videos && TableConstant.COMMON_ZERO!=videos.size()) {
-					Long videoFinishedNum = videos.stream().filter(e -> null != e.getCompleteStatus()).filter(e -> e.getCompleteStatus() == 2).count();
-					sub.setVideoFinishedNum(videoFinishedNum);
-					Long eventAnsweredNum = videos.stream().filter(e -> null != e.getAnsweredNums()).mapToLong(GcVideo::getAnsweredNums).sum();
-					Integer eventTotalNum = videos.stream().filter(e -> null != e.getEventNum()).mapToInt(GcVideo::getEventNum).sum();
-					sub.setEventTotalNum(eventTotalNum);
-					sub.setAnsweredEventNum(eventAnsweredNum.intValue());
-				}
 				if (null!=videos&&videos.size()>0){
 					for (GcVideo gcVideo : sub.getGcVideos()) {
 						if (null!= finalTagListMap.get(gcVideo.getId())){
@@ -843,36 +776,7 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			msg.addData("page", page);
 
 
-			//计算右上角的进度、播放进度、视频完成数、问题数
-			List<GcSubject> subjects = page.getList();
-			for(int i=0;i<subjects.size();i++){
-				Integer totalSeconds = TableConstant.COMMON_ZERO;
-				if (Objects.nonNull(subjects.get(i))&&Objects.nonNull(subjects.get(i).getGcVideos())){
-					subjects.get(i).setVideosTotalNum(subjects.get(i).getGcVideos().size());
-					for(int j=0;j<subjects.get(i).getGcVideos().size();j++){
-						if (null == subjects.get(i).getGcVideos().get(j).getEventList()){
-							continue;
-						}
-						if (subjects.get(i).getGcVideos().get(j).getVideoTime()==null){
-							totalSeconds += TableConstant.COMMON_ZERO;
-						}else {
-							totalSeconds += subjects.get(i).getGcVideos().get(j).getVideoTime();
-						}
-					}
-					subjects.get(i).setVideosTotalLong(totalSeconds);
-				}
-			}
-			List<GcSubject> subjects1 = subjects.stream().filter(e->null!=e.getGcVideos()).collect(Collectors.toList());
-			SubjectTotals subjectTotals = calcTotals(subjects1, userId,true,masterId);
-
-			//给二级课程排序
-			List<GcSubject> orderSubList = subjectTotals.getSubjects();
-			List<GcSubject> order = new ArrayList<>();
-			if (Objects.nonNull(orderSubList)&& !orderSubList.isEmpty()){
-				order = orderSubList.stream().sorted(Comparator.comparing(GcSubject::getOrder)).collect(Collectors.toList());
-			}
-			subjectTotals.setSubjects(order);
-			msg.addData("subjectTotals",subjectTotals);
+			msg.addData("subjectTotals",null);
 			msg.addData("lastVideoId",null);
 
 			if (envFlag.equals(EnvType.PT.getCode())){
@@ -910,99 +814,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 			log.error("", e);
 			return new Message().error(e.getMessage());
 		}
-	}
-
-
-	@Override
-	public SubjectTotals calcTotals(List<GcSubject> subjects, Integer userId, boolean ifStudent, Integer masterId) {
-		SubjectTotals totals = new SubjectTotals();
-		totals.setUserId(userId);
-		if(CollectionUtils.isNotEmpty(subjects)){
-			Map<Integer, List<GcVideo>> videoCompleteStatusBySubject =subjectVideos(subjects);
-			if(MapUtils.isNotEmpty(videoCompleteStatusBySubject)){
-				List<GcSubject>  vos = new ArrayList<>(subjects.size());
-				List<GcVideo> gcVideos = new ArrayList<>();
-				for(Map.Entry<Integer, List<GcVideo>> map : videoCompleteStatusBySubject.entrySet()){
-					//计算单个课程是否完成，课程下的所有视频都完成，则该课程前端显示绿色，黄色、灰色
-					//根据视频来设置二级课程的完成情况
-					GcSubject vo = new GcSubject();
-					vo.setId(map.getKey());
-					vo.setSubjectCompleteStatus(TableConstant.SUBJECT_COMPLETE_STATUS0);
-					List<GcVideo> tmpVideos = map.getValue();
-					if(CollectionUtils.isNotEmpty(tmpVideos)){
-						int min = tmpVideos.stream().mapToInt(GcVideo::getCompleteStatus).min().getAsInt();
-						int max = tmpVideos.stream().mapToInt(GcVideo::getCompleteStatus).max().getAsInt();
-						vo.setSubjectCompleteStatus(TableConstant.SUBJECT_COMPLETE_STATUS1);//
-						if(min == max){//相同就设置为一个值
-							vo.setSubjectCompleteStatus((short)max);
-						}
-						gcVideos.addAll(tmpVideos);
-					}
-					vos.add(vo);
-				}
-				//返回值里添加排序字段
-				for (GcSubject gcSubject : subjects) {
-					for (GcSubject gcSub : vos) {
-						if (gcSub.getId() == gcSubject.getId()) {
-							gcSub.setOrder(gcSubject.getOrder());
-						}
-					}
-				}
-				//排序
-				if(!vos.stream().filter(e->e.getOrder()==null).findAny().isPresent()) {
-					vos = vos.stream().sorted(Comparator.comparing(GcSubject::getOrder)).collect(Collectors.toList());
-				}
-				totals.setSubjects(vos);
-
-				List<GcVideo> playState1 = gcVideos.stream().filter(e -> TableConstant.VIDEO_COMPLETE_STATUS2 == e.getCompleteStatus()).collect(Collectors.toList());
-				Integer sumTasks = gcVideos.stream().filter(e -> null != e.getAnsweredSumNums()).mapToInt(GcVideo::getAnsweredSumNums).sum();
-				Integer sumVideos = gcVideos.size();
-				Integer answeredTaksNum = gcVideos.stream().filter(e -> null != e.getAnsweredNums()).mapToInt(GcVideo::getAnsweredNums).sum();
-				List<GcVideo> videos = gcVideos.stream().filter(e -> null != e.getPlayState() & ("1").equals(e.getPlayState())).collect(Collectors.toList());
-				if(CollectionUtils.isNotEmpty(videos) || TableConstant.COMMON_ZERO!=sumTasks) {
-					BigDecimal percent = new BigDecimal(answeredTaksNum + videos.size()).divide(new BigDecimal(sumTasks + sumVideos), 2, BigDecimal.ROUND_DOWN);
-					totals.setTotalProgressPercent(percent.multiply(BigDecimal.valueOf(100)).intValue());//视频总数
-				}else {
-					totals.setTotalProgressPercent(0);
-				}
-
-				totals.setLessonsTotalProgress(gcVideos.size());
-				totals.setLessonsCompleteProgress(playState1.size());
-
-
-				//这里是课程的播放进度，重新计算
-//				totals.setTotalProgressPercent(calcSubjectProgressPercent(vos));//所有视频的播放进度百分比，可能有用
-				if (!ifStudent) return totals;
-
-				if(CollectionUtils.isNotEmpty(gcVideos)){
-					List<Integer> videoIds = gcVideos.stream().map(GcVideo::getId).collect(Collectors.toList());
-					//2、视频播放分钟数和总的时长
-					//查询视频总时长
-					totals.setVideoTotalProgress(gcVideoService.sumVideoLongByIdUser(videoIds, userId));
-
-
-					//4、已回答问题数和问题总数
-					List<GcEvent> eventList = gcEventService.getEventListByVideoIds(videoIds,userId);
-					totals.setTaskTotalProgress(eventList.size());//问题总数
-					if(Objects.nonNull(userId)) {
-						List<GcEvent> eventAnswers = gcEventService.findEventAnswerByVideoIdsUser(videoIds, userId, masterId);//查询视频
-						if (CollectionUtils.isNotEmpty(eventAnswers)) {
-							Set<GcEvent> collect = eventAnswers.stream().filter(e -> StringUtils.isNotBlank(e.getAnswerJson())).collect(Collectors.toSet());
-							totals.setTaskCompleteProgress(collect.size());//已完成问题数
-						}
-					}
-				}
-			}
-		}
-		return totals;
-	}
-
-	private Map<Integer, List<GcVideo>> subjectVideos(List<GcSubject> subjects) {
-		Map<Integer, List<GcVideo>> map = new HashMap<>(subjects.size());
-		for(GcSubject subject : subjects){
-			map.put(subject.getId(), subject.getGcVideos());
-		}
-		return map;
 	}
 
 	@Override
@@ -1148,30 +959,11 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 					gcSubject1.setGcVideos(list);
 				}
 			}
-			SubjectTotals subjectTotals = calcTotals(subjects, userId,false,masterId);
-			m.addData("subjectTotal",subjectTotals);
+			m.addData("subjectTotal",null);
 
 			//二级课程进度
-			GcSubject gcSubject1 = subjectService.getById(thisVideo.getSubId());
 			Integer suboId = thisVideo.getSubId0();
-			List<Integer> suboList = new ArrayList<>();
 			subIdList.add(suboId);
-			List<GcVideo> gcVideoList = gcVideoService.getVideoListByTopSubIds(suboList);
-			List<GcVideo> buildVideoList = gcVideoService.buildVideoInfo(userId, gcVideoList, masterId);
-			Map<Integer, List<GcVideo>> videoMap = buildVideoList.stream().collect(Collectors.groupingBy(GcVideo::getSubId));
-			for (Integer key : videoMap.keySet()) {
-				List<GcVideo> videoList = videoMap.get(key);
-				for (GcSubject gcSubject2 : orderSubject) {
-					if (key.equals(gcSubject2.getId())) {
-						Integer sumTasks = videoList.stream().filter(e -> null != e.getAnsweredSumNums()).mapToInt(GcVideo::getAnsweredSumNums).sum();
-						Integer sumVideos = videoList.size();
-						Integer answeredTaksNum = videoList.stream().filter(e -> null != e.getAnsweredNums()).mapToInt(GcVideo::getAnsweredNums).sum();
-						List<GcVideo> videos = videoList.stream().filter(e -> null != e.getPlayState() & ("1").equals(e.getPlayState())).collect(Collectors.toList());
-						BigDecimal percent = new BigDecimal(answeredTaksNum + videos.size()).divide(new BigDecimal(sumTasks + sumVideos), 2, BigDecimal.ROUND_DOWN);
-						gcSubject2.setTotalPercent(percent);
-					}
-				}
-			}
 			page.setList(orderSubject);
 		}
 

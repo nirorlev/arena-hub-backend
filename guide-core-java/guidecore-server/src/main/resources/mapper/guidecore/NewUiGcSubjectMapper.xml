@@ -23,8 +23,6 @@
 
 		<result property="updateTime" column="update_time" />
 		<result property="createTime" column="create_time" />
-		<result property="videosTotalNum" column="videos_total_num"/>
-		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 
 		<result property="subjectAssociationId" column="subject_association_id"/>
@@ -70,8 +68,6 @@
 
 		<result property="updateTime" column="update_time" />
 		<result property="createTime" column="create_time" />
-		<result property="videosTotalNum" column="videos_total_num"/>
-		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 
 		<result property="subjectAssociationId" column="subject_association_id"/>

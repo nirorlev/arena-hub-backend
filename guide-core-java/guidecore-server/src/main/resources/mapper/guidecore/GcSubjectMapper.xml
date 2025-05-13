@@ -20,17 +20,14 @@
 
 		<result property="state" column="state"/>
 		<result property="isPublic" column="is_public"/>
-		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="starUsers" column="subjectStarUsers"/>
 		<result property="starValue" column="subjectStarAvg"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="cateId" column="cate_id"/>
 		<result property="language" column="language"/>
-		<result property="lastActivityTime" column="lastActivityTime"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="sub0Name" column="sub0Name"/>
 		<result property="sub0Id" column="sub0Id"/>
-		<result property="videosTotalNum" column="videosTotalNum"/>
 
 		<result property="updateTime" column="update_time" />
 		<result property="createTime" column="create_time" />
@@ -48,7 +45,6 @@
 		<result property="badgeContent" column="badge_content"/>
 		<result property="createUser" column="create_user"/>
 		<result property="publishedTime" column="published_time"/>
-		<result property="videoProgressPercent" column="videoProgressPercent"/>
 		<result property="identifying" column="identifying"/>
 
 		<association property="subImgFile" column="sub_img_id" javaType="SysFile" columnPrefix="course_image_">
@@ -114,17 +110,14 @@
 
 		<result property="state" column="state"/>
 		<result property="isPublic" column="is_public"/>
-		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="starUsers" column="subjectStarUsers"/>
 		<result property="starValue" column="subjectStarAvg"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="cateId" column="cate_id"/>
 		<result property="language" column="language"/>
-		<result property="lastActivityTime" column="lastActivityTime"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="sub0Name" column="sub0Name"/>
 		<result property="sub0Id" column="sub0Id"/>
-		<result property="videosTotalNum" column="videosTotalNum"/>
 
 		<result property="updateTime" column="update_time" />
 		<result property="createTime" column="create_time" />
@@ -142,7 +135,6 @@
 		<result property="badgeContent" column="badge_content"/>
 		<result property="createUser" column="create_user"/>
 		<result property="publishedTime" column="published_time"/>
-		<result property="videoProgressPercent" column="videoProgressPercent"/>
 		<result property="identifying" column="identifying"/>
 
 		<association property="subImgFile" column="sub_img_id" javaType="SysFile">
@@ -265,17 +257,14 @@
 
 		<result property="state" column="state"/>
 		<result property="isPublic" column="is_public"/>
-		<result property="videosTotalLong" column="sumVideoLong"/>
 		<result property="starUsers" column="subjectStarUsers"/>
 		<result property="starValue" column="subjectStarAvg"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="cateId" column="cate_id"/>
 		<result property="language" column="language"/>
-		<result property="lastActivityTime" column="lastActivityTime"/>
 		<result property="courseTagline" column="course_tagline"/>
 		<result property="sub0Name" column="sub0Name"/>
 		<result property="sub0Id" column="sub0Id"/>
-		<result property="videosTotalNum" column="videosTotalNum"/>
 
 		<result property="updateTime" column="update_time" />
 		<result property="createTime" column="create_time" />
@@ -649,7 +638,7 @@
 	</select>
 
 	<select id="selectSubjectPt" resultMap="baseResultMap">
-		select DISTINCT ON (s.id) s2.num as subjectsSize, vnum.videoNum as videosTotalNum, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
+		select DISTINCT ON (s.id) s2.num as subjectsSize, s.id, s.master_id, s.name, s.name_index, s.description, s.sub_id,
 		s.type, s.level, s.fid, s.order, s.sub_img_id, s.template_id, s.intro_on_off, s.update_time, s.create_time
 		,s.state, s.token, s.is_public, s.cate_id ,s.language, s.certificates_flag, s.course_tagline,
 		s.cpd_hours, s.badge_id, s.subdetail_img_id, s.badge_content, s.create_user, s.available_type
@@ -871,8 +860,7 @@
 
 	<select id="getSubjectList" resultMap="baseResultMap" >
 		SELECT
-		<include refid="baseColumn" />
-		,count(v.id) as videosTotalNum
+		<include refid="baseColumn" />,
 		<include refid="fileJoinColumn" />
 		<include refid="originVideoCourseColumns" />
 		FROM gc_subject s
@@ -1057,8 +1045,8 @@
 	</select>
 
 	<select id="selectAllLevel1SubList" resultMap="baseResultMap">
-		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type,
-		coalesce(max(answer.update_time)) as lastActivityTime,s0.name as sub0Name,s0.Id as sub0Id
+		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type
+		     ,s0.name as sub0Name,s0.Id as sub0Id
 		<include refid="originVideoCourseColumns" />
 		from gc_subject s
 		left join gc_subject s0 on s0.id = s.fid
@@ -1192,7 +1180,6 @@
 	<select id="selectSubjectByNewIndexHome" resultMap="baseResultMap">
 		SELECT
 		s2.num AS subjectsSize,
-		vnum.videoNum AS videosTotalNum,
 		s.id,
 		s.master_id,
 		s.NAME,
@@ -1398,7 +1385,6 @@
 	<select id="selectMaySubjectByNewIndexHome" resultMap="baseResultMap">
 		SELECT
 		s2.num AS subjectsSize,
-		vnum.videoNum AS videosTotalNum,
 		s.id,
 		s.master_id,
 		s.NAME,
@@ -1600,8 +1586,7 @@
 	<select id="selectActiveSubject" resultMap="baseResultMap">
 		SELECT
 		DISTINCT ON (s.id) s.*,
-		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
 		gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment_must ON course_assignment_must.course_id = s.id AND course_assignment_must.is_mandatory = 1
@@ -1644,8 +1629,7 @@
 
 	<select id="selectCompletedSubject" resultMap="baseResultMap">
 		SELECT DISTINCT ON (s.id) s.*,
-		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
 		gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
@@ -1677,7 +1661,6 @@
 	<select id="selectDiscoverSubject" resultMap="baseResultMap">
 		SELECT s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
 		FROM
 		gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
@@ -1716,9 +1699,7 @@
 	</select>
 
 	<select id="selectDraftsSubject" resultMap="baseResultMap">
-		SELECT
-		s.*,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		SELECT s.*
 		FROM
 		gc_subject s
 		LEFT JOIN gc_user u ON u.id = s.create_user
@@ -1735,9 +1716,7 @@
 	</select>
 
 	<select id="selectPublishedSubject" resultMap="baseResultMap">
-		SELECT
-			s.*,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		SELECT s.*
 		FROM
 			gc_subject s
 				LEFT JOIN gc_user u ON u.id = s.create_user
@@ -1756,8 +1735,7 @@
 	<select id="selectFromMyTeamSubject" resultMap="baseResultMap">
 		SELECT DISTINCT ON (s.id)
 		s.*,
-		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
 		gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
@@ -1778,9 +1756,7 @@
 	</select>
 
 	<select id="selectCompanyResourcesSubject" resultMap="baseResultMap">
-		SELECT
-		s.*,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		SELECT s.*
 		FROM
 		gc_subject s
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = #{userId}
@@ -1803,9 +1779,7 @@
 	</select>
 
 	<select id="selectAllCourseSubject" resultMap="baseResultMap">
-		SELECT
-		s.*,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		SELECT s.*
 		FROM
 		gc_subject s
 		LEFT JOIN gc_subject s2 ON s2.fid = s.id
@@ -1861,8 +1835,7 @@
 		f.NAME AS f_name,
 		f.file_url AS f_file_url,
 		f.save_type AS f_save_type,
-		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
 		gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
@@ -1899,8 +1872,7 @@
 		f.NAME AS f_name,
 		f.file_url AS f_file_url,
 		f.save_type AS f_save_type,
-		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
-		coalesce(co.in_progress,0) as videoProgressPercent
+		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM gc_subject s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id

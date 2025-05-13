@@ -179,14 +179,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 					List<GcSubject> subjects1 = buildSubject1(sub1Map);
 					sub.setSubjects(subjects1);//二级课程 没有视频也需要设置二级课程的值
 					sub.setGcVideos(gcVideos);
-					//整体百分比进度
-					SubjectTotals subjectTotals = gvgMasterService.calcTotals(subjects1,userId,true,masterId);
-					sub.setVideoProgressPercent(subjectTotals.getTotalProgressPercent());
-					gcVideos.forEach(i->{
-						if (null != i.getPlayState()){
-							sub.setSubPlayState(TableConstant.VIDEO_PLAY_STATUS0);
-						}
-					});
 				}
 
 				if(CollectionUtils.isNotEmpty(sub.getSubjects())){
@@ -227,10 +219,7 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 					if(n>100)n=99;
 					sub.setStarUsers(n);
 				}
-				
-				Integer videoNum  = gcSubjects.stream().filter(GcSubject -> sub.getId().equals(GcSubject.getFid()))
-                    .collect(Collectors.toList()).stream().mapToInt(GcSubject::getVideosTotalNum).sum();
-				sub.setVideosTotalNum(videoNum);
+
 				newSubjects.add(sub);
 			}
 		}
@@ -254,12 +243,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 			GcSubject subject = new GcSubject();
 			subject.setId(sub1.getKey());//二级课程id
 			List<GcVideo> value = sub1.getValue();
-			int min = value.stream().mapToInt(GcVideo::getCompleteStatus).min().getAsInt();
-			int max = value.stream().mapToInt(GcVideo::getCompleteStatus).max().getAsInt();
-			subject.setSubjectCompleteStatus(TableConstant.SUBJECT_COMPLETE_STATUS1);//
-			if(min == max){//相同就设置为一个值
-				subject.setSubjectCompleteStatus((short)max);
-			}
 			subject.setGcVideos(value);//视频列表
 			subjects.add(subject);
 		}
@@ -321,12 +304,6 @@ public class NewUiGcSubjectServiceImpl  extends ServiceImpl<NewUiGcSubjectMapper
 				List<GcVideo> tmpGcvideos = videoCompleteStatus.get(id);
 				if(CollectionUtils.isNotEmpty(tmpGcvideos)){
 					subject.setGcVideos(tmpGcvideos);
-					int min = tmpGcvideos.stream().mapToInt(GcVideo::getCompleteStatus).min().getAsInt();
-					int max = tmpGcvideos.stream().mapToInt(GcVideo::getCompleteStatus).max().getAsInt();
-					subject.setSubjectCompleteStatus(TableConstant.SUBJECT_COMPLETE_STATUS1);//
-					if(min == max){//相同就设置为一个值
-						subject.setSubjectCompleteStatus((short)max);
-					}
 				}
 				vos.add(subject);
 			}

@@ -900,7 +900,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 						gcVideo.setSnapshotUrl(sysFileService.getVideoSnapshotUrl(gcVideo));
 						gcVideo.setVideoTime(videoFile.getVideoLong());
 					}
-					gcVideo.setCompleteStatus(TableConstant.VIDEO_COMPLETE_STATUS0);//默认值 防止外面空指针
 					List<GcEvent> eventList = eventNum.stream().filter(a->a.getVideoId().equals(gcVideo.getId())).collect(Collectors.toList());
 					eventList.forEach(i->{
 						i.setAnswerJson(null);

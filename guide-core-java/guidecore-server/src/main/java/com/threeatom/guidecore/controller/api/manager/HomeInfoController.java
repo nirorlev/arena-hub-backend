@@ -465,28 +465,9 @@ public class HomeInfoController extends GuideCoreController {
         List<GcSubject> level1Subjects = subjectService.selectAllLevel1SubList(contentGroupIds, null, masterId);
         for (GcSubject level1Subject : level1Subjects) {
             if (videoMap.get(level1Subject.getId()) != null) {
-                level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 if (videoMap.get(level1Subject.getId()) != null) {
-                    List<GcVideo> videos = videoMap.get(level1Subject.getId());
-                    Integer videoTotalLong =
-                        videos.stream().filter(e -> e.getVideoTime() != null).mapToInt(GcVideo::getVideoTime).sum();
-                    level1Subject.setVideosTotalLong(videoTotalLong);
-
                     level1Subject.setVideoChildList(videoMap.get(level1Subject.getId()));
-                    level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 }
-
-            } else {
-                level1Subject.setVideosTotalNum(TableConstant.COMMON_ZERO);
-            }
-            Integer videosLongInTopic = TableConstant.COMMON_ZERO;
-            for (GcVideo gcVideo : videoList) {
-                if (gcVideo.getSubId().equals(level1Subject.getId())) {
-                    if (gcVideo.getVideoTime() != null) {
-                        videosLongInTopic += gcVideo.getVideoTime();
-                    }
-                }
-                level1Subject.setVideosTotalLong(videosLongInTopic);
             }
         }
 

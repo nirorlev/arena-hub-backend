@@ -160,9 +160,6 @@ public class GcVideo implements Serializable {
     private Integer fileTypeIndex;
 
     @TableField(exist = false)
-    private Short completeStatus;
-
-    @TableField(exist = false)
     private GcUserSaveFolder playlist;
 
     /**
