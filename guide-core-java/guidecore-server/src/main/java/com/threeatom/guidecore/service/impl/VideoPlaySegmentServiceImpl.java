@@ -39,18 +39,20 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
+    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, GcVideo video, PortalUser portalUser) {
         Optional<VideoPlaySession> videoPlaySessionOptional =
-            videoPlaySessionService.getVideoPlaySession(videoPlayDto.getSessionId());
+            videoPlaySessionService.findVideoPlaySession(videoPlayDto.getSessionId());
 
         if (videoPlaySessionOptional.isPresent()) {
-            updateVideoPlaySegment(videoPlayDto, videoPlaySessionOptional.get());
+            VideoPlaySession videoPlaySession = videoPlaySessionOptional.get();
+            normalizePlaySegmentEndTime(videoPlayDto, video);
+            updateVideoPlaySegment(videoPlayDto, videoPlaySession);
             return;
         }
 
-        videoPlaySessionService.saveVideoPlaySession(videoPlayDto, videoId, portalUser);
-        VideoPlaySession videoPlaySession = videoPlaySessionService.getById(videoPlayDto.getSessionId());
-        normalizePlaySegmentEndTime(videoPlayDto, videoPlaySession.getVideo());
+        VideoPlaySession videoPlaySession =
+            videoPlaySessionService.saveVideoPlaySession(videoPlayDto, video.getId(), portalUser);
+        normalizePlaySegmentEndTime(videoPlayDto, video);
         this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession));
     }
 
