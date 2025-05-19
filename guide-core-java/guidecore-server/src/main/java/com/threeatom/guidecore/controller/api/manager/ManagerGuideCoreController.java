@@ -834,10 +834,9 @@ public class ManagerGuideCoreController extends GuideCoreController {
         return message.ok().addData("captionIdList", captionIdList);
     }
 
-    @ApiOperation(value = "删除视频", httpMethod = "DELETE")
     @DeleteMapping("/delVideo/{id}")
-    public Message deleteVideo(@PathVariable("id") Integer vid, HttpServletRequest request) {
-        return gvgMasterService.deleteVideo(vid, EnvType.GC.getCode(), null, null);
+    public Message deleteVideo(@PathVariable("id") Integer videoId, HttpServletRequest request) {
+        return gvgMasterService.deleteVideo(videoId);
     }
 
     @ApiOperation(value = "保存事件", httpMethod = "POST")

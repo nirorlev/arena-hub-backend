@@ -1906,7 +1906,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @DeleteMapping("/delVideo/{id}")
-    public Message deleteVideo(@PathVariable("id") Integer vid, HttpServletRequest request) throws IOException {
+    public Message deleteVideo(@PathVariable("id") Integer videoId, HttpServletRequest request) throws IOException {
         GcMaster master = this.getMaster();
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(master)) {
@@ -1915,16 +1915,14 @@ public class PowtoonController extends GuideCoreController {
         }
         GcUser user = this.getGcUser();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-        GcVideo video = gcVideoService.findByVideoId(vid);
+        GcVideo video = gcVideoService.findByVideoId(videoId);
 
         if (!authorizationService.checkAccess(video, PermitAction.DELETE, portalUser)) {
             throw new PermitException("No permission for this!");
         }
 
-        Message message =
-            gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
-                request);
-        eventPublisherService.publishVideoUpdated(vid);
+        Message message = gvgMasterService.deleteVideo(videoId);
+        eventPublisherService.publishVideoUpdated(videoId);
 
         return message;
     }

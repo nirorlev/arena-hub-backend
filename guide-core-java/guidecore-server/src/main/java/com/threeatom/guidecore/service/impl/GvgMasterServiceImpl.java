@@ -1185,39 +1185,9 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 		return page;
 	}
 
-	public Message deleteVideoPt(Integer vid,Integer envFlag,Integer userId,Integer masterId,HttpServletRequest request) {
-		if(envFlag==EnvType.GC.getCode()) {
-			if (videoService.deleteVideo(vid)){
-				return new Message().ok();
-			}
-		}else if(envFlag==EnvType.PT.getCode()){
-			GcVideo video = videoService.getById(vid);
-			Course subject = new Course();
-			if (null!=video){
-				subject = subjectService.getById(video.getSubId());
-			}
-			videoService.deleteVideo(vid);
-			return new Message().ok();
-		}
-		return new Message().error();
-	}
-
-	public Message deleteVideo(Integer vid,Integer envFlag,Integer userId,Integer masterId) {
-		if(envFlag==EnvType.GC.getCode()) {
-			GcVideo video = videoService.getById(vid);
-			Course subject = new Course();
-			if (null!=video){
-				subject = subjectService.getById(vid);
-			}
-			videoService.deleteVideo(vid);
-            if (videoService.deleteVideo(vid)){
-				return new Message().ok();
-			}
-		}else if(envFlag==EnvType.PT.getCode()){
-			videoService.deleteVideo(vid);
-			return new Message().ok();
-		}
-		return new Message().error();
+	public Message deleteVideo(Integer videoId) {
+        videoService.deleteVideo(videoId);
+        return new Message().error();
 	}
 
 	public Message deleteSub(Integer subId, Integer envFlag, GcMaster master, Integer userId) {

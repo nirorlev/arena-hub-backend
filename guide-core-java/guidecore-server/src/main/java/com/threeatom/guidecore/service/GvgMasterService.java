@@ -51,10 +51,7 @@ public interface GvgMasterService extends IService<GcMaster> {
         GcMaster master,
         Integer uploadUid);
 
-    Message deleteVideo(Integer vid, Integer envFlag, Integer userId, Integer masterId);
-
-    Message deleteVideoPt(
-        Integer vid, Integer envFlag, Integer userId, Integer masterId, HttpServletRequest request);
+    Message deleteVideo(Integer videoId);
 
     Message deleteSub(Integer subId, Integer envFlag, GcMaster master, Integer userId);
 
