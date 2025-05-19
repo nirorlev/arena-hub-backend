@@ -881,11 +881,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
             videoIds.add(gcEvent.getVideoId());
             Integer eventNum = eventService.countEventByVideoIds(videoIds);
 
-            if (null != gcEvent.getVideoId()) {
-                GcVideo video = videoService.getById(gcEvent.getVideoId());
-                GcSubject subject = subService.getById(video.getSubId());
-                gvgMasterService.saveInProgress(subject.getFid(), masterId, request);
-            }
             return new Message().ok("添加成功！").addData("sync", gcEvent).addData("eventNum", eventNum);
         }
         return new Message().error();
@@ -911,12 +906,6 @@ public class ManagerGuideCoreController extends GuideCoreController {
         if ((null == master || null == master.getId()) && null != request.getHeader("masterId")) {
             master = new GcMaster();
             master.setId(Integer.parseInt(request.getHeader("masterId")));
-        }
-        if (null != eventId) {
-            GcEvent gcEvent = eventService.getById(eventId);
-            GcVideo video = videoService.getById(gcEvent.getVideoId());
-            GcSubject subject = subService.getById(video.getSubId());
-            gvgMasterService.saveInProgress(subject.getFid(), master.getId(), request);
         }
         if (eventService.removeById(eventId)) {
             return new Message().ok();

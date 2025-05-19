@@ -83,18 +83,6 @@ public class EventGuideCoreController extends GuideCoreController {
                 .addData("event", event);
     }
 
-    @ApiOperation(value = "回答问题", httpMethod = "POST")
-    @PostMapping("/answerQuestion")
-    public Message answerQuestion(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-        return gvgMasterService.answerQuestion(
-                jsonRequest,
-                request,
-                request.getIntHeader("masterId"),
-                this.getGcUser(),
-                EnvType.GC.getCode(),
-                this.getSystem());
-    }
-
     @ApiOperation(value = "保存问题资源统一接口-新", httpMethod = "POST")
     @PostMapping("/saveEventResourceCommon")
     public Message saveEventResourceCommon(

@@ -43,7 +43,6 @@ import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
-import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -126,6 +125,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
@@ -142,13 +142,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/api/v1/powtoon/home")
+@Slf4j
 @Api(tags = "home")
 public class PowtoonController extends GuideCoreController {
-
-    private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
 
     @Autowired
     private GcVideoService service;
@@ -1218,16 +1216,6 @@ public class PowtoonController extends GuideCoreController {
                 i.setStarUsers(TableConstant.starUsers);
             }
 
-            if (null != groupBySubId.get(i.getId())) {
-                List<GcVideo> gcVideos = groupBySubId.get(i.getId());
-                Integer totalSeconds =
-                    gcVideos.stream().filter(a -> a.getVideoTime() != null).mapToInt(GcVideo::getVideoTime).sum();
-                i.setVideosTotalLong(totalSeconds);
-                i.setVideosTotalNum(gcVideos.size());
-            } else {
-                i.setVideosTotalLong(TableConstant.COMMON_ZERO);
-                i.setVideosTotalNum(TableConstant.COMMON_ZERO);
-            }
             if (null != subjectUsers.get(i.getId())) {
                 i.setSubjectUsers(subjectUsers.get(i.getId()).getSubjectUsers());
             } else {
@@ -1792,34 +1780,6 @@ public class PowtoonController extends GuideCoreController {
         }
 
         return new Message().ok();
-    }
-
-    @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
-    @PostMapping("/createVideoPlayRecordAndNode")
-    public Message createVideoPlayRecordAndNode(@RequestBody GcUserVideoPlay userVideoPlay,
-                                                HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        GcUser user = this.getGcUser();
-        return gvgMasterService.createVideoPlayRecordAndNode(userVideoPlay, request, EnvType.PT.getCode(), user,
-            masterId, this.getSystem());
-    }
-
-    @ApiOperation(value = "回答问题", httpMethod = "POST")
-    @PostMapping("/answerQuestion")
-    public Message answerQuestion(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        Integer eventId = jsonRequest.getInteger("eventId");
-        if (Objects.isNull(eventId)) {
-            throw new SystemException(I18NUtil.get("powtoon.answer.error"));
-        }
-        return gvgMasterService.answerQuestion(jsonRequest, request, request.getIntHeader("masterId"), this.getGcUser(),
-            EnvType.PT.getCode(), this.getSystem());
     }
 
     @ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")

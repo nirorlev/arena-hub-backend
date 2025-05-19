@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.controller.api.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageInfo;
@@ -40,7 +39,6 @@ import com.threeatom.guidecore.service.GcSubjectService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
-import com.threeatom.guidecore.service.GcUserVideoPlayService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
@@ -50,7 +48,6 @@ import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.ByteArrayOutputStream;
@@ -88,7 +85,6 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,13 +114,7 @@ public class HomeInfoController extends GuideCoreController {
     @Autowired
     private SysFileService sysFileService;
     @Autowired
-    private SysSystemService systemService;
-    @Autowired
     private GcSubjectAssociationService gcSubjectAssociationService;
-    @Autowired
-    private Environment env;
-    @Autowired
-    private GcUserVideoPlayService userVideoPlayService;
     @Autowired
     private GcSubjectService subjectService;
     @Autowired
@@ -219,44 +209,6 @@ public class HomeInfoController extends GuideCoreController {
         }
         gcMaster.setLogoFullUrl(sysFileService.getResFullUrlSaveType2(gcMaster.getLogoFile()));
         return gcMaster;
-    }
-
-    @PostMapping("/getSubByLevel0Sub")
-    public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-        Message message = new Message();
-
-        String portalId = requestParams.getString("portalId");
-        GcMaster gcMaster = this.getMaster(portalId);
-        if (gcMaster == null) {
-            return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-        }
-
-        Integer courseId = requestParams.getInteger("level0subId");
-        String courseNameIndex = requestParams.getString("level0subName");
-        List<GcSubject> courses = subjectService.getLevel0SubLis(gcMaster.getId());
-        SysSystem sys = getSysSystem();
-
-        GcSubject newCourse = new GcSubject();
-        newCourse.setId(courseId);
-        newCourse.setNameIndex(courseNameIndex);
-        newCourse.setMasterId(gcMaster.getId());
-        JSONArray response = userVideoPlayService.getSubAndVideoPlayListForHome(newCourse, sys, request);
-
-        message.addData("gcMaster", gcMaster);
-        message.ok().addData("subjectList", courses);
-        message.ok().addData("topicList", response);
-
-        return message;
-    }
-
-    private SysSystem getSysSystem() {
-        int sysId = 0;
-        String systemId = env.getProperty("systemId");
-        if (systemId != null) {
-            sysId = Integer.parseInt(systemId);
-        }
-
-        return systemService.getSystemById(sysId);
     }
 
     @PostMapping("/getVideoByLevel0SubNameAndVideoName")
@@ -513,28 +465,9 @@ public class HomeInfoController extends GuideCoreController {
         List<GcSubject> level1Subjects = subjectService.selectAllLevel1SubList(contentGroupIds, null, masterId);
         for (GcSubject level1Subject : level1Subjects) {
             if (videoMap.get(level1Subject.getId()) != null) {
-                level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 if (videoMap.get(level1Subject.getId()) != null) {
-                    List<GcVideo> videos = videoMap.get(level1Subject.getId());
-                    Integer videoTotalLong =
-                        videos.stream().filter(e -> e.getVideoTime() != null).mapToInt(GcVideo::getVideoTime).sum();
-                    level1Subject.setVideosTotalLong(videoTotalLong);
-
                     level1Subject.setVideoChildList(videoMap.get(level1Subject.getId()));
-                    level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 }
-
-            } else {
-                level1Subject.setVideosTotalNum(TableConstant.COMMON_ZERO);
-            }
-            Integer videosLongInTopic = TableConstant.COMMON_ZERO;
-            for (GcVideo gcVideo : videoList) {
-                if (gcVideo.getSubId().equals(level1Subject.getId())) {
-                    if (gcVideo.getVideoTime() != null) {
-                        videosLongInTopic += gcVideo.getVideoTime();
-                    }
-                }
-                level1Subject.setVideosTotalLong(videosLongInTopic);
             }
         }
 
