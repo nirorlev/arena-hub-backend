@@ -3,7 +3,7 @@ package com.threeatom.guidecore.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.dto.response.CommentDto;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -24,7 +24,7 @@ public interface GcVideoCommentService extends IService<GcVideoComment> {
         Integer vid, Integer userId, Integer masterId);
 
     Message getCommentStream(
-        Integer subId, GcUser user, GcSubject sub, SysSystem sys, HttpServletRequest request);
+        Integer subId, GcUser user, Course sub, SysSystem sys, HttpServletRequest request);
 
     Integer countCommentForVideo(Integer videoId, Integer userId, Integer masterId);
 

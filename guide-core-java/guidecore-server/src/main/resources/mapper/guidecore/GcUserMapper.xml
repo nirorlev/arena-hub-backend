@@ -108,16 +108,16 @@
 
     <!-- 统计看过视频的用户人数 -->
     <select id="getWatchedUserNum" resultType="com.threeatom.guidecore.entity.GcUser">
-        select s0.id as "subjectId"
-        from gc_subject s0
+        select course.id as "subjectId"
+        from courses course
         where 1=1
         <if test="null!=subjectIds and subjectIds.size !=0">
-        and s0.id in
+        and course.id in
         <foreach item="subjectId" collection="subjectIds" open="(" separator="," close=")">
             #{subjectId}
         </foreach>
         </if>
-        and s0.master_id=#{masterId}
+        and course.master_id=#{masterId}
 
     </select>
 

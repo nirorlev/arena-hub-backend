@@ -3,7 +3,7 @@ package com.threeatom.guidecore.excel.vo;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.List;
 import lombok.Data;
@@ -25,7 +25,7 @@ public class StudentBehaviorDataExcel {
 
     private Integer answerNum;
 
-    private List<GcSubject> subjectList;
+    private List<Course> subjectList;
 
     @ApiModelProperty(value = "用户权限表")
     @TableField(value = "sub_permission", typeHandler = FastJsonArrayTypeHandler.class)

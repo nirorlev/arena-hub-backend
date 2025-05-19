@@ -15,7 +15,7 @@ import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.TeacherMesNumVo;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcMasterMessage;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserEventResource;
@@ -26,7 +26,7 @@ import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.service.GcEventService;
 import com.threeatom.guidecore.service.GcMasterMessageService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
 import com.threeatom.guidecore.service.GcUserNoteService;
@@ -64,7 +64,7 @@ public class VideoGuideCoreController extends GuideCoreController {
 
     @Autowired private GcUserVideoActionService videoActionService;
     @Autowired private GcVideoCommentService videoCommentService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
     @Autowired private GcVideoService videoService;
     @Autowired private GcEventService eventService;
     @Autowired private PortalUserService portalUserService;
@@ -223,7 +223,7 @@ public class VideoGuideCoreController extends GuideCoreController {
     @GetMapping("/videoCommentList/{subId}")
     public Message videoCommentList(
             @PathVariable("subId") Integer subId, HttpServletRequest request) {
-        GcSubject sub = subjectService.getSubNameBysubId(subId);
+        Course sub = subjectService.getSubNameBysubId(subId);
         if (sub == null) {
             throw new SystemException(I18NUtil.get(I18NUtil.get("guidecore.master.canFindSubject")));
         }
@@ -334,9 +334,9 @@ public class VideoGuideCoreController extends GuideCoreController {
         if (null != messageFIlterVo.getEventId()) {
             GcEvent gcEvent = eventService.getById(messageFIlterVo.getEventId());
             GcVideo gcVideo = videoService.getById(gcEvent.getVideoId());
-            GcSubject gcSubject = subjectService.getById(gcVideo.getSubId());
-            GcSubject gcSubject0 = subjectService.getById(gcSubject.getFid());
-            gcEvent.setSub0Name(gcSubject0.getName());
+            Course course = subjectService.getById(gcVideo.getSubId());
+            Course course0 = subjectService.getById(course.getFid());
+            gcEvent.setSub0Name(course0.getName());
             m.addData("event", gcEvent);
         }
 

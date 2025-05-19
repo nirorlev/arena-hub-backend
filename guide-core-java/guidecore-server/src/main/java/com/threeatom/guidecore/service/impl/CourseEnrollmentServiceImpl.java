@@ -13,10 +13,10 @@ import com.threeatom.guidecore.dto.response.CourseEnrollmentsDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.UserCourseEnrollmentDto;
 import com.threeatom.guidecore.dto.response.UserDetailsDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -26,7 +26,7 @@ import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.mapping.UserMapping;
 import com.threeatom.guidecore.service.CourseContentService;
 import com.threeatom.guidecore.service.CourseEnrollmentService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.util.TaskTimingUtil;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -50,7 +50,7 @@ import org.springframework.util.CollectionUtils;
 public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMapper, CourseEnrollment> implements
     CourseEnrollmentService {
 
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final CourseContentService courseContentService;
     private final UserMapping userMapping;
     private final CourseMapping courseMapping;
@@ -59,7 +59,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
     @Override
     @Transactional
     public UserCourseEnrollmentDto enrollToCourse(Integer courseId, PortalUser portalUser) {
-        GcSubject course = courseService.getById(courseId);
+        Course course = courseService.getById(courseId);
         if (course == null) {
             throw new ResourceNotFoundException("Course with specified id not found");
         }
@@ -245,7 +245,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
 
     private CourseEnrollmentDto createCourseEnrollmentDto(List<CourseEnrollment> courseEnrollments,
                                                           PortalUser portalUser) {
-        GcSubject course = courseEnrollments.get(0).getCourse();
+        Course course = courseEnrollments.get(0).getCourse();
         List<CourseContent> courseContent = courseContentService.findCourseContent(course.getId());
         int activeUniqueUsersInCourseEnrollmentCount = countActiveUniqueUsersInCourseEnrollments(course.getId());
         int uniqueUsersInCourseEnrollmentCount = countUniqueUsersInCourseEnrollments(course.getId());
@@ -268,7 +268,7 @@ public class CourseEnrollmentServiceImpl extends ServiceImpl<CourseEnrollmentMap
         return courseEnrollmentDto;
     }
 
-    private CourseEnrollmentDto convertToCourseEnrollmentDto(GcSubject course, List<CourseContent> courseContent,
+    private CourseEnrollmentDto convertToCourseEnrollmentDto(Course course, List<CourseContent> courseContent,
                                                              List<Task> courseTasks, Map<String, Boolean> permissions,
                                                              int studentsCount, int activeStudentsCount) {
         CourseEnrollmentDto courseEnrollmentDto = courseMapping.mapCourseEnrollment(course);

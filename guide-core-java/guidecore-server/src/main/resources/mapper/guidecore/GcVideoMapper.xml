@@ -101,7 +101,7 @@
         <result property="fileType" column="type"/>
     </resultMap>
 
-    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+    <resultMap id="courseResultMap" type="Course" autoMapping="true" >
         <result property="userId" column="user_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
@@ -237,7 +237,7 @@
         <include refid="courseColumns" />
         FROM gc_video v
             JOIN sys_file f ON v.file_id = f.id
-            JOIN gc_subject gs ON v.origin_course_id = gs.id
+            JOIN courses gs ON v.origin_course_id = gs.id
 	    WHERE gs.state != 0 AND gs.master_id = #{masterId} AND v.video_name like '%${videoName}%'
     </select>
 
@@ -249,7 +249,7 @@
 	    s.fid as subId0, s.name as topicName
 	    from gc_video v 
 	     <include refid="leftJoinSysFile" />
-	     left join gc_subject s on s.id = v.sub_id
+	     left join courses s on s.id = v.sub_id
 	    where v.id=#{id}
         order by v."order"
     </select>
@@ -262,8 +262,8 @@
 	    f.thumb_nail_url as thumb_nail_url
 	    from gc_video v 
 	     <include refid="leftJoinSysFile" />
-	     LEFT JOIN gc_subject s ON s.id=v.sub_id
-	     LEFT JOIN gc_subject s0 ON s0.id=s.fid
+	     LEFT JOIN courses s ON s.id=v.sub_id
+	     LEFT JOIN courses s0 ON s0.id=s.fid
 	    <include refid="leftJoinUserVideoAtion" />
 	    where uva.user_id=#{userId} and s.master_id = #{masterId} and uva.type =1
 	    <include refid="where_gcSubject_state_not_hidden" />
@@ -278,7 +278,7 @@
 	    ,f.thumb_nail_url as thumb_nail_url,s.fid as subId0
         from gc_video v 
          <include refid="leftJoinSysFile" />
-	    left join gc_subject s on s.id = v.sub_id
+	    left join courses s on s.id = v.sub_id
         where v.sub_id in
 		<foreach collection="list" item="subId" index="index" open="(" close=")" separator=",">
 	      #{subId}
@@ -292,7 +292,7 @@
             <include refid="fileBaseColumn" />
             , S."fid" AS subId0
             ,s.id as sub_id
-        FROM GC_SUBJECT S
+        FROM courses S
         LEFT JOIN GC_VIDEO V ON S.ID = V.SUB_ID
         <include refid="leftJoinSysFile" />
         WHERE S.FID IN
@@ -314,7 +314,7 @@
             S.state                      AS course_state,
             S.available_type             AS course_available_type,
             count(r.id) as resourceNum
-        FROM gc_subject S
+        FROM courses S
             JOIN course_content ON course_content.course_id = S.id
             JOIN gc_video v ON v.id = course_content.content_id
             left join gc_resource r on r.video_id = v.id
@@ -338,7 +338,7 @@
             S.state                      AS course_state,
             S.available_type             AS course_available_type
         FROM course_content
-            JOIN gc_subject s ON s.id = course_content.course_id
+            JOIN courses s ON s.id = course_content.course_id
             JOIN gc_video V ON V.ID = course_content.content_id
             <include refid="leftJoinSysFile" />
         WHERE course_content.course_id IN
@@ -355,7 +355,7 @@
         , S."fid" AS subId0
         from gc_video v
          <include refid="leftJoinSysFile" />
-        LEFT JOIN GC_SUBJECT S ON S.ID = V.SUB_ID
+        LEFT JOIN courses S ON S.ID = V.SUB_ID
         where
             S.FID IN
             <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
@@ -379,7 +379,7 @@
             course.available_type             AS course_available_type
         from course_content
             join gc_video v on v.id = course_content.content_id
-            join gc_subject course on course.id = course_content.course_id
+            join courses course on course.id = course_content.course_id
              <include refid="leftJoinSysFile" />
             left join gc_user_video_action ac on ac.content_id = v.id
         where course_content.course_id=#{subId}
@@ -394,7 +394,7 @@
         file.file_type as f_file_type,file.file_type_index as f_file_type_index,file.master_id as f_master_id,
         file.save_type as f_save_type
         from gc_video v 
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN courses s ON s.id=v.sub_id
         LEFT JOIN sys_file file on file.id = v.file_id
         WHERE 1=1
         <if test="subIds != null and subIds.size > 0">
@@ -415,7 +415,7 @@
         file.file_type as f_file_type,file.file_type_index as f_file_type_index,file.master_id as f_master_id,
         file.save_type as f_save_type
         from gc_video v
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN courses s ON s.id=v.sub_id
         LEFT JOIN sys_file file on file.id = v.file_id
         left join gc_event event on event.video_id = v.id
         WHERE 1=1
@@ -447,7 +447,7 @@
     <select id="selectVideoSubIdsbyVids" resultType="Integer">
         select s.sub_id 
         FROM gc_video v 
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN courses s ON s.id=v.sub_id
         WHERE v.id in
         <foreach collection="list" item="vid" index="index" open="(" close=")" separator=",">
           #{vid}
@@ -459,7 +459,7 @@
     <select id="selectSubIdByVid" resultType="Integer">
         select s.sub_id 
         FROM gc_video v 
-        LEFT JOIN gc_subject s ON s.id=v.sub_id
+        LEFT JOIN courses s ON s.id=v.sub_id
         WHERE v.id = #{vid}
         <include refid="where_gcSubject_state_not_hidden" />
         order by v."order"
@@ -469,8 +469,8 @@
             select 
             v.id vid,t.id topicId,s.id subId,s.master_id masterId,t.name topicName,s.name subName,v.video_name videoName
             from gc_video v 
-			LEFT JOIN gc_subject t ON v.sub_id=t.id
-			LEFT JOIN gc_subject s ON t.sub_id=s.id
+			LEFT JOIN courses t ON v.sub_id=t.id
+			LEFT JOIN courses s ON t.sub_id=s.id
 			WHERE v.id=#{vid}
 			<include refid="where_gcSubject_state_not_hidden" />
 			<include refid="where_gcSubject_state_not_hidden_t" />
@@ -485,7 +485,7 @@
         FROM
             gc_video AS v
                 LEFT JOIN gc_user_video_play AS uvp  ON v.id = uvp.video_id
-                LEFT JOIN gc_subject AS s ON s.id = v.sub_id
+                LEFT JOIN courses AS s ON s.id = v.sub_id
         WHERE
             uvp.user_id = #{uid}
           <if test="subIds.size !=0">
@@ -501,7 +501,7 @@
     
     <select id="countVideoNameInSub0" resultType="Integer">
 		select count(1) from gc_video v
-		left join gc_subject sub on sub.id = v.sub_id
+		left join courses sub on sub.id = v.sub_id
 		where 
 		<choose>
             <when test="videoNameIndex==null">
@@ -511,7 +511,7 @@
                 video_name_index=#{videoNameIndex}
             </otherwise>
         </choose>
-		and sub.fid = (select fid from gc_subject where id=#{subId})
+		and sub.fid = (select fid from courses where id=#{subId})
 		 <if test="id!=null">
 	        and v.id !=#{id}
 	    </if >
@@ -525,8 +525,8 @@
 	    ,f.thumb_nail_url as thumb_nail_url
 	    from gc_video v 
 	     <include refid="leftJoinSysFile" />
-	     left join gc_subject sub1 on v.sub_id =sub1.id
-		left join gc_subject sub0 on sub1.fid =sub0.id
+	     left join courses sub1 on v.sub_id =sub1.id
+		left join courses sub0 on sub1.fid =sub0.id
 	    where v.video_name_index =#{videoNameIndex} and sub0.name_index = #{subNameIndex}
 	    AND sub0.master_id =#{masterId}
     </select>
@@ -557,8 +557,8 @@
         SELECT
         v.video_time as video_long,s.sub_id as sub_id
         FROM gc_video v
-            left join gc_subject s on s.id=v.sub_id
-        WHERE v.id IN(SELECT id from gc_video where sub_id in (select id from gc_subject where sub_id in
+            left join courses s on s.id=v.sub_id
+        WHERE v.id IN(SELECT id from gc_video where sub_id in (select id from courses where sub_id in
         <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator="," >
             #{subId}
         </foreach>
@@ -599,8 +599,8 @@
             <include refid="courseOwnerAvatarColumns" />,
             gs.name as subjectName
         FROM course_content
-            JOIN gc_subject gs on gs.id = course_content.course_id AND gs.master_id = #{masterId}
-            JOIN gc_subject course on gs.sub_id = course.id
+            JOIN courses gs on gs.id = course_content.course_id AND gs.master_id = #{masterId}
+            JOIN courses course on gs.sub_id = course.id
             JOIN gc_user course_owner ON gs.create_user = course_owner.id
             JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
             JOIN gc_video v ON course_content.content_id = v.id
@@ -648,7 +648,7 @@
     <select id="getVideoIdListBySubId" resultType="integer">
         select v.id from gc_video v
         where v.sub_id in
-        (select id from gc_subject s1 where s1.fid in
+        (select id from courses s1 where s1.fid in
         <foreach collection="subIds" item="subId" separator="," open="(" close=")">
             #{subId}
         </foreach>)
@@ -658,7 +658,7 @@
     <select id="getVideoListBySubId" resultMap="baseResultMap">
         select * from gc_video v
         where v.sub_id in
-        (select id from gc_subject s1 where s1.fid in
+        (select id from courses s1 where s1.fid in
         <foreach collection="subIds" item="subId" separator="," open="(" close=")">
             #{subId}
         </foreach>)
@@ -666,7 +666,7 @@
     </select>
     <select id="getVideoLongListByVideoId" resultType="com.threeatom.guidecore.entity.GcVideo">
         SELECT v.*,s.sub_id as subjectSubId FROM gc_video v
-        LEFT JOIN gc_subject s on v.sub_id=s.id
+        LEFT JOIN courses s on v.sub_id=s.id
         <if test="videoIds.size !=0">
         where v.id in
         <foreach collection="videoIds" item="videoId" separator="," open="(" close=")">
@@ -678,15 +678,15 @@
         select count(1) from gc_video v where 1=1
         <if test="subIds==null">
             and v.sub_id in
-            (select  s.id from gc_subject s where s.sub_id in
-            (select DISTINCT id from gc_subject s where s.master_id=#{masterId} and s.type=#{state} and s.state!=#{state})
+            (select  s.id from courses s where s.sub_id in
+            (select DISTINCT id from courses s where s.master_id=#{masterId} and s.type=#{state} and s.state!=#{state})
             UNION ALL
-            (select s.id from gc_subject s where s.type=#{type} and s.state!=#{state} and s.sub_id in
+            (select s.id from courses s where s.type=#{type} and s.state!=#{state} and s.sub_id in
             (select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId})) )
         </if>
         <if test="subIds!=null and subIds.size!=0">
             and v.sub_id in
-            (select s.id from gc_subject s where s.fid in
+            (select s.id from courses s where s.fid in
             <foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
                 #{subId}
             </foreach>
@@ -726,8 +726,8 @@
 
     <select id="selectVideoPlayListBySubId" resultType="com.threeatom.guidecore.entity.GcVideo">
         select v.id as id
-        from gc_subject s
-        left join gc_subject s2 on s2.fid = s.id
+        from courses s
+        left join courses s2 on s2.fid = s.id
         left join gc_video v on v.sub_id = s2.id
         where s.id = #{subId}
         and v.id is not null
@@ -745,8 +745,8 @@
         select s.id as sub_id,sum(v.video_time) as video_long,
         count(v.id) as video_count
         from gc_video v
-                 left join gc_subject s2 on s2.id = v.sub_id
-                 left join gc_subject s on s.id = s2.fid
+                 left join courses s2 on s2.id = v.sub_id
+                 left join courses s on s.id = s2.fid
         where s.id in
         <foreach collection="subjectIds" item="subIds" separator="," open="(" close=")">
             #{subIds}
@@ -763,8 +763,8 @@
         u.id as userId
         from gc_video v
         left join sys_file f on f.id = v.file_id
-        left join gc_subject s2 on s2.id = v.sub_id
-        left join gc_subject s1 on s1.id = s2.fid
+        left join courses s2 on s2.id = v.sub_id
+        left join courses s1 on s1.id = s2.fid
         left join gc_user u on u.id in
         <foreach collection="userIdList" item="userId" separator="," open="(" close=")">
             #{userId}
@@ -824,7 +824,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -863,7 +863,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -914,7 +914,7 @@
             LEFT JOIN gc_user_info channel_owner_info ON channel_owner.info_id = channel_owner_info.id
             LEFT JOIN sys_file channel_owner_avatar ON channel_owner_info.avatar_file_id = channel_owner_avatar.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
             LEFT JOIN gc_user_info course_owner_info ON course_owner.info_id = course_owner_info.id
@@ -960,7 +960,7 @@
             LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
         WHERE playlist_follow.user_id = #{portalUser.userId} AND (playlist_follow.update_time &lt; #{cursor.updateTime}
@@ -1054,7 +1054,7 @@
             LEFT JOIN sys_file channel_avatar ON channel_avatar.id = pc.channel_avatar_file_id
             LEFT JOIN gc_user channel_owner ON pc.create_user_id = channel_owner.id
 
-            LEFT JOIN gc_subject gs ON v.origin_course_id = gs.id
+            LEFT JOIN courses gs ON v.origin_course_id = gs.id
             LEFT JOIN sys_file course_avatar ON course_avatar.id = gs.sub_img_id
             LEFT JOIN gc_user course_owner ON gs.create_user = course_owner.id
         WHERE playlist.id = #{playlistId}

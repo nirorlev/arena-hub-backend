@@ -40,8 +40,8 @@
 		S.ID AS "subjectId",UVA.content_id as "contentId", UVA.TYPE as "type",
 		UVA.STAR_VALUE as "starValue", UVA.VALUE as "value"
 		FROM
-		GC_SUBJECT S
-		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		courses S
+		LEFT JOIN courses S0 ON S0.FID=S.ID
 		LEFT JOIN GC_VIDEO V ON
 		V.SUB_ID = S0.ID
 		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.content_id = V.ID
@@ -67,8 +67,8 @@
 		S.ID AS "subjectId",COUNT(uva."user_id") as "subjectStarUsers",
 		ROUND(AVG(UVA.STAR_VALUE)) as "subjectStarAvg"
 		FROM
-		GC_SUBJECT S
-		LEFT JOIN GC_SUBJECT S0 ON S0.FID=S.ID
+		courses S
+		LEFT JOIN courses S0 ON S0.FID=S.ID
 		LEFT JOIN GC_VIDEO V ON
 		V.SUB_ID = S0.ID
 		LEFT JOIN GC_USER_VIDEO_ACTION UVA ON UVA.content_id = V.ID
@@ -91,7 +91,7 @@
 		ROUND(AVG(UVA.STAR_VALUE)) as "subjectStarAvg"
 		FROM
 	    GC_USER_VIDEO_ACTION UVA
-		left join gc_subject s on s.id=UVA.sub_id
+		left join courses s on s.id=UVA.sub_id
 		WHERE UVA.type=4 and s.id in
 		<foreach item="id" collection="subjectIds" open="(" separator="," close=")">
 			#{id}

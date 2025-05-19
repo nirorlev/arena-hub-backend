@@ -3,7 +3,7 @@ package com.threeatom.common.export.excel.impl;
 import com.alibaba.excel.EasyExcel;
 import com.threeatom.common.export.excel.ExcelOperator;
 import com.threeatom.guidecore.constant.WatchedStatusType;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.excel.vo.StudentBehaviorDataExcel;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,7 +33,7 @@ public class EasyExcelOperatorImpl implements ExcelOperator {
     @Override
     public <T> void writeDynamicHeadExcelToWebResponse(
             HttpServletResponse response,
-            List<GcSubject> subjectList,
+            List<Course> subjectList,
             String fileName,
             String sheetName,
             List<StudentBehaviorDataExcel> studentBehaviorExcelData)
@@ -112,17 +112,17 @@ public class EasyExcelOperatorImpl implements ExcelOperator {
         return (float) (Math.round(minute * 100)) / 100;
     }
 
-    public static List<List<String>> createTestListStringHead(List<GcSubject> subjectList) {
+    public static List<List<String>> createTestListStringHead(List<Course> subjectList) {
         // 模型上没有注解，表头数据动态传入
         List<List<String>> head = new ArrayList<List<String>>();
         StringBuilder sb =
                 new StringBuilder(
                         "First Name&&Last Name&&Email&&Number of videos watched&&Number of minutes"
                                 + " watched&&Number of questions answered");
-        for (GcSubject gcSubject : subjectList) {
-            sb.append("&&" + gcSubject.getName());
-            if (Objects.nonNull(gcSubject.getSubjects())) {
-                gcSubject
+        for (Course course : subjectList) {
+            sb.append("&&" + course.getName());
+            if (Objects.nonNull(course.getSubjects())) {
+                course
                         .getSubjects()
                         .forEach(
                                 i -> {

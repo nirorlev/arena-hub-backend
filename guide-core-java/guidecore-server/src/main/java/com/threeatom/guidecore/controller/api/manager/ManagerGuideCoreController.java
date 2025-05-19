@@ -22,13 +22,13 @@ import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
 import com.threeatom.guidecore.entity.GcResource;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcVideo;
@@ -44,7 +44,7 @@ import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcResourceService;
 import com.threeatom.guidecore.service.GcSubjectAssociationService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
@@ -103,7 +103,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @Autowired
     private GcAccessService accessService;
     @Autowired
-    private GcSubjectService subService;
+    private CourseService subService;
     @Autowired
     private GcMasterService masterService;
     @Autowired
@@ -227,7 +227,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
     @ApiOperation(value = "科目和主题的树状结构图", httpMethod = "GET")
     @GetMapping("/subList")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "请求成功", response = GcSubject.class)
+        @ApiResponse(code = 200, message = "请求成功", response = Course.class)
     })
     public Message subjectList(HttpServletRequest request) {
 
@@ -237,18 +237,18 @@ public class ManagerGuideCoreController extends GuideCoreController {
             master = masterService.getMasterById(masterId);
         }
         SysSystem sys = this.getSystem();
-        List<GcSubject> list = null;
+        List<Course> list = null;
         GcManager manager = this.getManager();
         if (manager.getLevel() != null && manager.getLevel() == LevelType.MASTER_MANAGER) {//课程管理员
             //判断用户层级得到科目和主题的权限信息json
             GcUserAccess userAccess =
                 userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
             List<Integer> courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
-            List<GcSubject> subjectAssociationList =
+            List<Course> subjectAssociationList =
                 subService.selectSubjectAssociation(master.getId(), courseIds, false);
             subjectAssociationList = subService.setSubListImg(subjectAssociationList, sys, request);
             List<Integer> assoSubIds =
-                subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                subjectAssociationList.stream().map(Course::getId).collect(Collectors.toList());
             courseIds.removeAll(assoSubIds);
             //导入课程
             list = subService.getSubListWithImgByIds(courseIds, sys, request, master.getId());
@@ -256,7 +256,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
             list.addAll(subjectAssociationList);
         } else {
             list = subService.getSubListWithImg(master.getId(), sys, request);
-            List<GcSubject> subjectAssociationList = subService.selectSubjectAssociation(master.getId(), null, false);
+            List<Course> subjectAssociationList = subService.selectSubjectAssociation(master.getId(), null, false);
             list.addAll(subjectAssociationList);
         }
         return new Message().ok().addData("list", list);
@@ -378,7 +378,7 @@ public class ManagerGuideCoreController extends GuideCoreController {
         List<GcAccess> userCodeList = new ArrayList<>();
         //注册码集合
         List<GcAccess> list = accessService.findAccessListByMasterId(master.getId());
-        List<GcSubject> sublist = subService.getSubListTop(master.getId());
+        List<Course> sublist = subService.getSubListTop(master.getId());
         List<GcAccess> adminCodeList = accessService.getAdminAccessListByMasterId(master.getId());
         List<Map<String, Object>> userList =
             userAccessService.getAllUserInThisMaster(masterIds, filterMaster.getSearchFilter(), request,
@@ -577,19 +577,19 @@ public class ManagerGuideCoreController extends GuideCoreController {
                 GcUserAccess userAccess =
                     userAccessService.selectUserAccessByManagerAndMaster(manager.getId(), master.getId());
                 courseIds = courseAssignmentService.getCourseIdsByContentGroupId(userAccess.getAccessId());
-                List<GcSubject> subjectAssociationList =
+                List<Course> subjectAssociationList =
                     subService.selectSubjectAssociation(master.getId(), courseIds, false);
                 List<Integer> assoSubIds =
-                    subjectAssociationList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                    subjectAssociationList.stream().map(Course::getId).collect(Collectors.toList());
                 courseIds.addAll(assoSubIds);
-                List<GcSubject> level1Subids = subService.selectAllLevel1SubList(courseIds, null, master.getId());
-                List<Integer> level1subids = level1Subids.stream().map(GcSubject::getId).collect(Collectors.toList());
+                List<Course> level1Subids = subService.selectAllLevel1SubList(courseIds, null, master.getId());
+                List<Integer> level1subids = level1Subids.stream().map(Course::getId).collect(Collectors.toList());
                 courseIds.addAll(level1subids);
             } else {
-                List<GcSubject> subList = subService.getSubListWithHidden(master.getId());
-                List<GcSubject> associationSubList = subService.selectSubjectAssociation(master.getId(), null, false);
+                List<Course> subList = subService.getSubListWithHidden(master.getId());
+                List<Course> associationSubList = subService.selectSubjectAssociation(master.getId(), null, false);
                 subList.addAll(associationSubList);
-                courseIds = subList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                courseIds = subList.stream().map(Course::getId).collect(Collectors.toList());
             }
 
             List<GcVideo> list = null;

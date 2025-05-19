@@ -14,7 +14,7 @@ import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcEventService;
 import com.threeatom.guidecore.service.GcManagerService;
 import com.threeatom.guidecore.service.GcMasterService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
@@ -39,7 +39,7 @@ public class GuideCoreController extends BaseController {
 	@Autowired
 	GcVideoService videoService;
 	@Autowired
-	GcSubjectService subjectService;
+    CourseService subjectService;
 	@Autowired
 	private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;
 

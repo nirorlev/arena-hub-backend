@@ -77,7 +77,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Lazy
 	@Autowired
-	private GcSubjectService subjectService;
+	private CourseService subjectService;
 	@Autowired
 	private CourseContentService courseContentService;
 
@@ -488,7 +488,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Transactional
 	public boolean createVideos(List<GcVideo> videoList, PortalUser portalUser) {
         Integer originCourseId = getOriginCourseId(videoList);
-		GcSubject course = subjectService.getById(originCourseId);
+		Course course = subjectService.getById(originCourseId);
 		if (!authorizationService.checkAccess(course, PermitAction.MANAGE_CONTENT, portalUser)) {
 			throw new ForbiddenException("No permission to upload videos for the course");
 		}
@@ -1255,7 +1255,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 			throw new ResourceNotFoundException("Requested video could not be found");
 		}
 
-		GcSubject course = subjectService.getById(courseId);
+		Course course = subjectService.getById(courseId);
 		if (course == null) {
 			log.error("Course with id {} cannot be found for user {}", courseId, portalUser.getUserId());
 			throw new ResourceNotFoundException("Requested course could not be found");

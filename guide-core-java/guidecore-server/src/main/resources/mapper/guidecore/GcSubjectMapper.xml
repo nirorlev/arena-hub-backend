@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.threeatom.guidecore.mapper.GcSubjectMapper">
+<mapper namespace="com.threeatom.guidecore.mapper.CoursetMapper">
 
-	<resultMap id="courseResultMap" type="GcSubject">
+	<resultMap id="courseResultMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -92,7 +92,7 @@
 		</association>
 	</resultMap>
 
-	<resultMap id="baseResultMap" type="GcSubject">
+	<resultMap id="baseResultMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="name" column="name"  />
@@ -230,7 +230,7 @@
 		</collection>
 	</resultMap>
 
-	<resultMap id="originCourseResultMap" type="GcSubject" autoMapping="true" >
+	<resultMap id="originCourseResultMap" type="Course" autoMapping="true" >
 		<result property="userId" column="user_id"/>
 		<result property="createUser" column="user_id"/>
 		<result property="fid" column="fid"/>
@@ -238,7 +238,7 @@
 		<result property="state" column="state"/>
 	</resultMap>
 
-	<resultMap id="baseResultVoMap" type="GcSubject">
+	<resultMap id="baseResultVoMap" type="Course">
 		<result property="id" column="id"/>
 		<result property="masterId" column="master_id"  />
 		<result property="sub0Name" column="sub0Name"/>
@@ -329,15 +329,15 @@
 			</association>
 		</collection>
 	</resultMap>
-	<resultMap id="idMap" type="GcSubject">
+	<resultMap id="idMap" type="Course">
 		<id property="id" column="id"/>
 		<result property="id2" column="id2"  />
 	</resultMap>
-	<resultMap id="subjectOrderMap" type="GcSubject">
+	<resultMap id="subjectOrderMap" type="Course">
 		<result property="subjectOrder" column="subject_order" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 	</resultMap>
 
-	<resultMap id="JsonArray" type="GcSubject">
+	<resultMap id="JsonArray" type="Course">
 		<result property="mustJsonArray" column="must_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		<result property="mayJsonArray" column="may_subject_json" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 	</resultMap>
@@ -514,7 +514,7 @@
 		count(resource.id) as gcEvent_resourceNum,
 		count(fab.id) as userAnserFabulousNum
 
-		from gc_subject s
+		from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join sys_file vFile on vFile.id=gcVideo.file_id
 		left join sys_file vFile2 on vFile2.id = vFile.thumb_nail_id
@@ -550,7 +550,7 @@
 			<include refid="messageJoinColumn" />
 		</if>
 		<include refid="originVideoCourseColumns" />
-		from gc_subject s
+		from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
 		left join gc_user_answer answer on answer.event_id=gcEvent.id and answer.user_id=#{userId}
@@ -579,7 +579,7 @@
 
 						 LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
 						 LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
-						 LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+						 LEFT JOIN courses sub on sub.id=gcVideo.sub_id
 
 				where sub.id = #{subId}  and (eventRes.target_user_id=#{userId} or eventRes.user_id=#{userId}) group by eventRes.id, mm.read_state
 
@@ -599,7 +599,7 @@
 						 LEFT JOIN gc_master_message mm on mm.res_id = eventRes.id AND (mm.target_user_id = eventRes.target_user_id or eventRes.target_user_id is null) and mm.target_user_id=#{teacherId}
 						 LEFT JOIN gc_event gcEvent ON eventRes.event_id = gcEvent.id
 						 LEFT JOIN gc_video gcVideo ON gcVideo.id = gcEvent.video_id
-						 LEFT JOIN gc_subject sub on sub.id=gcVideo.sub_id
+						 LEFT JOIN courses sub on sub.id=gcVideo.sub_id
 				where sub.id = #{subId}
 				  and (
 						(eventRes.user_id=#{teacherId} and eventRes.target_user_id=#{studentId}) or
@@ -610,7 +610,7 @@
 	</select>
 
 	<select id="getAnswerMessageMapForTeacherWorkbook" resultType="map">
-		select gcEvent.id as eventId, mm.read_state as readState from gc_subject s
+		select gcEvent.id as eventId, mm.read_state as readState from courses s
 		left join gc_video gcVideo on gcVideo.sub_id=s.id
 		left join gc_event gcEvent on gcEvent.video_id=gcVideo.id
 		left join gc_user_answer answer on answer.event_id=gcEvent.id
@@ -623,7 +623,7 @@
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
 		,concat('[',string_agg(tags.tag_text, ','),']') as course_tags
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
 		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
 		WHERE s.master_id = #{masterId}
@@ -644,7 +644,7 @@
 		s.cpd_hours, s.badge_id, s.subdetail_img_id, s.badge_content, s.create_user, s.available_type
 		,f.id as f_id, f.name as f_name, f.file_url as f_file_url, f.save_type as f_save_type
 		from (
-		select count(case when b.play_state=1 then 1 end) as nums, b.* from(
+		select b.* from(
 		SELECT
 		a.id,
 		a.user_id,
@@ -686,7 +686,7 @@
 		v.id as video_id,
 		v."video_name"
 		FROM
-		gc_subject s
+		courses s
 		<if test="type == null and createUser == null">
 			LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 			LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
@@ -711,7 +711,7 @@
 		</if>
 		LEFT JOIN gc_user_access ua ON ua.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		WHERE
 		1 = 1
@@ -756,24 +756,20 @@
 		<if test="null!=subjectName">
 			where b.name like CONCAT('%',#{subjectName},'%')
 		</if>
-		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		GROUP BY b.id, b.user_id, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
 		b.sub_id, b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
 		b.master_type_id::jsonb, b.template_id, b.intro_on_off, b.update_time, b.create_time, b.cate_id,
 		b.language, b.certificates_flag, b.course_tagline, b.cpd_hours, b.badge_id, b.subdetail_img_id::jsonb,
 		b.badge_content, b.create_user, b.available_type) as s
 		left join sys_file f on s.sub_img_id=f.id
-		left join gc_subject sub1 on sub1.fid = s.id
+		left join courses sub1 on sub1.fid = s.id
 		left join gc_video v on v.sub_id = sub1.id
 
-		left join (select count(v.id) as videoNum,s.id as id   from gc_subject  s
-		left join gc_subject s2 on s2.fid = s.id
+		left join (select count(v.id) as videoNum,s.id as id   from courses  s
+		left join courses s2 on s2.fid = s.id
 		left join gc_video v on v.sub_id = s2.id
-		GROUP BY s.id ) vNum on
-		<if test="type == 2">
-			vNum.videoNum = s.nums and
-		</if>
-		s.id = vNum.id
-		left join (	select count(*)as num,fid from gc_subject where "level" = 1 GROUP BY fid ) s2 on s2.fid = s.id
+		GROUP BY s.id ) vNum on s.id = vNum.id
+		left join (	select count(*)as num,fid from courses where "level" = 1 GROUP BY fid ) s2 on s2.fid = s.id
 		left join (SELECT * FROM
 		(SELECT sum(CASE WHEN answer_json IS NULL THEN 0 ELSE 1 END) AS anNums,
 		sum(CASE WHEN event_nums.event_id IS NULL THEN 0 ELSE 1 END) AS eventNums,
@@ -786,8 +782,8 @@
 		e.id AS event_id,
 		s.id AS subject_id
 		FROM
-		gc_subject s
-		LEFT JOIN gc_subject s2 ON s.id = s2.fid
+		courses s
+		LEFT JOIN courses s2 ON s.id = s2.fid
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		LEFT JOIN gc_event e ON e.video_id = v.id
 		LEFT JOIN gc_user u ON u.id = #{userId}
@@ -821,18 +817,16 @@
 					${subIdList}
 				</foreach>
 			</if>
-			and ((vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
-			or(s.nums = 0)
-			)
+			and (eu.anNums != eu.eventNums)
 		</if>
 		/*已开始*/
 		<if test="type == 0">
-			and (eu.anNums !=0 or s.nums !=0)
-			and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
+			and eu.anNums !=0
+			and eu.anNums != eu.eventNums
 		</if>
 		/*未开始*/
 		<if test="type == 1">
-			AND ( eu.anNums = 0 AND s.nums = 0 )
+			AND eu.anNums = 0
 		</if>
 		/*已完成*/
 		<if test="type == 2">
@@ -863,9 +857,9 @@
 		<include refid="baseColumn" />,
 		<include refid="fileJoinColumn" />
 		<include refid="originVideoCourseColumns" />
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
-		left join gc_subject sub1 on sub1.fid = s.id
+		left join courses sub1 on sub1.fid = s.id
 		left join gc_video v on v.sub_id = sub1.id
 		WHERE s.level = #{level} and s.state = #{state}
 		<if test="channelIds!=null and channelIds.size !=0">
@@ -886,7 +880,7 @@
 		select
 		<include refid="baseColumnAssoOrderCase" />
 		<include refid="fileJoinColumn" />
-		from gc_subject s
+		from courses s
 		left join sys_file f on s.sub_img_id=f.id
 		WHERE 1=1
 		<if test="list.size !=0">
@@ -903,7 +897,7 @@
 		SELECT
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
 
 		WHERE s.id in
@@ -918,7 +912,7 @@
 		SELECT
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
 		<if test="list!=null">
 		WHERE s.id in
@@ -942,7 +936,7 @@
 		<include refid="subjectAssociationJoinColumn"/>
 		<include refid="fileJoinColumn" />
 		,concat('[',array_to_string(array_agg(tags.tag_text), ',') ,']') as course_tags
-		FROM gc_subject s
+		FROM courses s
 		left join gc_subject_association subjectAssociation on s.id=subjectAssociation.subject_id or s.fid=subjectAssociation.subject_id
 		left join sys_file f on s.sub_img_id=f.id
 		left join gc_subject_tags tags on tags.subject_id = s.id and ((tags.master_id = #{masterId}) or (tags.master_id != #{masterId} and tags.type = 1))
@@ -964,13 +958,13 @@
 		SELECT
 		<include refid="baseColumn" />
 		FROM gc_video v
-		LEFT JOIN gc_subject s on s.id=v.sub_id
+		LEFT JOIN courses s on s.id=v.sub_id
 		WHERE v.id = #{vid}
 		<include refid="where_gcSubject_state_not_hidden" />
 	</select>
 
 	<select id="countCourseForName" resultType="Integer">
-		select count(1) from gc_subject
+		select count(1) from courses
 		where
 		<choose>
 			<when test="nameIndex==null">
@@ -997,28 +991,28 @@
 	<select id="selectS1ByS0NameIndex" resultMap="baseResultMap" >
 		SELECT
 		<include refid="baseColumn" />
-		from gc_subject s left join gc_subject s0 on s0.id = s.fid
+		from courses s left join courses s0 on s0.id = s.fid
 		where s0.master_id = #{masterId} and s0.name_index = #{nameIndex}
 		<include refid="where_gcSubject_state_not_hidden_s0" />
 	</select>
 
 	<select id="selecUnitNumForVideo" resultMap="idMap" >
 		select s11.id as id ,v.sub_id as id2 from gc_video v
-													  left join gc_subject s1 on s1.id=v.sub_id
-													  left join gc_subject s11 on s11.fid=s1.fid
+													  left join courses s1 on s1.id=v.sub_id
+													  left join courses s11 on s11.fid=s1.fid
 		where v.id = #{videoId}
 		order by s11.order asc
 	</select>
 
-	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.GcSubject" >
-		select  * from gc_subject where fid in
+	<select id="selectTwoSubjectsByFids" resultType="com.threeatom.guidecore.entity.Course" >
+		select  * from courses where fid in
 		<foreach collection="fids" item="fid" index="index" open="(" close=")" separator=",">
 			#{fid}
 		</foreach>
 	</select>
 
 	<select id="countCourseInPortal" resultType="Integer">
-		select count(1) from gc_subject s
+		select count(1) from courses s
 		where
 		<if test="subIds==null">
 			s.master_id = #{masterId} and s.type=#{type} and s.state!=#{type} or (s.id in (select ass.subject_id from gc_subject_association ass where ass.master_id=#{masterId}))
@@ -1032,7 +1026,7 @@
 	</select>
 
 	<select id="countImportedToicNum" resultType="Integer">
-		select count(1) from gc_subject s
+		select count(1) from courses s
 		where s.type=#{type} and  s.state!=#{state} and s.sub_id in
 		(select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId}
 		<if test="subIds!=null and subIds.size!=0">
@@ -1048,8 +1042,8 @@
 		select s.*,v.video_name as gcVideo_videoName,v.id as gcVideo_id,f.video_long as gcVideo_long,f.file_type as video_f_file_type
 		     ,s0.name as sub0Name,s0.Id as sub0Id
 		<include refid="originVideoCourseColumns" />
-		from gc_subject s
-		left join gc_subject s0 on s0.id = s.fid
+		from courses s
+		left join courses s0 on s0.id = s.fid
 		left join gc_video v on v.sub_id=s.id
 		left join sys_file f on v.file_id=f.id
 		left join gc_event e on e.video_id=v.id
@@ -1077,9 +1071,9 @@
 		</choose>
 	</select>
 
-	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.GcSubject">
+	<select id="selectTagsById" resultType="com.threeatom.guidecore.entity.Course">
 		SELECT gc.*, string_agg(tags.tag_text, ',') as course_tags
-		FROM gc_subject gc
+		FROM courses gc
 				 LEFT JOIN gc_subject_tags tags ON tags.subject_id = gc.id AND tags.master_id = #{masterId}
 		WHERE gc.id = #{id}
 		GROUP BY gc.id
@@ -1088,13 +1082,13 @@
 
 	<select id="selectListByMasterId" resultMap="baseResultMap">
 		select gc.*, concat('[', string_agg(tags.tag_text, '","'), ']') as course_tags
-		from gc_subject gc
+		from courses gc
 				 left join gc_subject_tags tags on tags.subject_id = gc.id and tags.master_id = #{masterId}
 		GROUP BY gc.id
 	</select>
 
 	<select id="getCreateUserPublished" resultType="java.lang.Integer">
-		select count(1) from gc_subject
+		select count(1) from courses
 		where "level" = 0
 		  and "state" = #{state}
 		  and create_user = #{userId}
@@ -1102,7 +1096,7 @@
 	</select>
 
 	<select id="getPublicSubjectIds" resultType="java.lang.Integer">
-		select id from gc_subject
+		select id from courses
 		where available_type = 1
 	</select>
 
@@ -1110,7 +1104,7 @@
 		SELECT DISTINCT ON (s.id)
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
-		FROM gc_subject s
+		FROM courses s
 		left join gc_content_group_course_assignment cgc on cgc.course_id = s.id
 		left join gc_access ac ON cgc.content_group_id = ac.id
 		left join gc_user_access ua on ac.id = ua.access_id and ac.master_id = ua.master_id
@@ -1139,7 +1133,7 @@
 		SELECT
 		<include refid="baseColumn" />
 		<include refid="fileJoinColumn" />
-		FROM gc_subject s
+		FROM courses s
 		left join sys_file f on s.sub_img_id=f.id
 		WHERE s."level" = 0
 		<include refid="where_gcSubject_state_not_hidden" />
@@ -1163,10 +1157,10 @@
 
 	<select id="selectSubjectByCreateUser" resultType="java.lang.Integer">
 		select sub.id
-		from gc_subject sub where id not in (
+		from courses sub where id not in (
 			select s.id from gc_user_access ua
 				 left join gc_content_group_course_assignment content_group_assignment on content_group_assignment.course_id = ua.access_id AND content_group_assignment.is_mandatory = 1
-				 left join gc_subject s on content_group_assignment.course_id = s.id
+				 left join courses s on content_group_assignment.course_id = s.id
 			where 1=1
 			  and s.master_id = #{masterId}
 			  and s.create_user = #{createUser}
@@ -1255,12 +1249,12 @@
 		v.id AS video_id,
 		v."video_name"
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		WHERE
 		1 = 1
@@ -1289,7 +1283,7 @@
 		a.intro_on_off,
 		a.update_time,
 		a.create_time) AS b
-		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		GROUP BY b.id, b.user_id, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
 		b.sub_id,
 		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
 		b.master_type_id::jsonb, b.cate_id,
@@ -1307,23 +1301,23 @@
 		b.update_time,
 		b.create_time) AS s
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
-		LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
+		LEFT JOIN courses sub1 ON sub1.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = sub1.id
 		LEFT JOIN (SELECT count( v.id ) AS videoNum, s.id AS id
-		FROM gc_subject s
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		FROM courses s
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		GROUP BY s.id
 		) vNum ON s.id = vNum.id
-		LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
+		LEFT JOIN ( SELECT count(*) AS num, fid FROM courses WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
 		LEFT JOIN ( SELECT * FROM ( SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums, sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
 		event_nums.user_id,
 		event_nums.answer_json::jsonb,
 		subject_id
 		FROM
 		(SELECT an.answer_json, u.id AS user_id, e.id AS event_id, s.id AS subject_id
-		FROM gc_subject s
-		LEFT JOIN gc_subject s2 ON s.id = s2.fid
+		FROM courses s
+		LEFT JOIN courses s2 ON s.id = s2.fid
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		LEFT JOIN gc_event e ON e.video_id = v.id
 		LEFT JOIN gc_user u ON u.id = #{userId}
@@ -1348,7 +1342,7 @@
 				${subIdList}
 			</foreach>
 		</if>
-		AND (( vNum.videoNum != s.nums OR eu.anNums != eu.eventNums ) OR ( s.nums = 0 ) )
+		AND ((eu.anNums != eu.eventNums ))
 		GROUP BY s.id, s2.num, vnum.videoNum, s.master_id,
 		s.NAME,
 		s.name_index,
@@ -1378,8 +1372,7 @@
 		s.available_type,
 		f.id,
 		eu.anNums,
-		s.nums
-		ORDER BY ( eu.anNums = 0 AND s.nums = 0 ) desc , s.update_time desc
+		ORDER BY ( eu.anNums = 0 ) desc , s.update_time desc
 	</select>
 
 	<select id="selectMaySubjectByNewIndexHome" resultMap="baseResultMap">
@@ -1420,7 +1413,7 @@
 		<include refid="originVideoCourseColumns" />
 
 		FROM
-		(SELECT count(CASE WHEN b.play_state = 1 THEN 1 END) AS nums, b.*
+		(SELECT b.*
 		FROM(SELECT max( p.play_state ) AS play_state,
 		a.id,
 		a.info_id,
@@ -1461,12 +1454,12 @@
 		v.id AS video_id,
 		v."video_name"
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
 		LEFT JOIN gc_user u ON u.id = ua.user_id
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		WHERE u.id = #{userId}
 		AND s.master_id = #{masterId}
@@ -1490,7 +1483,7 @@
 		a.intro_on_off,
 		a.update_time,
 		a.create_time) AS b
-		GROUP BY b.id, b.user_id, b.play_state, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
+		GROUP BY b.id, b.user_id, b.info_id, b.master_id, b.name, b.name_index, b.description, b.type,
 		b.sub_id,
 		b.level, b.fid, b.alias_sub_id, b."order", b.sub_img_id, b.state, b.token, b.is_public,
 		b.master_type_id::jsonb, b.cate_id,
@@ -1508,15 +1501,15 @@
 		b.update_time,
 		b.create_time) AS s
 		LEFT JOIN sys_file f ON s.sub_img_id = f.id
-		LEFT JOIN gc_subject sub1 ON sub1.fid = s.id
+		LEFT JOIN courses sub1 ON sub1.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = sub1.id
 		LEFT JOIN (SELECT count( v.id ) AS videoNum, s.id AS id
-		FROM gc_subject s
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		FROM courses s
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		GROUP BY s.id
 		) vNum ON s.id = vNum.id
-		LEFT JOIN ( SELECT count(*) AS num, fid FROM gc_subject WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
+		LEFT JOIN ( SELECT count(*) AS num, fid FROM courses WHERE "level" = 1 GROUP BY fid ) s2 ON s2.fid = s.id
 		LEFT JOIN ( SELECT * FROM ( SELECT sum( case when answer_json is null then 0 else 1 end) AS anNums, sum( case when event_nums.event_id is null then 0 else 1 end) AS eventNums,
 		event_nums.answer_json::jsonb,
 		event_nums.user_id,
@@ -1524,8 +1517,8 @@
 		subject_id
 		FROM
 		(SELECT an.answer_json, u.id AS user_id, e.id AS event_id, s.id AS subject_id
-		FROM gc_subject s
-		LEFT JOIN gc_subject s2 ON s.id = s2.fid
+		FROM courses s
+		LEFT JOIN courses s2 ON s.id = s2.fid
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		LEFT JOIN gc_event e ON e.video_id = v.id
 		LEFT JOIN gc_user u ON u.id = #{userId}
@@ -1547,8 +1540,8 @@
 		AND s.master_id = #{masterId}
 		OR (s.available_type = 1 AND s.master_id = #{masterId})
 		<if test="progress != null and progress == 0">
-			and (eu.anNums !=0 or s.nums !=0)
-			and (vNum.videoNum != s.nums or eu.anNums != eu.eventNums)
+			and (eu.anNums !=0)
+			and (eu.anNums != eu.eventNums)
 		</if>
 		GROUP BY s.id, s2.num, vnum.videoNum, s.master_id,
 		s.NAME,
@@ -1579,7 +1572,6 @@
 		s.available_type,
 		f.id,
 		eu.anNums,
-		s.nums
 		ORDER BY s.create_time DESC
 	</select>
 
@@ -1588,7 +1580,7 @@
 		DISTINCT ON (s.id) s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment_must ON course_assignment_must.course_id = s.id AND course_assignment_must.is_mandatory = 1
 		LEFT JOIN gc_access content_group_must ON course_assignment_must.content_group_id = content_group_must.id
 		LEFT JOIN gc_content_group_course_assignment course_assignment_may ON course_assignment_may.course_id = s.id AND course_assignment_may.is_mandatory = 0
@@ -1631,7 +1623,7 @@
 		SELECT DISTINCT ON (s.id) s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1662,7 +1654,7 @@
 		SELECT s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying,
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1701,7 +1693,7 @@
 	<select id="selectDraftsSubject" resultMap="baseResultMap">
 		SELECT s.*
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_user u ON u.id = s.create_user
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
 		WHERE u.id = #{userId}
@@ -1718,7 +1710,7 @@
 	<select id="selectPublishedSubject" resultMap="baseResultMap">
 		SELECT s.*
 		FROM
-			gc_subject s
+			courses s
 				LEFT JOIN gc_user u ON u.id = s.create_user
 				left join gc_subject_complete co on s.id = co.subject_id and co.user_id = u.id
 		where u.id =#{userId}
@@ -1737,7 +1729,7 @@
 		s.*,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 0
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1758,7 +1750,7 @@
 	<select id="selectCompanyResourcesSubject" resultMap="baseResultMap">
 		SELECT s.*
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = #{userId}
 		LEFT JOIN gc_user u ON u.id = co.user_id
 		WHERE u.id = #{userId}
@@ -1781,8 +1773,8 @@
 	<select id="selectAllCourseSubject" resultMap="baseResultMap">
 		SELECT s.*
 		FROM
-		gc_subject s
-		LEFT JOIN gc_subject s2 ON s2.fid = s.id
+		courses s
+		LEFT JOIN courses s2 ON s2.fid = s.id
 		LEFT JOIN gc_video v ON v.sub_id = s2.id
 		LEFT JOIN gc_user u ON u.id = s.create_user
 		LEFT JOIN gc_subject_complete co ON s.id = co.subject_id AND co.user_id = u.id
@@ -1816,7 +1808,7 @@
 
 	<select id="getNewAssignments" resultType="java.lang.Integer">
 		SELECT s.id
-		FROM gc_subject s
+		FROM courses s
 		 	LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
 		 	LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		 	LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1837,7 +1829,7 @@
 		f.save_type AS f_save_type,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
 		FROM
-		gc_subject s
+		courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1873,7 +1865,7 @@
 		f.file_url AS f_file_url,
 		f.save_type AS f_save_type,
 		CASE WHEN co.subject_state = 1 THEN 2 END as identifying
-		FROM gc_subject s
+		FROM courses s
 		LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id
 		LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 		LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1901,7 +1893,7 @@
 	</select>
 
 	<select id="getSubjectNameIndex" resultType="java.lang.Integer">
-		select count(1) from gc_subject where
+		select count(1) from courses where
 		master_id = #{masterId}
 		and name_index = #{nameIndex}
 	</select>
@@ -1909,7 +1901,7 @@
 	<select id="getNewMyAssignmentNew" resultType="java.lang.Integer">
 		SELECT count(b.id) as nums FROM (
 											SELECT s.id
-											FROM gc_subject s
+											FROM courses s
 												 LEFT JOIN gc_content_group_course_assignment course_assignment ON course_assignment.course_id = s.id AND course_assignment.is_mandatory = 1
 												 LEFT JOIN gc_access content_group ON course_assignment.content_group_id = content_group.id
 												 LEFT JOIN gc_user_access ua ON UA.access_id = content_group.id
@@ -1929,7 +1921,7 @@
 	</select>
 
 	<select id="getUserCreateSubject" resultType="java.lang.Integer">
-		select s.id from gc_subject s
+		select s.id from courses s
 		where s.create_user = #{userId}
 		and s.master_id = #{masterId}
 		and s.state = 1
@@ -1937,7 +1929,7 @@
 	</select>
 
 	<select id="getUserCreateSubjectAdmin" resultType="java.lang.Integer">
-		select s.id from gc_subject s
+		select s.id from courses s
 		where s.available_type = 1
 		and s.master_id = #{masterId}
 		and s.state = 1
@@ -1945,7 +1937,7 @@
 	</select>
 
 	<select id="getUserPublicSubject" resultType="java.lang.Integer">
-		select s.id from gc_subject s
+		select s.id from courses s
 		where
 		s.available_type = 0
 		  and s."level" = 0
@@ -1960,7 +1952,7 @@
 			<include refid="courseOwnerColumns" />,
 			<include refid="courseOwnerInfoColumns" />,
 			<include refid="courseOwnerAvatarFileColumns" />
-		FROM gc_subject course
+		FROM courses course
 			JOIN gc_user u ON course.create_user = u.id
 			JOIN gc_user_info user_info ON user_info.id = u.info_id
 			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
@@ -1976,7 +1968,7 @@
 			<include refid="courseOwnerColumns" />,
 			<include refid="courseOwnerInfoColumns" />,
 			<include refid="courseOwnerAvatarFileColumns" />
-		FROM gc_subject course
+		FROM courses course
 			JOIN gc_user u ON course.create_user = u.id
 			JOIN gc_user_info user_info ON user_info.id = u.info_id
 			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
@@ -1992,7 +1984,7 @@
 			<include refid="courseOwnerColumns" />,
 			<include refid="courseOwnerInfoColumns" />,
 			<include refid="courseOwnerAvatarFileColumns" />
-		FROM gc_subject course
+		FROM courses course
 			JOIN gc_user u ON course.create_user = u.id
 			JOIN gc_user_info user_info ON user_info.id = u.info_id
 			LEFT JOIN sys_file course_image ON course.sub_img_id = course_image.id
@@ -2006,7 +1998,7 @@
 		    <include refid="baseColumn" />
 			<include refid="fileJoinColumn" />
 
-		FROM gc_subject s
+		FROM courses s
 			 JOIN gc_user course_owner ON s.create_user = course_owner.id
 			 LEFT JOIN sys_file f ON s.sub_img_id = f.id
 

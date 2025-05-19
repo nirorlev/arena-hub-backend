@@ -8,10 +8,10 @@ import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -21,22 +21,22 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-public interface GcSubjectService extends IService<GcSubject> {
+public interface CourseService extends IService<Course> {
 
-    boolean saveSub(GcSubject sub);
+    boolean saveSub(Course sub);
 
-    TreeNode<GcSubject> getTreeNode(Integer masterId);
+    TreeNode<Course> getTreeNode(Integer masterId);
 
-    List<GcSubject> getSubList(Integer masterId, Integer subType);
+    List<Course> getSubList(Integer masterId, Integer subType);
 
-    List<GcSubject> selectAllTopicList(
-        Integer masterId, Integer subType, Integer userId, GcSubject gcSubject);
+    List<Course> selectAllTopicList(
+        Integer masterId, Integer subType, Integer userId, Course course);
 
-    List<GcSubject> selectAllSub0ListByUserId(Integer masterId, Integer subType, Integer userId);
+    List<Course> selectAllSub0ListByUserId(Integer masterId, Integer subType, Integer userId);
 
-    List<GcSubject> getSubList0(Integer masterId);
+    List<Course> getSubList0(Integer masterId);
 
-    List<GcSubject> getSubListTop(Integer masterId);
+    List<Course> getSubListTop(Integer masterId);
 
     int getSubTopicNum(Integer masterId, List<Integer> subIds, Integer managerId);
 
@@ -48,13 +48,13 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<Integer> getSubjectChildIds(Integer subId);
 
-    GcSubject getSubNameBysubId(Integer subId);
+    Course getSubNameBysubId(Integer subId);
 
-    List<GcSubject> getChildSubjectBySubId(Integer subId);
+    List<Course> getChildSubjectBySubId(Integer subId);
 
-    GcSubject getSubByVid(Integer vid);
+    Course getSubByVid(Integer vid);
 
-    List<GcSubject> getSubListByIds(List<Integer> subIds, HttpServletRequest request);
+    List<Course> getSubListByIds(List<Integer> subIds, HttpServletRequest request);
 
     boolean changeSubOrder(List<Integer> subIds, Integer masterId);
 
@@ -62,33 +62,33 @@ public interface GcSubjectService extends IService<GcSubject> {
     JSONArray addUnReadTag(
         List<GcEvent> eventList, Integer teacherId, Integer studentId, Integer masterId);
 
-    List<GcSubject> getSubListWithImg(Integer id, SysSystem sys, HttpServletRequest request);
+    List<Course> getSubListWithImg(Integer id, SysSystem sys, HttpServletRequest request);
 
-    List<GcSubject> listSubByIds(List<Integer> subIds);
+    List<Course> listSubByIds(List<Integer> subIds);
 
-    List<GcSubject> listSubByIdsAndName(List<Integer> subIds, String name);
+    List<Course> listSubByIdsAndName(List<Integer> subIds, String name);
 
-    List<GcSubject> getLevel0SubListWithImg(
+    List<Course> getLevel0SubListWithImg(
         Integer masterId, HttpServletRequest request, List<Integer> channelIds);
 
-    List<GcSubject> getLevel0SubLis(Integer masterId);
+    List<Course> getLevel0SubLis(Integer masterId);
 
     List<Integer> getCourseIds(Integer masterId);
 
-    List<GcSubject> getSubjectChild(Integer subId);
+    List<Course> getSubjectChild(Integer subId);
 
-    List<GcSubject> getSubListWithImgByIds(
+    List<Course> getSubListWithImgByIds(
         List<Integer> subIds, SysSystem sys, HttpServletRequest request, Integer masterId);
 
-    List<GcSubject> getSubListWithHidden(Integer masterId);
+    List<Course> getSubListWithHidden(Integer masterId);
 
     boolean deleteSub(Integer subId, Integer masterId);
 
-    List<GcSubject> listSubWithAssoByIds(Integer masterId, List<Integer> subIds);
+    List<Course> listSubWithAssoByIds(Integer masterId, List<Integer> subIds);
 
-    List<GcSubject> setSubListImg(List<GcSubject> list, SysSystem sys, HttpServletRequest request);
+    List<Course> setSubListImg(List<Course> list, SysSystem sys, HttpServletRequest request);
 
-    List<GcSubject> selectSubjectAssociation(
+    List<Course> selectSubjectAssociation(
         Integer masterId, List<Integer> subIds, boolean ifLevel0);
 
     Map<String, Object> selectEventResNumMapForWorkbook(Integer subId, Integer userId);
@@ -99,22 +99,22 @@ public interface GcSubjectService extends IService<GcSubject> {
     Map<String, Object> getAnswerMessageMapForTeacherWorkbook(
         Integer subId, Integer studentId, Integer teacherId);
 
-    List<GcSubject> getSubVideoEventList(
+    List<Course> getSubVideoEventList(
         Integer subId, Integer studentId, Integer masterId, HttpServletRequest request);
 
-    List<GcSubject> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId);
+    List<Course> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId);
 
-    Integer countCourseForName(GcSubject subject);
+    Integer countCourseForName(Course subject);
 
-    List<GcSubject> selecUnitNumForVideo(Integer videoId);
+    List<Course> selecUnitNumForVideo(Integer videoId);
 
     List<Integer> countSessions(List<Integer> id);
 
-    List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids);
+    List<Course> selectTwoSubjectsByFids(List<Integer> fids);
 
-    List<GcSubject> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId);
+    List<Course> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId);
 
-    GcSubject saveSubInfo(GcSubject sub, GcManager manager, GcMaster master, GcUser user, HttpServletRequest request);
+    Course saveSubInfo(Course sub, GcManager manager, GcMaster master, GcUser user, HttpServletRequest request);
 
     Integer selectSubjectPt(
         String subjectName,
@@ -128,54 +128,54 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     Integer getCreateUserPublished(Integer userId, Integer masterId, Integer state);
 
-    List<GcSubject> getAvailableCourses(
+    List<Course> getAvailableCourses(
         String name, Integer masterId, List<Integer> subIds, Integer userId, String order);
 
-    List<GcSubject> newGetAvailableCourses(
+    List<Course> newGetAvailableCourses(
         String name, Integer masterId, List<Integer> subIds, Integer userId, String order);
 
-    List<GcSubject> selectSubjectByNewIndexHome(
+    List<Course> selectSubjectByNewIndexHome(
         Integer masterId, Integer userId, PageParam pageParam);
 
-    List<GcSubject> selectSubjectMay(Integer masterId, Integer userId, PageParam pageParam);
+    List<Course> selectSubjectMay(Integer masterId, Integer userId, PageParam pageParam);
 
-    List<GcSubject> selectActiveSubject(
+    List<Course> selectActiveSubject(
         Integer userId,
         Integer masterId,
         Integer subjectState,
         String name,
         HttpServletRequest request);
 
-    List<GcSubject> selectCompletedSubject(
+    List<Course> selectCompletedSubject(
         Integer userId,
         Integer masterId,
         Integer subjectState,
         String name,
         HttpServletRequest request);
 
-    List<GcSubject> selectDiscoverSubject(
+    List<Course> selectDiscoverSubject(
         Integer userId,
         Integer masterId,
         Integer subjectState,
         String name,
         HttpServletRequest request);
 
-    List<GcSubject> selectDraftsSubject(
+    List<Course> selectDraftsSubject(
         Integer userId, Integer masterId, String name, HttpServletRequest request);
 
-    List<GcSubject> selectFromMyTeamSubject(
+    List<Course> selectFromMyTeamSubject(
         Integer userId, Integer masterId, String name, HttpServletRequest request);
 
-    List<GcSubject> selectCompanyResourcesSubject(
+    List<Course> selectCompanyResourcesSubject(
         Integer userId, Integer masterId, String name, HttpServletRequest request);
 
-    List<GcSubject> selectAllCourseSubject(
+    List<Course> selectAllCourseSubject(
         Integer userId, Integer masterId, String name, HttpServletRequest request, Integer orderType);
 
-    List<GcSubject> selectPublishedSubject(
+    List<Course> selectPublishedSubject(
         Integer userId, Integer masterId, String name, HttpServletRequest request);
 
-    List<GcSubject> selectCreatedByTeams(
+    List<Course> selectCreatedByTeams(
         Integer userId,
         Integer masterId,
         String name,
@@ -183,7 +183,7 @@ public interface GcSubjectService extends IService<GcSubject> {
         List<String> groupCodeList,
         Integer orderType);
 
-    List<GcSubject> selectCreateByTeamsOrgAdmin(
+    List<Course> selectCreateByTeamsOrgAdmin(
         Integer userId,
         Integer masterId,
         String name,
@@ -191,8 +191,8 @@ public interface GcSubjectService extends IService<GcSubject> {
         List<String> groupCodeList,
         Integer orderType);
 
-    List<GcSubject> getSubjectInfoByList(
-        List<GcSubject> level0sublist, Integer masterId, Integer userId, HttpServletRequest request);
+    List<Course> getSubjectInfoByList(
+        List<Course> level0sublist, Integer masterId, Integer userId, HttpServletRequest request);
 
     Integer inProgressNum(Integer userId, Integer masterId);
 
@@ -208,11 +208,11 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     List<Integer> getUserPublicSubject(Integer masterId, Integer userId);
 
-    void populateUserId(GcSubject course, GcUser user);
+    void populateUserId(Course course, GcUser user);
 
     CourseProgramDto courseProgram(Integer courseId, PortalUser portalUser);
 
-    void updateUrls(GcSubject course);
+    void updateUrls(Course course);
 
     CourseVideoBookmarkDto lastViewedBookmark(Integer courseId, PortalUser portalUser);
 
@@ -224,9 +224,9 @@ public interface GcSubjectService extends IService<GcSubject> {
 
     CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser);
 
-    List<GcSubject> searchCourses(String searchName, PortalUser portalUser);
+    List<Course> searchCourses(String searchName, PortalUser portalUser);
 
-    List<GcSubject> searchSuggestedCourses(PortalUser portalUser);
+    List<Course> searchSuggestedCourses(PortalUser portalUser);
 
     CourseDto getCourseDetails(Integer courseId, PortalUser portalUser);
 }

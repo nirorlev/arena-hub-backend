@@ -6,8 +6,8 @@ import com.threeatom.common.permissions.dto.PermitCourse;
 import com.threeatom.common.permissions.dto.PermitPlaylist;
 import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -22,7 +22,7 @@ public interface AuthorizationItemService {
 
     PermitPlaylist create(GcUserSaveFolder playlist);
 
-    PermitCourse create(GcSubject course);
+    PermitCourse create(Course course);
 
     PermitContentGroup create(GcAccess contentGroup);
 }

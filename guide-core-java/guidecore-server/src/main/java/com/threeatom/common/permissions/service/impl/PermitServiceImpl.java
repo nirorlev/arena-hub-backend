@@ -26,8 +26,8 @@ import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.config.PermitConfiguration;
 import com.threeatom.guidecore.constant.PermitAction;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -113,11 +113,11 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public boolean checkAccess(GcSubject course, PermitAction action, PortalUser portalUser) {
+    public boolean checkAccess(Course course, PermitAction action, PortalUser portalUser) {
         return checkAccess(course, List.of(action), portalUser).get(action.getKey());
     }
 
-    private Map<String, Boolean> checkAccess(GcSubject course, List<PermitAction> actions, PortalUser portalUser) {
+    private Map<String, Boolean> checkAccess(Course course, List<PermitAction> actions, PortalUser portalUser) {
         PermitCourse permitCourse = authorizationItemService.create(course);
         PermitUser permitUser = authorizationItemService.create(portalUser);
 
@@ -181,7 +181,7 @@ public class PermitServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public Map<String, Boolean> listPermissions(GcSubject course, PortalUser portalUser) {
+    public Map<String, Boolean> listPermissions(Course course, PortalUser portalUser) {
         return Map.of();
     }
 

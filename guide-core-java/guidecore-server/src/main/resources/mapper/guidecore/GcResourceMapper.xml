@@ -45,15 +45,15 @@
 		<if test="subIds==null">
 		   and r.video_id in
 			(select v.id from gc_video v where v.sub_id in
-			(select  s.id from gc_subject s where 1=1 and s.master_id = #{masterId}
+			(select  s.id from courses s where 1=1 and s.master_id = #{masterId}
 			UNION ALL
-			(select s.id from gc_subject s where s.type=#{type} and s.state!=#{state} and s.sub_id in
+			(select s.id from courses s where s.type=#{type} and s.state!=#{state} and s.sub_id in
 			(select asso.subject_id from gc_subject_association asso where asso.master_id=#{masterId})) ))
 		</if>
 		<if test="subIds!=null and subIds.size!=0">
 			and r.video_id in
 			(select v.id from gc_video v where v.sub_id in
-			(select s.id from gc_subject s where s.fid in
+			(select s.id from courses s where s.fid in
 			<foreach collection="subIds" item="subId" index="index" open="(" close=")" separator=",">
 				#{subId}
 			</foreach>

@@ -6,15 +6,15 @@ import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.response.FeedbackDto;
 import com.threeatom.guidecore.dto.response.FeedbacksDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.Feedback;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.enums.FeedbackItemType;
 import com.threeatom.guidecore.facade.FeedbackFacade;
 import com.threeatom.guidecore.service.FeedbackService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.TaskService;
 import java.time.OffsetDateTime;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedbackFacadeImpl implements FeedbackFacade {
     private final AuthorizationService authorizationService;
     private final FeedbackService feedbackService;
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final GcVideoService videoService;
     private final TaskService taskService;
 
@@ -115,7 +115,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
     }
 
     private void validateCourseFeedback(Integer courseId, PortalUser portalUser, PermitAction permitAction) {
-        GcSubject course = courseService.getById(courseId);
+        Course course = courseService.getById(courseId);
         if (!authorizationService.checkAccess(course, permitAction, portalUser)) {
             throw new ForbiddenException("User don't have permission to %s this course".formatted(permitAction.name()));
         }

@@ -27,7 +27,7 @@
         <result property="updatedTime" column="updated_time"/>
     </resultMap>
 
-    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+    <resultMap id="courseResultMap" type="Course" autoMapping="true" >
         <id property="id" column="id" />
         <result property="name" column="name"/>
         <result property="description" column="description"/>
@@ -128,7 +128,7 @@
             <include refid="userInfoColumns"/>,
             <include refid="userAvatarFileColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN gc_subject course ON course.id = course_enrollment.course_id
+            JOIN courses course ON course.id = course_enrollment.course_id
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
@@ -148,7 +148,7 @@
             <include refid="userInfoColumns"/>,
             <include refid="userAvatarFileColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN gc_subject course ON course.id = course_enrollment.course_id
+            JOIN courses course ON course.id = course_enrollment.course_id
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
@@ -174,7 +174,7 @@
             <include refid="userInfoColumns"/>,
             <include refid="userAvatarFileColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN gc_subject course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
+            JOIN courses course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
@@ -200,7 +200,7 @@
             <include refid="userInfoColumns"/>,
             <include refid="userAvatarFileColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN gc_subject course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
+            JOIN courses course ON course_enrollment.course_id = course.id AND course.master_id = #{masterId}
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id
@@ -226,7 +226,7 @@
             <include refid="userInfoColumns"/>,
             <include refid="userAvatarFileColumns"/>
         FROM course_enrollments course_enrollment
-            JOIN gc_subject course ON course.id = course_enrollment.course_id
+            JOIN courses course ON course.id = course_enrollment.course_id
             JOIN gc_user u ON u.id = course_enrollment.user_id
             JOIN gc_user_info user_info ON user_info.id = u.info_id
             LEFT JOIN sys_file user_avatar_file ON user_info.avatar_file_id = user_avatar_file.id

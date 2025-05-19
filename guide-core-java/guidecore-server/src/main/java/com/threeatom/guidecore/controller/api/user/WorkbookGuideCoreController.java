@@ -9,14 +9,14 @@ import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcEvent;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.mapper.GcEventMapper;
 import com.threeatom.guidecore.mapper.GcVideoMapper;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.service.SysFileService;
@@ -41,26 +41,26 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = "作业本数据")
 public class WorkbookGuideCoreController extends GuideCoreController {
 
-    private final GcSubjectService gcSubjectService;
+    private final CourseService courseService;
     private final GcUserEventResourceService gcUserEventResourceService;
     private final SysFileService sysFileService;
     private final GcVideoMapper videoMapper;
     private final GcEventMapper gcEventMapper;
 
     @PostMapping("/selectVideosInTopic")
-    public Message selectVideosInTopic(@RequestBody GcSubject gcSubject, HttpServletRequest request) {
+    public Message selectVideosInTopic(@RequestBody Course course, HttpServletRequest request) {
         Message message = new Message();
         GcUser user = new GcUser();
-        if (Objects.nonNull(gcSubject.getCurrentStudentUserId())) {
-            user.setId(gcSubject.getCurrentStudentUserId());
+        if (Objects.nonNull(course.getCurrentStudentUserId())) {
+            user.setId(course.getCurrentStudentUserId());
         } else {
             user = this.getGcUser();
         }
-        if (Objects.isNull(gcSubject.getId())) {
+        if (Objects.isNull(course.getId())) {
             throw new SystemException(I18NUtil.get("powtoon.topic.error"));
         }
         List<Integer> subIds = new ArrayList<>();
-        subIds.add(gcSubject.getId());
+        subIds.add(course.getId());
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -122,25 +122,25 @@ public class WorkbookGuideCoreController extends GuideCoreController {
         Integer studentId = jsonRequest.getInteger("studentId"); // 老师需传，学生不用
         Integer subId = jsonRequest.getInteger("subId");
         GcUser user = this.getGcUser();
-        List<GcSubject> list = new ArrayList();
+        List<Course> list = new ArrayList();
         Map<String, Object> numMap = new HashMap();
         Map<String, Object> eventAnswerStateMap = new HashMap();
         if (studentId != null) {
             // 老师端
-            list = gcSubjectService.getLevel1VideoEventList(subId, studentId, user.getId());
+            list = courseService.getLevel1VideoEventList(subId, studentId, user.getId());
             numMap =
-                gcSubjectService.selectEventResNumMapForWorkbookTeacher(
+                courseService.selectEventResNumMapForWorkbookTeacher(
                     subId, studentId, user.getId()); // 资源回复数量
             eventAnswerStateMap =
-                gcSubjectService.getAnswerMessageMapForTeacherWorkbook(
+                courseService.getAnswerMessageMapForTeacherWorkbook(
                     subId, studentId, user.getId()); // 问题回答状态
         } else {
             // 学生端
-            list = gcSubjectService.getLevel1VideoEventList(subId, user.getId(), null);
-            numMap = gcSubjectService.selectEventResNumMapForWorkbook(subId, user.getId()); // 资源回复数量
+            list = courseService.getLevel1VideoEventList(subId, user.getId(), null);
+            numMap = courseService.selectEventResNumMapForWorkbook(subId, user.getId()); // 资源回复数量
         }
 
-        for (GcSubject subject : list) {
+        for (Course subject : list) {
             for (GcVideo video : subject.getVideoChildList()) {
                 for (GcEvent event : video.getEventList()) {
                     // 设置问题图片

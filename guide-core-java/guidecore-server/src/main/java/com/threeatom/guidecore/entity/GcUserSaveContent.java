@@ -43,7 +43,7 @@ public class GcUserSaveContent implements Serializable {
     @TableField(exist = false)
     @JSONField(deserialize = false)
     @ApiModelProperty(value = "课程对象")
-    private GcSubject subject;
+    private Course subject;
     private Date updateTime;
     @TableField(exist = false)
     private SysFile videoFile;

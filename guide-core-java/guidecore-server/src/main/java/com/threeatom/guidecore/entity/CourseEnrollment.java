@@ -40,7 +40,7 @@ public class CourseEnrollment {
     private GcUser user;
 
     @TableField(exist = false)
-    private GcSubject course;
+    private Course course;
 
     public Optional<CourseEnrollmentProgress> getLatestProgress() {
         return courseEnrollmentProgresses.stream()

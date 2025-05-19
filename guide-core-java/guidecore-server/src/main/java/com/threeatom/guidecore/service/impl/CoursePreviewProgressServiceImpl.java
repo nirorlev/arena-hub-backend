@@ -10,8 +10,8 @@ import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.ProgressDetailsDto;
 import com.threeatom.guidecore.dto.response.SectionProgressDto;
 import com.threeatom.guidecore.dto.response.TaskProgressDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.CourseSetting;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
@@ -20,7 +20,7 @@ import com.threeatom.guidecore.enums.VideoEventType;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CoursePreviewProgressService;
 import com.threeatom.guidecore.service.CourseSettingService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.VideoEventService;
 import com.threeatom.guidecore.util.CollectionUtils;
 import java.util.List;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressService {
 
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final AuthorizationService authorizationService;
     private final CourseMapping courseMapping;
     private final CourseSettingService courseSettingService;
@@ -43,7 +43,7 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
 
     @Override
     public CourseProgressDto courseProgress(Integer courseId, PortalUser portalUser) {
-        GcSubject course = courseService.getById(courseId);
+        Course course = courseService.getById(courseId);
         if (!authorizationService.checkAccess(course, PermitAction.EDIT, portalUser)) {
             log.error("User {} has no access to course {}", portalUser.getUserId(), courseId);
             throw new ForbiddenException("You have no access to this course");
@@ -54,7 +54,7 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
         return calculatePreviewProgressDto(course, videos, courseSetting);
     }
 
-    private CourseProgressDto calculatePreviewProgressDto(GcSubject course, List<GcVideo> videos,
+    private CourseProgressDto calculatePreviewProgressDto(Course course, List<GcVideo> videos,
                                                           CourseSetting courseSetting) {
         List<Integer> videoIds = courseVideoIds(videos);
         Map<Integer, List<Task>> videoIdToTasks = getVideoIdToTasks(videoIds);
@@ -117,7 +117,7 @@ public class CoursePreviewProgressServiceImpl implements CoursePreviewProgressSe
         return videos.stream().mapToInt(GcVideo::getVideoTime).sum();
     }
 
-    private CourseProgressDetailsDto getPreviewCourseProgress(GcSubject course, List<GcVideo> videos,
+    private CourseProgressDetailsDto getPreviewCourseProgress(Course course, List<GcVideo> videos,
                                                               CourseSetting courseSetting) {
         CourseProgressDetailsDto courseProgressDetailsDto = courseMapping.mapToCourseProgress(course, courseSetting);
         CourseTotalProgressDto courseTotalProgressDto = new CourseTotalProgressDto();

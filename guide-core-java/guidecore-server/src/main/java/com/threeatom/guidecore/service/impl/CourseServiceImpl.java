@@ -21,6 +21,7 @@ import com.threeatom.guidecore.dto.response.CourseDto;
 import com.threeatom.guidecore.dto.response.CourseListDto;
 import com.threeatom.guidecore.dto.response.CourseProgramDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollment;
 import com.threeatom.guidecore.entity.GcAccess;
@@ -28,7 +29,6 @@ import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcManager;
 import com.threeatom.guidecore.entity.GcMaster;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcSubjectAssociation;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
@@ -41,7 +41,7 @@ import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcAccessMapper;
 import com.threeatom.guidecore.mapper.GcSubjectAssociationMapper;
-import com.threeatom.guidecore.mapper.GcSubjectMapper;
+import com.threeatom.guidecore.mapper.CoursetMapper;
 import com.threeatom.guidecore.mapper.NewUiGcSubjectMapper;
 import com.threeatom.guidecore.mapping.CourseMapping;
 import com.threeatom.guidecore.service.CourseContentService;
@@ -50,7 +50,7 @@ import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcEventService;
 import com.threeatom.guidecore.service.GcMasterMessageService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
 import com.threeatom.guidecore.service.GcUserService;
@@ -89,14 +89,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject> implements GcSubjectService {
+public class CourseServiceImpl extends ServiceImpl<CoursetMapper, Course> implements CourseService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcSubjectServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CourseServiceImpl.class);
     private static final String masterRandomToken = "masterRandomToken_";
     @Resource
     NewUiGcSubjectMapper newUiGcSubjectMapper;
     @Resource
-    GcSubjectMapper gcSubjectMapper;
+    CoursetMapper coursetMapper;
     @Autowired
     private GcVideoService videoService;
     @Autowired
@@ -170,22 +170,22 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public boolean saveSub(GcSubject sub) {
+    public boolean saveSub(Course sub) {
         this.formatSub(sub);
         return this.saveOrUpdate(sub);
     }
 
-    private GcSubject formatSub(GcSubject sub) {
+    private Course formatSub(Course sub) {
         //生成顶级sub
         if (sub.getFid() == null) {
             sub.setLevel(0);
             sub.setType(0);
             sub.setSubId(null);
         } else {
-            List<GcSubject> list = this.getSubList(sub.getMasterId(), null);
+            List<Course> list = this.getSubList(sub.getMasterId(), null);
             sub.setType(TableConstant.gcSubject_type_topic1);
             //计算当前属于第几层
-            List<GcSubject> resultList = new ArrayList<GcSubject>();
+            List<Course> resultList = new ArrayList<Course>();
             this.lookupParent(list, sub, resultList);
             //sub.setSubId(subId);
             if (resultList.size() < 2) {
@@ -198,8 +198,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         //计算order
         if (sub.getId() != null) {
-            List<GcSubject> orderList = new ArrayList<GcSubject>();
-            QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+            List<Course> orderList = new ArrayList<Course>();
+            QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
             queryWrapper.eq("master_id", sub.getMasterId());
             queryWrapper.eq("fid", sub.getFid());
             queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
@@ -210,10 +210,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return sub;
     }
 
-    private GcSubject lookupParent(List<GcSubject> list, GcSubject subject, List<GcSubject> resultList) {
+    private Course lookupParent(List<Course> list, Course subject, List<Course> resultList) {
         if (subject != null) {
             resultList.add(subject);
-            for (GcSubject sub : list) {
+            for (Course sub : list) {
                 if (subject.getFid() != null && subject.getFid().equals(sub.getId())) {
                     return this.lookupParent(list, sub, resultList);
                 }
@@ -225,12 +225,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     }
 
-    private void lookupChildren(List<GcSubject> list, GcSubject subject, List<GcSubject> resultList) {
+    private void lookupChildren(List<Course> list, Course subject, List<Course> resultList) {
         if (subject != null) {
             resultList.add(subject);
         }
         //搜索subject下所有的子级
-        for (GcSubject sub : list) {
+        for (Course sub : list) {
             if (sub.getFid() != null && sub.getFid().equals(subject.getId())) {
                 this.lookupChildren(list, sub, resultList);
             }
@@ -238,19 +238,19 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public TreeNode<GcSubject> getTreeNode(Integer masterId) {
+    public TreeNode<Course> getTreeNode(Integer masterId) {
         // TODO Auto-generated method stub
-        List<GcSubject> list = this.getSubList(masterId, null);
-        GcSubject root = new GcSubject();
+        List<Course> list = this.getSubList(masterId, null);
+        Course root = new Course();
         root.setId(0);
         return TreeUtil.createTree(list, root);
     }
 
     @Override
-    public List<GcSubject> getSubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request) {
-        List<GcSubject> list = this.baseMapper.getSubjectListCommon(masterId, null, null);
+    public List<Course> getSubListWithImg(Integer masterId, SysSystem sys, HttpServletRequest request) {
+        List<Course> list = this.baseMapper.getSubjectListCommon(masterId, null, null);
         if (list != null && list.size() > 0) {
-            for (GcSubject li : list) {
+            for (Course li : list) {
                 if (null != li.getCourseTags() && li.getCourseTags().size() != 0) {
                     List lists = JSONArray.parseArray(li.getCourseTags().toJSONString());
                     HashSet hs = new HashSet(lists);
@@ -270,8 +270,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getLevel0SubListWithImg(Integer masterId, HttpServletRequest request,
-                                                   List<Integer> channelIds) {
+    public List<Course> getLevel0SubListWithImg(Integer masterId, HttpServletRequest request,
+                                                List<Integer> channelIds) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -288,7 +288,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         if (null != request.getAttribute("subjectName")) {
             courseName = request.getAttribute("subjectName").toString();
         }
-        List<GcSubject> courses;
+        List<Course> courses;
 
         if (null != request.getAttribute("isPt")) {
             if (null == request.getAttribute("type")) {
@@ -336,7 +336,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 createUser);
         }
         if (CollectionUtils.isNotEmpty(courses)) {
-            for (GcSubject course : courses) {
+            for (Course course : courses) {
                 sysFileService.getResFullUrl(course.getSubImgFile(), request);
             }
         }
@@ -345,8 +345,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectSubjectByNewIndexHome(Integer masterId, Integer userId, PageParam pageParam) {
-        List<GcSubject> subjects = new ArrayList<>();
+    public List<Course> selectSubjectByNewIndexHome(Integer masterId, Integer userId, PageParam pageParam) {
+        List<Course> subjects = new ArrayList<>();
         if (null != userId) {
 
             List<Integer> idLists = this.baseMapper.selectSubjectByCreateUser(masterId, userId);
@@ -356,14 +356,14 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
                 PageHelper.startPage(pageNum, pageSize);
             }
             subjects = this.baseMapper.selectSubjectByNewIndexHome(userId, masterId, idLists);
-            for (GcSubject subject : subjects) {
+            for (Course subject : subjects) {
                 subject.setIsToDo(TableConstant.COMMON_ZERO);
             }
             //may
             if (pageNum > 0 && pageSize > 0) {
                 PageHelper.startPage(pageNum, pageSize);
             }
-            List<GcSubject> maySubjects =
+            List<Course> maySubjects =
                 this.baseMapper.selectMaySubjectByNewIndexHome(userId, masterId, idLists, TableConstant.COMMON_ZERO);
             subjects.addAll(maySubjects);
         } else {
@@ -372,13 +372,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return subjects;
     }
 
-    public List<GcSubject> selectSubjectMay(Integer masterId, Integer userId, PageParam pageParam) {
+    public List<Course> selectSubjectMay(Integer masterId, Integer userId, PageParam pageParam) {
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcSubject> maySubjects = this.baseMapper.selectMaySubjectByNewIndexHome(userId, masterId, null, null);
+        List<Course> maySubjects = this.baseMapper.selectMaySubjectByNewIndexHome(userId, masterId, null, null);
         return maySubjects;
     }
 
@@ -421,8 +421,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectActiveSubject(Integer userId, Integer masterId, Integer subjectState, String name,
-                                               HttpServletRequest request) {
+    public List<Course> selectActiveSubject(Integer userId, Integer masterId, Integer subjectState, String name,
+                                            HttpServletRequest request) {
         //查询顶级组must课程Ids
         List<Integer> orgMustSubjectIds =
             courseAssignmentService.getMustCoursesContentGroupAssignmentIds(userId, masterId);
@@ -433,17 +433,17 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             PageHelper.startPage(pageNum, pageSize);
         }
         //查询课程
-        List<GcSubject> level0sublist =
+        List<Course> level0sublist =
             this.baseMapper.selectActiveSubject(userId, masterId, name, subjectState, orgMustSubjectIds);
-        for (GcSubject subject : level0sublist) {
+        for (Course subject : level0sublist) {
             subject.setIsToDo(TableConstant.COMMON_ZERO);
         }
         return level0sublist;
     }
 
     @Override
-    public List<GcSubject> selectDiscoverSubject(Integer userId, Integer masterId, Integer subjectState, String name,
-                                                 HttpServletRequest request) {
+    public List<Course> selectDiscoverSubject(Integer userId, Integer masterId, Integer subjectState, String name,
+                                              HttpServletRequest request) {
 
 
         //查询顶级组may课程Ids
@@ -460,8 +460,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectCompletedSubject(Integer userId, Integer masterId, Integer subjectState, String name,
-                                                  HttpServletRequest request) {
+    public List<Course> selectCompletedSubject(Integer userId, Integer masterId, Integer subjectState, String name,
+                                               HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -472,8 +472,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectAllCourseSubject(Integer userId, Integer masterId, String name,
-                                                  HttpServletRequest request, Integer orderType) {
+    public List<Course> selectAllCourseSubject(Integer userId, Integer masterId, String name,
+                                               HttpServletRequest request, Integer orderType) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -484,8 +484,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectCompanyResourcesSubject(Integer userId, Integer masterId, String name,
-                                                         HttpServletRequest request) {
+    public List<Course> selectCompanyResourcesSubject(Integer userId, Integer masterId, String name,
+                                                      HttpServletRequest request) {
 
         //查询顶级组may课程Ids
         List<Integer> orgMaySubjectIds =
@@ -502,8 +502,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     /**
      * 返回标识
      */
-    public List<GcSubject> putSubjectIdentifyings(List<GcSubject> subjects, List<Integer> newAssignmentIds) {
-        for (GcSubject subject : subjects) {
+    public List<Course> putSubjectIdentifyings(List<Course> subjects, List<Integer> newAssignmentIds) {
+        for (Course subject : subjects) {
             List<Integer> identifyings = new ArrayList<>();
 
             if (null != subject.getIdentifying()) {
@@ -534,8 +534,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectFromMyTeamSubject(Integer userId, Integer masterId, String name,
-                                                   HttpServletRequest request) {
+    public List<Course> selectFromMyTeamSubject(Integer userId, Integer masterId, String name,
+                                                HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -546,44 +546,44 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectCreatedByTeams(Integer userId, Integer masterId, String name,
-                                                HttpServletRequest request, List<String> groupCodeList,
-                                                Integer orderType) {
+    public List<Course> selectCreatedByTeams(Integer userId, Integer masterId, String name,
+                                             HttpServletRequest request, List<String> groupCodeList,
+                                             Integer orderType) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcSubject> level0sublist =
+        List<Course> level0sublist =
             this.baseMapper.selectCreatedByTeamsSubject(userId, masterId, name, groupCodeList, orderType);
-        for (GcSubject subject : level0sublist) {
+        for (Course subject : level0sublist) {
             subject.setMode(TableConstant.COMMON_ZERO);
         }
         return level0sublist;
     }
 
     @Override
-    public List<GcSubject> selectCreateByTeamsOrgAdmin(Integer userId, Integer masterId, String name,
-                                                       HttpServletRequest request, List<String> groupCodeList,
-                                                       Integer orderType) {
+    public List<Course> selectCreateByTeamsOrgAdmin(Integer userId, Integer masterId, String name,
+                                                    HttpServletRequest request, List<String> groupCodeList,
+                                                    Integer orderType) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
         if (pageNum > 0 && pageSize > 0) {
             PageHelper.startPage(pageNum, pageSize);
         }
-        List<GcSubject> orgAdminSubject =
+        List<Course> orgAdminSubject =
             this.baseMapper.selectCreateByTeamsOrgAdmin(userId, masterId, name, groupCodeList, orderType);
-        for (GcSubject subject : orgAdminSubject) {
+        for (Course subject : orgAdminSubject) {
             subject.setMode(TableConstant.COMMON_ONE);
         }
         return orgAdminSubject;
     }
 
     @Override
-    public List<GcSubject> selectPublishedSubject(Integer userId, Integer masterId, String name,
-                                                  HttpServletRequest request) {
+    public List<Course> selectPublishedSubject(Integer userId, Integer masterId, String name,
+                                               HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -594,8 +594,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectDraftsSubject(Integer userId, Integer masterId, String name,
-                                               HttpServletRequest request) {
+    public List<Course> selectDraftsSubject(Integer userId, Integer masterId, String name,
+                                            HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -606,13 +606,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getSubjectInfoByList(List<GcSubject> level0sublist, Integer masterId, Integer userId,
-                                                HttpServletRequest request) {
+    public List<Course> getSubjectInfoByList(List<Course> level0sublist, Integer masterId, Integer userId,
+                                             HttpServletRequest request) {
 
         putSubjectIdentifyings(level0sublist, getNewAssignments(masterId, userId));
 
-        List<Integer> level0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-        List<Integer> subImgIds = level0sublist.stream().map(GcSubject::getSubImgId).collect(Collectors.toList());
+        List<Integer> level0subIds = level0sublist.stream().map(Course::getId).collect(Collectors.toList());
+        List<Integer> subImgIds = level0sublist.stream().map(Course::getSubImgId).collect(Collectors.toList());
         List<SysFile> sysFileList = new ArrayList<>();
         if (TableConstant.COMMON_ZERO != subImgIds.size()) {
             sysFileList = sysFileService.listByIds(subImgIds);
@@ -634,7 +634,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         //组装信息
         if (level0sublist != null && level0sublist.size() > 0) {
-            for (GcSubject li : level0sublist) {
+            for (Course li : level0sublist) {
                 //封面
                 if (null != sysFileMap.get(li.getSubImgId())) {
                     SysFile file = sysFileMap.get(li.getSubImgId());
@@ -670,10 +670,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return level0sublist;
     }
 
-    public List<GcSubject> getSubjectInfos(List<GcSubject> level0sublist, Integer userId, Integer masterId,
-                                           HttpServletRequest request) {
-        List<Integer> level0subIds = level0sublist.stream().map(GcSubject::getId).collect(Collectors.toList());
-        List<Integer> subImgIds = level0sublist.stream().map(GcSubject::getSubImgId).collect(Collectors.toList());
+    public List<Course> getSubjectInfos(List<Course> level0sublist, Integer userId, Integer masterId,
+                                        HttpServletRequest request) {
+        List<Integer> level0subIds = level0sublist.stream().map(Course::getId).collect(Collectors.toList());
+        List<Integer> subImgIds = level0sublist.stream().map(Course::getSubImgId).collect(Collectors.toList());
 
         //获取封面
         List<SysFile> sysFileList = new ArrayList<>();
@@ -701,7 +701,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         //组装信息
         if (level0sublist != null && level0sublist.size() > 0) {
-            for (GcSubject li : level0sublist) {
+            for (Course li : level0sublist) {
                 if (null != sysFileMap.get(li.getSubImgId())) {
                     SysFile file = sysFileMap.get(li.getSubImgId());
                     file.setFullFileUrl(sysFileService.getResFullUrl(file, request));
@@ -733,18 +733,6 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return level0sublist;
     }
 
-    private List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map) {
-        List<GcSubject> subjects = new ArrayList<>(sub1Map.keySet().size());
-        for (Map.Entry<Integer, List<GcVideo>> sub1 : sub1Map.entrySet()) {
-            GcSubject subject = new GcSubject();
-            subject.setId(sub1.getKey());//二级课程id
-            List<GcVideo> value = sub1.getValue();
-            subject.setGcVideos(value);//视频列表
-            subjects.add(subject);
-        }
-        return subjects;
-    }
-
     private List<Integer> videoIds(List<GcVideo> videos) {
         return videos.stream()
             .map(GcVideo::getId)
@@ -752,9 +740,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> setSubListImg(List<GcSubject> list, SysSystem sys, HttpServletRequest request) {
+    public List<Course> setSubListImg(List<Course> list, SysSystem sys, HttpServletRequest request) {
         if (list != null && list.size() > 0) {
-            for (GcSubject li : list) {
+            for (Course li : list) {
                 if (li.getSubImgId() == null) {
                     continue;
                 }
@@ -771,18 +759,18 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     //编码不合理，需改造
     @Override
-    public List<GcSubject> getSubListWithImgByIds(List<Integer> subIds, SysSystem sys, HttpServletRequest request,
-                                                  Integer masterId) {
-        List<GcSubject> list = new ArrayList<GcSubject>();
+    public List<Course> getSubListWithImgByIds(List<Integer> subIds, SysSystem sys, HttpServletRequest request,
+                                               Integer masterId) {
+        List<Course> list = new ArrayList<Course>();
         for (Integer subId : subIds) {
-            GcSubject subject = this.baseMapper.selectTagsById(subId, masterId);
+            Course subject = this.baseMapper.selectTagsById(subId, masterId);
             if (null != subject) {
-                List<GcSubject> GcSubjects = this.baseMapper.selectListByMasterId(subject.getMasterId());
-                this.lookupChildren(GcSubjects, subject, list);
+                List<Course> courses = this.baseMapper.selectListByMasterId(subject.getMasterId());
+                this.lookupChildren(courses, subject, list);
             }
         }
         if (list != null && list.size() > 0) {
-            for (GcSubject li : list) {
+            for (Course li : list) {
                 if (li.getSubImgId() == null) {
                     continue;
                 }
@@ -798,8 +786,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getLevel0SubLis(Integer masterId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> getLevel0SubLis(Integer masterId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
@@ -809,22 +797,22 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public List<Integer> getCourseIds(Integer masterId) {
-        List<GcSubject> courses = getLevel0SubLis(masterId);
-        return courses.stream().map(GcSubject::getId).collect(Collectors.toList());
+        List<Course> courses = getLevel0SubLis(masterId);
+        return courses.stream().map(Course::getId).collect(Collectors.toList());
     }
 
     @Override
-    public List<GcSubject> getSubListWithHidden(Integer masterId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> getSubListWithHidden(Integer masterId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.orderByAsc("\"order\"");
         return this.list(queryWrapper);
     }
 
     @Override
-    public List<GcSubject> selectSubjectAssociation(Integer masterId, List<Integer> subIds, boolean ifLevel0) {
-        List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId, subIds, ifLevel0);
-        for (GcSubject subject : list) {
+    public List<Course> selectSubjectAssociation(Integer masterId, List<Integer> subIds, boolean ifLevel0) {
+        List<Course> list = this.baseMapper.selectSubjectAssociation(masterId, subIds, ifLevel0);
+        for (Course subject : list) {
             if (null != subject.getCourseTags() && subject.getCourseTags().size() != 0) {
                 List lists = JSONArray.parseArray(subject.getCourseTags().toJSONString());
                 HashSet hs = new HashSet(lists);
@@ -840,9 +828,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getSubList(Integer masterId, Integer subType) {
+    public List<Course> getSubList(Integer masterId, Integer subType) {
         // TODO Auto-generated method stub
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         if (Objects.nonNull(subType)) {
             queryWrapper.eq("type", subType);
@@ -852,13 +840,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectAllTopicList(Integer masterId, Integer subType, Integer userId, GcSubject gcSubject) {
+    public List<Course> selectAllTopicList(Integer masterId, Integer subType, Integer userId, Course course) {
         // TODO Auto-generated method stub
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("create_user", userId);
-        queryWrapper.eq("fid", gcSubject.getFid());
-        queryWrapper.ne("id", gcSubject.getId());
+        queryWrapper.eq("fid", course.getFid());
+        queryWrapper.ne("id", course.getId());
         if (Objects.nonNull(subType)) {
             queryWrapper.eq("type", subType);
         }
@@ -867,16 +855,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectAllSub0ListByUserId(Integer masterId, Integer subType, Integer userId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> selectAllSub0ListByUserId(Integer masterId, Integer subType, Integer userId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("create_user", userId);
         return this.list(queryWrapper);
     }
 
     @Override
-    public List<GcSubject> getSubList0(Integer masterId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> getSubList0(Integer masterId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
         queryWrapper.orderByAsc("\"order\"");
@@ -884,15 +872,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getSubListTop(Integer masterId) {
-        List<GcSubject> l = this.getTopSubList(masterId);
-        List<GcSubject> list = this.baseMapper.selectSubjectAssociation(masterId, null, false);
+    public List<Course> getSubListTop(Integer masterId) {
+        List<Course> l = this.getTopSubList(masterId);
+        List<Course> list = this.baseMapper.selectSubjectAssociation(masterId, null, false);
         l.addAll(list);
         return l;
     }
 
-    public List<GcSubject> getTopSubList(Integer masterId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> getTopSubList(Integer masterId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 0);
         queryWrapper.eq("type", 0);
@@ -902,17 +890,17 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     @Transactional
     public boolean deleteSub(Integer subId, Integer masterId) {
-        GcSubject subject = this.getById(subId);
+        Course subject = this.getById(subId);
         if (subject.getMasterId().intValue() == masterId.intValue()) {
-            List<GcSubject> list = this.getSubListWithHidden(subject.getMasterId());
+            List<Course> list = this.getSubListWithHidden(subject.getMasterId());
 
             //计算当前属于第几层
-            List<GcSubject> resultList = new ArrayList<GcSubject>();
+            List<Course> resultList = new ArrayList<Course>();
             this.lookupChildren(list, subject, resultList);
             LOGGER.info(resultList.size() + "");
 
 
-            List<Integer> subIds = resultList.stream().map(GcSubject::getId).collect(Collectors.toList());
+            List<Integer> subIds = resultList.stream().map(Course::getId).collect(Collectors.toList());
             //删除ResultList中的Subject下面的视频
             videoService.deleteVideoBySubIds(subIds);
             return this.removeByIds(subIds);
@@ -940,7 +928,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public int getSubTopicNum(Integer masterId, List<Integer> subIds, Integer managerId) {
         // TODO Auto-generated method stub
 
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("master_id", masterId);
         queryWrapper.eq("level", 1);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
@@ -965,10 +953,10 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<Integer> getSubjectIds(Integer masterId) {
         // TODO Auto-generated method stub
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.select("id").eq("master_id", masterId).eq("type", TableConstant.gcSubject_type_subject0);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
-        return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
+        return this.list(queryWrapper).stream().map(Course::getId).collect(Collectors.toList());
     }
 
     @Override
@@ -979,17 +967,17 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     @Override
     public List<Integer> getSubjectChildIds(Integer subId) {
         // TODO Auto-generated method stub
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.select("id").eq("fid", subId);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
-        return this.list(queryWrapper).stream().map(GcSubject::getId).collect(Collectors.toList());
+        return this.list(queryWrapper).stream().map(Course::getId).collect(Collectors.toList());
     }
 
     @Override
-    public List<GcSubject> getSubjectChild(Integer subId) {
+    public List<Course> getSubjectChild(Integer subId) {
         // TODO Auto-generated method stub
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("fid", subId);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
@@ -997,8 +985,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public GcSubject getSubNameBysubId(Integer subId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public Course getSubNameBysubId(Integer subId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("id", subId);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         return this.getOne(queryWrapper);
@@ -1016,8 +1004,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getChildSubjectBySubId(Integer subId) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<GcSubject>();
+    public List<Course> getChildSubjectBySubId(Integer subId) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<Course>();
         queryWrapper.eq("fid", subId);
         queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
         queryWrapper.orderByAsc("\"order\"");
@@ -1025,14 +1013,14 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public GcSubject getSubByVid(Integer vid) {
+    public Course getSubByVid(Integer vid) {
         // TODO Auto-generated method stub
         return this.baseMapper.selectSubByVid(vid);
     }
 
     @Override
-    public List<GcSubject> getSubVideoEventList(Integer subId, Integer studentId, Integer masterId,
-                                                HttpServletRequest request) {
+    public List<Course> getSubVideoEventList(Integer subId, Integer studentId, Integer masterId,
+                                             HttpServletRequest request) {
         PageParam pageParam = new PageParam(request);
         Integer pageNum = pageParam.getPageNum();
         Integer pageSize = pageParam.getPageSize();
@@ -1043,7 +1031,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId) {
+    public List<Course> getLevel1VideoEventList(Integer subId, Integer userId, Integer teacherId) {
         return this.baseMapper.getLevel1VideoEventList(subId, userId, teacherId);
     }
 
@@ -1066,8 +1054,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getSubListByIds(List<Integer> subIds, HttpServletRequest request) {
-        QueryWrapper<GcSubject> queryWrapper = new QueryWrapper<>();
+    public List<Course> getSubListByIds(List<Integer> subIds, HttpServletRequest request) {
+        QueryWrapper<Course> queryWrapper = new QueryWrapper<>();
         if (subIds.size() != 0) {
             queryWrapper.in("id", subIds);
             queryWrapper.ne("state", CoursePublishState.PRIVATE.getValue());//不显示隐藏
@@ -1080,8 +1068,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             return this.list(queryWrapper);
         }
         //如果学生权限为空，返回空list
-        List<GcSubject> gcSubject = new ArrayList<>();
-        return gcSubject;
+        List<Course> courses = new ArrayList<>();
+        return courses;
     }
 
     @Override
@@ -1141,12 +1129,12 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     public boolean changeSubOrder(List<Integer> subIds, Integer masterId) {
 
         //subIds可能包含导入的课程，通过masterId判断
-        List<GcSubject> subjectList = new ArrayList<>();
+        List<Course> subjectList = new ArrayList<>();
         List<GcSubjectAssociation> subjectAssociationList = new ArrayList<>();
 
         Integer order = 1;
         for (Integer subId : subIds) {
-            GcSubject thisSub = this.getById(subId);
+            Course thisSub = this.getById(subId);
 
             if (thisSub.getMasterId().intValue() == masterId.intValue()) {
                 thisSub.setOrder(order);
@@ -1170,27 +1158,27 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> listSubByIds(List<Integer> subIds) {
+    public List<Course> listSubByIds(List<Integer> subIds) {
         return this.baseMapper.listSubByIds(subIds);
     }
 
     @Override
-    public List<GcSubject> listSubByIdsAndName(List<Integer> subIds, String name) {
+    public List<Course> listSubByIdsAndName(List<Integer> subIds, String name) {
         return this.baseMapper.listSubByIdsAndName(subIds, name);
     }
 
     @Override
-    public List<GcSubject> listSubWithAssoByIds(Integer masterId, List<Integer> subIds) {
+    public List<Course> listSubWithAssoByIds(Integer masterId, List<Integer> subIds) {
         return this.baseMapper.listSubWithAssoByIds(masterId, subIds);
     }
 
     @Override
-    public Integer countCourseForName(GcSubject subject) {
+    public Integer countCourseForName(Course subject) {
         return this.baseMapper.countCourseForName(subject);
     }
 
     @Override
-    public List<GcSubject> selecUnitNumForVideo(Integer videoId) {
+    public List<Course> selecUnitNumForVideo(Integer videoId) {
         return this.baseMapper.selecUnitNumForVideo(videoId);
     }
 
@@ -1200,23 +1188,23 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> selectTwoSubjectsByFids(List<Integer> fids) {
-        return gcSubjectMapper.selectTwoSubjectsByFids(fids);
+    public List<Course> selectTwoSubjectsByFids(List<Integer> fids) {
+        return coursetMapper.selectTwoSubjectsByFids(fids);
     }
 
     @Override
-    public List<GcSubject> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId) {
-        return gcSubjectMapper.selectAllLevel1SubList(subIds, order, masterId);
+    public List<Course> selectAllLevel1SubList(List<Integer> subIds, String order, Integer masterId) {
+        return coursetMapper.selectAllLevel1SubList(subIds, order, masterId);
     }
 
     @Override
-    public GcSubject saveSubInfo(GcSubject course, GcManager manager, GcMaster master, GcUser user,
-                                 HttpServletRequest request) {
+    public Course saveSubInfo(Course course, GcManager manager, GcMaster master, GcUser user,
+                              HttpServletRequest request) {
         Integer masterId = master.getId();
         if (course.getFid() == null || course.getFid() == 0) {
             course.setFid(null);
         }
-        GcSubject fullCourse = this.getById(course.getId());
+        Course fullCourse = this.getById(course.getId());
         if (Objects.isNull(course.getTagType())) {
             if (course.getMasterId() != null && course.getMasterId().intValue() != masterId) {
                 throw new SystemException("该课程不属于该门户，不可修改状态");
@@ -1247,9 +1235,9 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         }
 
         if (null == course.getId() && null == course.getOrder()) {
-            List<GcSubject> subjectList = this.getSubList(masterId, null);
+            List<Course> subjectList = this.getSubList(masterId, null);
             if (!org.springframework.util.CollectionUtils.isEmpty(subjectList)) {
-                int max = subjectList.stream().mapToInt(GcSubject::getOrder).max().getAsInt();
+                int max = subjectList.stream().mapToInt(Course::getOrder).max().getAsInt();
                 course.setOrder(max + 1);
             }
         }
@@ -1263,7 +1251,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
         this.saveSub(course);
 
-        GcSubject subs = this.getById(course.getId());
+        Course subs = this.getById(course.getId());
         course.setCreateTime(subs.getCreateTime());
         course.setUpdateTime(subs.getUpdateTime());
 
@@ -1305,24 +1293,24 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> getAvailableCourses(String name, Integer masterId, List<Integer> subIds, Integer userId,
-                                               String order) {
+    public List<Course> getAvailableCourses(String name, Integer masterId, List<Integer> subIds, Integer userId,
+                                            String order) {
         return this.baseMapper.getAvailableCourses(name, masterId, subIds, userId, order);
     }
 
     @Override
-    public List<GcSubject> newGetAvailableCourses(String name, Integer masterId, List<Integer> subIds, Integer userId,
-                                                  String order) {
+    public List<Course> newGetAvailableCourses(String name, Integer masterId, List<Integer> subIds, Integer userId,
+                                               String order) {
         return this.baseMapper.newGetAvailableCourses(name, masterId, subIds, userId, order);
     }
 
     @Override
-    public void populateUserId(GcSubject course, GcUser user) {
+    public void populateUserId(Course course, GcUser user) {
         if (course.getId() == null) {
             course.setCreateUser(user.getId());
             return;
         }
-        GcSubject existingCourse = this.getById(course.getId());
+        Course existingCourse = this.getById(course.getId());
         if (existingCourse.isTopic()) {
             existingCourse = this.getById(existingCourse.getFid());
             course.setCreateUser(existingCourse.getCreateUser());
@@ -1334,7 +1322,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseProgramDto courseProgram(Integer courseId, PortalUser portalUser) {
-        GcSubject course = this.getById(courseId);
+        Course course = this.getById(courseId);
 
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             log.error("User {} is not authorized to view course {}", portalUser.getUserId(), courseId);
@@ -1351,7 +1339,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public void updateUrls(GcSubject course) {
+    public void updateUrls(Course course) {
         SysFile subImgFile = course.getSubImgFile();
         if (subImgFile == null) {
             return;
@@ -1391,7 +1379,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             List<GcContentGroupCourseAssignment> assignments = courseAssignmentEntry.getValue();
 
             GcContentGroupCourseAssignment strongestAssignment = findStrongestAssignment(assignments);
-            GcSubject course = strongestAssignment.getCourse();
+            Course course = strongestAssignment.getCourse();
             updateUrls(course);
             Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
             int studentsCount = courseEnrollmentService.countUniqueUsersInCourseEnrollments(courseId);
@@ -1408,8 +1396,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseListDto<CourseDto> getOwnedCourses(PortalUser portalUser) {
-        List<GcSubject> courses = ownedCourses(portalUser);
-        Set<Integer> courseIds = courses.stream().map(GcSubject::getId).collect(Collectors.toSet());
+        List<Course> courses = ownedCourses(portalUser);
+        Set<Integer> courseIds = courses.stream().map(Course::getId).collect(Collectors.toSet());
 
         List<CourseDto> ownedCourses = courses.stream()
             .map(ownedCourse -> {
@@ -1428,13 +1416,13 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseListDto<CourseDto> getDiscoverableCourses(PortalUser portalUser) {
-        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+        List<Course> publicCourses = getPublicCourses(portalUser);
         List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
         Map<Integer, Integer> courseIdToUserUniqueEnrollmentCount =
             getCourseIdToUserUniqueEnrollmentCount(courseEnrollments);
 
         List<CourseDto> discoverableCourses = new ArrayList<>();
-        for (GcSubject publicCourse : discoverableCourses(publicCourses, courseEnrollments, portalUser)) {
+        for (Course publicCourse : discoverableCourses(publicCourses, courseEnrollments, portalUser)) {
             List<CourseContent> courseContent =
                 courseTopicsContent(courseContentService.findCourseContent(publicCourse.getId()));
             int studentsCount = courseIdToUserUniqueEnrollmentCount.getOrDefault(publicCourse.getId(), 0);
@@ -1449,8 +1437,8 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return createCourseListDto(discoverableCourses);
     }
 
-    private List<GcSubject> discoverableCourses(List<GcSubject> courses, List<CourseEnrollment> courseEnrollments,
-                                                PortalUser portalUser) {
+    private List<Course> discoverableCourses(List<Course> courses, List<CourseEnrollment> courseEnrollments,
+                                             PortalUser portalUser) {
         Map<Integer, List<GcContentGroupCourseAssignment>> courseIdToAssignments = getCourseIdToAssignments(portalUser);
         Set<Integer> courseIdsWithAssignment = courseIdToAssignments.keySet();
 
@@ -1465,16 +1453,16 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
     }
 
     @Override
-    public List<GcSubject> searchCourses(String searchName, PortalUser portalUser) {
-        List<GcSubject> courses =
+    public List<Course> searchCourses(String searchName, PortalUser portalUser) {
+        List<Course> courses =
             baseMapper.searchCourses(searchName, portalUser.getUserId(), portalUser.getMasterId());
         courses.forEach(this::updateUrls);
         return courses;
     }
 
     @Override
-    public List<GcSubject> searchSuggestedCourses(PortalUser portalUser) {
-        List<GcSubject> publicCourses = getPublicCourses(portalUser);
+    public List<Course> searchSuggestedCourses(PortalUser portalUser) {
+        List<Course> publicCourses = getPublicCourses(portalUser);
         List<CourseEnrollment> courseEnrollments = courseEnrollmentService.courseEnrollments(courseIds(publicCourses));
 
         return discoverableCourses(publicCourses, courseEnrollments, portalUser);
@@ -1482,7 +1470,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
 
     @Override
     public CourseDto getCourseDetails(Integer courseId, PortalUser portalUser) {
-        GcSubject course = baseMapper.getCourseById(courseId);
+        Course course = baseMapper.getCourseById(courseId);
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             throw new ForbiddenException("User has no access to the course");
         }
@@ -1532,15 +1520,15 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .collect(Collectors.toSet());
     }
 
-    private List<GcSubject> getPublicCourses(PortalUser portalUser) {
-        List<GcSubject> courses =
+    private List<Course> getPublicCourses(PortalUser portalUser) {
+        List<Course> courses =
             baseMapper.coursesByState(CoursePublishState.PUBLIC.getValue(), portalUser.getMasterId());
         courses.forEach(this::updateUrls);
         return courses;
     }
 
-    private List<GcSubject> ownedCourses(PortalUser portalUser) {
-        List<GcSubject> courses = baseMapper.ownedCourses(portalUser.getUserId(), portalUser.getMasterId());
+    private List<Course> ownedCourses(PortalUser portalUser) {
+        List<Course> courses = baseMapper.ownedCourses(portalUser.getUserId(), portalUser.getMasterId());
         courses.forEach(this::updateUrls);
         return courses;
     }
@@ -1565,7 +1553,7 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
             .min(Comparator.comparing(GcContentGroupCourseAssignment::getDeadline));
     }
 
-    private AssignedCourseDto createAssignedCourseDto(GcSubject course, List<CourseContent> courseContent,
+    private AssignedCourseDto createAssignedCourseDto(Course course, List<CourseContent> courseContent,
                                                       GcContentGroupCourseAssignment courseAssignment,
                                                       int studentsCount, int activeStudentsCount,
                                                       Map<String, Boolean> permissions) {
@@ -1577,11 +1565,11 @@ public class GcSubjectServiceImpl extends ServiceImpl<GcSubjectMapper, GcSubject
         return assignedCourseDto;
     }
 
-    private Set<Integer> courseIds(List<GcSubject> publicCourses) {
-        return publicCourses.stream().map(GcSubject::getId).collect(Collectors.toSet());
+    private Set<Integer> courseIds(List<Course> publicCourses) {
+        return publicCourses.stream().map(Course::getId).collect(Collectors.toSet());
     }
 
-    private CourseDto createCourseDto(GcSubject course, List<CourseContent> courseContent,
+    private CourseDto createCourseDto(Course course, List<CourseContent> courseContent,
                                       int studentsCount, int activeStudentsCount, Map<String, Boolean> permissions) {
         List<Task> courseTasks = courseTasks(courseContent);
         CourseDto courseDto = new CourseDto();

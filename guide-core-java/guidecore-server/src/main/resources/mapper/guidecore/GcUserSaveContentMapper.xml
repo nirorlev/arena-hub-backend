@@ -73,7 +73,7 @@
         <association property="createUser" resultMap="userResultMap" columnPrefix="user_"/>
     </resultMap>
 
-    <resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+    <resultMap id="courseResultMap" type="Course" autoMapping="true" >
         <id property="id" column="id"/>
 
         <result property="availableType" column="available_type"/>
@@ -162,7 +162,7 @@
     <select id="getTwoSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u
-        left join gc_subject s on s.id = u.sub_id
+        left join courses s on s.id = u.sub_id
         <where>
             1=1
             <if test="entity.userId != null">
@@ -182,7 +182,7 @@
     <select id="getOneSubIdList" resultType="java.lang.Integer">
         select s.id
         from gc_user_save_content u
-        left join gc_subject s on s.id = u.sub_id
+        left join courses s on s.id = u.sub_id
         <where>
             1=1
             <if test="entity.userId != null">
@@ -315,7 +315,7 @@
                  JOIN gc_video video ON video.id = playlist_content.content_id
                  JOIN sys_file video_file ON video.file_id = video_file.id
 
-                 LEFT JOIN gc_subject course on course.id = video.origin_course_id
+                 LEFT JOIN courses course on course.id = video.origin_course_id
                  LEFT JOIN sys_file course_avatar_file on course.sub_img_id = course_avatar_file.id
                  LEFT JOIN gc_user course_owner on course.create_user = course_owner.id
                  LEFT JOIN gc_user_info course_owner_info on course_owner.info_id = course_owner_info.id
@@ -340,7 +340,7 @@
             JOIN sys_file video_file ON video.file_id = video_file.id
 
             LEFT JOIN pt_channel channel on channel.id = video.origin_channel_id
-            LEFT JOIN gc_subject course on course.id = video.origin_course_id
+            LEFT JOIN courses course on course.id = video.origin_course_id
         WHERE playlist_content.folder_id = #{playlistId}
     </select>
 
