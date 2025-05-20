@@ -20,7 +20,6 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
     public JSONObject getResult(ResultSet rs, String columnName) throws SQLException {
         String jsonString = rs.getString(columnName);
         if (StringUtils.isEmpty(jsonString)) {
-            LOGGER.warn("json字符串为Empty");
             return null;
         }
         if (jsonString.startsWith("[")) {
@@ -33,7 +32,6 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
     public JSONObject getResult(ResultSet rs, int columnIndex) throws SQLException {
         String jsonString = rs.getString(columnIndex);
         if (StringUtils.isEmpty(jsonString)) {
-            LOGGER.warn("json字符串为Empty");
             return null;
         } else {
             return JSONObject.parseObject(jsonString);
@@ -43,7 +41,6 @@ public class FastJsonObjectTypeHandler implements TypeHandler<JSONObject> {
     public JSONObject getResult(CallableStatement cs, int columnIndex) throws SQLException {
         String jsonString = cs.getString(columnIndex);
         if (StringUtils.isEmpty(jsonString)) {
-            LOGGER.warn("json字符串为Empty");
             return null;
         } else {
             return JSONObject.parseObject(jsonString);
