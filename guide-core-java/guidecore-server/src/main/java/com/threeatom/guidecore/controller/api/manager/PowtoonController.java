@@ -1954,7 +1954,8 @@ public class PowtoonController extends GuideCoreController {
         try {
             if (Objects.nonNull(channel.getVisibleFlag())) {
                 if (channel.isCertainTeams()) {
-                    saveOrUpdateCertainTeamsChannel(channel, portalUser, masterId, userId);
+                    userLicenseService.checkChannelLimit(channel, portalUser);
+                    ptChannelService.saveOrUpdate(channel);
                 } else if (channel.isPublic()) {
                     saveOrUpdatePublicChannel(channel, portalUser, masterId, userId);
                 } else if (channel.isPrivate()) {
@@ -1979,65 +1980,12 @@ public class PowtoonController extends GuideCoreController {
 
     private void saveOrUpdatePublicChannel(PtChannel channel, PortalUser portalUser, Integer masterId, Integer userId) {
         userLicenseService.checkChannelLimit(channel, portalUser);
-
-        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
-
         ptChannelService.saveOrUpdate(channel);
 
         if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
             contentGroupChannelSubscriptionService.saveChannelSubscription(
-                channel.getSubscribeAccessIdList(), channel.getId(), userId);
+                channel.getSubscribeAccessIdList(), channel.getId(), userId, true);
         }
-    }
-
-    private void saveOrUpdateCertainTeamsChannel(PtChannel channel, PortalUser portalUser, Integer masterId,
-                                                 Integer userId) {
-        userLicenseService.checkChannelLimit(channel, portalUser);
-        ptChannelService.saveOrUpdate(channel);
-
-        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
-
-        List<GcAccess> existingAssignedContentGroups = gcAccessService.getAccessByChannelId(masterId, channel.getId());
-        contentGroupChannelSubscriptionService.removeChannelSubscriptions(existingAssignedContentGroups,
-            List.of(channel.getId()));
-
-        // Publish channel to team
-        if (CollectionUtils.isNotEmpty(channel.getAccessIdList())) {
-            contentGroupChannelSubscriptionService.savePublicChannels(
-                channel.getAccessIdList(), channel.getId(), userId);
-        }
-
-        if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
-            contentGroupChannelSubscriptionService.saveChannelSubscription(
-                channel.getSubscribeAccessIdList(), channel.getId(), userId);
-        }
-    }
-
-    private void updateContentGroupIdsToAssign(PtChannel channel, Integer masterId, Integer userId, boolean orgAdmin) {
-        if ((channel.getIsAllSubscribe() == null || !channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)) &&
-            (channel.getIsAllChoose() == null || !channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))) {
-            return;
-        }
-
-        List<Integer> contentGroupIds = getContentGroupsAssignChannelTo(masterId, userId, orgAdmin);
-        if (channel.getIsAllChoose() != null && channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)) {
-            channel.setAccessIdList(contentGroupIds);
-            return;
-        }
-
-        channel.setSubscribeAccessIdList(contentGroupIds);
-    }
-
-    private List<Integer> getContentGroupsAssignChannelTo(Integer masterId, Integer userId, boolean publicOrgAdmin) {
-        if (publicOrgAdmin) {
-            return accessService.findAccessListByMasterId(masterId).stream()
-                .map(GcAccess::getId)
-                .collect(Collectors.toList());
-        }
-
-        return accessService.listAccess(null, masterId, userId).stream()
-            .map(GcAccess::getId)
-            .collect(Collectors.toList());
     }
 
     private PtChannel getChannelWithPermissions(Integer channelId, HttpServletRequest request, Integer masterId,
