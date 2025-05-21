@@ -1381,14 +1381,14 @@
             <column name="id" type="bigserial">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="item_type" type="VARCHAR(255)">
+            <column name="item_type" type="VARCHAR(15)">
                 <constraints nullable="false"/>
             </column>
             <column name="item_id" type="INT">
                 <constraints nullable="false"/>
             </column>
             <column name="average_rating" type="DOUBLE">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="feedbacks_count" type="INT">
                 <constraints nullable="true"/>
