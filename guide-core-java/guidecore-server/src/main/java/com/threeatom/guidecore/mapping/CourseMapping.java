@@ -10,10 +10,10 @@ import com.threeatom.guidecore.dto.response.CourseSectionContentDto;
 import com.threeatom.guidecore.dto.response.CourseSectionDto;
 import com.threeatom.guidecore.dto.response.CourseTotalProgressDto;
 import com.threeatom.guidecore.dto.response.VideoSourceDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.CourseContent;
 import com.threeatom.guidecore.entity.CourseEnrollmentProgress;
 import com.threeatom.guidecore.entity.CourseSetting;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.Task;
 import com.threeatom.guidecore.enums.CourseContentType;
@@ -35,7 +35,7 @@ public interface CourseMapping {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
     @Mapping(target = "isPublic", source = "isPublic", qualifiedByName = "mapIsPublic")
-    BasicCourseDto mapBasic(GcSubject course);
+    BasicCourseDto mapBasic(Course course);
 
     @Named("mapCourseEnrollment")
     @Mapping(target = "title", source = "name")
@@ -43,14 +43,14 @@ public interface CourseMapping {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "thumbUrl", source = "subImgFile.fullFileUrl")
     @Mapping(target = "isPublic", source = "isPublic", qualifiedByName = "mapIsPublic")
-    CourseEnrollmentDto mapCourseEnrollment(GcSubject course);
+    CourseEnrollmentDto mapCourseEnrollment(Course course);
 
     @Mapping(target = "owner", source = "user")
     @Mapping(target = "avatarUrl", source = "subImgFile.fullFileUrl")
-    VideoSourceDto map(GcSubject course);
+    VideoSourceDto map(Course course);
 
     @Mapping(target = "id", source = "course.id")
-    CourseProgressDetailsDto mapToCourseProgress(GcSubject course, CourseSetting compliance);
+    CourseProgressDetailsDto mapToCourseProgress(Course course, CourseSetting compliance);
 
     CourseSettingDto mapToSetting(CourseSetting courseSetting);
 
@@ -64,7 +64,7 @@ public interface CourseMapping {
     @Mapping(target = "id", source = "course.id")
     @Mapping(target = "name", source = "course.name")
     @Mapping(target = "sections", source = "courseContent", qualifiedByName = "mapCourseSectionContent")
-    CourseProgramDto mapProgram(GcSubject course, List<CourseContent> courseContent);
+    CourseProgramDto mapProgram(Course course, List<CourseContent> courseContent);
 
     CourseTotalProgressDto map(CourseEnrollmentProgress courseEnrollmentProgress, boolean compliant);
 
@@ -94,7 +94,7 @@ public interface CourseMapping {
         }
 
         CourseSectionDto sectionDto = new CourseSectionDto();
-        GcSubject section = courseContent.get(0).getCourse();
+        Course section = courseContent.get(0).getCourse();
 
         sectionDto.setId(section.getId());
         sectionDto.setName(section.getName());

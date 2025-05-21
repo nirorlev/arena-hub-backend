@@ -44,14 +44,14 @@
 			<result property="saveType" column="f2_save_type"/>
 		</association>
 
-		<collection property="gcSubjectList" javaType="ArrayList" column="master_id" ofType="GcSubject">
+		<collection property="courseList" javaType="ArrayList" column="master_id" ofType="Course">
 			<id property="id" column="master_id" />
-			<result property="id" column="gcSubject.id" />
-			<result property="name" column="gcSubject.name" />
-			<result property="description" column="gcSubject.description" />
-			<result property="type" column="gcSubject.type" />
-			<result property="subImgId" column="gcSubject.subImgId" />
-			<result property="isPublic" column="gcSubject.isPublic" />
+			<result property="id" column="course.id" />
+			<result property="name" column="course.name" />
+			<result property="description" column="course.description" />
+			<result property="type" column="course.type" />
+			<result property="subImgId" column="course.subImgId" />
+			<result property="isPublic" column="course.isPublic" />
 			<result property="courseTags" column="course_tags" typeHandler="com.threeatom.common.mybatis.typehandler.FastJsonArrayTypeHandler"/>
 		</collection>
 
@@ -78,16 +78,16 @@
         left join gc_master_active a on a.master_id=m.id
 	</sql>
 	<sql id="leftJoinGcSubject">
-		left join  gc_subject gcSubject on m.id = gcSubject.master_id
+		left join  courses course on m.id = course.master_id
 	</sql>
 	<sql id="gcSubjectColumns">
 		,
-		gcSubject.id AS "gcSubject.id",
-		gcSubject.name AS "gcSubject.name",
-		gcSubject.description AS "gcSubject.description",
-		gcSubject.type AS "gcSubject.type",
-		gcSubject.sub_img_id AS "gcSubject.subImgId",
-		gcSubject.is_public AS "gcSubject.isPublic"
+		course.id AS "course.id",
+		course.name AS "course.name",
+		course.description AS "course.description",
+		course.type AS "course.type",
+		course.sub_img_id AS "course.subImgId",
+		course.is_public AS "course.isPublic"
 	</sql>
 
 	<select id="selectMasterByUid" resultMap="baseResultMap">

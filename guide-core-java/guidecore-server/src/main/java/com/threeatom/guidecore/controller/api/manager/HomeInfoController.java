@@ -1,7 +1,6 @@
 package com.threeatom.guidecore.controller.api.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.PageInfo;
@@ -18,10 +17,10 @@ import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.FrontendVersionOverrideDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserInfo;
@@ -36,11 +35,10 @@ import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcSubjectAssociationService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcUserVideoActionService;
-import com.threeatom.guidecore.service.GcUserVideoPlayService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.NewUiGcSubjectService;
 import com.threeatom.guidecore.service.PtChannelContentService;
@@ -50,7 +48,6 @@ import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.ByteArrayOutputStream;
@@ -88,7 +85,6 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,15 +114,9 @@ public class HomeInfoController extends GuideCoreController {
     @Autowired
     private SysFileService sysFileService;
     @Autowired
-    private SysSystemService systemService;
-    @Autowired
     private GcSubjectAssociationService gcSubjectAssociationService;
     @Autowired
-    private Environment env;
-    @Autowired
-    private GcUserVideoPlayService userVideoPlayService;
-    @Autowired
-    private GcSubjectService subjectService;
+    private CourseService subjectService;
     @Autowired
     private GcVideoService gcVideoService;
     @Autowired
@@ -221,44 +211,6 @@ public class HomeInfoController extends GuideCoreController {
         return gcMaster;
     }
 
-    @PostMapping("/getSubByLevel0Sub")
-    public Message getSubByLevel0Sub(@RequestBody JSONObject requestParams, HttpServletRequest request) {
-        Message message = new Message();
-
-        String portalId = requestParams.getString("portalId");
-        GcMaster gcMaster = this.getMaster(portalId);
-        if (gcMaster == null) {
-            return message.error(I18NUtil.get("guidecore.getForHome.portalIdNotExist"));
-        }
-
-        Integer courseId = requestParams.getInteger("level0subId");
-        String courseNameIndex = requestParams.getString("level0subName");
-        List<GcSubject> courses = subjectService.getLevel0SubLis(gcMaster.getId());
-        SysSystem sys = getSysSystem();
-
-        GcSubject newCourse = new GcSubject();
-        newCourse.setId(courseId);
-        newCourse.setNameIndex(courseNameIndex);
-        newCourse.setMasterId(gcMaster.getId());
-        JSONArray response = userVideoPlayService.getSubAndVideoPlayListForHome(newCourse, sys, request);
-
-        message.addData("gcMaster", gcMaster);
-        message.ok().addData("subjectList", courses);
-        message.ok().addData("topicList", response);
-
-        return message;
-    }
-
-    private SysSystem getSysSystem() {
-        int sysId = 0;
-        String systemId = env.getProperty("systemId");
-        if (systemId != null) {
-            sysId = Integer.parseInt(systemId);
-        }
-
-        return systemService.getSystemById(sysId);
-    }
-
     @PostMapping("/getVideoByLevel0SubNameAndVideoName")
     public Message getVideoByLevel0SubNameAndVideoName(@RequestBody JSONObject requestParams) {
         String portalId = requestParams.getString("portalId");
@@ -344,7 +296,7 @@ public class HomeInfoController extends GuideCoreController {
 
         if (!assignedCourseIds.isEmpty()) {
             //计算package下所有课程的总时长,赋值到packagelist中
-            Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(assignedCourseIds);
+            Map<Integer, Course> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(assignedCourseIds);
             for (Integer key : subjectsDurationMap.keySet()) {
                 for (GcAccess packages : packageList) {
                     Integer packageCourseTotalTime = Integer.parseInt(packages.getPackageCourseTotalTime().toString());
@@ -469,7 +421,7 @@ public class HomeInfoController extends GuideCoreController {
             gcAccess.setPackageVideoFile(videoFile);
         }
         //时长
-        Map<Integer, GcSubject> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(contentGroupIds);
+        Map<Integer, Course> subjectsDurationMap = newUiGcSubjectService.sumSubjectDuration(contentGroupIds);
         Long learningHours = TableConstant.LONG_ZERO;
         for (Integer key : subjectsDurationMap.keySet()) {
             learningHours += subjectsDurationMap.get(key).getSubjectVideoDuration();
@@ -509,39 +461,20 @@ public class HomeInfoController extends GuideCoreController {
         subjectParams.put("masterId", masterId);
         subjectParams.put("subjectIds", contentGroupIds);
 
-        List<GcSubject> subjects = subjectService.getSubListByIds(contentGroupIds, request);
-        List<GcSubject> level1Subjects = subjectService.selectAllLevel1SubList(contentGroupIds, null, masterId);
-        for (GcSubject level1Subject : level1Subjects) {
+        List<Course> subjects = subjectService.getSubListByIds(contentGroupIds, request);
+        List<Course> level1Subjects = subjectService.selectAllLevel1SubList(contentGroupIds, null, masterId);
+        for (Course level1Subject : level1Subjects) {
             if (videoMap.get(level1Subject.getId()) != null) {
-                level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 if (videoMap.get(level1Subject.getId()) != null) {
-                    List<GcVideo> videos = videoMap.get(level1Subject.getId());
-                    Integer videoTotalLong =
-                        videos.stream().filter(e -> e.getVideoTime() != null).mapToInt(GcVideo::getVideoTime).sum();
-                    level1Subject.setVideosTotalLong(videoTotalLong);
-
                     level1Subject.setVideoChildList(videoMap.get(level1Subject.getId()));
-                    level1Subject.setVideosTotalNum(videoMap.get(level1Subject.getId()).size());
                 }
-
-            } else {
-                level1Subject.setVideosTotalNum(TableConstant.COMMON_ZERO);
-            }
-            Integer videosLongInTopic = TableConstant.COMMON_ZERO;
-            for (GcVideo gcVideo : videoList) {
-                if (gcVideo.getSubId().equals(level1Subject.getId())) {
-                    if (gcVideo.getVideoTime() != null) {
-                        videosLongInTopic += gcVideo.getVideoTime();
-                    }
-                }
-                level1Subject.setVideosTotalLong(videosLongInTopic);
             }
         }
 
-        Map<Integer, List<GcSubject>> map = level1Subjects.stream().collect(Collectors.groupingBy(GcSubject::getSubId));
-        for (GcSubject gcSubject : subjects) {
-            if (map.get(gcSubject.getId()) != null) {
-                gcSubject.setSubjects(map.get(gcSubject.getId()));
+        Map<Integer, List<Course>> map = level1Subjects.stream().collect(Collectors.groupingBy(Course::getSubId));
+        for (Course course : subjects) {
+            if (map.get(course.getId()) != null) {
+                course.setSubjects(map.get(course.getId()));
             }
         }
 
@@ -602,19 +535,19 @@ public class HomeInfoController extends GuideCoreController {
             element3.setText("Portal doesn't exist");
             element4.setText(request.getHeader("host"));
         } else if (gcMaster.getState().equals(TableConstant.COMMON_ONE)) {
-            List<GcSubject> gcSubjectList = subjectService.getSubList(gcMaster.getId(), 0);
-            List<GcSubject> gcSubjectAssoList = subjectService.selectSubjectAssociation(gcMaster.getId(), null, true);
-            List<Integer> subIdList = gcSubjectList.stream().map(GcSubject::getId).collect(Collectors.toList());
+            List<Course> courseList = subjectService.getSubList(gcMaster.getId(), 0);
+            List<Course> courseAssoList = subjectService.selectSubjectAssociation(gcMaster.getId(), null, true);
+            List<Integer> subIdList = courseList.stream().map(Course::getId).collect(Collectors.toList());
             List<Integer> gcSubjectAssoIdList =
-                gcSubjectAssoList.stream().map(GcSubject::getId).collect(Collectors.toList());
+                courseAssoList.stream().map(Course::getId).collect(Collectors.toList());
             subIdList.addAll(gcSubjectAssoIdList);
             List<GcVideo> videoList = gcVideoService.getVideoListBySubId(subIdList);
-            gcSubjectList.addAll(gcSubjectAssoList);
+            courseList.addAll(courseAssoList);
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 
             //筛选出首页数据的最新更新时间
             Date subjectMaxDate =
-                gcSubjectList.stream().max(Comparator.comparing(GcSubject::getUpdateTime)).get().getUpdateTime();
+                courseList.stream().max(Comparator.comparing(Course::getUpdateTime)).get().getUpdateTime();
             Date masterMaxDate = gcMaster.getUpdateTime();
             int compare = subjectMaxDate.compareTo(masterMaxDate);
             if (!host.contains(siteMapConfiguration.getSiteUrl())) {
@@ -641,7 +574,7 @@ public class HomeInfoController extends GuideCoreController {
 
                 headElement.add(attribute1);
                 headElement.add(attribute2);
-                for (GcSubject subject : gcSubjectList) {
+                for (Course subject : courseList) {
                     Element bodyElement = headElement.addElement("url");
                     Element ioc = bodyElement.addElement("loc");
                     ioc.setText("https://" + host + "/course-statics/" + subject.getId());
@@ -892,29 +825,29 @@ public class HomeInfoController extends GuideCoreController {
 
         } else if (
             stats == 1 && containNumber) {
-            GcSubject gcSubject = subjectService.getById(subOrVid);
-            if (Objects.isNull(gcSubject)) {
+            Course course = subjectService.getById(subOrVid);
+            if (Objects.isNull(course)) {
                 return;
             }
-            SysFile sysFile = sysFileService.getById(gcSubject.getSubImgId());
+            SysFile sysFile = sysFileService.getById(course.getSubImgId());
             fullFileUrl = sysFileService.getResFullUrl(sysFile, request);
             if (Objects.isNull(fullFileUrl)) {
                 fullFileUrl = "";
             }
-            if (Objects.isNull(gcSubject.getName())) {
-                gcSubject.setName("");
+            if (Objects.isNull(course.getName())) {
+                course.setName("");
             }
-            if (Objects.isNull(gcSubject.getDescription())) {
-                gcSubject.setDescription("");
+            if (Objects.isNull(course.getDescription())) {
+                course.setDescription("");
             }
-            addMetaContent = metaHtml(gcSubject.getName(), gcSubject.getDescription(), fullFileUrl, host, request);
+            addMetaContent = metaHtml(course.getName(), course.getDescription(), fullFileUrl, host, request);
 
 
         } else if (
             stats == 2 && containNumber) {
             GcVideo gcVideo = gcVideoService.getById(subOrVid);
-            GcSubject gcSubject = subjectService.getById(courseId);
-            if (Objects.isNull(gcVideo) || Objects.isNull(gcSubject)) {
+            Course course = subjectService.getById(courseId);
+            if (Objects.isNull(gcVideo) || Objects.isNull(course)) {
                 return;
             }
             SysFile sysFile = sysFileService.getById(gcVideo.getFileId());
@@ -938,8 +871,8 @@ public class HomeInfoController extends GuideCoreController {
             if (Objects.isNull(gcVideo.getVideoDesc())) {
                 gcVideo.setVideoDesc("");
             }
-            title = "\"" + gcVideo.getVideoName() + "\"" + " in " + "\"" + gcSubject.getName() + "\"" + " courses";
-            addMetaContent = metaHtml(title, gcSubject.getDescription(), fullFileUrl, host, request);
+            title = "\"" + gcVideo.getVideoName() + "\"" + " in " + "\"" + course.getName() + "\"" + " courses";
+            addMetaContent = metaHtml(title, course.getDescription(), fullFileUrl, host, request);
 
         } else if (xRequestUri.contains(metarielConfig.getCourse())) {
             if (host.equals(siteMapConfiguration.getSiteUrl())) {

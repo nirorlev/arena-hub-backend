@@ -28,7 +28,6 @@ public class CustomJwtFilter extends BasicHttpAuthenticationFilter {
                 String client = JwtUtil.getValueByToken(auth, "client");
                 JwtToken token = new JwtToken(auth, client);
                 this.getSubject(request, response).login(token);
-                LOGGER.info("验证通过");
                 return true;
             } catch (Exception var7) {
                 ShiroGlobalExceptionUtil.exceptionHandler(var7, response);

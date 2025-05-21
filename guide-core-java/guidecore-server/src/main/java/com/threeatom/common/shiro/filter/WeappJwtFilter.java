@@ -26,7 +26,6 @@ public class WeappJwtFilter extends BasicHttpAuthenticationFilter {
             try {
                 JwtToken token = new JwtToken(auth, "weapp");
                 this.getSubject(request, response).login(token);
-                LOGGER.info("验证通过");
                 return true;
             } catch (Exception var6) {
                 ShiroGlobalExceptionUtil.exceptionHandler(var6, response);

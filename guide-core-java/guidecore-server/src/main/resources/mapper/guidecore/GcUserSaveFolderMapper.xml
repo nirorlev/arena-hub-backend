@@ -42,7 +42,7 @@
 				<result property="contentId" column="content_id" />
 				<result property="createTime" column="sc_create_time" />
 				<result property="updateTime" column="sc_update_time" />
-			    <association property="subject" javaType="GcSubject" column="sub_id" >
+			    <association property="subject" javaType="Course" column="sub_id" >
 					<result property="id" column="s_id" />
 					<result property="name" column="s_name" />
 					<result property="name" column="s_name_index" />
@@ -86,7 +86,7 @@
 		<result property="visibleFlag" column="visible_flag"/>
 	</resultMap>
 
-	<resultMap id="courseResultMap" type="GcSubject" autoMapping="true" >
+	<resultMap id="courseResultMap" type="Course" autoMapping="true" >
 		<result property="availableType" column="available_type"/>
 		<result property="state" column="state"/>
 	</resultMap>
@@ -136,7 +136,7 @@
 			AND (sc.user_id=#{userId} or not sf.is_private)
 		</if>
 		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
-		left join gc_subject s on s.id= v.origin_course_id
+		left join courses s on s.id= v.origin_course_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
 		left join gc_user u on u.id = sf.user_id
@@ -192,7 +192,7 @@
 		from gc_user_save_folder sf
 		left join gc_user_save_content sc on sc.folder_id = sf.id
 		left join gc_video v on v.id = sc.content_id AND v.id IN (SELECT content_id FROM course_content)
-		left join gc_subject s on s.id= v.origin_course_id
+		left join courses s on s.id= v.origin_course_id
 		left join sys_file fs on s.sub_img_id=fs.id
 		left join sys_file f on v.file_id=f.id
 		left join gc_user u on u.id = sf.user_id
@@ -355,7 +355,7 @@
 			LEFT JOIN gc_video video ON video.id = content.content_id
 			LEFT JOIN sys_file f ON f.id = video.file_id
 			LEFT JOIN pt_channel channel ON video.origin_channel_id = channel.id
-			LEFT JOIN gc_subject course ON video.origin_course_id = course.id
+			LEFT JOIN courses course ON video.origin_course_id = course.id
 		WHERE playlist.master_id = #{masterId}
 		  AND (playlist.is_private = false OR playlist.user_id = #{userId})
 		  AND playlist.name ilike concat('%', #{searchName}, '%')

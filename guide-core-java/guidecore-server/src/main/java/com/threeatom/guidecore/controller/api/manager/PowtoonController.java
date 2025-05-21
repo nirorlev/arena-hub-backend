@@ -29,12 +29,12 @@ import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.request.AuthTokenDto;
 import com.threeatom.guidecore.dto.request.SearchDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
 import com.threeatom.guidecore.entity.GcCategory;
 import com.threeatom.guidecore.entity.GcEvent;
 import com.threeatom.guidecore.entity.GcMaster;
 import com.threeatom.guidecore.entity.GcMasterHomeInfo;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.GcUserAccess;
 import com.threeatom.guidecore.entity.GcUserAccessExt;
@@ -43,7 +43,6 @@ import com.threeatom.guidecore.entity.GcUserInfo;
 import com.threeatom.guidecore.entity.GcUserSaveContent;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
-import com.threeatom.guidecore.entity.GcUserVideoPlay;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.GcVideoComment;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -68,7 +67,7 @@ import com.threeatom.guidecore.service.GcEventService;
 import com.threeatom.guidecore.service.GcMasterHomeInfoService;
 import com.threeatom.guidecore.service.GcMasterService;
 import com.threeatom.guidecore.service.GcProblemService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessExtService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
@@ -126,11 +125,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.authc.AuthenticationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -142,13 +140,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/api/v1/powtoon/home")
+@Slf4j
 @Api(tags = "home")
 public class PowtoonController extends GuideCoreController {
-
-    private static final Logger log = LoggerFactory.getLogger(NewUiGcVideoController.class);
 
     @Autowired
     private GcVideoService service;
@@ -157,7 +153,7 @@ public class PowtoonController extends GuideCoreController {
     private NewUiGcSubjectService subjectService;
 
     @Autowired
-    private GcSubjectService gcSubjectService;
+    private CourseService courseService;
 
     @Autowired
     private GcUserAccessService gcUserAccessService;
@@ -235,7 +231,7 @@ public class PowtoonController extends GuideCoreController {
     private PtLoginConfigService ptLoginConfigService;
 
     @Autowired
-    private GcSubjectService subService;
+    private CourseService subService;
 
     @Autowired
     private PtTagsService ptTagsService;
@@ -338,52 +334,52 @@ public class PowtoonController extends GuideCoreController {
         GcUser user = this.getGcUser();
         Integer masterId = Integer.parseInt(request.getHeader("masterId"));
         //组装课程数据
-        List<GcSubject> subjectList = new ArrayList<>();
+        List<Course> subjectList = new ArrayList<>();
         switch (type) {
             //my learnings
             case TableConstant.COMMON_ZERO:
                 //active
                 if (null == selectType || selectType.equals("activeSubject")) {
-                    List<GcSubject> activeSubject =
-                        gcSubjectService.selectActiveSubject(user.getId(), masterId, subjectState, name, request);
-                    PageInfo<GcSubject> activeSubjectPageInfo = new PageInfo<>(activeSubject);
+                    List<Course> activeSubject =
+                        courseService.selectActiveSubject(user.getId(), masterId, subjectState, name, request);
+                    PageInfo<Course> activeSubjectPageInfo = new PageInfo<>(activeSubject);
                     subjectList.addAll(activeSubject);
                     message.addData("activeSubject", activeSubjectPageInfo);
                 }
                 //completed
                 if (null == selectType || selectType.equals("completedSubject")) {
-                    List<GcSubject> completedSubject =
-                        gcSubjectService.selectCompletedSubject(user.getId(), masterId, subjectState, name, request);
-                    PageInfo<GcSubject> completedSubjectPageInfo = new PageInfo<>(completedSubject);
+                    List<Course> completedSubject =
+                        courseService.selectCompletedSubject(user.getId(), masterId, subjectState, name, request);
+                    PageInfo<Course> completedSubjectPageInfo = new PageInfo<>(completedSubject);
                     subjectList.addAll(completedSubject);
                     message.addData("completedSubject", completedSubjectPageInfo);
                 }
                 //discover
                 if (null == selectType || selectType.equals("discoverSubject")) {
-                    List<GcSubject> discoverSubject =
-                        gcSubjectService.selectDiscoverSubject(user.getId(), masterId, subjectState, name, request);
-                    PageInfo<GcSubject> discoverSubjectPageInfo = new PageInfo<>(discoverSubject);
+                    List<Course> discoverSubject =
+                        courseService.selectDiscoverSubject(user.getId(), masterId, subjectState, name, request);
+                    PageInfo<Course> discoverSubjectPageInfo = new PageInfo<>(discoverSubject);
                     subjectList.addAll(discoverSubject);
                     message.addData("discoverSubject", discoverSubjectPageInfo);
                 }
                 //组装课程数据
-                gcSubjectService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
+                courseService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
                 break;
             //my courses
             case TableConstant.COMMON_ONE:
                 //drafts
                 if (null == selectType || selectType.equals("draftsSubjectPageInfo")) {
-                    List<GcSubject> draftsSubject =
-                        gcSubjectService.selectDraftsSubject(user.getId(), masterId, name, request);
-                    PageInfo<GcSubject> draftsSubjectPageInfo = new PageInfo<>(draftsSubject);
+                    List<Course> draftsSubject =
+                        courseService.selectDraftsSubject(user.getId(), masterId, name, request);
+                    PageInfo<Course> draftsSubjectPageInfo = new PageInfo<>(draftsSubject);
                     subjectList.addAll(draftsSubject);
                     message.addData("draftsSubject", draftsSubjectPageInfo);
                 }
                 //published
                 if (null == selectType || selectType.equals("publishedSubject")) {
-                    List<GcSubject> publishedSubject =
-                        gcSubjectService.selectPublishedSubject(user.getId(), masterId, name, request);
-                    PageInfo<GcSubject> publishedSubjectPageInfo = new PageInfo<>(publishedSubject);
+                    List<Course> publishedSubject =
+                        courseService.selectPublishedSubject(user.getId(), masterId, name, request);
+                    PageInfo<Course> publishedSubjectPageInfo = new PageInfo<>(publishedSubject);
                     subjectList.addAll(publishedSubject);
                     message.addData("publishedSubject", publishedSubjectPageInfo);
                 }
@@ -392,26 +388,26 @@ public class PowtoonController extends GuideCoreController {
                     //判断是orgAdmin还是teamAdmin
                     Integer adminFlag = gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(), masterId,
                         UserGroupRole.ORG_ADMIN.getRole());
-                    List<GcSubject> createdByTeamsSubject = new ArrayList<>();
+                    List<Course> createdByTeamsSubject = new ArrayList<>();
                     Integer orderType = null;
                     if (null != requestParams.get("orderType")) {
                         orderType = Integer.parseInt(requestParams.get("orderType").toString());
                     }
                     if (null != adminFlag && !adminFlag.equals(TableConstant.COMMON_ZERO)) {
                         createdByTeamsSubject =
-                            gcSubjectService.selectCreateByTeamsOrgAdmin(user.getId(), masterId, name, request,
+                            courseService.selectCreateByTeamsOrgAdmin(user.getId(), masterId, name, request,
                                 groupCodeList, orderType);
                     } else {
                         createdByTeamsSubject =
-                            gcSubjectService.selectCreatedByTeams(user.getId(), masterId, name, request, groupCodeList,
+                            courseService.selectCreatedByTeams(user.getId(), masterId, name, request, groupCodeList,
                                 orderType);
                     }
                     subjectList.addAll(createdByTeamsSubject);
-                    PageInfo<GcSubject> createdByTeamsSubjectPageInfo = new PageInfo<>(createdByTeamsSubject);
+                    PageInfo<Course> createdByTeamsSubjectPageInfo = new PageInfo<>(createdByTeamsSubject);
                     message.addData("createdByTeamsSubject", createdByTeamsSubjectPageInfo);
                 }
                 //组装课程数据
-                gcSubjectService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
+                courseService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
                 break;
             //discover
             case TableConstant.COMMON_TWO:
@@ -422,30 +418,30 @@ public class PowtoonController extends GuideCoreController {
 
                 //fromMyTeams
                 if (null == selectType || selectType.equals("fromMyTeamSubject")) {
-                    List<GcSubject> fromMyTeamSubject =
-                        gcSubjectService.selectFromMyTeamSubject(user.getId(), masterId, name, request);
-                    PageInfo<GcSubject> fromMyTeamSubjectPageInfo = new PageInfo<>(fromMyTeamSubject);
+                    List<Course> fromMyTeamSubject =
+                        courseService.selectFromMyTeamSubject(user.getId(), masterId, name, request);
+                    PageInfo<Course> fromMyTeamSubjectPageInfo = new PageInfo<>(fromMyTeamSubject);
                     subjectList.addAll(fromMyTeamSubject);
                     message.addData("fromMyTeamSubject", fromMyTeamSubjectPageInfo);
                 }
                 //companyResources
                 if (null == selectType || selectType.equals("companyResourcesSubject")) {
-                    List<GcSubject> companyResourcesSubject =
-                        gcSubjectService.selectCompanyResourcesSubject(user.getId(), masterId, name, request);
-                    PageInfo<GcSubject> companyResourcesSubjectPageInfo = new PageInfo<>(companyResourcesSubject);
+                    List<Course> companyResourcesSubject =
+                        courseService.selectCompanyResourcesSubject(user.getId(), masterId, name, request);
+                    PageInfo<Course> companyResourcesSubjectPageInfo = new PageInfo<>(companyResourcesSubject);
                     subjectList.addAll(companyResourcesSubject);
                     message.addData("companyResourcesSubject", companyResourcesSubjectPageInfo);
                 }
                 //allCourses
                 if (null == selectType || selectType.equals("allCourseSubject")) {
-                    List<GcSubject> allCourseSubject =
-                        gcSubjectService.selectAllCourseSubject(user.getId(), masterId, name, request, orderType);
-                    PageInfo<GcSubject> allCourseSubjectPageInfo = new PageInfo<>(allCourseSubject);
+                    List<Course> allCourseSubject =
+                        courseService.selectAllCourseSubject(user.getId(), masterId, name, request, orderType);
+                    PageInfo<Course> allCourseSubjectPageInfo = new PageInfo<>(allCourseSubject);
                     subjectList.addAll(allCourseSubject);
                     message.addData("allCourseSubject", allCourseSubjectPageInfo);
                 }
                 //组装课程数据
-                gcSubjectService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
+                courseService.getSubjectInfoByList(subjectList, masterId, user.getId(), request);
                 break;
         }
         message.setData((Map<String, Object>) JSON.toJSON(message.getData()));
@@ -631,7 +627,7 @@ public class PowtoonController extends GuideCoreController {
         if (!StringUtils.isEmpty(token) && !"undefined".equals(token)) {
             GcUser user = this.getGcUser();
 
-            GcSubject course = gcSubjectService.getById(Integer.parseInt(fid.toString()));
+            Course course = courseService.getById(Integer.parseInt(fid.toString()));
             PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), Integer.valueOf(masterId));
 
             if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
@@ -650,7 +646,7 @@ public class PowtoonController extends GuideCoreController {
         throws IOException {
         GcUser user = this.getGcUser();
         boolean subjectCompleteStatus = true;
-        GcSubject subject = gcSubjectService.getById(subId);
+        Course subject = courseService.getById(subId);
         Integer masterId = getHeaderMasterId(request);
         if (subject == null) {
             throw new SystemException(I18NUtil.get("powtoon.download.error"));
@@ -683,7 +679,7 @@ public class PowtoonController extends GuideCoreController {
         if (!subjectCompleteStatus) {
             throw new SystemException("Your course is not completed!");
         }
-        subject.setSubjects(gcSubjectService.getChildSubjectBySubId(subject.getId()));
+        subject.setSubjects(courseService.getChildSubjectBySubId(subject.getId()));
         DateFormat format = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
         Date date = new Date();
         String today = format.format(date);
@@ -731,7 +727,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @PostMapping("/selectVideosAndEvents")
-    public Message selectVideosAndEvents(@RequestBody GcSubject subject, HttpServletRequest request) {
+    public Message selectVideosAndEvents(@RequestBody Course subject, HttpServletRequest request) {
         Message message = new Message();
         GcUser user = this.getGcUser();
         if (Objects.isNull(subject.getId())) {
@@ -1031,7 +1027,7 @@ public class PowtoonController extends GuideCoreController {
         Integer masterId = Integer.parseInt(request.getHeader("masterid"));
         GcAccess access = accessService.getById(id);
         List<Integer> idList = new ArrayList<>();
-        PageInfo<GcSubject> pageInfo;
+        PageInfo<Course> pageInfo;
         GcUser user = this.getGcUser();
 
         GcAccess contentGroup = accessService.getAccessById(access.getId());
@@ -1064,14 +1060,14 @@ public class PowtoonController extends GuideCoreController {
         if (pageParam.getPageNum() > 0 && pageParam.getPageSize() > 0) {
             PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
         }
-        List<GcSubject> subjects = new ArrayList<>();
+        List<Course> subjects = new ArrayList<>();
         Map<Integer, List<PtTags>> tagsMap = new HashMap<>();
         if (!idList.isEmpty()) {
-            subjects = gcSubjectService.listSubByIdsAndName(idList, name);
+            subjects = courseService.listSubByIdsAndName(idList, name);
         } else {
-            subjects = gcSubjectService.listSubByIdsAndName(null, null);
+            subjects = courseService.listSubByIdsAndName(null, null);
         }
-        List<Integer> subjectIdList = subjects.stream().map(GcSubject::getId).collect(Collectors.toList());
+        List<Integer> subjectIdList = subjects.stream().map(Course::getId).collect(Collectors.toList());
         if (!subjectIdList.isEmpty()) {
             QueryWrapper<PtTags> queryWrapper2 = new QueryWrapper<>();
             queryWrapper2.eq("master_id", masterId);
@@ -1155,7 +1151,7 @@ public class PowtoonController extends GuideCoreController {
         Integer masterId = Integer.parseInt(request.getHeader("masterid"));
         List<Integer> idList = contentGroupCourseAssignmentService.getCourseIdsByContentGroupId(accessId);
         GcUser user = this.getGcUser();
-        List<GcSubject> subjects = new ArrayList<>();
+        List<Course> subjects = new ArrayList<>();
         Integer adminFlag = gcUserAccessService.countUserAccessesByMasterIdAndRole(user.getId(), masterId,
             UserGroupRole.ORG_ADMIN.getRole());
         PageParam pageParam = new PageParam(request);
@@ -1163,20 +1159,20 @@ public class PowtoonController extends GuideCoreController {
             PageHelper.startPage(pageParam.getPageNum(), pageParam.getPageSize());
         }
         if (null != adminFlag && TableConstant.COMMON_ZERO != adminFlag) {
-            subjects = gcSubjectService.getAvailableCourses(name, masterId, idList, null, orderType);
+            subjects = courseService.getAvailableCourses(name, masterId, idList, null, orderType);
         } else {
             // All 'may' courses of the current user, not in the current group, regardless of whether they have management or viewing permissions, are queried out
-            subjects = gcSubjectService.newGetAvailableCourses(name, masterId, idList, user.getId(), orderType);
+            subjects = courseService.newGetAvailableCourses(name, masterId, idList, user.getId(), orderType);
         }
 
         Map<String, Object> videoParams = new HashMap<>(2);
         Integer ids = TableConstant.COMMON_ZERO;
         videoParams.put("ids", ids);
-        videoParams.put("subjectIds", subjects.stream().map(GcSubject::getId).collect(Collectors.toList()));
+        videoParams.put("subjectIds", subjects.stream().map(Course::getId).collect(Collectors.toList()));
         Map<Integer, GcUserVideoAction> subjectUserStar = videoActionService.getSubjectUserStar(videoParams);
 
         List<Integer> videoIdlist =
-            gcVideoService.getVideoIdListBySubId(subjects.stream().map(GcSubject::getId).collect(Collectors.toList()));
+            gcVideoService.getVideoIdListBySubId(subjects.stream().map(Course::getId).collect(Collectors.toList()));
         List<GcVideo> videoList = gcVideoService.getVideoLongListByVideoId(videoIdlist);
         if (null != user) {
             videoList =
@@ -1185,14 +1181,14 @@ public class PowtoonController extends GuideCoreController {
         Map<Integer, List<GcVideo>> groupBySubId = videoList.stream().filter(e -> null != e.getSubjectSubId())
             .collect(Collectors.groupingBy(GcVideo::getSubjectSubId));
         Map<Integer, GcUser> subjectUsers =
-            gcUserService.getWatchedUserNum(subjects.stream().map(GcSubject::getId).collect(Collectors.toList()),
+            gcUserService.getWatchedUserNum(subjects.stream().map(Course::getId).collect(Collectors.toList()),
                 masterId);
 
         Map<Integer, List<PtTags>> tagListMap;
         if (subjects.size() != TableConstant.COMMON_ZERO) {
             //tag
             QueryWrapper<PtTags> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("subject_id", subjects.stream().map(GcSubject::getId).collect(Collectors.toList()));
+            queryWrapper.in("subject_id", subjects.stream().map(Course::getId).collect(Collectors.toList()));
             queryWrapper.in("master_id", masterId);
             tagListMap = ptTagsService.list(queryWrapper).stream().collect(Collectors.groupingBy(PtTags::getSubjectId));
         } else {
@@ -1218,16 +1214,6 @@ public class PowtoonController extends GuideCoreController {
                 i.setStarUsers(TableConstant.starUsers);
             }
 
-            if (null != groupBySubId.get(i.getId())) {
-                List<GcVideo> gcVideos = groupBySubId.get(i.getId());
-                Integer totalSeconds =
-                    gcVideos.stream().filter(a -> a.getVideoTime() != null).mapToInt(GcVideo::getVideoTime).sum();
-                i.setVideosTotalLong(totalSeconds);
-                i.setVideosTotalNum(gcVideos.size());
-            } else {
-                i.setVideosTotalLong(TableConstant.COMMON_ZERO);
-                i.setVideosTotalNum(TableConstant.COMMON_ZERO);
-            }
             if (null != subjectUsers.get(i.getId())) {
                 i.setSubjectUsers(subjectUsers.get(i.getId()).getSubjectUsers());
             } else {
@@ -1236,7 +1222,7 @@ public class PowtoonController extends GuideCoreController {
             sysFileService.getResFullUrl(i.getSubImgFile(), request);
             sysFileService.getVideoSnapshotUrl(i.getSubImgFile());
         });
-        PageInfo<GcSubject> pageInfo = new PageInfo<>(subjects);
+        PageInfo<Course> pageInfo = new PageInfo<>(subjects);
         return new Message().ok().addData("subjects", pageInfo);
     }
 
@@ -1440,7 +1426,7 @@ public class PowtoonController extends GuideCoreController {
             sysMenuList = sysMenuService.getSysMenuList(portalUser);
         }
 
-        gcSubjectService.initJit();
+        courseService.initJit();
         return new Message().ok()
             .addData("sysMenuList", sysMenuList);
     }
@@ -1621,28 +1607,28 @@ public class PowtoonController extends GuideCoreController {
         if (CollectionUtils.isNotEmpty(gcMasterHomeInfos)) {
             channelIdList = gcMasterHomeInfos.get(TableConstant.COMMON_ZERO).getChannelIds().toJavaList(Integer.class);
         }
-        List<Integer> publicSubjectIds = gcSubjectService.getPublicSubjectIds(master.getId());
+        List<Integer> publicSubjectIds = courseService.getPublicSubjectIds(master.getId());
 
-        Integer progressNum = gcSubjectService.inProgressNum(user.getId(), master.getId());
+        Integer progressNum = courseService.inProgressNum(user.getId(), master.getId());
 
         Integer published =
-            gcSubjectService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ONE);
+            courseService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ONE);
 
         Integer myDrafts =
-            gcSubjectService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ZERO);
+            courseService.getCreateUserPublished(user.getId(), master.getId(), TableConstant.COMMON_ZERO);
 
 
         List<Integer> courseIds = contentGroupCourseAssignmentService.getMustCourseIds(user.getId(), master.getId(),
             UserGroupRole.GROUP_MEMBER);
         Integer DiscoverNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+            courseService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
                 CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
         Integer completedNum =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
+            courseService.selectSubjectPt(null, TableConstant.COMMON_TWO, TableConstant.COMMON_ONE, null,
                 master.getId(), user.getId(), channelIdList, publicSubjectIds);
 
-        Integer MyAssignmentNew = gcSubjectService.getNewMyAssignmentNew(master.getId(), user.getId());
+        Integer MyAssignmentNew = courseService.getNewMyAssignmentNew(master.getId(), user.getId());
 
         QueryWrapper<PtViewSubject> queryWrapper = new QueryWrapper<PtViewSubject>();
         queryWrapper.eq("master_id", master.getId());
@@ -1653,7 +1639,7 @@ public class PowtoonController extends GuideCoreController {
         });
 
         Integer DiscoverNew =
-            gcSubjectService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
+            courseService.selectSubjectPt(null, TableConstant.COMMON_FOUR,
                 CoursePublishState.CERTAIN_TEAMS.getValue(),
                 null, master.getId(), user.getId(), channelIdList, courseIds);
 
@@ -1669,16 +1655,16 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @PostMapping("/saveSub")
-    public Message saveSub(@RequestBody GcSubject course, HttpServletRequest request) {
+    public Message saveSub(@RequestBody Course course, HttpServletRequest request) {
         GcUser user = userService.getCurrentUser(request);
         PortalUser portalUser = getPortalUser(request, user);
         GcMaster master = masterService.getById(portalUser.getMasterId());
 
         boolean accessAllowed = false;
-        gcSubjectService.populateUserId(course, user);
+        courseService.populateUserId(course, user);
 
         if (null != course.getId() && null == course.getMoveDrafts()) {
-            GcSubject oldSubject = gcSubjectService.getById(course.getId());
+            Course oldSubject = courseService.getById(course.getId());
             if (!oldSubject.getState().equals(course.getState()) && null == course.getFid()) {
                 accessAllowed = authorizationService.checkAccess(course, PermitAction.PUBLISH, portalUser);
                 if (oldSubject.getPublishedTime() == null && !course.isPrivate()) {
@@ -1698,7 +1684,7 @@ public class PowtoonController extends GuideCoreController {
             throw new PermitException("No permission for this!");
         }
         if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CoursePublishState.PRIVATE.getValue())) {
-            course = gcSubjectService.getById(course.getId());
+            course = courseService.getById(course.getId());
             course.setState(CoursePublishState.PRIVATE.getValue());
             gcAccessService.deleteSubIdAccess(portalUser.getMasterId(), course.getId());
         }
@@ -1706,7 +1692,7 @@ public class PowtoonController extends GuideCoreController {
             contentGroupCourseAssignmentService.save(user, course, CourseType.MANDATORY);
             contentGroupCourseAssignmentService.save(user, course, CourseType.OPTIONAL);
         }
-        gcSubjectService.saveSubInfo(course, null, master, user, request);
+        courseService.saveSubInfo(course, null, master, user, request);
 
         return new Message().ok().addData("sync", course);
     }
@@ -1794,34 +1780,6 @@ public class PowtoonController extends GuideCoreController {
         return new Message().ok();
     }
 
-    @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
-    @PostMapping("/createVideoPlayRecordAndNode")
-    public Message createVideoPlayRecordAndNode(@RequestBody GcUserVideoPlay userVideoPlay,
-                                                HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        GcUser user = this.getGcUser();
-        return gvgMasterService.createVideoPlayRecordAndNode(userVideoPlay, request, EnvType.PT.getCode(), user,
-            masterId, this.getSystem());
-    }
-
-    @ApiOperation(value = "回答问题", httpMethod = "POST")
-    @PostMapping("/answerQuestion")
-    public Message answerQuestion(@RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        if (Objects.isNull(masterId)) {
-            throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
-        }
-        Integer eventId = jsonRequest.getInteger("eventId");
-        if (Objects.isNull(eventId)) {
-            throw new SystemException(I18NUtil.get("powtoon.answer.error"));
-        }
-        return gvgMasterService.answerQuestion(jsonRequest, request, request.getIntHeader("masterId"), this.getGcUser(),
-            EnvType.PT.getCode(), this.getSystem());
-    }
-
     @ApiOperation(value = "Get a list of the contents of a single playlist", httpMethod = "POST")
     @PostMapping("/getContentFromOneFolder")
     public Message getContentFromOneFolder(@RequestBody GcUserSaveFolder gcUserSaveFolder, HttpServletRequest request) {
@@ -1842,12 +1800,12 @@ public class PowtoonController extends GuideCoreController {
 
     @ApiOperation(value = "查询自己创建的所有二级课程")
     @PostMapping("/selectAllTopicList")
-    public Message selectAllTopicList(@RequestBody GcSubject gcSubject, HttpServletRequest request) {
+    public Message selectAllTopicList(@RequestBody Course course, HttpServletRequest request) {
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(masterId)) {
             throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
         }
-        if (Objects.isNull(gcSubject.getId())) {
+        if (Objects.isNull(course.getId())) {
             throw new SystemException(I18NUtil.get("powtoon.topic.error"));
         }
         GcMaster master = this.getMaster();
@@ -1858,7 +1816,7 @@ public class PowtoonController extends GuideCoreController {
         GcUser user = this.getGcUser();
 
         return new Message().ok().addData("topicList",
-            subService.selectAllTopicList(masterId, TableConstant.COMMON_ONE, user.getId(), gcSubject));
+            subService.selectAllTopicList(masterId, TableConstant.COMMON_ONE, user.getId(), course));
     }
 
     @ApiOperation(value = "查询自己创建的所有二级课程")
@@ -1912,7 +1870,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @PostMapping("/delSub")
-    public Message deleteSub(@RequestBody GcSubject course, HttpServletRequest request) throws IOException {
+    public Message deleteSub(@RequestBody Course course, HttpServletRequest request) throws IOException {
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(masterId)) {
             throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
@@ -1924,7 +1882,7 @@ public class PowtoonController extends GuideCoreController {
         }
         GcUser user = this.getGcUser();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-        gcSubjectService.populateUserId(course, user);
+        courseService.populateUserId(course, user);
 
         if (!authorizationService.checkAccess(course, PermitAction.DELETE, portalUser)) {
             throw new PermitException("No permission for this!");
@@ -1932,9 +1890,9 @@ public class PowtoonController extends GuideCoreController {
         eventPublisherService.publishCourseUpdated(course.getId());
 
         if (Objects.nonNull(course.getFid())) {
-            GcSubject gcSubject = subService.getById(course.getId());
-            GcSubject gcSubject0 = subService.getById(course.getFid());
-            gcSubject.setMasterId(gcSubject0.getMasterId());
+            Course gcSubject = subService.getById(course.getId());
+            Course course0 = subService.getById(course.getFid());
+            gcSubject.setMasterId(course0.getMasterId());
             gcSubject.setSubId(course.getFid());
             gcSubject.setFid(course.getFid());
             if (subService.saveOrUpdate(gcSubject)) {
@@ -1948,7 +1906,7 @@ public class PowtoonController extends GuideCoreController {
     }
 
     @DeleteMapping("/delVideo/{id}")
-    public Message deleteVideo(@PathVariable("id") Integer vid, HttpServletRequest request) throws IOException {
+    public Message deleteVideo(@PathVariable("id") Integer videoId, HttpServletRequest request) throws IOException {
         GcMaster master = this.getMaster();
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(master)) {
@@ -1957,16 +1915,14 @@ public class PowtoonController extends GuideCoreController {
         }
         GcUser user = this.getGcUser();
         PortalUser portalUser = portalUserService.getByUserAndMasterId(user.getId(), master.getId());
-        GcVideo video = gcVideoService.findByVideoId(vid);
+        GcVideo video = gcVideoService.findByVideoId(videoId);
 
         if (!authorizationService.checkAccess(video, PermitAction.DELETE, portalUser)) {
             throw new PermitException("No permission for this!");
         }
 
-        Message message =
-            gvgMasterService.deleteVideoPt(vid, EnvType.PT.getCode(), this.getGcUser().getId(), master.getId(),
-                request);
-        eventPublisherService.publishVideoUpdated(vid);
+        Message message = gvgMasterService.deleteVideo(videoId);
+        eventPublisherService.publishVideoUpdated(videoId);
 
         return message;
     }
@@ -1998,7 +1954,8 @@ public class PowtoonController extends GuideCoreController {
         try {
             if (Objects.nonNull(channel.getVisibleFlag())) {
                 if (channel.isCertainTeams()) {
-                    saveOrUpdateCertainTeamsChannel(channel, portalUser, masterId, userId);
+                    userLicenseService.checkChannelLimit(channel, portalUser);
+                    ptChannelService.saveOrUpdate(channel);
                 } else if (channel.isPublic()) {
                     saveOrUpdatePublicChannel(channel, portalUser, masterId, userId);
                 } else if (channel.isPrivate()) {
@@ -2023,65 +1980,12 @@ public class PowtoonController extends GuideCoreController {
 
     private void saveOrUpdatePublicChannel(PtChannel channel, PortalUser portalUser, Integer masterId, Integer userId) {
         userLicenseService.checkChannelLimit(channel, portalUser);
-
-        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
-
         ptChannelService.saveOrUpdate(channel);
 
         if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
             contentGroupChannelSubscriptionService.saveChannelSubscription(
-                channel.getSubscribeAccessIdList(), channel.getId(), userId);
+                channel.getSubscribeAccessIdList(), channel.getId(), userId, true);
         }
-    }
-
-    private void saveOrUpdateCertainTeamsChannel(PtChannel channel, PortalUser portalUser, Integer masterId,
-                                                 Integer userId) {
-        userLicenseService.checkChannelLimit(channel, portalUser);
-        ptChannelService.saveOrUpdate(channel);
-
-        updateContentGroupIdsToAssign(channel, masterId, userId, portalUser.isOrgAdmin() && channel.isPublic());
-
-        List<GcAccess> existingAssignedContentGroups = gcAccessService.getAccessByChannelId(masterId, channel.getId());
-        contentGroupChannelSubscriptionService.removeChannelSubscriptions(existingAssignedContentGroups,
-            List.of(channel.getId()));
-
-        // Publish channel to team
-        if (CollectionUtils.isNotEmpty(channel.getAccessIdList())) {
-            contentGroupChannelSubscriptionService.savePublicChannels(
-                channel.getAccessIdList(), channel.getId(), userId);
-        }
-
-        if (CollectionUtils.isNotEmpty(channel.getSubscribeAccessIdList())) {
-            contentGroupChannelSubscriptionService.saveChannelSubscription(
-                channel.getSubscribeAccessIdList(), channel.getId(), userId);
-        }
-    }
-
-    private void updateContentGroupIdsToAssign(PtChannel channel, Integer masterId, Integer userId, boolean orgAdmin) {
-        if ((channel.getIsAllSubscribe() == null || !channel.getIsAllSubscribe().equals(TableConstant.COMMON_ZERO)) &&
-            (channel.getIsAllChoose() == null || !channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO))) {
-            return;
-        }
-
-        List<Integer> contentGroupIds = getContentGroupsAssignChannelTo(masterId, userId, orgAdmin);
-        if (channel.getIsAllChoose() != null && channel.getIsAllChoose().equals(TableConstant.COMMON_ZERO)) {
-            channel.setAccessIdList(contentGroupIds);
-            return;
-        }
-
-        channel.setSubscribeAccessIdList(contentGroupIds);
-    }
-
-    private List<Integer> getContentGroupsAssignChannelTo(Integer masterId, Integer userId, boolean publicOrgAdmin) {
-        if (publicOrgAdmin) {
-            return accessService.findAccessListByMasterId(masterId).stream()
-                .map(GcAccess::getId)
-                .collect(Collectors.toList());
-        }
-
-        return accessService.listAccess(null, masterId, userId).stream()
-            .map(GcAccess::getId)
-            .collect(Collectors.toList());
     }
 
     private PtChannel getChannelWithPermissions(Integer channelId, HttpServletRequest request, Integer masterId,
@@ -2250,8 +2154,7 @@ public class PowtoonController extends GuideCoreController {
 
     @ApiOperation(value = "查询section中的视频list")
     @PostMapping("/selectVideosInSection")
-    public Message selectVideosInChannel(@RequestBody PtChannel ptChannel, HttpServletRequest request)
-        throws IOException {
+    public Message selectVideosInChannel(@RequestBody PtChannel ptChannel, HttpServletRequest request) {
         Integer masterId = request.getIntHeader("masterId");
         if (Objects.isNull(masterId)) {
             throw new SystemException(I18NUtil.get("guidecore.unlogin.error"));
@@ -2400,10 +2303,11 @@ public class PowtoonController extends GuideCoreController {
         String snapShotUrl = sysFileService.getVideoSnapshotUrl(sysFile);
         sysFile.setFullFileUrl(fullFileUrl);
         sysFile.setSnapshotUrl(snapShotUrl);
+        sysFile.setThumbNailUrl(snapShotUrl);
         sysFile.setThumbNailUrl(thumbnailProvider.getThumbnailUrl(sysFile));
         channelContent.setVideoFile(sysFile);
 
-        if (null != sysFile.getGcUser().getAvatarFileId()) {
+        if (sysFile.getGcUser().getAvatarFileId() != null) {
             SysFile file = sysFileService.getById(sysFile.getGcUser().getAvatarFileId());
             sysFile.getGcUser().setAvatarFullFileUrl(sysFileService.getResFullUrl(file, request));
         }

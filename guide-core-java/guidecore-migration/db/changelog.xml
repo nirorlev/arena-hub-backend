@@ -1367,4 +1367,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="remove-old-analytics-tables" author="vprokh">
+        <dropTable tableName="gc_user_video_plays_node"/>
+        <dropTable tableName="gc_user_video_play"/>
+    </changeSet>
+
+    <changeSet id="update-course-table-name" author="vprokh">
+        <renameTable schemaName="arena_hub" oldTableName="gc_subject" newTableName="courses"/>
+    </changeSet>
 </databaseChangeLog>

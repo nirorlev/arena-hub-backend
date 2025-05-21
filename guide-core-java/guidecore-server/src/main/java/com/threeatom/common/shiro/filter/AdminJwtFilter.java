@@ -26,7 +26,6 @@ public class AdminJwtFilter extends BasicHttpAuthenticationFilter {
             try {
                 JwtToken token = new JwtToken(auth, "admin");
                 this.getSubject(request, response).login(token);
-                LOGGER.info("验证通过");
                 return true;
             } catch (Exception var6) {
                 ShiroGlobalExceptionUtil.exceptionHandler(var6, response);

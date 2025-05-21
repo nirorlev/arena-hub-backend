@@ -108,20 +108,16 @@
 
     <!-- 统计看过视频的用户人数 -->
     <select id="getWatchedUserNum" resultType="com.threeatom.guidecore.entity.GcUser">
-        select s0.id as "subjectId",count(DISTINCT p.user_id) as "subjectUsers"  from gc_user u
-        LEFT JOIN gc_user_video_play p on p.user_id=u.id
-        LEFT JOIN gc_video v on v.id = p.video_id
-        LEFT JOIN gc_subject s1 on s1.id = v.sub_id
-        LEFT JOIN gc_subject s0 on s0.id = s1.fid
+        select course.id as "subjectId"
+        from courses course
         where 1=1
         <if test="null!=subjectIds and subjectIds.size !=0">
-        and s0.id in
+        and course.id in
         <foreach item="subjectId" collection="subjectIds" open="(" separator="," close=")">
             #{subjectId}
         </foreach>
         </if>
-        and p.master_id=#{masterId}
-        GROUP BY s0.id
+        and course.master_id=#{masterId}
 
     </select>
 

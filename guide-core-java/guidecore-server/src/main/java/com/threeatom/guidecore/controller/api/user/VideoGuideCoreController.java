@@ -6,33 +6,48 @@ import com.github.pagehelper.PageInfo;
 import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.exception.SystemException;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.constant.EventResType;
+import com.threeatom.guidecore.constant.SysResourceType;
+import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.user.vo.MessageFIlterVo;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.controller.user.vo.TeacherMesNumVo;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.mapper.GcEventMapper;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.entity.GcEvent;
+import com.threeatom.guidecore.entity.GcMasterMessage;
+import com.threeatom.guidecore.entity.Course;
+import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.entity.GcUserEventResource;
+import com.threeatom.guidecore.entity.GcUserNote;
+import com.threeatom.guidecore.entity.GcUserVideoAction;
+import com.threeatom.guidecore.entity.GcVideo;
+import com.threeatom.guidecore.entity.GcVideoComment;
+import com.threeatom.guidecore.entity.PortalUser;
+import com.threeatom.guidecore.service.GcEventService;
+import com.threeatom.guidecore.service.GcMasterMessageService;
+import com.threeatom.guidecore.service.CourseService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcUserEventResourceService;
+import com.threeatom.guidecore.service.GcUserNoteService;
+import com.threeatom.guidecore.service.GcUserVideoActionService;
+import com.threeatom.guidecore.service.GcVideoCommentService;
+import com.threeatom.guidecore.service.GcVideoService;
+import com.threeatom.guidecore.service.PortalUserService;
+import com.threeatom.guidecore.service.UnavailableVideoService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.service.SysFileCaptionService;
 import com.threeatom.system.service.SysFileService;
-import com.threeatom.system.service.SysSystemService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import org.checkerframework.checker.units.qual.A;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,9 +64,8 @@ public class VideoGuideCoreController extends GuideCoreController {
 
     @Autowired private GcUserVideoActionService videoActionService;
     @Autowired private GcVideoCommentService videoCommentService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
     @Autowired private GcVideoService videoService;
-    @Autowired private GcUserVideoPlaysNodeService videoPlaysNodeService;
     @Autowired private GcEventService eventService;
     @Autowired private PortalUserService portalUserService;
     @Autowired private SysFileService sysFileService;
@@ -59,8 +73,6 @@ public class VideoGuideCoreController extends GuideCoreController {
     @Autowired private GcUserNoteService userNoteService;
     @Autowired private GcMasterMessageService masterMessageService;
     @Autowired private GcUserAccessService userAccessService;
-    @Autowired private GvgMasterService gvgMasterService;
-
     @Autowired private UnavailableVideoService unavailableVideoService;
 
     @ApiOperation(value = "用户视频点赞的视频列表", httpMethod = "GET", notes = "type操作类型1点赞2收藏")
@@ -211,7 +223,7 @@ public class VideoGuideCoreController extends GuideCoreController {
     @GetMapping("/videoCommentList/{subId}")
     public Message videoCommentList(
             @PathVariable("subId") Integer subId, HttpServletRequest request) {
-        GcSubject sub = subjectService.getSubNameBysubId(subId);
+        Course sub = subjectService.getSubNameBysubId(subId);
         if (sub == null) {
             throw new SystemException(I18NUtil.get(I18NUtil.get("guidecore.master.canFindSubject")));
         }
@@ -312,29 +324,6 @@ public class VideoGuideCoreController extends GuideCoreController {
         return new Message().ok().addData("commentList", list);
     }
 
-    @ApiOperation(value = "添加视频记录以及其下的节点", httpMethod = "Post")
-    @PostMapping("/createVideoPlayRecordAndNode")
-    public Message createVideoPlayRecordAndNode(
-            @RequestBody GcUserVideoPlay userVideoPlay, HttpServletRequest request) {
-        Integer masterId = request.getIntHeader("masterId");
-        GcUser user = this.getGcUser();
-        return gvgMasterService.createVideoPlayRecordAndNode(
-                userVideoPlay, request, EnvType.PT.getCode(), user, masterId, this.getSystem());
-    }
-
-    @ApiOperation(value = "记录视频播放的时间", httpMethod = "POST")
-    @PostMapping("/recordVideoPlayTime")
-    public Message recordVideoPlayTime(
-            @RequestBody GcUserVideoPlaysNode videoPlaysNode, HttpServletRequest request) {
-
-        Integer endTime = videoPlaysNode.getEndTime();
-        GcUserVideoPlaysNode oldVideoPlayNode =
-                videoPlaysNodeService.getVideoPlayNodeByNodeId(videoPlaysNode.getId());
-        oldVideoPlayNode.setEndTime(endTime);
-        if (videoPlaysNodeService.saveOrUpdate(oldVideoPlayNode)) return new Message().ok("记录成功");
-        else return new Message().ok("记录失败");
-    }
-
     @ApiOperation(value = "回答问题通知-老师", httpMethod = "POST")
     @PostMapping("/getAnswerMessageList")
     public Message getAnswerMessageList(
@@ -345,9 +334,9 @@ public class VideoGuideCoreController extends GuideCoreController {
         if (null != messageFIlterVo.getEventId()) {
             GcEvent gcEvent = eventService.getById(messageFIlterVo.getEventId());
             GcVideo gcVideo = videoService.getById(gcEvent.getVideoId());
-            GcSubject gcSubject = subjectService.getById(gcVideo.getSubId());
-            GcSubject gcSubject0 = subjectService.getById(gcSubject.getFid());
-            gcEvent.setSub0Name(gcSubject0.getName());
+            Course course = subjectService.getById(gcVideo.getSubId());
+            Course course0 = subjectService.getById(course.getFid());
+            gcEvent.setSub0Name(course0.getName());
             m.addData("event", gcEvent);
         }
 

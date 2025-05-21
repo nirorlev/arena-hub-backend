@@ -108,7 +108,7 @@ public class GcMaster implements Serializable {
     private Date createTime;
 
     @TableField(exist = false)
-    private List<GcSubject> gcSubjectList;
+    private List<Course> courseList;
 
     // 临时判断该门户下有没有学生子账号
     @TableField(exist = false)

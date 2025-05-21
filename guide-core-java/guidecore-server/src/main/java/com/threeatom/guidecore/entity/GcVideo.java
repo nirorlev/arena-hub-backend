@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -160,12 +159,6 @@ public class GcVideo implements Serializable {
     private Integer fileTypeIndex;
 
     @TableField(exist = false)
-    private Short completeStatus;
-
-    @TableField(exist = false) // 上一次播放的视频信息
-    private GcUserVideoPlaysNode gcUserVideoPlaysNode;
-
-    @TableField(exist = false)
     private GcUserSaveFolder playlist;
 
     /**
@@ -230,7 +223,7 @@ public class GcVideo implements Serializable {
     private PtChannel originChannel;
 
     @TableField(exist = false)
-    private GcSubject originCourse;
+    private Course originCourse;
 
     @TableField(exist = false)
     private Map<String, Boolean> permissions;

@@ -1,6 +1,6 @@
 package com.threeatom.common.export.excel;
 
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.excel.vo.StudentBehaviorDataExcel;
 import java.io.IOException;
 import java.util.List;
@@ -17,7 +17,7 @@ public interface ExcelOperator {
 
     <T> void writeDynamicHeadExcelToWebResponse(
             HttpServletResponse response,
-            List<GcSubject> subjectList,
+            List<Course> subjectList,
             String fileName,
             String sheetName,
             List<StudentBehaviorDataExcel> studentBehaviorExcelData)

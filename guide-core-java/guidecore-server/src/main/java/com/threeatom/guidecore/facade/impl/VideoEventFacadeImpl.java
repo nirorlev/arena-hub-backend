@@ -10,8 +10,8 @@ import com.threeatom.guidecore.dto.response.TaskDto;
 import com.threeatom.guidecore.dto.response.TaskVersionDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswerDto;
 import com.threeatom.guidecore.dto.response.UserTaskAnswersDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.CourseEnrollment;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.Task;
@@ -56,7 +56,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
     public List<TaskDto> createTask(com.threeatom.guidecore.dto.request.TaskDto taskDto, Integer videoId,
                                     PortalUser portalUser) {
         GcVideo video = videoService.findByVideoId(videoId);
-        GcSubject originCourse = video.getOriginCourse();
+        Course originCourse = video.getOriginCourse();
         verifyOriginCoursePermission(portalUser, originCourse, PermitAction.EDIT);
 
         VideoEvent taskVideoEvent = videoEventService.createTaskVideoEvent(taskDto, video, portalUser);
@@ -170,7 +170,7 @@ public class VideoEventFacadeImpl implements VideoEventFacade {
         verifyOriginCoursePermission(portalUser, video.getOriginCourse(), permitAction);
     }
 
-    private void verifyOriginCoursePermission(PortalUser portalUser, GcSubject course, PermitAction permitAction) {
+    private void verifyOriginCoursePermission(PortalUser portalUser, Course course, PermitAction permitAction) {
         if (!authorizationService.checkAccess(course, permitAction, portalUser)) {
             throw new ForbiddenException(
                 "User does not have permission to %s this course".formatted(permitAction.name()));

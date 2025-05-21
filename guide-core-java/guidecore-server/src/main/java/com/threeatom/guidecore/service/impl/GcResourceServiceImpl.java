@@ -8,7 +8,7 @@ import com.threeatom.guidecore.entity.GcResource;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.mapper.GcResourceMapper;
 import com.threeatom.guidecore.service.GcResourceService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.I18NUtil;
 import java.util.List;
@@ -20,7 +20,7 @@ public class GcResourceServiceImpl extends ServiceImpl<GcResourceMapper, GcResou
         implements GcResourceService {
 
     @Autowired private GcVideoService videoService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
 
     @Override
     public boolean deleteResourcesByVids(List<Integer> vids) {

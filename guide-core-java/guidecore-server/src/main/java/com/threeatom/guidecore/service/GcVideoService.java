@@ -63,8 +63,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     Message getVideosBySubIds(
         Integer subjectIds, Map<String, Object> params, SysSystem sys, HttpServletRequest request);
 
-    Long sumPlayVideoLongByIdUser(List<Integer> videoIds, int userId);
-
     List<GcVideo> getVideosBySubjectIds0(List<Integer> subjectIds, Integer userId, Integer masterId);
 
     List<GcVideo> getVideoIdListBySubId0(
@@ -95,21 +93,11 @@ public interface GcVideoService extends GcVideoServiceBll {
     @Async
     void asyncMethodUpdateVideo(GcVideo video, HttpServletRequest request, SysSystem system);
 
-    List<StudentInfoVO> getStudentSubTimeNum(List<Map<String, Object>> mapList, Integer masterId);
-
     List<Integer> getVideoIdListBySubId(List<Integer> subIds);
 
     List<GcVideo> getVideoListBySubId(List<Integer> subIds);
 
     List<GcVideo> getVideoLongListByVideoId(List<Integer> subIds);
-
-    List<GcVideo> buildVideoInfoByList(
-        List<Integer> userIdList,
-        List<GcVideo> gcVideos,
-        Integer masterId,
-        Boolean isAccessId,
-        List<Integer> permissionList,
-        HttpServletRequest request);
 
     SysFile updateVideoFile(GcVideo video, PortalUser portalUser);
 
@@ -128,8 +116,6 @@ public interface GcVideoService extends GcVideoServiceBll {
     List<DbAnalyticsResultDto> getVideoCountAnalytics(AnalyticsFilterDto filter, Integer masterId);
 
     List<GcVideo> selectVideoPlayListBySubId(Integer subId, Integer userId);
-
-    GcVideo selectVideoPlayByVideo(Integer video, Integer userId);
 
     boolean saveVideoInfo(SysSystem sys, GcVideo video, Integer masterId, HttpServletRequest request);
 

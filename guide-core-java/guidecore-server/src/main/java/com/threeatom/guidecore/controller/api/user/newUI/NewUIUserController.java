@@ -22,8 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.crypto.hash.SimpleHash;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +37,7 @@ public class NewUIUserController extends GuideCoreController {
     @Autowired private GcMasterMessageService masterMessageService;
     @Autowired private GcUserService userService;
     @Autowired private PortalUserService portalUserService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
     @Autowired private GcUserAnswerService userAnswerService;
     @Autowired private GcUserNoteService userNoteService;
     @Autowired private GcUserInfoService gcUserInfoService;
@@ -256,8 +254,8 @@ public class NewUIUserController extends GuideCoreController {
                         .collect(Collectors.toList());
         gcVideo.setAnsweredNums(answeredEvents.size());
         gcVideo.setAnsweredSumNums(gcEventList.size());
-        GcSubject gcSubject0 = subjectService.getById(gcVideo.getSubId0());
-        gcVideo.setSubjectName(gcSubject0.getName());
+        Course course0 = subjectService.getById(gcVideo.getSubId0());
+        gcVideo.setSubjectName(course0.getName());
         message.ok().addData("gcVideo", gcVideo);
         message.ok().addData("userInfo", studentUser);
         return message.ok();

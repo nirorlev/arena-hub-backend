@@ -1,7 +1,7 @@
 package com.threeatom.guidecore.service;
 
 import com.github.pagehelper.PageInfo;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUserVideoAction;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.system.entity.SysSystem;
@@ -11,31 +11,27 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface NewUiGcSubjectService {
 
-    PageInfo<GcSubject> list(
+    PageInfo<Course> list(
             Map<String, Object> params, SysSystem system, HttpServletRequest request, Integer envFlag);
 
-    Map<Integer, GcSubject> sumSubjectDuration(List<Integer> subjectIds);
+    Map<Integer, Course> sumSubjectDuration(List<Integer> subjectIds);
 
-    PageInfo<GcSubject> listSubjectByFid(
+    PageInfo<Course> listSubjectByFid(
             Map<String, Object> params,
             HttpServletRequest request,
             boolean ifLogin,
             List<Integer> subIds);
 
-    List<GcSubject> selectBuildSubject(Map<String, Object> params, HttpServletRequest request);
+    List<Course> selectBuildSubject(Map<String, Object> params, HttpServletRequest request);
 
-    List<GcSubject> selectTwoSubjectByIds(List<Integer> subjectIds, HttpServletRequest request);
-
-    Integer selectLastVideoId(Integer subId, Integer userId, Integer masterId);
-
-    List<GcSubject> selectSubjects(List<Integer> subIds);
+    List<Course> selectTwoSubjectByIds(List<Integer> subjectIds, HttpServletRequest request);
 
     Map<Integer, GcUserVideoAction> getStarActions(List<Integer> subjectIds);
 
-    List<GcSubject> buildSubject1(Map<Integer, List<GcVideo>> sub1Map);
+    List<Course> buildSubject1(Map<Integer, List<GcVideo>> sub1Map);
 
-    List<GcSubject> buildSubject2(
-            List<GcSubject> subjects,
+    List<Course> buildSubject2(
+            List<Course> subjects,
             Integer userId,
             SysSystem system,
             HttpServletRequest request,

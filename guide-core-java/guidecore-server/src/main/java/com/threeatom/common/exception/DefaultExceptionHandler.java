@@ -4,10 +4,9 @@ import com.threeatom.common.controller.Message;
 import io.sentry.Sentry;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -18,10 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class DefaultExceptionHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
-
     public DefaultExceptionHandler() {
     }
 
@@ -33,10 +31,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({Exception.class})
     public Message handlerException(Exception e) {
-        String errorMessage = e.getMessage();
-        if (errorMessage != null) {
-            LOGGER.error(errorMessage, e);
-        }
+        log.error("Unexpected error occurred", e);
         sendExceptionToSentry(e);
         return new Message().commonError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Sorry, something is wrong!", e);
     }
@@ -60,7 +55,7 @@ public class DefaultExceptionHandler {
     @ExceptionHandler({SystemException.class})
     public Message handlerSystemException(SystemException e) {
         if (e.getException() != null) {
-            LOGGER.error("子集错误：", e.getException());
+            log.error("子集错误：", e.getException());
         }
         return (new Message()).commonError(e.getCode(), e.getMessage(), e);
     }
@@ -68,7 +63,7 @@ public class DefaultExceptionHandler {
     @ResponseBody
     @ExceptionHandler({AuthorizationException.class})
     public Message handlerAuthorizationException(AuthorizationException e) {
-        LOGGER.error("身份错误异常：", e);
+        log.error("身份错误异常：", e);
         return e instanceof UnauthorizedException
             ? (new Message()).error(HttpStatus.UNAUTHORIZED.value(), "您没有权限访问该内容")
             : (new Message()).error(607, "需要实名认证");

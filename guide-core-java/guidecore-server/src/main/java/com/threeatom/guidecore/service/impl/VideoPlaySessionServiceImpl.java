@@ -39,7 +39,8 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
     private final UserMapping userMapping;
 
     @Override
-    public void saveVideoPlaySession(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
+    @Transactional
+    public VideoPlaySession saveVideoPlaySession(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
         VideoPlaySession videoPlaySession = new VideoPlaySession();
         videoPlaySession.setId(videoPlayDto.getSessionId());
         videoPlaySession.setUserId(portalUser.getUserId());
@@ -48,11 +49,12 @@ public class VideoPlaySessionServiceImpl extends ServiceImpl<VideoPlaySessionMap
         videoPlaySession.setClientTime(videoPlayDto.getClientTime());
 
         save(videoPlaySession);
+        return videoPlaySession;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<VideoPlaySession> getVideoPlaySession(UUID sessionId) {
+    public Optional<VideoPlaySession> findVideoPlaySession(UUID sessionId) {
         return Optional.ofNullable(getById(sessionId));
     }
 

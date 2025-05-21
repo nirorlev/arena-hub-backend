@@ -8,8 +8,8 @@ import com.threeatom.common.permissions.dto.PermitUser;
 import com.threeatom.common.permissions.dto.PermitVideoItem;
 import com.threeatom.common.permissions.service.AuthorizationItemService;
 import com.threeatom.guidecore.constant.AuthorizationItemCacheName;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcAccess;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -105,7 +105,7 @@ public class AuthorizationItemServiceImpl implements AuthorizationItemService {
 
     @Override
     @Cacheable(value = AuthorizationItemCacheName.COURSE, key = "#course.hashCode()", condition = "#course.id != null")
-    public PermitCourse create(GcSubject course) {
+    public PermitCourse create(Course course) {
         PermitCourse permitCourse = new PermitCourse();
         permitCourse.setOwnerId(String.valueOf(course.getCreateUser()));
         if (course.getId() == null) {

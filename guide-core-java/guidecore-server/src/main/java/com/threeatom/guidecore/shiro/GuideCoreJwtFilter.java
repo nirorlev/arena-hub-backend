@@ -30,7 +30,6 @@ public class GuideCoreJwtFilter extends BasicHttpAuthenticationFilter {
                 // 检查认证
                 getSubject(request, response).login(token);
 
-                LOGGER.info("验证通过");
                 return true;
 
             } catch (Exception e) {

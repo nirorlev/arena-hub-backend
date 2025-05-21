@@ -12,9 +12,9 @@ import lombok.Setter;
 @ApiModel(description = "Data transfer object representing license permissions")
 public class UserPermissionsDto {
     @ApiModelProperty(value = "Limit of channels publishing for current user org")
-    private Integer publishedChannelLimit;
+    private int publishedChannelLimit;
     @ApiModelProperty(value = "Limit of playlists publishing for current user org")
-    private Integer publishedPlaylistLimit;
+    private int publishedPlaylistLimit;
     @ApiModelProperty(value = "Flag to indicate if user can access teams")
     private boolean canAccessTeams;
 }

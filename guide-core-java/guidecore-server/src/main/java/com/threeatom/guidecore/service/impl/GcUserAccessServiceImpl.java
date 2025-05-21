@@ -15,7 +15,7 @@ import com.threeatom.guidecore.mapper.GcUserAccessMapper;
 import com.threeatom.guidecore.service.GcAccessService;
 import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.GcGroupService;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserAccessService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
@@ -48,7 +48,7 @@ public class GcUserAccessServiceImpl extends ServiceImpl<GcUserAccessMapper, GcU
 
     @Autowired private GcUserAccessExtMapper userAccessExtMapper;
 
-    @Lazy @Autowired private GcSubjectService gcSubjectService;
+    @Lazy @Autowired private CourseService courseService;
 
     @Autowired private SysFileService sysFileService;
     @Autowired private GcContentGroupCourseAssignmentService contentGroupCourseAssignmentService;

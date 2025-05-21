@@ -11,7 +11,6 @@ import com.threeatom.guidecore.entity.PortalUser;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 
 public interface ContentGroupChannelSubscriptionService extends IService<ContentGroupChannelSubscription> {
 
@@ -20,9 +19,8 @@ public interface ContentGroupChannelSubscriptionService extends IService<Content
 
     void subscribeChannels(GcAccess contentGroup, List<Integer> channelIds, GcUser user);
 
-    void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId);
-
-    void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, Integer userId);
+    void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId,
+                                 boolean autoSubscribe);
 
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 

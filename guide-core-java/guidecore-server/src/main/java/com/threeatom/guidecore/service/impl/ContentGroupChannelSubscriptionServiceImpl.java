@@ -54,17 +54,17 @@ public class ContentGroupChannelSubscriptionServiceImpl
         removeUnsubscribedChannels(contentGroup.getId(), channelIds);
 
         channelIds.forEach(
-            channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user.getId()));
+            channelId -> saveChannelSubscription(List.of(contentGroup.getId()), channelId, user.getId(), true));
     }
 
     @Override
-    public void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId) {
-        saveChannels(contentGroupIds, channelId, true, userId);
-    }
+    public void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId,
+                                        boolean autoSubscribe) {
+        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = contentGroupIds.stream()
+            .map(contentGroupId -> createSubscription(contentGroupId, channelId, userId, autoSubscribe))
+            .collect(Collectors.toList());
 
-    @Override
-    public void savePublicChannels(List<Integer> contentGroupIds, Integer channelId, Integer userId) {
-        saveChannels(contentGroupIds, channelId, false, userId);
+        this.saveBatch(contentGroupChannelSubscriptions);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class ContentGroupChannelSubscriptionServiceImpl
 
         if (contentGroupChannelSubscription == null) {
             saveChannelSubscription(List.of(contentGroupId), subscribeChannelDto.getChannelId(),
-                portalUser.getUserId());
+                portalUser.getUserId(), subscribeChannelDto.getAutoSubscribe());
             return;
         }
 
@@ -176,16 +176,8 @@ public class ContentGroupChannelSubscriptionServiceImpl
         this.remove(queryWrapper);
     }
 
-    private void saveChannels(List<Integer> contentGroupIds, Integer channelId, boolean isSubscribed, Integer userId) {
-        List<ContentGroupChannelSubscription> contentGroupChannelSubscriptions = contentGroupIds.stream()
-            .map(contentGroupId -> createSubscription(contentGroupId, channelId, isSubscribed, userId))
-            .collect(Collectors.toList());
-
-        this.saveBatch(contentGroupChannelSubscriptions);
-    }
-
     private ContentGroupChannelSubscription createSubscription(Integer contentGroupId, Integer channelId,
-                                                               boolean autoSubscribe, Integer userId) {
+                                                               Integer userId, boolean autoSubscribe) {
         ContentGroupChannelSubscription subscription = new ContentGroupChannelSubscription();
 
         subscription.setContentGroupId(contentGroupId);

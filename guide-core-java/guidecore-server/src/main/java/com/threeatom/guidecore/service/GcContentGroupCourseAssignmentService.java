@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
 import com.threeatom.guidecore.dto.response.ContentGroupCourseAssignmentDto;
 import com.threeatom.guidecore.dto.response.GroupCourseAssignmentDto;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcContentGroupCourseAssignment;
-import com.threeatom.guidecore.entity.GcSubject;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.enums.CourseType;
@@ -28,7 +28,7 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
 
     void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId);
 
-    void save(GcUser user, GcSubject course, CourseType type);
+    void save(GcUser user, Course course, CourseType type);
 
     void save(GcUser user, List<Integer> idList, Integer contentGroupId, CourseType type);
 

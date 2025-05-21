@@ -11,7 +11,7 @@ import com.threeatom.guidecore.dto.request.AnalyticsFilterDto;
 import com.threeatom.guidecore.dto.request.VideoPlayDto;
 import com.threeatom.guidecore.dto.request.VideoViewPerSecondDto;
 import com.threeatom.guidecore.dto.response.CourseVideoBookmarkDto;
-import com.threeatom.guidecore.entity.GcUser;
+import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.VideoPlaySegment;
 import com.threeatom.guidecore.entity.VideoPlaySession;
@@ -39,17 +39,20 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, Integer videoId, PortalUser portalUser) {
+    public void saveVideoPlaySegment(VideoPlayDto videoPlayDto, GcVideo video, PortalUser portalUser) {
         Optional<VideoPlaySession> videoPlaySessionOptional =
-            videoPlaySessionService.getVideoPlaySession(videoPlayDto.getSessionId());
+            videoPlaySessionService.findVideoPlaySession(videoPlayDto.getSessionId());
 
         if (videoPlaySessionOptional.isPresent()) {
-            updateVideoPlaySegment(videoPlayDto, videoPlaySessionOptional.get());
+            VideoPlaySession videoPlaySession = videoPlaySessionOptional.get();
+            normalizePlaySegmentEndTime(videoPlayDto, video);
+            updateVideoPlaySegment(videoPlayDto, videoPlaySession);
             return;
         }
 
-        videoPlaySessionService.saveVideoPlaySession(videoPlayDto, videoId, portalUser);
-        VideoPlaySession videoPlaySession = videoPlaySessionService.getById(videoPlayDto.getSessionId());
+        VideoPlaySession videoPlaySession =
+            videoPlaySessionService.saveVideoPlaySession(videoPlayDto, video.getId(), portalUser);
+        normalizePlaySegmentEndTime(videoPlayDto, video);
         this.baseMapper.saveOrUpdateSegment(videoPlaySegmentMapping.map(videoPlayDto, videoPlaySession));
     }
 
@@ -126,6 +129,13 @@ public class VideoPlaySegmentServiceImpl extends ServiceImpl<VideoPlaySegmentMap
                 String.format("Video play segment with id '%s' and session '%s' was not updated",
                     videoPlayDto.getSegmentId(),
                     videoPlayDto.getSessionId()));
+        }
+    }
+
+    private void normalizePlaySegmentEndTime(VideoPlayDto videoPlayDto, GcVideo video) {
+        if (videoPlayDto.getEndTime() > video.getVideoTime()) {
+            videoPlayDto.setEndTime(video.getVideoTime());
+            log.warn("Play segment end time bigger than video total time. Video id {}", video.getId());
         }
     }
 }

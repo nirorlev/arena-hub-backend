@@ -5,13 +5,29 @@ import com.threeatom.common.ApiAssert;
 import com.threeatom.common.controller.Message;
 import com.threeatom.common.redis.RedisOperator;
 import com.threeatom.constant.SysConstant;
-import com.threeatom.guidecore.constant.*;
+import com.threeatom.guidecore.constant.EnvType;
+import com.threeatom.guidecore.constant.LanuageType;
+import com.threeatom.guidecore.constant.TableConstant;
+import com.threeatom.guidecore.constant.TimeZoneType;
+import com.threeatom.guidecore.constant.VideoCallPlateformType;
 import com.threeatom.guidecore.controller.GuideCoreController;
 import com.threeatom.guidecore.controller.manager.vo.HomePage;
-import com.threeatom.guidecore.controller.user.vo.PageParam;
 import com.threeatom.guidecore.dto.response.VersionDto;
-import com.threeatom.guidecore.entity.*;
-import com.threeatom.guidecore.service.*;
+import com.threeatom.guidecore.entity.GcAccess;
+import com.threeatom.guidecore.entity.GcCategory;
+import com.threeatom.guidecore.entity.GcManager;
+import com.threeatom.guidecore.entity.GcMaster;
+import com.threeatom.guidecore.entity.GcUserAccess;
+import com.threeatom.guidecore.service.FrontendVersionService;
+import com.threeatom.guidecore.service.GcAccessService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
+import com.threeatom.guidecore.service.GcManagerService;
+import com.threeatom.guidecore.service.GcMasterService;
+import com.threeatom.guidecore.service.GcProblemService;
+import com.threeatom.guidecore.service.GcResourceService;
+import com.threeatom.guidecore.service.CourseService;
+import com.threeatom.guidecore.service.GcUserAccessService;
+import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.system.entity.SysFile;
@@ -23,10 +39,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -49,14 +67,13 @@ public class HomeGuideCoreController extends GuideCoreController {
     @Autowired private GcManagerService managerService;
     @Autowired private GcMasterService masterService;
     @Autowired private SysFileService sysFileService;
-    @Autowired private GcSubjectService subjectService;
+    @Autowired private CourseService subjectService;
     @Autowired private GcVideoService videoService;
     @Autowired private GcResourceService resourceService;
     @Autowired private GcUserAccessService userAccessService;
     @Autowired private GcAccessService accessService;
     @Autowired RedisOperator redisOperator;
     @Autowired private Environment env;
-    @Autowired private GcTeacherDataService teacherDataService;
     @Autowired private GcProblemService gcProblemService;
     @Autowired private GcAccessService gcAccessService;
     @Autowired private FrontendVersionService frontendVersionService;
@@ -171,40 +188,9 @@ public class HomeGuideCoreController extends GuideCoreController {
         return msg;
     }
 
-    @ApiOperation(value = "获取门户下用户行为数据图表", httpMethod = "POST")
     @PostMapping("/guidecore/homeUserBehaviorChartsData")
-    public Message homeUserBehaviorChartsData(
-            @RequestBody JSONObject jsonRequest, HttpServletRequest request) {
-        Message message = new Message();
-        Integer masterId = getHeaderMasterId(request);
-        ApiAssert.notNull(jsonRequest, "参数缺失");
-        ApiAssert.notNull(masterId, "masterId缺失");
-        List<Integer> masterIds = new ArrayList<>();
-        masterIds.add(masterId);
-        Integer overDate = jsonRequest.getInteger("overDate");
-        ApiAssert.notNull(overDate, "必填参数overDate缺失");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        // 根据天数计算时间
-        Date end = new Date();
-        Calendar cld = Calendar.getInstance();
-        cld.setTime(new Date());
-        cld.add(Calendar.DAY_OF_MONTH, (~(overDate - 2)));
-
-        String startTime = sdf.format(cld.getTime());
-        String endTime = sdf.format(end);
-        List<Map<String, Object>> allUserInThisMaster =
-                userAccessService.getAllUserInThisMaster(
-                        masterIds, null, request, new PageParam(request), null);
-        List<Integer> user_id =
-                allUserInThisMaster.stream()
-                        .map(p -> (Integer) p.get("user_id"))
-                        .collect(Collectors.toList());
-        List<Integer> subjectIds = subjectService.getSubjectIds(masterId);
-        JSONObject jsonObject =
-                teacherDataService.getStudentBehaviorChartsData(
-                        user_id, subjectIds, masterId, startTime, endTime, message, this.getManager().getId());
-
-        return message.ok("查询成功").addData("studentBehaviorChartsData", jsonObject);
+    public Message homeUserBehaviorChartsData() {
+        return new Message().ok();
     }
 
     @ApiOperation(value = "关闭网站", httpMethod = "POST")

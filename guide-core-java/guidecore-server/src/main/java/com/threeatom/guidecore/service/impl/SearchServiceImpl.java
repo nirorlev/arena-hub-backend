@@ -3,13 +3,13 @@ package com.threeatom.guidecore.service.impl;
 import com.github.pagehelper.PageInfo;
 import com.threeatom.common.controller.Message;
 import com.threeatom.guidecore.dto.request.SearchDto;
-import com.threeatom.guidecore.entity.GcSubject;
+import com.threeatom.guidecore.entity.Course;
 import com.threeatom.guidecore.entity.GcUserSaveFolder;
 import com.threeatom.guidecore.entity.GcVideo;
 import com.threeatom.guidecore.entity.PortalUser;
 import com.threeatom.guidecore.entity.PtChannel;
 import com.threeatom.guidecore.enums.SearchType;
-import com.threeatom.guidecore.service.GcSubjectService;
+import com.threeatom.guidecore.service.CourseService;
 import com.threeatom.guidecore.service.GcUserSaveFolderService;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelService;
@@ -27,7 +27,7 @@ public class SearchServiceImpl implements SearchService {
 
     private final GcVideoService videoService;
     private final PtChannelService channelService;
-    private final GcSubjectService courseService;
+    private final CourseService courseService;
     private final GcUserSaveFolderService playlistService;
 
     @Override
@@ -93,7 +93,7 @@ public class SearchServiceImpl implements SearchService {
     private Message searchCoursesMessage(String searchName, PortalUser portalUser) {
         Message message = createMessageOk();
 
-        List<GcSubject> courses = searchCourses(searchName, portalUser);
+        List<Course> courses = searchCourses(searchName, portalUser);
         if (CollectionUtils.isEmpty(courses)) {
             return message.addData("subjectNullPage", new PageInfo<>(searchSuggestedCourses(portalUser)));
         }
@@ -129,11 +129,11 @@ public class SearchServiceImpl implements SearchService {
         return channelService.searchChannelVideos(searchName, portalUser);
     }
 
-    private List<GcSubject> searchCourses(String searchName, PortalUser portalUser) {
+    private List<Course> searchCourses(String searchName, PortalUser portalUser) {
         return courseService.searchCourses(searchName, portalUser);
     }
 
-    private List<GcSubject> searchSuggestedCourses(PortalUser portalUser) {
+    private List<Course> searchSuggestedCourses(PortalUser portalUser) {
         return courseService.searchSuggestedCourses(portalUser);
     }
 
