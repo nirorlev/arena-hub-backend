@@ -12,7 +12,11 @@ public interface FeedbackAverageService extends IService<FeedbackAverage> {
 
     FeedbackAverage createFeedbackAverage(FeedbackItemType itemType, Integer itemId, List<Feedback> feedbacks);
 
-    FeedbackAverage updateFeedbackAverage(FeedbackAverage feedbackAverage, int rating, int newCount);
+    FeedbackAverage addRatingToFeedbackAverage(FeedbackAverage feedbackAverage, int rating);
+
+    FeedbackAverage updateRatingInFeedbackAverage(FeedbackAverage feedbackAverage, int rating, int previousRating);
+
+    FeedbackAverage deleteRatingFromFeedbackAverage(FeedbackAverage feedbackAverage, int rating);
 
     Optional<FeedbackAverage> findByItemTypeAndId(FeedbackItemType itemType, Integer itemId);
 

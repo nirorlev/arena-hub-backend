@@ -33,18 +33,35 @@ public class FeedbackAverageServiceImpl extends ServiceImpl<FeedbackAverageMappe
         return feedbackAverage;
     }
 
-    @Transactional
     @Override
-    public FeedbackAverage updateFeedbackAverage(FeedbackAverage feedbackAverage, int rating, int newCount) {
-        if (newCount == 0) {
+    public FeedbackAverage addRatingToFeedbackAverage(FeedbackAverage feedbackAverage, int rating) {
+        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
+        return updateFeedbackAverage(feedbackAverage, feedbacksCount, rating, feedbacksCount + 1);
+    }
+
+    @Override
+    public FeedbackAverage updateRatingInFeedbackAverage(FeedbackAverage feedbackAverage, int rating,
+                                                         int previousRating) {
+        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
+        return updateFeedbackAverage(feedbackAverage, feedbacksCount, -previousRating + rating, feedbacksCount);
+    }
+
+    @Override
+    public FeedbackAverage deleteRatingFromFeedbackAverage(FeedbackAverage feedbackAverage, int rating) {
+        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
+        if (feedbacksCount == 1) {
             removeById(feedbackAverage.getId());
             return null;
         }
 
-        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
+        return updateFeedbackAverage(feedbackAverage, feedbacksCount, rating, feedbacksCount - 1);
+    }
+
+    private FeedbackAverage updateFeedbackAverage(FeedbackAverage feedbackAverage, Integer feedbacksCount, int rating,
+                                                  int newFeedbacksCount) {
         feedbackAverage.setAverageRating(
-            recalculateAverage(feedbackAverage.getAverageRating(), feedbacksCount, rating, newCount));
-        feedbackAverage.setFeedbacksCount(newCount);
+            recalculateAverage(feedbackAverage.getAverageRating(), feedbacksCount, rating, newFeedbacksCount));
+        feedbackAverage.setFeedbacksCount(newFeedbacksCount);
         feedbackAverage.setUpdatedTime(OffsetDateTime.now());
 
         updateById(feedbackAverage);

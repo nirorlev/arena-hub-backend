@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FeedbackAverageDto extends FeedbackDto {
-    private Double averageRating;
-    private Integer feedbacksCount;
+    private double averageRating;
+    private int feedbacksCount;
 }

@@ -18,6 +18,7 @@ import com.threeatom.guidecore.mapping.UserMapping;
 import com.threeatom.guidecore.service.FeedbackAverageService;
 import com.threeatom.guidecore.service.FeedbackService;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,9 +70,11 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     @Transactional
     public FeedbackAverageDto updateFeedback(Feedback feedback,
                                              com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+        Integer previousRating = feedback.getRating();
         feedbackMapping.mapUpdate(feedback, feedbackDto);
         updateById(feedback);
-        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, feedback.getRating());
+
+        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, previousRating);
         return feedbackMapping.map(feedback, feedbackAverage);
     }
 
@@ -109,7 +112,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     public FeedbackAverageDto deleteFeedback(Feedback feedback) {
         removeById(feedback.getId());
 
-        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, -feedback.getRating());
+        FeedbackAverage feedbackAverage = deleteFromFeedbackAverage(feedback);
         if (feedbackAverage == null) {
             return new FeedbackAverageDto();
         }
@@ -121,10 +124,11 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     @Transactional
     public FeedbackAverageDto patchFeedback(Feedback feedback,
                                             com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+        int previousRating = feedback.getRating();
         feedbackMapping.mapPatch(feedback, feedbackDto);
         updateById(feedback);
 
-        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, feedback.getRating());
+        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, previousRating);
         return feedbackMapping.map(feedback, feedbackAverage);
     }
 
@@ -147,19 +151,25 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         Optional<FeedbackAverage> feedbackAverageOptional =
             feedbackAverageService.findByItemTypeAndId(itemType, itemId);
         if (feedbackAverageOptional.isEmpty()) {
-            return feedbackAverageService.createFeedbackAverage(itemType, itemId, existingFeedbacks);
+            List<Feedback> allFeedbacks = new ArrayList<>(existingFeedbacks);
+            allFeedbacks.add(feedback);
+            return feedbackAverageService.createFeedbackAverage(itemType, itemId, allFeedbacks);
         }
 
         FeedbackAverage feedbackAverage = feedbackAverageOptional.get();
-        return feedbackAverageService.updateFeedbackAverage(feedbackAverage, feedback.getRating(),
-            feedbackAverage.getFeedbacksCount() + 1);
+        return feedbackAverageService.addRatingToFeedbackAverage(feedbackAverage, feedback.getRating());
     }
 
-    private FeedbackAverage updateFeedbackAverage(Feedback feedback, Integer rating) {
+    private FeedbackAverage updateFeedbackAverage(Feedback feedback, int previousRating) {
         FeedbackAverage feedbackAverage =
             feedbackAverageService.getByItemTypeAndId(feedback.getItemType(), feedback.getItemId());
-        Integer feedbacksCount = feedbackAverage.getFeedbacksCount();
-        return feedbackAverageService.updateFeedbackAverage(feedbackAverage, rating, feedbacksCount);
+        return feedbackAverageService.updateRatingInFeedbackAverage(feedbackAverage, feedback.getRating(), previousRating);
+    }
+
+    private FeedbackAverage deleteFromFeedbackAverage(Feedback feedback) {
+        FeedbackAverage feedbackAverage =
+            feedbackAverageService.getByItemTypeAndId(feedback.getItemType(), feedback.getItemId());
+        return feedbackAverageService.deleteRatingFromFeedbackAverage(feedbackAverage, feedback.getRating());
     }
 
     private Optional<Feedback> findById(Long id) {
