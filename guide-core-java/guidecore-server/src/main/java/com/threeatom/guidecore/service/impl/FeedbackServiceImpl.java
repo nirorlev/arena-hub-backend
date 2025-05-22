@@ -3,6 +3,7 @@ package com.threeatom.guidecore.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.threeatom.common.exception.ResourceNotFoundException;
+import com.threeatom.guidecore.dto.request.FeedbackDto;
 import com.threeatom.guidecore.dto.response.FeedbackAverageDto;
 import com.threeatom.guidecore.dto.response.FeedbackSummaryDto;
 import com.threeatom.guidecore.dto.response.FeedbacksDto;
@@ -55,7 +56,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
             return feedbackMapping.map(feedback, feedbackAverage);
         }
 
-        return patchFeedback(userExistingFeedback.get(), feedbackDto);
+        return patchFeedback(userExistingFeedback.get(), feedbackDto, portalUser);
     }
 
     @Override
@@ -74,8 +75,7 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         feedbackMapping.mapUpdate(feedback, feedbackDto);
         updateById(feedback);
 
-        FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, previousRating);
-        return feedbackMapping.map(feedback, feedbackAverage);
+        return createOrUpdateFeedbackAverage(feedback, previousRating);
     }
 
     @Override
@@ -123,10 +123,26 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     @Override
     @Transactional
     public FeedbackAverageDto patchFeedback(Feedback feedback,
-                                            com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto) {
+                                            FeedbackDto feedbackDto, PortalUser portalUser) {
         int previousRating = feedback.getRating();
         feedbackMapping.mapPatch(feedback, feedbackDto);
         updateById(feedback);
+
+        return createOrUpdateFeedbackAverage(feedback, previousRating);
+    }
+
+    private FeedbackAverageDto createOrUpdateFeedbackAverage(Feedback feedback, int previousRating) {
+        FeedbackItemType itemType = feedback.getItemType();
+        Integer itemId = feedback.getItemId();
+        Optional<FeedbackAverage> feedbackAverageOptional =
+            feedbackAverageService.findByItemTypeAndId(itemType, itemId);
+
+        if (feedbackAverageOptional.isEmpty()) {
+            List<Feedback> existingFeedbacks = findByItemTypeAndId(itemType, itemId);
+            FeedbackAverage feedbackAverage =
+                feedbackAverageService.createFeedbackAverage(itemType, itemId, existingFeedbacks);
+            return feedbackMapping.map(feedback, feedbackAverage);
+        }
 
         FeedbackAverage feedbackAverage = updateFeedbackAverage(feedback, previousRating);
         return feedbackMapping.map(feedback, feedbackAverage);
@@ -163,7 +179,8 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
     private FeedbackAverage updateFeedbackAverage(Feedback feedback, int previousRating) {
         FeedbackAverage feedbackAverage =
             feedbackAverageService.getByItemTypeAndId(feedback.getItemType(), feedback.getItemId());
-        return feedbackAverageService.updateRatingInFeedbackAverage(feedbackAverage, feedback.getRating(), previousRating);
+        return feedbackAverageService.updateRatingInFeedbackAverage(feedbackAverage, feedback.getRating(),
+            previousRating);
     }
 
     private FeedbackAverage deleteFromFeedbackAverage(Feedback feedback) {

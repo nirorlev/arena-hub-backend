@@ -92,7 +92,7 @@ public class FeedbackFacadeImpl implements FeedbackFacade {
         validateOwnership(portalUser, feedback);
 
         validatePermission(feedback.getItemType(), feedback.getItemId(), portalUser, PermitAction.RATE);
-        return feedbackService.patchFeedback(feedback, feedbackDto);
+        return feedbackService.patchFeedback(feedback, feedbackDto, portalUser);
     }
 
     private void validatePermission(FeedbackItemType itemType, Integer itemId, PortalUser portalUser,

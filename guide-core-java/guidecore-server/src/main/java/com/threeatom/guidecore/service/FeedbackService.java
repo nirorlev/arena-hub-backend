@@ -26,5 +26,5 @@ public interface FeedbackService extends IService<Feedback> {
 
     FeedbackAverageDto deleteFeedback(Feedback feedback);
 
-    FeedbackAverageDto patchFeedback(Feedback feedback, FeedbackDto feedbackDto);
+    FeedbackAverageDto patchFeedback(Feedback feedback, FeedbackDto feedbackDto, PortalUser portalUser);
 }
