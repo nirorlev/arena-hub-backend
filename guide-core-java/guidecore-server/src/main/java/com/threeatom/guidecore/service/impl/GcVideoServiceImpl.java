@@ -46,7 +46,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -960,85 +959,6 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		return videos;
 	}
 
-	@Override
-	public SysFile unifiedFileSave(JSONObject jsonObject) {
-		//添加到数据库中
-				SysFile fileEntity=new SysFile();
-				fileEntity.setSysId(jsonObject.getInteger("sysId"));
-				fileEntity.setFolder(jsonObject.getString("folder"));
-				fileEntity.setFileUrl(jsonObject.getString("object"));
-				fileEntity.setUploadUid(jsonObject.getInteger("uploaderId"));
-				fileEntity.setName(jsonObject.getString("originName"));
-				fileEntity.setSaveType(jsonObject.getInteger("saveType"));
-				fileEntity.setFileType(jsonObject.getString("mimeType"));
-				fileEntity.setSize(jsonObject.getString("size"));
-				fileEntity.setFileTypeIndex(jsonObject.getInteger("fileTypeIndex"));
-				fileEntity.setThumbNailId(jsonObject.getInteger("thumbNailId"));
-				if(jsonObject.getInteger("masterId")!=null) {
-					fileEntity.setMasterId(jsonObject.getInteger("masterId"));
-				}
-				if(jsonObject.getInteger("userRole")!=null) {
-					fileEntity.setUserRole(jsonObject.getInteger("userRole"));
-				}
-
-				if(jsonObject.getInteger("videoLong")!=null){
-					fileEntity.setVideoLong(jsonObject.getInteger("videoLong"));
-				}
-				if (jsonObject.getString("description")!=null){
-					fileEntity.setDescription(jsonObject.getString("description"));
-				}
-				if (null!=jsonObject.getString("uuid")){
-					fileEntity.setUuid(jsonObject.getString("uuid"));
-				}
-				String md5="";
-				if(jsonObject.getString("etag")!=null)
-					md5=jsonObject.getString("etag");
-				fileEntity.setMd5(md5);
-				//批量上传添加标签
-				String tag=jsonObject.getString("tag");
-				if(StringUtils.isNotBlank(tag)) {
-					fileEntity.getFileRemark().add(tag);
-				}
-				fileService.save(fileEntity);
-				return fileEntity;
-	}
-
-
-	@Transactional
-	@Override
-	public GcVideo callbackSaveVideo(JSONObject jsonObject) {
-		//添加到数据库中
-		SysFile fileEntity=this.unifiedFileSave(jsonObject);
-
-		GcVideo video=new GcVideo();
-
-		video.setVideoName(jsonObject.getString("videoName"));
-		video.setVideoDesc(jsonObject.getString("videoDesc"));
-		video.setFileId(fileEntity.getId());
-		video.setVideoFile(fileEntity);
-		video.setVideoSource(jsonObject.getInteger("videoSource"));
-		video.setSubId(jsonObject.getInteger("subId"));
-		if(jsonObject.getInteger("id") != null)
-			video.setId(jsonObject.getInteger("id"));
-		this.saveOrUpdate(video);
-		return video;
-	}
-
-
-	@Transactional
-	@Override
-	public GcMaster callbackSaveMasterVideo(JSONObject jsonObject) {
-		//添加到数据库中
-		SysFile fileEntity=this.unifiedFileSave(jsonObject);
-
-		GcMaster gcMaster = gcMasterService.getById(jsonObject.getInteger("masterId"));
-		if(gcMaster!=null) {
-			gcMaster.setIntroVideoId(fileEntity.getId());
-			gcMaster.setIntroVideoFile(fileEntity);
-			gcMasterService.saveOrUpdate(gcMaster);
-		}
-		return gcMaster;
-	}
 
 	@Override
 	public Integer getSubIdByVid(Integer vid) {

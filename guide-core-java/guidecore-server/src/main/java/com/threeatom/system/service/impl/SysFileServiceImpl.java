@@ -20,7 +20,6 @@ import com.threeatom.guidecore.service.impl.PowtoonVideoProviderService;
 import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
-import com.threeatom.system.entity.SysUser;
 import com.threeatom.system.mapper.SysFileMapper;
 import com.threeatom.system.service.SysFileService;
 import com.threeatom.system.service.SysSystemService;
@@ -179,29 +178,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
             var7.printStackTrace();
             return "";
         }
-    }
-
-    public SysFile saveSysImg(SysUser user, MultipartFile file) {
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename().trim();
-        InputStream is = null;
-
-        try {
-            is = file.getInputStream();
-        } catch (IOException var7) {
-            var7.printStackTrace();
-        }
-
-        String url = this.saveSysFileToProfile("images", fileName, is);
-        SysFile fileEntity = new SysFile();
-        fileEntity.setSysId(user.getSysId());
-        fileEntity.setFolder("images");
-        fileEntity.setFileUrl(url);
-        fileEntity.setUploadUid(user.getId());
-        fileEntity.setName(file.getOriginalFilename());
-        fileEntity.setSaveType(FILE_SAVE_TYPE);
-        fileEntity.setFileType(file.getContentType());
-        this.save(fileEntity);
-        return fileEntity;
     }
 
     public SysFile saveSysImg(Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file) {
@@ -590,27 +566,6 @@ public class SysFileServiceImpl extends ServiceImpl<SysFileMapper, SysFile> impl
                 break;
         }
         return videoSnapshotUrl;
-    }
-
-    public SysFile saveWxImgUrl(Integer uploaderId, SysSystem sys, String folder, Integer saveType, String url) {
-        String fileName = UUID.randomUUID() + ".png";
-        String objectName = folder + File.separator + fileName;
-        AliyunOssService ossService = this.getCurrentOssService(sys);
-        switch (saveType) {
-            case DISK_SAVE_TYPE:
-                url = ossService.uploadNetObject(ossService.getCurrentBucketName(), objectName, url);
-            default:
-                SysFile fileEntity = new SysFile();
-                fileEntity.setSysId(sys.getId());
-                fileEntity.setFolder(folder);
-                fileEntity.setFileUrl(url);
-                fileEntity.setUploadUid(uploaderId);
-                fileEntity.setName(fileName);
-                fileEntity.setSaveType(saveType);
-                fileEntity.setFileType("image/png");
-                this.save(fileEntity);
-                return fileEntity;
-        }
     }
 
     public JSONObject saveFilePolicyMD5(Integer uploaderId, SysSystem sys, String folder, Integer saveType,

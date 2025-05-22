@@ -1,17 +1,11 @@
 package com.threeatom.guidecore.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
-import com.threeatom.common.ApiAssert;
-import com.threeatom.common.exception.SystemException;
-import com.threeatom.guidecore.constant.EventResType;
 import com.threeatom.guidecore.constant.TableConstant;
 import com.threeatom.guidecore.controller.user.vo.MessageFIlterVo;
 import com.threeatom.guidecore.controller.user.vo.PageParam;
-import com.threeatom.guidecore.entity.GcEvent;
-import com.threeatom.guidecore.entity.GcMasterMessage;
 import com.threeatom.guidecore.entity.GcUserEventResource;
 import com.threeatom.guidecore.mapper.GcUserEventResourceMapper;
 import com.threeatom.guidecore.service.GcEventService;
@@ -20,7 +14,6 @@ import com.threeatom.guidecore.service.GcUserAnswerService;
 import com.threeatom.guidecore.service.GcUserEventResourceService;
 import com.threeatom.guidecore.service.GcUserService;
 import com.threeatom.guidecore.service.GcVideoService;
-import com.threeatom.guidecore.util.I18NUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.entity.SysSystem;
 import com.threeatom.system.service.SysFileService;
@@ -201,80 +194,4 @@ public class GcUserEventResourceServiceImpl
         return this.baseMapper.selectUnCheckedStudentMessage(studentId, eventIds, userId, masterId);
     }
 
-    // OSS 回调用
-    @Override
-    public GcUserEventResource uploadEventResourceFile(JSONObject jsonObject) {
-        Integer eventId = jsonObject.getInteger("eventId");
-        Integer resType = jsonObject.getInteger("resType");
-        Integer targetId = jsonObject.getInteger("targetId");
-        Integer timeNode = jsonObject.getInteger("timeNode");
-        Integer targetUserId = jsonObject.getInteger("targetUserId");
-        Integer masterId = jsonObject.getInteger("masterId");
-        Integer userId = jsonObject.getInteger("userId");
-
-        ApiAssert.jsonValueIntegerIn(resType, EventResType.JSON_STR, "请填写" + EventResType.JSON_STR);
-        // 获取事件
-        GcEvent event = eventService.getById(eventId);
-        if (event == null) throw new SystemException(I18NUtil.get("event.empty"));
-
-        GcUserEventResource userEventResource = new GcUserEventResource();
-
-        SysFile sysFile = videoService.unifiedFileSave(jsonObject);
-
-        String sysIds = env.getProperty("systemId");
-        int sysId = Integer.parseInt(sysIds);
-        SysSystem sys = systemService.getSystemById(sysId);
-
-        sysFileService.getResFullUrlSaveType2(sysFile);
-
-        // 保存事件内容
-        userEventResource.setFileId(sysFile.getId());
-        userEventResource.setResFile(sysFile);
-        userEventResource.setUserId(userId);
-        userEventResource.setTargetUserId(targetUserId);
-        userEventResource.setTargetId(targetId);
-        userEventResource.setTimeNode(timeNode == null ? -1 : timeNode);
-        userEventResource.setType(resType);
-        userEventResource.setEventId(eventId);
-
-        if (targetId != null && targetId > 0) {
-            GcUserEventResource eventResource = this.getById(targetId);
-            userEventResource.setTargetUserId(eventResource.getUserId());
-        }
-
-        if (resType.equals(EventResType.VIDEO_2))
-            userEventResource.setSnapshotUrl(
-                    sysFileService.getVideoSnapshotUrl(userEventResource.getResFile()));
-        if (!this.saveEventAction(userEventResource)) throw new SystemException("上传失败");
-
-        // 系统通知
-
-        if (targetUserId == null) {
-            List<GcMasterMessage> masterMessageList = new ArrayList<>();
-            List<Integer> sendIds = userService.getTalkerIds(userId, masterId);
-            if (sendIds.size() > 0) {
-                for (Integer sendId : sendIds) {
-                    GcMasterMessage masterMessage = new GcMasterMessage();
-                    masterMessage.setEventType(resType);
-                    masterMessage.setMasterId(masterId);
-                    masterMessage.setUserId(userId);
-                    masterMessage.setTargetUserId(sendId);
-                    masterMessage.setResId(userEventResource.getId());
-                    masterMessageList.add(masterMessage);
-                }
-                masterMessageService.saveBatchMasterMessage(masterMessageList);
-            }
-        } else {
-            // 发送事件通知
-            GcMasterMessage masterMessage = new GcMasterMessage();
-            masterMessage.setEventType(resType);
-            masterMessage.setMasterId(masterId);
-            masterMessage.setUserId(userId);
-            masterMessage.setTargetUserId(targetUserId);
-            masterMessage.setResId(userEventResource.getId());
-            masterMessageService.saveMasterMessage(masterMessage);
-        }
-
-        return userEventResource;
-    }
 }
