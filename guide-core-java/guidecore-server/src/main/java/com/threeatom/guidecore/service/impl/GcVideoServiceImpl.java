@@ -175,11 +175,15 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public boolean deleteVideo(Integer vid) {
+	public void deleteVideo(Integer vid) {
 		//删除视频,先删除视频下面的所有的事件
 		eventService.deleteEventByVid(vid);
 
-		return this.removeById(vid);
+		Optional.ofNullable(this.getById(vid))
+			.ifPresent(video -> {
+				video.setIsDeleted(true);
+				this.updateById(video);
+			});
 	}
 
 	@Override

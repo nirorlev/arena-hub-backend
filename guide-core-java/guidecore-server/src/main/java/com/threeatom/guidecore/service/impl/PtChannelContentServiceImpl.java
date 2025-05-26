@@ -45,7 +45,10 @@ public class PtChannelContentServiceImpl
         QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<PtChannelContent>();
         queryWrapper.eq("file_id", fileId);
         queryWrapper.eq("channel_id", channelId);
-        return this.remove(queryWrapper);
+
+        PtChannelContent content = getOne(queryWrapper);
+        videoService.deleteVideo(content.getContentId());
+        return removeById(content.getId());
     }
 
     public List<SysFile> selectVideosInChannel(

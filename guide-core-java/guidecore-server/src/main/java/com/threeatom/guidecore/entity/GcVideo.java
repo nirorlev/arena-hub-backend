@@ -77,6 +77,8 @@ public class GcVideo implements Serializable {
 
     private String thumbnailUrl;
 
+    private Boolean isDeleted;
+
     @ApiModelProperty(value = "视频完整链接")
     @TableField(exist = false)
     private String videoFullUrl;
