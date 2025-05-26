@@ -1,6 +1,6 @@
 package com.threeatom.guidecore.controller.api;
 
-import com.threeatom.guidecore.dto.response.FeedbackDto;
+import com.threeatom.guidecore.dto.response.FeedbackAverageDto;
 import com.threeatom.guidecore.dto.response.FeedbacksDto;
 import com.threeatom.guidecore.entity.GcUser;
 import com.threeatom.guidecore.entity.PortalUser;
@@ -38,7 +38,7 @@ public class FeedbackController {
     private final PortalUserService portalUserService;
 
     @PostMapping("/{itemType}/{itemId}")
-    public ResponseEntity<FeedbackDto> createOrUpdateFeedback(@PathVariable FeedbackItemType itemType,
+    public ResponseEntity<FeedbackAverageDto> createOrUpdateFeedback(@PathVariable FeedbackItemType itemType,
                                                               @PathVariable Integer itemId,
                                                               @RequestBody @Valid
                                                               com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
@@ -48,25 +48,25 @@ public class FeedbackController {
     }
 
     @PutMapping("/{feedbackId}")
-    public ResponseEntity<FeedbackDto> updateFeedback(@PathVariable Long feedbackId,
-                                                      @RequestBody @Valid
-                                                      com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                                      HttpServletRequest request) {
+    public ResponseEntity<FeedbackAverageDto> updateFeedback(@PathVariable Long feedbackId,
+                                                             @RequestBody @Valid
+                                                             com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                             HttpServletRequest request) {
         return ResponseEntity.ok(feedbackFacade.updateFeedback(feedbackId, feedbackDto, getPortalUser(request)));
     }
 
     @PatchMapping("/{feedbackId}")
-    public ResponseEntity<FeedbackDto> patchFeedback(@PathVariable Long feedbackId,
-                                                     @RequestBody
-                                                     com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
-                                                     HttpServletRequest request) {
+    public ResponseEntity<FeedbackAverageDto> patchFeedback(@PathVariable Long feedbackId,
+                                                            @RequestBody
+                                                            com.threeatom.guidecore.dto.request.FeedbackDto feedbackDto,
+                                                            HttpServletRequest request) {
         return ResponseEntity.ok(feedbackFacade.patchFeedback(feedbackId, feedbackDto, getPortalUser(request)));
     }
 
     @DeleteMapping("/{feedbackId}")
-    public ResponseEntity<Void> deleteFeedback(@PathVariable Long feedbackId, HttpServletRequest request) {
-        feedbackFacade.deleteFeedback(feedbackId, getPortalUser(request));
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<FeedbackAverageDto> deleteFeedback(@PathVariable Long feedbackId,
+                                                             HttpServletRequest request) {
+        return ResponseEntity.ok(feedbackFacade.deleteFeedback(feedbackId, getPortalUser(request)));
     }
 
     @GetMapping
