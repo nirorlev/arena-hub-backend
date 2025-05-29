@@ -1403,4 +1403,12 @@
                              constraintName="unique_item_type_item_id"/>
     </changeSet>
 
+    <changeSet id="create-course-feedback-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="teamsScreensEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling teams page and related things"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
