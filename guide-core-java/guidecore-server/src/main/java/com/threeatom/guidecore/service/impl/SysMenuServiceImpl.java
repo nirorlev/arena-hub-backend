@@ -29,7 +29,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         Map.of(
             "Insights", "analyticsEnabled",
             "admin-course", "coursesEnabled",
-            "Home", "homepageMenuEnabled"
+            "Home", "homepageMenuEnabled",
+            "ContentGroups", "teamsScreensEnabled"
         );
     private static final Map<String, PortalAction> MENU_ITEM_TO_PORTAL_ACTION = Map.of(
         "Insights", PortalAction.ACCESS_ANALYTICS
