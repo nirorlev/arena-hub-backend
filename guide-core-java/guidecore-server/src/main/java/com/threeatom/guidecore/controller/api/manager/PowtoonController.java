@@ -1686,7 +1686,6 @@ public class PowtoonController extends GuideCoreController {
         if (null != course.getMoveDrafts() && course.getMoveDrafts().equals(CoursePublishState.PRIVATE.getValue())) {
             course = courseService.getById(course.getId());
             course.setState(CoursePublishState.PRIVATE.getValue());
-            gcAccessService.deleteSubIdAccess(portalUser.getMasterId(), course.getId());
         }
         if (CoursePublishState.CERTAIN_TEAMS.getValue().equals(course.getState())) {
             contentGroupCourseAssignmentService.save(user, course, CourseType.MANDATORY);

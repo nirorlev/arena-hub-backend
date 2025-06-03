@@ -152,11 +152,6 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void removeByMasterAndCourseId(Integer masterId, Integer courseId) {
-        this.baseMapper.removeByMasterAndCourseId(masterId, courseId);
-    }
-
-    @Override
     public List<Integer> getMustCoursesContentGroupAssignmentIds(Integer userId, Integer masterId) {
         List<GcContentGroupCourseAssignment> contentGroupCourseAssignments =
             this.baseMapper.getCoursesContentGroupAssignmentByUserAndMasterId(userId, masterId);

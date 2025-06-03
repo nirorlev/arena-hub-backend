@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 @Service
 public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
@@ -108,17 +107,6 @@ public class GcAccessServiceImpl extends ServiceImpl<GcAccessMapper, GcAccess>
     @Override
     public List<GcAccess> selectAccessBySubId(Integer subId, Integer masterId) {
         return this.baseMapper.selectAccessBySubId(subId, masterId);
-    }
-
-    @Override
-    public void deleteSubIdAccess(Integer masterId, Integer subId) {
-        List<GcAccess> accessList = this.selectAccessBySubId(subId, masterId);
-        if (CollectionUtils.isEmpty(accessList)) {
-            return;
-        }
-
-        contentGroupCourseAssignmentService.removeByMasterAndCourseId(masterId, subId);
-        this.insertOrUpdateList(accessList);
     }
 
     @Override

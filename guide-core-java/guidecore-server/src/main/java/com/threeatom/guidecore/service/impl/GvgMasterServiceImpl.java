@@ -1192,8 +1192,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 	public Message deleteSub(Integer subId, Integer envFlag, GcMaster master, Integer userId) {
 		if (envFlag == EnvType.GC.getCode()) {
-			courseAssignmentService.removeByMasterAndCourseId(master.getId(), subId);
-
 			if (subService.deleteSub(subId, master.getId())) {
 				return new Message().ok();
 			}
@@ -1202,8 +1200,6 @@ public class GvgMasterServiceImpl extends ServiceImpl<GcMasterMapper, GcMaster> 
 
 		if (envFlag == EnvType.PT.getCode()) {
 			subService.deleteSub(subId, master.getId());
-			courseAssignmentService.removeByMasterAndCourseId(master.getId(), subId);
-
 			return new Message().ok();
 		}
 		return new Message().error("删除失败");

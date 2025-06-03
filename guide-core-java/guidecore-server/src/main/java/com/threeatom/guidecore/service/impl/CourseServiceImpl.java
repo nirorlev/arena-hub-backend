@@ -904,24 +904,9 @@ public class CourseServiceImpl extends ServiceImpl<CoursetMapper, Course> implem
             //删除ResultList中的Subject下面的视频
             videoService.deleteVideoBySubIds(subIds);
             return this.removeByIds(subIds);
-        } else {
-            if (gcSubjectAssociationMapper.deleteGcSubjectAssociation(subId, masterId) > 0) {
-                return this.deleteSubAccessInJson(subId, masterId);
-            }
-
-            return false;
         }
 
-    }
-
-    public boolean deleteSubAccessInJson(int subId, int masterId) {
-        List<GcAccess> gcAccessList = gcAccessMapper.listContainsSub(masterId, subId);
-        if (CollectionUtils.isEmpty(gcAccessList)) {
-            return true;
-        }
-
-        courseAssignmentService.removeByMasterAndCourseId(masterId, subId);
-        return gcAccessService.updateBatchById(gcAccessList);
+        return true;
     }
 
     @Override

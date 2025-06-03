@@ -92,8 +92,6 @@ public interface GcAccessService extends IService<GcAccess> {
 
     List<GcAccess> selectAccessBySubId(Integer subId, Integer masterId);
 
-    void deleteSubIdAccess(Integer masterId, Integer subId);
-
     List<GcAccess> getAllAccessByMasterId(Integer masterId);
 
     List<GcAccess> selectAccessLevel0(Integer masterId, Integer userId);
