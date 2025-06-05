@@ -39,7 +39,9 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     boolean saveVideo(GcVideo video);
 
-    void deleteVideo(Integer vid);
+    void deleteVideo(Integer videoId);
+
+    void deleteVideos(List<Integer> videoIds);
 
     boolean deleteVideoBySubIds(List<Integer> subIds);
 

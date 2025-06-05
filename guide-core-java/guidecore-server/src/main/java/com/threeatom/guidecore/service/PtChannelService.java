@@ -86,5 +86,7 @@ public interface PtChannelService extends IService<PtChannel> {
 
     List<PtChannel> searchSuggestedChannels(PortalUser portalUser);
 
+    void delete(Integer id);
+
     ChannelDto getChannel(Integer channelId, PortalUser portalUser);
 }

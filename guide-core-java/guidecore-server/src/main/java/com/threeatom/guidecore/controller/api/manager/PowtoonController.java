@@ -2059,11 +2059,8 @@ public class PowtoonController extends GuideCoreController {
         }
 
         eventPublisherService.publishChannelUpdated(channel.getId());
-        if (ptChannelService.removeById(channel.getId())) {
-            return message.ok("success");
-        }
-
-        return message.error();
+        ptChannelService.delete(channel.getId());
+        return message.ok();
     }
 
     @ApiOperation(value = "查询categorylist", notes = "查询categorylist", httpMethod = "GET")
@@ -2327,12 +2324,10 @@ public class PowtoonController extends GuideCoreController {
         if (!authorizationService.checkAccess(channel, PermitAction.DELETE, portalUser)) {
             throw new PermitException("No permission for this!");
         }
-        if (ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId())) {
-            return new Message().ok("success");
-        }
+        ptChannelContentService.deleteContent(ptChannelContent.getFileId(), ptChannelContent.getChannelId());
 
         eventPublisherService.publishChannelUpdated(channel.getId());
-        return new Message().error();
+        return new Message().ok("success");
     }
 
     @ApiOperation(value = "Video details page")

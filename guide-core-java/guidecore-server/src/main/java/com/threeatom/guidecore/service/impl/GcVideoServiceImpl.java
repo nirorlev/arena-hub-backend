@@ -188,6 +188,18 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
+	public void deleteVideos(List<Integer> videoIds) {
+		eventService.deleteEventByVids(videoIds);
+
+		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
+		queryWrapper.in("id", videoIds);
+		GcVideo video = new GcVideo();
+		video.setIsDeleted(true);
+		this.update(video, queryWrapper);
+	}
+
+	@Override
+	@Transactional
 	public boolean deleteVideoBySubIds(List<Integer> subIds) {
 		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
 		queryWrapper.select("id").in("sub_id", subIds);

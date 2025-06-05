@@ -742,6 +742,19 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     }
 
     @Override
+    @Transactional
+    public void delete(Integer id) {
+        QueryWrapper<PtChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", id);
+
+        PtChannel channel = new PtChannel();
+        channel.setIsDeleted(true);
+
+        this.update(channel, queryWrapper);
+        channelContentService.deleteContent(id);
+    }
+
+    @Override
     public ChannelDto getChannel(Integer channelId, PortalUser portalUser) {
         PtChannel channel = getChannel(channelId);
         if (!authorizationService.checkAccess(channel, PermitAction.VIEW, portalUser)) {

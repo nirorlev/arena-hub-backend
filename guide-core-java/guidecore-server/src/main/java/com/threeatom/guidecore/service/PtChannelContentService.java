@@ -14,7 +14,9 @@ public interface PtChannelContentService extends IService<PtChannelContent> {
     List<SysFile> selectVideosInChannel(
         Integer channelId, String order, Integer videoFileId, HttpServletRequest request, Integer userId);
 
-    Boolean deleteContent(Integer videoId, Integer channelId);
+    void deleteContent(Integer videoId, Integer channelId);
+
+    void deleteContent(Integer channelId);
 
     List<PtChannelContent> selectContentExist(Integer channelId);
 

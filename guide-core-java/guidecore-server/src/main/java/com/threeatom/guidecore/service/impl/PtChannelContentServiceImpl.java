@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -41,14 +42,31 @@ public class PtChannelContentServiceImpl
     private GcVideoService videoService;
     private final AuthorizationService authorizationService;
 
-    public Boolean deleteContent(Integer fileId, Integer channelId) {
-        QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<PtChannelContent>();
-        queryWrapper.eq("file_id", fileId);
+    public void deleteContent(Integer fileId, Integer channelId) {
+        QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_id", fileId)
+            .eq("channel_id", channelId);
+
+        PtChannelContent content = this.getOne(queryWrapper);
+        videoService.deleteVideo(content.getContentId());
+        removeById(content.getId());
+    }
+
+    @Override
+    public void deleteContent(Integer channelId) {
+        QueryWrapper<PtChannelContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("channel_id", channelId);
 
-        PtChannelContent content = getOne(queryWrapper);
-        videoService.deleteVideo(content.getContentId());
-        return removeById(content.getId());
+        videoService.deleteVideos(getVideoIds(list(queryWrapper)));
+
+        remove(queryWrapper);
+    }
+
+    private List<Integer> getVideoIds(List<PtChannelContent> contents) {
+        return contents.stream()
+            .map(PtChannelContent::getContentId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     public List<SysFile> selectVideosInChannel(
