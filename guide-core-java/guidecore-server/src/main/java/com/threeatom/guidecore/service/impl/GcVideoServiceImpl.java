@@ -201,22 +201,21 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 	@Override
 	@Transactional
 	public boolean deleteVideoBySubIds(List<Integer> subIds) {
-		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
+		QueryWrapper<GcVideo> queryWrapper= new QueryWrapper<>();
 		queryWrapper.select("id").in("sub_id", subIds);
 
-		List<GcVideo> list= this.list(queryWrapper);
-		if(list.size()<1) {
+		List<GcVideo> list = this.list(queryWrapper);
+		if (list.isEmpty()) {
 			return true;
 		}
-		List<Integer> videoIds= getVideoIds(list);
-		LOGGER.info(videoIds.size()+"   "+list.size());
-		//批量删除视频下的事件
+
+		GcVideo video = new GcVideo();
+		video.setIsDeleted(true);
+
+		List<Integer> videoIds = getVideoIds(list);
 		eventService.deleteEventByVids(videoIds);
 
-		//批量删除视频下的资源
-
-
-		return this.remove(queryWrapper);
+		return this.update(video, queryWrapper);
 	}
 
 	@Override

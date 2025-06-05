@@ -64,6 +64,9 @@ public class Course implements Serializable, TreeNodeEntity {
     @TableField(value = "\"order\"")
     @EqualsAndHashCode.Include
     private Integer order;
+
+    private Boolean isDeleted;
+
     @EqualsAndHashCode.Include
     private Integer subImgId;
     @TableField(exist = false)
