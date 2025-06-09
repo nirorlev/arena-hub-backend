@@ -1459,6 +1459,7 @@ public class CourseServiceImpl extends ServiceImpl<CoursetMapper, Course> implem
         if (!authorizationService.checkAccess(course, PermitAction.VIEW, portalUser)) {
             throw new ForbiddenException("User has no access to the course");
         }
+        updateUrls(course);
 
         Map<String, Boolean> permissions = authorizationService.listPermissions(course, portalUser);
         List<CourseContent> courseContent = courseContentService.findCourseContent(courseId);
