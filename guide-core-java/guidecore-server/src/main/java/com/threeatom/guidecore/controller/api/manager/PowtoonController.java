@@ -605,7 +605,8 @@ public class PowtoonController extends GuideCoreController {
             }
         }
 
-        if (gcUserSaveContentService.saveOrUpdateBatch(userSaveContents)) {
+        if (!userSaveContents.isEmpty() && gcUserSaveContentService.saveOrUpdateBatch(userSaveContents)) {
+            gcUserSaveFolderService.updateLatestContentTime(gcUserSaveFolder.getFolderId());
             return new Message().ok("保存成功").addData("content", userSaveContents);
         }
 

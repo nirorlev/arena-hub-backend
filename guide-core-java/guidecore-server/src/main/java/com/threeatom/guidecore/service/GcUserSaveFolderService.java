@@ -58,4 +58,6 @@ public interface GcUserSaveFolderService extends IService<GcUserSaveFolder> {
     List<GcUserSaveFolder> searchPlaylists(String searchName, PortalUser portalUser);
 
     List<GcUserSaveFolder> searchSuggestedPlaylist(PortalUser portalUser);
+
+    void updateLatestContentTime(List<Integer> userSaveContents);
 }
