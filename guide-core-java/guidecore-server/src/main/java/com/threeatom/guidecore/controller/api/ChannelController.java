@@ -39,6 +39,16 @@ public class ChannelController {
     private final PortalUserService portalUserService;
     private final PtChannelContentService channelContentService;
 
+    @GetMapping("/{channelId}")
+    @ApiOperation(value = "Get a channel")
+    public ChannelDto getChannel(@PathVariable Integer channelId, HttpServletRequest request) {
+        Integer masterId = RequestUtil.getMasterId(request).orElseThrow();
+        GcUser currentUser = userService.getCurrentUser(request);
+        PortalUser portalUser = portalUserService.getByUserAndMasterId(currentUser.getId(), masterId);
+
+        return channelService.getChannel(channelId, portalUser);
+    }
+
     @GetMapping("/owned")
     @ApiOperation(value = "Get a list of channels owned by the current user")
     public List<ChannelWithDetailsDto> getOwned(HttpServletRequest request) {
