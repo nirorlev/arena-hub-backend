@@ -69,6 +69,7 @@ public class VideoProvidersController extends GuideCoreController{
 				List<Map<String,Object>> vidList = new ArrayList<>();
 				//分享链接
 				if(!url.contains("v=")){
+					url = url.replace("?feature=shared","");
 					int index = url.indexOf("youtu.be/");
 					String vid = url.substring(index,url.length()).substring("youtu.be/".length());
 					String playUrl = "https://www.youtube.com/embed/" + vid;

@@ -1375,4 +1375,40 @@
     <changeSet id="update-course-table-name" author="vprokh">
         <renameTable schemaName="arena_hub" oldTableName="gc_subject" newTableName="courses"/>
     </changeSet>
+
+    <changeSet id="create-feedbacks-average-table" author="vprokh">
+        <createTable tableName="feedbacks_average">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="item_type" type="VARCHAR(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_rating" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feedbacks_count" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="updated_time" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="feedbacks_average"
+                             columnNames="item_type, item_id"
+                             constraintName="unique_item_type_item_id"/>
+    </changeSet>
+
+    <changeSet id="create-teams-screens-feature-toggle" author="vprokh">
+        <insert tableName="feature_toggle">
+            <column name="name" value="teamsScreensEnabled"/>
+            <column name="description" value="Feature toggle for enabling or disabling teams page and related things"/>
+            <column name="value" value="false"/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>

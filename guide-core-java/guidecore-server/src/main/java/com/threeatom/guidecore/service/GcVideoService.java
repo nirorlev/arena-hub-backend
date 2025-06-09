@@ -45,15 +45,9 @@ public interface GcVideoService extends GcVideoServiceBll {
 
     int getVideoNum(Integer masterId, List<Integer> subIds, Integer managerId);
 
-    GcVideo callbackSaveVideo(JSONObject object);
-
     Integer getSubIdByVid(Integer vid);
 
     boolean changeVideoOrder(List<Integer> videoIds);
-
-    SysFile unifiedFileSave(JSONObject jsonObject);
-
-    GcMaster callbackSaveMasterVideo(JSONObject jsonObject);
 
     List<GcVideo> selectLikeVideoByUserId(Integer userId, Integer masterId);
 

@@ -17,8 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface SysFileService extends IService<SysFile> {
     String saveSysFileToProfile(String folder, String fileName, InputStream fileIs);
 
-    SysFile saveSysImg(SysUser user, MultipartFile file);
-
     SysFile saveSysImg(
         Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
 
@@ -26,9 +24,6 @@ public interface SysFileService extends IService<SysFile> {
 
     SysFile saveVedio(
         Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);
-
-    SysFile saveWxImgUrl(
-        Integer upInteger, SysSystem sys, String folder, Integer saveType, String url);
 
     SysFile saveRes(
         Integer uploaderId, SysSystem sys, String folder, Integer saveType, MultipartFile file);

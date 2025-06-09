@@ -790,7 +790,6 @@ public class HomeInfoController extends GuideCoreController {
             }
 
             if (Objects.isNull(videoContent.getVideoName())) {
-                sysFile.setName("");
                 videoContent.setVideoName("");
             }
             title = "\"" + videoContent.getVideoName() + "\"" + " in " + "\"" + channelName + "\"" + " courses";
@@ -1128,9 +1127,6 @@ public class HomeInfoController extends GuideCoreController {
         }
         if (Objects.isNull(gcUserSaveFolder.getName())) {
             gcUserSaveFolder.setName("");
-        }
-        if (Objects.isNull(sysFile.getName())) {
-            sysFile.setName("");
         }
         return metaHtml(title, description, fullFileUrl, host, request);
     }

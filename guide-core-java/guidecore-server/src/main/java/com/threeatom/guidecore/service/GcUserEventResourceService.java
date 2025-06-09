@@ -27,8 +27,6 @@ public interface GcUserEventResourceService extends IService<GcUserEventResource
     List<Map<String, Object>> getALLResourceListByEventIds(
             List<Integer> eventId, Integer studentId, Integer teacherId);
 
-    GcUserEventResource uploadEventResourceFile(JSONObject jsonObject);
-
     List<Map<String, Object>> getAnswerMessageListByGcMasterMessageTargetUserId(
             MessageFIlterVo messageFIlterVo, SysSystem sys, HttpServletRequest request);
 

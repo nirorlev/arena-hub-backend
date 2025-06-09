@@ -38,8 +38,6 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
 
     void removeCourseAssignmentsByCourseId(List<Integer> courseIds, Integer contentGroupId);
 
-    void removeByMasterAndCourseId(Integer masterId, Integer courseId);
-
     List<Integer> getMustCoursesContentGroupAssignmentIds(Integer userId, Integer masterId);
 
     List<Integer> getOptionalCoursesContentGroupAssignmentIds(Integer userId, Integer masterId);
