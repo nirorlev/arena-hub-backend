@@ -49,8 +49,8 @@ public class GroupController {
 
     @PostMapping("/{groupCode}/course-assignments")
     public ResponseEntity<GroupCourseAssignmentDto> assignCourse(@PathVariable("groupCode") String groupCode,
-                                             @RequestBody AssignCourseDto assignCourseDto,
-                                             HttpServletRequest request) {
+                                                                 @RequestBody AssignCourseDto assignCourseDto,
+                                                                 HttpServletRequest request) {
         GroupCourseAssignmentDto groupCourseAssignmentDto =
             groupFacade.assignCourseToGroup(groupCode, assignCourseDto, getPortalUser(request));
 
@@ -75,13 +75,15 @@ public class GroupController {
     }
 
     @PostMapping("/{groupCode}/channel-subscriptions")
-    public ResponseEntity<Void> assignCourse(@PathVariable("groupCode") String groupCode,
-                                             @RequestBody SubscribeChannelDto subscribeChannelDto,
-                                             HttpServletRequest request) {
+    public ResponseEntity<GroupChannelSubscriptionDto> assignCourse(@PathVariable("groupCode") String groupCode,
+                                                                    @RequestBody
+                                                                    SubscribeChannelDto subscribeChannelDto,
+                                                                    HttpServletRequest request) {
         PortalUser portalUser = getPortalUser(request);
-        groupFacade.subscribeChannelToGroup(groupCode, subscribeChannelDto, portalUser);
+        GroupChannelSubscriptionDto groupChannelSubscriptionDto =
+            groupFacade.subscribeChannelToGroup(groupCode, subscribeChannelDto, portalUser);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(groupChannelSubscriptionDto);
     }
 
     @DeleteMapping("/{groupCode}/channel-subscriptions/{channelId}")

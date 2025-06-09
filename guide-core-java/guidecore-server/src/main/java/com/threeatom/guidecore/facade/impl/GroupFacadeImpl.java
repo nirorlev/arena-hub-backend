@@ -79,15 +79,17 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto,
-                                        PortalUser portalUser) {
+    public GroupChannelSubscriptionDto subscribeChannelToGroup(String groupCode,
+                                                               SubscribeChannelDto subscribeChannelDto,
+                                                               PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
-        contentGroupOptional.ifPresent(
-            contentGroup -> {
-                checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
-                channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroup.getId(),
-                    subscribeChannelDto);
-            });
+        if (contentGroupOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Group corresponding content group with was not found");
+        }
+
+        checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
+        return channelSubscriptionService.subscribeOrUpdateChannels(portalUser, contentGroupOptional.get().getId(),
+            subscribeChannelDto);
     }
 
     @Override

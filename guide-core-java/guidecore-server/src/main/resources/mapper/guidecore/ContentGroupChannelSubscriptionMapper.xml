@@ -92,4 +92,23 @@
 			AND cgcs.auto_subscribe = #{autoSubscribe}
 		</if>
 	</select>
+
+	<select id="getById" resultMap="baseResultMap">
+		SELECT
+            cgcs.id,
+            cgcs.auto_subscribe,
+            cgcs.created_date,
+            cgcs.modified_date,
+            <include refid="createdByUserColumns"/>,
+            <include refid="channelColumns"/>,
+            <include refid="contentGroupColumns"/>
+		FROM content_group_channel_subscription cgcs
+			JOIN pt_channel pc ON cgcs.channel_id = pc.id
+			JOIN gc_access a ON cgcs.content_group_id = a.id
+			JOIN gc_user u ON cgcs.created_by_user_id = u.id
+			JOIN gc_user_info ui ON u.info_id = ui.id
+			LEFT JOIN sys_file sfc ON sfc.id = pc.channel_img_file_id
+			LEFT JOIN sys_file sfui ON sfui.id = ui.avatar_file_id
+		WHERE cgcs.id = #{id}
+	</select>
 </mapper>

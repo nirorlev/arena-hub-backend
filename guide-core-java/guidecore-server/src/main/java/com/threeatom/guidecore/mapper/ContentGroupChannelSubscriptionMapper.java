@@ -10,4 +10,6 @@ public interface ContentGroupChannelSubscriptionMapper extends BaseMapper<Conten
     List<ContentGroupChannelSubscription> findByContentGroupId(
         @Param("contentGroupId") Integer contentGroupId,
         @Param("autoSubscribe") Boolean autoSubscribe);
+
+    ContentGroupChannelSubscription getById(@Param("id") Integer id);
 }
