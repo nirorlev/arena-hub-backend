@@ -19,6 +19,7 @@ import com.threeatom.guidecore.facade.AnalyticsFacade;
 import com.threeatom.guidecore.mapping.VideoMapping;
 import com.threeatom.guidecore.util.RequestUtil;
 import com.threeatom.guidecore.util.stringWidthConvertUtil;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
@@ -1148,13 +1149,14 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 		video.setPlaylist(playlist);
 
-		return convertPlaylistVideo(videoId, playlistId, portalUser, video, playlistContent);
+		return convertPlaylistVideo(videoId, playlistId, portalUser, video, playlist.getLastContentUpdatedTime(), playlistContent);
 	}
 
 	private VideoWithSourceDetailsDto<VideoSourceDto> convertPlaylistVideo(Integer videoId,
 																		   Integer playlistId,
 																		   PortalUser portalUser,
 																		   GcVideo video,
+																		   OffsetDateTime lastContentUpdateTime,
 																		   GcUserSaveContent playlistContent) {
 		List<Integer> videoOriginSubscriberIds = getVideoOriginSubscriberIds(video, portalUser.getUserId());
 		List<GcUserSaveContent> videoContent = playlistService.findVideoContentByPlaylistId(playlistId);
@@ -1167,6 +1169,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
 		videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
 		videoWithDetails.getPlaylist().setSize(videoContent.size());
+		videoWithDetails.getPlaylist().setLastContentUpdateTime(lastContentUpdateTime);
 		return videoWithDetails;
 	}
 

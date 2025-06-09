@@ -23,6 +23,7 @@ public interface ChannelMapping {
     @Mapping(target = "avatarUrl", source = "avatarFullFileUrl")
     @Mapping(target = "backgroundUrl", source = "imgFullFileUrl")
     @Mapping(target = "totalSubscribers", source = "subscribeNum")
+    @Mapping(target = "lastContentUpdateTime", source = "lastContentUpdatedTime")
     ChannelWithDetailsDto map(PtChannel channel);
 
     @Mapping(target = "owner", source = "createUser")
