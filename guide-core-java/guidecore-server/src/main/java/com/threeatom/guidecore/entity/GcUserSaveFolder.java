@@ -10,7 +10,6 @@ import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -96,4 +95,7 @@ public class GcUserSaveFolder implements Serializable {
 
     @TableField(exist = false)
     private Integer videoSource;
+
+    @TableField(exist = false)
+    private OffsetDateTime lastContentUpdatedTime;
 }
