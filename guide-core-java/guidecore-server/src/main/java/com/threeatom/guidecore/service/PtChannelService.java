@@ -89,4 +89,6 @@ public interface PtChannelService extends IService<PtChannel> {
     void delete(Integer id);
 
     ChannelDto getChannel(Integer channelId, PortalUser portalUser);
+
+    void updateLastContentUpdateTime(Integer channelId);
 }

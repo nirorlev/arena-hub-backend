@@ -43,6 +43,7 @@ import com.threeatom.guidecore.service.PtTagsService;
 import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -772,6 +773,14 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
         }
 
         return channel;
+    }
+
+    @Override
+    @Transactional
+    public void updateLastContentUpdateTime(Integer channelId) {
+        PtChannel channel = getChannel(channelId);
+        channel.setLastContentUpdatedTime(OffsetDateTime.now());
+        this.updateById(channel);
     }
 
     private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {
