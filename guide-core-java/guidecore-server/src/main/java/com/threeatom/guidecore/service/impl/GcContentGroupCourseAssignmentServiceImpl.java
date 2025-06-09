@@ -13,8 +13,8 @@ import com.threeatom.guidecore.enums.CourseType;
 import com.threeatom.guidecore.enums.UserGroupRole;
 import com.threeatom.guidecore.mapper.GcContentGroupCourseAssignmentMapper;
 import com.threeatom.guidecore.mapping.GcContentGroupCourseAssignmentMapping;
-import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import com.threeatom.guidecore.service.CourseService;
+import com.threeatom.guidecore.service.GcContentGroupCourseAssignmentService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,24 +85,29 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignCourse(AssignCourseDto assignCourseDto, Integer userId) {
+    @Transactional
+    public GcContentGroupCourseAssignment assignCourse(AssignCourseDto assignCourseDto, Integer userId) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
             gcContentGroupCourseAssignmentMapping.map(assignCourseDto, userId);
 
         save(contentGroupCourseAssignment);
+        return contentGroupCourseAssignment;
     }
 
     @Override
-    public void assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
+    public GcContentGroupCourseAssignment assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto,
+                                                       Integer userId) {
         assignCourseDto.setContentGroupId(contentGroupId);
-        assignCourse(assignCourseDto, userId);
+        return assignCourse(assignCourseDto, userId);
     }
 
-    private void updateCourseAssignment(Integer courseAssignmentId, Integer userId, AssignCourseDto assignCourseDto) {
+    private GcContentGroupCourseAssignment updateCourseAssignment(Integer courseAssignmentId, Integer userId,
+                                                                  AssignCourseDto assignCourseDto) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment = getById(courseAssignmentId);
 
         gcContentGroupCourseAssignmentMapping.update(contentGroupCourseAssignment, assignCourseDto, userId);
         updateById(contentGroupCourseAssignment);
+        return contentGroupCourseAssignment;
     }
 
     @Override
@@ -191,16 +196,24 @@ public class GcContentGroupCourseAssignmentServiceImpl
     }
 
     @Override
-    public void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId) {
+    @Transactional
+    public GroupCourseAssignmentDto assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto,
+                                                         Integer userId) {
         GcContentGroupCourseAssignment contentGroupCourseAssignment =
             this.baseMapper.findByCourseIdAndContentGroupId(assignCourseDto.getCourseId(), contentGroupId);
 
         if (contentGroupCourseAssignment == null) {
-            assignCourse(contentGroupId, assignCourseDto, userId);
-            return;
+            GcContentGroupCourseAssignment createdAssignment =
+                assignCourse(contentGroupId, assignCourseDto, userId);
+            GcContentGroupCourseAssignment byId = baseMapper.getById(createdAssignment.getId());
+            return gcContentGroupCourseAssignmentMapping.map(byId);
         }
 
-        updateCourseAssignment(contentGroupCourseAssignment.getId(), userId, assignCourseDto);
+        GcContentGroupCourseAssignment updatedAssignment =
+            updateCourseAssignment(contentGroupCourseAssignment.getId(), userId, assignCourseDto);
+        GcContentGroupCourseAssignment byId = baseMapper.getById(updatedAssignment.getId());
+
+        return gcContentGroupCourseAssignmentMapping.map(byId);
     }
 
     @Override

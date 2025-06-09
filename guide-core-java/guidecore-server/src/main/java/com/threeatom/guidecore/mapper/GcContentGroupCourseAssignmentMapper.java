@@ -12,7 +12,9 @@ public interface GcContentGroupCourseAssignmentMapper
         @Param("contentGroupId") Integer contentGroupId);
 
     GcContentGroupCourseAssignment findByCourseIdAndContentGroupId(
-        @Param("contentGroupId") Integer contentGroupId, @Param("courseId") Integer courseId);
+        @Param("courseId") Integer courseId, @Param("contentGroupId") Integer contentGroupId);
+
+    GcContentGroupCourseAssignment getById(@Param("id") Integer id);
 
     void removeByContentGroupIdAndCourseIds(
         @Param("contentGroupId") Integer contentGroupId, @Param("courseIds") List<Integer> courseIds);

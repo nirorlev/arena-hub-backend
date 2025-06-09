@@ -48,12 +48,13 @@ public class GroupController {
     }
 
     @PostMapping("/{groupCode}/course-assignments")
-    public ResponseEntity<Void> assignCourse(@PathVariable("groupCode") String groupCode,
+    public ResponseEntity<GroupCourseAssignmentDto> assignCourse(@PathVariable("groupCode") String groupCode,
                                              @RequestBody AssignCourseDto assignCourseDto,
                                              HttpServletRequest request) {
-        groupFacade.assignCourseToGroup(groupCode, assignCourseDto, getPortalUser(request));
+        GroupCourseAssignmentDto groupCourseAssignmentDto =
+            groupFacade.assignCourseToGroup(groupCode, assignCourseDto, getPortalUser(request));
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(groupCourseAssignmentDto);
     }
 
     @DeleteMapping("/{groupCode}/course-assignments/{courseId}")

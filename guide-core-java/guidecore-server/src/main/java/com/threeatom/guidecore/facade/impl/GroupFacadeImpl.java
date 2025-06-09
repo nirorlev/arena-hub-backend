@@ -1,6 +1,7 @@
 package com.threeatom.guidecore.facade.impl;
 
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.dto.request.AssignCourseDto;
@@ -65,14 +66,16 @@ public class GroupFacadeImpl implements GroupFacade {
     }
 
     @Override
-    public void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, PortalUser portalUser) {
+    public GroupCourseAssignmentDto assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto,
+                                                        PortalUser portalUser) {
         Optional<GcAccess> contentGroupOptional = contentGroupService.findContentGroupsByCode(groupCode);
-        contentGroupOptional.ifPresent(
-            contentGroup -> {
-                checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
-                courseAssignmentService.assignOrUpdateCourse(contentGroup.getId(), assignCourseDto,
-                    portalUser.getUserId());
-            });
+        if (contentGroupOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Group corresponding content group with was not found");
+        }
+
+        checkPermission(contentGroupOptional.get(), portalUser, PermitAction.MANAGE_CONTENT);
+        return courseAssignmentService.assignOrUpdateCourse(contentGroupOptional.get().getId(), assignCourseDto,
+            portalUser.getUserId());
     }
 
     @Override
