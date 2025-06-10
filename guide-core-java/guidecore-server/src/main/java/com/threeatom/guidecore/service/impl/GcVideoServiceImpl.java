@@ -175,32 +175,47 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 
 	@Override
 	@Transactional
-	public boolean deleteVideo(Integer vid) {
+	public void deleteVideo(Integer vid) {
 		//删除视频,先删除视频下面的所有的事件
 		eventService.deleteEventByVid(vid);
 
-		return this.removeById(vid);
+		Optional.ofNullable(this.getById(vid))
+			.ifPresent(video -> {
+				video.setIsDeleted(true);
+				this.updateById(video);
+			});
+	}
+
+	@Override
+	@Transactional
+	public void deleteVideos(List<Integer> videoIds) {
+		eventService.deleteEventByVids(videoIds);
+
+		QueryWrapper<GcVideo> queryWrapper = new QueryWrapper<>();
+		queryWrapper.in("id", videoIds);
+		GcVideo video = new GcVideo();
+		video.setIsDeleted(true);
+		this.update(video, queryWrapper);
 	}
 
 	@Override
 	@Transactional
 	public boolean deleteVideoBySubIds(List<Integer> subIds) {
-		QueryWrapper<GcVideo> queryWrapper=new QueryWrapper<GcVideo>();
+		QueryWrapper<GcVideo> queryWrapper= new QueryWrapper<>();
 		queryWrapper.select("id").in("sub_id", subIds);
 
-		List<GcVideo> list= this.list(queryWrapper);
-		if(list.size()<1) {
+		List<GcVideo> list = this.list(queryWrapper);
+		if (list.isEmpty()) {
 			return true;
 		}
-		List<Integer> videoIds= getVideoIds(list);
-		LOGGER.info(videoIds.size()+"   "+list.size());
-		//批量删除视频下的事件
+
+		GcVideo video = new GcVideo();
+		video.setIsDeleted(true);
+
+		List<Integer> videoIds = getVideoIds(list);
 		eventService.deleteEventByVids(videoIds);
 
-		//批量删除视频下的资源
-
-
-		return this.remove(queryWrapper);
+		return this.update(video, queryWrapper);
 	}
 
 	@Override

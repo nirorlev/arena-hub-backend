@@ -903,7 +903,14 @@ public class CourseServiceImpl extends ServiceImpl<CoursetMapper, Course> implem
             List<Integer> subIds = resultList.stream().map(Course::getId).collect(Collectors.toList());
             //删除ResultList中的Subject下面的视频
             videoService.deleteVideoBySubIds(subIds);
-            return this.removeByIds(subIds);
+
+            QueryWrapper<Course> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in("id", subIds);
+
+            Course course = new Course();
+            course.setIsDeleted(true);
+
+            return this.update(course, queryWrapper);
         }
 
         return true;

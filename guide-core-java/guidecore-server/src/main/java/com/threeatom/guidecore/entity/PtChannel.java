@@ -96,6 +96,8 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private List<SysFile> videoList;
 
+    private Boolean isDeleted;
+
     private OffsetDateTime updateTime;
 
     private OffsetDateTime createTime;

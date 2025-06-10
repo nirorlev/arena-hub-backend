@@ -1403,6 +1403,45 @@
                              constraintName="unique_item_type_item_id"/>
     </changeSet>
 
+
+    <changeSet id="add-is-deleted-for-course-channels-videos" author="vprokh">
+        <addColumn tableName="gc_video" schemaName="arena_hub">
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="courses" schemaName="arena_hub">
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="pt_channel" schemaName="arena_hub">
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-gc-video-is-deleted" author="vprokh">
+        <sql>
+            UPDATE gc_video
+            SET is_deleted = CASE
+                                 WHEN NOT EXISTS (
+                                     SELECT 1
+                                     FROM pt_channel_content
+                                     WHERE pt_channel_content.content_id = gc_video.id
+                                 )
+                                 AND NOT EXISTS (
+                                     SELECT 1
+                                     FROM course_content
+                                     WHERE course_content.content_id = gc_video.id
+                                 )
+                                 THEN true
+                             ELSE gc_video.is_deleted
+                    END;
+        </sql>
+    </changeSet>
+
     <changeSet id="create-teams-screens-feature-toggle" author="vprokh">
         <insert tableName="feature_toggle">
             <column name="name" value="teamsScreensEnabled"/>
