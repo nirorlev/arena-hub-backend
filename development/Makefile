@@ -11,7 +11,6 @@ export POSTGRES_USER=arena_user
 export POSTGRES_DB_NAME=arena_hub
 export POSTGRES_PORT=5432
 export GUIDE_API_PORT=9999
-export PDP_ADDRESS=http://pdp:7000
 export AWS_ROLE_SESSION_NAME=S3Upload
 export AWS_S3_BUCKET=bucket name
 export AWS_S3_REGION=eu-west-2

@@ -88,7 +88,6 @@ services:
       POSTGRES_DB_NAME: arena_hub
       POSTGRES_PORT: '5432'
       POSTGRES_SSL: 'false'
-      PERMIT_LICENSE_KEY: ${PERMIT_LICENSE_KEY}
       GUIDE_USER_STORE_PRIVATE_KEY: ${GUIDE_USER_STORE_PRIVATE_KEY}
       AWS_ROLE_SESSION_NAME: S3Upload
       AWS_S3_BUCKET: bucket name
@@ -96,8 +95,6 @@ services:
       AWS_IAM_ROLE: iam role
       GUIDE_USER_STORE_DOMAIN: storage-arena.dev.k8s.powtoon.com
       GUIDE_USER_STORE_KEY_PAIR_ID: ${GUIDE_USER_STORE_KEY_PAIR_ID}
-      PDP_API_KEY: ${PDP_API_KEY}
-      PDP_ADDRESS: http://pdp:7000
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       SENTRY_DSN: ${SENTRY_DSN}
       APP_ENV: local

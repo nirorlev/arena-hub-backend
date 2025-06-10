@@ -96,7 +96,6 @@ pipelines:
             trigger: manual
             script:
               - .ci/deploy.sh --env staging-ec
-              - .ci/permitio.sh copy_policies --src=dev-stable --dest=staging
 
     # For release/**,hotfix/** branches: automatically compile, build container image, push it to ECR,
     # deploy an image to staging-ec environment. Optionally deploy an image to prod-ec environment
@@ -109,7 +108,6 @@ pipelines:
         deployment: staging-ec
         script:
           - .ci/deploy.sh --env staging-ec
-          - .ci/permitio.sh copy_policies --src=dev-stable --dest=staging
     - step:
         name: Deploy to prod-ec
         image: atlassian/default-image:4
@@ -117,5 +115,3 @@ pipelines:
         trigger: manual
         script:
           - .ci/deploy.sh --env prod-ec
-          - .ci/permitio.sh copy_policies --src=production --dest=prod-backup # Backups production policies
-          - .ci/permitio.sh copy_policies --src=staging --dest=production
