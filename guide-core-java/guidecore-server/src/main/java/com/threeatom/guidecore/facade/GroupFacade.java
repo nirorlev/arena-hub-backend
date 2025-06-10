@@ -16,9 +16,9 @@ public interface GroupFacade {
 
     GroupResponseDto groups(PortalUser portalUser);
 
-    void assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, PortalUser portalUser);
+    GroupCourseAssignmentDto assignCourseToGroup(String groupCode, AssignCourseDto assignCourseDto, PortalUser portalUser);
 
-    void subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
+    GroupChannelSubscriptionDto subscribeChannelToGroup(String groupCode, SubscribeChannelDto subscribeChannelDto, PortalUser portalUser);
 
     Map<String, List<GroupCourseAssignmentDto>> groupCourseAssignments(String groupCode, PortalUser portalUser);
 

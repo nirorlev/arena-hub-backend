@@ -22,9 +22,9 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
 
     List<Integer> getCourseIdsByContentGroupId(Integer contentGroupId);
 
-    void assignCourse(AssignCourseDto assignCourseDto, Integer userId);
+    GcContentGroupCourseAssignment assignCourse(AssignCourseDto assignCourseDto, Integer userId);
 
-    void assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
+    GcContentGroupCourseAssignment assignCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
 
     void updateCourseAssignmentMandatoryOpposite(Integer courseId, Integer contentGroupId);
 
@@ -46,7 +46,7 @@ public interface GcContentGroupCourseAssignmentService extends IService<GcConten
 
     Set<Integer> getContentGroupIds(Integer courseId);
 
-    void assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
+    GroupCourseAssignmentDto assignOrUpdateCourse(Integer contentGroupId, AssignCourseDto assignCourseDto, Integer userId);
 
     List<GcContentGroupCourseAssignment> userCourseAssignments(PortalUser portalUser);
 }

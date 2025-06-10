@@ -22,6 +22,9 @@ public interface ContentGroupChannelSubscriptionService extends IService<Content
     void saveChannelSubscription(List<Integer> contentGroupIds, Integer channelId, Integer userId,
                                  boolean autoSubscribe);
 
+    ContentGroupChannelSubscription saveChannelSubscription(Integer contentGroupId, Integer channelId, Integer userId,
+                                                            boolean autoSubscribe);
+
     List<Integer> getSubscribedChannelIds(Integer contentGroupId);
 
     List<Integer> getSubscribedChannelIds(List<Integer> contentGroupIds);
@@ -32,6 +35,6 @@ public interface ContentGroupChannelSubscriptionService extends IService<Content
 
     Set<Integer> getContentGroupIds(Integer originChannelId);
 
-    void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
-                                   SubscribeChannelDto subscribeChannelDto);
+    GroupChannelSubscriptionDto subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
+                                                          SubscribeChannelDto subscribeChannelDto);
 }

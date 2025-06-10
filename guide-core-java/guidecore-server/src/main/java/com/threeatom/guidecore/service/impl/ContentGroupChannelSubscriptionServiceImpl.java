@@ -68,6 +68,16 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
+    public ContentGroupChannelSubscription saveChannelSubscription(Integer contentGroupId, Integer channelId,
+                                                                   Integer userId,
+                                                                   boolean autoSubscribe) {
+        ContentGroupChannelSubscription subscription =
+            createSubscription(contentGroupId, channelId, userId, autoSubscribe);
+        this.save(subscription);
+        return subscription;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Integer> getSubscribedChannelIds(Integer contentGroupId) {
         return getChannelIds(List.of(contentGroupId), true);
@@ -118,17 +128,24 @@ public class ContentGroupChannelSubscriptionServiceImpl
     }
 
     @Override
-    public void subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
-                                          SubscribeChannelDto subscribeChannelDto) {
+    public GroupChannelSubscriptionDto subscribeOrUpdateChannels(PortalUser portalUser, Integer contentGroupId,
+                                                                 SubscribeChannelDto subscribeChannelDto) {
         ContentGroupChannelSubscription contentGroupChannelSubscription = findByChannelAndContentGroupId(
             subscribeChannelDto.getChannelId(), contentGroupId);
 
         if (contentGroupChannelSubscription == null) {
-            saveChannelSubscription(List.of(contentGroupId), subscribeChannelDto.getChannelId(),
-                portalUser.getUserId(), subscribeChannelDto.getAutoSubscribe());
-            return;
+            ContentGroupChannelSubscription createdSubscription =
+                saveChannelSubscription(contentGroupId, subscribeChannelDto.getChannelId(),
+                    portalUser.getUserId(), subscribeChannelDto.getAutoSubscribe());
+            return contentGroupChannelSubscriptionMapping.map(baseMapper.getById(createdSubscription.getId()));
         }
 
+        updateChannelSubscription(subscribeChannelDto, contentGroupChannelSubscription);
+        return contentGroupChannelSubscriptionMapping.map(baseMapper.getById(contentGroupChannelSubscription.getId()));
+    }
+
+    private void updateChannelSubscription(SubscribeChannelDto subscribeChannelDto,
+                           ContentGroupChannelSubscription contentGroupChannelSubscription) {
         contentGroupChannelSubscriptionMapping.updateChannelSubscription(contentGroupChannelSubscription,
             subscribeChannelDto);
         updateById(contentGroupChannelSubscription);

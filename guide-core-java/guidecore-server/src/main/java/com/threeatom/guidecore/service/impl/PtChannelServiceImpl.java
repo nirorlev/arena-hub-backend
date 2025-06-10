@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.threeatom.common.exception.ForbiddenException;
+import com.threeatom.common.exception.ResourceNotFoundException;
 import com.threeatom.common.permissions.service.AuthorizationService;
 import com.threeatom.guidecore.constant.PermitAction;
 import com.threeatom.guidecore.constant.TableConstant;
@@ -738,6 +739,26 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
     @Override
     public List<PtChannel> searchSuggestedChannels(PortalUser portalUser) {
         return discoverableChannels(portalUser);
+    }
+
+    @Override
+    public ChannelDto getChannel(Integer channelId, PortalUser portalUser) {
+        PtChannel channel = getChannel(channelId);
+        if (!authorizationService.checkAccess(channel, PermitAction.VIEW, portalUser)) {
+            log.error("User {} does not have permission to view channel {}", portalUser.getUserId(), channelId);
+            throw new ForbiddenException("No permission to view this channel");
+        }
+        return channelMapping.map(channel);
+    }
+
+    private PtChannel getChannel(Integer channelId) {
+        PtChannel channel = baseMapper.getChannel(channelId);
+        if (channel == null) {
+            log.error("Failed to find channel with id {}", channelId);
+            throw new ResourceNotFoundException("Channel is not found");
+        }
+
+        return channel;
     }
 
     private Integer getPreviousAvailableVideoId(List<Integer> availableVideoIds, Integer videoId) {

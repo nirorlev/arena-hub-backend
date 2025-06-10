@@ -85,4 +85,6 @@ public interface PtChannelService extends IService<PtChannel> {
     List<PtChannel> searchChannels(String searchName, PortalUser portalUser);
 
     List<PtChannel> searchSuggestedChannels(PortalUser portalUser);
+
+    ChannelDto getChannel(Integer channelId, PortalUser portalUser);
 }

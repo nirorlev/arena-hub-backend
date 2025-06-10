@@ -69,11 +69,6 @@ sitemap:
   defaultId: 228
   siteUrl: guide.i10s.onearena.io
   
-permit:
-  apiKey: ${PDP_API_KEY}
-  pdpAddress: ${PDP_ADDRESS}
-  # 0 = on; 1 = off, do not call permit
-  permitSwitch: 0
 registercode: ${REGISTER_CODE}
 
 metaurl:
