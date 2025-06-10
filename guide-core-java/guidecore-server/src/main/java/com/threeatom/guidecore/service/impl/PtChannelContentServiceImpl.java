@@ -12,6 +12,7 @@ import com.threeatom.guidecore.entity.PtChannelContent;
 import com.threeatom.guidecore.mapper.PtchannelContentMapper;
 import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelContentService;
+import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.system.entity.SysFile;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,7 +25,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -40,6 +40,9 @@ public class PtChannelContentServiceImpl
     @Lazy
     @Autowired
     private GcVideoService videoService;
+    @Lazy
+    @Autowired
+    private PtChannelService channelService;
     private final AuthorizationService authorizationService;
 
     public void deleteContent(Integer fileId, Integer channelId) {
@@ -112,6 +115,9 @@ public class PtChannelContentServiceImpl
 
         updateBatchById(existingChannelContents);
         videoService.saveChannelContent(newChannelContent, channelId);
+        if (!newChannelContent.isEmpty()) {
+            channelService.updateLastContentUpdatedTime(channelId);
+        }
 
         for (PtChannelContent content : newChannelContent) {
             videoService.getVideoContent(content.getFileId()).ifPresent(videoContent -> {

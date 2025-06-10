@@ -32,6 +32,7 @@ import com.threeatom.guidecore.service.VideoThumbnailProvider;
 import com.threeatom.guidecore.util.PaginationUtil;
 import com.threeatom.system.entity.SysFile;
 import com.threeatom.system.service.SysFileService;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -288,6 +290,22 @@ public class GcUserSaveFolderServiceImpl extends ServiceImpl<GcUserSaveFolderMap
             baseMapper.discoverablePlaylists(portalUser.getUserId(), portalUser.getMasterId());
         playlists.forEach(this::setFirstVideoSnapshotUrl);
         return playlists;
+    }
+
+    @Override
+    @Transactional
+    public void updateLatestContentTime(List<Integer> playlistIds) {
+        if (CollectionUtils.isEmpty(playlistIds)) {
+            return;
+        }
+
+        QueryWrapper<GcUserSaveFolder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id", playlistIds);
+
+        GcUserSaveFolder playlist = new GcUserSaveFolder();
+        playlist.setLastContentUpdatedTime(OffsetDateTime.now());
+
+        update(playlist, queryWrapper);
     }
 
     private String latestPlaylistVideosCursor(List<GcVideo> videos) {

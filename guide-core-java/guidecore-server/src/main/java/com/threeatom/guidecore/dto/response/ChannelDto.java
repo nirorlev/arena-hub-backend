@@ -40,4 +40,7 @@ public class ChannelDto extends BasicChannelDto {
 
     @ApiModelProperty(value = "Last update time of the Channel")
     private OffsetDateTime updateTime;
+
+    @ApiModelProperty(value = "Last update time of the Channel's content")
+    private OffsetDateTime lastContentUpdatedTime;
 }

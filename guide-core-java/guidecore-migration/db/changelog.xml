@@ -1450,4 +1450,47 @@
         </insert>
     </changeSet>
 
+    <changeSet id="add-last-updated-time-to-channel" author="vprokh">
+        <addColumn tableName="pt_channel">
+            <column name="last_content_updated_time" type="timestamp with time zone"/>
+        </addColumn>
+
+        <sql>
+            UPDATE pt_channel
+            SET last_content_updated_time = (
+                SELECT MAX(create_time)
+                FROM pt_channel_content
+                WHERE pt_channel_content.channel_id = pt_channel.id
+            );
+
+            UPDATE pt_channel
+            SET last_content_updated_time = create_time
+            WHERE last_content_updated_time IS NULL;
+
+            ALTER TABLE pt_channel
+            ALTER COLUMN last_content_updated_time SET NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="add-last-updated-time-to-playlist" author="vprokh">
+        <addColumn tableName="gc_user_save_folder">
+            <column name="last_content_updated_time" type="timestamp with time zone"/>
+        </addColumn>
+
+        <sql>
+            UPDATE gc_user_save_folder
+            SET last_content_updated_time = (
+                SELECT MAX(create_time)
+                FROM gc_user_save_content
+                WHERE gc_user_save_content.folder_id = gc_user_save_folder.id
+            );
+
+            UPDATE gc_user_save_folder
+            SET last_content_updated_time = create_time
+            WHERE last_content_updated_time IS NULL;
+
+            ALTER TABLE gc_user_save_folder
+            ALTER COLUMN last_content_updated_time SET NOT NULL;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

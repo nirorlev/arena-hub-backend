@@ -199,6 +199,9 @@ public class PtChannel implements Serializable, TreeNodeEntity {
     @TableField(exist = false)
     private Integer contentCount;
 
+    @TableField(exist = false)
+    private OffsetDateTime lastContentUpdatedTime;
+
     public Boolean getIsPrivate() {
         return ChannelVisibilityFlag.PRIVATE.getValue().equals(visibleFlag);
     }

@@ -15,6 +15,7 @@ public interface PlaylistMapping {
 
     @Mapping(target = "size", source = "saveContentList", qualifiedByName = "mapPlaylistSize")
     @Mapping(target = "owner", source = "user")
+    @Mapping(target = "lastContentUpdatedTime", source = "lastContentUpdatedTime")
     PlaylistWithDetailsDto mapWithDetails(GcUserSaveFolder playlist);
 
     @Mapping(target = "owner", source = "user")
