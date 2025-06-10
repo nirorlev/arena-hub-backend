@@ -1156,7 +1156,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 																		   Integer playlistId,
 																		   PortalUser portalUser,
 																		   GcVideo video,
-																		   OffsetDateTime lastContentUpdateTime,
+																		   OffsetDateTime lastContentUpdatedTime,
 																		   GcUserSaveContent playlistContent) {
 		List<Integer> videoOriginSubscriberIds = getVideoOriginSubscriberIds(video, portalUser.getUserId());
 		List<GcUserSaveContent> videoContent = playlistService.findVideoContentByPlaylistId(playlistId);
@@ -1169,7 +1169,7 @@ public class GcVideoServiceImpl extends ServiceImpl<GcVideoMapper, GcVideo> impl
 		videoWithDetails.setNextAvailableVideoId(getNextAvailableVideoId(availableVideoIds, videoId));
 		videoWithDetails.setPrevAvailableVideoId(getPreviousAvailableVideoId(availableVideoIds, videoId));
 		videoWithDetails.getPlaylist().setSize(videoContent.size());
-		videoWithDetails.getPlaylist().setLastContentUpdateTime(lastContentUpdateTime);
+		videoWithDetails.getPlaylist().setLastContentUpdatedTime(lastContentUpdatedTime);
 		return videoWithDetails;
 	}
 

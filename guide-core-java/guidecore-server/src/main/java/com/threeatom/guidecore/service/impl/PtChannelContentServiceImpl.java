@@ -14,7 +14,6 @@ import com.threeatom.guidecore.service.GcVideoService;
 import com.threeatom.guidecore.service.PtChannelContentService;
 import com.threeatom.guidecore.service.PtChannelService;
 import com.threeatom.system.entity.SysFile;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -26,7 +25,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -118,7 +116,7 @@ public class PtChannelContentServiceImpl
         updateBatchById(existingChannelContents);
         videoService.saveChannelContent(newChannelContent, channelId);
         if (!newChannelContent.isEmpty()) {
-            channelService.updateLastContentUpdateTime(channelId);
+            channelService.updateLastContentUpdatedTime(channelId);
         }
 
         for (PtChannelContent content : newChannelContent) {

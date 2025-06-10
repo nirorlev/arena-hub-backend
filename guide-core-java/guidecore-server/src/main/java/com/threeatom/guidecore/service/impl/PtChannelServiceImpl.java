@@ -777,7 +777,7 @@ public class PtChannelServiceImpl extends ServiceImpl<PtchannelMapper, PtChannel
 
     @Override
     @Transactional
-    public void updateLastContentUpdateTime(Integer channelId) {
+    public void updateLastContentUpdatedTime(Integer channelId) {
         PtChannel channel = getChannel(channelId);
         channel.setLastContentUpdatedTime(OffsetDateTime.now());
         this.updateById(channel);

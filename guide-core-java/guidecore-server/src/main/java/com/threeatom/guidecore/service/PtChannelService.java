@@ -90,5 +90,5 @@ public interface PtChannelService extends IService<PtChannel> {
 
     ChannelDto getChannel(Integer channelId, PortalUser portalUser);
 
-    void updateLastContentUpdateTime(Integer channelId);
+    void updateLastContentUpdatedTime(Integer channelId);
 }

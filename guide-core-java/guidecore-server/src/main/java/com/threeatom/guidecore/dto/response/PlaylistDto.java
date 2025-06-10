@@ -29,5 +29,5 @@ public class PlaylistDto {
     private OffsetDateTime updateTime;
 
     @ApiModelProperty(value = "Last update time of the playlist's content")
-    private OffsetDateTime lastContentUpdateTime;
+    private OffsetDateTime lastContentUpdatedTime;
 }
