@@ -21,6 +21,8 @@ spring:
   mvc:
     #表示所有的访问都经过静态资源路径
     static-path-pattern: /**
+  pathmatch:
+    matching-strategy: path_pattern_parser
     
   profiles:
     active: ptreleasestage
